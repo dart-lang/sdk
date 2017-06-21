@@ -239,25 +239,6 @@ class ActiveClassScope {
     active_class_->member = NULL;
   }
 
-
-  ActiveClassScope(ActiveClass* active_class,
-                   Class* kernel_class,
-                   const dart::Class* klass)
-      : active_class_(active_class), saved_(*active_class) {
-    active_class_->kernel_class = kernel_class;
-    active_class_->klass = klass;
-    active_class_->member = NULL;
-
-    if (kernel_class != NULL) {
-      List<TypeParameter>& type_parameters = kernel_class->type_parameters();
-      active_class_->class_type_parameters = type_parameters.length();
-      active_class_->class_type_parameters_offset_start =
-          active_class_->class_type_parameters > 0
-              ? type_parameters[0]->kernel_offset()
-              : -1;
-    }
-  }
-
   ~ActiveClassScope() { *active_class_ = saved_; }
 
  private:
@@ -281,35 +262,6 @@ class ActiveMemberScope {
     active_class_->member_type_parameters = member_type_parameters;
     active_class_->member_type_parameters_offset_start =
         member_type_parameters_offset_start;
-  }
-
-  ActiveMemberScope(ActiveClass* active_class, Member* member)
-      : active_class_(active_class), saved_(*active_class) {
-    // The class and kernel_class is inherited.
-    active_class_->member = member;
-
-    active_class_->member_is_procedure = false;
-    active_class_->member_is_factory_procedure = false;
-    active_class_->member_type_parameters = 0;
-    active_class_->member_type_parameters_offset_start = -1;
-
-    if (member == NULL || !member->IsProcedure()) {
-      return;
-    }
-
-    Procedure* procedure = Procedure::Cast(member);
-    active_class_->member_is_procedure = true;
-    active_class->member_is_factory_procedure =
-        procedure->kind() == Procedure::kFactory;
-    if (procedure->function() != NULL) {
-      TypeParameterList& type_parameters =
-          procedure->function()->type_parameters();
-      if (type_parameters.length() > 0) {
-        active_class_->member_type_parameters = type_parameters.length();
-        active_class_->member_type_parameters_offset_start =
-            type_parameters.first_offset;
-      }
-    }
   }
 
   ~ActiveMemberScope() { *active_class_ = saved_; }
@@ -407,6 +359,7 @@ class TranslationHelper {
   const dart::String& DartGetterName(NameIndex parent, StringIndex getter);
 
   const dart::String& DartFieldName(Name* kernel_name);
+  const dart::String& DartFieldName(NameIndex parent, StringIndex field);
 
   const dart::String& DartInitializerName(Name* kernel_name);
 
@@ -454,99 +407,6 @@ class TranslationHelper {
   TypedData& string_offsets_;
   TypedData& string_data_;
   TypedData& canonical_names_;
-};
-
-// Regarding malformed types:
-// The spec says in section "19.1 Static Types" roughly:
-//
-//   A type T is malformed iff:
-//     * T does not denote a type in scope
-//     * T refers to a type parameter in a static member
-//     * T is a parametrized Type G<T1, ...> and G is malformed
-//     * T denotes declarations from multiple imports
-//
-// Any use of a malformed type gives rise to a static warning.  A malformed
-// type is then interpreted as dynamic by the static type checker and the
-// runtime unless explicitly specified otherwise.
-class DartTypeTranslator : public DartTypeVisitor {
- public:
-  DartTypeTranslator(TranslationHelper* helper,
-                     ActiveClass* active_class,
-                     bool finalize = false)
-      : translation_helper_(*helper),
-        active_class_(active_class),
-        type_parameter_scope_(NULL),
-        zone_(helper->zone()),
-        result_(AbstractType::Handle(helper->zone())),
-        finalize_(finalize) {}
-
-  // Can return a malformed type.
-  AbstractType& TranslateType(DartType* node);
-
-  // Can return a malformed type.
-  AbstractType& TranslateTypeWithoutFinalization(DartType* node);
-
-  // Is guaranteed to be not malformed.
-  const AbstractType& TranslateVariableType(VariableDeclaration* variable);
-
-
-  virtual void VisitDefaultDartType(DartType* node) { UNREACHABLE(); }
-
-  virtual void VisitInvalidType(InvalidType* node);
-
-  virtual void VisitFunctionType(FunctionType* node);
-
-  virtual void VisitTypeParameterType(TypeParameterType* node);
-
-  virtual void VisitInterfaceType(InterfaceType* node);
-
-  virtual void VisitDynamicType(DynamicType* node);
-
-  virtual void VisitVoidType(VoidType* node);
-
-  virtual void VisitBottomType(BottomType* node);
-
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
-  const TypeArguments& TranslateInstantiatedTypeArguments(
-      const dart::Class& receiver_class,
-      DartType** receiver_type_arguments,
-      intptr_t length);
-
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
-  const TypeArguments& TranslateTypeArguments(DartType** dart_types,
-                                              intptr_t length);
-
-  const Type& ReceiverType(const dart::Class& klass);
-
- private:
-  class TypeParameterScope {
-   public:
-    TypeParameterScope(DartTypeTranslator* translator,
-                       List<TypeParameter>* parameters)
-        : parameters_(parameters),
-          outer_(translator->type_parameter_scope_),
-          translator_(translator) {
-      translator_->type_parameter_scope_ = this;
-    }
-    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
-
-    TypeParameterScope* outer() const { return outer_; }
-    List<TypeParameter>* parameters() const { return parameters_; }
-
-   private:
-    List<TypeParameter>* parameters_;
-    TypeParameterScope* outer_;
-    DartTypeTranslator* translator_;
-  };
-
-  TranslationHelper& translation_helper_;
-  ActiveClass* active_class_;
-  TypeParameterScope* type_parameter_scope_;
-  Zone* zone_;
-  AbstractType& result_;
-  bool finalize_;
 };
 
 
@@ -867,14 +727,12 @@ class FlowGraphBuilder {
   CatchBlock* catch_block_;
 
   ActiveClass active_class_;
-  DartTypeTranslator type_translator_;
 
   StreamingFlowGraphBuilder* streaming_flow_graph_builder_;
 
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
-  friend class DartTypeTranslator;
   friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;
   friend class SwitchBlock;
@@ -990,11 +848,9 @@ class TryCatchBlock {
 class TryFinallyBlock {
  public:
   TryFinallyBlock(FlowGraphBuilder* builder,
-                  Statement* finalizer,
                   intptr_t finalizer_kernel_offset)
       : builder_(builder),
         outer_(builder->try_finally_block_),
-        finalizer_(finalizer),
         finalizer_kernel_offset_(finalizer_kernel_offset),
         context_depth_(builder->context_depth_),
         // Finalizers are executed outside of the try block hence
@@ -1006,7 +862,6 @@ class TryFinallyBlock {
   }
   ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }
 
-  Statement* finalizer() const { return finalizer_; }
   intptr_t finalizer_kernel_offset() const { return finalizer_kernel_offset_; }
   intptr_t context_depth() const { return context_depth_; }
   intptr_t try_depth() const { return try_depth_; }
@@ -1016,7 +871,6 @@ class TryFinallyBlock {
  private:
   FlowGraphBuilder* const builder_;
   TryFinallyBlock* const outer_;
-  Statement* const finalizer_;
   intptr_t finalizer_kernel_offset_;
   const intptr_t context_depth_;
   const intptr_t try_depth_;

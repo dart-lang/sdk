@@ -347,8 +347,8 @@ void StreamingScopeBuilder::VisitProcedure() {
 void StreamingScopeBuilder::VisitField() {
   FieldHelper field_helper(builder_);
   field_helper.ReadUntilExcluding(FieldHelper::kType);
-  VisitDartType();                         // read type.
-  Tag tag = builder_->ReadTag();           // read initializer (part 1).
+  VisitDartType();                // read type.
+  Tag tag = builder_->ReadTag();  // read initializer (part 1).
   if (tag == kSomething) {
     VisitExpression();  // read initializer (part 2).
   }
@@ -1084,7 +1084,8 @@ void StreamingScopeBuilder::VisitTypeParameterType() {
   }
 
   builder_->ReadUInt();              // read index for parameter.
-  builder_->ReadUInt();              // read binary offset.
+  builder_->ReadUInt();              // read list binary offset.
+  builder_->ReadUInt();              // read index in list.
   builder_->SkipOptionalDartType();  // read bound bound.
 }
 
@@ -1156,7 +1157,7 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(intptr_t pos) {
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbol(helper.name_index_);
-  AbstractType& type = T.BuildVariableType();                    // read type.
+  AbstractType& type = T.BuildVariableType();  // read type.
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
 
@@ -1557,37 +1558,17 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   result_ = signature_type.raw();
 }
 
-intptr_t StreamingDartTypeTranslator::FindTypeParameterIndex(
-    intptr_t parameters_offset,
-    intptr_t parameters_count,
-    intptr_t look_for) {
-  AlternativeReadingScope alt(builder_->reader_, parameters_offset);
-  for (intptr_t i = 0; i < parameters_count; ++i) {
-    if (look_for == builder_->ReaderOffset()) {
-      return i;
-    }
-    builder_->SkipStringReference();  // read string index (name).
-    builder_->SkipDartType();         // read dart type.
-  }
-  return -1;
-}
-
 void StreamingDartTypeTranslator::BuildTypeParameterType() {
   builder_->ReadUInt();                           // read parameter index.
-  intptr_t binary_offset = builder_->ReadUInt();  // read binary offset.
+  intptr_t binary_offset = builder_->ReadUInt();  // read lists binary offset.
+  intptr_t list_index = builder_->ReadUInt();     // read index in list.
   builder_->SkipOptionalDartType();               // read bound.
 
-  if (binary_offset == 0) {
-    // TODO(jensj): This doesn't appear to actually happen.
-    UNIMPLEMENTED();
-    return;
-  }
+  ASSERT(binary_offset > 0);
 
   for (TypeParameterScope* scope = type_parameter_scope_; scope != NULL;
        scope = scope->outer()) {
-    const intptr_t index = FindTypeParameterIndex(
-        scope->parameters_offset(), scope->parameters_count(), binary_offset);
-    if (index >= 0) {
+    if (scope->parameters_offset() == binary_offset) {
       result_ ^= dart::Type::DynamicType();
       return;
     }
@@ -1613,16 +1594,13 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
       //     static A.x<T'>() { return new B<T'>(); }
       //   }
       //
-      const intptr_t index = FindTypeParameterIndex(
-          active_class_->member_type_parameters_offset_start,
-          active_class_->member_type_parameters, binary_offset);
-      if (index >= 0) {
+      if (active_class_->member_type_parameters_offset_start == binary_offset) {
         if (active_class_->member_is_factory_procedure) {
           // The index of the type parameter in [parameters] is
           // the same index into the `klass->type_parameters()` array.
           result_ ^= dart::TypeArguments::Handle(
                          Z, active_class_->klass->type_parameters())
-                         .TypeAt(index);
+                         .TypeAt(list_index);
         } else {
           result_ ^= dart::Type::DynamicType();
         }
@@ -1631,15 +1609,12 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
     }
   }
 
-  const intptr_t index = FindTypeParameterIndex(
-      active_class_->class_type_parameters_offset_start,
-      active_class_->class_type_parameters, binary_offset);
-  if (index >= 0) {
+  if (active_class_->class_type_parameters_offset_start == binary_offset) {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
     result_ ^=
         dart::TypeArguments::Handle(Z, active_class_->klass->type_parameters())
-            .TypeAt(index);
+            .TypeAt(list_index);
     return;
   }
 
@@ -2721,7 +2696,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
         // Read ith variable declaration
         VariableDeclarationHelper helper(this);
         helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
-        Tag tag = ReadTag();    // read (first part of) initializer.
+        Tag tag = ReadTag();  // read (first part of) initializer.
         if (tag == kSomething) {
           // this will (potentially) read the initializer,
           // but reset the position.
@@ -2749,7 +2724,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
         // Read ith variable declaration
         VariableDeclarationHelper helper(this);
         helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
-        Tag tag = ReadTag();    // read (first part of) initializer.
+        Tag tag = ReadTag();  // read (first part of) initializer.
         if (tag == kSomething) {
           // this will (potentially) read the initializer,
           // but reset the position.
@@ -2929,7 +2904,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           VariableDeclarationHelper helper(this);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
           ASSERT(!helper.IsConst());
-          Tag tag = ReadTag();    // read (first part of) initializer.
+          Tag tag = ReadTag();  // read (first part of) initializer.
           if (tag != kSomething) {
             UNREACHABLE();
           }
@@ -3702,6 +3677,17 @@ const dart::String& StreamingFlowGraphBuilder::ReadNameAsGetterName() {
   }
 }
 
+const dart::String& StreamingFlowGraphBuilder::ReadNameAsFieldName() {
+  StringIndex name_index = ReadStringReference();  // read name index.
+  if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
+    NameIndex library_reference =
+        ReadCanonicalNameReference();  // read library index.
+    return H.DartFieldName(library_reference, name_index);
+  } else {
+    return H.DartFieldName(NameIndex(), name_index);
+  }
+}
+
 void StreamingFlowGraphBuilder::SkipStringReference() {
   ReadUInt();
 }
@@ -3733,7 +3719,8 @@ void StreamingFlowGraphBuilder::SkipDartType() {
       return;
     case kTypeParameterType:
       ReadUInt();              // read index for parameter.
-      ReadUInt();              // read binary offset.
+      ReadUInt();              // read list binary offset.
+      ReadUInt();              // read index in list.
       SkipOptionalDartType();  // read bound bound.
       return;
     default:
@@ -6469,7 +6456,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally() {
   // Fill in the body of the try.
   try_depth_inc();
   {
-    TryFinallyBlock tfb(flow_graph_builder_, NULL, finalizer_offset);
+    TryFinallyBlock tfb(flow_graph_builder_, finalizer_offset);
     TryCatchBlock tcb(flow_graph_builder_, try_handler_index);
     try_body += BuildStatement();  // read body.
   }
@@ -6893,7 +6880,7 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
     param_descriptor.SetAt(entry_start + Parser::kParameterIsFinalOffset,
                            helper.IsFinal() ? Bool::True() : Bool::False());
 
-    Tag tag = ReadTag();    // read (first part of) initializer.
+    Tag tag = ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {
       // this will (potentially) read the initializer, but reset the position.
       Instance& constant =

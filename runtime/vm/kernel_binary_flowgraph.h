@@ -87,6 +87,7 @@ class StreamingDartTypeTranslator {
   bool finalize_;
 
   friend class StreamingScopeBuilder;
+  friend class KernelReader;
 };
 
 
@@ -381,6 +382,7 @@ class StreamingFlowGraphBuilder {
   const dart::String& ReadNameAsMethodName();
   const dart::String& ReadNameAsGetterName();
   const dart::String& ReadNameAsSetterName();
+  const dart::String& ReadNameAsFieldName();
   void SkipStringReference();
   void SkipCanonicalNameReference();
   void SkipDartType();
@@ -615,6 +617,8 @@ class StreamingFlowGraphBuilder {
   friend class ProcedureHelper;
   friend class ClassHelper;
   friend class ConstructorHelper;
+  friend class SimpleExpressionConverter;
+  friend class KernelReader;
 };
 
 // Helper class that reads a kernel FunctionNode from binary.
@@ -1130,6 +1134,13 @@ class ConstructorHelper {
   void SetJustRead(Fields field) {
     next_read_ = field;
     ++next_read_;
+  }
+
+  bool IsExternal() {
+    return (flags_ & Constructor::kFlagExternal) == Constructor::kFlagExternal;
+  }
+  bool IsConst() {
+    return (flags_ & Constructor::kFlagConst) == Constructor::kFlagConst;
   }
 
   NameIndex canonical_name_;

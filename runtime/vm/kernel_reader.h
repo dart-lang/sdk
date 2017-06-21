@@ -9,6 +9,7 @@
 #include <map>
 
 #include "vm/kernel.h"
+#include "vm/kernel_binary_flowgraph.h"
 #include "vm/kernel_to_il.h"
 #include "vm/object.h"
 
@@ -59,15 +60,7 @@ class KernelReader {
   // was no main procedure, or a failure object if there was an error.
   dart::Object& ReadProgram();
 
-  static void SetupFunctionParameters(TranslationHelper translation_helper_,
-                                      DartTypeTranslator type_translator_,
-                                      const dart::Class& owner,
-                                      const dart::Function& function,
-                                      FunctionNode* kernel_function,
-                                      bool is_method,
-                                      bool is_closure);
-
-  void ReadLibrary(Library* kernel_library);
+  void ReadLibrary(intptr_t kernel_offset);
 
   const dart::String& DartSymbol(StringIndex index) {
     return translation_helper_.DartSymbol(index);
@@ -78,14 +71,14 @@ class KernelReader {
  private:
   friend class BuildingTranslationHelper;
 
-  void ReadPreliminaryClass(dart::Class* klass, Class* kernel_klass);
+  void ReadPreliminaryClass(dart::Class* klass,
+                            ClassHelper* class_helper,
+                            intptr_t type_parameter_count);
   dart::Class& ReadClass(const dart::Library& library,
-                         const dart::Class& toplevel_class,
-                         Class* kernel_klass);
+                         const dart::Class& toplevel_class);
   void ReadProcedure(const dart::Library& library,
                      const dart::Class& owner,
-                     Procedure* procedure,
-                     Class* kernel_klass = NULL);
+                     bool in_class);
 
   RawArray* MakeFunctionsArray();
 
@@ -99,7 +92,8 @@ class KernelReader {
 
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,
-                              Field* kernel_field);
+                              FieldHelper* field_helper,
+                              intptr_t field_offset);
 
   void SetupFieldAccessorFunction(const dart::Class& klass,
                                   const dart::Function& function);
@@ -107,7 +101,8 @@ class KernelReader {
   dart::Library& LookupLibrary(NameIndex library);
   dart::Class& LookupClass(NameIndex klass);
 
-  dart::RawFunction::Kind GetFunctionType(Procedure* kernel_procedure);
+  dart::RawFunction::Kind GetFunctionType(
+      Procedure::ProcedureKind procedure_kind);
 
   Program* program_;
 
@@ -117,7 +112,7 @@ class KernelReader {
   Array& scripts_;
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
-  DartTypeTranslator type_translator_;
+  StreamingFlowGraphBuilder builder_;
 
   Mapping<dart::Library> libraries_;
   Mapping<dart::Class> classes_;

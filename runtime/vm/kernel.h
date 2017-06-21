@@ -120,10 +120,6 @@
   M(TreeNode)                                                                  \
   KERNEL_TREE_NODES_DO(M)
 
-#define KERNEL_VISITORS_DO(M)                                                  \
-  M(ExpressionVisitor)                                                         \
-  M(DartTypeVisitor)                                                           \
-
 namespace dart {
 
 class Field;
@@ -356,7 +352,6 @@ class NameIndex {
 // Forward declare all classes.
 #define DO(name) class name;
 KERNEL_ALL_NODES_DO(DO)
-KERNEL_VISITORS_DO(DO)
 #undef DO
 
 
@@ -972,7 +967,6 @@ class Expression : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(Expression);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor) = 0;
   TokenPosition position() { return position_; }
   void set_position(TokenPosition position) { position_ = position; }
 
@@ -993,8 +987,6 @@ class InvalidExpression : public Expression {
 
   DEFINE_CASTING_OPERATIONS(InvalidExpression);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
  private:
   InvalidExpression() {}
 
@@ -1010,8 +1002,6 @@ class VariableGet : public Expression {
   virtual ~VariableGet();
 
   DEFINE_CASTING_OPERATIONS(VariableGet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
 
@@ -1033,8 +1023,6 @@ class VariableSet : public Expression {
   virtual ~VariableSet();
 
   DEFINE_CASTING_OPERATIONS(VariableSet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
   Expression* expression() { return expression_; }
@@ -1058,8 +1046,6 @@ class PropertyGet : public Expression {
 
   DEFINE_CASTING_OPERATIONS(PropertyGet);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* receiver() { return receiver_; }
   Name* name() { return name_; }
 
@@ -1081,8 +1067,6 @@ class PropertySet : public Expression {
   virtual ~PropertySet();
 
   DEFINE_CASTING_OPERATIONS(PropertySet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* receiver() { return receiver_; }
   Name* name() { return name_; }
@@ -1108,8 +1092,6 @@ class DirectPropertyGet : public Expression {
 
   DEFINE_CASTING_OPERATIONS(DirectPropertyGet);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* receiver() { return receiver_; }
   NameIndex target() { return target_reference_; }
 
@@ -1130,8 +1112,6 @@ class DirectPropertySet : public Expression {
   virtual ~DirectPropertySet();
 
   DEFINE_CASTING_OPERATIONS(DirectPropertySet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   NameIndex target() { return target_reference_; }
   Expression* receiver() { return receiver_; }
@@ -1156,8 +1136,6 @@ class StaticGet : public Expression {
 
   DEFINE_CASTING_OPERATIONS(StaticGet);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   NameIndex target() { return target_reference_; }
 
  private:
@@ -1176,8 +1154,6 @@ class StaticSet : public Expression {
   virtual ~StaticSet();
 
   DEFINE_CASTING_OPERATIONS(StaticSet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   NameIndex target() { return target_reference_; }
   Expression* expression() { return expression_; }
@@ -1250,8 +1226,6 @@ class MethodInvocation : public Expression {
 
   DEFINE_CASTING_OPERATIONS(MethodInvocation);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* receiver() { return receiver_; }
   Name* name() { return name_; }
   Arguments* arguments() { return arguments_; }
@@ -1276,8 +1250,6 @@ class DirectMethodInvocation : public Expression {
 
   DEFINE_CASTING_OPERATIONS(DirectMethodInvocation);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* receiver() { return receiver_; }
   NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
@@ -1299,8 +1271,6 @@ class StaticInvocation : public Expression {
   ~StaticInvocation();
 
   DEFINE_CASTING_OPERATIONS(StaticInvocation);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   NameIndex procedure() { return procedure_reference_; }
   Arguments* arguments() { return arguments_; }
@@ -1325,8 +1295,6 @@ class ConstructorInvocation : public Expression {
 
   DEFINE_CASTING_OPERATIONS(ConstructorInvocation);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   bool is_const() { return is_const_; }
   NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
@@ -1350,8 +1318,6 @@ class Not : public Expression {
 
   DEFINE_CASTING_OPERATIONS(Not);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* expression() { return expression_; }
 
  private:
@@ -1372,8 +1338,6 @@ class LogicalExpression : public Expression {
   virtual ~LogicalExpression();
 
   DEFINE_CASTING_OPERATIONS(LogicalExpression);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* left() { return left_; }
   Operator op() { return operator_; }
@@ -1398,8 +1362,6 @@ class ConditionalExpression : public Expression {
 
   DEFINE_CASTING_OPERATIONS(ConditionalExpression);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* condition() { return condition_; }
   Expression* then() { return then_; }
   Expression* otherwise() { return otherwise_; }
@@ -1423,8 +1385,6 @@ class StringConcatenation : public Expression {
 
   DEFINE_CASTING_OPERATIONS(StringConcatenation);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   List<Expression>& expressions() { return expressions_; }
 
  private:
@@ -1443,8 +1403,6 @@ class IsExpression : public Expression {
   virtual ~IsExpression();
 
   DEFINE_CASTING_OPERATIONS(IsExpression);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* operand() { return operand_; }
   DartType* type() { return type_; }
@@ -1466,8 +1424,6 @@ class AsExpression : public Expression {
   virtual ~AsExpression();
 
   DEFINE_CASTING_OPERATIONS(AsExpression);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* operand() { return operand_; }
   DartType* type() { return type_; }
@@ -1494,8 +1450,6 @@ class StringLiteral : public BasicLiteral {
  public:
   static StringLiteral* ReadFrom(Reader* reader);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   explicit StringLiteral(StringIndex string_index)
       : value_index_(string_index) {}
   virtual ~StringLiteral();
@@ -1517,8 +1471,6 @@ class StringLiteral : public BasicLiteral {
 class BigintLiteral : public StringLiteral {
  public:
   static BigintLiteral* ReadFrom(Reader* reader);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   explicit BigintLiteral(StringIndex string_index)
       : StringLiteral(string_index) {}
@@ -1542,8 +1494,6 @@ class IntLiteral : public BasicLiteral {
 
   DEFINE_CASTING_OPERATIONS(IntLiteral);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   int64_t value() { return value_; }
 
  private:
@@ -1562,8 +1512,6 @@ class DoubleLiteral : public BasicLiteral {
   virtual ~DoubleLiteral();
 
   DEFINE_CASTING_OPERATIONS(DoubleLiteral);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   StringIndex value() { return value_index_; }
 
@@ -1584,8 +1532,6 @@ class BoolLiteral : public BasicLiteral {
 
   DEFINE_CASTING_OPERATIONS(BoolLiteral);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   bool value() { return value_; }
 
  private:
@@ -1605,8 +1551,6 @@ class NullLiteral : public BasicLiteral {
 
   DEFINE_CASTING_OPERATIONS(NullLiteral);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
  private:
   NullLiteral() {}
 
@@ -1621,8 +1565,6 @@ class SymbolLiteral : public Expression {
   virtual ~SymbolLiteral();
 
   DEFINE_CASTING_OPERATIONS(SymbolLiteral);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   StringIndex value() { return value_index_; }
 
@@ -1643,8 +1585,6 @@ class TypeLiteral : public Expression {
 
   DEFINE_CASTING_OPERATIONS(TypeLiteral);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   DartType* type() { return type_; }
 
  private:
@@ -1664,8 +1604,6 @@ class ThisExpression : public Expression {
 
   DEFINE_CASTING_OPERATIONS(ThisExpression);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
  private:
   ThisExpression() {}
 
@@ -1681,8 +1619,6 @@ class Rethrow : public Expression {
 
   DEFINE_CASTING_OPERATIONS(Rethrow);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
  private:
   Rethrow() {}
 
@@ -1697,8 +1633,6 @@ class Throw : public Expression {
   virtual ~Throw();
 
   DEFINE_CASTING_OPERATIONS(Throw);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* expression() { return expression_; }
 
@@ -1718,8 +1652,6 @@ class ListLiteral : public Expression {
   virtual ~ListLiteral();
 
   DEFINE_CASTING_OPERATIONS(ListLiteral);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   bool is_const() { return is_const_; }
   DartType* type() { return type_; }
@@ -1743,8 +1675,6 @@ class MapLiteral : public Expression {
   virtual ~MapLiteral();
 
   DEFINE_CASTING_OPERATIONS(MapLiteral);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   bool is_const() { return is_const_; }
   DartType* key_type() { return key_type_; }
@@ -1795,8 +1725,6 @@ class AwaitExpression : public Expression {
 
   DEFINE_CASTING_OPERATIONS(AwaitExpression);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* operand() { return operand_; }
 
  private:
@@ -1816,8 +1744,6 @@ class FunctionExpression : public Expression {
 
   DEFINE_CASTING_OPERATIONS(FunctionExpression);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   FunctionNode* function() { return function_; }
 
  private:
@@ -1836,8 +1762,6 @@ class Let : public Expression {
   virtual ~Let();
 
   DEFINE_CASTING_OPERATIONS(Let);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
   Expression* body() { return body_; }
@@ -1866,8 +1790,6 @@ class VectorCreation : public Expression {
 
   DEFINE_CASTING_OPERATIONS(VectorCreation);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   intptr_t value() { return value_; }
 
  private:
@@ -1886,8 +1808,6 @@ class VectorGet : public Expression {
   virtual ~VectorGet();
 
   DEFINE_CASTING_OPERATIONS(VectorGet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* vector_expression() { return vector_expression_; }
   intptr_t index() { return index_; }
@@ -1909,8 +1829,6 @@ class VectorSet : public Expression {
   virtual ~VectorSet();
 
   DEFINE_CASTING_OPERATIONS(VectorSet);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   Expression* vector_expression() { return vector_expression_; }
   intptr_t index() { return index_; }
@@ -1935,8 +1853,6 @@ class VectorCopy : public Expression {
 
   DEFINE_CASTING_OPERATIONS(VectorCopy);
 
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-
   Expression* vector_expression() { return vector_expression_; }
 
  private:
@@ -1955,8 +1871,6 @@ class ClosureCreation : public Expression {
   virtual ~ClosureCreation();
 
   DEFINE_CASTING_OPERATIONS(ClosureCreation);
-
-  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
   NameIndex top_level_function() { return top_level_function_reference_; }
   Expression* context_vector() { return context_vector_; }
@@ -2537,8 +2451,6 @@ class DartType : public Node {
 
   DEFINE_CASTING_OPERATIONS(DartType);
 
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor) = 0;
-
  protected:
   DartType() {}
 
@@ -2555,8 +2467,6 @@ class InvalidType : public DartType {
 
   DEFINE_CASTING_OPERATIONS(InvalidType);
 
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-
  private:
   InvalidType() {}
 
@@ -2571,8 +2481,6 @@ class DynamicType : public DartType {
   virtual ~DynamicType();
 
   DEFINE_CASTING_OPERATIONS(DynamicType);
-
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
 
  private:
   DynamicType() {}
@@ -2589,8 +2497,6 @@ class VoidType : public DartType {
 
   DEFINE_CASTING_OPERATIONS(VoidType);
 
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-
  private:
   VoidType() {}
 
@@ -2605,8 +2511,6 @@ class BottomType : public DartType {
   virtual ~BottomType();
 
   DEFINE_CASTING_OPERATIONS(BottomType);
-
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
 
  private:
   BottomType() {}
@@ -2625,8 +2529,6 @@ class InterfaceType : public DartType {
   virtual ~InterfaceType();
 
   DEFINE_CASTING_OPERATIONS(InterfaceType);
-
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
 
   NameIndex klass() { return class_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
@@ -2650,8 +2552,6 @@ class TypedefType : public DartType {
   virtual ~TypedefType();
 
   DEFINE_CASTING_OPERATIONS(TypedefType);
-
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
 
   NameIndex typedef_reference() { return typedef_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
@@ -2695,8 +2595,6 @@ class FunctionType : public DartType {
 
   DEFINE_CASTING_OPERATIONS(FunctionType);
 
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-
   TypeParameterList& type_parameters() { return type_parameters_; }
   int required_parameter_count() { return required_parameter_count_; }
   List<DartType>& positional_parameters() { return positional_parameters_; }
@@ -2724,8 +2622,6 @@ class TypeParameterType : public DartType {
 
   DEFINE_CASTING_OPERATIONS(TypeParameterType);
 
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-
   TypeParameter* parameter() { return parameter_; }
 
  private:
@@ -2744,8 +2640,6 @@ class VectorType : public DartType {
   virtual ~VectorType();
 
   DEFINE_CASTING_OPERATIONS(VectorType);
-
-  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
 
  private:
   VectorType() {}
@@ -2819,150 +2713,6 @@ class Reference : public AllStatic {
   static NameIndex ReadClassFrom(Reader* reader, bool allow_null = false);
   static NameIndex ReadTypedefFrom(Reader* reader);
   static NameIndex ReadLibraryFrom(Reader* reader);
-};
-
-
-class ExpressionVisitor {
- public:
-  virtual ~ExpressionVisitor() {}
-
-  virtual void VisitDefaultExpression(Expression* node) = 0;
-  virtual void VisitDefaultBasicLiteral(BasicLiteral* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitInvalidExpression(InvalidExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitVariableGet(VariableGet* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitVariableSet(VariableSet* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitPropertyGet(PropertyGet* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitPropertySet(PropertySet* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitDirectPropertyGet(DirectPropertyGet* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitDirectPropertySet(DirectPropertySet* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitStaticGet(StaticGet* node) { VisitDefaultExpression(node); }
-  virtual void VisitStaticSet(StaticSet* node) { VisitDefaultExpression(node); }
-  virtual void VisitMethodInvocation(MethodInvocation* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitDirectMethodInvocation(DirectMethodInvocation* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitStaticInvocation(StaticInvocation* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitConstructorInvocation(ConstructorInvocation* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitNot(Not* node) { VisitDefaultExpression(node); }
-  virtual void VisitLogicalExpression(LogicalExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitConditionalExpression(ConditionalExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitStringConcatenation(StringConcatenation* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitIsExpression(IsExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitAsExpression(AsExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitSymbolLiteral(SymbolLiteral* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitTypeLiteral(TypeLiteral* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitThisExpression(ThisExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitRethrow(Rethrow* node) { VisitDefaultExpression(node); }
-  virtual void VisitThrow(Throw* node) { VisitDefaultExpression(node); }
-  virtual void VisitListLiteral(ListLiteral* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitMapLiteral(MapLiteral* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitAwaitExpression(AwaitExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitFunctionExpression(FunctionExpression* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitStringLiteral(StringLiteral* node) {
-    VisitDefaultBasicLiteral(node);
-  }
-  virtual void VisitBigintLiteral(BigintLiteral* node) {
-    VisitDefaultBasicLiteral(node);
-  }
-  virtual void VisitIntLiteral(IntLiteral* node) {
-    VisitDefaultBasicLiteral(node);
-  }
-  virtual void VisitDoubleLiteral(DoubleLiteral* node) {
-    VisitDefaultBasicLiteral(node);
-  }
-  virtual void VisitBoolLiteral(BoolLiteral* node) {
-    VisitDefaultBasicLiteral(node);
-  }
-  virtual void VisitNullLiteral(NullLiteral* node) {
-    VisitDefaultBasicLiteral(node);
-  }
-  virtual void VisitLet(Let* node) { VisitDefaultExpression(node); }
-  virtual void VisitVectorCreation(VectorCreation* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitVectorGet(VectorGet* node) { VisitDefaultExpression(node); }
-  virtual void VisitVectorSet(VectorSet* node) { VisitDefaultExpression(node); }
-  virtual void VisitVectorCopy(VectorCopy* node) {
-    VisitDefaultExpression(node);
-  }
-  virtual void VisitClosureCreation(ClosureCreation* node) {
-    VisitDefaultExpression(node);
-  }
-};
-
-
-class DartTypeVisitor {
- public:
-  virtual ~DartTypeVisitor() {}
-
-  virtual void VisitDefaultDartType(DartType* node) = 0;
-  virtual void VisitInvalidType(InvalidType* node) {
-    VisitDefaultDartType(node);
-  }
-  virtual void VisitDynamicType(DynamicType* node) {
-    VisitDefaultDartType(node);
-  }
-  virtual void VisitVoidType(VoidType* node) { VisitDefaultDartType(node); }
-  virtual void VisitBottomType(BottomType* node) { VisitDefaultDartType(node); }
-  virtual void VisitInterfaceType(InterfaceType* node) {
-    VisitDefaultDartType(node);
-  }
-  virtual void VisitFunctionType(FunctionType* node) {
-    VisitDefaultDartType(node);
-  }
-  virtual void VisitTypeParameterType(TypeParameterType* node) {
-    VisitDefaultDartType(node);
-  }
-  virtual void VisitVectorType(VectorType* node) { VisitDefaultDartType(node); }
-  virtual void VisitTypedefType(TypedefType* node) {
-    VisitDefaultDartType(node);
-  }
 };
 
 

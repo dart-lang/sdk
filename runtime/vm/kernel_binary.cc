@@ -174,6 +174,7 @@ void SourceTable::ReadFrom(Reader* reader) {
 
 Library* Library::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  kernel_offset_ = reader->offset();  // no tag.
   int flags = reader->ReadFlags();
   ASSERT(flags == 0);  // external libraries not supported
   kernel_data_ = reader->buffer();
@@ -1606,7 +1607,8 @@ TypeParameterType* TypeParameterType::ReadFrom(Reader* reader) {
   TypeParameterType* type = new TypeParameterType();
   type->parameter_ =
       reader->helper()->type_parameters().Lookup(reader->ReadUInt());
-  reader->ReadUInt();  // binary offset of parameter
+  reader->ReadUInt();  // binary offset of parameter list
+  reader->ReadUInt();  // index of parameter
   // There is an optional promoted bound, currently ignored.
   delete reader->ReadOptional<DartType>();
   return type;

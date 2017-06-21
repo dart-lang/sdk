@@ -96,74 +96,28 @@ Expression::~Expression() {}
 InvalidExpression::~InvalidExpression() {}
 
 
-void InvalidExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitInvalidExpression(this);
-}
-
-
-
 VariableGet::~VariableGet() {}
-
-
-void VariableGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitVariableGet(this);
-}
 
 
 VariableSet::~VariableSet() {}
 
 
-void VariableSet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitVariableSet(this);
-}
-
-
 PropertyGet::~PropertyGet() {}
-
-
-void PropertyGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitPropertyGet(this);
-}
 
 
 PropertySet::~PropertySet() {}
 
 
-void PropertySet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitPropertySet(this);
-}
-
-
 DirectPropertyGet::~DirectPropertyGet() {}
-
-
-void DirectPropertyGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitDirectPropertyGet(this);
-}
 
 
 DirectPropertySet::~DirectPropertySet() {}
 
 
-void DirectPropertySet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitDirectPropertySet(this);
-}
-
-
 StaticGet::~StaticGet() {}
 
 
-void StaticGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitStaticGet(this);
-}
-
-
 StaticSet::~StaticSet() {}
-
-
-void StaticSet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitStaticSet(this);
-}
 
 
 Arguments::~Arguments() {}
@@ -175,84 +129,31 @@ NamedExpression::~NamedExpression() {}
 MethodInvocation::~MethodInvocation() {}
 
 
-void MethodInvocation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitMethodInvocation(this);
-}
-
-
 DirectMethodInvocation::~DirectMethodInvocation() {}
-
-
-void DirectMethodInvocation::AcceptExpressionVisitor(
-    ExpressionVisitor* visitor) {
-  visitor->VisitDirectMethodInvocation(this);
-}
 
 
 StaticInvocation::~StaticInvocation() {}
 
 
-void StaticInvocation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitStaticInvocation(this);
-}
-
-
 ConstructorInvocation::~ConstructorInvocation() {}
-
-
-void ConstructorInvocation::AcceptExpressionVisitor(
-    ExpressionVisitor* visitor) {
-  visitor->VisitConstructorInvocation(this);
-}
 
 
 Not::~Not() {}
 
 
-void Not::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitNot(this);
-}
-
-
 LogicalExpression::~LogicalExpression() {}
-
-
-void LogicalExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitLogicalExpression(this);
-}
 
 
 ConditionalExpression::~ConditionalExpression() {}
 
 
-void ConditionalExpression::AcceptExpressionVisitor(
-    ExpressionVisitor* visitor) {
-  visitor->VisitConditionalExpression(this);
-}
-
-
 StringConcatenation::~StringConcatenation() {}
-
-
-void StringConcatenation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitStringConcatenation(this);
-}
 
 
 IsExpression::~IsExpression() {}
 
 
-void IsExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitIsExpression(this);
-}
-
-
 AsExpression::~AsExpression() {}
-
-
-void AsExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitAsExpression(this);
-}
 
 
 BasicLiteral::~BasicLiteral() {}
@@ -261,105 +162,40 @@ BasicLiteral::~BasicLiteral() {}
 StringLiteral::~StringLiteral() {}
 
 
-void StringLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitStringLiteral(this);
-}
-
-
 BigintLiteral::~BigintLiteral() {}
-
-
-void BigintLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitBigintLiteral(this);
-}
 
 
 IntLiteral::~IntLiteral() {}
 
 
-void IntLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitIntLiteral(this);
-}
-
-
 DoubleLiteral::~DoubleLiteral() {}
-
-
-void DoubleLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitDoubleLiteral(this);
-}
 
 
 BoolLiteral::~BoolLiteral() {}
 
 
-void BoolLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitBoolLiteral(this);
-}
-
-
 NullLiteral::~NullLiteral() {}
-
-
-void NullLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitNullLiteral(this);
-}
 
 
 SymbolLiteral::~SymbolLiteral() {}
 
 
-void SymbolLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitSymbolLiteral(this);
-}
-
-
 TypeLiteral::~TypeLiteral() {}
-
-
-void TypeLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitTypeLiteral(this);
-}
 
 
 ThisExpression::~ThisExpression() {}
 
 
-void ThisExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitThisExpression(this);
-}
-
-
 Rethrow::~Rethrow() {}
-
-
-void Rethrow::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitRethrow(this);
-}
 
 
 Throw::~Throw() {}
 
 
-void Throw::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitThrow(this);
-}
-
-
 ListLiteral::~ListLiteral() {}
 
 
-void ListLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitListLiteral(this);
-}
-
-
 MapLiteral::~MapLiteral() {}
-
-
-void MapLiteral::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitMapLiteral(this);
-}
 
 
 MapEntry::~MapEntry() {}
@@ -368,65 +204,25 @@ MapEntry::~MapEntry() {}
 AwaitExpression::~AwaitExpression() {}
 
 
-void AwaitExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitAwaitExpression(this);
-}
-
-
 FunctionExpression::~FunctionExpression() {}
-
-
-void FunctionExpression::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitFunctionExpression(this);
-}
 
 
 Let::~Let() {}
 
 
-void Let::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitLet(this);
-}
-
-
 VectorCreation::~VectorCreation() {}
-
-
-void VectorCreation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitVectorCreation(this);
-}
 
 
 VectorGet::~VectorGet() {}
 
 
-void VectorGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitVectorGet(this);
-}
-
-
 VectorSet::~VectorSet() {}
-
-
-void VectorSet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitVectorSet(this);
-}
 
 
 VectorCopy::~VectorCopy() {}
 
 
-void VectorCopy::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitVectorCopy(this);
-}
-
-
 ClosureCreation::~ClosureCreation() {}
-
-
-void ClosureCreation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
-  visitor->VisitClosureCreation(this);
-}
 
 
 Statement::~Statement() {}
@@ -507,73 +303,28 @@ DartType::~DartType() {}
 InvalidType::~InvalidType() {}
 
 
-void InvalidType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitInvalidType(this);
-}
-
-
 DynamicType::~DynamicType() {}
-
-
-void DynamicType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitDynamicType(this);
-}
 
 
 VoidType::~VoidType() {}
 
 
-void VoidType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitVoidType(this);
-}
-
-
 BottomType::~BottomType() {}
-
-
-void BottomType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitBottomType(this);
-}
 
 
 InterfaceType::~InterfaceType() {}
 
 
-void InterfaceType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitInterfaceType(this);
-}
-
-
 TypedefType::~TypedefType() {}
-
-
-void TypedefType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitTypedefType(this);
-}
 
 
 FunctionType::~FunctionType() {}
 
 
-void FunctionType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitFunctionType(this);
-}
-
-
 TypeParameterType::~TypeParameterType() {}
 
 
-void TypeParameterType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitTypeParameterType(this);
-}
-
-
 VectorType::~VectorType() {}
-
-
-void VectorType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
-  visitor->VisitVectorType(this);
-}
 
 
 TypeParameter::~TypeParameter() {}
