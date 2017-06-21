@@ -541,9 +541,3 @@ cc/Parser_AllocateVariables_Issue7681: Crash
 cc/Parser_AllocateVariables_MiddleChain: Crash
 cc/Parser_AllocateVariables_NestedCapturedVar: Crash
 cc/Parser_AllocateVariables_TwoChains: Crash
-cc/Profiler_BasicSourcePosition: Crash
-cc/Profiler_BasicSourcePositionOptimized: Crash
-cc/Profiler_BinaryOperatorSourcePosition: Crash
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Crash
-cc/Profiler_SourcePosition: Crash
-cc/Profiler_SourcePositionOptimized: Crash
