@@ -2856,7 +2856,9 @@ class Function : public Object {
 
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
+  // The parent is the enclosing function or null if none.
   static RawFunction* NewSignatureFunction(const Object& owner,
+                                           const Function& parent,
                                            TokenPosition token_pos,
                                            Heap::Space space = Heap::kOld);
 

@@ -591,7 +591,11 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
           // The parent function, owner, and token position of a shared
           // canonical function type are meaningless, since the canonical
           // representent is picked arbitrarily.
-          signature.set_parent_function(Function::Handle());
+          // The parent function is however still required to finalize function
+          // type parameters when the function has a generic parent.
+          if (!signature.HasGenericParent()) {
+            signature.set_parent_function(Function::Handle());
+          }
           // TODO(regis): As long as we support metadata in typedef signatures,
           // we cannot reset these fields used to reparse a typedef.
           // Note that the scope class of a typedef function type is always

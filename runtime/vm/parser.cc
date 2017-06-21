@@ -2235,10 +2235,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // signature functions (except typedef signature functions), therefore
       // we do not need to keep the correct script via a patch class. Use the
       // actual current class as owner of the signature function.
-      Function& signature_function =
-          Function::Handle(Z, Function::NewSignatureFunction(
-                                  current_class(), TokenPosition::kNoSource));
-      signature_function.set_parent_function(innermost_function());
+      Function& signature_function = Function::Handle(
+          Z,
+          Function::NewSignatureFunction(current_class(), innermost_function(),
+                                         TokenPosition::kNoSource));
       innermost_function_ = signature_function.raw();
 
       // Finish parsing the function type parameter.
@@ -5438,8 +5438,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
         Z, ParseFunctionType(result_type, ClassFinalizer::kDoNotResolve));
     signature_function = function_type.signature();
   } else {
-    signature_function =
-        Function::NewSignatureFunction(function_type_alias, alias_name_pos);
+    signature_function = Function::NewSignatureFunction(
+        function_type_alias, Function::Handle(Z), alias_name_pos);
     innermost_function_ = signature_function.raw();
     ParamList params;
     // Parse the formal parameters of the function type.
@@ -13311,10 +13311,9 @@ RawType* Parser::ParseFunctionType(
   }
   do {
     ConsumeToken();
-    const Function& signature_function =
-        Function::Handle(Z, Function::NewSignatureFunction(
-                                current_class(), TokenPosition::kNoSource));
-    signature_function.set_parent_function(innermost_function());
+    const Function& signature_function = Function::Handle(
+        Z, Function::NewSignatureFunction(current_class(), innermost_function(),
+                                          TokenPosition::kNoSource));
     innermost_function_ = signature_function.raw();
     signature_function.set_result_type(type);
     // Parse optional type parameters.

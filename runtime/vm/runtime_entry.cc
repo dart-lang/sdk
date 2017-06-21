@@ -390,7 +390,8 @@ static void PrintTypeCheck(const char* message,
 
   const AbstractType& instance_type =
       AbstractType::Handle(instance.GetType(Heap::kNew));
-  ASSERT(instance_type.IsInstantiated());
+  ASSERT(instance_type.IsInstantiated() ||
+         (instance.IsClosure() && instance_type.IsInstantiated(kCurrentClass)));
   if (type.IsInstantiated()) {
     OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n", message,
                  String::Handle(instance_type.Name()).ToCString(),

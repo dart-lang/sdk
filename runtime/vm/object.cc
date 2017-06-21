@@ -6525,10 +6525,11 @@ RawFunction* Function::InstantiateSignatureFrom(
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
+  const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
   Function& sig = Function::Handle(
-      zone,
-      Function::NewSignatureFunction(owner, TokenPosition::kNoSource, space));
+      zone, Function::NewSignatureFunction(owner, parent,
+                                           TokenPosition::kNoSource, space));
   sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
@@ -6919,6 +6920,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
+                                            const Function& parent,
                                             TokenPosition token_pos,
                                             Heap::Space space) {
   const Function& result = Function::Handle(Function::New(
@@ -6930,6 +6932,7 @@ RawFunction* Function::NewSignatureFunction(const Object& owner,
       /* is_native = */ false,
       owner,  // Same as function type scope class.
       token_pos, space));
+  result.set_parent_function(parent);
   result.set_is_reflectable(false);
   result.set_is_visible(false);
   result.set_is_debuggable(false);
@@ -16815,9 +16818,22 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // TODO(regis): Should we update TypeParameter::IsEquivalent() instead?
       if (type_param.IsFunctionTypeParameter() &&
           other_type_param.IsFunctionTypeParameter() &&
-          type_param.IsFinalized() && other_type_param.IsFinalized() &&
-          (type_param.index() == other_type_param.index())) {
-        return true;
+          type_param.IsFinalized() && other_type_param.IsFinalized()) {
+        // To be compatible, the function type parameters should be declared at
+        // the same position in the generic function. Their index therefore
+        // needs adjustement before comparison.
+        // Example: 'foo<F>(bar<B>(B b)) { }' and 'baz<Z>(Z z) { }', baz can be
+        // assigned to bar, although B has index 1 and Z index 0.
+        const Function& sig_fun =
+            Function::Handle(zone, type_param.parameterized_function());
+        const Function& other_sig_fun =
+            Function::Handle(zone, other_type_param.parameterized_function());
+        const int offset = sig_fun.NumParentTypeParameters();
+        const int other_offset = other_sig_fun.NumParentTypeParameters();
+        if (type_param.index() - offset ==
+            other_type_param.index() - other_offset) {
+          return true;
+        }
       }
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
@@ -17445,8 +17461,10 @@ RawAbstractType* Type::CloneUnfinalized() const {
   Function& fun = Function::Handle(zone, signature());
   if (!fun.IsNull()) {
     const Class& owner = Class::Handle(zone, fun.Owner());
-    Function& fun_clone = Function::Handle(
-        zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
+    const Function& parent = Function::Handle(zone, fun.parent_function());
+    Function& fun_clone =
+        Function::Handle(zone, Function::NewSignatureFunction(
+                                   owner, parent, TokenPosition::kNoSource));
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, fun.type_parameters());
     if (!type_params.IsNull()) {
@@ -17513,9 +17531,11 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     ASSERT(type_cls.IsTypedefClass() || type_cls.IsClosureClass());
     // If the scope class is not a typedef and if it is generic, it must be the
     // mixin class, set it to the new owner.
+    const Function& parent = Function::Handle(zone, fun.parent_function());
+    // TODO(regis): Is it safe to reuse the parent function with the old owner?
     Function& fun_clone = Function::Handle(
-        zone,
-        Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
+        zone, Function::NewSignatureFunction(new_owner, parent,
+                                             TokenPosition::kNoSource));
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, fun.type_parameters());
     if (!type_params.IsNull()) {
@@ -17660,11 +17680,18 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     if (IsFunctionType()) {
       const Function& fun = Function::Handle(zone, signature());
       if (!fun.IsSignatureFunction()) {
-        Function& sig_fun = Function::Handle(
-            zone,
-            Function::NewSignatureFunction(cls, TokenPosition::kNoSource));
+        // In case of a generic function, the function type parameters in the
+        // signature will still refer to the original function. This should not
+        // be a problem, since they are finalized and the indices remain
+        // unchanged.
+        const Function& parent = Function::Handle(zone, fun.parent_function());
+        Function& sig_fun =
+            Function::Handle(zone, Function::NewSignatureFunction(
+                                       cls, parent, TokenPosition::kNoSource));
         sig_fun.set_type_parameters(
             TypeArguments::Handle(zone, fun.type_parameters()));
+        ASSERT(fun.HasGenericParent() == sig_fun.HasGenericParent());
+        ASSERT(fun.IsGeneric() == sig_fun.IsGeneric());
         type = fun.result_type();
         type = type.Canonicalize(trail);
         sig_fun.set_result_type(type);

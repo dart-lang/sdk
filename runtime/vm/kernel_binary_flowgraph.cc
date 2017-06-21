@@ -1480,8 +1480,9 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   TypeParameterScope scope(this, first_item_offest, list_length);
 
   Function& signature_function = Function::ZoneHandle(
-      Z, Function::NewSignatureFunction(*active_class_->klass,
-                                        TokenPosition::kNoSource));
+      Z,
+      Function::NewSignatureFunction(*active_class_->klass, Function::Handle(Z),
+                                     TokenPosition::kNoSource));
 
   intptr_t required_count;
   intptr_t all_count;
