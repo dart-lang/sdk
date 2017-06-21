@@ -104,10 +104,6 @@ const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map du
 map_literal3_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 map_literal6_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 
-cyclic_type_test/00: RuntimeError # KernelVM bug: Incorrect type argument.
-cyclic_type_test/01: RuntimeError # KernelVM bug: Incorrect type argument.
-cyclic_type_test/03: RuntimeError # KernelVM bug: Incorrect type argument.
-
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 
 for2_test: RuntimeError # KernelVM bug: Closure conversion?
@@ -122,11 +118,6 @@ mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: I
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
-
-mixin_mixin_type_arguments_test: RuntimeError # KernelVM bug: Issue 29537
-mixin_type_parameters_mixin_extends_test: RuntimeError # KernelVM bug: Issue 29537
-mixin_type_parameters_super_extends_test: RuntimeError # KernelVM bug: Issue 29537
-mixin_type_parameters_super_test: RuntimeError # KernelVM bug: Issue 29537
 
 redirecting_constructor_initializer_test: RuntimeError # Super is evaluated last; same result as source-based pipeline.
 

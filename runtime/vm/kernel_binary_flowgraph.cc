@@ -1651,7 +1651,7 @@ const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
   bool only_dynamic = true;
   intptr_t offset = builder_->ReaderOffset();
   for (intptr_t i = 0; i < length; ++i) {
-    if (builder_->ReadTag() != kDynamicType) {  // read ith type's tag.
+    if (builder_->ReadTag() != kDynamicType) {  // Read the ith types tag.
       only_dynamic = false;
       builder_->SetOffset(offset);
       break;
@@ -1662,12 +1662,9 @@ const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
     type_arguments = TypeArguments::New(length);
     for (intptr_t i = 0; i < length; ++i) {
       BuildTypeInternal();  // read ith type.
-      if (!result_.IsDynamicType()) {
-        only_dynamic = false;
-      }
       if (result_.IsMalformed()) {
         type_arguments = TypeArguments::null();
-        // skip rest of arguments.
+        // Skip the rest of the arguments.
         for (++i; i < length; ++i) {
           builder_->SkipDartType();
         }
@@ -1688,7 +1685,14 @@ StreamingDartTypeTranslator::BuildInstantiatedTypeArguments(
     const dart::Class& receiver_class,
     intptr_t length) {
   const TypeArguments& type_arguments = BuildTypeArguments(length);
-  if (type_arguments.IsNull()) return type_arguments;
+
+  // If type_arguments is null all arguments are dynamic.
+  // If, however, this class doesn't specify all the type arguments directly we
+  // still need to finalize the type below in order to get any non-dynamic types
+  // from any super. See http://www.dartbug.com/29537.
+  if (type_arguments.IsNull() && receiver_class.NumTypeArguments() == length) {
+    return type_arguments;
+  }
 
   // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
   // finalize the argument types.
@@ -5161,7 +5165,6 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   }
 
   if (klass.NumTypeArguments() > 0) {
-    const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     if (!klass.IsGeneric()) {
       Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
 
@@ -5176,6 +5179,8 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
           canonicalized_type_arguments.Canonicalize();
       instructions += Constant(canonicalized_type_arguments);
     } else {
+      const TypeArguments& type_arguments =
+          PeekArgumentsInstantiatedType(klass);
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
     }
 
