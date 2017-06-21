@@ -669,7 +669,8 @@ inline D bit_copy(const S& source) {
 template <typename T>
 static inline T ReadUnaligned(const T* ptr) {
   T value;
-  memcpy(&value, ptr, sizeof(value));
+  memcpy(reinterpret_cast<void*>(&value), reinterpret_cast<const void*>(ptr),
+         sizeof(value));
   return value;
 }
 
@@ -677,7 +678,8 @@ static inline T ReadUnaligned(const T* ptr) {
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
 template <typename T>
 static inline void StoreUnaligned(T* ptr, T value) {
-  memcpy(ptr, &value, sizeof(value));
+  memcpy(reinterpret_cast<void*>(ptr), reinterpret_cast<const void*>(&value),
+         sizeof(value));
 }
 #else   // !(HOST_ARCH_ARM || HOST_ARCH_MIPS || HOST_ARCH_ARM64)
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
