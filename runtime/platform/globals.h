@@ -663,6 +663,8 @@ inline D bit_copy(const S& source) {
 }
 
 
+#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS) ||                       \
+    defined(HOST_ARCH_ARM64)
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
 template <typename T>
 static inline T ReadUnaligned(const T* ptr) {
@@ -670,6 +672,27 @@ static inline T ReadUnaligned(const T* ptr) {
   memcpy(&value, ptr, sizeof(value));
   return value;
 }
+
+
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline void StoreUnaligned(T* ptr, T value) {
+  memcpy(ptr, &value, sizeof(value));
+}
+#else   // !(HOST_ARCH_ARM || HOST_ARCH_MIPS || HOST_ARCH_ARM64)
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline T ReadUnaligned(const T* ptr) {
+  return *ptr;
+}
+
+
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline void StoreUnaligned(T* ptr, T value) {
+  *ptr = value;
+}
+#endif  // !(HOST_ARCH_ARM || HOST_ARCH_MIPS || HOST_ARCH_ARM64)
 
 
 // On Windows the reentrent version of strtok is called
