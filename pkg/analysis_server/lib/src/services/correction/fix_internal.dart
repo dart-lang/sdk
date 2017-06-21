@@ -396,6 +396,10 @@ class FixProcessor {
       await _addFix_convertFlutterChild();
       await _addFix_convertFlutterChildren();
     }
+    if (errorCode ==
+        CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD) {
+      await _addFix_createField_initializingFormal();
+    }
     // lints
     if (errorCode is LintCode) {
       if (errorCode.name == LintNames.annotate_overrides) {
@@ -1181,7 +1185,7 @@ class FixProcessor {
     // prepare location
     ClassMemberLocation targetLocation =
         utils.prepareNewFieldLocation(targetClassNode);
-    // build method source
+    // build field source
     Source targetSource = targetClassElement.source;
     String targetFile = targetSource.fullName;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
@@ -1196,6 +1200,41 @@ class FixProcessor {
             nameGroupName: 'NAME',
             type: fieldType,
             typeGroupName: 'TYPE');
+        builder.write(targetLocation.suffix);
+      });
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FIELD, args: [name]);
+  }
+
+  Future<Null> _addFix_createField_initializingFormal() async {
+    //
+    // Ensure that we are in an initializing formal parameter.
+    //
+    FieldFormalParameter parameter =
+        node.getAncestor((node) => node is FieldFormalParameter);
+    if (parameter == null) {
+      return;
+    }
+    ClassDeclaration targetClassNode =
+        parameter.getAncestor((node) => node is ClassDeclaration);
+    if (targetClassNode == null) {
+      return;
+    }
+    SimpleIdentifier nameNode = parameter.identifier;
+    String name = nameNode.name;
+    ClassMemberLocation targetLocation =
+        utils.prepareNewFieldLocation(targetClassNode);
+    //
+    // Add proposal.
+    //
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
+    await changeBuilder.addFileEdit(file, fileStamp,
+        (DartFileEditBuilder builder) {
+      DartType fieldType = parameter.type?.type;
+      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+        builder.write(targetLocation.prefix);
+        builder.writeFieldDeclaration(name,
+            nameGroupName: 'NAME', type: fieldType, typeGroupName: 'TYPE');
         builder.write(targetLocation.suffix);
       });
     });
