@@ -60,10 +60,11 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t05: StaticWarning # Issue 15467
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t06: StaticWarning # Issue 15467
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t07: StaticWarning # Issue 15467
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t08: StaticWarning # Issue 15467
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: StaticWarning # co19 issue 88
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t05: StaticWarning # co19 issue 88
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t06: StaticWarning # co19 issue 88
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t07: StaticWarning # co19 issue 88
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t08: StaticWarning # co19 issue 88
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t03: StaticWarning # Please triage this failure.
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure.
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure.
