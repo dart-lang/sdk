@@ -1530,7 +1530,7 @@ class CodeGenerator extends Object
     var fnBody =
         js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
       _runtimeModule,
-      _declareMemberName(method, useDisplayName: true),
+      _declareMemberName(method, useDisplayName: false),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);

@@ -8,7 +8,11 @@ import 'dart:html';
 import 'package:expect/minitest.dart';
 
 class Mock {
-  noSuchMethod(Invocation i) => document;
+  noSuchMethod(Invocation i) {
+    if (this is Window) return document;
+    if (this is FileList) return new MockFile();
+    return null;
+  }
 }
 
 @proxy
@@ -38,6 +42,12 @@ class MockWindow extends Mock with _EventListeners implements Window {
 class MockLocation extends Mock implements Location {
   String href = "MOCK_HREF";
 }
+
+@proxy
+class MockFileList extends Mock implements FileList {}
+
+@proxy
+class MockFile extends Mock implements File {}
 
 main() {
   test('is', () {
@@ -77,5 +87,10 @@ main() {
     expect(win.onBlur is Stream, isTrue, reason: 'onBlur should be a stream');
     HtmlDocument doc = new MockHtmlDocument();
     expect(doc.onBlur is Stream, isTrue, reason: 'onBlur should be a stream');
+  });
+
+  test('operator', () {
+    var fileList = new MockFileList();
+    expect(fileList[1] is File, isTrue);
   });
 }
