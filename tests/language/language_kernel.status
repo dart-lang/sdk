@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 method_override_test: RuntimeError # Not triaged.
 runtime_type_function_test: RuntimeError # Not triaged.
 

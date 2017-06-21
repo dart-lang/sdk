@@ -9717,7 +9717,13 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
     SkipExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
-      SkipExpr();
+      if (CurrentToken() != Token::kRPAREN) {
+        SkipExpr();
+        if (CurrentToken() == Token::kCOMMA) {
+          // Allow trailing comma.
+          ConsumeToken();
+        }
+      }
     }
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -9734,12 +9740,18 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   TokenPosition message_pos = TokenPosition::kNoSource;
   if (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
-    message_pos = TokenPos();
-    message = ParseExpr(kAllowConst, kConsumeCascades);
-    if (is_const && !message->IsPotentiallyConst()) {
-      ReportError(
-          message_pos,
-          "initializer assert expression must be compile time constant.");
+    if (CurrentToken() != Token::kRPAREN) {
+      message_pos = TokenPos();
+      message = ParseExpr(kAllowConst, kConsumeCascades);
+      if (is_const && !message->IsPotentiallyConst()) {
+        ReportError(
+            message_pos,
+            "initializer assert expression must be compile time constant.");
+      }
+      if (CurrentToken() == Token::kCOMMA) {
+        // Allow trailing comma.
+        ConsumeToken();
+      }
     }
   }
   ExpectToken(Token::kRPAREN);

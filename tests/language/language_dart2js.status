@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 enum_test: Fail # Issue 28340
 regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
