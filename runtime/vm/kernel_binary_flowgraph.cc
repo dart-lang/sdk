@@ -866,7 +866,7 @@ void StreamingScopeBuilder::VisitStatement() {
 
         EnterScope(offset);
 
-        builder_->SkipDartType();   // read guard.
+        VisitDartType();            // Read the guard.
         tag = builder_->ReadTag();  // read first part of exception.
         if (tag == kSomething) {
           VisitVariableDeclaration();  // read exception.
@@ -6379,9 +6379,17 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       } else {
         catch_body += LoadLocal(CurrentException());
         catch_body += PushArgument();  // exception
-        catch_body += NullConstant();
+        if (!type_guard->IsInstantiated(kCurrentClass)) {
+          catch_body += LoadInstantiatorTypeArguments();
+        } else {
+          catch_body += NullConstant();
+        }
         catch_body += PushArgument();  // instantiator type arguments
-        catch_body += NullConstant();
+        if (!type_guard->IsInstantiated(kFunctions)) {
+          catch_body += LoadFunctionTypeArguments();
+        } else {
+          catch_body += NullConstant();
+        }
         catch_body += PushArgument();  // function type arguments
         catch_body += Constant(*type_guard);
         catch_body += PushArgument();  // guard type

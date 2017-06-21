@@ -126,8 +126,6 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test u
 
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 
-generic_field_mixin4_test: RuntimeError # KernelVM bug: Issue 29553
-
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 
 factory_redirection_test/07: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
