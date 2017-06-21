@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -64,7 +64,7 @@ class C implements B {}
     var resultA = await driver.getResult(p);
     ClassElement element = resultA.unit.element.types[0];
 
-    var searchEngine = new SearchEngineImpl2([driver]);
+    var searchEngine = new SearchEngineImpl([driver]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(3));
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
@@ -99,7 +99,7 @@ class C extends B {}
     var resultA = await driver1.getResult(a);
     ClassElement element = resultA.unit.element.types[0];
 
-    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
     expect(subtypes, hasLength(3));
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'A')));
@@ -138,7 +138,7 @@ int test;
       await new Future.delayed(new Duration(milliseconds: 1));
     }
 
-    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches =
         await searchEngine.searchMemberDeclarations('test');
     expect(matches, hasLength(2));
@@ -185,7 +185,7 @@ bar(p) {
     driver1.addFile(a);
     driver2.addFile(b);
 
-    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches =
         await searchEngine.searchMemberReferences('test');
     expect(matches, hasLength(2));
@@ -225,7 +225,7 @@ T b;
     var resultA = await driver1.getResult(a);
     ClassElement element = resultA.unit.element.types[0];
 
-    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(2));
     expect(
@@ -261,7 +261,7 @@ get b => 42;
       await new Future.delayed(new Duration(milliseconds: 1));
     }
 
-    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches =
         await searchEngine.searchTopLevelDeclarations('.*');
     expect(

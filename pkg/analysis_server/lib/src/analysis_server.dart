@@ -35,7 +35,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/context/context_root.dart';
@@ -481,7 +481,7 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
-    searchEngine = new SearchEngineImpl2(driverMap.values);
+    searchEngine = new SearchEngineImpl(driverMap.values);
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
