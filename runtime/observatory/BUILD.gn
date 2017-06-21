@@ -40,13 +40,11 @@ if (dart_host_pub_exe != "") {
     dart_host_pub_exe,
   ]
 } else if (!prebuilt_dart_exe_works) {
-  pub_build_deps += [ "../bin:dart_bootstrap_host_arch($host_toolchain)" ]
+  pub_build_deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
 
   dart_out_dir =
-      get_label_info("../bin:dart_bootstrap_host_arch($host_toolchain)",
-                     "root_out_dir")
-  dart_bootstrap =
-      rebase_path("$dart_out_dir/dart_bootstrap_host_arch$executable_suffix")
+      get_label_info("../bin:dart_bootstrap($host_toolchain)", "root_out_dir")
+  dart_bootstrap = rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
 
   pub_build_args = [
     "--sdk=True",
