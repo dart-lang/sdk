@@ -30,6 +30,22 @@ FunctionType substituteTypeParams(
       requiredParameterCount: type.requiredParameterCount);
 }
 
+/// Given a [FunctionType], gets the type of the named parameter with the given
+/// [name], or `dynamic` if there is no parameter with the given name.
+DartType getNamedParameterType(FunctionType functionType, String name) {
+  return functionType.getNamedParameter(name) ?? const DynamicType();
+}
+
+/// Given a [FunctionType], gets the type of the [i]th positional parameter, or
+/// `dynamic` if there is no parameter with that index.
+DartType getPositionalParameterType(FunctionType functionType, int i) {
+  if (i < functionType.positionalParameters.length) {
+    return functionType.positionalParameters[i];
+  } else {
+    return const DynamicType();
+  }
+}
+
 /// A constraint on a type parameter that we're inferring.
 class TypeConstraint {
   /// The lower bound of the type being constrained.  This bound must be a

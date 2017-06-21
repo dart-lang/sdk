@@ -288,18 +288,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// a previous call to [createTopLevelTypeInferrer].
   TypeInferrerImpl getMemberTypeInferrer(KernelMember member);
 
-  DartType getNamedParameterType(FunctionType functionType, String name) {
-    return functionType.getNamedParameter(name) ?? const DynamicType();
-  }
-
-  DartType getPositionalParameterType(FunctionType functionType, int i) {
-    if (i < functionType.positionalParameters.length) {
-      return functionType.positionalParameters[i];
-    } else {
-      return const DynamicType();
-    }
-  }
-
   /// Performs type inference on the given [accessorNode].
   void inferAccessor(AccessorNode accessorNode) {
     assert(accessorNode.state == InferenceState.NotInferredYet);

@@ -25,6 +25,7 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
@@ -816,10 +817,10 @@ class KernelFunctionExpression extends FunctionExpression
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
-              inferrer.getPositionalParameterType(typeContext, i);
+              getPositionalParameterType(typeContext, i);
         } else {
           formalTypesFromContext[i] =
-              inferrer.getNamedParameterType(typeContext, formals[i].name);
+              getNamedParameterType(typeContext, formals[i].name);
         }
       }
       returnContext = typeContext.returnType;

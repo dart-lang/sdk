@@ -461,18 +461,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// initializer.
   Expression getFieldInitializer(KernelField field);
 
-  DartType getNamedParameterType(FunctionType functionType, String name) {
-    return functionType.getNamedParameter(name) ?? const DynamicType();
-  }
-
-  DartType getPositionalParameterType(FunctionType functionType, int i) {
-    if (i < functionType.positionalParameters.length) {
-      return functionType.positionalParameters[i];
-    } else {
-      return const DynamicType();
-    }
-  }
-
   DartType getSetterType(Member interfaceMember, DartType receiverType) {
     if (receiverType is InterfaceType) {
       if (interfaceMember == null) return const DynamicType();
