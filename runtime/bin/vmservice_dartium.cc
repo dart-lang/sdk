@@ -24,9 +24,16 @@ namespace bin {
     return 0;                                                                  \
   }
 
-
-static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
+static const char* DART_IPV6_ONLY_FLAG = "DART_IPV6_ONLY";
+static const char* DEFAULT_VM_SERVICE_SERVER_IP_V6 = "::1";
+static const char* DEFAULT_VM_SERVICE_SERVER_IP_V4 = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 0;
+
+static bool IsIpv6Only() {
+  char* v = getenv(DART_IPV6_ONLY_FLAG);
+  if (!v) return 0;
+  return v[0] == '1';
+}
 
 void VmServiceServer::Bootstrap() {
   if (!Platform::Initialize()) {
@@ -59,7 +66,9 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(
-          DEFAULT_VM_SERVICE_SERVER_IP, DEFAULT_VM_SERVICE_SERVER_PORT,
+          IsIpv6Only() ? DEFAULT_VM_SERVICE_SERVER_IP_V6 :
+                 DEFAULT_VM_SERVICE_SERVER_IP_V4,
+          DEFAULT_VM_SERVICE_SERVER_PORT,
           false /* running_precompiled */, false /* disable origin checks */,
           false /* trace_loading */)) {
     fprintf(stderr, "Vmservice::Setup failed: %s\n",
