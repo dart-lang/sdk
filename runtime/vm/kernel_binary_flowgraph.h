@@ -476,7 +476,9 @@ class StreamingFlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
-  Fragment AllocateObject(const dart::Class& klass, intptr_t argument_count);
+  Fragment AllocateObject(TokenPosition position,
+                          const dart::Class& klass,
+                          intptr_t argument_count);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
   Fragment StringInterpolate(TokenPosition position);

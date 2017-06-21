@@ -409,10 +409,7 @@ cc/Parser_AllocateVariables_Issue7681: Fail
 cc/Parser_AllocateVariables_MiddleChain: Fail
 cc/Parser_AllocateVariables_NestedCapturedVar: Fail
 cc/Parser_AllocateVariables_TwoChains: Fail
-cc/Profiler_BasicSourcePositionOptimized: Fail, Crash
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail, Crash
 cc/Profiler_GetSourceReport: Fail
-cc/Profiler_SourcePositionOptimized: Fail, Crash
 cc/ScriptSnapshot1: Fail
 cc/ScriptSnapshot2: Crash
 cc/ScriptSnapshot: Crash
@@ -483,12 +480,9 @@ cc/InjectNativeFields3: Fail
 cc/Invoke: Fail
 cc/LargeMap: Fail
 cc/Profiler_ArrayAllocation: Fail
-cc/Profiler_BasicSourcePosition: Fail
-cc/Profiler_BinaryOperatorSourcePosition: Fail
 cc/Profiler_ClosureAllocation: Fail
 cc/Profiler_ContextAllocation: Fail
 cc/Profiler_IntrinsicAllocation: Fail
-cc/Profiler_SourcePosition: Fail
 cc/Profiler_StringAllocation: Fail
 cc/Profiler_StringInterpolation: Fail
 cc/Profiler_TypedArrayAllocation: Fail
@@ -508,12 +502,9 @@ cc/InjectNativeFields3: Crash
 cc/Invoke: Crash
 cc/LargeMap: Crash
 cc/Profiler_ArrayAllocation: Crash
-cc/Profiler_BasicSourcePosition: Crash
-cc/Profiler_BinaryOperatorSourcePosition: Crash
 cc/Profiler_ClosureAllocation: Crash
 cc/Profiler_ContextAllocation: Crash
 cc/Profiler_IntrinsicAllocation: Crash
-cc/Profiler_SourcePosition: Crash
 cc/Profiler_StringAllocation: Crash
 cc/Profiler_StringInterpolation: Crash
 cc/Profiler_TypedArrayAllocation: Crash

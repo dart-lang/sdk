@@ -951,11 +951,12 @@ Fragment FlowGraphBuilder::AllocateContext(int size) {
 }
 
 
-Fragment FlowGraphBuilder::AllocateObject(const dart::Class& klass,
+Fragment FlowGraphBuilder::AllocateObject(TokenPosition position,
+                                          const dart::Class& klass,
                                           intptr_t argument_count) {
   ArgumentArray arguments = GetArguments(argument_count);
   AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(TokenPosition::kNoSource, klass, arguments);
+      new (Z) AllocateObjectInstr(position, klass, arguments);
   Push(allocate);
   return Fragment(allocate);
 }
@@ -1558,7 +1559,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   Fragment instructions;
 
   // Create instance of _FallThroughError
-  instructions += AllocateObject(klass, 0);
+  instructions += AllocateObject(TokenPosition::kNoSource, klass, 0);
   LocalVariable* instance = MakeTemporary();
 
   // Call _TypeError._create constructor.

@@ -665,7 +665,9 @@ class FlowGraphBuilder {
       const TypeArguments& type_arguments);
 
   Fragment AllocateContext(int size);
-  Fragment AllocateObject(const dart::Class& klass, intptr_t argument_count);
+  Fragment AllocateObject(TokenPosition position,
+                          const dart::Class& klass,
+                          intptr_t argument_count);
   Fragment AllocateObject(const dart::Class& klass,
                           const Function& closure_function);
   Fragment BooleanNegate();

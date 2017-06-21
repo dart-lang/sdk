@@ -4418,9 +4418,10 @@ Fragment StreamingFlowGraphBuilder::StrictCompare(Token::Kind kind,
   return flow_graph_builder_->StrictCompare(kind, number_check);
 }
 
-Fragment StreamingFlowGraphBuilder::AllocateObject(const dart::Class& klass,
+Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
+                                                   const dart::Class& klass,
                                                    intptr_t argument_count) {
-  return flow_graph_builder_->AllocateObject(klass, argument_count);
+  return flow_graph_builder_->AllocateObject(position, klass, argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(TokenPosition position,
@@ -5059,9 +5060,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
           PeekArgumentsInstantiatedType(klass);
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
       instructions += PushArgument();
-      instructions += AllocateObject(klass, 1);
+      instructions += AllocateObject(position, klass, 1);
     } else {
-      instructions += AllocateObject(klass, 0);
+      instructions += AllocateObject(position, klass, 0);
     }
 
     instance_variable = MakeTemporary();
@@ -5179,9 +5180,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
     }
 
     instructions += PushArgument();
-    instructions += AllocateObject(klass, 1);
+    instructions += AllocateObject(position, klass, 1);
   } else {
-    instructions += AllocateObject(klass, 0);
+    instructions += AllocateObject(position, klass, 0);
   }
   LocalVariable* variable = MakeTemporary();
 
@@ -6069,7 +6070,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
           Heap::kOld);
 
       // Create instance of _FallThroughError
-      body_fragment += AllocateObject(klass, 0);
+      body_fragment += AllocateObject(TokenPosition::kNoSource, klass, 0);
       LocalVariable* instance = MakeTemporary();
 
       // Call _FallThroughError._create constructor.

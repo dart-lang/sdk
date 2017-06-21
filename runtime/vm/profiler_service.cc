@@ -2678,11 +2678,6 @@ const char* ProfileTrieWalker::CurrentToken() {
     // No script.
     return NULL;
   }
-  const TokenStream& token_stream = TokenStream::Handle(zone, script.tokens());
-  if (token_stream.IsNull()) {
-    // No token position.
-    return NULL;
-  }
   ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
   if (!func->GetSinglePosition(&pfsp)) {
     // Not exactly one source position.
@@ -2696,12 +2691,23 @@ const char* ProfileTrieWalker::CurrentToken() {
   if (token_pos.IsSynthetic()) {
     token_pos = token_pos.FromSynthetic();
   }
-  TokenStream::Iterator iterator(zone, token_stream, token_pos);
-  const String& str = String::Handle(zone, iterator.CurrentLiteral());
-  if (str.IsNull()) {
-    return NULL;
+
+  String& str = String::Handle(zone);
+  if (script.kind() == RawScript::kKernelTag) {
+    intptr_t line = 0, column = 0, token_len = 0;
+    script.GetTokenLocation(token_pos, &line, &column, &token_len);
+    str = script.GetSnippet(line, column, line, column + token_len);
+  } else {
+    const TokenStream& token_stream =
+        TokenStream::Handle(zone, script.tokens());
+    if (token_stream.IsNull()) {
+      // No token position.
+      return NULL;
+    }
+    TokenStream::Iterator iterator(zone, token_stream, token_pos);
+    str = iterator.CurrentLiteral();
   }
-  return str.ToCString();
+  return str.IsNull() ? NULL : str.ToCString();
 }
 
 bool ProfileTrieWalker::Down() {
