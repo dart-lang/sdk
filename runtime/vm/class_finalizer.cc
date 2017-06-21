@@ -980,12 +980,15 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 TypeArguments::Handle(ref_super_type_arg.arguments());
             // Mark as finalized before finalizing to avoid cycles.
             ref_super_type_arg.SetIsFinalized();
-            // Since the instantiator is different, do not pass the current
-            // instantiation trail, but create a new one by passing NULL.
+            // Although the instantiator is different between cls and super_cls,
+            // we still need to pass the current instantiation trail as to avoid
+            // divergence. Finalizing the type arguments of super_cls may indeed
+            // recursively require instantiating the same type_refs already
+            // present in the trail (see issue #29949).
             FinalizeTypeArguments(
                 super_cls, super_args,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
-                bound_error, pending_types, NULL);
+                bound_error, pending_types, instantiation_trail);
             if (FLAG_trace_type_finalization) {
               THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
                         String::Handle(super_type_arg.Name()).ToCString(),
