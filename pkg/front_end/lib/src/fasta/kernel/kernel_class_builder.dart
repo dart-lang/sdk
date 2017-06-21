@@ -195,7 +195,6 @@ abstract class KernelClassBuilder
       if (declaredMember.kind == ProcedureKind.Method &&
           interfaceMember.kind == ProcedureKind.Method) {
         checkMethodOverride(declaredMember, interfaceMember);
-        return;
       }
     }
     // TODO(ahe): Handle other cases: accessors, operators, and fields.

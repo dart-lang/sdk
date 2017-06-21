@@ -215,7 +215,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       int charEndOffset,
       [String nativeMethodName,
       this.redirectionTarget])
-      : procedure = new KernelProcedure(null, kind, null,
+      : procedure = new KernelProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
@@ -245,15 +245,19 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     }
   }
 
-  bool get isEligibleForGetterSetterInference {
+  bool get isEligibleForTopLevelInference {
     if (!isInstanceMember) return false;
-    if (isGetter) {
-      return returnType == null;
-    } else if (isSetter) {
-      return formals != null && formals.length > 0 && formals[0].type == null;
-    } else {
-      return false;
+    if (returnType == null) {
+      // For now, we skip inferred return types of setters.
+      // TODO(paulberry): fix this.
+      if (!isSetter) return true;
     }
+    if (formals != null) {
+      for (var formal in formals) {
+        if (formal.type == null) return true;
+      }
+    }
+    return false;
   }
 
   Procedure build(SourceLibraryBuilder library) {
@@ -269,7 +273,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
-    if (isEligibleForGetterSetterInference) {
+    if (isEligibleForTopLevelInference) {
       library.loader.typeInferenceEngine.recordMember(procedure);
     }
     return procedure;
@@ -280,7 +284,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   @override
   void prepareInitializerInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (isEligibleForGetterSetterInference) {
+    if (isEligibleForTopLevelInference) {
       var typeInferenceEngine = library.loader.typeInferenceEngine;
       var listener = new TypeInferenceListener();
       typeInferenceEngine.createTopLevelTypeInferrer(

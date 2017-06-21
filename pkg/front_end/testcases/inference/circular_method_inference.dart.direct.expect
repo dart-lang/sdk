@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f(dynamic x) → dynamic;
+}
+abstract class B extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f(dynamic x) → dynamic;
+}
+const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/circular_method_inference.dart:12:16: Error: 'A' is a supertype of itself via 'B', 'A'.\nabstract class A extends B {\n               ^"]/* from null */;
+static method main() → dynamic {}

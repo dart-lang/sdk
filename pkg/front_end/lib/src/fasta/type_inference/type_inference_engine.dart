@@ -10,7 +10,17 @@ import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
-    show Class, DartType, DynamicType, Field, InterfaceType, Member, Procedure;
+    show
+        Class,
+        DartType,
+        DynamicType,
+        Field,
+        FunctionType,
+        InterfaceType,
+        Member,
+        Procedure,
+        TypeParameter,
+        TypeParameterType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -28,9 +38,9 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
 
   bool isImmediatelyEvident = false;
 
-  AccessorState state = AccessorState.NotInferredYet;
+  InferenceState state = InferenceState.NotInferredYet;
 
-  /// If [state] is [AccessorState.Inferring], and type inference for this
+  /// If [state] is [InferenceState.Inferring], and type inference for this
   /// accessor is waiting on type inference of some other accessor, the accessor
   /// that is being waited on.
   ///
@@ -46,7 +56,7 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   get candidateOverrides => overrides.isNotEmpty ? overrides : crossOverrides;
 
   @override
-  bool get isEvaluated => state == AccessorState.Inferred;
+  bool get isEvaluated => state == InferenceState.Inferred;
 
   @override
   List<AccessorNode> computeDependencies() {
@@ -57,19 +67,34 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   String toString() => member.toString();
 }
 
-/// Enum tracking the type inference state of an accessor.
-enum AccessorState {
-  /// The accessor's type has not been inferred yet.
+/// Enum tracking the type inference state of an accessor or method.
+enum InferenceState {
+  /// The accessor or method's type has not been inferred yet.
   NotInferredYet,
 
-  /// Type inference is in progress for the accessor.
+  /// Type inference is in progress for the accessor or method.
   ///
   /// This means that code is currently on the stack which is attempting to
-  /// determine the type of the accessor.
+  /// determine the type of the accessor or method.
   Inferring,
 
-  /// The accessor's type has been inferred.
+  /// The accessor or method's type has been inferred.
   Inferred
+}
+
+/// Data structure for tracking dependencies among methods that require type
+/// inference.
+class MethodNode {
+  final KernelProcedure procedure;
+
+  InferenceState state = InferenceState.NotInferredYet;
+
+  final overrides = <Procedure>[];
+
+  MethodNode(this.procedure);
+
+  @override
+  String toString() => procedure.toString();
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
@@ -146,6 +171,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   final accessorNodes = <AccessorNode>[];
 
+  final methodNodes = <MethodNode>[];
+
   final initializingFormals = <KernelVariableDeclaration>[];
 
   @override
@@ -213,8 +240,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Creates an [AccessorNode] to track dependencies of the given [member].
   AccessorNode createAccessorNode(KernelMember member);
 
+  /// Creates a [MethodNode] to track dependencies of the given [procedure].
+  MethodNode createMethodNode(KernelProcedure procedure);
+
   @override
   void finishTopLevel() {
+    for (var methodNode in methodNodes) {
+      inferMethodIfNeeded(methodNode);
+    }
     for (var accessorNode in accessorNodes) {
       if (fusedTopLevelInference) {
         assert(expandedTopLevelInference);
@@ -233,10 +266,22 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// a previous call to [createTopLevelTypeInferrer].
   TypeInferrerImpl getMemberTypeInferrer(KernelMember member);
 
+  DartType getNamedParameterType(FunctionType functionType, String name) {
+    return functionType.getNamedParameter(name) ?? const DynamicType();
+  }
+
+  DartType getPositionalParameterType(FunctionType functionType, int i) {
+    if (i < functionType.positionalParameters.length) {
+      return functionType.positionalParameters[i];
+    } else {
+      return const DynamicType();
+    }
+  }
+
   /// Performs type inference on the given [accessorNode].
   void inferAccessor(AccessorNode accessorNode) {
-    assert(accessorNode.state == AccessorState.NotInferredYet);
-    accessorNode.state = AccessorState.Inferring;
+    assert(accessorNode.state == InferenceState.NotInferredYet);
+    accessorNode.state = InferenceState.Inferring;
     var member = accessorNode.member;
     if (strongMode) {
       var inferredType = tryInferAccessorByInheritance(accessorNode);
@@ -255,14 +300,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           inferredType = const DynamicType();
         }
       }
-      if (accessorNode.state == AccessorState.Inferred) {
+      if (accessorNode.state == InferenceState.Inferred) {
         // A circularity must have been detected; at the time it was detected,
         // inference for this node was completed.
         return;
       }
       member.setInferredType(this, typeInferrer.uri, inferredType);
     }
-    accessorNode.state = AccessorState.Inferred;
+    accessorNode.state = InferenceState.Inferred;
     // TODO(paulberry): if type != null, then check that the type of the
     // initializer is assignable to it.
     // TODO(paulberry): the following is a hack so that outlines don't contain
@@ -279,7 +324,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     var member = accessorNode.member;
     // TODO(paulberry): report the appropriate error.
     var uri = getMemberTypeInferrer(member).uri;
-    accessorNode.state = AccessorState.Inferred;
+    accessorNode.state = InferenceState.Inferred;
     member.setInferredType(this, uri, const DynamicType());
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
@@ -292,10 +337,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Performs fused type inference on the given [accessorNode].
   void inferAccessorFused(AccessorNode accessorNode, AccessorNode dependant) {
     switch (accessorNode.state) {
-      case AccessorState.Inferred:
+      case InferenceState.Inferred:
         // Already inferred.  Nothing to do.
         break;
-      case AccessorState.Inferring:
+      case InferenceState.Inferring:
         // An accessor depends on itself (possibly by way of intermediate
         // accessors).  Mark all accessors involved as circular and infer a type
         // of `dynamic` for them.
@@ -307,7 +352,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           node = nextNode;
         }
         break;
-      case AccessorState.NotInferredYet:
+      case InferenceState.NotInferredYet:
         // Mark the "dependant" accessor (if any) as depending on this one, and
         // invoke accessor inference for this node.
         dependant?.currentDependency = accessorNode;
@@ -315,6 +360,26 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         accessorNode.isImmediatelyEvident = true;
         inferAccessor(accessorNode);
         dependant?.currentDependency = null;
+        break;
+    }
+  }
+
+  /// Performs type inference on the given [methodNode].
+  void inferMethodIfNeeded(MethodNode methodNode) {
+    switch (methodNode.state) {
+      case InferenceState.Inferred:
+        // Already inferred.  Nothing to do.
+        break;
+      case InferenceState.Inferring:
+        // An method depends on itself (possibly by way of intermediate
+        // methods).  This should never happen, because it would require a
+        // circular class hierarchy (which Fasta prevents).
+        internalError('Circular method inference');
+        break;
+      case InferenceState.NotInferredYet:
+        methodNode.state = InferenceState.Inferring;
+        _inferMethod(methodNode);
+        methodNode.state = InferenceState.Inferred;
         break;
     }
   }
@@ -334,7 +399,11 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   void recordMember(KernelMember member) {
-    accessorNodes.add(createAccessorNode(member));
+    if (member is KernelProcedure && !member.isGetter && !member.isSetter) {
+      methodNodes.add(createMethodNode(member));
+    } else {
+      accessorNodes.add(createAccessorNode(member));
+    }
   }
 
   DartType tryInferAccessorByInheritance(AccessorNode accessorNode) {
@@ -351,6 +420,47 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       }
     }
     return inferredType;
+  }
+
+  List<FunctionType> _computeMethodOverriddenTypes(MethodNode methodNode) {
+    var overriddenTypes = <FunctionType>[];
+    for (var override in methodNode.overrides) {
+      MethodNode overrideNode = KernelProcedure.getMethodNode(override);
+      if (overrideNode != null) {
+        inferMethodIfNeeded(overrideNode);
+      }
+      if (override.function == null) {
+        // This can happen if there are errors.  Just skip this override.
+        continue;
+      }
+      var overriddenType = override.function.functionType;
+      var superclass = override.enclosingClass;
+      if (!superclass.typeParameters.isEmpty) {
+        var thisClass = methodNode.procedure.enclosingClass;
+        var superclassInstantiation = classHierarchy
+            .getClassAsInstanceOf(thisClass, superclass)
+            .asInterfaceType;
+        overriddenType = Substitution
+            .fromInterfaceType(superclassInstantiation)
+            .substituteType(overriddenType);
+      }
+      var methodTypeParameters = methodNode.procedure.function.typeParameters;
+      if (overriddenType.typeParameters.length != methodTypeParameters.length) {
+        // Generic arity mismatch.  Don't do any inference for this method.
+        // TODO(paulberry): report an error.
+        return <FunctionType>[];
+      } else if (overriddenType.typeParameters.isNotEmpty) {
+        var substitutionMap = <TypeParameter, DartType>{};
+        for (int i = 0; i < methodTypeParameters.length; i++) {
+          substitutionMap[overriddenType.typeParameters[i]] =
+              new TypeParameterType(methodTypeParameters[i]);
+        }
+        overriddenType = substituteTypeParams(
+            overriddenType, substitutionMap, methodTypeParameters);
+      }
+      overriddenTypes.add(overriddenType);
+    }
+    return overriddenTypes;
   }
 
   DartType _computeOverriddenAccessorType(
@@ -397,6 +507,86 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     // No matching field.  The error should be reported elsewhere.
     return const DynamicType();
+  }
+
+  void _inferMethod(MethodNode methodNode) {
+    var typeInferrer = getMemberTypeInferrer(methodNode.procedure);
+
+    // First collect types of overridden methods
+    var overriddenTypes = _computeMethodOverriddenTypes(methodNode);
+
+    // Now infer types.
+    DartType matchTypes(Iterable<DartType> types) {
+      if (!strongMode) return const DynamicType();
+      var iterator = types.iterator;
+      if (!iterator.moveNext()) {
+        // No overridden types.  Infer `dynamic`.
+        return const DynamicType();
+      }
+      var inferredType = iterator.current;
+      while (iterator.moveNext()) {
+        if (inferredType != iterator.current) {
+          // TODO(paulberry): Types don't match.  Report an error.
+          return const DynamicType();
+        }
+      }
+      return inferredType;
+    }
+
+    if (KernelProcedure.hasImplicitReturnType(methodNode.procedure)) {
+      var inferredType =
+          matchTypes(overriddenTypes.map((type) => type.returnType));
+      instrumentation?.record(
+          Uri.parse(typeInferrer.uri),
+          methodNode.procedure.fileOffset,
+          'topType',
+          new InstrumentationValueForType(inferredType));
+      methodNode.procedure.function.returnType = inferredType;
+    }
+    var positionalParameters =
+        methodNode.procedure.function.positionalParameters;
+    for (int i = 0; i < positionalParameters.length; i++) {
+      if (KernelVariableDeclaration
+          .isImplicitlyTyped(positionalParameters[i])) {
+        // Note that if the parameter is not present in the overridden method,
+        // getPositionalParameterType treats it as dynamic.  This is consistent
+        // with the behavior called for in the informal top level type inference
+        // spec, which says:
+        //
+        //     If there is no corresponding parameter position in the overridden
+        //     method to infer from and the signatures are compatible, it is
+        //     treated as dynamic (e.g. overriding a one parameter method with a
+        //     method that takes a second optional parameter).  Note: if there
+        //     is no corresponding parameter position in the overriden method to
+        //     infer from and the signatures are incompatible (e.g. overriding a
+        //     one parameter method with a method that takes a second
+        //     non-optional parameter), the inference result is not defined and
+        //     tools are free to either emit an error, or to defer the error to
+        //     override checking.
+        var inferredType = matchTypes(
+            overriddenTypes.map((type) => getPositionalParameterType(type, i)));
+        instrumentation?.record(
+            Uri.parse(typeInferrer.uri),
+            positionalParameters[i].fileOffset,
+            'topType',
+            new InstrumentationValueForType(inferredType));
+        positionalParameters[i].type = inferredType;
+      }
+    }
+    var namedParameters = methodNode.procedure.function.namedParameters;
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (KernelVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
+        var name = namedParameters[i].name;
+        var inferredType = matchTypes(
+            overriddenTypes.map((type) => getNamedParameterType(type, name)));
+        instrumentation?.record(
+            Uri.parse(typeInferrer.uri),
+            namedParameters[i].fileOffset,
+            'topType',
+            new InstrumentationValueForType(inferredType));
+        namedParameters[i].type = inferredType;
+      }
+    }
   }
 }
 

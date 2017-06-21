@@ -10,7 +10,7 @@ class B {
 }
 
 class C extends B {
-  f() {}
+  /*@topType=void*/ f() {}
 }
 
 var /*@topType=dynamic*/ x =

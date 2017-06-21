@@ -13,7 +13,7 @@ class D extends self::C {
   constructor •() → void
     : super self::C::•()
     ;
-  method m<S extends core::Object>(dynamic x) → dynamic
+  method m<S extends core::Object>(self::D::m::S x) → self::D::m::S
     return x;
 }
 static method main() → dynamic {

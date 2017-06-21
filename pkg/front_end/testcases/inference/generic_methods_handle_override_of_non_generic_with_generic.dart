@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  m(x) => x;
+  /*@topType=dynamic*/ m(/*@topType=dynamic*/ x) => x;
   dynamic g(int x) => x;
 }
 

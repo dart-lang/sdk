@@ -1317,6 +1317,9 @@ abstract class KernelMember implements Member {
     if (member._accessorNode != null) {
       member._accessorNode.overrides.add(overriddenMember);
     }
+    if (member is KernelProcedure && member._methodNode != null) {
+      member._methodNode.overrides.add(overriddenMember);
+    }
   }
 }
 
@@ -1475,10 +1478,15 @@ class KernelProcedure extends Procedure implements KernelMember {
   @override
   AccessorNode _accessorNode;
 
+  MethodNode _methodNode;
+
   @override
   KernelTypeInferrer _typeInferrer;
 
+  final bool _hasImplicitReturnType;
+
   KernelProcedure(Name name, ProcedureKind kind, FunctionNode function,
+      this._hasImplicitReturnType,
       {String fileUri})
       : super(name, kind, function, fileUri: fileUri);
 
@@ -1500,6 +1508,15 @@ class KernelProcedure extends Procedure implements KernelMember {
       internalError(
           'setInferredType called on a procedure that is not an accessor');
     }
+  }
+
+  static MethodNode getMethodNode(Procedure procedure) {
+    if (procedure is KernelProcedure) return procedure._methodNode;
+    return null;
+  }
+
+  static bool hasImplicitReturnType(KernelProcedure procedure) {
+    return procedure._hasImplicitReturnType;
   }
 }
 
@@ -1936,6 +1953,13 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new KernelTypeInferrer._(
         this, uri.toString(), listener, false, thisType, null);
+  }
+
+  @override
+  MethodNode createMethodNode(KernelProcedure procedure) {
+    MethodNode methodNode = new MethodNode(procedure);
+    procedure._methodNode = methodNode;
+    return methodNode;
   }
 
   @override

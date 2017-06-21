@@ -60,9 +60,9 @@ inference/future_then_explicit_future: Fail
 inference/generic_functions_return_typedef: Fail
 inference/generic_methods_infer_js_builtin: Fail
 inference/infer_local_function_return_type: Fail
-inference/infer_types_on_generic_instantiations_in_library_cycle: Fail
 inference/infer_types_on_loop_indices_for_each_loop: Fail
 inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
+inference/infer_use_of_void: Fail
 inference/lambda_does_not_have_propagated_type_hint: Fail
 inference/list_literals_can_infer_null_top_level: Fail
 inference/map_literals_can_infer_null_top_level: Fail
