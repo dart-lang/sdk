@@ -223,13 +223,13 @@ class LocalsHandler {
     enterScope(scopeData,
         forGenerativeConstructorBody: isGenerativeConstructorBody);
 
-    // If the freeVariableMapping is not empty, then this function was a
-    // nested closure that captures variables. Redirect the captured
-    // variables to fields in the closure.
-    closureData.forEachFreeVariable((Local from, FieldEntity to) {
-      redirectElement(from, to);
-    });
     if (closureData.isClosure) {
+      // If the freeVariableMapping is not empty, then this function was a
+      // nested closure that captures variables. Redirect the captured
+      // variables to fields in the closure.
+      closureData.forEachFreeVariable((Local from, FieldEntity to) {
+        redirectElement(from, to);
+      });
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
           new HThis(closureData.thisLocal, commonMasks.nonNullType);
