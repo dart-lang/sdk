@@ -457,11 +457,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     super.visitMethodDeclaration(node);
     if (node.element.enclosingElement is ClassElement && !node.isStatic) {
       if (node.returnType == null) {
-        // For now, we skip inferred return types of setters.
-        // TODO(paulberry): fix this.
-        if (!node.isSetter) {
-          _recordTopType(node.name.offset, node.element.returnType);
-        }
+        _recordTopType(node.name.offset, node.element.returnType);
       }
       if (node.parameters != null) {
         for (var parameter in node.parameters.parameters) {

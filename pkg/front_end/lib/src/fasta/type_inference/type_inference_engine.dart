@@ -53,10 +53,32 @@ class AccessorNode extends dependencyWalker.Node<AccessorNode> {
 
   AccessorNode(this._typeInferenceEngine, this.member);
 
-  get candidateOverrides => overrides.isNotEmpty ? overrides : crossOverrides;
+  List<Member> get candidateOverrides {
+    if (isTrivialSetter) {
+      return const [];
+    } else if (overrides.isNotEmpty) {
+      return overrides;
+    } else {
+      return crossOverrides;
+    }
+  }
 
   @override
   bool get isEvaluated => state == InferenceState.Inferred;
+
+  /// Indicates whether this accessor is a setter for which the only type we
+  /// have to infer is its return type.
+  bool get isTrivialSetter {
+    var member = this.member;
+    if (member is KernelProcedure &&
+        member.isSetter &&
+        member.function != null) {
+      var parameters = member.function.positionalParameters;
+      return parameters.length > 0 &&
+          !KernelVariableDeclaration.isImplicitlyTyped(parameters[0]);
+    }
+    return false;
+  }
 
   @override
   List<AccessorNode> computeDependencies() {
@@ -284,28 +306,33 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     accessorNode.state = InferenceState.Inferring;
     var member = accessorNode.member;
     if (strongMode) {
-      var inferredType = tryInferAccessorByInheritance(accessorNode);
       var typeInferrer = getMemberTypeInferrer(member);
-      if (inferredType == null) {
-        if (member is KernelField) {
-          typeInferrer.isImmediatelyEvident = true;
-          inferredType = accessorNode.isImmediatelyEvident
-              ? typeInferrer.inferDeclarationType(
-                  typeInferrer.inferFieldTopLevel(member, null, true))
-              : const DynamicType();
-          if (!typeInferrer.isImmediatelyEvident) {
+      if (member is KernelProcedure && member.isSetter) {
+        KernelProcedure.inferSetterReturnType(member, this, typeInferrer.uri);
+      }
+      if (!accessorNode.isTrivialSetter) {
+        var inferredType = tryInferAccessorByInheritance(accessorNode);
+        if (inferredType == null) {
+          if (member is KernelField) {
+            typeInferrer.isImmediatelyEvident = true;
+            inferredType = accessorNode.isImmediatelyEvident
+                ? typeInferrer.inferDeclarationType(
+                    typeInferrer.inferFieldTopLevel(member, null, true))
+                : const DynamicType();
+            if (!typeInferrer.isImmediatelyEvident) {
+              inferredType = const DynamicType();
+            }
+          } else {
             inferredType = const DynamicType();
           }
-        } else {
-          inferredType = const DynamicType();
         }
+        if (accessorNode.state == InferenceState.Inferred) {
+          // A circularity must have been detected; at the time it was detected,
+          // inference for this node was completed.
+          return;
+        }
+        member.setInferredType(this, typeInferrer.uri, inferredType);
       }
-      if (accessorNode.state == InferenceState.Inferred) {
-        // A circularity must have been detected; at the time it was detected,
-        // inference for this node was completed.
-        return;
-      }
-      member.setInferredType(this, typeInferrer.uri, inferredType);
     }
     accessorNode.state = InferenceState.Inferred;
     // TODO(paulberry): if type != null, then check that the type of the

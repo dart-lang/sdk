@@ -1518,6 +1518,17 @@ class KernelProcedure extends Procedure implements KernelMember {
   static bool hasImplicitReturnType(KernelProcedure procedure) {
     return procedure._hasImplicitReturnType;
   }
+
+  static void inferSetterReturnType(
+      KernelProcedure procedure, TypeInferenceEngineImpl engine, String uri) {
+    assert(procedure.isSetter);
+    if (procedure._hasImplicitReturnType) {
+      var inferredType = const VoidType();
+      engine.instrumentation?.record(Uri.parse(uri), procedure.fileOffset,
+          'topType', new InstrumentationValueForType(inferredType));
+      procedure.function?.returnType = inferredType;
+    }
+  }
 }
 
 /// Concrete shadow object representing an assignment to a property.
