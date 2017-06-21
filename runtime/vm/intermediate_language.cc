@@ -2066,6 +2066,17 @@ Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
+  switch (kind_) {
+    case kOsrAndPreemption:
+      return this;
+    case kOsrOnly:
+      // Don't need OSR entries in the optimized code.
+      return NULL;
+  }
+}
+
+
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (recognized_kind()) {
     case MethodRecognizer::kObjectArrayLength:

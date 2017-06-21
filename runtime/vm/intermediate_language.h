@@ -7287,12 +7287,27 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
+  enum Kind {
+    // kOsrAndPreemption stack overflow checks are emitted in both unoptimized
+    // and optimized versions of the code and they serve as both preemption and
+    // OSR entry points.
+    kOsrAndPreemption,
+
+    // kOsrOnly stack overflow checks are only needed in the unoptimized code
+    // because we can't OSR optimized code.
+    kOsrOnly,
+  };
+
   CheckStackOverflowInstr(TokenPosition token_pos,
                           intptr_t loop_depth,
-                          intptr_t deopt_id)
+                          intptr_t deopt_id,
+                          Kind kind = kOsrAndPreemption)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
-        loop_depth_(loop_depth) {}
+        loop_depth_(loop_depth),
+        kind_(kind) {
+    ASSERT(kind != kOsrOnly || loop_depth > 0);
+  }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
@@ -7302,6 +7317,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7309,6 +7326,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  private:
   const TokenPosition token_pos_;
   const intptr_t loop_depth_;
+  const Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };
