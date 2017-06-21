@@ -49,10 +49,13 @@ CompilerDiagnostics createCompilerDiagnostics(
   CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
+      handler = new FormattingDiagnosticHandler(provider)
+        ..verbose = verbose
+        ..autoReadFileUri = true;
     } else {
       var formattingHandler = new FormattingDiagnosticHandler(provider)
-        ..verbose = verbose;
+        ..verbose = verbose
+        ..autoReadFileUri = true;
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {

@@ -34,6 +34,7 @@ class CollectingFormattingDiagnosticHandler
   bool isAborting = false;
   bool enableColors = false;
   bool throwOnError = false;
+  bool autoReadFileUri = false;
   var lastKind = null;
 
   final int FATAL = 0;

@@ -47,6 +47,14 @@ class KernelClosureDataBuilder extends ir.Visitor {
       info.registerUsedInTryOrSync(_localsMap.getLocal(node.variable));
     }
   }
+
+  @override
+  visitVariableSet(ir.VariableSet node) {
+    if (_inTry) {
+      info.registerUsedInTryOrSync(_localsMap.getLocal(node.variable));
+    }
+    node.visitChildren(this);
+  }
 }
 
 /// Closure conversion code using our new Entity model. Closure conversion is
@@ -131,4 +139,11 @@ class KernelClosureRepresentationInfo extends ClosureRepresentationInfo {
 
   bool variableIsUsedInTryOrSync(Local variable) =>
       _localsUsedInTryOrSync.contains(variable);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('this=$thisLocal,');
+    sb.write('localsUsedInTryOrSync={${_localsUsedInTryOrSync.join(', ')}}');
+    return sb.toString();
+  }
 }

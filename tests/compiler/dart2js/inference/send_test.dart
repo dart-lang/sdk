@@ -13,7 +13,8 @@ main() {
     await for (FileSystemEntity entity in dataDir.list()) {
       print('Checking ${entity.uri}');
       String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      await checkCode(annotatedCode, checkMemberAstTypeMasks);
+      await checkCode(
+          annotatedCode, computeMemberAstTypeMasks, compileFromSource);
     }
   });
 }

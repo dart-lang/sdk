@@ -9,7 +9,10 @@ import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:kernel/ast.dart' as ir;
 
-enum IdKind { element, node, local_variable, local_function }
+enum IdKind {
+  element,
+  node,
+}
 
 /// Id for a code point or element with type inference information.
 abstract class Id {
@@ -85,7 +88,7 @@ abstract class AstEnumeratorMixin {
       case AccessKind.DYNAMIC_PROPERTY:
         return new NodeId(node.selector.getBeginToken().charOffset);
       default:
-        return new NodeId(node.getBeginToken().charOffset);
+        return null;
     }
   }
 
@@ -98,13 +101,11 @@ abstract class AstEnumeratorMixin {
       switch (sendStructure.kind) {
         case SendStructureKind.GET:
         case SendStructureKind.INVOKE:
-        case SendStructureKind.INCOMPATIBLE_INVOKE:
           return computeAccessId(node, sendStructure.semantics);
         default:
-          return new NodeId(node.getBeginToken().charOffset);
       }
     }
-    return new NodeId(node.getBeginToken().charOffset);
+    return null;
   }
 }
 
@@ -202,11 +203,17 @@ abstract class IrEnumeratorMixin {
     return new ElementId.internal(memberName, className);
   }
 
-  Id computeNodeId(ir.Node node) {
+  Id computeNodeId(ir.TreeNode node) {
     if (node is ir.MethodInvocation) {
       assert(node.fileOffset != ir.TreeNode.noOffset);
       return new NodeId(node.fileOffset);
     } else if (node is ir.PropertyGet) {
+      assert(node.fileOffset != ir.TreeNode.noOffset);
+      return new NodeId(node.fileOffset);
+    } else if (node is ir.VariableDeclaration) {
+      assert(node.fileOffset != ir.TreeNode.noOffset);
+      return new NodeId(node.fileOffset);
+    } else if (node is ir.FunctionDeclaration) {
       assert(node.fileOffset != ir.TreeNode.noOffset);
       return new NodeId(node.fileOffset);
     }
@@ -228,7 +235,7 @@ class IrIdFinder extends ir.Visitor with IrEnumeratorMixin {
     return result;
   }
 
-  defaultNode(ir.Node node) {
+  defaultTreeNode(ir.TreeNode node) {
     if (found == null) {
       Id id = computeNodeId(node);
       if (id == soughtId) {
@@ -246,7 +253,7 @@ class IrIdFinder extends ir.Visitor with IrEnumeratorMixin {
         found = node;
         return;
       }
-      defaultNode(node);
+      defaultTreeNode(node);
     }
   }
 }

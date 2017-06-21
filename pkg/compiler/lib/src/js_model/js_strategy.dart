@@ -4,7 +4,6 @@
 
 library dart2js.js_model.strategy;
 
-import '../backend_strategy.dart';
 import '../closure.dart' show ClosureConversionTask;
 import '../common/tasks.dart';
 import '../common_elements.dart';
@@ -32,26 +31,28 @@ import '../util/emptyset.dart';
 import '../world.dart';
 import 'elements.dart';
 
-class JsBackendStrategy implements BackendStrategy {
+class JsBackendStrategy implements KernelBackendStrategy {
   final Compiler _compiler;
   final JsToFrontendMap _map = new JsToFrontendMapImpl();
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
-  KernelToElementMap __elementMap;
+  KernelToElementMap _elementMap;
   ClosureConversionTask _closureDataLookup;
-  GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
+  final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
 
   JsBackendStrategy(this._compiler);
 
-  KernelToElementMap get _elementMap {
-    if (__elementMap == null) {
+  KernelToElementMap get elementMap {
+    if (_elementMap == null) {
       KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
       KernelToElementMap elementMap = strategy.elementMap;
-      __elementMap = new JsKernelToElementMap(
+      _elementMap = new JsKernelToElementMap(
           _map, _elementEnvironment, _commonElements, elementMap);
     }
-    return __elementMap;
+    return _elementMap;
   }
+
+  GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
   ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
@@ -132,7 +133,7 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   ClosureConversionTask get closureDataLookup =>
       _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, _elementMap, _globalLocalsMap);
+          _compiler.measurer, elementMap, _globalLocalsMap);
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>
@@ -142,7 +143,7 @@ class JsBackendStrategy implements BackendStrategy {
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
     return new KernelSsaBuilder(
-        task, backend.compiler, _elementMap, _globalLocalsMap);
+        task, backend.compiler, elementMap, _globalLocalsMap);
   }
 
   @override
@@ -156,7 +157,7 @@ class JsBackendStrategy implements BackendStrategy {
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelCodegenWorldBuilder(
-        _elementMap,
+        elementMap,
         closedWorld.elementEnvironment,
         nativeBasicData,
         closedWorld,

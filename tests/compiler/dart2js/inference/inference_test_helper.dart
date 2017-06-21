@@ -12,26 +12,31 @@ import 'package:compiler/src/types/types.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
-void checkMemberAstTypeMasks(
-    Compiler compiler, Map<Id, String> expectedMap, MemberEntity _member) {
+/// Compute type inference data for [_member] as a [MemberElement].
+///
+/// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
+/// for the data origin.
+void computeMemberAstTypeMasks(Compiler compiler, MemberEntity _member,
+    Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
   MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
   compiler.reporter.withCurrentElement(member.implementation, () {
-    new TypeMaskChecker(compiler.reporter, expectedMap, resolvedAst,
-            compiler.globalInference.results)
-        .check();
+    new TypeMaskComputer(compiler.reporter, actualMap, spannableMap,
+            resolvedAst, compiler.globalInference.results)
+        .run();
   });
 }
 
-class TypeMaskChecker extends AbstractResolvedAstChecker {
+/// AST visitor for computing inference data for a member.
+class TypeMaskComputer extends AbstractResolvedAstComputer {
   final GlobalTypeInferenceResults results;
   final GlobalTypeInferenceElementResult result;
 
-  TypeMaskChecker(DiagnosticReporter reporter, Map<Id, String> expectedMap,
-      ResolvedAst resolvedAst, this.results)
+  TypeMaskComputer(DiagnosticReporter reporter, Map<Id, String> actualMap,
+      Map<Id, Spannable> spannableMap, ResolvedAst resolvedAst, this.results)
       : result = results.resultOfMember(resolvedAst.element as MemberElement),
-        super(reporter, expectedMap, resolvedAst);
+        super(reporter, actualMap, spannableMap, resolvedAst);
 
   @override
   String computeElementValue(AstElement element) {

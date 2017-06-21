@@ -37,21 +37,29 @@ import 'closure.dart';
 import 'element_map_impl.dart';
 import 'kernel_strategy.dart';
 
+/// A backend strategy based on Kernel IR nodes.
+abstract class KernelBackendStrategy implements BackendStrategy {
+  KernelToElementMap get elementMap;
+  GlobalLocalsMap get globalLocalsMapForTesting;
+}
+
 /// Backend strategy that uses the kernel elements as the backend model.
 // TODO(johnniwinther): Replace this with a strategy based on the J-element
 // model.
-class KernelBackendStrategy implements BackendStrategy {
+class KernelBackendStrategyImpl implements KernelBackendStrategy {
   final Compiler _compiler;
   Sorter _sorter;
   ClosureConversionTask _closureDataLookup;
-  GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
+  final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
 
-  KernelBackendStrategy(this._compiler);
+  KernelBackendStrategyImpl(this._compiler);
 
-  KernelToElementMap get _elementMap {
+  KernelToElementMap get elementMap {
     KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
     return frontendStrategy.elementMap;
   }
+
+  GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
   ClosedWorldRefiner createClosedWorldRefiner(
@@ -62,8 +70,7 @@ class KernelBackendStrategy implements BackendStrategy {
   @override
   Sorter get sorter {
     if (_sorter == null) {
-      KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-      _sorter = new KernelSorter(frontendStrategy.elementMap);
+      _sorter = new KernelSorter(elementMap);
     }
     return _sorter;
   }
@@ -71,7 +78,7 @@ class KernelBackendStrategy implements BackendStrategy {
   @override
   ClosureConversionTask get closureDataLookup =>
       _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, _elementMap, _globalLocalsMap);
+          _compiler.measurer, elementMap, _globalLocalsMap);
 
   @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
@@ -84,7 +91,7 @@ class KernelBackendStrategy implements BackendStrategy {
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelCodegenWorldBuilder(
-        _elementMap,
+        elementMap,
         closedWorld.elementEnvironment,
         nativeBasicData,
         closedWorld,
@@ -95,7 +102,7 @@ class KernelBackendStrategy implements BackendStrategy {
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
     return new KernelSsaBuilder(
-        task, backend.compiler, _elementMap, _globalLocalsMap);
+        task, backend.compiler, elementMap, _globalLocalsMap);
   }
 
   @override
