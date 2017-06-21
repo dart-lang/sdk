@@ -28,13 +28,19 @@ class PluginLocatorTest {
     locator = new PluginLocator(resourceProvider);
   }
 
+  @failingTest
   void test_findPlugin_inPubspec_defaultDir() {
+    // Support for specifying plugin locations in the pubspec is temporarily
+    // disabled.
     String dirPath = _createPubspecWithKey();
     _createDefaultDir();
     expect(locator.findPlugin(packageRoot), dirPath);
   }
 
+  @failingTest
   void test_findPlugin_inPubspec_noDefaultDir() {
+    // Support for specifying plugin locations in the pubspec is temporarily
+    // disabled.
     String dirPath = _createPubspecWithKey();
     expect(locator.findPlugin(packageRoot), dirPath);
   }
