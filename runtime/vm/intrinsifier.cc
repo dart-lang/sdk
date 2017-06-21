@@ -32,6 +32,8 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
     THR_Print("CanIntrinsify %s ->", function.ToQualifiedCString());
   }
   if (!FLAG_intrinsify) return false;
+  // TODO(regis): We do not need to explicitly filter generic functions here,
+  // unless there are errors we don't detect at link time. Revisit if necessary.
   if (function.IsClosureFunction()) {
     if (FLAG_trace_intrinsifier) {
       THR_Print("No, closure function.\n");

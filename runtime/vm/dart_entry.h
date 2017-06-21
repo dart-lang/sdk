@@ -93,7 +93,8 @@ class ArgumentsDescriptor : public ValueObject {
     return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
   }
 
-  static RawArray* NewNonCached(intptr_t num_arguments,
+  static RawArray* NewNonCached(intptr_t type_args_len,
+                                intptr_t num_arguments,
                                 bool canonicalize = true);
 
   // Used by Simulator to parse argument descriptors.

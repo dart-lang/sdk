@@ -1204,6 +1204,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   const Array& arguments_descriptor = Array::ZoneHandle(
       zone(), ic_data.IsNull() ? args_info.ToArgumentsDescriptor()
                                : ic_data.arguments_descriptor());
+  ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() ==
+         args_info.type_args_len);
   if (is_optimizing()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             args_info.pushed_argc, deopt_id, token_pos, locs);
@@ -1643,6 +1645,8 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target_name.raw());
     ASSERT(res->NumArgsTested() == num_args_tested);
+    ASSERT(res->TypeArgsLen() ==
+           ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
     return res;
   }
@@ -1672,6 +1676,8 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     ASSERT(res->deopt_id() == deopt_id);
     ASSERT(res->target_name() == target.name());
     ASSERT(res->NumArgsTested() == num_args_tested);
+    ASSERT(res->TypeArgsLen() ==
+           ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(res->is_static_call());
     return res;
   }

@@ -115,9 +115,11 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
   const Function& function = parsed_function->function();
+  // TODO(regis): Kernel Front End needs to allocate a local to hold type args.
   return (function.kernel_offset() > 0) ||
-         (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
-         (function.kind() == RawFunction::kInvokeFieldDispatcher);
+         (!FLAG_reify_generic_functions &&
+          ((function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
+           (function.kind() == RawFunction::kInvokeFieldDispatcher)));
 }
 
 

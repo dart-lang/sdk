@@ -1177,13 +1177,14 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
 }
 
 
-Fragment FlowGraphBuilder::ClosureCall(int argument_count,
+Fragment FlowGraphBuilder::ClosureCall(intptr_t type_args_len,
+                                       intptr_t argument_count,
                                        const Array& argument_names) {
   Value* function = Pop();
-  ArgumentArray arguments = GetArguments(argument_count);
-  const intptr_t kTypeArgsLen = 0;  // Generic closures not yet supported.
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
   ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(function, arguments, kTypeArgsLen, argument_names,
+      ClosureCallInstr(function, arguments, type_args_len, argument_names,
                        TokenPosition::kNoSource, GetNextDeoptId());
   Push(call);
   return Fragment(call);
@@ -2309,6 +2310,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   LocalScope* scope = parsed_function_->node_sequence()->scope();
 
+  if (descriptor.TypeArgsLen() > 0) {
+    LocalVariable* type_args = parsed_function_->function_type_arguments();
+    ASSERT(type_args != NULL);
+    body += LoadLocal(type_args);
+    body += PushArgument();
+  }
+
   LocalVariable* closure = NULL;
   if (is_closure_call) {
     closure = scope->VariableAt(0);
@@ -2337,8 +2345,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += LoadLocal(closure);
     body += LoadField(Closure::function_offset());
 
-    body += ClosureCall(descriptor.Count(), argument_names);
+    body += ClosureCall(descriptor.TypeArgsLen(), descriptor.Count(),
+                        argument_names);
   } else {
+    if (descriptor.TypeArgsLen() > 0) {
+      UNIMPLEMENTED();
+    }
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
                          Token::kILLEGAL, descriptor.Count(), argument_names);
   }

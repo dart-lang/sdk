@@ -767,6 +767,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
   __ movl(EDX, Address(EDX, VMHandles::kOffsetOfRawPtrInHandle));
 
+  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
   // Load number of arguments into EBX.
   __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(EBX);

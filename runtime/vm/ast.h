@@ -300,6 +300,7 @@ class ArgumentListNode : public AstNode {
         nodes_(4),
         names_(Array::ZoneHandle()) {
     ASSERT(type_arguments_.IsZoneHandle());
+    ASSERT(type_arguments_.IsNull() || type_arguments_.IsCanonical());
   }
 
   ArgumentListNode(TokenPosition token_pos,

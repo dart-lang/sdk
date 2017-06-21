@@ -96,6 +96,11 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
+  if (ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() > 0) {
+    const String& message = String::Handle(String::New(
+        "Unsupported invocation of Dart generic function with type arguments"));
+    return ApiError::New(message);
+  }
   if (!function.HasCode()) {
     const Object& result =
         Object::Handle(zone, Compiler::CompileFunction(thread, function));
@@ -140,15 +145,16 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
                                     const Array& arguments_descriptor) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  const ArgumentsDescriptor args_desc(arguments_descriptor);
+  const intptr_t instance_index = args_desc.TypeArgsLen() == 0 ? 0 : 1;
   Instance& instance = Instance::Handle(zone);
-  instance ^= arguments.At(0);
+  instance ^= arguments.At(instance_index);
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
   Function& function = Function::Handle(zone);
   if (instance.IsCallable(&function)) {
     // Only invoke the function if its arguments are compatible.
-    const ArgumentsDescriptor args_desc(arguments_descriptor);
     if (function.AreValidArgumentCounts(args_desc.TypeArgsLen(),
                                         args_desc.Count(),
                                         args_desc.NamedCount(), NULL)) {
@@ -391,16 +397,17 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
-  if (num_arguments < kCachedDescriptorCount) {
+  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount)) {
     return cached_args_descriptors_[num_arguments];
   }
-  return NewNonCached(num_arguments);
+  return NewNonCached(type_args_len, num_arguments);
 }
 
 
-RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
+RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
+                                            intptr_t num_arguments,
                                             bool canonicalize) {
-  // Build the arguments descriptor array, which consists of the zero length
+  // Build the arguments descriptor array, which consists of the length of the
   // type argument vector, total argument count; the positional argument count;
   // and a terminating null to simplify iterating in generated code.
   Thread* thread = Thread::Current();
@@ -410,8 +417,9 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
       Array::Handle(zone, Array::New(descriptor_len, Heap::kOld));
   const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
 
-  // Set zero length type argument vector.
-  descriptor.SetAt(kTypeArgsLenIndex, Smi::Handle(zone, Smi::New(0)));
+  // Set type argument vector length.
+  descriptor.SetAt(kTypeArgsLenIndex,
+                   Smi::Handle(zone, Smi::New(type_args_len)));
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, arg_count);
@@ -434,7 +442,8 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
 
 void ArgumentsDescriptor::InitOnce() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
-    cached_args_descriptors_[i] = ArgumentsDescriptor::NewNonCached(i, false);
+    cached_args_descriptors_[i] =
+        ArgumentsDescriptor::NewNonCached(/*type_args_len=*/0, i, false);
   }
 }
 

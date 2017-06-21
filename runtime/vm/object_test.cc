@@ -2524,6 +2524,11 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
+  const String& ta = Symbols::FunctionTypeArgumentsVar();
+  LocalVariable* var_ta = new LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, ta, dynamic_type);
+  parent_scope->AddVariable(var_ta);
+
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
   LocalVariable* var_a = new LocalVariable(
       TokenPosition::kNoSource, TokenPosition::kNoSource, a, dynamic_type);
@@ -2540,6 +2545,11 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
+  var_ta = local_scope->LookupVariable(ta, test_only);
+  EXPECT(var_ta->is_captured());
+  EXPECT_EQ(parent_scope_function_level, var_ta->owner()->function_level());
+  EXPECT(local_scope->LocalLookupVariable(ta) == var_ta);  // Alias.
+
   var_a = local_scope->LookupVariable(a, test_only);
   EXPECT(var_a->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_a->owner()->function_level());
@@ -2561,8 +2571,8 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   var_c = local_scope->LookupVariable(c, test_only);
   EXPECT(var_c->is_captured());
 
-  EXPECT_EQ(3, local_scope->num_variables());         // a, b, and c alias.
-  EXPECT_EQ(2, local_scope->NumCapturedVariables());  // a, c alias.
+  EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
+  EXPECT_EQ(3, local_scope->NumCapturedVariables());  // ta, a, c.
 
   const int first_parameter_index = 0;
   const int num_parameters = 0;
@@ -2571,7 +2581,9 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   int next_frame_index = parent_scope->AllocateVariables(
       first_parameter_index, num_parameters, first_frame_index, NULL,
       &found_captured_vars);
-  EXPECT_EQ(first_frame_index, next_frame_index);  // a and c not in frame.
+  // Variables a and c are captured, therefore are not allocated in frame.
+  // Variable var_ta, although captured, still requires a slot in frame.
+  EXPECT_EQ(-1, next_frame_index - first_frame_index);  // Indices in frame < 0.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
   EXPECT(found_captured_vars);
@@ -2580,11 +2592,17 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   const ContextScope& context_scope = ContextScope::Handle(
       local_scope->PreserveOuterScope(local_scope_context_level));
   LocalScope* outer_scope = LocalScope::RestoreOuterScope(context_scope);
-  EXPECT_EQ(2, outer_scope->num_variables());
+  EXPECT_EQ(3, outer_scope->num_variables());
+
+  var_ta = outer_scope->LocalLookupVariable(ta);
+  EXPECT(var_ta->is_captured());
+  EXPECT_EQ(0, var_ta->index());  // First index.
+  EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
+            var_ta->owner()->context_level());  // Adjusted context level.
 
   var_a = outer_scope->LocalLookupVariable(a);
   EXPECT(var_a->is_captured());
-  EXPECT_EQ(0, var_a->index());  // First index.
+  EXPECT_EQ(1, var_a->index());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_a->owner()->context_level());  // Adjusted context level.
 
@@ -2593,7 +2611,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   var_c = outer_scope->LocalLookupVariable(c);
   EXPECT(var_c->is_captured());
-  EXPECT_EQ(1, var_c->index());
+  EXPECT_EQ(2, var_c->index());
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_c->owner()->context_level());  // Adjusted context level.
 }

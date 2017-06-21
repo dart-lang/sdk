@@ -2289,8 +2289,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ movl(EDX, Address(EDI, 0 * kWordSize));  // Cached instantiator type args.
   __ cmpl(EDX, instantiator_type_args_reg);
   __ j(NOT_EQUAL, &next, Assembler::kNearJump);
-  __ movl(ECX, Address(EDI, 1 * kWordSize));  // Cached function type args.
-  __ cmpl(ECX, function_type_args_reg);
+  __ movl(EBX, Address(EDI, 1 * kWordSize));  // Cached function type args.
+  __ cmpl(EBX, function_type_args_reg);
   __ j(EQUAL, &found, Assembler::kNearJump);
   __ Bind(&next);
   __ addl(EDI, Immediate(StubCode::kInstantiationSizeInWords * kWordSize));

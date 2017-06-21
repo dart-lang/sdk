@@ -59,7 +59,7 @@ class Object {
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  bool _instanceOf(instantiator_type_arguments, function_type_arguments, type)
+  bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
@@ -69,7 +69,7 @@ class Object {
 
   // Call this function instead of inlining 'as', thus collecting type
   // feedback. Returns receiver.
-  _as(instantiator_type_arguments, function_type_arguments, type)
+  _as(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_as";
 
   static _symbolMapToStringMap(Map<Symbol, dynamic> map) {

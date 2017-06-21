@@ -421,6 +421,12 @@ void FlowGraphCompiler::EmitFrameEntry() {
   } else if (has_optional_params && !is_optimizing()) {
     __ LoadConstant(context_index, Object::empty_context());
   }
+
+  // Check for a passed type argument vector if the function is generic.
+  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+    __ Comment("Check passed-in type args");
+    UNIMPLEMENTED();  // TODO(regis): Not yet supported.
+  }
 }
 
 

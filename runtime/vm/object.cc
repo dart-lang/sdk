@@ -2673,6 +2673,14 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                 false,  // Not native.
                 *this, TokenPosition::kMinSource));
   ArgumentsDescriptor desc(args_desc);
+  if (desc.TypeArgsLen() > 0) {
+    // Make dispatcher function generic, since type arguments are passed.
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, TypeArguments::New(desc.TypeArgsLen()));
+    // TODO(regis): Can we leave the array uninitialized to save memory?
+    invocation.set_type_parameters(type_params);
+  }
+
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
                                       false);  // Not positional.
@@ -4835,6 +4843,9 @@ void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
 
 
 bool TypeArguments::IsResolved() const {
+  if (IsCanonical()) {
+    return true;
+  }
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
@@ -13093,9 +13104,11 @@ const char* ICData::ToCString() const {
   const String& name = String::Handle(target_name());
   const intptr_t num_args = NumArgsTested();
   const intptr_t num_checks = NumberOfChecks();
+  const intptr_t type_args_len = TypeArgsLen();
   return OS::SCreate(Thread::Current()->zone(),
-                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd "",
-                     name.ToCString(), num_args, num_checks);
+                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd
+                     " type-args-len: %" Pd "",
+                     name.ToCString(), num_args, num_checks, type_args_len);
 }
 
 
@@ -13175,6 +13188,12 @@ void ICData::set_tag(intptr_t value) const {
 
 intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
+}
+
+
+intptr_t ICData::TypeArgsLen() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.TypeArgsLen();
 }
 
 
@@ -14717,7 +14736,10 @@ const char* Code::Name() const {
   if (obj.IsNull()) {
     // Regular stub.
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
-    ASSERT(name != NULL);
+    if (name == NULL) {
+      ASSERT(!StubCode::HasBeenInitialized());
+      return zone->PrintToString("[this stub]");  // Not yet recorded.
+    }
     return zone->PrintToString("[Stub] %s", name);
   } else if (obj.IsClass()) {
     // Allocation stub.
@@ -16001,6 +16023,11 @@ bool Instance::IsInstanceOf(
         return true;
       }
       if (!sig_fun.HasInstantiatedSignature()) {
+        // The following signature instantiation of sig_fun with its own type
+        // parameters only works if sig_fun has no generic parent, which is
+        // guaranteed to be the case, since the looked up call() function
+        // cannot be nested. It is most probably not even generic.
+        ASSERT(!sig_fun.HasGenericParent());
         const TypeArguments& function_type_arguments =
             TypeArguments::Handle(zone, sig_fun.type_parameters());
         // No bound error possible, since the instance exists.

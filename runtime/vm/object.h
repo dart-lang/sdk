@@ -1896,6 +1896,8 @@ class ICData : public Object {
 
   intptr_t NumArgsTested() const;
 
+  intptr_t TypeArgsLen() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
