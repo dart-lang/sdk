@@ -153,9 +153,6 @@ class RegExpMacroAssembler : public ZoneAllocated {
   virtual void CheckBitInTable(const TypedData& table,
                                BlockLabel* on_bit_set) = 0;
 
-  // Checks for pre-emption and serves as an OSR entry.
-  virtual void CheckPreemption(bool is_backtrack) {}
-
   // Checks whether the given offset from the current position is before
   // the end of the string.  May overwrite the current character.
   virtual void CheckPosition(intptr_t cp_offset, BlockLabel* on_outside_input) {

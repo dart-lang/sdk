@@ -78,7 +78,6 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
     intptr_t capture_count,
     const ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    intptr_t osr_id,
     Zone* zone)
     : RegExpMacroAssembler(zone),
       thread_(Thread::Current()),
@@ -126,7 +125,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       *parsed_function_,
       new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex,
                                   GetNextDeoptId()),
-      osr_id);
+      Compiler::kNoOSRDeoptId);
   start_block_ = new (zone)
       JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
   success_block_ = new (zone)
@@ -224,7 +223,7 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
 void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
   set_current_instruction(backtrack_block_);
   TAG();
-  CheckPreemption(/*is_backtrack=*/true);
+  CheckPreemption();
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
@@ -1768,17 +1767,10 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 }
 
 
-void IRRegExpMacroAssembler::CheckPreemption(bool is_backtrack) {
+void IRRegExpMacroAssembler::CheckPreemption() {
   TAG();
-
-  // We don't have the loop_depth available when compiling regexps, but
-  // we set loop_depth to a non-zero value because this instruction does
-  // not act as an OSR entry outside loops.
-  AppendInstruction(new (Z) CheckStackOverflowInstr(
-      TokenPosition::kNoSource,
-      /*loop_depth=*/1, GetNextDeoptId(),
-      is_backtrack ? CheckStackOverflowInstr::kOsrAndPreemption
-                   : CheckStackOverflowInstr::kOsrOnly));
+  AppendInstruction(new (Z) CheckStackOverflowInstr(TokenPosition::kNoSource, 0,
+                                                    GetNextDeoptId()));
 }
 
 

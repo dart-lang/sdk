@@ -1393,8 +1393,7 @@ class RegExpEngine : public AllStatic {
   static CompilationResult CompileIR(
       RegExpCompileData* input,
       const ParsedFunction* parsed_function,
-      const ZoneGrowableArray<const ICData*>& ic_data_array,
-      intptr_t osr_id);
+      const ZoneGrowableArray<const ICData*>& ic_data_array);
 
   static CompilationResult CompileBytecode(RegExpCompileData* data,
                                            const RegExp& regexp,

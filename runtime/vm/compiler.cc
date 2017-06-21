@@ -168,9 +168,8 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
   // Compile to the dart IR.
-  RegExpEngine::CompilationResult result =
-      RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
-                              parsed_function, ic_data_array, osr_id);
+  RegExpEngine::CompilationResult result = RegExpEngine::CompileIR(
+      parsed_function->regexp_compile_data(), parsed_function, ic_data_array);
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
