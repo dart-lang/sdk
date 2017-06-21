@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $strong ]
+*: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip

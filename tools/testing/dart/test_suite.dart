@@ -168,6 +168,7 @@ abstract class TestSuite {
     var compilerConfiguration = configuration.compilerConfiguration;
     if (!compilerConfiguration.hasCompiler) return null;
     var name = compilerConfiguration.computeCompilerPath(buildDir);
+
     // TODO(ahe): Only validate this once, in test_options.dart.
     TestUtils.ensureExists(name, configuration);
     return name;
@@ -805,21 +806,24 @@ class StandardTestSuite extends TestSuite {
       // browser or otherwise).
       enqueueStandardTest(info, testName, expectations);
     } else if (configuration.runtime.isBrowser) {
+      Map<String, Set<Expectation>> expectationsMap;
+
       if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
         // A browser multi-test has multiple expectations for one test file.
         // Find all the different sub-test expecations for one entire test file.
         var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
-        var multiHtmlTestExpectations = <String, Set<Expectation>>{};
+        expectationsMap = <String, Set<Expectation>>{};
         for (var name in subtestNames) {
           var fullTestName = '$testName/$name';
-          multiHtmlTestExpectations[fullTestName] =
+          expectationsMap[fullTestName] =
               testExpectations.expectations(fullTestName);
         }
-        enqueueBrowserTest(
-            packageRoot, packages, info, testName, multiHtmlTestExpectations);
       } else {
-        enqueueBrowserTest(packageRoot, packages, info, testName, expectations);
+        expectationsMap = {testName: expectations};
       }
+
+      enqueueBrowserTest(
+          packageRoot, packages, info, testName, expectationsMap);
     } else {
       enqueueStandardTest(info, testName, expectations);
     }
@@ -864,7 +868,7 @@ class StandardTestSuite extends TestSuite {
     return negative;
   }
 
-  List<Command> makeCommands(TestInformation info, int vmOptionsVarient,
+  List<Command> makeCommands(TestInformation info, int vmOptionsVariant,
       List<String> vmOptions, List<String> args) {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
@@ -877,9 +881,9 @@ class StandardTestSuite extends TestSuite {
           vmOptions, sharedOptions, args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
-      if (vmOptionsVarient != 0) {
+      if (vmOptionsVariant != 0) {
         // Ensure a unique directory for each test case.
-        path = path.join(new Path(vmOptionsVarient.toString()));
+        path = path.join(new Path(vmOptionsVariant.toString()));
       }
       tempDir = createCompilationOutputDirectory(path);
 
@@ -1018,13 +1022,8 @@ class StandardTestSuite extends TestSuite {
    * subTestName, Set<String>> if we are running a browser multi-test (one
    * compilation and many browser runs).
    */
-  void enqueueBrowserTest(
-      Path packageRoot,
-      Path packages,
-      TestInformation info,
-      String testName,
-      /* Set<Expectation> | Map<String, Set<Expectation>> */ dynamic
-          expectations) {
+  void enqueueBrowserTest(Path packageRoot, Path packages, TestInformation info,
+      String testName, Map<String, Set<Expectation>> expectations) {
     var badChars = new RegExp('[-=/]');
     var vmOptionsList = getVmOptions(info.optionsFromFile);
     var multipleOptions = vmOptionsList.length > 1;
@@ -1042,26 +1041,20 @@ class StandardTestSuite extends TestSuite {
       Path packages,
       TestInformation info,
       String testName,
-      /* Set<Expectation> | Map<String, Set<Expectation>> */ expectations,
+      Map<String, Set<Expectation>> expectations,
       List<String> vmOptions,
       String tempDir) {
     // TODO(Issue 14651): If we're on dartium, we need to pass [packageRoot]
     // on to the browser (it may be test specific).
-
     var filePath = info.filePath;
     var fileName = filePath.toString();
 
     var optionsFromFile = info.optionsFromFile;
-
     var compilationTempDir = createCompilationOutputDirectory(info.filePath);
-
     var dartWrapperFilename = '$tempDir/test.dart';
     var compiledDartWrapperFilename = '$compilationTempDir/test.js';
-
-    String content = null;
     var dir = filePath.directoryPath;
     var nameNoExt = filePath.filenameWithoutExtension;
-
     var customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
     var customHtml = new File(customHtmlPath);
 
@@ -1071,10 +1064,12 @@ class StandardTestSuite extends TestSuite {
 
     // Use existing HTML document if available.
     String htmlPath;
+    String content;
     if (customHtml.existsSync()) {
       // If necessary, run the Polymer deploy steps.
       // TODO(jmesserly): this should be generalized for any tests that
       // require Pub deploy, not just polymer.
+      // TODO(rnystrom): This does not appear to be used any more. Remove.
       if (customHtml.readAsStringSync().contains('<!--polymer-test')) {
         if (configuration.compiler != Compiler.none) {
           commands.add(
@@ -1113,7 +1108,8 @@ class StandardTestSuite extends TestSuite {
       }
     } else {
       htmlPath = '$tempDir/test.html';
-      if (configuration.compiler != Compiler.dart2js) {
+      if (configuration.compiler != Compiler.dart2js &&
+          configuration.compiler != Compiler.dartdevc) {
         // test.dart will import the dart test.
         _createWrapperFile(dartWrapperFilename, filePath);
       } else {
@@ -1129,30 +1125,53 @@ class StandardTestSuite extends TestSuite {
       }
       scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
-      content = getHtmlContents(fileName, scriptType, new Path("$scriptPath"));
+      if (configuration.compiler == Compiler.dart2js) {
+        content = getHtmlContents(fileName, scriptType, scriptPath);
+      } else {
+        var jsDir = new Path(compilationTempDir)
+            .relativeTo(TestUtils.dartDir)
+            .toString();
+        content = dartdevcHtml(nameNoExt, jsDir);
+      }
+
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
     }
 
-    if (configuration.compiler != Compiler.none) {
-      assert(configuration.compiler == Compiler.dart2js);
+    switch (configuration.compiler) {
+      case Compiler.dart2js:
+        commands.add(_dart2jsCompileCommand(dartWrapperFilename,
+            compiledDartWrapperFilename, tempDir, optionsFromFile));
+        break;
 
-      commands.add(_compileCommand(dartWrapperFilename,
-          compiledDartWrapperFilename, tempDir, optionsFromFile));
+      case Compiler.dartdevc:
+        commands.add(_dartdevcCompileCommand(dartWrapperFilename,
+            '$compilationTempDir/$nameNoExt.js', optionsFromFile));
+        break;
+
+      default:
+        assert(false);
     }
 
-    // some tests require compiling multiple input scripts.
+    // Some tests require compiling multiple input scripts.
     var otherScripts = optionsFromFile['otherScripts'] as List<String>;
     for (var name in otherScripts) {
       var namePath = new Path(name);
       var fromPath = filePath.directoryPath.join(namePath);
 
-      if (configuration.compiler != Compiler.none) {
-        assert(configuration.compiler == Compiler.dart2js);
-        assert(namePath.extension == 'dart');
+      switch (configuration.compiler) {
+        case Compiler.dart2js:
+          commands.add(_dart2jsCompileCommand(fromPath.toNativePath(),
+              '$tempDir/${namePath.filename}.js', tempDir, optionsFromFile));
+          break;
 
-        commands.add(_compileCommand(fromPath.toNativePath(),
-            '$tempDir/${namePath.filename}.js', tempDir, optionsFromFile));
+        case Compiler.dartdevc:
+          commands.add(_dartdevcCompileCommand(fromPath.toNativePath(),
+              '$tempDir/$nameNoExt.js', optionsFromFile));
+          break;
+
+        default:
+          assert(configuration.compiler == Compiler.none);
       }
 
       if (configuration.compiler == Compiler.none) {
@@ -1165,8 +1184,8 @@ class StandardTestSuite extends TestSuite {
     }
 
     // Variables for browser multi-tests.
-    var multitest = info.optionsFromFile['isMultiHtmlTest'] as bool;
-    var subtestNames = multitest
+    var isMultitest = info.optionsFromFile['isMultiHtmlTest'] as bool;
+    var subtestNames = isMultitest
         ? (info.optionsFromFile['subtestNames'] as List<String>)
         : <String>[null];
     for (var subtestName in subtestNames) {
@@ -1209,9 +1228,8 @@ class StandardTestSuite extends TestSuite {
       }
 
       // Create BrowserTestCase and queue it.
-      var fullTestName = multitest ? '$testName/$subtestName' : testName;
-      var expectation = (multitest ? expectations[fullTestName] : expectations)
-          as Set<Expectation>;
+      var fullTestName = isMultitest ? '$testName/$subtestName' : testName;
+      var expectation = expectations[fullTestName];
       var testCase = new BrowserTestCase('$suiteName/$fullTestName', commandSet,
           configuration, expectation, info, isNegative(info), fullHtmlPath);
 
@@ -1223,6 +1241,13 @@ class StandardTestSuite extends TestSuite {
       Set<Expectation> expectations) {
     var compiler = configuration.compiler;
     var runtime = configuration.runtime;
+
+    if (compiler == Compiler.dartdevc) {
+      // TODO(rnystrom): Support this for dartdevc (#29919).
+      print("Ignoring $testName on dartdevc since HTML tests are not "
+          "implemented for that compiler yet.");
+      return;
+    }
 
     // HTML tests work only with the browser controller.
     if (!runtime.isBrowser || runtime == Runtime.drt) return;
@@ -1273,7 +1298,7 @@ class StandardTestSuite extends TestSuite {
 
           assert(compiler == Compiler.dart2js);
 
-          commands.add(_compileCommand(
+          commands.add(_dart2jsCompileCommand(
               script.toFilePath(), destination, tempDir, info.optionsFromFile));
         }
       }
@@ -1293,9 +1318,9 @@ class StandardTestSuite extends TestSuite {
     enqueueNewTestCase(testCase);
   }
 
-  /** Helper to create a compilation command for a single input file. */
-  Command _compileCommand(String inputFile, String outputFile, String dir,
-      Map<String, dynamic> optionsFromFile) {
+  /// Creates a [Command] to compile a single .dart file using dart2js.
+  Command _dart2jsCompileCommand(String inputFile, String outputFile,
+      String dir, Map<String, dynamic> optionsFromFile) {
     var args = <String>[];
 
     if (compilerPath.endsWith('.dart')) {
@@ -1315,8 +1340,36 @@ class StandardTestSuite extends TestSuite {
     var options = optionsFromFile['sharedOptions'] as List<String>;
     if (options != null) args.addAll(options);
 
-    return Command.compilation(Compiler.dart2js.name, outputFile, !useSdk,
-        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides);
+    return Command.compilation(Compiler.dart2js.name, outputFile,
+        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
+        alwaysCompile: !useSdk);
+  }
+
+  /// Creates a [Command] to compile a single .dart file using dartdevc.
+  Command _dartdevcCompileCommand(String inputFile, String outputFile,
+      Map<String, dynamic> optionsFromFile) {
+    var args = [
+      "--dart-sdk",
+      "$buildDir/dart-sdk",
+      "--library-root",
+      new Path(inputFile).directoryPath.toString(),
+      "-o",
+      outputFile,
+      inputFile
+    ];
+
+    // TODO(29923): This compiles everything imported by the test into the
+    // same generated JS module, including other packages like expect,
+    // stack_trace, etc. Those should be compiled as separate JS modules (by
+    // build.py) and loaded dynamically by the test.
+
+    return Command.compilation(
+        Compiler.dartdevc.name,
+        outputFile,
+        configuration.compilerConfiguration.bootstrapDependencies(buildDir),
+        compilerPath,
+        args,
+        environmentOverrides);
   }
 
   /** Helper to create a Polymer deploy command for a single HTML file. */
@@ -1346,6 +1399,7 @@ class StandardTestSuite extends TestSuite {
         return 'application/dart';
       case Compiler.dart2js:
       case Compiler.dart2analyzer:
+      case Compiler.dartdevc:
         return 'text/javascript';
       default:
         print('Non-web runtime, so no scriptType for: '
@@ -1700,13 +1754,8 @@ class PKGTestSuite extends StandardTestSuite {
             isTestFilePredicate: (f) => f.endsWith('_test.dart'),
             recursive: true);
 
-  void enqueueBrowserTest(
-      Path packageRoot,
-      packages,
-      TestInformation info,
-      String testName,
-      /* Set<Expectation> | Map<String, Set<Expectation>> */ dynamic
-          expectations) {
+  void enqueueBrowserTest(Path packageRoot, packages, TestInformation info,
+      String testName, Map<String, Set<Expectation>> expectations) {
     var filePath = info.filePath;
     var dir = filePath.directoryPath;
     var nameNoExt = filePath.filenameWithoutExtension;

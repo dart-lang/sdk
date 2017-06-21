@@ -40,19 +40,13 @@ class Command {
   static Command compilation(
       String displayName,
       String outputFile,
-      bool neverSkipCompilation,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
-      Map<String, String> environment) {
-    return new CompilationCommand._(
-        displayName,
-        outputFile,
-        neverSkipCompilation,
-        bootstrapDependencies,
-        executable,
-        arguments,
-        environment);
+      Map<String, String> environment,
+      {bool alwaysCompile: false}) {
+    return new CompilationCommand._(displayName, outputFile, alwaysCompile,
+        bootstrapDependencies, executable, arguments, environment);
   }
 
   static Command kernelCompilation(
@@ -157,7 +151,7 @@ class Command {
 
   String toString() => reproductionCommand;
 
-  Future<bool> get outputIsUpToDate => new Future.value(false);
+  bool get outputIsUpToDate => false;
 }
 
 class ProcessCommand extends Command {
@@ -214,7 +208,7 @@ class ProcessCommand extends Command {
     return "$env$command";
   }
 
-  Future<bool> get outputIsUpToDate => new Future.value(false);
+  bool get outputIsUpToDate => false;
 
   /// Arguments that are passed to the process when starting batch mode.
   ///
@@ -224,71 +218,71 @@ class ProcessCommand extends Command {
 
 class CompilationCommand extends ProcessCommand {
   final String _outputFile;
-  final bool _neverSkipCompilation;
+
+  /// If true, then the compilation is run even if the input files are older
+  /// than the output file.
+  final bool _alwaysCompile;
   final List<Uri> _bootstrapDependencies;
 
   CompilationCommand._(
       String displayName,
       this._outputFile,
-      this._neverSkipCompilation,
+      this._alwaysCompile,
       this._bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides)
       : super._(displayName, executable, arguments, environmentOverrides);
 
-  Future<bool> get outputIsUpToDate {
-    if (_neverSkipCompilation) return new Future.value(false);
+  bool get outputIsUpToDate {
+    if (_alwaysCompile) return false;
 
-    Future<List<Uri>> readDepsFile(String path) {
+    List<Uri> readDepsFile(String path) {
       var file = new io.File(new Path(path).toNativePath());
-      if (!file.existsSync()) {
-        return new Future.value(null);
-      }
-      return file.readAsLines().then((List<String> lines) {
-        var dependencies = new List<Uri>();
-        for (var line in lines) {
-          line = line.trim();
-          if (line.length > 0) {
-            dependencies.add(Uri.parse(line));
-          }
+      if (!file.existsSync()) return null;
+
+      var lines = file.readAsLinesSync();
+      var dependencies = <Uri>[];
+      for (var line in lines) {
+        line = line.trim();
+        if (line.isNotEmpty) {
+          dependencies.add(Uri.parse(line));
         }
-        return dependencies;
-      });
+      }
+
+      return dependencies;
     }
 
-    return readDepsFile("$_outputFile.deps").then((dependencies) {
-      if (dependencies != null) {
-        dependencies.addAll(_bootstrapDependencies);
-        var jsOutputLastModified = TestUtils.lastModifiedCache
-            .getLastModified(new Uri(scheme: 'file', path: _outputFile));
-        if (jsOutputLastModified != null) {
-          for (var dependency in dependencies) {
-            var dependencyLastModified =
-                TestUtils.lastModifiedCache.getLastModified(dependency);
-            if (dependencyLastModified == null ||
-                dependencyLastModified.isAfter(jsOutputLastModified)) {
-              return false;
-            }
-          }
-          return true;
-        }
+    var dependencies = readDepsFile("$_outputFile.deps");
+    if (dependencies == null) return false;
+
+    dependencies.addAll(_bootstrapDependencies);
+    var jsOutputLastModified = TestUtils.lastModifiedCache
+        .getLastModified(new Uri(scheme: 'file', path: _outputFile));
+    if (jsOutputLastModified == null) return false;
+
+    for (var dependency in dependencies) {
+      var dependencyLastModified =
+          TestUtils.lastModifiedCache.getLastModified(dependency);
+      if (dependencyLastModified == null ||
+          dependencyLastModified.isAfter(jsOutputLastModified)) {
+        return false;
       }
-      return false;
-    });
+    }
+    return true;
   }
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(_outputFile);
-    builder.addJson(_neverSkipCompilation);
+    builder.addJson(_alwaysCompile);
     builder.addJson(_bootstrapDependencies);
   }
 
   bool _equal(CompilationCommand other) =>
       super._equal(other) &&
       _outputFile == other._outputFile &&
-      _neverSkipCompilation == other._neverSkipCompilation &&
+      _alwaysCompile == other._alwaysCompile &&
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
 }
 

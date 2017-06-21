@@ -5,6 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+[ $strong ]
+*: SkipByDesign # tests/language_strong has the strong mode versions of these tests.
+
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
