@@ -1,3 +1,11 @@
+## 1.24.2 - 22-06-2017
+
+* Fixes for debugging in Dartium.
+  * Fix DevConsole crash with JS
+      (https://github.com/dart-lang/sdk/issues/29873).
+  * Fix debugging in WebStorm, NULL returned for JS objects
+      (https://github.com/dart-lang/sdk/issues/29854).
+
 ## 1.24.1 - 14-06-2017
 
 * Bug fixes for dartdevc support in `pub serve`.
@@ -10,7 +18,7 @@
   * Fixed a Safari issue during bootstrapping (note that Safari is still not
     officially supported but does work for trivial examples).
 * Fix for a Dartium issue where there was no sound in checked mode
-    (https://github.com/dart-lang/sdk/issues/29810)
+    (https://github.com/dart-lang/sdk/issues/29810).
 
 ## 1.24.0 - 12-06-2017
 
