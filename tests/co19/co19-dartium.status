@@ -1105,8 +1105,6 @@ WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: RuntimeError,
 WebPlatformTest/html/semantics/selectors/pseudo-classes/indeterminate_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/inrange-outofrange_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError # co19 issue 11.
-WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t02: RuntimeError # co19-roll r786: Please triage this failure.
@@ -1228,7 +1226,6 @@ LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Pass, RuntimeErr
 
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
-LayoutTests/fast/text/international/combining-marks-position_t01: RuntimeError # See Issue https://github.com/dart-lang/co19/issues/109
 
 [ $compiler == none && $runtime == dartium && ($system == windows || $system == linux) ]
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # 45 roll webgl doesn't run on on windows/linux bots.
@@ -1338,8 +1335,8 @@ LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Issue 18
 WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
