@@ -32,6 +32,8 @@ class DFE {
 
   void* kernel_platform() const { return kernel_platform_; }
 
+  void* kernel_vmservice_io() const { return kernel_vmservice_io_; }
+
   // Method to reload a script into a running a isolate.
   // If the specified script [url] is not a kernel IR, compile it first using
   // DFE and then reload the resulting kernel IR into the isolate.
@@ -50,6 +52,10 @@ class DFE {
   // Returns an in memory kernel representation of the platform kernel file.
   void* ReadPlatform();
 
+  // Reads the vmservice_io kernel file.
+  // Returns the in memory representation of the vmservice_io kernel file.
+  void* ReadVMServiceIO();
+
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
   // valid kernel file, false otherwise.
@@ -67,7 +73,9 @@ class DFE {
 
   const char* frontend_filename_;
   char* platform_binary_filename_;
+  char* vmservice_io_binary_filename_;
   void* kernel_platform_;
+  void* kernel_vmservice_io_;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };
