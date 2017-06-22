@@ -3511,8 +3511,7 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
     Service::SendGraphEvent(thread, roots, collect_garbage);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "OK");
+  PrintSuccess(js);
   return true;
 }
 
