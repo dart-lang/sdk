@@ -1,5 +1,16 @@
 # Pushing a new Release
 
+## Preparing a Release
+
+Before releasing there are a few boxes to tick off.
+
+* [ ] Is there a [milestone plan](https://github.com/dart-lang/linter/issues?q=is%3Aopen+is%3Aissue+label%3Amilestone-plan) for the release? If so, has it been updated?
+* [ ] Is the changelog up to date? (Look at commit history to verify.)
+* [ ] Does the `AUTHORS` file need updating?
+* [ ] Spot check new lint rules for [naming consistency](https://github.com/dart-lang/linter/blob/master/doc/WritingLints.MD).  Rename as needed.
+
+## Doing the Push
+
 First, make sure travis and appveyor are GREEN.
 
 [![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
