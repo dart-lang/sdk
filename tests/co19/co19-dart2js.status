@@ -377,9 +377,6 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
-[ $compiler == dart2js && $runtime != d8 && $runtime != jsshell && $runtime != chrome && $runtime != ff ]
-WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # Please triage this failure
-
 [ $compiler == dart2js && $checked && $runtime != d8]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Please triage this failure
@@ -2342,6 +2339,7 @@ WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t01: Runtim
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t05: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t07: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t02: RuntimeError # Please triage this failure
+WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeError # Please triage this failure
@@ -2350,7 +2348,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/src_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out.
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
