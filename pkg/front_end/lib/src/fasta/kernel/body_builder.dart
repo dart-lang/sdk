@@ -2432,10 +2432,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FunctionNode function = pop();
     exitLocalScope();
     var declaration = pop();
-    var returnType = pop() ?? const DynamicType();
+    var returnType = pop();
+    var hasImplicitReturnType = returnType == null;
+    returnType ??= const DynamicType();
     pop(); // Modifiers.
     exitFunction();
     if (declaration is FunctionDeclaration) {
+      KernelFunctionDeclaration.setHasImplicitReturnType(
+          declaration, hasImplicitReturnType);
       function.returnType = returnType;
       declaration.variable.type = function.functionType;
       declaration.function = function;

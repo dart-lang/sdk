@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         Expression,
         Field,
+        FunctionNode,
         FunctionType,
         Initializer,
         InterfaceType,
@@ -33,10 +34,12 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         PropertyGet,
         PropertySet,
+        ReturnStatement,
         Statement,
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
+        TypeParameter,
         TypeParameterType,
         VariableDeclaration,
         VoidType;
@@ -635,6 +638,136 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           : substitution.substituteType(returnType);
     }
     return inferredType;
+  }
+
+  DartType inferLocalFunction(FunctionNode function, DartType typeContext,
+      bool typeNeeded, int fileOffset, DartType returnContext, bool isNamed) {
+    bool hasImplicitReturnType = returnContext == null;
+    if (!isTopLevel) {
+      for (var parameter in function.positionalParameters) {
+        if (parameter.initializer != null) {
+          inferExpression(parameter.initializer, parameter.type, false);
+        }
+      }
+      for (var parameter in function.namedParameters) {
+        if (parameter.initializer != null) {
+          inferExpression(parameter.initializer, parameter.type, false);
+        }
+      }
+    }
+
+    // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
+    // `n`=0 if there are no type parameters).
+    List<TypeParameter> typeParameters = function.typeParameters;
+
+    // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
+    // (including required, positional optional, and named optional parameters).
+    // If any type `Pi` is missing, denote it as `_`.
+    List<VariableDeclaration> formals = function.positionalParameters.toList()
+      ..addAll(function.namedParameters);
+
+    // Let `B` denote the closure body.  If `B` is an expression function body
+    // (`=> e`), treat it as equivalent to a block function body containing a
+    // single `return` statement (`{ return e; }`).
+
+    // Attempt to match `K` as a function type compatible with the closure (that
+    // is, one having n type parameters and a compatible set of formal
+    // parameters).  If there is a successful match, let `<S0, ..., Sn>` be the
+    // set of matched type parameters and `(Q0, ..., Qm)` be the set of matched
+    // formal parameter types, and let `N` be the return type.
+    Substitution substitution;
+    List<DartType> formalTypesFromContext =
+        new List<DartType>.filled(formals.length, null);
+    if (strongMode && typeContext is FunctionType) {
+      for (int i = 0; i < formals.length; i++) {
+        if (i < function.positionalParameters.length) {
+          formalTypesFromContext[i] =
+              getPositionalParameterType(typeContext, i);
+        } else {
+          formalTypesFromContext[i] =
+              getNamedParameterType(typeContext, formals[i].name);
+        }
+      }
+      returnContext = typeContext.returnType;
+
+      // Let `[T/S]` denote the type substitution where each `Si` is replaced
+      // with the corresponding `Ti`.
+      var substitutionMap = <TypeParameter, DartType>{};
+      for (int i = 0; i < typeContext.typeParameters.length; i++) {
+        substitutionMap[typeContext.typeParameters[i]] =
+            i < typeParameters.length
+                ? new TypeParameterType(typeParameters[i])
+                : const DynamicType();
+      }
+      substitution = Substitution.fromMap(substitutionMap);
+    } else {
+      // If the match is not successful because  `K` is `_`, let all `Si`, all
+      // `Qi`, and `N` all be `_`.
+
+      // If the match is not successful for any other reason, this will result in
+      // a type error, so the implementation is free to choose the best error
+      // recovery path.
+      substitution = Substitution.empty;
+    }
+
+    // Define `Ri` as follows: if `Pi` is not `_`, let `Ri` be `Pi`.
+    // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
+    // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
+    for (int i = 0; i < formals.length; i++) {
+      KernelVariableDeclaration formal = formals[i];
+      if (KernelVariableDeclaration.isImplicitlyTyped(formal)) {
+        DartType inferredType;
+        if (formalTypesFromContext[i] != null) {
+          inferredType = greatestClosure(coreTypes,
+              substitution.substituteType(formalTypesFromContext[i]));
+        } else {
+          inferredType = const DynamicType();
+        }
+        instrumentation?.record(Uri.parse(uri), formal.fileOffset, 'type',
+            new InstrumentationValueForType(inferredType));
+        formal.type = inferredType;
+      }
+    }
+
+    // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
+    // accordingly if the closure is declared with `async`, `async*`, or
+    // `sync*`.
+    if (returnContext != null) {
+      returnContext = substitution.substituteType(returnContext);
+    }
+
+    // Apply type inference to `B` in return context `N’`, with any references
+    // to `xi` in `B` having type `Pi`.  This produces `B’`.
+    bool isExpressionFunction = function.body is ReturnStatement;
+    bool needToSetReturnType = hasImplicitReturnType &&
+        ((isExpressionFunction && !isNamed) || strongMode);
+    ClosureContext oldClosureContext = this.closureContext;
+    ClosureContext closureContext =
+        new ClosureContext(this, function.asyncMarker, returnContext);
+    this.closureContext = closureContext;
+    inferStatement(function.body);
+
+    // If the closure is declared with `async*` or `sync*`, let `M` be the least
+    // upper bound of the types of the `yield` expressions in `B’`, or `void` if
+    // `B’` contains no `yield` expressions.  Otherwise, let `M` be the least
+    // upper bound of the types of the `return` expressions in `B’`, or `void`
+    // if `B’` contains no `return` expressions.
+    DartType inferredReturnType;
+    if (needToSetReturnType || typeNeeded) {
+      inferredReturnType =
+          closureContext.inferReturnType(this, isExpressionFunction);
+    }
+
+    // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
+    // type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and `xi`
+    // denoted as optional or named parameters, if appropriate).
+    if (needToSetReturnType) {
+      instrumentation?.record(Uri.parse(uri), fileOffset, 'returnType',
+          new InstrumentationValueForType(inferredReturnType));
+      function.returnType = inferredReturnType;
+    }
+    this.closureContext = oldClosureContext;
+    return typeNeeded ? function.functionType : null;
   }
 
   /// Performs the core type inference algorithm for method invocations (this

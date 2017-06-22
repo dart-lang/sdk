@@ -244,6 +244,7 @@ inference/infer_generic_method_type_required: Crash
 inference/infer_getter_cross_to_setter: Crash
 inference/infer_getter_from_later_inferred_getter: Crash
 inference/infer_list_literal_nested_in_map_literal: Crash
+inference/infer_local_function_referenced_before_declaration: Crash
 inference/infer_local_function_return_type: Crash
 inference/infer_method_function_typed: Crash
 inference/infer_method_missing_params: Crash

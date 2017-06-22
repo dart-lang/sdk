@@ -15,8 +15,8 @@ void optional_toplevel([x = /*@typeArgs=int*/ const [0]]) {}
 void named_toplevel({x: /*@typeArgs=int*/ const [0]}) {}
 
 main() {
-  void optional_local([x = /*@typeArgs=int*/ const [0]]) {}
-  void named_local({x: /*@typeArgs=int*/ const [0]}) {}
+  void optional_local([/*@type=dynamic*/ x = /*@typeArgs=int*/ const [0]]) {}
+  void named_local({/*@type=dynamic*/ x: /*@typeArgs=int*/ const [0]}) {}
   var /*@type=C<dynamic>*/ c_optional_toplevel =
       new /*@typeArgs=dynamic*/ C.optional(optional_toplevel);
   var /*@type=C<dynamic>*/ c_named_toplevel =
