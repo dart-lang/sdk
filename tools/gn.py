@@ -75,8 +75,8 @@ def ToCommandLine(gn_args):
 
 
 def HostCpuForArch(arch):
-  if arch in ['ia32', 'arm', 'armv6', 'armv5te', 'mips',
-              'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc',
+  if arch in ['ia32', 'arm', 'armv6', 'armv5te',
+              'simarm', 'simarmv6', 'simarmv5te', 'simdbc',
               'armsimdbc']:
     return 'x86'
   if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
@@ -84,12 +84,10 @@ def HostCpuForArch(arch):
 
 
 def TargetCpuForArch(arch, target_os):
-  if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te', 'simmips']:
+  if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
     return 'x86'
   if arch in ['simarm64']:
     return 'x64'
-  if arch == 'mips':
-    return 'mipsel'
   if arch == 'simdbc':
     return 'arm' if target_os == 'android' else 'x86'
   if arch == 'simdbc64':
@@ -127,14 +125,12 @@ def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
   return (target_os == 'win'
          # TODO(zra): Experiment with using clang for the arm cross-builds.
-         or (target_os == 'linux'
-             and (target_cpu.startswith('arm') or
-                  target_cpu.startswith('mips'))
+         or (target_os == 'linux' and target_cpu.startswith('arm'))
          # TODO(zra): Only use clang when a sanitizer build is specified until
          # clang bugs in tcmalloc inline assembly for ia32 are fixed.
          or (target_os == 'linux'
              and host_cpu == 'x86'
-             and not UseSanitizer(args))))
+             and not UseSanitizer(args)))
 
 
 def ToGnArgs(args, mode, arch, target_os):
@@ -145,14 +141,6 @@ def ToGnArgs(args, mode, arch, target_os):
     gn_args['target_os'] = host_os
   else:
     gn_args['target_os'] = target_os
-
-  if arch.startswith('mips'):
-    bold  = '\033[1m'
-    reset = '\033[0m'
-    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
-          "upcoming releases. Please consider using another architecture "
-          "and/or file an issue explaining your specific use of and need for "
-          "MIPS support." + reset)
 
   gn_args['dart_target_arch'] = arch
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
@@ -272,7 +260,7 @@ def ProcessOptions(args):
       return False
   for arch in args.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
-             'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
+             'simarmv5te', 'armv5te', 'simarm64', 'arm64',
              'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
@@ -290,7 +278,7 @@ def ProcessOptions(args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
-      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
+      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64',
                       'simdbc', 'simdbc64']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
@@ -323,7 +311,7 @@ def parse_args(args):
       type=str,
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-              'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
+              'simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
   common_group.add_argument('--mode', '-m',
       type=str,

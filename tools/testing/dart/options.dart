@@ -163,7 +163,6 @@ all
 ia32, x64
 arm, armv6, armv5te, arm64,
 simarm, simarmv6, simarmv5te, simarm64,
-mips, simmips
 simdbc, simdbc64''',
         abbr: 'a',
         values: ['all']..addAll(Architecture.names),

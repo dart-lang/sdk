@@ -27,7 +27,7 @@ Assembler::Assembler(bool use_far_branches)
       has_single_entry_point_(true),
       comments_(),
       constant_pool_allowed_(false) {
-  // Far branching mode is only needed and implemented for MIPS and ARM.
+  // Far branching mode is only needed and implemented for ARM.
   ASSERT(!use_far_branches);
 }
 

@@ -43,9 +43,9 @@ debugger_location_second_test: Pass, Slow
 debugger_location_test: Pass, Slow
 
 # These tests are slow on simulators.
-[ $arch == simarm || $arch == simmips || $arch == simarm64 ]
+[ $arch == simarm || $arch == simarm64 ]
 *: Pass, Slow
-[ $mode == debug && ($arch == simarm || $arch == simmips || $arch == simarm64) ]
+[ $mode == debug && ($arch == simarm || $arch == simarm64) ]
 *: SkipSlow
 
 # All tests use dart:io

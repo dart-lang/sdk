@@ -198,7 +198,7 @@ intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -217,7 +217,7 @@ intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 16;
 #else
 #error Unsupported architecture.

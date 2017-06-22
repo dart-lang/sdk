@@ -4230,9 +4230,6 @@ class Instructions : public Object {
 #elif defined(TARGET_ARCH_ARM64)
   static const intptr_t kCheckedEntryOffset = 16;
   static const intptr_t kUncheckedEntryOffset = 40;
-#elif defined(TARGET_ARCH_MIPS)
-  static const intptr_t kCheckedEntryOffset = 12;
-  static const intptr_t kUncheckedEntryOffset = 52;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;

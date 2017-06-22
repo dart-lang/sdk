@@ -16,7 +16,7 @@ final _combinations = {
     {
       'runtimes': ['vm'],
       'modes': ['debug', 'release'],
-      'archs': ['ia32', 'x64', 'simarm', 'simmips'],
+      'archs': ['ia32', 'x64', 'simarm'],
       'compiler': 'none'
     },
     {

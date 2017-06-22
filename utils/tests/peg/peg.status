@@ -13,9 +13,3 @@
 
 [ $arch == simarm64 ]
 *: Skip
-
-[ $arch == mips ]
-*: Skip
-
-[ $arch == simmips ]
-*: Skip

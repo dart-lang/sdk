@@ -15,8 +15,6 @@
 #include "vm/instructions_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/instructions_arm64.h"
-#elif defined(TARGET_ARCH_MIPS)
-#include "vm/instructions_mips.h"
 #elif defined(TARGET_ARCH_DBC)
 #include "vm/instructions_dbc.h"
 #else

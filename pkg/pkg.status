@@ -189,7 +189,7 @@ dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
 [ $browser || $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
-[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == armv6 || $arch == armv5te) ]
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
 # simulator or low-end devices.
 *: Skip

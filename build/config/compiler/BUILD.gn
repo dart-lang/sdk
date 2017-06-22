@@ -17,12 +17,6 @@ import("//build/config/android/config.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
 }
-if (current_cpu == "mipsel" || current_cpu == "mips64el") {
-  import("//build/config/mips.gni")
-}
-if (is_posix) {
-  import("//build/config/gcc/gcc_version.gni")
-}
 if (is_win) {
   import("//build/config/win/visual_studio_version.gni")
 }
@@ -225,72 +219,9 @@ config("compiler") {
           "-fno-caller-saves",
         ]
       }
-    } else if (current_cpu == "mipsel") {
-      # Some toolchains default to big-endian.
-      cflags += [ "-EL" ]
-      ldflags += [ "-EL" ]
-
-      # We have to explicitly request exceptions to get good heap profiles from
-      # tcmalloc.
-      if (is_debug || is_release) {
-        cflags += [
-          "-fexceptions",
-          "-funwind-tables",
-        ]
-      }
-
-      if (mips_arch_variant == "r6") {
-        cflags += [
-          "-mips32r6",
-          "-Wa,-mips32r6",
-        ]
-        if (is_android) {
-          ldflags += [
-            "-mips32r6",
-            "-Wl,-melf32ltsmip",
-          ]
-        }
-      } else if (mips_arch_variant == "r2") {
-        cflags += [
-          "-mips32r2",
-          "-Wa,-mips32r2",
-        ]
-        if (mips_float_abi == "hard" && mips_fpu_mode != "") {
-          cflags += [ "-m$mips_fpu_mode" ]
-        }
-      } else if (mips_arch_variant == "r1") {
-        cflags += [
-          "-mips32",
-          "-Wa,-mips32",
-        ]
-      }
-
-      if (mips_dsp_rev == 1) {
-        cflags += [ "-mdsp" ]
-      } else if (mips_dsp_rev == 2) {
-        cflags += [ "-mdspr2" ]
-      }
-
-      cflags += [ "-m${mips_float_abi}-float" ]
-    } else if (current_cpu == "mips64el") {
-      if (mips_arch_variant == "r6") {
-        cflags += [
-          "-mips64r6",
-          "-Wa,-mips64r6",
-        ]
-        ldflags += [ "-mips64r6" ]
-      } else if (mips_arch_variant == "r2") {
-        cflags += [
-          "-mips64r2",
-          "-Wa,-mips64r2",
-        ]
-        ldflags += [ "-mips64r2" ]
-      }
     }
 
-    if (current_cpu != "mipsel") {
-      cflags += [ "-fno-exceptions" ]
-    }
+    cflags += [ "-fno-exceptions" ]
   }
 
   # Linux/Android common flags setup.
@@ -304,12 +235,12 @@ config("compiler") {
   }
 
   # We need -fPIC:
-  # 1. On ARM and MIPS for tcmalloc.
+  # 1. On ARM for tcmalloc.
   # 2. On Android.
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
   if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
-      (is_linux && (current_cpu == "arm" || current_cpu == "mipsel"))) {
+      (is_linux && current_cpu == "arm")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }
@@ -447,19 +378,15 @@ config("runtime_library") {
   if (is_android) {
     if (is_clang) {
       # Work around incompatibilities between bionic and clang headers.
-      defines += [
-        "__compiler_offsetof=__builtin_offsetof",
-      ]
+      defines += [ "__compiler_offsetof=__builtin_offsetof" ]
     }
 
     defines += [ "__GNU_SOURCE=1" ]  # Necessary for clone().
 
-    # TODO(jdduke) Re-enable on mips after resolving linking
-    # issues with libc++ (crbug.com/456380).
-    if (current_cpu != "mipsel" && current_cpu != "mips64el") {
-      ldflags += [ "-Wl,--warn-shared-textrel" ]
-    }
-    ldflags += [ "-nostdlib" ]
+    ldflags += [
+      "-Wl,--warn-shared-textrel",
+      "-nostdlib",
+    ]
 
     # NOTE: The libc++ header include paths below are specified in cflags
     # rather than include_dirs because they need to come after include_dirs.
@@ -572,23 +499,10 @@ if (is_win) {
       "-Wno-type-limits",
     ]
     default_warning_flags_cc += [
-      # Disabling c++0x-compat should be handled in WebKit, but
-      # this currently doesn't work because gcc_version is not set
-      # correctly when building with the Android build system.
-      # TODO(torne): Fix this in WebKit.
-      "-Wno-error=c++0x-compat",
-
       # Other things unrelated to -Wextra:
       "-Wno-non-virtual-dtor",
       "-Wno-sign-promo",
     ]
-  }
-
-  if (gcc_version >= 48) {
-    # Don't warn about the "typedef 'foo' locally defined but not used"
-    # for gcc 4.8.
-    # TODO: remove this flag once all builds work. See crbug.com/227506
-    default_warning_flags += [ "-Wno-unused-local-typedefs" ]
   }
 }
 

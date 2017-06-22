@@ -1013,7 +1013,7 @@ class RawField : public RawObject {
                            // any other value otherwise.
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
-  // generated on platforms with weak addressing modes (ARM, MIPS).
+  // generated on platforms with weak addressing modes (ARM).
   int8_t guarded_list_length_in_object_offset_;
 
   uint8_t kind_bits_;  // static, final, const, has initializer....

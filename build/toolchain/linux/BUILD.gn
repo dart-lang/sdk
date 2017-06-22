@@ -126,17 +126,3 @@ gcc_toolchain("x64") {
   toolchain_os = "linux"
   is_clang = false
 }
-
-gcc_toolchain("mipsel") {
-  cc = "${compiler_prefix}${toolchain_prefix}gcc"
-  cxx = "${compiler_prefix}${toolchain_prefix}g++"
-  ar = "${toolchain_prefix}ar"
-  ld = cxx
-  readelf = "${toolchain_prefix}readelf"
-  nm = "${toolchain_prefix}nm"
-  strip = "${toolchain_prefix}strip"
-
-  toolchain_cpu = "${target_cpu}"
-  toolchain_os = "linux"
-  is_clang = is_clang
-}

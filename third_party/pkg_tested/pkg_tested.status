@@ -23,7 +23,7 @@ pub/*: SkipByDesign
 pub/test/run/app_can_read_from_stdin_test: Fail # Issue 19448
 pub/test/run/forwards_signal_posix_test: SkipByDesign
 
-[ $runtime == vm && ($mode == debug || $arch == mips || $arch == simmips || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $builder_tag == asan) ]
-dart_style/test/command_line_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators/mips.
-dart_style/test/formatter_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators/mips.
+[ $runtime == vm && ($mode == debug || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $builder_tag == asan) ]
+dart_style/test/command_line_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators.
+dart_style/test/formatter_test: Skip # The test controller does not take into account that tests take much longer in debug mode or on simulators.
 

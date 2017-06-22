@@ -27,6 +27,7 @@
     occur sooner than specified in 'timeout'.
 
 ### Dart VM
+* Support for MIPS has been remvoed.
 
 ### Tool Changes
 

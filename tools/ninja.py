@@ -40,7 +40,7 @@ def BuildOptions():
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-              'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
+              'simarm64,arm64,simdbc,armsimdbc]',
       default=utils.GuessArchitecture())
   result.add_option("--os",
       help='Target OSs (comma-separated).',
@@ -76,7 +76,7 @@ def ProcessOptions(options, args):
       return False
   for arch in options.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
-             'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
+             'simarmv5te', 'armv5te', 'simarm64', 'arm64',
              'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
@@ -94,7 +94,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
-      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
+      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64',
                       'simdbc', 'simdbc64']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
@@ -225,13 +225,6 @@ def EnsureGomaStarted(out_dir):
 
 # Returns a tuple (build_config, command to run, whether goma is used)
 def BuildOneConfig(options, targets, target_os, mode, arch):
-  if arch.startswith('mips'):
-    bold  = '\033[1m'
-    reset = '\033[0m'
-    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
-          "upcoming releases. Please consider using another architecture "
-          "and/or file an issue explaining your specific use of and need for "
-          "MIPS support." + reset)
   build_config = utils.GetBuildConf(mode, arch, target_os)
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
   using_goma = False

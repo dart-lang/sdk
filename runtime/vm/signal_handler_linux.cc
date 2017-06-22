@@ -21,8 +21,6 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   pc = static_cast<uintptr_t>(mcontext.arm_pc);
 #elif defined(HOST_ARCH_ARM64)
   pc = static_cast<uintptr_t>(mcontext.pc);
-#elif defined(HOST_ARCH_MIPS)
-  pc = static_cast<uintptr_t>(mcontext.pc);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -41,8 +39,6 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   fp = static_cast<uintptr_t>(mcontext.arm_fp);
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext.regs[29]);
-#elif defined(HOST_ARCH_MIPS)
-  fp = static_cast<uintptr_t>(mcontext.gregs[30]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -62,8 +58,6 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
 #elif defined(HOST_ARCH_ARM64)
   sp = static_cast<uintptr_t>(mcontext.sp);
-#elif defined(HOST_ARCH_MIPS)
-  sp = static_cast<uintptr_t>(mcontext.gregs[29]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
@@ -91,8 +85,6 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   lr = static_cast<uintptr_t>(mcontext.arm_lr);
 #elif defined(HOST_ARCH_ARM64)
   lr = static_cast<uintptr_t>(mcontext.regs[30]);
-#elif defined(HOST_ARCH_MIPS)
-  lr = static_cast<uintptr_t>(mcontext.gregs[31]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...

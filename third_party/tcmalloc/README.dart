@@ -21,5 +21,5 @@ To roll tcmalloc forward:
 
 . Update the DEPS file with the new git hash.
 
-. Build and run tests for Debug, Release, and Product builds for ia32, x64, mips
+. Build and run tests for Debug, Release, and Product builds for ia32, x64,
   and arm for Linux and any other OSs that are supported.

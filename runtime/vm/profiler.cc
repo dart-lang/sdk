@@ -32,7 +32,7 @@ static const intptr_t kMaxSamplesPerTick = 4;
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 #if defined(HOST_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+    defined(TARGET_ARCH_ARM)
 DEFINE_FLAG(int,
             profile_period,
             10000,
@@ -284,11 +284,6 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   return false;
 }
 #elif defined(TARGET_ARCH_ARM64)
-bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
-  return false;
-}
-#elif defined(TARGET_ARCH_MIPS)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
   return false;

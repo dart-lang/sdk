@@ -992,21 +992,6 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_.Print(".setfp r11, sp, #0\n");
 #endif
 
-#elif defined(TARGET_ARCH_MIPS)
-  COMPILE_ASSERT(FP == R30);
-  COMPILE_ASSERT(RA == R31);
-  assembly_stream_.Print(".cfi_def_cfa r30, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r30, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset r31, 4\n");   // saved pc is *(CFA+4)
-  // saved sp is CFA+16
-  // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        29
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_.Print(".cfi_escape 0x10, 29, 2, 0x23, 8\n");
 #endif
 }
 

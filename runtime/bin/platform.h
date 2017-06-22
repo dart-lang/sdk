@@ -25,7 +25,7 @@ class Platform {
   static const char* OperatingSystem();
 
   // Returns the architecture name of the processor the VM is running on
-  // (ia32, x64, arm, arm64, or mips).
+  // (ia32, x64, arm, or arm64).
   static const char* HostArchitecture() {
 #if defined(HOST_ARCH_ARM)
     return "arm";
@@ -33,8 +33,6 @@ class Platform {
     return "arm64";
 #elif defined(HOST_ARCH_IA32)
     return "ia32";
-#elif defined(HOST_ARCH_MIPS)
-    return "mips";
 #elif defined(HOST_ARCH_X64)
     return "x64";
 #else

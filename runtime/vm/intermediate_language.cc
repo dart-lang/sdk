@@ -3051,8 +3051,8 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
     // The deoptimization descriptor points after the edge counter code for
-    // uniformity with ARM and MIPS, where we can reuse pattern matching
-    // code that matches backwards from the end of the pattern.
+    // uniformity with ARM, where we can reuse pattern matching code that
+    // matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, GetDeoptId(),
                                    TokenPosition::kNoSource);
   }

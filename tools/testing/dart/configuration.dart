@@ -443,8 +443,6 @@ class Architecture {
   static const simarmv6 = const Architecture._('simarmv6');
   static const simarmv5te = const Architecture._('simarmv5te');
   static const simarm64 = const Architecture._('simarm64');
-  static const mips = const Architecture._('mips');
-  static const simmips = const Architecture._('simmips');
   static const simdbc = const Architecture._('simdbc');
   static const simdbc64 = const Architecture._('simdbc64');
 
@@ -461,8 +459,6 @@ class Architecture {
     simarmv6,
     simarmv5te,
     simarm64,
-    mips,
-    simmips,
     simdbc,
     simdbc64
   ], key: (Architecture architecture) => architecture.name);

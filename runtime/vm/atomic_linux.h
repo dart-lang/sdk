@@ -32,12 +32,7 @@ inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
 
 
 inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
-#if defined(TARGET_ARCH_MIPS)
-  // No double-word atomics on MIPS32.
-  *p += value;
-#else
   __sync_fetch_and_add(p, value);
-#endif
 }
 
 

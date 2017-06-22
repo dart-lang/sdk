@@ -144,9 +144,6 @@ async_await_test: Skip # Issue 26198
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
-large_class_declaration_test: SkipSlow # Times out. Issue 20352
-
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 closure_cycles_test: Pass, Slow
@@ -154,11 +151,10 @@ closure_cycles_test: Pass, Slow
 [ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simmips || $arch == mips) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
-
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 issue23244_test: Fail # Issue 23244

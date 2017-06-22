@@ -71,14 +71,10 @@ if (is_android) {
       "platforms/android-${_android_api_level}/arch-x86"
   arm_android_sysroot_subdir =
       "platforms/android-${_android_api_level}/arch-arm"
-  mips_android_sysroot_subdir =
-      "platforms/android-${_android_api_level}/arch-mips"
   x86_64_android_sysroot_subdir =
       "platforms/android-${_android_api_level}/arch-x86_64"
   arm64_android_sysroot_subdir =
       "platforms/android-${_android_api_level}/arch-arm64"
-  mips64_android_sysroot_subdir =
-      "platforms/android-${_android_api_level}/arch-mips64"
 
   # Toolchain root directory for each build. The actual binaries are inside
   # a "bin" directory inside of these.
@@ -86,10 +82,8 @@ if (is_android) {
   _android_toolchain_detailed_version = "4.9.x"
   x86_android_toolchain_root = "$android_ndk_root/toolchains/x86-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
   arm_android_toolchain_root = "$android_ndk_root/toolchains/arm-linux-androideabi-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
-  mips_android_toolchain_root = "$android_ndk_root/toolchains/mipsel-linux-android-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
   x86_64_android_toolchain_root = "$android_ndk_root/toolchains/x86_64-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
   arm64_android_toolchain_root = "$android_ndk_root/toolchains/aarch64-linux-android-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
-  mips64_android_toolchain_root = "$android_ndk_root/toolchains/mips64el-linux-android-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
 
   # Location of libgcc. This is only needed for the current GN toolchain, so we
   # only need to define the current one, rather than one for every platform
@@ -102,10 +96,6 @@ if (is_android) {
     android_prebuilt_arch = "android-arm"
     _binary_prefix = "arm-linux-androideabi"
     android_toolchain_root = "$arm_android_toolchain_root"
-  } else if (current_cpu == "mipsel") {
-    android_prebuilt_arch = "android-mips"
-    _binary_prefix = "mipsel-linux-android"
-    android_toolchain_root = "$mips_android_toolchain_root"
   } else if (current_cpu == "x64") {
     android_prebuilt_arch = "android-x86_64"
     _binary_prefix = "x86_64-linux-android"
@@ -114,10 +104,6 @@ if (is_android) {
     android_prebuilt_arch = "android-arm64"
     _binary_prefix = "aarch64-linux-android"
     android_toolchain_root = "$arm64_android_toolchain_root"
-  } else if (current_cpu == "mips64el") {
-    android_prebuilt_arch = "android-mips64"
-    _binary_prefix = "mips64el-linux-android"
-    android_toolchain_root = "$mips64_android_toolchain_root"
   } else {
     assert(false, "Need android libgcc support for your target arch.")
   }
@@ -156,14 +142,10 @@ if (is_android) {
     } else {
       android_app_abi = "armeabi-v7a"
     }
-  } else if (current_cpu == "mipsel") {
-    android_app_abi = "mips"
   } else if (current_cpu == "x64") {
     android_app_abi = "x86_64"
   } else if (current_cpu == "arm64") {
     android_app_abi = "arm64-v8a"
-  } else if (current_cpu == "mips64el") {
-    android_app_abi = "mips64"
   } else {
     assert(false, "Unknown Android ABI: " + current_cpu)
   }

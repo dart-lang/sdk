@@ -722,15 +722,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
         break;
       case Architecture.ia32:
       case Architecture.simarm:
-      case Architecture.simmips:
-        ccFlags = "-m32";
-        break;
       case Architecture.arm:
       case Architecture.arm64:
         ccFlags = null;
-        break;
-      case Architecture.mips:
-        ccFlags = "-EL";
         break;
       default:
         throw "Architecture not supported: ${arch.name}";

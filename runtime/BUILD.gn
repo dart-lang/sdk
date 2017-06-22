@@ -26,7 +26,7 @@ declare_args() {
 
   # Explicitly set the target architecture in case of precompilation. Leaving
   # this unspecified results in automatic target architecture detection.
-  # Available options are: arm, arm64, mips, x64 and ia32
+  # Available options are: arm, arm64, x64, and ia32
   dart_target_arch = ""
 
   # The optimization level to use for debug builds.
@@ -105,8 +105,6 @@ config("dart_config") {
       defines += [ "TARGET_ARCH_ARM_5TE" ]
     } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
       defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "mips" || dart_target_arch == "simmips") {
-      defines += [ "TARGET_ARCH_MIPS" ]
     } else if (dart_target_arch == "x64") {
       defines += [ "TARGET_ARCH_X64" ]
     } else if (dart_target_arch == "ia32") {

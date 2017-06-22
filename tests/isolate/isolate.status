@@ -12,9 +12,6 @@ isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to 
 [ $runtime != vm || $mode == product || $compiler == app_jit ]
 checked_test: Skip # Unsupported.
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
-mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
-
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 compile_time_error_test/01: Skip # Issue 12587
 ping_test: Skip           # Resolve test issues

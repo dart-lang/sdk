@@ -2798,11 +2798,10 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
-  // far branches on ARM and MIPS. In the else branch of the setjmp call,
-  // done is set to false, and use_far_branches is set to true if there is a
-  // longjmp from the ARM or MIPS assemblers. In all other paths through this
-  // while loop, done is set to true. use_far_branches is always false on ia32
-  // and x64.
+  // far branches on ARM. In the else branch of the setjmp call, done is set to
+  // false, and use_far_branches is set to true if there is a longjmp from the
+  // ARM assembler. In all other paths through this while loop, done is set to
+  // true. use_far_branches is always false on ia32 and x64.
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;

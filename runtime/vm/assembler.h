@@ -14,8 +14,7 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_MIPS)
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 DECLARE_FLAG(bool, use_far_branches);
 #endif
 
@@ -335,8 +334,6 @@ enum RestorePP { kRestoreCallerPP, kKeepCalleePP };
 #include "vm/assembler_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/assembler_arm64.h"
-#elif defined(TARGET_ARCH_MIPS)
-#include "vm/assembler_mips.h"
 #elif defined(TARGET_ARCH_DBC)
 #include "vm/assembler_dbc.h"
 #else
