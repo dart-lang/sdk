@@ -1125,7 +1125,7 @@ class StandardTestSuite extends TestSuite {
       }
       scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
-      if (configuration.compiler == Compiler.dart2js) {
+      if (configuration.compiler != Compiler.dartdevc) {
         content = getHtmlContents(fileName, scriptType, scriptPath);
       } else {
         var jsDir = new Path(compilationTempDir)
@@ -1147,6 +1147,9 @@ class StandardTestSuite extends TestSuite {
       case Compiler.dartdevc:
         commands.add(_dartdevcCompileCommand(dartWrapperFilename,
             '$compilationTempDir/$nameNoExt.js', optionsFromFile));
+        break;
+
+      case Compiler.none:
         break;
 
       default:
