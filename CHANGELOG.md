@@ -1,3 +1,23 @@
+# 0.1.33
+
+## Features
+
+* new `prefer_const_constructors_in_immutables` lint
+* new `always_put_required_named_parameters_first` lint
+* new `prefer_asserts_in_initializer_lists` lint
+* support for running in `--benchmark` mode
+* new `prefer_single_quote_strings` lint
+
+## Fixes
+
+* docs for `avoid_setters_without_getters`
+* fix to `directives_ordering` to work with part directives located after exports
+* fixes to `cascade_invocations` false positives
+* fixes to `literal_only_boolean_expressions` false positives
+* fix to ensure `cascade_invocations` only lints method invocations if target is a simple identifier 
+* fixes to `use_string_buffers` false positives
+* fixes to `prefer_const_constructors`
+
 # 0.1.32
 
 * Lint stats (`-s`) output now sorted.
