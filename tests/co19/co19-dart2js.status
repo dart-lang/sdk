@@ -377,6 +377,9 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
+[ $compiler == dart2js && $runtime != d8]
+WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # Please triage this failure
+
 [ $compiler == dart2js && $checked && $runtime != d8]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Please triage this failure
@@ -384,7 +387,6 @@ LayoutTests/fast/inline/empty-inline-before-collapsed-space_t01: RuntimeError # 
 LayoutTests/fast/url/trivial_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # Please triage this failure
 
@@ -2205,6 +2207,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Please triage this failure
@@ -2347,6 +2350,7 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/src_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out.
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
@@ -3702,7 +3706,6 @@ LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please tria
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
-LibTest/html/Element/mouseOverEvent_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Issue 16574
@@ -4869,6 +4872,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
@@ -7917,6 +7921,7 @@ LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
