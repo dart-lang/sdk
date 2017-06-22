@@ -21,23 +21,18 @@ const desc = 'Use contains for Lists and Strings.';
 const details = '''
 **DO NOT** use `.indexOf` to see if a collection contains an element.
 
-The `Iterable` contract does not require that a collection know its length or be
-able to provide it in constant time. Calling `.length` just to see if the
-collection contains anything can be painfully slow.
+Calling `.indexOf` to see if a collection contains something is difficult to read and may have poor performance.
 
-Instead, there are faster and more readable getters: `.isEmpty` and
-`.isNotEmpty`. Use the one that doesn’t require you to negate the result.
+Instead, prefer `.contains`.
 
 **GOOD:**
 ```
-if (lunchBox.isEmpty) return 'so hungry...';
-if (words.isNotEmpty) return words.join(' ');
+if (!lunchBox.contains('sandwich') return 'so hungry...';
 ```
 
 **BAD:**
 ```
-if (lunchBox.length == 0) return 'so hungry...';
-if (words.length != 0) return words.join(' ');
+if (lunchBox.indexOf('sandwich') == -1 return 'so hungry...';
 ```
 ''';
 
