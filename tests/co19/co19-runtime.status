@@ -16,12 +16,12 @@ LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass,Timeo
 
 [ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
 
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass,Timeout # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Issue 1296
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError, Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError, Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 1296
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass,Timeout # Please triage this failure
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
