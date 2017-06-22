@@ -992,17 +992,10 @@ void Object::InitOnce(Isolate* isolate) {
 
 
 // An object visitor which will mark all visited objects. This is used to
-// premark all objects in the vm_isolate_ heap.  Also precalculates hash
-// codes so that we can get the identity hash code of objects in the read-
-// only VM isolate.
-class FinalizeVMIsolateVisitor : public ObjectVisitor {
+// premark all objects in the vm_isolate_ heap.
+class PremarkingVisitor : public ObjectVisitor {
  public:
-  FinalizeVMIsolateVisitor()
-#if defined(HASH_IN_OBJECT_HEADER)
-      : counter_(1337)
-#endif
-  {
-  }
+  PremarkingVisitor() {}
 
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
@@ -1012,35 +1005,8 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
-      if (obj->IsStringInstance()) {
-        RawString* str = reinterpret_cast<RawString*>(obj);
-        intptr_t hash = String::Hash(str);
-        String::SetCachedHash(str, hash);
-      }
-#if defined(HASH_IN_OBJECT_HEADER)
-      // These objects end up in the read-only VM isolate which is shared
-      // between isolates, so we have to prepopulate them with identity hash
-      // codes, since we can't add hash codes later.
-      if (Object::GetCachedHash(obj) == 0) {
-        // Some classes have identity hash codes that depend on their contents,
-        // not per object.
-        ASSERT(!obj->IsStringInstance());
-        if (!obj->IsMint() && !obj->IsDouble() && !obj->IsBigint() &&
-            !obj->IsRawNull() && !obj->IsBool()) {
-          counter_ += 2011;  // The year Dart was announced and a prime.
-          counter_ &= 0x3fffffff;
-          if (counter_ == 0) counter_++;
-          Object::SetCachedHash(obj, counter_);
-        }
-      }
-#endif
     }
   }
-
- private:
-#if defined(HASH_IN_OBJECT_HEADER)
-  int counter_;
-#endif
 };
 
 
@@ -1120,7 +1086,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   {
     ASSERT(isolate == Dart::vm_isolate());
     WritableVMIsolateScope scope(Thread::Current());
-    FinalizeVMIsolateVisitor premarker;
+    PremarkingVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
     isolate->heap()->IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
@@ -1155,15 +1121,13 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      uint32_t tags = raw->ptr()->tags_;
-      uint32_t old_tags;
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        // We can't use obj.CompareAndSwapTags here because we don't have a
-        // handle for the new object.
-        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
-                                                      old_tags, new_tags);
+        tags = AtomicOperations::CompareAndSwapWord(&raw->ptr()->tags_,
+                                                    old_tags, new_tags);
       } while (tags != old_tags);
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
@@ -1175,12 +1139,13 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      uint32_t tags = raw->ptr()->tags_;
-      uint32_t old_tags;
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = obj.CompareAndSwapTags(old_tags, new_tags);
+        tags = AtomicOperations::CompareAndSwapWord(&raw->ptr()->tags_,
+                                                    old_tags, new_tags);
       } while (tags != old_tags);
     }
   }
@@ -1902,15 +1867,12 @@ void Object::InitializeObject(uword address,
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
   }
-  uint32_t tags = 0;
+  uword tags = 0;
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  reinterpret_cast<RawObject*>(address)->hash_ = 0;
-#endif
   ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
 }
 
@@ -20365,35 +20327,6 @@ static intptr_t HashImpl(const T* characters, intptr_t len) {
 }
 
 
-intptr_t String::Hash(RawString* raw) {
-  StringHasher hasher;
-  uword length = Smi::Value(raw->ptr()->length_);
-  if (raw->IsOneByteString() || raw->IsExternalOneByteString()) {
-    const uint8_t* data;
-    if (raw->IsOneByteString()) {
-      data = reinterpret_cast<RawOneByteString*>(raw)->ptr()->data();
-    } else {
-      ASSERT(raw->IsExternalOneByteString());
-      RawExternalOneByteString* str =
-          reinterpret_cast<RawExternalOneByteString*>(raw);
-      data = str->ptr()->external_data_->data();
-    }
-    return String::Hash(data, length);
-  } else {
-    const uint16_t* data;
-    if (raw->IsTwoByteString()) {
-      data = reinterpret_cast<RawTwoByteString*>(raw)->ptr()->data();
-    } else {
-      ASSERT(raw->IsExternalTwoByteString());
-      RawExternalTwoByteString* str =
-          reinterpret_cast<RawExternalTwoByteString*>(raw);
-      data = str->ptr()->external_data_->data();
-    }
-    return String::Hash(data, length);
-  }
-}
-
-
 intptr_t String::Hash(const char* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
@@ -21214,11 +21147,11 @@ RawString* String::MakeExternal(void* array,
 
       // Update the class information of the object.
       const intptr_t class_id = kExternalOneByteStringCid;
-      uint32_t tags = raw_ptr()->tags_;
-      uint32_t old_tags;
+      uword tags = raw_ptr()->tags_;
+      uword old_tags;
       do {
         old_tags = tags;
-        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
         tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
@@ -21251,11 +21184,11 @@ RawString* String::MakeExternal(void* array,
 
       // Update the class information of the object.
       const intptr_t class_id = kExternalTwoByteStringCid;
-      uint32_t tags = raw_ptr()->tags_;
-      uint32_t old_tags;
+      uword tags = raw_ptr()->tags_;
+      uword old_tags;
       do {
         old_tags = tags;
-        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
         tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
@@ -22143,11 +22076,11 @@ void Array::MakeImmutable() const {
   if (IsImmutable()) return;
   ASSERT(!IsCanonical());
   NoSafepointScope no_safepoint;
-  uint32_t tags = raw_ptr()->tags_;
-  uint32_t old_tags;
+  uword tags = raw_ptr()->tags_;
+  uword old_tags;
   do {
     old_tags = tags;
-    uint32_t new_tags =
+    uword new_tags =
         RawObject::ClassIdTag::update(kImmutableArrayCid, old_tags);
     tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
@@ -22189,7 +22122,6 @@ RawArray* Array::Grow(const Array& source,
 
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   ASSERT(!growable_array.IsNull());
-  ASSERT(growable_array.IsGrowableObjectArray());
   intptr_t used_len = growable_array.Length();
   // Get the type arguments and prepare to copy them.
   const TypeArguments& type_arguments =
@@ -22202,7 +22134,6 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t capacity_len = growable_array.Capacity();
   Zone* zone = Thread::Current()->zone();
   const Array& array = Array::Handle(zone, growable_array.data());
-  ASSERT(array.IsArray());
   array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
@@ -22216,10 +22147,10 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
-  uint32_t old_tags;
+  uword old_tags;
   do {
     old_tags = tags;
-    uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
+    uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
     tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
   // TODO(22501): For the heap to remain walkable by the sweeper, it must

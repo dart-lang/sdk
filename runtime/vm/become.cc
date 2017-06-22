@@ -23,7 +23,7 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
 
   ForwardingCorpse* result = reinterpret_cast<ForwardingCorpse*>(addr);
 
-  uint32_t tags = 0;
+  uword tags = 0;
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kForwardingCorpse, tags);
 
@@ -262,16 +262,12 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
 
     ForwardObjectTo(before_obj, after_obj);
 
-#if defined(HASH_IN_OBJECT_HEADER)
-    Object::SetCachedHash(after_obj, Object::GetCachedHash(before_obj));
-#else
     // Forward the identity hash too if it has one.
     intptr_t hash = heap->GetHash(before_obj);
     if (hash != 0) {
       ASSERT(heap->GetHash(after_obj) == 0);
       heap->SetHash(after_obj, hash);
     }
-#endif
   }
 
   {

@@ -56,10 +56,7 @@ class FreeListElement {
 
  private:
   // This layout mirrors the layout of RawObject.
-  uint32_t tags_;
-#if defined(HASH_IN_OBJECT_HEADER)
-  uint32_t hash_;
-#endif
+  uword tags_;
   FreeListElement* next_;
 
   // Returns the address of the embedded size.
