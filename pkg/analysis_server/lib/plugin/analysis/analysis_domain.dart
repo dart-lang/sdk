@@ -25,15 +25,11 @@
  *       ...
  *     }
  */
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show AnalysisService;
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, ResultChangedEvent;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/task/model.dart' show ResultDescriptor;
 import 'package:plugin/plugin.dart';
 
 /**
@@ -58,17 +54,6 @@ typedef void SetAnalysisDomain(AnalysisDomain domain);
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class AnalysisDomain {
-  /**
-   * Return the stream that is notified when a new value for the given
-   * [result] is computed or invalidated.
-   *
-   * This method should be used by plugins that need to perform some additional
-   * processing after analysis has completed. One example would be a plugin that
-   * needed to send a notification to the client because some data was now
-   * invalidated.
-   */
-  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor result);
-
   /**
    * Schedule sending the given [service] notifications for the given [source]
    * in the given [context].

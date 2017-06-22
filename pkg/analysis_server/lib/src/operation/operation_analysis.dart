@@ -91,11 +91,14 @@ void scheduleNotificationOperations(
     CompilationUnit parsedDartUnit,
     CompilationUnit resolvedDartUnit,
     List<AnalysisError> errors) {
+  // TODO(brianwilkerson) The `containingContext` will always be `null`. If this
+  // check is still useful, we should re-write it to use drivers.
+  //
   // If the file belongs to any analysis root, check whether we're in it now.
-  AnalysisContext containingContext = server.getContainingContext(file);
-  if (containingContext != null && context != containingContext) {
-    return;
-  }
+//  AnalysisContext containingContext = server.getContainingContext(file);
+//  if (containingContext != null && context != containingContext) {
+//    return;
+//  }
   // Dart
   CompilationUnit dartUnit = resolvedDartUnit ?? parsedDartUnit;
   if (resolvedDartUnit != null) {

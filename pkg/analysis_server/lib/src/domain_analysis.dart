@@ -20,7 +20,6 @@ import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
@@ -103,22 +102,26 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         new AnalysisGetHoverResult(hovers).toResponse(request.id));
   }
 
-  /// Implement the `analysis.getLibraryDependencies` request.
+  /**
+   * Implement the `analysis.getLibraryDependencies` request.
+   */
   Response getLibraryDependencies(Request request) {
-    server.onAnalysisComplete.then((_) {
-      LibraryDependencyCollector collector =
-          new LibraryDependencyCollector(server.analysisContexts);
-      Set<String> libraries = collector.collectLibraryDependencies();
-      Map<String, Map<String, List<String>>> packageMap =
-          collector.calculatePackageMap(server.folderMap);
-      server.sendResponse(new AnalysisGetLibraryDependenciesResult(
-              libraries.toList(growable: false), packageMap)
-          .toResponse(request.id));
-    }).catchError((error, st) {
-      server.sendResponse(new Response.serverError(request, error, st));
-    });
-    // delay response
-    return Response.DELAYED_RESPONSE;
+    return new Response.unsupportedFeature(request.id,
+        'Please contact the Dart analyzer team if you need this request.');
+//    server.onAnalysisComplete.then((_) {
+//      LibraryDependencyCollector collector =
+//          new LibraryDependencyCollector(server.analysisContexts);
+//      Set<String> libraries = collector.collectLibraryDependencies();
+//      Map<String, Map<String, List<String>>> packageMap =
+//          collector.calculatePackageMap(server.folderMap);
+//      server.sendResponse(new AnalysisGetLibraryDependenciesResult(
+//              libraries.toList(growable: false), packageMap)
+//          .toResponse(request.id));
+//    }).catchError((error, st) {
+//      server.sendResponse(new Response.serverError(request, error, st));
+//    });
+//    // delay response
+//    return Response.DELAYED_RESPONSE;
   }
 
   /**
@@ -429,20 +432,12 @@ class AnalysisDomainImpl implements AnalysisDomain {
       <ResultDescriptor, StreamController<engine.ResultChangedEvent>>{};
 
   AnalysisDomainImpl(this.server) {
-    server.onContextsChanged.listen((ContextsChangedEvent event) {
-      event.added.forEach(_subscribeForContext);
-    });
-  }
-
-  @override
-  Stream<engine.ResultChangedEvent> onResultChanged(
-      ResultDescriptor descriptor) {
-    Stream<engine.ResultChangedEvent> stream =
-        controllers.putIfAbsent(descriptor, () {
-      return new StreamController<engine.ResultChangedEvent>.broadcast();
-    }).stream;
-    server.analysisContexts.forEach(_subscribeForContext);
-    return stream;
+    // TODO(brianwilkerson) The onContextsChanged stream is no longer written to.
+    // Figure out whether this code still needs to be here and convert it to use
+    // the analysis driver if it does.
+//    server.onContextsChanged.listen((ContextsChangedEvent event) {
+//      event.added.forEach(_subscribeForContext);
+//    });
   }
 
   @override

@@ -5,7 +5,6 @@
 library test.context.directory.manager;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -169,10 +168,9 @@ test_pack:lib/''');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
     // Confirm that one context was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts, isNotNull);
-    expect(contexts.length, equals(1));
+    int count = manager
+        .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(count, equals(1));
     var source = sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
     expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
@@ -402,10 +400,9 @@ test_pack:lib/''');
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Confirm that one context was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts, isNotNull);
-    expect(contexts.length, equals(1));
+    int count = manager
+        .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(count, equals(1));
     var source = sourceFactory.forUri('dart:foobar');
     expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
   }
@@ -1762,12 +1759,8 @@ abstract class ContextManagerTest {
    * TODO(brianwilkerson) This doesn't add the strong mode processor when using
    * the new analysis driver.
    */
-  ErrorProcessor getProcessor(AnalysisError error) =>
-      callbacks.currentDriver == null
-          ? ErrorProcessor.getProcessor(
-              callbacks.currentContext.analysisOptions, error)
-          : errorProcessors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
-              orElse: () => null);
+  ErrorProcessor getProcessor(AnalysisError error) => errorProcessors
+      .firstWhere((ErrorProcessor p) => p.appliesTo(error), orElse: () => null);
 
   String newFile(List<String> pathComponents, [String content = '']) {
     String filePath = path.posix.joinAll(pathComponents);
@@ -2118,10 +2111,9 @@ linter:
     await pumpEventQueue();
 
     // Confirm that one context was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts, isNotNull);
-    expect(contexts, hasLength(1));
+    int count = manager
+        .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(count, equals(1));
 
     // Verify options.
     // * from `_embedder.yaml`:
@@ -2531,11 +2523,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   int now = 0;
 
   /**
-   * The analysis context that was created.
-   */
-  AnalysisContext currentContext;
-
-  /**
    * The analysis driver that was created.
    */
   AnalysisDriver currentDriver;
@@ -2602,9 +2589,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   /**
    * Return the current set of analysis options.
    */
-  AnalysisOptions get analysisOptions => currentDriver == null
-      ? currentContext.analysisOptions
-      : currentDriver.analysisOptions;
+  AnalysisOptions get analysisOptions => currentDriver?.analysisOptions;
 
   /**
    * Return the paths to the context roots that currently exist.
@@ -2618,14 +2603,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    */
   Iterable<String> get currentFilePaths {
     if (currentDriver == null) {
-      if (currentContext == null) {
-        return <String>[];
-      }
-      Map<String, int> fileMap = currentContextFilePaths[currentContext.name];
-      if (fileMap == null) {
-        return <String>[];
-      }
-      return fileMap.keys;
+      return <String>[];
     }
     return currentDriver.addedFiles;
   }
@@ -2633,9 +2611,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   /**
    * Return the current source factory.
    */
-  SourceFactory get sourceFactory => currentDriver == null
-      ? currentContext.sourceFactory
-      : currentDriver.sourceFactory;
+  SourceFactory get sourceFactory => currentDriver?.sourceFactory;
 
   @override
   AnalysisDriver addAnalysisDriver(
@@ -2671,20 +2647,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  AnalysisContext addContext(Folder folder, AnalysisOptions options) {
-    String path = folder.path;
-    expect(currentContextRoots, isNot(contains(path)));
-    currentContextTimestamps[path] = now;
-    currentContextFilePaths[path] = <String, int>{};
-    currentContextSources[path] = new HashSet<Source>();
-
-    ContextBuilder builder = createContextBuilder(folder, options);
-    currentContext = builder.buildContext(path);
-    currentContext.name = path;
-    return currentContext;
-  }
-
-  @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisDriver driver = driverMap[contextFolder.path];
     if (driver != null) {
@@ -2697,26 +2659,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
       changeSet.removedSources.forEach((source) {
         driver.removeFile(source.fullName);
       });
-    } else {
-      Map<String, int> filePaths = currentContextFilePaths[contextFolder.path];
-      Set<Source> sources = currentContextSources[contextFolder.path];
-
-      for (Source source in changeSet.addedSources) {
-        expect(filePaths, isNot(contains(source.fullName)));
-        filePaths[source.fullName] = now;
-        sources.add(source);
-      }
-      for (Source source in changeSet.removedSources) {
-        expect(filePaths, contains(source.fullName));
-        filePaths.remove(source.fullName);
-        sources.remove(source);
-      }
-      for (Source source in changeSet.changedSources) {
-        expect(filePaths, contains(source.fullName));
-        filePaths[source.fullName] = now;
-      }
-
-      currentContext.applyChanges(changeSet);
     }
   }
 
@@ -2759,11 +2701,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    */
   Iterable<Source> currentFileSources(String contextPath) {
     if (currentDriver == null) {
-      if (currentContext == null) {
-        return <Source>[];
-      }
-      Set<Source> sources = currentContextSources[contextPath];
-      return sources ?? <Source>[];
+      return <Source>[];
     }
     AnalysisDriver driver = driverMap[contextPath];
     SourceFactory sourceFactory = driver.sourceFactory;
@@ -2780,14 +2718,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    */
   Iterable<String> getCurrentFilePaths(String contextPath) {
     if (currentDriver == null) {
-      if (currentContext == null) {
-        return <String>[];
-      }
-      Map<String, int> fileMap = currentContextFilePaths[contextPath];
-      if (fileMap == null) {
-        return <String>[];
-      }
-      return fileMap.keys;
+      return <String>[];
     }
     return driverMap[contextPath].addedFiles;
   }
