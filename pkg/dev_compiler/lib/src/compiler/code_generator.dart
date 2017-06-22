@@ -4802,8 +4802,13 @@ class CodeGenerator extends Object
         result = _callHelper('bind(this, #, #)',
             [safeName, _emitTargetAccess(jsTarget, name, accessor)]);
       } else if (_isObjectMemberCall(target, memberName)) {
-        result = _callHelper('bind(#, #, #.#)',
-            [jsTarget, _propertyName(memberName), _runtimeModule, memberName]);
+        var fn = js.call(
+            memberName == 'noSuchMethod'
+                ? 'function(i) { return #.#(this, i); }'
+                : 'function() { return #.#(this); }',
+            [_runtimeModule, memberName]);
+        result = _callHelper(
+            'bind(#, #, #)', [jsTarget, _propertyName(memberName), fn]);
       } else {
         result = _callHelper('bind(#, #)', [jsTarget, safeName]);
       }
