@@ -1754,6 +1754,23 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Object_getHash(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, +1 * kWordSize));  // Object.
+  __ movl(RAX, FieldAddress(RAX, String::hash_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+}
+
+
+void Intrinsifier::Object_setHash(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, +2 * kWordSize));  // Object.
+  __ movq(RDX, Address(RSP, +1 * kWordSize));  // Value.
+  __ SmiUntag(RDX);
+  __ movl(FieldAddress(RAX, String::hash_offset()), RDX);
+  __ ret();
+}
+
+
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t receiver_cid,
                                             intptr_t other_cid,

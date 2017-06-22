@@ -1215,7 +1215,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // T3: next object start.
     // T1: new object type arguments (if is_cls_parameterized).
     // Set the tags.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);

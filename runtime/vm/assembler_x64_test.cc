@@ -1749,7 +1749,7 @@ ASSEMBLER_TEST_GENERATE(CompareSwapEQ, assembler) {
   __ movq(RAX, Immediate(4));
   __ movq(RCX, Immediate(0));
   __ movq(Address(RSP, 0), RAX);
-  __ lock_cmpxchgq(Address(RSP, 0), RCX);
+  __ LockCmpxchgq(Address(RSP, 0), RCX);
   __ popq(RAX);
   __ ret();
 }
@@ -1767,7 +1767,7 @@ ASSEMBLER_TEST_GENERATE(CompareSwapNEQ, assembler) {
   __ movq(RAX, Immediate(2));
   __ movq(RCX, Immediate(4));
   __ movq(Address(RSP, 0), RCX);
-  __ lock_cmpxchgq(Address(RSP, 0), RCX);
+  __ LockCmpxchgq(Address(RSP, 0), RCX);
   __ popq(RAX);
   __ ret();
 }
@@ -1776,6 +1776,47 @@ ASSEMBLER_TEST_GENERATE(CompareSwapNEQ, assembler) {
 ASSEMBLER_TEST_RUN(CompareSwapNEQ, test) {
   typedef int (*CompareSwapNEQCode)();
   EXPECT_EQ(4, reinterpret_cast<CompareSwapNEQCode>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(CompareSwapEQ32, assembler) {
+  __ movq(RAX, Immediate(0x100000000));
+  __ pushq(RAX);
+  __ movq(RAX, Immediate(4));
+  __ movq(RCX, Immediate(0));
+  // 32 bit store of 4.
+  __ movl(Address(RSP, 0), RAX);
+  // Compare 32 bit memory location with RAX (4) and write 0.
+  __ LockCmpxchgl(Address(RSP, 0), RCX);
+  // Pop unchanged high word and zeroed out low word.
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CompareSwapEQ32, test) {
+  typedef intptr_t (*CompareSwapEQ32Code)();
+  EXPECT_EQ(0x100000000,
+            reinterpret_cast<CompareSwapEQ32Code>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(CompareSwapNEQ32, assembler) {
+  __ movq(RAX, Immediate(0x100000000));
+  __ pushq(RAX);
+  __ movq(RAX, Immediate(2));
+  __ movq(RCX, Immediate(4));
+  __ movl(Address(RSP, 0), RCX);
+  __ LockCmpxchgl(Address(RSP, 0), RCX);
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CompareSwapNEQ32, test) {
+  typedef intptr_t (*CompareSwapNEQ32Code)();
+  EXPECT_EQ(0x100000004l,
+            reinterpret_cast<CompareSwapNEQ32Code>(test->entry())());
 }
 
 

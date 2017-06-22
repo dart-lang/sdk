@@ -1152,7 +1152,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R1: next object start.
     // R9: allocation stats table.
     // Set the tags.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
