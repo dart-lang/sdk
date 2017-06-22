@@ -57,7 +57,7 @@ linter:
     - package_prefixed_library_names
     - parameter_assignments
     - prefer_adjacent_string_concatenation
-    - prefer_asserts_in_initializer_list
+    - prefer_asserts_in_initializer_lists
     - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_const_constructors

@@ -57,7 +57,7 @@ import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/parameter_assignments.dart';
 import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
-import 'package:linter/src/rules/prefer_asserts_in_initializer_list.dart';
+import 'package:linter/src/rules/prefer_asserts_in_initializer_lists.dart';
 import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_conditional_assignment.dart';
 import 'package:linter/src/rules/prefer_const_constructors.dart';
@@ -160,7 +160,7 @@ void registerLintRules() {
     ..register(new PreferConditionalAssignment())
     ..register(new PreferConstConstructors())
     ..register(new PreferConstConstructorsInImmutables())
-    ..register(new PreferAssertsInInitializerList())
+    ..register(new PreferAssertsInInitializerLists())
     ..register(new PreferConstructorsInsteadOfStaticMethods())
     ..register(new PreferContainsOverIndexOf())
     ..register(new PreferExpressionFunctionBodies())

@@ -419,7 +419,7 @@ defineTests() {
       });
     });
 
-    group('prefer_asserts_in_initializer_list', () {
+    group('prefer_asserts_in_initializer_lists', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
       setUp(() {
@@ -434,8 +434,8 @@ defineTests() {
 
       test('only throw errors', () {
         dartlint.runLinter([
-          'test/_data/prefer_asserts_in_initializer_list',
-          '--rules=prefer_asserts_in_initializer_list'
+          'test/_data/prefer_asserts_in_initializer_lists',
+          '--rules=prefer_asserts_in_initializer_lists'
         ], new LinterOptions()..enableAssertInitializer = true);
         expect(exitCode, 1);
         expect(

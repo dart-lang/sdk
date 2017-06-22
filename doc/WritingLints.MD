@@ -18,6 +18,8 @@ Dart lints:
 
 Every lint has a:
 
+**Name.** A short name using Dart package naming conventions.  Naming is *hard* but strive to be concise and consistent.  Where possible, use existing rules for inspiration and observe the rules of [parallel construction](https://en.wikipedia.org/wiki/Parallelism_(grammar)).
+
 **Description.** A short description of the lint, suitable for printing in console output.  For example:
 
 ```
