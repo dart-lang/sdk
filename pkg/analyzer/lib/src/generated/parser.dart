@@ -284,11 +284,11 @@ class Parser {
     if (useFasta ?? Parser.useFasta) {
       return new _Parser2(source, errorListener);
     } else {
-      return new Parser._(source, errorListener);
+      return new Parser.withoutFasta(source, errorListener);
     }
   }
 
-  Parser._(this._source, this._errorListener);
+  Parser.withoutFasta(this._source, this._errorListener);
 
   /**
    * Return the current token.
