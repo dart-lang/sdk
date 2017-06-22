@@ -29,7 +29,7 @@ template("generate_patched_sdk") {
     }
 
     if (!prebuilt_dart_exe_works) {
-      deps += [ "$_dart_root/runtime/bin:dart_bootstrap_host_arch($dart_host_toolchain)" ]
+      deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
     }
 
     script = "$_dart_root/tools/patch_sdk.py"
@@ -50,7 +50,7 @@ template("generate_patched_sdk") {
     args = [ "--quiet" ]
     if (!prebuilt_dart_exe_works) {
       dart_out_dir = get_label_info(
-              "$_dart_root/runtime/bin:dart_bootstrap_host_arch($dart_host_toolchain)",
+              "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
               "root_out_dir")
       dart_bootstrap =
           rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
