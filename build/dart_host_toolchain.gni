@@ -1,0 +1,13 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+declare_args() {
+  # This argument allows to override host_toolchain used to build dart artifacts.
+  # This is needed to make sure that word size of the code produced on host
+  # machine matches word size of target architecture. For example, when
+  # targeting android arm 32-bit while building on linux 64-bit machine, dart vm
+  # that is used to produce snapshots for that android arm 32, has to be built
+  # using linux 32-bit toolchain.
+  dart_host_toolchain = host_toolchain
+}

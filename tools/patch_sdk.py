@@ -48,8 +48,7 @@ def main():
     print >> sys.stderr, 'ERROR: cannot locate dart executable'
     return -1
   dart_file = os.path.join(os.path.dirname(__file__), 'patch_sdk.dart')
-  subprocess.check_call(
-      [options.dart_executable, '--checked', dart_file] + args)
+  subprocess.check_call([options.dart_executable, dart_file] + args)
   return 0
 
 if __name__ == '__main__':
