@@ -1409,7 +1409,12 @@ class Printer extends Visitor<Null> {
   visitFunctionDeclaration(FunctionDeclaration node) {
     writeIndentation();
     writeWord('function');
-    writeFunction(node.function, name: getVariableName(node.variable));
+    if (node.function != null) {
+      writeFunction(node.function, name: getVariableName(node.variable));
+    } else {
+      writeWord(getVariableName(node.variable));
+      endLine('...;');
+    }
   }
 
   void writeVariableDeclaration(VariableDeclaration node,

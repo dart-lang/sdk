@@ -201,8 +201,8 @@ enum Assert {
 /// Parse methods are generally named `parseGrammarProductionSuffix`. The
 /// suffix can be one of `opt`, or `star`. `opt` means zero or one matches,
 /// `star` means zero or more matches. For example, [parseMetadataStar]
-/// corresponds to this grammar snippet: `metadata*`, and [parseTypeOpt]
-/// corresponds to: `type?`.
+/// corresponds to this grammar snippet: `metadata*`, and [parseArgumentsOpt]
+/// corresponds to: `arguments?`.
 ///
 /// ## Implementation Notes
 ///
@@ -622,7 +622,7 @@ class Parser {
       token = expect('=', token);
       token = parseType(token);
     } else {
-      token = parseReturnTypeOpt(token.next);
+      token = parseType(token.next, isOptional: true);
       token = parseIdentifier(token, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token, MemberKind.FunctionTypeAlias);
@@ -639,19 +639,6 @@ class Parser {
     token = parseTypeList(token);
     listener.endMixinApplication(withKeyword);
     return token;
-  }
-
-  Token parseReturnTypeOpt(Token token) {
-    if (identical(token.stringValue, 'void')) {
-      if (isGeneralizedFunctionType(token.next)) {
-        return parseType(token);
-      } else {
-        listener.handleVoidKeyword(token);
-        return token.next;
-      }
-    } else {
-      return parseTypeOpt(token);
-    }
   }
 
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
@@ -831,20 +818,6 @@ class Parser {
     } else {
       return expect(']', token);
     }
-  }
-
-  Token parseTypeOpt(Token token) {
-    if (isGeneralizedFunctionType(token)) {
-      // Function type without return type.
-      return parseType(token);
-    }
-    token = listener.injectGenericCommentTypeAssign(token);
-    Token peek = peekAfterIfType(token);
-    if (peek != null && (peek.isIdentifier || optional('this', peek))) {
-      return parseType(token);
-    }
-    listener.handleNoType(token);
-    return token;
   }
 
   bool isValidTypeReference(Token token) {
@@ -1166,7 +1139,33 @@ class Parser {
         (optional('<', token.next) || optional('(', token.next));
   }
 
-  Token parseType(Token token) {
+  Token parseType(Token token, {bool isOptional: false}) {
+    if (isOptional) {
+      do {
+        if (optional("void", token)) {
+          if (isGeneralizedFunctionType(token.next)) {
+            // This is a type, parse it.
+            break;
+          } else {
+            listener.handleVoidKeyword(token);
+            return token.next;
+          }
+        } else {
+          if (isGeneralizedFunctionType(token)) {
+            // Function type without return type, parse it.
+            break;
+          }
+          token = listener.injectGenericCommentTypeAssign(token);
+          Token peek = peekAfterIfType(token);
+          if (peek != null && (peek.isIdentifier || optional('this', peek))) {
+            // This is a type followed by an identifier, parse it.
+            break;
+          }
+          listener.handleNoType(token);
+          return token;
+        }
+      } while (false);
+    }
     Token begin = token;
     if (isGeneralizedFunctionType(token)) {
       // A function type without return type.
@@ -1400,7 +1399,7 @@ class Parser {
     if (type == null) {
       listener.handleNoType(name);
     } else {
-      parseReturnTypeOpt(type);
+      parseType(type, isOptional: true);
     }
     Token token =
         parseIdentifier(name, IdentifierContext.topLevelFunctionDeclaration);
@@ -1800,11 +1799,7 @@ class Parser {
     listener.handleModifiers(count);
 
     Token beforeType = token;
-    if (returnTypeAllowed) {
-      token = parseReturnTypeOpt(token);
-    } else {
-      token = typeRequired ? parseType(token) : parseTypeOpt(token);
-    }
+    token = parseType(token, isOptional: returnTypeAllowed || !typeRequired);
     if (typeRequired && beforeType == token) {
       reportRecoverableErrorCode(token, codeTypeRequired);
     }
@@ -2109,7 +2104,7 @@ class Parser {
     if (type == null) {
       listener.handleNoType(name);
     } else {
-      parseReturnTypeOpt(type);
+      parseType(type, isOptional: true);
     }
     Token token;
     if (optional('operator', name)) {
@@ -2243,7 +2238,7 @@ class Parser {
     Token beginToken = token;
     listener.beginFunction(token);
     listener.handleModifiers(0);
-    token = parseReturnTypeOpt(token);
+    token = parseType(token, isOptional: true);
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.functionExpressionName);
     listener.endFunctionName(beginToken, token);
