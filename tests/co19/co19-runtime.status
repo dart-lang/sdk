@@ -231,6 +231,7 @@ LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Slow
 
 [ $runtime == vm && $mode == release && $system == linux && ($arch == x64 || $arch == ia32)]
 LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow

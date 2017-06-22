@@ -377,7 +377,7 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
-[ $compiler == dart2js && $runtime != d8]
+[ $compiler == dart2js && $runtime != d8 && $runtime != jsshell && $runtime != chrome && $runtime != ff ]
 WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $checked && $runtime != d8]
