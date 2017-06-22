@@ -670,6 +670,9 @@ class MinimalPlugin extends ServerPlugin {
 class TestNotificationManager implements NotificationManager {
   List<Notification> notifications = <Notification>[];
 
+  Map<String, Map<String, List<AnalysisError>>> recordedErrors =
+      <String, Map<String, List<AnalysisError>>>{};
+
   @override
   void handlePluginNotification(String pluginId, Notification notification) {
     notifications.add(notification);
@@ -678,6 +681,13 @@ class TestNotificationManager implements NotificationManager {
   @override
   noSuchMethod(Invocation invocation) {
     fail('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  void recordAnalysisErrors(
+      String pluginId, String filePath, List<AnalysisError> errorData) {
+    recordedErrors.putIfAbsent(
+        pluginId, () => <String, List<AnalysisError>>{})[filePath] = errorData;
   }
 }
 

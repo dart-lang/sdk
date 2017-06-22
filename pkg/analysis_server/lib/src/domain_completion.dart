@@ -196,7 +196,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             request,
             'params.offset',
             'Expected offset between 0 and source length inclusive,'
-            ' but found ${offset}'));
+            ' but found $offset'));
         return;
       }
       source =

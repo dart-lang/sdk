@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
@@ -39,6 +40,7 @@ import 'package:watcher/watcher.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'src/plugin/plugin_manager_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -2034,7 +2036,7 @@ include: package:boo/other_options.yaml
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup analysis options file with ignore list.
-    newFile(
+    String optionsFilePath = newFile(
         [projPath, optionsFileName],
         r'''
 ;
@@ -2042,7 +2044,11 @@ include: package:boo/other_options.yaml
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
-    // No error means success.
+    // Check that an error was produced.
+    TestNotificationManager notificationManager = callbacks.notificationManager;
+    var errors = notificationManager.recordedErrors;
+    expect(errors, hasLength(1));
+    expect(errors[errors.keys.first][optionsFilePath], hasLength(1));
   }
 
   test_deleteRoot_hasAnalysisOptions() async {
@@ -2586,6 +2592,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    * The watch events that have been broadcast.
    */
   List<WatchEvent> watchEvents = <WatchEvent>[];
+
+  @override
+  NotificationManager notificationManager = new TestNotificationManager();
 
   TestContextManagerCallbacks(
       this.resourceProvider, this.sdkManager, this.logger, this.scheduler);

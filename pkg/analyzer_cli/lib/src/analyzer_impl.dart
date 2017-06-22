@@ -169,7 +169,7 @@ class AnalyzerImpl {
         : context.computeKindOf(librarySource);
     if (librarySourceKind == SourceKind.PART) {
       stderr.writeln("Only libraries can be analyzed.");
-      stderr.writeln("${path} is a part and can not be analyzed.");
+      stderr.writeln("$path is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
 

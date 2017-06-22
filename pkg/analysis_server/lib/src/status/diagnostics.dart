@@ -576,7 +576,7 @@ abstract class DiagnosticPage extends Page {
   void generateFooter() {
     buf.writeln('''
     <footer class="footer">
-      Dart ${site.title} <span style="float:right">SDK ${_sdkVersion}</span>
+      Dart ${site.title} <span style="float:right">SDK $_sdkVersion</span>
     </footer>
 ''');
   }

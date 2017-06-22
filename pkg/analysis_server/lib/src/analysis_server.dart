@@ -1464,6 +1464,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
+  NotificationManager get notificationManager =>
+      analysisServer.notificationManager;
+
+  @override
   nd.AnalysisDriver addAnalysisDriver(
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
     ContextBuilder builder = createContextBuilder(folder, options);

@@ -39,7 +39,7 @@ class ConflictingSummaryException implements Exception {
 These summaries conflict because they overlap:
 - ${summary1Uri.substring(prefix)}
 - ${summary2Uri.substring(prefix)}
-Both contain the file: ${duplicatedUri}.
+Both contain the file: $duplicatedUri.
 This typically indicates an invalid build rule where two or more targets
 include the same source.
   ''';

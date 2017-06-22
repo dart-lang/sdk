@@ -7,7 +7,9 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core';
 
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/context/context_root.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -21,6 +23,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,6 +32,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -356,6 +360,11 @@ abstract class ContextManager {
  * modified.
  */
 abstract class ContextManagerCallbacks {
+  /**
+   * Return the notification manager associated with the server.
+   */
+  NotificationManager get notificationManager;
+
   /**
    * Create and return a new analysis driver rooted at the given [folder], with
    * the given analysis [options].
@@ -967,6 +976,26 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
+  /**
+   * Use the given analysis [driver] to analyze the content of the analysis
+   * options file at the given [path].
+   */
+  void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
+    String content = driver.fsState.getFileForPath(path).content;
+    List<AnalysisError> errors =
+        GenerateOptionsErrorsTask.analyzeAnalysisOptions(
+            resourceProvider.getFile(path).createSource(),
+            content,
+            driver.sourceFactory);
+    AnalyzerConverter converter = new AnalyzerConverter();
+    LineInfo lineInfo = _computeLineInfo(content);
+    callbacks.notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId,
+        path,
+        converter.convertAnalysisErrors(errors,
+            lineInfo: lineInfo, options: driver.analysisOptions));
+  }
+
   void _checkForAnalysisOptionsUpdate(
       String path, ContextInfo info, ChangeType changeType) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
@@ -979,6 +1008,7 @@ class ContextManagerImpl implements ContextManager {
       SourceFactory factory = builder.createSourceFactory(contextRoot, options);
       driver.configure(analysisOptions: options, sourceFactory: factory);
       // TODO(brianwilkerson) Set exclusion patterns.
+      _analyzeAnalysisOptionsFile(driver, path);
     }
   }
 
@@ -1095,6 +1125,14 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
+   * Compute line information for the given [content].
+   */
+  LineInfo _computeLineInfo(String content) {
+    List<int> lineStarts = StringUtilities.computeLineStarts(content);
+    return new LineInfo(lineStarts);
+  }
+
+  /**
    * Create an object that can be used to find and read the analysis options
    * file for code being analyzed using the given [packages].
    */
@@ -1153,6 +1191,9 @@ class ContextManagerImpl implements ContextManager {
     }
     info.analysisDriver =
         callbacks.addAnalysisDriver(folder, contextRoot, options);
+    if (optionsFile != null) {
+      _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
+    }
     return info;
   }
 
