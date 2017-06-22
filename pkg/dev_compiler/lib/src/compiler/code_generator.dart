@@ -1530,7 +1530,7 @@ class CodeGenerator extends Object
     var fnBody =
         js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
       _runtimeModule,
-      _declareMemberName(method, useDisplayName: false),
+      _declareMemberName(method),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);
@@ -5333,14 +5333,12 @@ class CodeGenerator extends Object
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _declareMemberName(ExecutableElement e,
-      {bool useExtension, useDisplayName = false}) {
+  JS.Expression _declareMemberName(ExecutableElement e, {bool useExtension}) {
     var name = (e is PropertyAccessorElement) ? e.variable.name : e.name;
     return _emitMemberName(name,
         isStatic: e.isStatic,
         useExtension:
-            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement),
-        useDisplayName: useDisplayName);
+            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement));
   }
 
   /// This handles member renaming for private names and operators.
@@ -5387,7 +5385,6 @@ class CodeGenerator extends Object
       {DartType type,
       bool isStatic: false,
       bool useExtension,
-      bool useDisplayName: false,
       bool alwaysSymbolizeNative: false,
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
@@ -5401,22 +5398,20 @@ class CodeGenerator extends Object
 
     // When generating synthetic names, we use _ as the prefix, since Dart names
     // won't have this (eliminated above), nor will static names reach here.
-    if (!useDisplayName) {
-      switch (name) {
-        case '[]':
-          name = '_get';
-          break;
-        case '[]=':
-          name = '_set';
-          break;
-        case 'unary-':
-          name = '_negate';
-          break;
-        case 'constructor':
-        case 'prototype':
-          name = '_$name';
-          break;
-      }
+    switch (name) {
+      case '[]':
+        name = '_get';
+        break;
+      case '[]=':
+        name = '_set';
+        break;
+      case 'unary-':
+        name = '_negate';
+        break;
+      case 'constructor':
+      case 'prototype':
+        name = '_$name';
+        break;
     }
 
     var result = _propertyName(name);
