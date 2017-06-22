@@ -1336,7 +1336,7 @@ RawArray* Parser::EvaluateMetadata() {
     const Instance& val = EvaluateConstExpr(expr_pos, expr);
     meta_values.Add(val, Heap::kOld);
   }
-  return Array::MakeArray(meta_values);
+  return Array::MakeFixedLength(meta_values);
 }
 
 
@@ -4990,7 +4990,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   }
   CheckConstructors(&members);
 
-  // Need to compute this here since MakeArray() will clear the
+  // Need to compute this here since MakeFixedLength() will clear the
   // functions array in members.
   const bool need_implicit_constructor =
       !members.has_constructor() && !cls.is_patch();
@@ -5750,7 +5750,7 @@ void Parser::ParseInterfaceList(const Class& cls) {
     }
     all_interfaces.Add(interface, Heap::kOld);
   } while (CurrentToken() == Token::kCOMMA);
-  cls_interfaces = Array::MakeArray(all_interfaces);
+  cls_interfaces = Array::MakeFixedLength(all_interfaces);
   cls.set_interfaces(cls_interfaces);
 }
 
@@ -5776,8 +5776,8 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     }
     mixin_types.Add(mixin_type, Heap::kOld);
   } while (CurrentToken() == Token::kCOMMA);
-  return MixinAppType::New(super_type,
-                           Array::Handle(Z, Array::MakeArray(mixin_types)));
+  return MixinAppType::New(
+      super_type, Array::Handle(Z, Array::MakeFixedLength(mixin_types)));
 }
 
 
@@ -6306,7 +6306,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       }
       // Check if this conditional line overrides the default import.
       const String& key = String::Handle(String::ConcatAll(
-          Array::Handle(Array::MakeArray(pieces)), allocation_space_));
+          Array::Handle(Array::MakeFixedLength(pieces)), allocation_space_));
       const String& value =
           (valueNode == NULL)
               ? Symbols::True()
@@ -6365,10 +6365,10 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       }
     }
     if (show_list.Length() > 0) {
-      show_names = Array::MakeArray(show_list);
+      show_names = Array::MakeFixedLength(show_list);
     }
     if (hide_list.Length() > 0) {
-      hide_names = Array::MakeArray(hide_list);
+      hide_names = Array::MakeFixedLength(hide_list);
     }
   }
   ExpectSemicolon();
@@ -10413,7 +10413,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
       handler_pos, catch_handler_list,
-      Array::ZoneHandle(Z, Array::MakeArray(handler_types)), context_var,
+      Array::ZoneHandle(Z, Array::MakeFixedLength(handler_types)), context_var,
       exception_var, stack_trace_var,
       is_async ? saved_exception_var : exception_var,
       is_async ? saved_stack_trace_var : stack_trace_var,
@@ -11774,7 +11774,7 @@ ArgumentListNode* Parser::ParseActualParameters(
   ExpectToken(Token::kRPAREN);
   SetAllowFunctionLiterals(saved_mode);
   if (named_argument_seen) {
-    arguments->set_names(Array::Handle(Z, Array::MakeArray(names)));
+    arguments->set_names(Array::Handle(Z, Array::MakeFixedLength(names)));
   }
   return arguments;
 }

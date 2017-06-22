@@ -761,7 +761,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
       }
     }
   }
-  const Array& arr = Array::Handle(zone, Array::MakeArray(pieces));
+  const Array& arr = Array::Handle(zone, Array::MakeFixedLength(pieces));
   const String& error_msg = String::Handle(zone, String::ConcatAll(arr));
   args.SetAt(3, error_msg);
 

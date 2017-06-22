@@ -2429,7 +2429,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       cloned_funcs.Add(func);
     }
   }
-  functions = Array::MakeArray(cloned_funcs);
+  functions = Array::MakeFixedLength(cloned_funcs);
   cls.SetFunctions(functions);
 
   // Now clone the fields from the mixin class. There should be no
@@ -2664,7 +2664,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     const Class& mixin_cls = Class::Handle(mixin_type.type_class());
 
     CreateForwardingConstructors(cls, mixin_cls, cloned_funcs);
-    const Array& functions = Array::Handle(Array::MakeArray(cloned_funcs));
+    const Array& functions =
+        Array::Handle(Array::MakeFixedLength(cloned_funcs));
     cls.SetFunctions(functions);
   }
   // Every class should have at least a constructor, unless it is a top level

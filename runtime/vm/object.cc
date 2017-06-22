@@ -3028,7 +3028,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
     // Preserve the original implicit constructor.
     new_functions.Add(orig_implicit_ctor);
   }
-  Array& new_list = Array::Handle(Array::MakeArray(new_functions));
+  Array& new_list = Array::Handle(Array::MakeFixedLength(new_functions));
   SetFunctions(new_list);
 
   // Merge the two list of fields. Raise an error when duplicates are found or
@@ -3092,7 +3092,7 @@ static RawString* BuildClosureSource(const Array& formal_params,
   src_pieces.Add(Symbols::RParenArrow());
   src_pieces.Add(expr);
   src_pieces.Add(Symbols::Semicolon());
-  return String::ConcatAll(Array::Handle(Array::MakeArray(src_pieces)));
+  return String::ConcatAll(Array::Handle(Array::MakeFixedLength(src_pieces)));
 }
 
 
@@ -8693,7 +8693,7 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
     prev = curr;
     curr = next;
   }
-  const Array& source = Array::Handle(Array::MakeArray(literals));
+  const Array& source = Array::Handle(Array::MakeFixedLength(literals));
   return String::ConcatAll(source);
 }
 
@@ -9414,7 +9414,7 @@ intptr_t Script::GetTokenLineUsingLineStarts(
       }
       tkit.Advance();
     }
-    line_starts_array = Array::MakeArray(line_starts_list);
+    line_starts_array = Array::MakeFixedLength(line_starts_list);
     set_line_starts(line_starts_array);
   }
 
@@ -10662,7 +10662,7 @@ RawArray* Library::LoadedScripts() const {
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
-    const Array& scripts_array = Array::Handle(Array::MakeArray(scripts));
+    const Array& scripts_array = Array::Handle(Array::MakeFixedLength(scripts));
     StorePointer(&raw_ptr()->loaded_scripts_, scripts_array.raw());
   }
   return loaded_scripts();
@@ -22120,19 +22120,30 @@ RawArray* Array::Grow(const Array& source,
 }
 
 
-RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
+RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
+                                 bool unique) {
   ASSERT(!growable_array.IsNull());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   intptr_t used_len = growable_array.Length();
   // Get the type arguments and prepare to copy them.
   const TypeArguments& type_arguments =
       TypeArguments::Handle(growable_array.GetTypeArguments());
-  if ((used_len == 0) && (type_arguments.IsNull())) {
-    // This is a raw List (as in no type arguments), so we can return the
-    // simple empty array.
-    return Object::empty_array().raw();
+  if (used_len == 0) {
+    if (type_arguments.IsNull() && !unique) {
+      // This is a raw List (as in no type arguments), so we can return the
+      // simple empty array.
+      return Object::empty_array().raw();
+    }
+
+    // The backing array may be a shared instance, or may not have correct
+    // type parameters. Create a new empty array.
+    Heap::Space space = thread->IsMutatorThread() ? Heap::kNew : Heap::kOld;
+    Array& array = Array::Handle(zone, Array::New(0, space));
+    array.SetTypeArguments(type_arguments);
+    return array.raw();
   }
   intptr_t capacity_len = growable_array.Capacity();
-  Zone* zone = Thread::Current()->zone();
   const Array& array = Array::Handle(zone, growable_array.data());
   array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
@@ -22211,8 +22222,8 @@ RawImmutableArray* ImmutableArray::New(intptr_t len, Heap::Space space) {
 void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
   ASSERT(!IsNull());
   if (Length() == Capacity()) {
-    // TODO(Issue 2500): Need a better growth strategy.
-    intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
+    // Grow from 0 to 3, and then double + 1.
+    intptr_t new_capacity = (Capacity() * 2) | 3;
     if (new_capacity <= Capacity()) {
       Exceptions::ThrowOOM();
       UNREACHABLE();
@@ -22249,7 +22260,9 @@ RawObject* GrowableObjectArray::RemoveLast() const {
 
 RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
                                                  Heap::Space space) {
-  const Array& data = Array::Handle(Array::New(capacity, space));
+  RawArray* raw_data = (capacity == 0) ? Object::empty_array().raw()
+                                       : Array::New(capacity, space);
+  const Array& data = Array::Handle(raw_data);
   return New(data, space);
 }
 

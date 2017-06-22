@@ -5786,7 +5786,7 @@ DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
     }
   }
 
-  return Api::NewHandle(T, Array::MakeArray(result));
+  return Api::NewHandle(T, Array::MakeFixedLength(result));
 }
 
 

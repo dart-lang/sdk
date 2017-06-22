@@ -1772,7 +1772,7 @@ void Precompiler::DropFunctions() {
       }
 
       if (retained_functions.Length() > 0) {
-        functions = Array::MakeArray(retained_functions);
+        functions = Array::MakeFixedLength(retained_functions);
         cls.SetFunctions(functions);
       } else {
         cls.SetFunctions(Object::empty_array());
@@ -1834,7 +1834,7 @@ void Precompiler::DropFields() {
       }
 
       if (retained_fields.Length() > 0) {
-        fields = Array::MakeArray(retained_fields);
+        fields = Array::MakeFixedLength(retained_fields);
         cls.SetFields(fields);
       } else {
         cls.SetFields(Object::empty_array());
@@ -1988,7 +1988,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
       intptr_t cid = cls.id();
       if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
         // Constants stored as a plain list, no rehashing needed.
-        constants = Array::MakeArray(retained_constants);
+        constants = Array::MakeFixedLength(retained_constants);
         cls.set_constants(constants);
       } else {
         // Rehash.

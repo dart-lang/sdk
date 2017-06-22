@@ -2148,7 +2148,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     EXPECT(value.Equals(expected_value));
   }
 
-  // Test the MakeArray functionality to make sure the resulting array
+  // Test the MakeFixedLength functionality to make sure the resulting array
   // object is properly setup.
   // 1. Should produce an array of length 2 and a left over int8 array.
   Array& new_array = Array::Handle();
@@ -2165,7 +2165,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   used_size = Array::InstanceSize(array.Length());
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   addr = RawObject::ToAddr(new_array.raw());
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
@@ -2186,7 +2186,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   used_size = Array::InstanceSize(array.Length());
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   addr = RawObject::ToAddr(new_array.raw());
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
@@ -2207,7 +2207,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   used_size = Array::InstanceSize(array.Length());
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   addr = RawObject::ToAddr(new_array.raw());
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
@@ -2229,7 +2229,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   EXPECT_EQ(1, new_array.Length());
   heap->CollectAllGarbage();
   intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);

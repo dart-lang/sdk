@@ -7656,7 +7656,10 @@ class Array : public Instance {
   // object or a regular Object so that it can be traversed during garbage
   // collection. The backing array of the original Growable Object Array is
   // set to an empty array.
-  static RawArray* MakeArray(const GrowableObjectArray& growable_array);
+  // If the unique parameter is false, the function is allowed to return
+  // a shared Array instance.
+  static RawArray* MakeFixedLength(const GrowableObjectArray& growable_array,
+                                   bool unique = false);
 
   RawArray* Slice(intptr_t start,
                   intptr_t count,
@@ -7770,8 +7773,6 @@ class GrowableObjectArray : public Instance {
     // reusing the type argument vector of the instantiator.
     ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated() &&
                               value.IsCanonical()));
-    const Array& contents = Array::Handle(data());
-    contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -7822,7 +7823,7 @@ class GrowableObjectArray : public Instance {
     return &(DataArray()->data()[index]);
   }
 
-  static const int kDefaultInitialCapacity = 4;
+  static const int kDefaultInitialCapacity = 0;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
   friend class Array;

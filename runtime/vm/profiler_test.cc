@@ -1027,24 +1027,9 @@ TEST_CASE(Profiler_ArrayAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
     profile.Build(thread, &filter, Profile::kNoTags);
-    // We should still only have one allocation sample.
-    EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
-
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateArray", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("new _List", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("new _GrowableList", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("new List._internal", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("bar", walker.CurrentName());
-    EXPECT(!walker.Down());
+    // We should have no allocation samples, since empty
+    // growable lists use a shared backing.
+    EXPECT_EQ(0, profile.sample_count());
   }
 }
 

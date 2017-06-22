@@ -168,7 +168,7 @@ namespace dart {
   V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x51691f4c)                    \
   V(_GrowableList, .withData, GrowableArray_Allocate, GrowableObjectArray,     \
     0x3468a26f)                                                                \
-  V(_GrowableList, add, GrowableArray_add, Dynamic, 0x19eaa9aa)                \
+  V(_GrowableList, add, GrowableArray_add, Dynamic, 0x1ce3b4f8)                \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, Dynamic, 0x380184b1)          \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, Dynamic,          \
     0x79b8f955)                                                                \
@@ -378,7 +378,7 @@ namespace dart {
   V(_TypedList, get:length, TypedDataLength, 0x20915079)                       \
   V(_GrowableList, get:length, GrowableArrayLength, 0x18dd1255)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x2e044a01)           \
-  V(_GrowableList, add, GrowableListAdd, 0x19eaa9aa)                           \
+  V(_GrowableList, add, GrowableListAdd, 0x1ce3b4f8)                           \
   V(_GrowableList, removeLast, GrowableListRemoveLast, 0x3daaaca4)             \
   V(_StringBase, get:length, StringBaseLength, 0x2a2c8f72)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 0x7ead154d)                  \
@@ -558,7 +558,7 @@ class MethodRecognizer : public AllStatic {
   V(_GrowableListWithData, _GrowableList, .withData, kGrowableObjectArrayCid,  \
     0x3468a26f)                                                                \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
-    0x3bd724aa)                                                                \
+    0x7c4346ab)                                                                \
   V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x165876c2)        \
   V(_Uint8ArrayFactory, Uint8List, ., kTypedDataUint8ArrayCid, 0x52988118)     \
   V(_Uint8ClampedArrayFactory, Uint8ClampedList, .,                            \

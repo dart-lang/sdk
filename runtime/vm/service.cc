@@ -2353,8 +2353,9 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
   if (BuildScope(thread, js, names, values)) {
     return true;
   }
-  const Array& names_array = Array::Handle(zone, Array::MakeArray(names));
-  const Array& values_array = Array::Handle(zone, Array::MakeArray(values));
+  const Array& names_array = Array::Handle(zone, Array::MakeFixedLength(names));
+  const Array& values_array =
+      Array::Handle(zone, Array::MakeFixedLength(values));
 
   const String& expr_str = String::Handle(zone, String::New(expr));
   ObjectIdRing::LookupResult lookup_result;

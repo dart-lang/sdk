@@ -173,9 +173,9 @@ const StackTrace& GetCurrentStackTrace(int skip_frames) {
   const GrowableObjectArray& pc_offset_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AppendFrames(code_list, pc_offset_list, skip_frames);
-  const Array& code_array = Array::Handle(Array::MakeArray(code_list));
+  const Array& code_array = Array::Handle(Array::MakeFixedLength(code_list));
   const Array& pc_offset_array =
-      Array::Handle(Array::MakeArray(pc_offset_list));
+      Array::Handle(Array::MakeFixedLength(pc_offset_list));
   const StackTrace& stacktrace =
       StackTrace::Handle(StackTrace::New(code_array, pc_offset_array));
   return stacktrace;

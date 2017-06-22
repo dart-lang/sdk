@@ -199,7 +199,7 @@ intptr_t RawObject::SizeFromClass() const {
   uword tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
   if ((class_id == kArrayCid) && (instance_size > tags_size && tags_size > 0)) {
-    // TODO(22501): Array::MakeArray could be in the process of shrinking
+    // TODO(22501): Array::MakeFixedLength could be in the process of shrinking
     // the array (see comment therein), having already updated the tags but not
     // yet set the new length. Wait a millisecond and try again.
     int retries_remaining = 1000;  // ... but not forever.

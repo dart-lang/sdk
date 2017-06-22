@@ -73,7 +73,7 @@ RawArray* StackMapTableBuilder::FinalizeStackMaps(const Code& code) {
   if (num_entries == 0) {
     return Object::empty_array().raw();
   }
-  return Array::MakeArray(list_);
+  return Array::MakeFixedLength(list_);
 }
 
 
@@ -406,7 +406,7 @@ RawArray* CodeSourceMapBuilder::InliningIdToFunction() {
   if (inlined_functions_.Length() == 0) {
     return Object::empty_array().raw();
   }
-  return Array::MakeArray(inlined_functions_);
+  return Array::MakeFixedLength(inlined_functions_);
 }
 
 

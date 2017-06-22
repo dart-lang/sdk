@@ -3472,7 +3472,7 @@ class MintDeserializationCluster : public DeserializationCluster {
       }
     }
     const Array& constants_array =
-        Array::Handle(zone, Array::MakeArray(new_constants));
+        Array::Handle(zone, Array::MakeFixedLength(new_constants));
     const Class& mint_cls =
         Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
     mint_cls.set_constants(constants_array);

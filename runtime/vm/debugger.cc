@@ -1375,8 +1375,9 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
 
   if (function().is_static()) {
     const Class& cls = Class::Handle(function().Owner());
-    return cls.Evaluate(expr, Array::Handle(Array::MakeArray(param_names)),
-                        Array::Handle(Array::MakeArray(param_values)));
+    return cls.Evaluate(expr,
+                        Array::Handle(Array::MakeFixedLength(param_names)),
+                        Array::Handle(Array::MakeFixedLength(param_values)));
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
     const Class& method_cls = Class::Handle(function().origin());
@@ -1386,8 +1387,8 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
     }
     const Instance& inst = Instance::Cast(receiver);
     return inst.Evaluate(method_cls, expr,
-                         Array::Handle(Array::MakeArray(param_names)),
-                         Array::Handle(Array::MakeArray(param_values)));
+                         Array::Handle(Array::MakeFixedLength(param_names)),
+                         Array::Handle(Array::MakeFixedLength(param_values)));
   }
   UNREACHABLE();
   return Object::null();
@@ -3175,7 +3176,7 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
     }
     cls = cls.SuperClass();
   }
-  return Array::MakeArray(field_list);
+  return Array::MakeFixedLength(field_list);
 }
 
 
@@ -3195,7 +3196,7 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
       field_list.Add(field_value);
     }
   }
-  return Array::MakeArray(field_list);
+  return Array::MakeFixedLength(field_list);
 }
 
 
@@ -3243,7 +3244,7 @@ RawArray* Debugger::GetLibraryFields(const Library& lib) {
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
   CollectLibraryFields(field_list, lib, String::Handle(zone), true);
-  return Array::MakeArray(field_list);
+  return Array::MakeFixedLength(field_list);
 }
 
 
@@ -3272,7 +3273,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
       CollectLibraryFields(field_list, imported, prefix_name, false);
     }
   }
-  return Array::MakeArray(field_list);
+  return Array::MakeFixedLength(field_list);
 }
 
 
