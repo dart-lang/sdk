@@ -72,6 +72,8 @@ deferred_type_dependency_test/as: CompileTimeError # Fasta/KernelVM bug: Deferre
 deferred_type_dependency_test/is: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/type_annotation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
+final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
 issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 regress_22443_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
