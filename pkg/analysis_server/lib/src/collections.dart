@@ -7,19 +7,19 @@
  *
  * The returned iterable is a lazily-evaluated view on the input iterables.
  */
-Iterable/*<E>*/ concat/*<E>*/(Iterable<Iterable/*<E>*/ > iterables) =>
+Iterable<E> concat<E>(Iterable<Iterable<E>> iterables) =>
     iterables.expand((x) => x);
 
 /**
  * Returns the concatenation of the input [iterables] as a [List].
  */
-List/*<E>*/ concatToList/*<E>*/(Iterable<Iterable/*<E>*/ > iterables) =>
+List<E> concatToList<E>(Iterable<Iterable<E>> iterables) =>
     concat(iterables).toList();
 
 /**
  * Returns the given [list] if it is not empty, or `null` otherwise.
  */
-List/*<E>*/ nullIfEmpty/*<E>*/(List/*<E>*/ list) {
+List<E> nullIfEmpty<E>(List<E> list) {
   if (list == null) {
     return null;
   }

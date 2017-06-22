@@ -2747,11 +2747,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextSources.remove(path);
     lastFlushedFiles = flushedFiles;
   }
-
-  @override
-  void updateContextPackageUriResolver(AnalysisContext context) {
-    // Nothing to do.
-  }
 }
 
 /**

@@ -9,7 +9,6 @@ import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
@@ -451,18 +450,6 @@ class AnalysisDomainImpl implements AnalysisDomain {
       if (service == AnalysisService.OCCURRENCES) {
         server.scheduleOperation(new OccurrencesOperation(context, source));
       }
-    }
-  }
-
-  void _subscribeForContext(engine.AnalysisContext context) {
-    for (ResultDescriptor descriptor in controllers.keys) {
-      context.onResultChanged(descriptor).listen((result) {
-        StreamController<engine.ResultChangedEvent> controller =
-            controllers[result.descriptor];
-        if (controller != null) {
-          controller.add(result);
-        }
-      });
     }
   }
 }
