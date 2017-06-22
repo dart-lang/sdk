@@ -1225,11 +1225,29 @@ intptr_t Simulator::ReadExclusiveX(uword addr, Instr* instr) {
 }
 
 
+intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+  MutexLocker ml(exclusive_access_lock_);
+  SetExclusiveAccess(addr);
+  return ReadWU(addr, instr);
+}
+
+
 intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
   bool write_allowed = HasExclusiveAccessAndOpen(addr);
   if (write_allowed) {
     WriteX(addr, value, instr);
+    return 0;  // Success.
+  }
+  return 1;  // Failure.
+}
+
+
+intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+  MutexLocker ml(exclusive_access_lock_);
+  bool write_allowed = HasExclusiveAccessAndOpen(addr);
+  if (write_allowed) {
+    WriteW(addr, value, instr);
     return 0;  // Success.
   }
   return 1;  // Failure.
@@ -2199,25 +2217,37 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
     UNIMPLEMENTED();
   }
   const int32_t size = instr->Bits(30, 2);
-  if (size != 3) {
+  if (size != 3 && size != 2) {
     UNIMPLEMENTED();
   }
-
   const Register rs = instr->RsField();
   const Register rn = instr->RnField();
   const Register rt = instr->RtField();
   const bool is_load = instr->Bit(22) == 1;
   if (is_load) {
     // Format(instr, "ldxr 'rt, 'rn");
-    const int64_t addr = get_register(rn, R31IsSP);
-    intptr_t value = ReadExclusiveX(addr, instr);
-    set_register(instr, rt, value, R31IsSP);
+    if (size == 3) {
+      const int64_t addr = get_register(rn, R31IsSP);
+      intptr_t value = ReadExclusiveX(addr, instr);
+      set_register(instr, rt, value, R31IsSP);
+    } else {
+      const int64_t addr = get_register(rn, R31IsSP);
+      intptr_t value = ReadExclusiveW(addr, instr);
+      set_register(instr, rt, value, R31IsSP);
+    }
   } else {
     // Format(instr, "stxr 'rs, 'rt, 'rn");
-    uword value = get_register(rt, R31IsSP);
-    uword addr = get_register(rn, R31IsSP);
-    intptr_t status = WriteExclusiveX(addr, value, instr);
-    set_register(instr, rs, status, R31IsSP);
+    if (size == 3) {
+      uword value = get_register(rt, R31IsSP);
+      uword addr = get_register(rn, R31IsSP);
+      intptr_t status = WriteExclusiveX(addr, value, instr);
+      set_register(instr, rs, status, R31IsSP);
+    } else {
+      uint32_t value = get_register(rt, R31IsSP);
+      uword addr = get_register(rn, R31IsSP);
+      intptr_t status = WriteExclusiveW(addr, value, instr);
+      set_register(instr, rs, status, R31IsSP);
+    }
   }
 }
 

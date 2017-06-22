@@ -1090,7 +1090,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
-  __ LoadFieldFromOffset(TMP, R0, Object::tags_offset());
+  __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kWord);
   __ tsti(TMP, Immediate(1 << RawObject::kRememberedBit));
   __ b(&add_to_buffer, EQ);
   __ ret();
@@ -1105,11 +1105,13 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   ASSERT(Object::tags_offset() == 0);
   __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
+  // Note that we use 32 bit operations here to match the size of the
+  // background sweeper which is also manipulating this 32 bit word.
   Label retry;
   __ Bind(&retry);
-  __ ldxr(R2, R3);
+  __ ldxr(R2, R3, kWord);
   __ orri(R2, R2, Immediate(1 << RawObject::kRememberedBit));
-  __ stxr(R1, R2, R3);
+  __ stxr(R1, R2, R3, kWord);
   __ cmp(R1, Operand(1));
   __ b(&retry, EQ);
 
@@ -1196,11 +1198,12 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R3: next object start.
     // R1: new object type arguments (if is_cls_parameterized).
     // Set the tags.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ LoadImmediate(R0, tags);
+    // 64 bit store also zeros the hash_field.
     __ StoreToOffset(R0, R2, Instance::tags_offset());
 
     // Initialize the remaining words of the object.

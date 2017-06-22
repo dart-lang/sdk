@@ -1363,10 +1363,12 @@ void Assembler::TryAllocate(const Class& cls,
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
 
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    // Extends the 32 bit tags with zeros, which is the uninitialized
+    // hash code.
     LoadImmediate(TMP, tags);
     StoreFieldToOffset(TMP, instance_reg, Object::tags_offset());
   } else {
@@ -1410,9 +1412,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    // Extends the 32 bit tags with zeros, which is the uninitialized
+    // hash code.
     LoadImmediate(temp2, tags);
     str(temp2, FieldAddress(instance, Array::tags_offset()));  // Store tags.
   } else {

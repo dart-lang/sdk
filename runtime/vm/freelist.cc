@@ -22,13 +22,18 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
 
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
 
-  uword tags = 0;
+  uint32_t tags = 0;
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
   // All words in a freelist element header should look like Smis.
   ASSERT(!reinterpret_cast<RawObject*>(tags)->IsHeapObject());
 
   result->tags_ = tags;
+#if defined(HASH_IN_OBJECT_HEADER)
+  // Clearing this is mostly for neatness. The identityHashCode
+  // of free list entries is not used.
+  result->hash_ = 0;
+#endif
   if (size > RawObject::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }

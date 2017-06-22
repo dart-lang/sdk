@@ -30,10 +30,10 @@ void RawObject::Validate(Isolate* isolate) const {
     FATAL("RAW_NULL encountered");
   }
   // Validate that the tags_ field is sensible.
-  uword tags = ptr()->tags_;
+  uint32_t tags = ptr()->tags_;
   intptr_t reserved = ReservedBits::decode(tags);
   if (reserved != 0) {
-    FATAL1("Invalid tags field encountered %#" Px "\n", tags);
+    FATAL1("Invalid tags field encountered %x\n", tags);
   }
   intptr_t class_id = ClassIdTag::decode(tags);
   if (!isolate->class_table()->IsValidIndex(class_id)) {
@@ -185,7 +185,7 @@ intptr_t RawObject::SizeFromClass() const {
       ClassTable* class_table = isolate->class_table();
       if (!class_table->IsValidIndex(class_id) ||
           !class_table->HasValidClassAt(class_id)) {
-        FATAL2("Invalid class id: %" Pd " from tags %" Px "\n", class_id,
+        FATAL2("Invalid class id: %" Pd " from tags %x\n", class_id,
                ptr()->tags_);
       }
 #endif  // DEBUG
@@ -196,7 +196,7 @@ intptr_t RawObject::SizeFromClass() const {
   }
   ASSERT(instance_size != 0);
 #if defined(DEBUG)
-  uword tags = ptr()->tags_;
+  uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
   if ((class_id == kArrayCid) && (instance_size > tags_size && tags_size > 0)) {
     // TODO(22501): Array::MakeArray could be in the process of shrinking
@@ -211,7 +211,7 @@ intptr_t RawObject::SizeFromClass() const {
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
   }
   if ((instance_size != tags_size) && (tags_size != 0)) {
-    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
+    FATAL3("Size mismatch: %" Pd " from class vs %" Pd " from tags %x\n",
            instance_size, tags_size, tags);
   }
 #endif  // DEBUG
@@ -524,7 +524,7 @@ intptr_t RawNamespace::VisitNamespacePointers(RawNamespace* raw_obj,
 
 
 bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
-  uword tags = raw_obj->ptr()->tags_;
+  uint32_t tags = raw_obj->ptr()->tags_;
   if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
     RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
     return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
@@ -737,7 +737,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  uword tags = raw_obj->ptr()->tags_;
+  uint32_t tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     RawClass* cls =

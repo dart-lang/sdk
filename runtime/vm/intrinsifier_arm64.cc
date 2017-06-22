@@ -1832,6 +1832,23 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Object_getHash(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, String::hash_offset()), kUnsignedWord);
+  __ SmiTag(R0);
+  __ ret();
+}
+
+
+void Intrinsifier::Object_setHash(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 1 * kWordSize));  // Object.
+  __ ldr(R1, Address(SP, 0 * kWordSize));  // Value.
+  __ SmiUntag(R1);
+  __ str(R1, FieldAddress(R0, String::hash_offset()), kUnsignedWord);
+  __ ret();
+}
+
+
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t receiver_cid,
                                             intptr_t other_cid,
