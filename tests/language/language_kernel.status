@@ -2,6 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ !$checked && ($compiler == dartk || $compiler == dartkp) ]
+
+multiline_newline_test/04: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+multiline_newline_test/04r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+multiline_newline_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+multiline_newline_test/05r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+multiline_newline_test/06: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+multiline_newline_test/06r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+
 [ $compiler == dartk || $compiler == dartkp ]
 assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 method_override_test: RuntimeError # Not triaged.
@@ -27,11 +39,8 @@ deferred_constraints_type_annotation_test/new_generic2: CompileTimeError # Fasta
 deferred_constraints_type_annotation_test/new_generic3: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/static_method: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -84,12 +93,6 @@ constant_expression_test/01: MissingCompileTimeError # KernelVM bug: Constant ev
 constant_expression_test/03: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 function_type_parameter2_negative_test: Crash # KernelVM bug: Constant evaluation.
 function_type_parameter_negative_test: Crash # KernelVM bug: Constant evaluation.
-multiline_newline_test/04: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/04r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/05r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/06: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/06r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -267,22 +270,113 @@ const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
-factory1_test/00: Fail
-factory1_test/01: Fail
-factory_implementation_test/00: Fail
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
 factory_redirection_test/10: Fail
-factory_redirection_test/11: Fail
 factory_redirection_test/12: Fail
 factory_redirection_test/13: Fail
 factory_redirection_test/14: Fail
-factory_return_type_checked_test: RuntimeError
-function_subtype_checked0_test: RuntimeError
-function_subtype_inline2_test: RuntimeError # Issue 29225
 function_type2_test: RuntimeError
-generic_constructor_mixin3_test: RuntimeError
-generic_field_mixin6_test/01: RuntimeError
+function_type/function_type0_test: RuntimeError
+function_type/function_type10_test: RuntimeError
+function_type/function_type11_test: RuntimeError
+function_type/function_type12_test: RuntimeError
+function_type/function_type13_test: RuntimeError
+function_type/function_type14_test: RuntimeError
+function_type/function_type15_test: RuntimeError
+function_type/function_type16_test: RuntimeError
+function_type/function_type17_test: RuntimeError
+function_type/function_type18_test: RuntimeError
+function_type/function_type19_test: RuntimeError
+function_type/function_type1_test: RuntimeError
+function_type/function_type20_test: RuntimeError
+function_type/function_type21_test: RuntimeError
+function_type/function_type22_test: RuntimeError
+function_type/function_type23_test: RuntimeError
+function_type/function_type24_test: RuntimeError
+function_type/function_type25_test: RuntimeError
+function_type/function_type26_test: RuntimeError
+function_type/function_type27_test: RuntimeError
+function_type/function_type28_test: RuntimeError
+function_type/function_type29_test: RuntimeError
+function_type/function_type2_test: RuntimeError
+function_type/function_type30_test: RuntimeError
+function_type/function_type31_test: RuntimeError
+function_type/function_type32_test: RuntimeError
+function_type/function_type33_test: RuntimeError
+function_type/function_type34_test: RuntimeError
+function_type/function_type35_test: RuntimeError
+function_type/function_type36_test: RuntimeError
+function_type/function_type37_test: RuntimeError
+function_type/function_type38_test: RuntimeError
+function_type/function_type39_test: RuntimeError
+function_type/function_type3_test: RuntimeError
+function_type/function_type40_test: RuntimeError
+function_type/function_type41_test: RuntimeError
+function_type/function_type42_test: RuntimeError
+function_type/function_type43_test: RuntimeError
+function_type/function_type44_test: RuntimeError
+function_type/function_type45_test: RuntimeError
+function_type/function_type46_test: RuntimeError
+function_type/function_type47_test: RuntimeError
+function_type/function_type48_test: RuntimeError
+function_type/function_type49_test: RuntimeError
+function_type/function_type4_test: RuntimeError
+function_type/function_type50_test: RuntimeError
+function_type/function_type51_test: RuntimeError
+function_type/function_type52_test: RuntimeError
+function_type/function_type53_test: RuntimeError
+function_type/function_type54_test: RuntimeError
+function_type/function_type55_test: RuntimeError
+function_type/function_type56_test: RuntimeError
+function_type/function_type57_test: RuntimeError
+function_type/function_type58_test: RuntimeError
+function_type/function_type59_test: RuntimeError
+function_type/function_type5_test: RuntimeError
+function_type/function_type60_test: RuntimeError
+function_type/function_type61_test: RuntimeError
+function_type/function_type62_test: RuntimeError
+function_type/function_type63_test: RuntimeError
+function_type/function_type64_test: RuntimeError
+function_type/function_type65_test: RuntimeError
+function_type/function_type66_test: RuntimeError
+function_type/function_type67_test: RuntimeError
+function_type/function_type68_test: RuntimeError
+function_type/function_type69_test: RuntimeError
+function_type/function_type6_test: RuntimeError
+function_type/function_type70_test: RuntimeError
+function_type/function_type71_test: RuntimeError
+function_type/function_type72_test: RuntimeError
+function_type/function_type73_test: RuntimeError
+function_type/function_type74_test: RuntimeError
+function_type/function_type75_test: RuntimeError
+function_type/function_type76_test: RuntimeError
+function_type/function_type77_test: RuntimeError
+function_type/function_type78_test: RuntimeError
+function_type/function_type79_test: RuntimeError
+function_type/function_type7_test: RuntimeError
+function_type/function_type80_test: RuntimeError
+function_type/function_type81_test: RuntimeError
+function_type/function_type82_test: RuntimeError
+function_type/function_type83_test: RuntimeError
+function_type/function_type84_test: RuntimeError
+function_type/function_type85_test: RuntimeError
+function_type/function_type86_test: RuntimeError
+function_type/function_type87_test: RuntimeError
+function_type/function_type88_test: RuntimeError
+function_type/function_type89_test: RuntimeError
+function_type/function_type8_test: RuntimeError
+function_type/function_type90_test: RuntimeError
+function_type/function_type91_test: RuntimeError
+function_type/function_type92_test: RuntimeError
+function_type/function_type93_test: RuntimeError
+function_type/function_type94_test: RuntimeError
+function_type/function_type95_test: RuntimeError
+function_type/function_type96_test: RuntimeError
+function_type/function_type97_test: RuntimeError
+function_type/function_type98_test: RuntimeError
+function_type/function_type99_test: RuntimeError
+function_type/function_type9_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malbounded_redirecting_factory2_test/03: Fail
 malbounded_redirecting_factory2_test/04: Fail
@@ -291,6 +385,7 @@ malbounded_redirecting_factory_test/04: Fail
 malbounded_type_cast_test: RuntimeError
 malbounded_type_test_test/03: Fail
 malbounded_type_test_test/04: Fail
+malformed2_test/00: RuntimeError
 malformed2_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
 mixin_invalid_bound2_test/08: Fail
@@ -305,12 +400,8 @@ redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_22728_test: RuntimeError
 regress_26133_test: RuntimeError
-type_parameter_test/01: Fail
-type_parameter_test/02: Fail
-type_parameter_test/03: Fail
-type_parameter_test/04: Fail
 type_parameter_test/05: MissingCompileTimeError
-type_parameter_test/06: Fail
+type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
 
 [ ! $checked && ($compiler == dartk || $compiler == dartkp) ]

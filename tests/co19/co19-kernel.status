@@ -217,35 +217,21 @@ Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
-Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
-Language/Classes/Constructors/Factories/return_wrong_type_t01: RuntimeError
-Language/Classes/Constructors/Factories/return_wrong_type_t02: RuntimeError
-Language/Classes/Constructors/Factories/return_wrong_type_t03: RuntimeError
-Language/Classes/Constructors/Factories/return_wrong_type_t04: RuntimeError
 Language/Expressions/Constants/exception_t04: Pass
 Language/Expressions/Constants/logical_expression_t02: Pass
 Language/Expressions/Constants/logical_expression_t04: Pass
 Language/Expressions/Constants/ternary_operator_t02: Pass
+Language/Expressions/Function_Expressions/static_type_form_1_async_t03: RuntimeError
+Language/Expressions/Function_Expressions/static_type_form_1_t02: RuntimeError
+Language/Expressions/Function_Expressions/static_type_form_2_async_t03: RuntimeError
+Language/Expressions/Function_Expressions/static_type_form_2_t02: RuntimeError
 Language/Generics/malformed_t02: RuntimeError
 Language/Statements/Return/runtime_type_t04: RuntimeError
 Language/Statements/Switch/execution_t01: RuntimeError
 Language/Statements/Switch/type_t01: RuntimeError
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError
 Language/Types/Parameterized_Types/malbounded_t06: RuntimeError
-LibTest/collection/DoubleLinkedQueue/forEach_A01_t03: RuntimeError
-LibTest/collection/DoubleLinkedQueue/forEachEntry_A01_t03: RuntimeError
-LibTest/collection/HashMap/HashMap_class_A01_t01: RuntimeError
-LibTest/collection/LinkedHashMap/LinkedHashMap_class_A01_t01: RuntimeError
-LibTest/collection/MapBase/MapBase_class_A01_t01: RuntimeError
-LibTest/collection/MapMixin/MapMixin_class_A01_t01: RuntimeError
-LibTest/collection/Maps/putIfAbsent_A01_t07: RuntimeError
-LibTest/collection/Maps/putIfAbsent_A01_t08: RuntimeError
-LibTest/collection/MapView/MapView_class_A01_t01: RuntimeError
-LibTest/collection/SplayTreeMap/inherited_tests_A01_t01: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
+Language/Types/Static_Types/malformed_type_t04: RuntimeError
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]

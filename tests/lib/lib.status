@@ -628,11 +628,10 @@ mirrors/variable_is_const_test/01: Crash
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
-mirrors/invocation_fuzz_test/smi: Fail
+mirrors/invocation_fuzz_test/smi: Crash
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
-mirrors/regress_16321_test/01: MissingCompileTimeError
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]
