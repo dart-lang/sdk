@@ -8,7 +8,9 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show ResolutionFunctionType;
+import '../elements/types.dart' show DartType;
+import '../elements/resolution_types.dart'
+    show ResolutionFunctionType, ResolutionTypeVariableType;
 import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
     show
@@ -45,12 +47,12 @@ class TypeTestRegistry {
 
   Iterable<ClassEntity> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
-      cachedClassesUsingTypeVariableTests = new List<ClassEntity>.from(
-          _codegenWorldBuilder.isChecks
-              .where((DartType t) =>
-                  t is TypeVariableType &&
-                  t.element.typeDeclaration is ClassEntity)
-              .map((dynamic v) => v.element.typeDeclaration));
+      cachedClassesUsingTypeVariableTests = _codegenWorldBuilder.isChecks
+          .where((DartType t) => t is ResolutionTypeVariableType)
+          .map((DartType _v) {
+        ResolutionTypeVariableType v = _v;
+        return v.element.enclosingClass;
+      }).toList();
     }
     return cachedClassesUsingTypeVariableTests;
   }
@@ -118,7 +120,9 @@ class TypeTestRegistry {
     //     argument checks.
     // TODO(karlklose): merge this case with 2 when unifying argument and
     // object checks.
-    rtiChecks.getRequiredArgumentClasses().forEach(addClassWithSuperclasses);
+    rtiChecks
+        .getRequiredArgumentClasses()
+        .forEach((e) => addClassWithSuperclasses(e));
 
     // 2.  Add classes that are referenced by substitutions in object checks and
     //     their superclasses.

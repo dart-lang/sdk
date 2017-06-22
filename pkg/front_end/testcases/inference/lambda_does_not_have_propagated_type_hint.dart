@@ -23,3 +23,5 @@ void bar() {
   /*info:DYNAMIC_INVOKE*/ list.map(
       /*@returnType=String*/ (/*@type=dynamic*/ value) => '${value}');
 }
+
+main() {}

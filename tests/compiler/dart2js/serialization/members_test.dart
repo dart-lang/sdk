@@ -57,9 +57,11 @@ void checkAllMembers(Compiler compiler1, Compiler compiler2,
 }
 
 /// Check equivalence of members of [class1] and [class2].
-void checkMembers(Compiler compiler1, ClassMemberMixin class1,
-    Compiler compiler2, ClassMemberMixin class2,
+void checkMembers(
+    Compiler compiler1, Element _class1, Compiler compiler2, Element _class2,
     {bool verbose: false}) {
+  ClassMemberMixin class1 = _class1;
+  ClassMemberMixin class2 = _class2;
   if (verbose) {
     print('Checking $class1 vs $class2');
   }

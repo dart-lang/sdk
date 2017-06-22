@@ -995,22 +995,27 @@ class B<T> extends self::A<self::B::T, core::bool> {}
   void _assertOverridePairs(Class class_, List<String> expected,
       {bool crossGettersSetters: false}) {
     List<String> overrideDescriptions = [];
-    hierarchy.forEachOverridePair(class_,
-        (Member declaredMember, Member interfaceMember, bool isSetter) {
+    void callback(
+        Member declaredMember, Member interfaceMember, bool isSetter) {
       String declaredSuffix;
       String interfaceSuffix;
+      declaredSuffix = isSetter ? '=' : '';
       if (crossGettersSetters) {
-        declaredSuffix = _isSetter(declaredMember) ? '=' : '';
-        interfaceSuffix = _isSetter(interfaceMember) ? '=' : '';
+        interfaceSuffix = isSetter ? '' : '=';
       } else {
-        declaredSuffix = isSetter ? '=' : '';
         interfaceSuffix = isSetter ? '=' : '';
       }
       String declaredName = '$declaredMember$declaredSuffix';
       String interfaceName = '$interfaceMember$interfaceSuffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
-    }, crossGettersSetters: crossGettersSetters);
+    }
+
+    if (crossGettersSetters) {
+      hierarchy.forEachCrossOverridePair(class_, callback);
+    } else {
+      hierarchy.forEachOverridePair(class_, callback);
+    }
     expect(overrideDescriptions, unorderedEquals(expected));
   }
 
@@ -1042,9 +1047,5 @@ import "dart:core" as core;
     }
 
     expect(actualText, expectedText);
-  }
-
-  static bool _isSetter(Member member) {
-    return member is Procedure && member.kind == ProcedureKind.Setter;
   }
 }

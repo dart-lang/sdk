@@ -991,10 +991,11 @@ type TypeParameterType extends DartType {
   // class.
   UInt index;
 
-  // Byte offset in the binary for the type declaration.
-  // Note: This can also be 0,
-  // which is a 'forward reference' and is not to be used.
+  // Byte offset in the binary for the first type declaration of the
+  // Class or FunctionNode.
   UInt typeParameterPosition;
+  // The entry number in the list (starting at 0).
+  UInt typeParameterIndex;
   Option<DartType> bound;
 }
 

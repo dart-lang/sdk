@@ -1803,6 +1803,17 @@ void Parser::BuildDispatcherScope(const Function& func,
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
   AddFormalParamsToScope(&params, current_block_->scope);
+
+  if (desc.TypeArgsLen() > 0) {
+    ASSERT(func.IsGeneric() && !func.HasGenericParent());
+    // Insert function type arguments variable to scope.
+    LocalVariable* type_args_var = new (Z) LocalVariable(
+        TokenPosition::kNoSource, TokenPosition::kNoSource,
+        Symbols::FunctionTypeArgumentsVar(), Object::dynamic_type());
+    current_block_->scope->AddVariable(type_args_var);
+    ASSERT(FunctionLevel() == 0);
+    parsed_function_->set_function_type_arguments(type_args_var);
+  }
 }
 
 
@@ -1822,7 +1833,9 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 
   // Receiver is local 0.
   LocalScope* scope = current_block_->scope;
-  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  ArgumentListNode* func_args = new ArgumentListNode(
+      token_pos, parsed_function_->function_type_arguments(),
+      desc.TypeArgsLen());
   for (intptr_t i = 0; i < desc.Count(); ++i) {
     func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
   }
@@ -1898,9 +1911,12 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
   }
 
   // Pass arguments 1..n to the closure call.
-  ArgumentListNode* args = new (Z) ArgumentListNode(token_pos);
+  ArgumentListNode* args = new (Z)
+      ArgumentListNode(token_pos, parsed_function_->function_type_arguments(),
+                       desc.TypeArgsLen());
   const Array& names =
       Array::Handle(Z, Array::New(desc.NamedCount(), Heap::kOld));
+
   // Positional parameters.
   intptr_t i = 1;
   for (; i < desc.PositionalCount(); ++i) {
@@ -2219,10 +2235,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // signature functions (except typedef signature functions), therefore
       // we do not need to keep the correct script via a patch class. Use the
       // actual current class as owner of the signature function.
-      Function& signature_function =
-          Function::Handle(Z, Function::NewSignatureFunction(
-                                  current_class(), TokenPosition::kNoSource));
-      signature_function.set_parent_function(innermost_function());
+      Function& signature_function = Function::Handle(
+          Z,
+          Function::NewSignatureFunction(current_class(), innermost_function(),
+                                         TokenPosition::kNoSource));
       innermost_function_ = signature_function.raw();
 
       // Finish parsing the function type parameter.
@@ -5422,8 +5438,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
         Z, ParseFunctionType(result_type, ClassFinalizer::kDoNotResolve));
     signature_function = function_type.signature();
   } else {
-    signature_function =
-        Function::NewSignatureFunction(function_type_alias, alias_name_pos);
+    signature_function = Function::NewSignatureFunction(
+        function_type_alias, Function::Handle(Z), alias_name_pos);
     innermost_function_ = signature_function.raw();
     ParamList params;
     // Parse the formal parameters of the function type.
@@ -5698,7 +5714,11 @@ RawTypeArguments* Parser::ParseTypeArguments(
       ReportError("right angle bracket expected");
     }
     if (finalization != ClassFinalizer::kIgnore) {
-      return NewTypeArguments(types);
+      TypeArguments& type_args = TypeArguments::Handle(NewTypeArguments(types));
+      if (finalization == ClassFinalizer::kCanonicalize) {
+        type_args = type_args.Canonicalize();
+      }
+      return type_args.raw();
     }
   }
   return TypeArguments::null();
@@ -9697,7 +9717,13 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
     SkipExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
-      SkipExpr();
+      if (CurrentToken() != Token::kRPAREN) {
+        SkipExpr();
+        if (CurrentToken() == Token::kCOMMA) {
+          // Allow trailing comma.
+          ConsumeToken();
+        }
+      }
     }
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -9714,12 +9740,18 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   TokenPosition message_pos = TokenPosition::kNoSource;
   if (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
-    message_pos = TokenPos();
-    message = ParseExpr(kAllowConst, kConsumeCascades);
-    if (is_const && !message->IsPotentiallyConst()) {
-      ReportError(
-          message_pos,
-          "initializer assert expression must be compile time constant.");
+    if (CurrentToken() != Token::kRPAREN) {
+      message_pos = TokenPos();
+      message = ParseExpr(kAllowConst, kConsumeCascades);
+      if (is_const && !message->IsPotentiallyConst()) {
+        ReportError(
+            message_pos,
+            "initializer assert expression must be compile time constant.");
+      }
+      if (CurrentToken() == Token::kCOMMA) {
+        // Allow trailing comma.
+        ConsumeToken();
+      }
     }
   }
   ExpectToken(Token::kRPAREN);
@@ -12565,12 +12597,15 @@ void Parser::ResolveType(AbstractType* type) {
   if (type->arguments() != TypeArguments::null()) {
     const TypeArguments& arguments =
         TypeArguments::Handle(Z, type->arguments());
-    const intptr_t num_arguments = arguments.Length();
-    AbstractType& type_argument = AbstractType::Handle(Z);
-    for (intptr_t i = 0; i < num_arguments; i++) {
-      type_argument = arguments.TypeAt(i);
-      ResolveType(&type_argument);
-      arguments.SetTypeAt(i, type_argument);
+    // Already resolved if canonical.
+    if (!arguments.IsCanonical()) {
+      const intptr_t num_arguments = arguments.Length();
+      AbstractType& type_argument = AbstractType::Handle(Z);
+      for (intptr_t i = 0; i < num_arguments; i++) {
+        type_argument = arguments.TypeAt(i);
+        ResolveType(&type_argument);
+        arguments.SetTypeAt(i, type_argument);
+      }
     }
   }
   if (type->IsFunctionType()) {
@@ -13276,10 +13311,9 @@ RawType* Parser::ParseFunctionType(
   }
   do {
     ConsumeToken();
-    const Function& signature_function =
-        Function::Handle(Z, Function::NewSignatureFunction(
-                                current_class(), TokenPosition::kNoSource));
-    signature_function.set_parent_function(innermost_function());
+    const Function& signature_function = Function::Handle(
+        Z, Function::NewSignatureFunction(current_class(), innermost_function(),
+                                          TokenPosition::kNoSource));
     innermost_function_ = signature_function.raw();
     signature_function.set_result_type(type);
     // Parse optional type parameters.

@@ -64,3 +64,9 @@ class Lists {
     }
   }
 }
+
+// Prepend the parent type arguments (maybe null) to the function type
+// arguments (may be null). The result is null if both input vectors are null
+// or is a newly allocated and canonicalized vector of length 'len'.
+_prependTypeArguments(functionTypeArguments, parentTypeArguments, len)
+    native "Internal_prependTypeArguments";

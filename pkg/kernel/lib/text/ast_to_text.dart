@@ -839,7 +839,10 @@ class Printer extends Visitor<Null> {
 
   visitConditionalExpression(ConditionalExpression node) {
     writeExpression(node.condition, Precedence.LOGICAL_OR);
-    writeSpaced('?');
+    ensureSpace();
+    write('?');
+    writeStaticType(node.staticType);
+    writeSpace();
     writeExpression(node.then);
     writeSpaced(':');
     writeExpression(node.otherwise);
@@ -1111,6 +1114,14 @@ class Printer extends Visitor<Null> {
       writeSymbol('}');
     } else {
       writeName(name);
+    }
+  }
+
+  void writeStaticType(DartType type) {
+    if (type != null) {
+      writeSymbol('{');
+      writeType(type);
+      writeSymbol('}');
     }
   }
 

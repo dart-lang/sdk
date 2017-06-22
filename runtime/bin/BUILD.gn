@@ -237,6 +237,9 @@ static_library("libdart_builtin") {
     "..:dart_config",
     "..:dart_maybe_product_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_builtin_config" ]
   deps = [
     ":generate_blink_cc_file",
@@ -274,8 +277,10 @@ executable("gen_snapshot") {
     "..:dart_config",
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
-    "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   deps = [
     ":gen_resources_cc",
     ":gen_snapshot_dart_io",
@@ -344,6 +349,9 @@ source_set("gen_snapshot_dart_io") {
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
 
   deps = [
     "$dart_zlib_path",
@@ -390,6 +398,9 @@ template("dart_io") {
       "..:dart_config",
       "..:dart_maybe_product_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     custom_sources_filter = [
       "*_test.cc",
       "*_test.h",
@@ -605,7 +616,9 @@ template("dart_executable") {
                  "..:dart_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
-
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     if (defined(is_fuchsia_host) && is_fuchsia_host) {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
@@ -669,7 +682,6 @@ template("dart_executable") {
 }
 
 dart_executable("dart") {
-  extra_configs = [ "..:dart_use_target_arch_config" ]
   extra_deps = [
     "..:libdart_jit",
     ":dart_snapshot_cc",
@@ -698,72 +710,57 @@ dart_executable("dart_precompiled_runtime") {
   ]
 }
 
-template("dart_bootstrap_template") {
-  invoker_extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    invoker_extra_configs += invoker.extra_configs
-  }
-  dart_executable(target_name) {
-    extra_configs = [
-                      "..:dart_precompiler_config",
-                      "..:dart_no_snapshot_config",
-                    ] + invoker_extra_configs
-    extra_deps = [
-      ":generate_builtin_cc_file",
-      ":generate_io_cc_file",
-      ":generate_io_patch_cc_file",
-      ":generate_html_cc_file",
-      ":generate_html_common_cc_file",
-      ":generate_js_cc_file",
-      ":generate_js_util_cc_file",
-      ":generate_blink_cc_file",
-      ":generate_indexed_db_cc_file",
-      ":generate_cached_patches_cc_file",
-      ":generate_web_gl_cc_file",
-      ":generate_metadata_cc_file",
-      ":generate_web_sql_cc_file",
-      ":generate_svg_cc_file",
-      ":generate_web_audio_cc_file",
-      "..:libdart_nosnapshot_with_precompiler",
-    ]
-    extra_defines = [ "NO_OBSERVATORY" ]
-    extra_sources = [
-      "builtin.cc",
-      "builtin.h",
-      "dfe.cc",
-      "dfe.h",
-      "loader.cc",
-      "loader.h",
-      "observatory_assets_empty.cc",
-      "snapshot_empty.cc",
+dart_executable("dart_bootstrap") {
+  extra_configs = [
+    "..:dart_precompiler_config",
+    "..:dart_no_snapshot_config",
+  ]
+  extra_deps = [
+    ":generate_builtin_cc_file",
+    ":generate_io_cc_file",
+    ":generate_io_patch_cc_file",
+    ":generate_html_cc_file",
+    ":generate_html_common_cc_file",
+    ":generate_js_cc_file",
+    ":generate_js_util_cc_file",
+    ":generate_blink_cc_file",
+    ":generate_indexed_db_cc_file",
+    ":generate_cached_patches_cc_file",
+    ":generate_web_gl_cc_file",
+    ":generate_metadata_cc_file",
+    ":generate_web_sql_cc_file",
+    ":generate_svg_cc_file",
+    ":generate_web_audio_cc_file",
+    "..:libdart_nosnapshot_with_precompiler",
+  ]
+  extra_defines = [ "NO_OBSERVATORY" ]
+  extra_sources = [
+    "builtin.cc",
+    "builtin.h",
+    "dfe.cc",
+    "dfe.h",
+    "loader.cc",
+    "loader.h",
+    "observatory_assets_empty.cc",
+    "snapshot_empty.cc",
 
-      # Include generated source files.
-      "$target_gen_dir/builtin_gen.cc",
-      "$target_gen_dir/io_gen.cc",
-      "$target_gen_dir/io_patch_gen.cc",
-      "$target_gen_dir/html_gen.cc",
-      "$target_gen_dir/html_common_gen.cc",
-      "$target_gen_dir/js_gen.cc",
-      "$target_gen_dir/js_util_gen.cc",
-      "$target_gen_dir/blink_gen.cc",
-      "$target_gen_dir/indexed_db_gen.cc",
-      "$target_gen_dir/cached_patches_gen.cc",
-      "$target_gen_dir/web_gl_gen.cc",
-      "$target_gen_dir/metadata_gen.cc",
-      "$target_gen_dir/web_sql_gen.cc",
-      "$target_gen_dir/svg_gen.cc",
-      "$target_gen_dir/web_audio_gen.cc",
-    ]
-  }
-}
-
-dart_bootstrap_template("dart_bootstrap") {
-  extra_configs = [ "..:dart_use_target_arch_config" ]
-}
-
-# TODO(rmacnak): Remove if Fuchsia adds a checked-in SDK.
-dart_bootstrap_template("dart_bootstrap_host_arch") {
-  extra_configs = []
+    # Include generated source files.
+    "$target_gen_dir/builtin_gen.cc",
+    "$target_gen_dir/io_gen.cc",
+    "$target_gen_dir/io_patch_gen.cc",
+    "$target_gen_dir/html_gen.cc",
+    "$target_gen_dir/html_common_gen.cc",
+    "$target_gen_dir/js_gen.cc",
+    "$target_gen_dir/js_util_gen.cc",
+    "$target_gen_dir/blink_gen.cc",
+    "$target_gen_dir/indexed_db_gen.cc",
+    "$target_gen_dir/cached_patches_gen.cc",
+    "$target_gen_dir/web_gl_gen.cc",
+    "$target_gen_dir/metadata_gen.cc",
+    "$target_gen_dir/web_sql_gen.cc",
+    "$target_gen_dir/svg_gen.cc",
+    "$target_gen_dir/web_audio_gen.cc",
+  ]
 }
 
 if (is_fuchsia) {
@@ -852,8 +849,10 @@ executable("run_vm_tests") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
-    "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
 
   deps = [
     ":dart_snapshot_cc",

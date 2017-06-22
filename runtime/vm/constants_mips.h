@@ -256,6 +256,7 @@ enum RelationOperator {
   UGE,  // unsigned greater equal
   ULT,  // unsigned less than
   ULE,  // unsigned less equal
+  INVALID_RELATION
 };
 
 

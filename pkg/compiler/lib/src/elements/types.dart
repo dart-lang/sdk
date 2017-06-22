@@ -125,7 +125,7 @@ class InterfaceType extends DartType {
   }
 
   @override
-  R accept<R, A>(DartTypeVisitor visitor, A argument) =>
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitInterfaceType(this, argument);
 
   int get hashCode {
@@ -190,7 +190,7 @@ class TypeVariableType extends DartType {
   }
 
   @override
-  R accept<R, A>(DartTypeVisitor visitor, A argument) =>
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitTypeVariableType(this, argument);
 
   int get hashCode => 17 * element.hashCode;
@@ -214,7 +214,7 @@ class VoidType extends DartType {
   }
 
   @override
-  R accept<R, A>(DartTypeVisitor visitor, A argument) =>
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitVoidType(this, argument);
 
   int get hashCode => 6007;
@@ -237,7 +237,7 @@ class DynamicType extends DartType {
   }
 
   @override
-  R accept<R, A>(DartTypeVisitor visitor, A argument) =>
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitDynamicType(this, argument);
 
   int get hashCode => 91;
@@ -309,7 +309,7 @@ class FunctionType extends DartType {
   }
 
   @override
-  R accept<R, A>(DartTypeVisitor visitor, A argument) =>
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitFunctionType(this, argument);
 
   int get hashCode {
@@ -410,53 +410,55 @@ List<DartType> _substTypes(
 abstract class DartTypeVisitor<R, A> {
   const DartTypeVisitor();
 
-  R visit(DartType type, A argument) => type.accept(this, argument);
+  R visit(covariant DartType type, A argument) => type.accept(this, argument);
 
-  R visitVoidType(VoidType type, A argument) => null;
+  R visitVoidType(covariant VoidType type, A argument) => null;
 
-  R visitTypeVariableType(TypeVariableType type, A argument) => null;
+  R visitTypeVariableType(covariant TypeVariableType type, A argument) => null;
 
-  R visitFunctionType(FunctionType type, A argument) => null;
+  R visitFunctionType(covariant FunctionType type, A argument) => null;
 
-  R visitInterfaceType(InterfaceType type, A argument) => null;
+  R visitInterfaceType(covariant InterfaceType type, A argument) => null;
 
-  R visitDynamicType(DynamicType type, A argument) => null;
+  R visitDynamicType(covariant DynamicType type, A argument) => null;
 }
 
 abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
   const BaseDartTypeVisitor();
 
-  R visitType(DartType type, A argument);
+  R visitType(covariant DartType type, A argument);
 
   @override
-  R visitVoidType(VoidType type, A argument) => visitType(type, argument);
-
-  @override
-  R visitTypeVariableType(TypeVariableType type, A argument) =>
+  R visitVoidType(covariant VoidType type, A argument) =>
       visitType(type, argument);
 
   @override
-  R visitFunctionType(FunctionType type, A argument) =>
+  R visitTypeVariableType(covariant TypeVariableType type, A argument) =>
       visitType(type, argument);
 
   @override
-  R visitInterfaceType(InterfaceType type, A argument) =>
+  R visitFunctionType(covariant FunctionType type, A argument) =>
       visitType(type, argument);
 
   @override
-  R visitDynamicType(DynamicType type, A argument) => visitType(type, argument);
+  R visitInterfaceType(covariant InterfaceType type, A argument) =>
+      visitType(type, argument);
+
+  @override
+  R visitDynamicType(covariant DynamicType type, A argument) =>
+      visitType(type, argument);
 }
 
 /// Abstract visitor for determining relations between types.
-abstract class AbstractTypeRelation
-    extends BaseDartTypeVisitor<bool, DartType> {
+abstract class AbstractTypeRelation<T extends DartType>
+    extends BaseDartTypeVisitor<bool, T> {
   CommonElements get commonElements;
 
   /// Ensures that the super hierarchy of [type] is computed.
   void ensureResolved(InterfaceType type) {}
 
   /// Returns the unaliased version of [type].
-  DartType getUnaliased(DartType type) => type.unaliased;
+  T getUnaliased(T type) => type.unaliased;
 
   /// Returns [type] as an instance of [cls], or `null` if [type] is not subtype
   /// if [cls].
@@ -469,31 +471,31 @@ abstract class AbstractTypeRelation
   /// Returns the declared bound of [element].
   DartType getTypeVariableBound(TypeVariableEntity element);
 
-  bool visitType(DartType t, DartType s) {
+  bool visitType(T t, T s) {
     throw 'internal error: unknown type ${t}';
   }
 
-  bool visitVoidType(VoidType t, DartType s) {
+  bool visitVoidType(VoidType t, T s) {
     assert(s is! VoidType);
     return false;
   }
 
-  bool invalidTypeArguments(DartType t, DartType s);
+  bool invalidTypeArguments(T t, T s);
 
-  bool invalidFunctionReturnTypes(DartType t, DartType s);
+  bool invalidFunctionReturnTypes(T t, T s);
 
-  bool invalidFunctionParameterTypes(DartType t, DartType s);
+  bool invalidFunctionParameterTypes(T t, T s);
 
-  bool invalidTypeVariableBounds(DartType bound, DartType s);
+  bool invalidTypeVariableBounds(T bound, T s);
 
-  bool invalidCallableType(DartType callType, DartType s);
+  bool invalidCallableType(covariant DartType callType, covariant DartType s);
 
-  bool visitInterfaceType(InterfaceType t, DartType s) {
+  bool visitInterfaceType(InterfaceType t, covariant DartType s) {
     ensureResolved(t);
 
     bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
-      List<DartType> tTypeArgs = instance.typeArguments;
-      List<DartType> sTypeArgs = other.typeArguments;
+      List<T> tTypeArgs = instance.typeArguments;
+      List<T> sTypeArgs = other.typeArguments;
       assert(tTypeArgs.length == sTypeArgs.length);
       for (int i = 0; i < tTypeArgs.length; i++) {
         if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i])) {
@@ -539,8 +541,8 @@ abstract class AbstractTypeRelation
     //  x.o     : optionalParameterTypes on [:x:], and
     //  len(xs) : length of list [:xs:].
 
-    Iterator<DartType> tps = tf.parameterTypes.iterator;
-    Iterator<DartType> sps = sf.parameterTypes.iterator;
+    Iterator<T> tps = tf.parameterTypes.iterator;
+    Iterator<T> sps = sf.parameterTypes.iterator;
     bool sNotEmpty = sps.moveNext();
     bool tNotEmpty = tps.moveNext();
     tNext() => (tNotEmpty = tps.moveNext());
@@ -571,9 +573,9 @@ abstract class AbstractTypeRelation
       // subset relation with a linear search for [:sf.namedParameters:]
       // within [:tf.namedParameters:].
       List<String> tNames = tf.namedParameters;
-      List<DartType> tTypes = tf.namedParameterTypes;
+      List<T> tTypes = tf.namedParameterTypes;
       List<String> sNames = sf.namedParameters;
-      List<DartType> sTypes = sf.namedParameterTypes;
+      List<T> sTypes = sf.namedParameterTypes;
       int tIndex = 0;
       int sIndex = 0;
       while (tIndex < tNames.length && sIndex < sNames.length) {
@@ -618,7 +620,7 @@ abstract class AbstractTypeRelation
     return true;
   }
 
-  bool visitTypeVariableType(TypeVariableType t, DartType s) {
+  bool visitTypeVariableType(TypeVariableType t, T s) {
     // Identity check is handled in [isSubtype].
     DartType bound = getTypeVariableBound(t.element);
     if (bound.isTypeVariable) {
@@ -646,8 +648,9 @@ abstract class AbstractTypeRelation
   }
 }
 
-abstract class MoreSpecificVisitor extends AbstractTypeRelation {
-  bool isMoreSpecific(DartType t, DartType s) {
+abstract class MoreSpecificVisitor<T extends DartType>
+    extends AbstractTypeRelation<T> {
+  bool isMoreSpecific(T t, T s) {
     if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
       return true;
     }
@@ -666,55 +669,56 @@ abstract class MoreSpecificVisitor extends AbstractTypeRelation {
     return t.accept(this, s);
   }
 
-  bool invalidTypeArguments(DartType t, DartType s) {
+  bool invalidTypeArguments(T t, T s) {
     return !isMoreSpecific(t, s);
   }
 
-  bool invalidFunctionReturnTypes(DartType t, DartType s) {
+  bool invalidFunctionReturnTypes(T t, T s) {
     if (s.treatAsDynamic && t.isVoid) return true;
     return !s.isVoid && !isMoreSpecific(t, s);
   }
 
-  bool invalidFunctionParameterTypes(DartType t, DartType s) {
+  bool invalidFunctionParameterTypes(T t, T s) {
     return !isMoreSpecific(t, s);
   }
 
-  bool invalidTypeVariableBounds(DartType bound, DartType s) {
+  bool invalidTypeVariableBounds(T bound, T s) {
     return !isMoreSpecific(bound, s);
   }
 
-  bool invalidCallableType(DartType callType, DartType s) {
+  bool invalidCallableType(covariant DartType callType, covariant DartType s) {
     return !isMoreSpecific(callType, s);
   }
 }
 
 /// Type visitor that determines the subtype relation two types.
-abstract class SubtypeVisitor extends MoreSpecificVisitor {
-  bool isSubtype(DartType t, DartType s) {
+abstract class SubtypeVisitor<T extends DartType>
+    extends MoreSpecificVisitor<T> {
+  bool isSubtype(T t, T s) {
     return t.treatAsDynamic || isMoreSpecific(t, s);
   }
 
-  bool isAssignable(DartType t, DartType s) {
+  bool isAssignable(T t, T s) {
     return isSubtype(t, s) || isSubtype(s, t);
   }
 
-  bool invalidTypeArguments(DartType t, DartType s) {
+  bool invalidTypeArguments(T t, T s) {
     return !isSubtype(t, s);
   }
 
-  bool invalidFunctionReturnTypes(DartType t, DartType s) {
+  bool invalidFunctionReturnTypes(T t, T s) {
     return !s.isVoid && !isAssignable(t, s);
   }
 
-  bool invalidFunctionParameterTypes(DartType t, DartType s) {
+  bool invalidFunctionParameterTypes(T t, T s) {
     return !isAssignable(t, s);
   }
 
-  bool invalidTypeVariableBounds(DartType bound, DartType s) {
+  bool invalidTypeVariableBounds(T bound, T s) {
     return !isSubtype(bound, s);
   }
 
-  bool invalidCallableType(DartType callType, DartType s) {
+  bool invalidCallableType(covariant DartType callType, covariant DartType s) {
     return !isSubtype(callType, s);
   }
 }
@@ -722,8 +726,9 @@ abstract class SubtypeVisitor extends MoreSpecificVisitor {
 /// Type visitor that determines one type could a subtype of another given the
 /// right type variable substitution. The computation is approximate and returns
 /// `false` only if we are sure no such substitution exists.
-abstract class PotentialSubtypeVisitor extends SubtypeVisitor {
-  bool isSubtype(DartType t, DartType s) {
+abstract class PotentialSubtypeVisitor<T extends DartType>
+    extends SubtypeVisitor<T> {
+  bool isSubtype(T t, T s) {
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }

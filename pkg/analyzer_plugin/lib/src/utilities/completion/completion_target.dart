@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -249,6 +252,51 @@ class CompletionTarget {
       return node.isCascaded && offset > node.operator.offset + 1;
     }
     return false;
+  }
+
+  /**
+   * Return a source range that represents the region of text that should be
+   * replaced when a suggestion based on this target is selected, given that the
+   * completion was requested at the given [requestOffset].
+   */
+  SourceRange computeReplacementRange(int requestOffset) {
+    bool isKeywordOrIdentifier(Token token) =>
+        token.type.isKeyword || token.type == TokenType.IDENTIFIER;
+
+    Token token = entity is AstNode ? (entity as AstNode).beginToken : entity;
+    if (token != null && requestOffset < token.offset) {
+      token = token.previous;
+    }
+    if (token != null) {
+      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
+        // If the insertion point is at the beginning of the current token
+        // and the current token is not an identifier
+        // then check the previous token to see if it should be replaced
+        token = token.previous;
+      }
+      if (token != null && isKeywordOrIdentifier(token)) {
+        if (token.offset <= requestOffset && requestOffset <= token.end) {
+          // Replacement range for typical identifier completion
+          return new SourceRange(token.offset, token.length);
+        }
+      }
+      if (token is StringToken) {
+        SimpleStringLiteral uri =
+            astFactory.simpleStringLiteral(token, token.lexeme);
+        Keyword keyword = token.previous?.keyword;
+        if (keyword == Keyword.IMPORT ||
+            keyword == Keyword.EXPORT ||
+            keyword == Keyword.PART) {
+          int start = uri.contentsOffset;
+          int end = uri.contentsEnd;
+          if (start <= requestOffset && requestOffset <= end) {
+            // Replacement range for import URI
+            return new SourceRange(start, end - start);
+          }
+        }
+      }
+    }
+    return new SourceRange(requestOffset, 0);
   }
 
   /**

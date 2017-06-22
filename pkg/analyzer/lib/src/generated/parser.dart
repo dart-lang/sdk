@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library analyzer.parser;
+
 import 'dart:collection';
 import "dart:math" as math;
 
@@ -16,14 +18,21 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
+import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
+
+part 'parser_fasta.dart';
 
 /**
  * A simple data-holder for a method that needs to return multiple values.
@@ -261,10 +270,25 @@ class Parser {
   bool parseGenericMethodComments = false;
 
   /**
+   * A flag indicating whether the analyzer [Parser] factory method
+   * will return a fasta based parser or an analyzer based parser.
+   */
+  static bool useFasta = const bool.fromEnvironment("useFastaParser");
+
+  /**
    * Initialize a newly created parser to parse tokens in the given [_source]
    * and to report any errors that are found to the given [_errorListener].
    */
-  Parser(this._source, this._errorListener);
+  factory Parser(Source source, AnalysisErrorListener errorListener,
+      {bool useFasta}) {
+    if (useFasta ?? Parser.useFasta) {
+      return new _Parser2(source, errorListener);
+    } else {
+      return new Parser._(source, errorListener);
+    }
+  }
+
+  Parser._(this._source, this._errorListener);
 
   /**
    * Return the current token.

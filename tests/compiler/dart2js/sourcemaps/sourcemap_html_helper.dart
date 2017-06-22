@@ -109,9 +109,9 @@ class SourceLocationCollection {
 }
 
 abstract class CssColorScheme {
-  String singleLocationToCssColor(var id);
+  String singleLocationToCssColor(int id);
 
-  String multiLocationToCssColor(List ids);
+  String multiLocationToCssColor(List<int> ids);
 
   bool get showLocationAsSpan;
 }
@@ -123,12 +123,13 @@ class CustomColorScheme implements CssColorScheme {
 
   CustomColorScheme(
       {this.showLocationAsSpan: false,
-      String this.single(var id),
-      String this.multi(List ids)});
+      String this.single(int id),
+      String this.multi(List<int> ids)});
 
-  String singleLocationToCssColor(var id) => single != null ? single(id) : null;
+  String singleLocationToCssColor(int id) => single != null ? single(id) : null;
 
-  String multiLocationToCssColor(List ids) => multi != null ? multi(ids) : null;
+  String multiLocationToCssColor(List<int> ids) =>
+      multi != null ? multi(ids) : null;
 }
 
 class PatternCssColorScheme implements CssColorScheme {
@@ -225,11 +226,11 @@ class CodeProcessor {
 class ElementScheme {
   const ElementScheme();
 
-  String getName(var id, Set ids) => null;
-  String getHref(var id, Set ids) => null;
-  String onClick(var id, Set ids) => null;
-  String onMouseOver(var id, Set ids) => null;
-  String onMouseOut(var id, Set ids) => null;
+  String getName(int id, Set<int> ids) => null;
+  String getHref(int id, Set<int> ids) => null;
+  String onClick(int id, Set<int> ids) => null;
+  String onMouseOver(int id, Set<int> ids) => null;
+  String onMouseOut(int id, Set<int> ids) => null;
 }
 
 class HighlightLinkScheme implements ElementScheme {

@@ -22,12 +22,12 @@ abstract class DependencyCollector {
 /// can be expressed without the need to reference private data structures in
 /// the shadow hierarchy.
 abstract class DependencyCollectorImpl extends DependencyCollector {
-  List<FieldNode> dependencies = [];
+  List<AccessorNode> dependencies = [];
 
   bool isImmediatelyEvident = true;
 
-  void recordDependency(FieldNode fieldNode) {
-    dependencies.add(fieldNode);
+  void recordDependency(AccessorNode accessorNode) {
+    dependencies.add(accessorNode);
   }
 
   void recordNotImmediatelyEvident(int fileOffset) {

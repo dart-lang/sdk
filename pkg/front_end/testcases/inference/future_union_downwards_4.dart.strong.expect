@@ -8,7 +8,7 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
     : super core::Object::•() {}
   constructor value([dynamic x = null]) → void
     : super core::Object::•() {}
-  abstract method noSuchMethod(dynamic invocation) → dynamic;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
   method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;
 }

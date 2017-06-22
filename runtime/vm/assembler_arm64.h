@@ -843,6 +843,18 @@ class Assembler : public ValueObject {
     EmitFPImm(FMOVDI, vd, imm8);
     return true;
   }
+  void fmovsr(VRegister vd, Register rn) {
+    ASSERT(rn != R31);
+    ASSERT(rn != CSP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(FMOVSR, static_cast<Register>(vd), crn, kWord);
+  }
+  void fmovrs(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FMOVRS, crd, static_cast<Register>(vn), kWord);
+  }
   void fmovdr(VRegister vd, Register rn) {
     ASSERT(rn != R31);
     ASSERT(rn != CSP);

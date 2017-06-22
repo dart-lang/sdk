@@ -2673,6 +2673,14 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                 false,  // Not native.
                 *this, TokenPosition::kMinSource));
   ArgumentsDescriptor desc(args_desc);
+  if (desc.TypeArgsLen() > 0) {
+    // Make dispatcher function generic, since type arguments are passed.
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, TypeArguments::New(desc.TypeArgsLen()));
+    // TODO(regis): Can we leave the array uninitialized to save memory?
+    invocation.set_type_parameters(type_params);
+  }
+
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
                                       false);  // Not positional.
@@ -4835,6 +4843,9 @@ void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
 
 
 bool TypeArguments::IsResolved() const {
+  if (IsCanonical()) {
+    return true;
+  }
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
@@ -6514,10 +6525,11 @@ RawFunction* Function::InstantiateSignatureFrom(
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
+  const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
   Function& sig = Function::Handle(
-      zone,
-      Function::NewSignatureFunction(owner, TokenPosition::kNoSource, space));
+      zone, Function::NewSignatureFunction(owner, parent,
+                                           TokenPosition::kNoSource, space));
   sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
@@ -6908,6 +6920,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
+                                            const Function& parent,
                                             TokenPosition token_pos,
                                             Heap::Space space) {
   const Function& result = Function::Handle(Function::New(
@@ -6919,6 +6932,7 @@ RawFunction* Function::NewSignatureFunction(const Object& owner,
       /* is_native = */ false,
       owner,  // Same as function type scope class.
       token_pos, space));
+  result.set_parent_function(parent);
   result.set_is_reflectable(false);
   result.set_is_visible(false);
   result.set_is_debuggable(false);
@@ -13093,9 +13107,11 @@ const char* ICData::ToCString() const {
   const String& name = String::Handle(target_name());
   const intptr_t num_args = NumArgsTested();
   const intptr_t num_checks = NumberOfChecks();
+  const intptr_t type_args_len = TypeArgsLen();
   return OS::SCreate(Thread::Current()->zone(),
-                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd "",
-                     name.ToCString(), num_args, num_checks);
+                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd
+                     " type-args-len: %" Pd "",
+                     name.ToCString(), num_args, num_checks, type_args_len);
 }
 
 
@@ -13175,6 +13191,12 @@ void ICData::set_tag(intptr_t value) const {
 
 intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
+}
+
+
+intptr_t ICData::TypeArgsLen() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.TypeArgsLen();
 }
 
 
@@ -14717,7 +14739,10 @@ const char* Code::Name() const {
   if (obj.IsNull()) {
     // Regular stub.
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
-    ASSERT(name != NULL);
+    if (name == NULL) {
+      ASSERT(!StubCode::HasBeenInitialized());
+      return zone->PrintToString("[this stub]");  // Not yet recorded.
+    }
     return zone->PrintToString("[Stub] %s", name);
   } else if (obj.IsClass()) {
     // Allocation stub.
@@ -16001,6 +16026,11 @@ bool Instance::IsInstanceOf(
         return true;
       }
       if (!sig_fun.HasInstantiatedSignature()) {
+        // The following signature instantiation of sig_fun with its own type
+        // parameters only works if sig_fun has no generic parent, which is
+        // guaranteed to be the case, since the looked up call() function
+        // cannot be nested. It is most probably not even generic.
+        ASSERT(!sig_fun.HasGenericParent());
         const TypeArguments& function_type_arguments =
             TypeArguments::Handle(zone, sig_fun.type_parameters());
         // No bound error possible, since the instance exists.
@@ -16788,9 +16818,22 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // TODO(regis): Should we update TypeParameter::IsEquivalent() instead?
       if (type_param.IsFunctionTypeParameter() &&
           other_type_param.IsFunctionTypeParameter() &&
-          type_param.IsFinalized() && other_type_param.IsFinalized() &&
-          (type_param.index() == other_type_param.index())) {
-        return true;
+          type_param.IsFinalized() && other_type_param.IsFinalized()) {
+        // To be compatible, the function type parameters should be declared at
+        // the same position in the generic function. Their index therefore
+        // needs adjustement before comparison.
+        // Example: 'foo<F>(bar<B>(B b)) { }' and 'baz<Z>(Z z) { }', baz can be
+        // assigned to bar, although B has index 1 and Z index 0.
+        const Function& sig_fun =
+            Function::Handle(zone, type_param.parameterized_function());
+        const Function& other_sig_fun =
+            Function::Handle(zone, other_type_param.parameterized_function());
+        const int offset = sig_fun.NumParentTypeParameters();
+        const int other_offset = other_sig_fun.NumParentTypeParameters();
+        if (type_param.index() - offset ==
+            other_type_param.index() - other_offset) {
+          return true;
+        }
       }
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
@@ -17418,8 +17461,10 @@ RawAbstractType* Type::CloneUnfinalized() const {
   Function& fun = Function::Handle(zone, signature());
   if (!fun.IsNull()) {
     const Class& owner = Class::Handle(zone, fun.Owner());
-    Function& fun_clone = Function::Handle(
-        zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
+    const Function& parent = Function::Handle(zone, fun.parent_function());
+    Function& fun_clone =
+        Function::Handle(zone, Function::NewSignatureFunction(
+                                   owner, parent, TokenPosition::kNoSource));
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, fun.type_parameters());
     if (!type_params.IsNull()) {
@@ -17486,9 +17531,11 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     ASSERT(type_cls.IsTypedefClass() || type_cls.IsClosureClass());
     // If the scope class is not a typedef and if it is generic, it must be the
     // mixin class, set it to the new owner.
+    const Function& parent = Function::Handle(zone, fun.parent_function());
+    // TODO(regis): Is it safe to reuse the parent function with the old owner?
     Function& fun_clone = Function::Handle(
-        zone,
-        Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
+        zone, Function::NewSignatureFunction(new_owner, parent,
+                                             TokenPosition::kNoSource));
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, fun.type_parameters());
     if (!type_params.IsNull()) {
@@ -17633,11 +17680,18 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     if (IsFunctionType()) {
       const Function& fun = Function::Handle(zone, signature());
       if (!fun.IsSignatureFunction()) {
-        Function& sig_fun = Function::Handle(
-            zone,
-            Function::NewSignatureFunction(cls, TokenPosition::kNoSource));
+        // In case of a generic function, the function type parameters in the
+        // signature will still refer to the original function. This should not
+        // be a problem, since they are finalized and the indices remain
+        // unchanged.
+        const Function& parent = Function::Handle(zone, fun.parent_function());
+        Function& sig_fun =
+            Function::Handle(zone, Function::NewSignatureFunction(
+                                       cls, parent, TokenPosition::kNoSource));
         sig_fun.set_type_parameters(
             TypeArguments::Handle(zone, fun.type_parameters()));
+        ASSERT(fun.HasGenericParent() == sig_fun.HasGenericParent());
+        ASSERT(fun.IsGeneric() == sig_fun.IsGeneric());
         type = fun.result_type();
         type = type.Canonicalize(trail);
         sig_fun.set_result_type(type);
@@ -22352,12 +22406,14 @@ RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
 
 
 simd128_value_t Float32x4::value() const {
-  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
+  return ReadUnaligned(
+      reinterpret_cast<const simd128_value_t*>(&raw_ptr()->value_));
 }
 
 
 void Float32x4::set_value(simd128_value_t value) const {
-  StoreSimd128(&raw_ptr()->value_[0], value);
+  StoreUnaligned(reinterpret_cast<simd128_value_t*>(&raw()->ptr()->value_),
+                 value);
 }
 
 
@@ -22487,12 +22543,14 @@ int32_t Int32x4::w() const {
 
 
 simd128_value_t Int32x4::value() const {
-  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
+  return ReadUnaligned(
+      reinterpret_cast<const simd128_value_t*>(&raw_ptr()->value_));
 }
 
 
 void Int32x4::set_value(simd128_value_t value) const {
-  StoreSimd128(&raw_ptr()->value_[0], value);
+  StoreUnaligned(reinterpret_cast<simd128_value_t*>(&raw()->ptr()->value_),
+                 value);
 }
 
 

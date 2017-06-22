@@ -39,14 +39,14 @@
     </p>
     <params>
       <field name="byteStorePath">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The path to the directory containing the on-disk byte store that is to
           be used by any analysis drivers that are created.
         </p>
       </field>
       <field name="sdkPath">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The path to the directory containing the SDK that is to be used by any
           analysis drivers that are created.
@@ -913,7 +913,7 @@
     </p>
     <object>
       <field name="dartSdkSummaryPath" optional="true">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The file path of the file containing the summary of the SDK that
           should be used to "analyze" the SDK. The field will be omitted if the
@@ -922,7 +922,7 @@
       </field>
       <field name="defaultAnalysisOptionsFilePath" optional="true">
         <list>
-          <ref>String</ref>
+          <ref>FilePath</ref>
         </list>
         <p>
           The file path of the analysis options file that should be used in
@@ -959,7 +959,7 @@
       -->
       <field name="defaultPackageFilePath" optional="true">
         <list>
-          <ref>String</ref>
+          <ref>FilePath</ref>
         </list>
         <p>
           The file path of the .packages file that should be used in place of
@@ -970,7 +970,7 @@
       </field>
       <field name="defaultPackagesDirectoryPath" optional="true">
         <list>
-          <ref>String</ref>
+          <ref>FilePath</ref>
         </list>
         <p>
           The file path of the packages directory that should be used in place
@@ -987,7 +987,7 @@
     </p>
     <object>
       <field name="root">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The absolute path of the root directory containing the files to be
           analyzed.
@@ -995,11 +995,18 @@
       </field>
       <field name="exclude">
         <list>
-          <ref>String</ref>
+          <ref>FilePath</ref>
         </list>
         <p>
           A list of the absolute paths of files and directories within the root
           directory that should not be analyzed.
+        </p>
+      </field>
+      <field name="optionsFile" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The absolute path of the analysis options file that should be used to
+          control the analysis of the files in the context.
         </p>
       </field>
     </object>
@@ -1233,7 +1240,7 @@
         </p>
       </field>
       <field name="path">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The absolute path of the file or directory that changed.
         </p>

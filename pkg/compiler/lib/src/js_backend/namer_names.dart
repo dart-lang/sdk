@@ -34,7 +34,7 @@ class StringBackedName extends _NamerName {
 
   int get hashCode => name.hashCode;
 
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     return name.compareTo(other.name);
@@ -63,7 +63,7 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
 
   int get hashCode => base.hashCode * 13 + prefix.hashCode;
 
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     _PrefixedName otherSameKind = other;
@@ -139,7 +139,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
     return _cachedHashCode;
   }
 
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     CompoundName otherSameKind = other;
@@ -171,7 +171,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 
   @override
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     TokenName otherToken = other;
@@ -212,7 +212,7 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
   String get name => _target.name;
 
   @override
-  int compareTo(_NamerName other) => _target.compareTo(other);
+  int compareTo(covariant _NamerName other) => _target.compareTo(other);
 
   @override
   bool operator ==(other) => _target == other;

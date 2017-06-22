@@ -67,45 +67,47 @@ main() {
   group('updateContent', testUpdateContent);
 
   group('AnalysisDomainHandler', () {
-    group('getReachableSources', () {
-      test('valid sources', () async {
-        String fileA = '/project/a.dart';
-        String fileB = '/project/b.dart';
-        resourceProvider.newFile(fileA, 'import "b.dart";');
-        resourceProvider.newFile(fileB, '');
-
-        server.setAnalysisRoots('0', ['/project/'], [], {});
-
-        await server.onAnalysisComplete;
-
-        var request =
-            new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
-        var response = handler.handleRequest(request);
-
-        Map json = response.toJson()[Response.RESULT];
-
-        // Sanity checks.
-        expect(json['sources'], hasLength(6));
-        expect(json['sources']['file:///project/a.dart'],
-            unorderedEquals(['dart:core', 'file:///project/b.dart']));
-        expect(json['sources']['file:///project/b.dart'], ['dart:core']);
-      });
-
-      test('invalid source', () async {
-        resourceProvider.newFile('/project/a.dart', 'import "b.dart";');
-        server.setAnalysisRoots('0', ['/project/'], [], {});
-
-        await server.onAnalysisComplete;
-
-        var request =
-            new AnalysisGetReachableSourcesParams('/does/not/exist.dart')
-                .toRequest('0');
-        var response = handler.handleRequest(request);
-        expect(response.error, isNotNull);
-        expect(response.error.code,
-            RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
-      });
-    });
+    // TODO(brianwilkerson) Re-enable these tests if we re-enable the
+    // analysis.getReachableSources request.
+//    group('getReachableSources', () {
+//      test('valid sources', () async {
+//        String fileA = '/project/a.dart';
+//        String fileB = '/project/b.dart';
+//        resourceProvider.newFile(fileA, 'import "b.dart";');
+//        resourceProvider.newFile(fileB, '');
+//
+//        server.setAnalysisRoots('0', ['/project/'], [], {});
+//
+//        await server.onAnalysisComplete;
+//
+//        var request =
+//            new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
+//        var response = handler.handleRequest(request);
+//
+//        Map json = response.toJson()[Response.RESULT];
+//
+//        // Sanity checks.
+//        expect(json['sources'], hasLength(6));
+//        expect(json['sources']['file:///project/a.dart'],
+//            unorderedEquals(['dart:core', 'file:///project/b.dart']));
+//        expect(json['sources']['file:///project/b.dart'], ['dart:core']);
+//      });
+//
+//      test('invalid source', () async {
+//        resourceProvider.newFile('/project/a.dart', 'import "b.dart";');
+//        server.setAnalysisRoots('0', ['/project/'], [], {});
+//
+//        await server.onAnalysisComplete;
+//
+//        var request =
+//            new AnalysisGetReachableSourcesParams('/does/not/exist.dart')
+//                .toRequest('0');
+//        var response = handler.handleRequest(request);
+//        expect(response.error, isNotNull);
+//        expect(response.error.code,
+//            RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
+//      });
+//    });
 
     group('setAnalysisRoots', () {
       Response testSetAnalysisRoots(
@@ -122,13 +124,7 @@ main() {
           resourceProvider.newFile(fileA, '// a');
           resourceProvider.newFile(fileB, '// b');
           var response = testSetAnalysisRoots(['/project'], ['/project/bbb']);
-          var serverRef = server;
           expect(response, isResponseSuccess('0'));
-          // unit "a" is resolved eventually
-          // unit "b" is not resolved
-          await server.onAnalysisComplete;
-          expect(await serverRef.getResolvedCompilationUnit(fileA), isNotNull);
-          expect(await serverRef.getResolvedCompilationUnit(fileB), isNull);
         });
 
         test('not absolute', () async {
@@ -195,12 +191,10 @@ main() {
 
     group('setPriorityFiles', () {
       test('invalid', () {
-        // TODO(paulberry): under the "eventual consistency" model this request
-        // should not be invalid.
         var request = new AnalysisSetPriorityFilesParams(['/project/lib.dart'])
             .toRequest('0');
         var response = handler.handleRequest(request);
-        expect(response, isResponseFailure('0'));
+        expect(response, isResponseSuccess('0'));
       });
 
       test('valid', () {
@@ -452,7 +446,7 @@ class AnalysisTestHelper {
         new MockPackageMapProvider(),
         null,
         serverPlugin,
-        new AnalysisServerOptions()..enableNewAnalysisDriver = true,
+        new AnalysisServerOptions(),
         new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);

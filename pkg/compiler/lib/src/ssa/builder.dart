@@ -92,7 +92,7 @@ class SsaAstBuilder extends SsaAstBuilderBase {
 
   DiagnosticReporter get reporter => backend.reporter;
 
-  HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(covariant ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return task.measure(() {
       if (handleConstantField(work.element, work.registry, closedWorld)) {
         // No code is generated for `work.element`.
@@ -431,8 +431,6 @@ class SsaAstGraphBuilder extends ast.Visitor
   bool tryInlineMethod(MethodElement element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
       {ResolutionInterfaceType instanceType}) {
-    registry.registerStaticUse(new StaticUse.inlining(element));
-
     if (nativeData.isJsInteropMember(element) &&
         !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
@@ -582,6 +580,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void doInlining() {
+      registry.registerStaticUse(new StaticUse.inlining(declaration));
+
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the
       // NoSuchMethodError message as if we had called it.
@@ -3291,7 +3291,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
     if (closedWorld.isUsedAsMixin(cls)) return true;
 
-    return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+    return closedWorld.anyStrictSubclassOf(cls, (ClassEntity subclass) {
       return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
   }
@@ -3417,7 +3417,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
     }
     ResolutionInterfaceType type = elements.getType(node);
-    ResolutionInterfaceType expectedType =
+    ResolutionDartType expectedType =
         constructorDeclaration.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
@@ -3575,11 +3575,15 @@ class SsaAstGraphBuilder extends ast.Visitor
     bool definitelyFails = false;
 
     void addTypeVariableBoundCheck(
-        ResolutionInterfaceType instance,
-        ResolutionDartType typeArgument,
-        ResolutionTypeVariableType typeVariable,
-        ResolutionDartType bound) {
+        InterfaceType _instance,
+        DartType _typeArgument,
+        TypeVariableType _typeVariable,
+        DartType _bound) {
       if (definitelyFails) return;
+      ResolutionInterfaceType instance = _instance;
+      ResolutionDartType typeArgument = _typeArgument;
+      ResolutionTypeVariableType typeVariable = _typeVariable;
+      ResolutionDartType bound = _bound;
 
       int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
       if (subtypeRelation == DartTypes.IS_SUBTYPE) return;
@@ -4356,7 +4360,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitSuperMethodSet(
-      ast.Send node, MethodElement method, ast.Node rhs, _) {
+      ast.SendSet node, MethodElement method, ast.Node rhs, _) {
     handleSuperSendSet(node);
   }
 
@@ -4367,8 +4371,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   @override
-  void visitUnresolvedSuperIndexSet(
-      ast.Send node, Element element, ast.Node index, ast.Node rhs, _) {
+  void visitUnresolvedSuperIndexSet(ast.SendSet node, ErroneousElement element,
+      ast.Node index, ast.Node rhs, _) {
     handleSuperSendSet(node);
   }
 
@@ -4395,20 +4399,20 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   @override
-  void visitUnresolvedSuperGetterIndexPrefix(ast.Send node, Element element,
+  void visitUnresolvedSuperGetterIndexPrefix(ast.SendSet node, Element element,
       MethodElement setter, ast.Node index, IncDecOperator operator, _) {
     handleSuperSendSet(node);
   }
 
   @override
-  void visitUnresolvedSuperGetterIndexPostfix(ast.Send node, Element element,
+  void visitUnresolvedSuperGetterIndexPostfix(ast.SendSet node, Element element,
       MethodElement setter, ast.Node index, IncDecOperator operator, _) {
     handleSuperSendSet(node);
   }
 
   @override
   void visitUnresolvedSuperSetterIndexPrefix(
-      ast.Send node,
+      ast.SendSet node,
       MethodElement indexFunction,
       Element element,
       ast.Node index,
@@ -4419,7 +4423,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitUnresolvedSuperSetterIndexPostfix(
-      ast.Send node,
+      ast.SendSet node,
       MethodElement indexFunction,
       Element element,
       ast.Node index,
@@ -4454,7 +4458,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitUnresolvedSuperGetterCompoundIndexSet(
-      ast.Send node,
+      ast.SendSet node,
       Element element,
       MethodElement setter,
       ast.Node index,
@@ -4466,7 +4470,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitUnresolvedSuperSetterCompoundIndexSet(
-      ast.Send node,
+      ast.SendSet node,
       MethodElement getter,
       Element element,
       ast.Node index,
@@ -4477,7 +4481,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   @override
-  void visitUnresolvedSuperCompoundIndexSet(ast.Send node, Element element,
+  void visitUnresolvedSuperCompoundIndexSet(ast.SendSet node, Element element,
       ast.Node index, AssignmentOperator operator, ast.Node rhs, _) {
     handleSuperSendSet(node);
   }
@@ -4502,13 +4506,13 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitUnresolvedSuperPrefix(
-      ast.Send node, Element element, IncDecOperator operator, _) {
+      ast.SendSet node, Element element, IncDecOperator operator, _) {
     handleSuperSendSet(node);
   }
 
   @override
   void visitUnresolvedSuperPostfix(
-      ast.Send node, Element element, IncDecOperator operator, _) {
+      ast.SendSet node, Element element, IncDecOperator operator, _) {
     handleSuperSendSet(node);
   }
 
@@ -4543,19 +4547,19 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   @override
-  void visitSuperMethodCompound(ast.Send node, FunctionElement method,
+  void visitSuperMethodCompound(ast.Send node, MethodElement method,
       AssignmentOperator operator, ast.Node rhs, _) {
     handleSuperSendSet(node);
   }
 
   @override
-  void visitUnresolvedSuperGetterCompound(ast.Send node, Element element,
-      MethodElement setter, AssignmentOperator operator, ast.Node rhs, _) {
+  void visitUnresolvedSuperGetterCompound(ast.SendSet node, Element element,
+      SetterElement setter, AssignmentOperator operator, ast.Node rhs, _) {
     handleSuperSendSet(node);
   }
 
   @override
-  void visitUnresolvedSuperSetterCompound(ast.Send node, MethodElement getter,
+  void visitUnresolvedSuperSetterCompound(ast.Send node, GetterElement getter,
       Element element, AssignmentOperator operator, ast.Node rhs, _) {
     handleSuperSendSet(node);
   }
@@ -5149,12 +5153,14 @@ class SsaAstGraphBuilder extends ast.Visitor
     ClassElement targetClass = targetConstructor.enclosingClass;
     if (rtiNeed.classNeedsRti(targetClass)) {
       ClassElement cls = redirectingConstructor.enclosingClass;
-      ResolutionInterfaceType targetType =
+      ResolutionDartType targetType =
           redirectingConstructor.computeEffectiveTargetType(cls.thisType);
       targetType = localsHandler.substInContext(targetType);
-      targetType.typeArguments.forEach((ResolutionDartType argument) {
-        inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
-      });
+      if (targetType is ResolutionInterfaceType) {
+        targetType.typeArguments.forEach((ResolutionDartType argument) {
+          inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+        });
+      }
     }
     pushInvokeStatic(node, targetConstructor.declaration, inputs);
     HInstruction value = pop();
@@ -5719,14 +5725,14 @@ class SsaAstGraphBuilder extends ast.Visitor
     listConstructor = constructorElement.effectiveTarget;
 
     ResolutionInterfaceType type = elements.getType(node);
-    ResolutionInterfaceType expectedType =
+    ResolutionDartType expectedType =
         constructorElement.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
     ClassElement cls = listConstructor.enclosingClass;
 
     MethodElement createFunction = listConstructor;
-    if (rtiNeed.classNeedsRti(cls)) {
+    if (expectedType is ResolutionInterfaceType && rtiNeed.classNeedsRti(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
       expectedType.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs

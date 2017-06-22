@@ -18,7 +18,11 @@ import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show FastaMessage, codeExpectedExpression, codeExpectedFunctionBody;
+    show
+        FastaCode,
+        FastaMessage,
+        codeExpectedExpression,
+        codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -1918,6 +1922,15 @@ class AstBuilder extends ScopeListener {
 
   @override
   void addCompileTimeErrorFromMessage(FastaMessage message) {
+    FastaCode code = message.code;
+    switch (code.analyzerCode) {
+      case "EXPECTED_TYPE_NAME":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_TYPE_NAME, message.charOffset, 1);
+        return;
+      default:
+      // fall through
+    }
     library.addCompileTimeError(message.charOffset, message.message,
         fileUri: message.uri);
   }

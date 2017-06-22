@@ -126,12 +126,7 @@ class HttpAnalysisServer {
    */
   Future<Null> _handleGetRequest(HttpRequest request) async {
     if (getHandler == null) {
-      if (socketServer.analysisServer.options.enableNewAnalysisDriver) {
-        getHandler = new DiagnosticsSite(socketServer, _printBuffer);
-      } else {
-        getHandler = new ErrorGetHandler(
-            'Diagnostics only supported for the new analysis driver.');
-      }
+      getHandler = new DiagnosticsSite(socketServer, _printBuffer);
     }
     await getHandler.handleGetRequest(request);
   }

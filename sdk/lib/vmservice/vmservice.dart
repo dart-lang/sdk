@@ -480,22 +480,23 @@ void _registerIsolate(int port_id, SendPort sp, String name) {
 }
 
 /// Notify the VM that the service is running.
-external void _onStart();
+void _onStart() native "VMService_OnStart";
 
 /// Notify the VM that the service is no longer running.
-external void _onExit();
+void _onExit() native "VMService_OnExit";
 
 /// Notify the VM that the server's address has changed.
-external void onServerAddressChange(String address);
+void onServerAddressChange(String address)
+    native "VMService_OnServerAddressChange";
 
 /// Subscribe to a service stream.
-external bool _vmListenStream(String streamId);
+bool _vmListenStream(String streamId) native "VMService_ListenStream";
 
 /// Cancel a subscription to a service stream.
-external void _vmCancelStream(String streamId);
+void _vmCancelStream(String streamId) native "VMService_CancelStream";
 
 /// Get the bytes to the tar archive.
-external Uint8List _requestAssets();
+Uint8List _requestAssets() native "VMService_RequestAssets";
 
 /// Notify the vm service that an isolate has been spawned via rpc.
-external void _spawnUriNotify(obj, String token);
+void _spawnUriNotify(obj, String token) native "VMService_spawnUriNotify";

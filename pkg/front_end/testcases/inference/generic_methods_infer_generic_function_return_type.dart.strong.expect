@@ -7,7 +7,7 @@ class C<T extends core::Object> extends self::D<self::C::T> {
   constructor •() → void
     : super self::D::•()
     ;
-  method f<U extends core::Object>(dynamic x) → dynamic {}
+  method f<U extends core::Object>(self::C::f::U x) → () → self::C::f::U {}
 }
 class D<T extends core::Object> extends core::Object {
   constructor •() → void

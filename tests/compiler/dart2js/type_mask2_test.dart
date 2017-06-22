@@ -8,13 +8,14 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show ClassElement;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 
 isCheckedMode() {
   try {
-    var i = 1;
+    dynamic i = 1;
+    // ignore: UNUSED_LOCAL_VARIABLE
     String s = i;
     return false;
   } catch (e) {
@@ -57,7 +58,7 @@ checkMasks(ClosedWorld closedWorld, List<ClassElement> allClasses,
         'Unexpected flattening of $disjoint: '
         '$flattenResult, expected $flattened.');
   }
-  var union = UnionTypeMask.unionOf(masks, closedWorld);
+  dynamic union = UnionTypeMask.unionOf(masks, closedWorld);
   if (result == null) {
     Expect.isTrue(union is UnionTypeMask,
         'Expected union of $masks to be a union-type: $union.');
@@ -218,8 +219,6 @@ Future testStringSubtypes() async {
   ClassElement Object_ = env.getElement("Object");
   ClassElement String_ = env.getElement("String");
   ClassElement JSString = closedWorld.commonElements.jsStringClass;
-
-  List<ClassElement> allClasses = <ClassElement>[Object_, String_];
 
   Expect.isFalse(closedWorld.isDirectlyInstantiated(Object_));
   Expect.isTrue(closedWorld.isIndirectlyInstantiated(Object_));

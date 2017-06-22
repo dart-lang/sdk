@@ -7,6 +7,7 @@ library compiler.src.inferrer.node_tracer;
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
 import '../util/util.dart' show Setlet;
 import 'debug.dart' as debug;
@@ -390,10 +391,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to noSuchMethod');
     }
 
-    Iterable<Element> inferredTargetTypes =
-        info.targets.map((MemberElement element) {
-      // Issue 29886.
-      // ignore: RETURN_OF_INVALID_TYPE
+    Iterable<TypeInformation> inferredTargetTypes =
+        info.targets.map((MemberEntity entity) {
+      MemberElement element = entity;
       return inferrer.types.getInferredTypeOf(element);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {

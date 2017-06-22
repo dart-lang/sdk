@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 
 main() {
@@ -12,7 +13,8 @@ main() {
     await for (FileSystemEntity entity in dataDir.list()) {
       print('Checking ${entity.uri}');
       String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      await checkCode(annotatedCode, checkMemberAstTypeMasks);
+      await checkCode(
+          annotatedCode, computeMemberAstTypeMasks, compileFromSource);
     }
   });
 }

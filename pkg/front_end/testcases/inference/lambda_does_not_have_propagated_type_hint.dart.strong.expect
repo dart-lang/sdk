@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method getListOfString() → core::List<core::String>
+  return const <core::String>[];
+static method foo() → void {
+  core::List<dynamic> myList = self::getListOfString();
+  myList.{core::Iterable::map}<core::int>((dynamic type) → core::int => 42);
+}
+static method bar() → void {
+  dynamic list;
+  try {
+    list = <core::String>[];
+  }
+  on dynamic catch(final dynamic _) {
+    return;
+  }
+  list.map((dynamic value) → core::String => "${value}");
+}
+static method main() → dynamic {}

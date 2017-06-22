@@ -25,6 +25,7 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
@@ -51,34 +52,6 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
     assert(arguments.types.isEmpty);
     return null;
   }
-}
-
-bool _isOverloadableArithmeticOperator(String name) {
-  return identical(name, '+') ||
-      identical(name, '-') ||
-      identical(name, '*') ||
-      identical(name, '%');
-}
-
-bool _isUserDefinableOperator(String name) {
-  return identical(name, '<') ||
-      identical(name, '>') ||
-      identical(name, '<=') ||
-      identical(name, '>=') ||
-      identical(name, '==') ||
-      identical(name, '-') ||
-      identical(name, '+') ||
-      identical(name, '/') ||
-      identical(name, '~/') ||
-      identical(name, '*') ||
-      identical(name, '%') ||
-      identical(name, '|') ||
-      identical(name, '^') ||
-      identical(name, '&') ||
-      identical(name, '<<') ||
-      identical(name, '>>') ||
-      identical(name, '[]=') ||
-      identical(name, '~');
 }
 
 /// Concrete shadow object representing a set of invocation arguments.
@@ -441,7 +414,7 @@ class KernelConditionalExpression extends ConditionalExpression
     implements KernelExpression {
   KernelConditionalExpression(
       Expression condition, Expression then, Expression otherwise)
-      : super(condition, then, otherwise, const DynamicType());
+      : super(condition, then, otherwise, null);
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -466,7 +439,9 @@ class KernelConditionalExpression extends ConditionalExpression
         inferrer.inferExpression(otherwise, typeContext, true);
     DartType type = inferrer.typeSchemaEnvironment
         .getLeastUpperBound(thenType, otherwiseType);
-    staticType = type;
+    if (inferrer.strongMode) {
+      staticType = type;
+    }
     var inferredType = typeNeeded ? type : null;
     inferrer.listener.conditionalExpressionExit(this, inferredType);
     return inferredType;
@@ -662,7 +637,7 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
 /// Concrete shadow object representing a field in kernel form.
 class KernelField extends Field implements KernelMember {
   @override
-  FieldNode _fieldNode;
+  AccessorNode _accessorNode;
 
   @override
   KernelTypeInferrer _typeInferrer;
@@ -713,8 +688,8 @@ class KernelForInStatement extends ForInStatement implements KernelStatement {
       // that occur related to this assignment are reported at the correct
       // locations.
     }
-    var inferredExpressionType =
-        inferrer.inferExpression(iterable, context, typeNeeded);
+    var inferredExpressionType = inferrer.resolveTypeParameter(
+        inferrer.inferExpression(iterable, context, typeNeeded));
     if (typeNeeded) {
       var inferredType = const DynamicType();
       if (inferredExpressionType is InterfaceType) {
@@ -842,10 +817,10 @@ class KernelFunctionExpression extends FunctionExpression
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
-              inferrer.getPositionalParameterType(typeContext, i);
+              getPositionalParameterType(typeContext, i);
         } else {
           formalTypesFromContext[i] =
-              inferrer.getNamedParameterType(typeContext, formals[i].name);
+              getNamedParameterType(typeContext, formals[i].name);
         }
       }
       returnContext = typeContext.returnType;
@@ -931,6 +906,60 @@ class KernelFunctionExpression extends FunctionExpression
     inferrer.closureContext = oldClosureContext;
     var inferredType = typeNeeded ? function.functionType : null;
     inferrer.listener.functionExpressionExit(this, inferredType);
+    return inferredType;
+  }
+}
+
+/// Concrete shadow object representing an if-null expression.
+///
+/// An if-null expression of the form `a ?? b` is represented as the kernel
+/// expression:
+///
+///     let v = a in v == null ? b : v
+class KernelIfNullExpression extends Let implements KernelExpression {
+  KernelIfNullExpression(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  ConditionalExpression get body => super.body;
+
+  /// Returns the expression to the left of `??`.
+  Expression get _lhs => variable.initializer;
+
+  /// Returns the expression to the right of `??`.
+  Expression get _rhs => body.then;
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // If-null expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded = inferrer.listener.ifNullEnter(this, typeContext) || typeNeeded;
+    // To infer `e0 ?? e1` in context K:
+    // - Infer e0 in context K to get T0
+    var lhsType = inferrer.inferExpression(_lhs, typeContext, true);
+    if (inferrer.strongMode) {
+      variable.type = lhsType;
+    }
+    // - Let J = T0 if K is `_` else K.
+    var rhsContext = typeContext ?? lhsType;
+    // - Infer e1 in context J to get T1
+    var rhsType =
+        inferrer.inferExpression(_rhs, rhsContext, typeContext == null);
+    // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
+    //   UP(t0, t1)
+    // - Then the inferred type is T.
+    var inferredType = typeContext == null
+        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
+    if (inferrer.strongMode) {
+      body.staticType = inferredType;
+    }
+    inferrer.listener.ifNullExit(this, inferredType);
     return inferredType;
   }
 }
@@ -1262,9 +1291,9 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
 abstract class KernelMember implements Member {
   String get fileUri;
 
-  FieldNode get _fieldNode;
+  AccessorNode get _accessorNode;
 
-  void set _fieldNode(FieldNode value);
+  void set _accessorNode(AccessorNode value);
 
   KernelTypeInferrer get _typeInferrer;
 
@@ -1273,14 +1302,24 @@ abstract class KernelMember implements Member {
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
-  static FieldNode getFieldNode(Member member) {
-    if (member is KernelMember) return member._fieldNode;
+  static AccessorNode getAccessorNode(Member member) {
+    if (member is KernelMember) return member._accessorNode;
     return null;
   }
 
+  static void recordCrossOverride(
+      KernelMember member, Member overriddenMember) {
+    if (member._accessorNode != null) {
+      member._accessorNode.crossOverrides.add(overriddenMember);
+    }
+  }
+
   static void recordOverride(KernelMember member, Member overriddenMember) {
-    if (member._fieldNode != null) {
-      member._fieldNode.overrides.add(overriddenMember);
+    if (member._accessorNode != null) {
+      member._accessorNode.overrides.add(overriddenMember);
+    }
+    if (member is KernelProcedure && member._methodNode != null) {
+      member._methodNode.overrides.add(overriddenMember);
     }
   }
 }
@@ -1302,7 +1341,7 @@ class KernelMethodInvocation extends MethodInvocation
     // The inference dependencies are the inference dependencies of the
     // receiver.
     collector.collectDependencies(receiver);
-    if (_isOverloadableArithmeticOperator(name.name)) {
+    if (isOverloadableArithmeticOperator(name.name)) {
       collector.collectDependencies(arguments.positional[0]);
     }
   }
@@ -1310,39 +1349,8 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.methodInvocationEnter(this, typeContext) ||
-        typeNeeded;
-    // First infer the receiver so we can look up the method that was invoked.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
-    bool isOverloadedArithmeticOperator = false;
-    Member interfaceMember =
-        inferrer.findMethodInvocationMember(receiverType, this);
-    if (interfaceMember is Procedure) {
-      isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-          .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
-    }
-    var calleeType = inferrer.getCalleeFunctionType(
-        interfaceMember, receiverType, name, !_isImplicitCall);
-    bool forceArgumentInference = false;
-    if (inferrer.isDryRun) {
-      if (_isUserDefinableOperator(name.name)) {
-        // If this is an overloadable arithmetic operator, then type inference
-        // might depend on the RHS, so conservatively assume it does.
-        forceArgumentInference = _isOverloadableArithmeticOperator(name.name);
-      } else {
-        // If no type arguments were given, then type inference might depend on
-        // the arguments (because the called method might be generic), so
-        // conservatively assume it does.
-        forceArgumentInference = getExplicitTypeArguments(arguments) == null;
-      }
-    }
-    var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
-        fileOffset, calleeType, calleeType.returnType, arguments,
-        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
-        receiverType: receiverType,
-        forceArgumentInference: forceArgumentInference);
-    inferrer.listener.methodInvocationExit(this, inferredType);
-    return inferredType;
+    return inferrer.inferMethodInvocation(this, receiver, fileOffset, this,
+        _isImplicitCall, typeContext, typeNeeded);
   }
 }
 
@@ -1368,6 +1376,86 @@ class KernelNot extends Not implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a null-aware method invocation.
+///
+/// A null-aware method invocation of the form `a?.b(...)` is represented as the
+/// expression:
+///
+///     let v = a in v == null ? null : v.b(...)
+class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
+  KernelNullAwareMethodInvocation(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  ConditionalExpression get body => super.body;
+
+  MethodInvocation get _desugaredInvocation => body.otherwise;
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Null aware expressions are not immediately evident.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var inferredType = inferrer.inferMethodInvocation(
+        this,
+        variable.initializer,
+        fileOffset,
+        _desugaredInvocation,
+        false,
+        typeContext,
+        typeNeeded || inferrer.strongMode,
+        receiverVariable: variable);
+    if (inferrer.strongMode) {
+      body.staticType = inferredType;
+    }
+    return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a null-aware read from a property.
+///
+/// A null-aware property get of the form `a?.b` is represented as the kernel
+/// expression:
+///
+///     let v = a in v == null ? null : v.b
+class KernelNullAwarePropertyGet extends Let implements KernelExpression {
+  KernelNullAwarePropertyGet(
+      VariableDeclaration variable, ConditionalExpression body)
+      : super(variable, body);
+
+  @override
+  ConditionalExpression get body => super.body;
+
+  PropertyGet get _desugaredGet => body.otherwise;
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Null aware expressions are not immediately evident.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var inferredType = inferrer.inferPropertyGet(
+        this,
+        variable.initializer,
+        fileOffset,
+        _desugaredGet,
+        typeContext,
+        typeNeeded || inferrer.strongMode,
+        receiverVariable: variable);
+    if (inferrer.strongMode) {
+      body.staticType = inferredType;
+    }
+    return inferredType;
+  }
+}
+
 /// Concrete shadow object representing a null literal in kernel form.
 class KernelNullLiteral extends NullLiteral implements KernelExpression {
   @override
@@ -1389,12 +1477,17 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
 /// Concrete shadow object representing a procedure in kernel form.
 class KernelProcedure extends Procedure implements KernelMember {
   @override
-  FieldNode _fieldNode;
+  AccessorNode _accessorNode;
+
+  MethodNode _methodNode;
 
   @override
   KernelTypeInferrer _typeInferrer;
 
+  final bool _hasImplicitReturnType;
+
   KernelProcedure(Name name, ProcedureKind kind, FunctionNode function,
+      this._hasImplicitReturnType,
       {String fileUri})
       : super(name, kind, function, fileUri: fileUri);
 
@@ -1415,6 +1508,26 @@ class KernelProcedure extends Procedure implements KernelMember {
     } else {
       internalError(
           'setInferredType called on a procedure that is not an accessor');
+    }
+  }
+
+  static MethodNode getMethodNode(Procedure procedure) {
+    if (procedure is KernelProcedure) return procedure._methodNode;
+    return null;
+  }
+
+  static bool hasImplicitReturnType(KernelProcedure procedure) {
+    return procedure._hasImplicitReturnType;
+  }
+
+  static void inferSetterReturnType(
+      KernelProcedure procedure, TypeInferenceEngineImpl engine, String uri) {
+    assert(procedure.isSetter);
+    if (procedure._hasImplicitReturnType) {
+      var inferredType = const VoidType();
+      engine.instrumentation?.record(Uri.parse(uri), procedure.fileOffset,
+          'topType', new InstrumentationValueForType(inferredType));
+      procedure.function?.returnType = inferredType;
     }
   }
 }
@@ -1456,9 +1569,9 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
         if (TypeInferenceEngineImpl.fullTopLevelInference) {
-          if (writeMember is KernelField && writeMember._fieldNode != null) {
-            inferrer.engine
-                .inferFieldFused(writeMember._fieldNode, inferrer.fieldNode);
+          if (writeMember is KernelField && writeMember._accessorNode != null) {
+            inferrer.engine.inferAccessorFused(
+                writeMember._accessorNode, inferrer.accessorNode);
           }
         } else {
           // References to fields and setters can't be relied upon for top level
@@ -1508,34 +1621,8 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.propertyGetEnter(this, typeContext) || typeNeeded;
-    // First infer the receiver so we can look up the getter that was invoked.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
-    Member interfaceMember =
-        inferrer.findInterfaceMember(receiverType, name, fileOffset);
-    if (inferrer.isTopLevel &&
-        ((interfaceMember is Procedure &&
-                interfaceMember.kind == ProcedureKind.Getter) ||
-            interfaceMember is Field)) {
-      if (TypeInferenceEngineImpl.fullTopLevelInference) {
-        if (interfaceMember is KernelField &&
-            interfaceMember._fieldNode != null) {
-          inferrer.engine
-              .inferFieldFused(interfaceMember._fieldNode, inferrer.fieldNode);
-        }
-      } else {
-        // References to fields and getters can't be relied upon for top level
-        // inference.
-        inferrer.recordNotImmediatelyEvident(fileOffset);
-      }
-    }
-    interfaceTarget = interfaceMember;
-    var inferredType =
-        inferrer.getCalleeType(interfaceMember, receiverType, name);
-    // TODO(paulberry): Infer tear-off type arguments if appropriate.
-    inferrer.listener.propertyGetExit(this, inferredType);
-    return typeNeeded ? inferredType : null;
+    return inferrer.inferPropertyGet(
+        this, receiver, fileOffset, this, typeContext, typeNeeded);
   }
 }
 
@@ -1618,14 +1705,14 @@ class KernelStaticAssignment extends KernelComplexAssignment {
     if (write is StaticSet) {
       writeContext = write.target.setterType;
       var target = write.target;
-      if (target is KernelField && target._fieldNode != null) {
+      if (target is KernelField && target._accessorNode != null) {
         if (inferrer.isDryRun) {
-          inferrer.recordDryRunDependency(target._fieldNode);
+          inferrer.recordDryRunDependency(target._accessorNode);
         }
         if (TypeInferenceEngineImpl.fusedTopLevelInference &&
             inferrer.isTopLevel) {
           inferrer.engine
-              .inferFieldFused(target._fieldNode, inferrer.fieldNode);
+              .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
         }
       }
     }
@@ -1654,8 +1741,8 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
     //   inference dependencies.
     // TODO(paulberry): implement the proper error checking logic.
     var target = this.target;
-    if (target is KernelField && target._fieldNode != null) {
-      collector.recordDependency(target._fieldNode);
+    if (target is KernelField && target._accessorNode != null) {
+      collector.recordDependency(target._accessorNode);
     }
   }
 
@@ -1665,13 +1752,14 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
     var target = this.target;
-    if (target is KernelField && target._fieldNode != null) {
+    if (target is KernelField && target._accessorNode != null) {
       if (inferrer.isDryRun) {
-        inferrer.recordDryRunDependency(target._fieldNode);
+        inferrer.recordDryRunDependency(target._accessorNode);
       }
       if (TypeInferenceEngineImpl.fusedTopLevelInference &&
           inferrer.isTopLevel) {
-        inferrer.engine.inferFieldFused(target._fieldNode, inferrer.fieldNode);
+        inferrer.engine
+            .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
       }
     }
     var inferredType = typeNeeded ? target.getterType : null;
@@ -1866,10 +1954,10 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
       : super(instrumentation, strongMode);
 
   @override
-  FieldNode createFieldNode(KernelMember member) {
-    FieldNode fieldNode = new FieldNode(this, member);
-    member._fieldNode = fieldNode;
-    return fieldNode;
+  AccessorNode createAccessorNode(KernelMember member) {
+    AccessorNode accessorNode = new AccessorNode(this, member);
+    member._accessorNode = accessorNode;
+    return accessorNode;
   }
 
   @override
@@ -1880,14 +1968,21 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   }
 
   @override
-  KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, KernelMember member) {
-    return member._typeInferrer = new KernelTypeInferrer._(
-        this, member.fileUri, listener, true, thisType, member._fieldNode);
+  MethodNode createMethodNode(KernelProcedure procedure) {
+    MethodNode methodNode = new MethodNode(procedure);
+    procedure._methodNode = methodNode;
+    return methodNode;
   }
 
   @override
-  KernelTypeInferrer getFieldTypeInferrer(KernelMember member) {
+  KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
+      InterfaceType thisType, KernelMember member) {
+    return member._typeInferrer = new KernelTypeInferrer._(
+        this, member.fileUri, listener, true, thisType, member._accessorNode);
+  }
+
+  @override
+  KernelTypeInferrer getMemberTypeInferrer(KernelMember member) {
     return member._typeInferrer;
   }
 }
@@ -1904,8 +1999,8 @@ class KernelTypeInferrer extends TypeInferrerImpl {
       TypeInferenceListener listener,
       bool topLevel,
       InterfaceType thisType,
-      FieldNode fieldNode)
-      : super(engine, uri, listener, topLevel, thisType, fieldNode);
+      AccessorNode accessorNode)
+      : super(engine, uri, listener, topLevel, thisType, accessorNode);
 
   @override
   Expression getFieldInitializer(KernelField field) {
@@ -1973,6 +2068,41 @@ class KernelTypeInferrer extends TypeInferrerImpl {
       // implemented, so just skip it for now.
       // TODO(paulberry): once the BodyBuilder uses shadow classes for
       // everything, this case should no longer be needed.
+    }
+  }
+
+  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  DartType resolveTypeParameter(DartType type) {
+    DartType resolveOneStep(DartType type) {
+      if (type is TypeParameterType) {
+        return type.bound ?? type.parameter.bound;
+      } else {
+        return null;
+      }
+    }
+
+    var resolved = resolveOneStep(type);
+    if (resolved == null) return type;
+
+    // Detect circularities using the tortoise-and-hare algorithm.
+    type = resolved;
+    DartType hare = resolveOneStep(type);
+    if (hare == null) return type;
+    while (true) {
+      if (identical(type, hare)) {
+        // We found a circularity.  Give up and return `dynamic`.
+        return const DynamicType();
+      }
+
+      // Hare takes two steps
+      var step1 = resolveOneStep(hare);
+      if (step1 == null) return hare;
+      var step2 = resolveOneStep(step1);
+      if (step2 == null) return hare;
+      hare = step2;
+
+      // Tortoise takes one step
+      type = resolveOneStep(type);
     }
   }
 }
@@ -2126,14 +2256,17 @@ class KernelVariableDeclaration extends VariableDeclaration
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.variableDeclarationEnter(this);
     var declaredType = _implicitlyTyped ? null : type;
+    DartType inferredType;
     if (initializer != null) {
-      var inferredType = inferrer.inferDeclarationType(inferrer.inferExpression(
+      inferredType = inferrer.inferDeclarationType(inferrer.inferExpression(
           initializer, declaredType, _implicitlyTyped));
-      if (inferrer.strongMode && _implicitlyTyped) {
-        inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-            'type', new InstrumentationValueForType(inferredType));
-        type = inferredType;
-      }
+    } else {
+      inferredType = const DynamicType();
+    }
+    if (inferrer.strongMode && _implicitlyTyped) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'type', new InstrumentationValueForType(inferredType));
+      type = inferredType;
     }
     inferrer.listener.variableDeclarationExit(this);
   }

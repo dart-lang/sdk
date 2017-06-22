@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $strong ]
+*: SkipByDesign # tests/lib_strong has the strong mode versions of these tests.
+
 [ ! $checked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
@@ -571,7 +574,6 @@ mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError
 mirrors/mixin_test: RuntimeError
-mirrors/new_instance_with_type_arguments_test: RuntimeError
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError

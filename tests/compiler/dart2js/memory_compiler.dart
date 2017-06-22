@@ -35,8 +35,8 @@ class MultiDiagnostics implements CompilerDiagnostics {
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
-  void report(Message message, Uri uri, int begin, int end, String text,
-      Diagnostic kind) {
+  void report(covariant Message message, Uri uri, int begin, int end,
+      String text, Diagnostic kind) {
     for (CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
     }
@@ -49,10 +49,13 @@ CompilerDiagnostics createCompilerDiagnostics(
   CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
+      handler = new FormattingDiagnosticHandler(provider)
+        ..verbose = verbose
+        ..autoReadFileUri = true;
     } else {
       var formattingHandler = new FormattingDiagnosticHandler(provider)
-        ..verbose = verbose;
+        ..verbose = verbose
+        ..autoReadFileUri = true;
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
@@ -203,7 +206,6 @@ CompilerImpl compilerFor(
     cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
     cachedCompiler.resolver = null;
-    cachedCompiler.closureDataLookup = null;
     cachedCompiler.checker = null;
     cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;

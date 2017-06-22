@@ -36,20 +36,20 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     expect(location.startColumn, 7);
   }
 
-  @failingTest
   test_createLocation_forMatch() async {
-    // The class SearchMatchImpl has not been converted to use the new driver.
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange sourceRange = range.elementName(element);
     SearchMatch match = new SearchMatchImpl(
-        element.context,
-        element.library.source.uri.toString(),
-        element.source.uri.toString(),
-        null,
-        sourceRange,
+        element.source.fullName,
+        element.library.source,
+        element.source,
+        element.library,
+        element,
         true,
-        false);
+        false,
+        MatchKind.DECLARATION,
+        sourceRange);
     // check
     Location location = newLocation_fromMatch(match);
     expect(location.file, '/test.dart');

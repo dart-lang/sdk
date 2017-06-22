@@ -34,18 +34,17 @@ import '../world.dart';
 /// model.
 class ElementBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
+  final ClosureConversionTask closureDataLookup;
   SourceInformationStrategy _sourceInformationStrategy;
 
-  ElementBackendStrategy(this._compiler);
+  ElementBackendStrategy(this._compiler)
+      : closureDataLookup = new ClosureTask(_compiler);
 
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorldImpl closedWorld) =>
+  ClosedWorldRefiner createClosedWorldRefiner(
+          covariant ClosedWorldImpl closedWorld) =>
       closedWorld;
 
   Sorter get sorter => const ElementSorter();
-
-  @override
-  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
-      new ClosureTask(compiler);
 
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(

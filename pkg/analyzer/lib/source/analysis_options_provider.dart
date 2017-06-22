@@ -30,7 +30,16 @@ class AnalysisOptionsProvider {
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root, {bool crawlUp: false}) {
-    Resource resource;
+    return getOptionsFromFile(getOptionsFile(root, crawlUp: crawlUp));
+  }
+
+  /// Return the analysis options file from which options should be read, or
+  /// `null` if there is no analysis options file for code in the given [root].
+  ///
+  /// The given [root] directory will be searched first. If no file is found and
+  /// if [crawlUp] is `true`, then enclosing directories will be searched.
+  File getOptionsFile(Folder root, {bool crawlUp: false}) {
+    Resource resource = null;
     for (Folder folder = root; folder != null; folder = folder.parent) {
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
       if (resource.exists) {
@@ -41,7 +50,7 @@ class AnalysisOptionsProvider {
         break;
       }
     }
-    return getOptionsFromFile(resource);
+    return resource is File ? resource : null;
   }
 
   /// Provide the options found in [file].

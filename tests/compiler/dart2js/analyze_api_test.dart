@@ -7,7 +7,6 @@ library analyze_api;
 import 'package:sdk_library_metadata/libraries.dart';
 import 'analyze_helper.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 
 /**
  * Map of white-listed warnings and errors.

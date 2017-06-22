@@ -1,0 +1,27 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  constructor •() → void
+    ;
+  abstract method f(core::int x, core::int y) → core::int;
+  abstract method g(core::int x, [core::int y]) → core::int;
+  abstract method h(core::int x, {core::int y}) → core::int;
+}
+abstract class B extends core::Object {
+  constructor •() → void
+    ;
+  abstract method f(core::int x) → core::int;
+  abstract method g(core::int x) → core::int;
+  abstract method h(core::int x) → core::int;
+}
+abstract class C extends core::Object implements self::A, self::B {
+  constructor •() → void
+    ;
+  abstract method f(dynamic x, dynamic y) → dynamic;
+  abstract method g(dynamic x, [dynamic y]) → dynamic;
+  abstract method h(dynamic x, {dynamic y}) → dynamic;
+}
+static method main() → dynamic
+  ;

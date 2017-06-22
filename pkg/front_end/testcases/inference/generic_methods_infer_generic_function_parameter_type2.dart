@@ -6,7 +6,7 @@
 library test;
 
 class C<T> extends D<T> {
-  f<U>(g) => null;
+  /*@topType=void*/ f<U>(/*@topType=() -> List<C::f::U>*/ g) => null;
 }
 
 abstract class D<T> {

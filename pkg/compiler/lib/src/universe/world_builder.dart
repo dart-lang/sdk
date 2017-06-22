@@ -57,11 +57,11 @@ abstract class ReceiverConstraint {
   /// Returns whether [element] is a potential target when being
   /// invoked on a receiver with this constraint. [selector] is used to ensure
   /// library privacy is taken into account.
-  bool canHit(MemberElement element, Selector selector, World world);
+  bool canHit(MemberEntity element, Selector selector, covariant World world);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].
-  bool needsNoSuchMethodHandling(Selector selector, World world);
+  bool needsNoSuchMethodHandling(Selector selector, covariant World world);
 }
 
 /// The combined constraints on receivers all the dynamic call sites of the same
@@ -99,7 +99,7 @@ abstract class SelectorConstraints {
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
-  bool applies(MemberEntity element, Selector selector, World world);
+  bool applies(MemberEntity element, Selector selector, covariant World world);
 
   /// Returns `true` if at least one of the receivers matching these constraints
   /// in the closed [world] have no implementation matching [selector].
@@ -112,14 +112,14 @@ abstract class SelectorConstraints {
   ///
   /// the potential receiver `new A()` has no implementation of `foo` and thus
   /// needs to handle the call through its `noSuchMethod` handler.
-  bool needsNoSuchMethodHandling(Selector selector, World world);
+  bool needsNoSuchMethodHandling(Selector selector, covariant World world);
 }
 
 /// A mutable [SelectorConstraints] used in [WorldBuilder].
 abstract class UniverseSelectorConstraints extends SelectorConstraints {
   /// Adds [constraint] to these selector constraints. Return `true` if the set
   /// of potential receivers expanded due to the new constraint.
-  bool addReceiverConstraint(ReceiverConstraint constraint);
+  bool addReceiverConstraint(covariant ReceiverConstraint constraint);
 }
 
 /// Strategy for computing the constraints on potential receivers of dynamic

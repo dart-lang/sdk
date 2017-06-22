@@ -310,7 +310,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
   Iterator<TypeInformation> get iterator => assignments.keys.iterator;
   Iterable<TypeInformation> where(Function f) => assignments.keys.where(f);
 
-  bool contains(TypeInformation info) => assignments.containsKey(info);
+  bool contains(Object info) => assignments.containsKey(info);
 
   String toString() => assignments.keys.toList().toString();
 }
@@ -408,7 +408,7 @@ class MemberTypeInformation extends ElementTypeInformation
 
   void addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is Element);
-    _callers ??= <Element, Setlet>{};
+    _callers ??= <Element, Setlet<Spannable>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
@@ -837,8 +837,10 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
-  Iterable<Element> get callees =>
-      targets.map((MemberElement e) => e.implementation);
+  Iterable<Element> get callees => targets.map((_e) {
+        MemberElement e = _e;
+        return e.implementation;
+      });
 
   TypeMask computeTypedSelector(InferrerEngine inferrer) {
     TypeMask receiverType = receiver.type;
@@ -853,7 +855,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return targets.any((MemberElement e) {
+    return targets.any((_e) {
+      MemberElement e = _e;
       return e is MethodElement &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
@@ -1022,8 +1025,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
-    TypeMask result =
-        inferrer.types.joinTypeMasks(targets.map((MemberElement element) {
+    TypeMask result = inferrer.types.joinTypeMasks(targets.map((_element) {
+      MemberElement element = _element;
       // If [canReachAll] is true, then we are iterating over all
       // targets that satisfy the untyped selector. We skip the return
       // type of the targets that can only be reached through
@@ -1118,8 +1121,10 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        targets.every((MemberElement element) =>
-            inferrer.types.getInferredTypeOf(element).isStable) &&
+        targets.every((_element) {
+          MemberElement element = _element;
+          return inferrer.types.getInferredTypeOf(element).isStable;
+        }) &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }

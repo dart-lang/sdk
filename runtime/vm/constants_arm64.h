@@ -193,7 +193,8 @@ enum Condition {
   LE = 13,  // signed less than or equal
   AL = 14,  // always (unconditional)
   NV = 15,  // special condition (refer to section C1.2.3)
-  kMaxCondition = 16,
+  kNumberOfConditions = 16,
+  kInvalidCondition = 16
 };
 
 static inline Condition InvertCondition(Condition c) {
@@ -620,8 +621,10 @@ enum FPImmOp {
 
 // C3.6.30
 enum FPIntCvtOp {
-  FPIntCvtMask = 0x5f20fc00,
+  FPIntCvtMask = 0x5f00fc00,
   FPIntCvtFixed = FPFixed | B21,
+  FMOVRS = FPIntCvtFixed | B18 | B17,
+  FMOVSR = FPIntCvtFixed | B18 | B17 | B16,
   FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
   FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
   FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,

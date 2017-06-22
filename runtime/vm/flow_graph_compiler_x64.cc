@@ -1085,15 +1085,38 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
-  if (FLAG_reify_generic_functions) {
-    // TODO(regis): Check function type arguments of a generic function.
-    // For now, verify that a local variable has been allocated when necessary.
-    ASSERT((function.NumTypeParameters() == 0) ||
-           (parsed_function().function_type_arguments() != NULL));
-    // TODO(regis): Allocate and prepend parent type arguments when necessary.
-    ASSERT(!function.HasGenericParent() ||
-           (parsed_function().parent_type_arguments() != NULL));
+  // Check for a passed type argument vector if the function is generic.
+  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+    __ Comment("Check passed-in type args");
+    Label store_type_args, ok;
+    __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
+            Immediate(0));
+    if (is_optimizing()) {
+      // Initialize type_args to null if none passed in.
+      __ LoadObject(RAX, Object::null_object());
+      __ j(EQUAL, &store_type_args, Assembler::kNearJump);
+    } else {
+      __ j(EQUAL, &ok, Assembler::kNearJump);  // Already initialized to null.
+    }
+    // TODO(regis): Verify that type_args_len is correct.
+    // Load the passed type args vector in RAX from
+    // fp[kParamEndSlotFromFp + num_args + 1]; num_args (RBX) is Smi.
+    __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+    __ movq(RAX,
+            Address(RBP, RBX, TIMES_4, (kParamEndSlotFromFp + 1) * kWordSize));
+    // Store RAX into the stack slot reserved for the function type arguments.
+    // If the function type arguments variable is captured, a copy will happen
+    // after the context is allocated.
+    const intptr_t slot_base = parsed_function().first_stack_local_index();
+    ASSERT(parsed_function().function_type_arguments()->is_captured() ||
+           parsed_function().function_type_arguments()->index() == slot_base);
+    __ Bind(&store_type_args);
+    __ movq(Address(RBP, slot_base * kWordSize), RAX);
+    __ Bind(&ok);
   }
+
+  // TODO(regis): Verify that no vector is passed if not generic, unless already
+  // checked during resolution.
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   ASSERT(!block_order().is_empty());
@@ -1338,7 +1361,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     TokenPosition token_pos,
     LocationSummary* locs) {
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters()) {
+  if (function.HasOptionalParameters() ||
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
     __ xorq(R10, R10);  // GC safe smi zero because of stub.

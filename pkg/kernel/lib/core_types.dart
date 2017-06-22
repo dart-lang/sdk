@@ -26,6 +26,7 @@ class CoreTypes {
       'Function',
       'Invocation',
       '_ConstantExpressionError',
+      'FallThroughError',
     ],
     'dart:_internal': [
       'Symbol',
@@ -63,6 +64,7 @@ class CoreTypes {
   Procedure _printProcedure;
   Procedure _identicalProcedure;
   Constructor _constantExpressionErrorDefaultConstructor;
+  Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
 
   Class _internalSymbolClass;
@@ -262,6 +264,11 @@ class CoreTypes {
   Constructor get constantExpressionErrorDefaultConstructor {
     return _constantExpressionErrorDefaultConstructor ??=
         _index.getMember('dart:core', '_ConstantExpressionError', '');
+  }
+
+  Constructor get fallThroughErrorUrlAndLineConstructor {
+    return _fallThroughErrorUrlAndLineConstructor ??=
+        _index.getMember('dart:core', 'FallThroughError', '_create');
   }
 
   Constructor get compileTimeErrorDefaultConstructor {

@@ -1289,14 +1289,19 @@ class _OverrideChecker {
     // Check also how we override locally the interfaces from parent classes if
     // the parent class is abstract. Otherwise, these will be checked as
     // overrides on the concrete superclass.
+    // We detect superclass circularities using the "tortoise and hare"
+    // algorithm.
     var superInterfaces = new Set<InterfaceType>();
     var parent = type.superclass;
+    var hare = type.superclass?.superclass;
     // TODO(sigmund): we don't seem to be reporting the analyzer error that a
     // non-abstract class is not implementing an interface. See
     // https://github.com/dart-lang/dart-dev-compiler/issues/25
     while (parent != null && parent.element.isAbstract) {
+      if (identical(parent, hare)) break;
       parent.interfaces.forEach((i) => find(i, superInterfaces));
       parent = parent.superclass;
+      hare = hare?.superclass?.superclass;
     }
     _checkInterfacesOverrides(type, superInterfaces, seen,
         includeParents: false, classNode: node);

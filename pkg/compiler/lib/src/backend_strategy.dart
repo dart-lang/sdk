@@ -6,7 +6,6 @@ library dart2js.backend_strategy;
 
 import 'closure.dart' show ClosureConversionTask;
 import 'common/tasks.dart';
-import 'compiler.dart' show Compiler;
 import 'enqueue.dart';
 import 'io/source_information.dart';
 import 'js_backend/js_backend.dart';
@@ -24,7 +23,7 @@ abstract class BackendStrategy {
 
   /// Create the task that analyzes the code to see what closures need to be
   /// rewritten.
-  ClosureConversionTask createClosureConversionTask(Compiler compiler);
+  ClosureConversionTask get closureDataLookup;
 
   /// The [Sorter] used for sorting elements in the generated code.
   Sorter get sorter;

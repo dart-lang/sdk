@@ -6,8 +6,6 @@
 
 {
   'sources': [
-    'vmservice_patch.dart',
-    # The above file needs to be first as it imports required libraries.
     'vmservice.cc',
   ],
 }

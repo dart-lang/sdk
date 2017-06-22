@@ -1096,6 +1096,39 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  // Check for a passed type argument vector if the function is generic.
+  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+    __ Comment("Check passed-in type args");
+    Label store_type_args, ok;
+    __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::type_args_len_offset()));
+    if (is_optimizing()) {
+      // Initialize type_args to null if none passed in.
+      __ LoadObject(T0, Object::null_object());
+      __ BranchEqual(T1, Immediate(0), &store_type_args);
+    } else {
+      __ BranchEqual(T1, Immediate(0), &ok);  // Already initialized to null.
+    }
+    // TODO(regis): Verify that type_args_len is correct.
+    // Load the passed type args vector in T0 from
+    // fp[kParamEndSlotFromFp + num_args + 1]; num_args (T1) is Smi.
+    __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+    __ sll(T1, T1, 1);
+    __ addu(T1, FP, T1);
+    __ lw(T0, Address(T1, (kParamEndSlotFromFp + 1) * kWordSize));
+    // Store T0 into the stack slot reserved for the function type arguments.
+    // If the function type arguments variable is captured, a copy will happen
+    // after the context is allocated.
+    const intptr_t slot_base = parsed_function().first_stack_local_index();
+    ASSERT(parsed_function().function_type_arguments()->is_captured() ||
+           parsed_function().function_type_arguments()->index() == slot_base);
+    __ Bind(&store_type_args);
+    __ sw(T0, Address(FP, slot_base * kWordSize));
+    __ Bind(&ok);
+  }
+
+  // TODO(regis): Verify that no vector is passed if not generic, unless already
+  // checked during resolution.
+
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   VisitBlocks();
 
@@ -1344,7 +1377,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs) {
   __ Comment("StaticCall");
   ASSERT(!function.IsClosureFunction());
-  if (function.HasOptionalParameters()) {
+  if (function.HasOptionalParameters() ||
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(S4, arguments_descriptor);
   } else {
     __ LoadImmediate(S4, 0);  // GC safe smi zero because of stub.

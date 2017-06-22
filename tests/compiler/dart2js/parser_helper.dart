@@ -7,6 +7,7 @@ library parser_helper;
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/id_generator.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/parser/element_listener.dart';
@@ -46,7 +47,7 @@ class LoggerCanceler extends DiagnosticReporter {
     print(message);
   }
 
-  void internalError(node, String message) {
+  void internalError(Spannable node, message) {
     log(message);
   }
 
@@ -79,7 +80,7 @@ class LoggerCanceler extends DiagnosticReporter {
     infos.forEach(log);
   }
 
-  withCurrentElement(Element element, f()) => f();
+  withCurrentElement(Entity element, f()) => f();
 
   @override
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,

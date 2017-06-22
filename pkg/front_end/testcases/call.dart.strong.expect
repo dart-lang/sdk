@@ -1,8 +1,3 @@
-// Too few positional arguments (call.dart:30:25)
-// Too few positional arguments (call.dart:31:30)
-// Too few positional arguments (call.dart:35:26)
-// Too few positional arguments (call.dart:36:27)
-// Too few positional arguments (call.dart:37:32)
 library;
 import self as self;
 import "dart:core" as core;
@@ -34,8 +29,8 @@ static method main() → dynamic {
   dynamic string3 = callable.{self::Callable::call}.call(1);
   dynamic string4 = callable.{self::Callable::call}.call.call(1);
   self::CallableGetter callableGetter = new self::CallableGetter::•();
-  dynamic string5 = callableGetter.call(1);
-  dynamic string6 = callableGetter.{self::CallableGetter::call}.call(1);
+  dynamic string5 = callableGetter.{self::CallableGetter::call}(1);
+  dynamic string6 = callableGetter.{self::CallableGetter::call}(1);
   dynamic string7 = callableGetter.{self::CallableGetter::call}.call(1);
   dynamic string8 = callableGetter.{self::CallableGetter::call}.call.call(1);
   dynamic nothing1 = closure.call();
@@ -46,8 +41,8 @@ static method main() → dynamic {
   dynamic nothing6 = callable.{self::Callable::call}();
   dynamic nothing7 = callable.{self::Callable::call}.call();
   dynamic nothing8 = callable.{self::Callable::call}.call.call();
-  dynamic nothing9 = callableGetter.call();
-  dynamic nothing10 = callableGetter.{self::CallableGetter::call}.call();
+  dynamic nothing9 = callableGetter.{self::CallableGetter::call}();
+  dynamic nothing10 = callableGetter.{self::CallableGetter::call}();
   dynamic nothing11 = callableGetter.{self::CallableGetter::call}.call();
   dynamic nothing12 = callableGetter.{self::CallableGetter::call}.call.call();
 }

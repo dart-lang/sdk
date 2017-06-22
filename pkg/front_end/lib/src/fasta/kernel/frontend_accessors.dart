@@ -11,6 +11,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelComplexAssignment,
         KernelConditionalExpression,
         KernelMethodInvocation,
+        KernelNullAwarePropertyGet,
         KernelPropertyAssign,
         KernelPropertyGet,
         KernelThisExpression,
@@ -345,19 +346,19 @@ class NullAwarePropertyAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    var nullAwareGuard = new KernelConditionalExpression(
-        buildIsNull(receiverAccess(), offsetForToken(token)),
-        new NullLiteral(),
-        body)
-      ..fileOffset = offsetForToken(token);
-    body = makeLet(receiver, nullAwareGuard);
+    var offset = offsetForToken(token);
+    var nullAwareGuard = new ConditionalExpression(
+        buildIsNull(receiverAccess(), offset), new NullLiteral(), body, null)
+      ..fileOffset = offset;
     if (complexAssignment != null) {
+      body = makeLet(receiver, nullAwareGuard);
       KernelPropertyAssign kernelPropertyAssign = complexAssignment;
       kernelPropertyAssign.nullAwareGuard = nullAwareGuard;
       kernelPropertyAssign.desugared = body;
       return kernelPropertyAssign;
     } else {
-      return body;
+      return new KernelNullAwarePropertyGet(receiver, nullAwareGuard)
+        ..fileOffset = offset;
     }
   }
 }

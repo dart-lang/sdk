@@ -717,3 +717,174 @@ try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dart2analyzer && $system != windows ]
 bad_raw_string_test/03: MissingCompileTimeError # Issue 28664
+
+[ $compiler == dartdevc ]
+assertion_test: RuntimeError # DDC doesn't support function arguments to assert().
+async_await_test/02: CompileTimeError # Issue 28969
+async_await_test/03: CompileTimeError # Issue 28969
+async_await_test/none: CompileTimeError # Issue 28969
+async_star_cancel_while_paused_test: RuntimeError # Issue 29920
+async_star_test/01: CompileTimeError # Issue 28969
+async_star_test/02: CompileTimeError # Issue 28969
+async_star_test/03: CompileTimeError # Issue 28969
+async_star_test/04: CompileTimeError # Issue 28969
+async_star_test/05: CompileTimeError # Issue 28969
+async_star_test/none: CompileTimeError # Issue 28969
+asyncstar_throw_in_catch_test: Timeout # Issue 29920
+await_future_test: Timeout # Issue 29920
+bad_raw_string_test/03: MissingCompileTimeError # Issue 29920
+bit_operations_test/01: RuntimeError # No bigints on web.
+bit_operations_test/02: RuntimeError # No bigints on web.
+bit_operations_test/03: RuntimeError # No bigints on web.
+bit_operations_test/04: RuntimeError # No bigints on web.
+bit_operations_test/none: RuntimeError # No bigints on web.
+bool_condition_check_test/01: RuntimeError # Issue 29920
+branch_canonicalization_test: RuntimeError # Issue 29920
+call_closurization_test: RuntimeError # Issue 29920
+call_through_null_getter_test: RuntimeError # Issue 29920
+call_with_no_such_method_test: RuntimeError # Function.apply not really implemented.
+canonical_const2_test: RuntimeError # Ints and doubles are unified.
+canonical_const_test: RuntimeError # Ints and doubles are unified.
+compile_time_constant_a_test: RuntimeError # Allows mutating const map.
+compile_time_constant_b_test: RuntimeError # Issue 29920
+compile_time_constant_d_test: RuntimeError # Issue 29920
+const_evaluation_test/01: RuntimeError # Issue 29920
+const_switch_test/02: RuntimeError # Issue 29920
+const_switch_test/04: RuntimeError # Ints and doubles are unified.
+constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+constructor12_test: RuntimeError # Issue 29920
+covariant_subtyping_tearoff2_test: RuntimeError # Issue 29920
+covariant_subtyping_tearoff3_test: RuntimeError # Issue 29920
+covariant_subtyping_unsafe_call2_test: RuntimeError # Issue 29920
+covariant_subtyping_unsafe_call3_test: RuntimeError # Issue 29920
+custom_await_stack_trace_test: RuntimeError # Issue 29920
+cyclic_type2_test: RuntimeError # Issue 29920
+cyclic_type_test/02: RuntimeError # Issue 29920
+cyclic_type_test/03: RuntimeError # Issue 29920
+cyclic_type_test/04: RuntimeError # Issue 29920
+deferred_call_empty_before_load_test: RuntimeError # Issue 27777
+deferred_load_library_wrong_args_test/01: MissingRuntimeError # Issue 29920
+deferred_load_library_wrong_args_test/01: RuntimeError # Issue 27777
+deferred_not_loaded_check_test: RuntimeError # Issue 27777
+deferred_redirecting_factory_test: RuntimeError # Issue 27777
+deferred_regression_22995_test: RuntimeError # Issue 29920
+deferred_static_seperate_test: RuntimeError # Issue 27777
+double_int_to_string_test: RuntimeError # Issue 29920
+dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
+exception_test: RuntimeError # DDC doesn't implement NullThrownError?
+execute_finally6_test: RuntimeError # Issue 29920
+expect_test: RuntimeError # Issue 29920
+export_private_test/01: MissingCompileTimeError # Issue 29920
+f_bounded_quantification3_test: RuntimeError # Issue 29920
+field_increment_bailout_test: RuntimeError # Issue 29920
+field_optimization3_test: RuntimeError # Issue 29920
+field_type_check2_test/01: RuntimeError # Issue 29920
+first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
+flatten_test/05: MissingRuntimeError # Issue 29920
+flatten_test/08: MissingRuntimeError # Issue 29920
+flatten_test/09: MissingRuntimeError # Issue 29920
+flatten_test/12: MissingRuntimeError # Issue 29920
+for_variable_capture_test: RuntimeError # Issue 29920
+function_subtype0_test: RuntimeError # Issue 29920
+function_subtype1_test: RuntimeError # Issue 29920
+function_subtype2_test: RuntimeError # Issue 29920
+function_subtype3_test: RuntimeError # Issue 29920
+function_subtype_bound_closure0_test: RuntimeError # Issue 29920
+function_subtype_bound_closure1_test: RuntimeError # Issue 29920
+function_subtype_bound_closure2_test: RuntimeError # Issue 29920
+function_subtype_bound_closure3_test: RuntimeError # Issue 29920
+function_subtype_bound_closure4_test: RuntimeError # Issue 29920
+function_subtype_bound_closure5_test: RuntimeError # Issue 29920
+function_subtype_bound_closure5a_test: RuntimeError # Issue 29920
+function_subtype_bound_closure6_test: RuntimeError # Issue 29920
+function_subtype_call0_test: RuntimeError # Issue 29920
+function_subtype_call1_test: RuntimeError # Issue 29920
+function_subtype_call2_test: RuntimeError # Issue 29920
+function_subtype_cast0_test: RuntimeError # Issue 29920
+function_subtype_cast1_test: RuntimeError # Issue 29920
+function_subtype_cast2_test: RuntimeError # Issue 29920
+function_subtype_cast3_test: RuntimeError # Issue 29920
+function_subtype_factory0_test: RuntimeError # Issue 29920
+function_subtype_inline0_test: RuntimeError # Issue 29920
+function_subtype_local0_test: RuntimeError # Issue 29920
+function_subtype_local1_test: RuntimeError # Issue 29920
+function_subtype_local2_test: RuntimeError # Issue 29920
+function_subtype_local3_test: RuntimeError # Issue 29920
+function_subtype_local4_test: RuntimeError # Issue 29920
+function_subtype_local5_test: RuntimeError # Issue 29920
+function_subtype_named1_test: RuntimeError # Issue 29920
+function_subtype_named2_test: RuntimeError # Issue 29920
+function_subtype_not0_test: RuntimeError # Issue 29920
+function_subtype_not1_test: RuntimeError # Issue 29920
+function_subtype_not2_test: RuntimeError # Issue 29920
+function_subtype_not3_test: RuntimeError # Issue 29920
+function_subtype_optional1_test: RuntimeError # Issue 29920
+function_subtype_optional2_test: RuntimeError # Issue 29920
+function_subtype_top_level0_test: RuntimeError # Issue 29920
+function_subtype_top_level1_test: RuntimeError # Issue 29920
+function_subtype_typearg2_test: RuntimeError # Issue 29920
+function_subtype_typearg4_test: RuntimeError # Issue 29920
+function_type_alias2_test: RuntimeError # Issue 29920
+function_type_alias3_test: RuntimeError # Issue 29920
+function_type_alias4_test: RuntimeError # Issue 29920
+generic_instanceof2_test: RuntimeError # Issue 29920
+generic_instanceof_test: RuntimeError # Issue 29920
+generic_is_check_test: RuntimeError # Issue 29920
+generic_methods_closure_test: CompileTimeError # Issue 29920
+generic_methods_generic_class_tearoff_test: RuntimeError # Issue 29920
+generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
+generic_methods_named_parameters_test: RuntimeError # Issue 29920
+generic_methods_optional_parameters_test: RuntimeError # Issue 29920
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
+generic_methods_shadowing_test: CompileTimeError # Issue 29920
+generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
+generic_methods_tearoff_specialization_test: RuntimeError # Issue 29920
+generic_typedef_test: RuntimeError # Issue 29920
+getter_closure_execution_order_test: RuntimeError # Issue 29920
+identical_closure2_test: RuntimeError # Issue 29920
+import_private_test/01: MissingCompileTimeError # Issue 29920
+infinite_switch_label_test: RuntimeError # Issue 29920
+infinity_test: RuntimeError # Issue 29920
+initializing_formal_final_test: RuntimeError # Issue 29920
+instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
+instanceof2_test: RuntimeError # Issue 29920
+instanceof4_test/01: RuntimeError # Issue 29920
+instanceof4_test/none: RuntimeError # Issue 29920
+integer_division_by_zero_test: RuntimeError # Issue 29920
+internal_library_test/01: MissingCompileTimeError # Issue 29920
+issue23244_test: RuntimeError # Issue 29920
+lazy_static3_test: RuntimeError # Issue 29920
+left_shift_test: RuntimeError # Issue 29920
+list_is_test: RuntimeError # Issue 29920
+list_literal3_test: RuntimeError # Issue 29920
+main_test/03: MissingRuntimeError # Issue 29920
+many_generic_instanceof_test: RuntimeError # Issue 29920
+map_literal10_test: RuntimeError # Issue 29920
+map_literal7_test: RuntimeError # Issue 29920
+method_invocation_test: RuntimeError # Issue 29920
+mint_arithmetic_test: RuntimeError # Issue 29920
+modulo_test: RuntimeError # Issue 29920
+named_parameter_clash_test: RuntimeError # Issue 29920
+nan_identical_test: RuntimeError # Issue 29920
+nested_switch_label_test: RuntimeError # Issue 29920
+number_identity2_test: RuntimeError # Issue 29920
+numbers_test: RuntimeError # Issue 29920
+prefix10_negative_test: Fail # Issue 29920
+redirecting_factory_reflection_test: RuntimeError # Issue 29920
+regress_16640_test: RuntimeError # Issue 29920
+regress_18535_test: RuntimeError # Issue 29920
+regress_22443_test: RuntimeError # Issue 29920
+regress_23089_test: CompileTimeError # Issue 29920
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
+stack_overflow_stacktrace_test: RuntimeError # Issue 29920
+stack_overflow_test: RuntimeError # Issue 29920
+stacktrace_test: RuntimeError # Issue 29920
+string_interpolate_null_test: RuntimeError # Issue 29920
+switch_label2_test: RuntimeError # Issue 29920
+switch_label_test: RuntimeError # Issue 29920
+switch_try_catch_test: RuntimeError # Issue 29920
+throwing_lazy_variable_test: RuntimeError # Issue 29920
+truncdiv_test: RuntimeError # Issue 29920
+type_variable_nested_test: RuntimeError # Issue 29920
+type_variable_typedef_test: RuntimeError # Issue 29920

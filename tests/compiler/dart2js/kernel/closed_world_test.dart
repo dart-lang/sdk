@@ -10,28 +10,20 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/common/work.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
-import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
-import 'impact_test.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
-import '../serialization/model_test_helper.dart';
 import '../equivalence/check_functions.dart';
 import 'test_helpers.dart';
 
@@ -117,9 +109,7 @@ main(List<String> args) {
     BackendUsage backendUsage = backendUsageBuilder.close();
     checkResolutionEnqueuers(
         backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
-        typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
-      return areTypesEquivalent(unalias(a), unalias(b));
-    },
+        typeEquivalence: (a, b) => areTypesEquivalent(unalias(a), unalias(b)),
         elementFilter: elementFilter,
         verbose: arguments.verbose,
         // TODO(johnniwinther): Support class usage testing in presence of

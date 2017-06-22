@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 method_override_test: RuntimeError # Not triaged.
 runtime_type_function_test: RuntimeError # Not triaged.
 
@@ -104,10 +105,6 @@ const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map du
 map_literal3_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 map_literal6_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 
-cyclic_type_test/00: RuntimeError # KernelVM bug: Incorrect type argument.
-cyclic_type_test/01: RuntimeError # KernelVM bug: Incorrect type argument.
-cyclic_type_test/03: RuntimeError # KernelVM bug: Incorrect type argument.
-
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 
 for2_test: RuntimeError # KernelVM bug: Closure conversion?
@@ -123,22 +120,12 @@ mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: I
 mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 
-mixin_mixin_type_arguments_test: RuntimeError # KernelVM bug: Issue 29537
-mixin_type_parameters_mixin_extends_test: RuntimeError # KernelVM bug: Issue 29537
-mixin_type_parameters_super_extends_test: RuntimeError # KernelVM bug: Issue 29537
-mixin_type_parameters_super_test: RuntimeError # KernelVM bug: Issue 29537
-
-evaluation_redirecting_constructor_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
-redirecting_constructor_initializer_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
+redirecting_constructor_initializer_test: RuntimeError # Super is evaluated last; same result as source-based pipeline.
 
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
-
-list_literal4_test: RuntimeError # KernelVM bug: Checked mode problem: list literals aren't checked.
-
-generic_field_mixin4_test: RuntimeError # KernelVM bug: Issue 29553
 
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 

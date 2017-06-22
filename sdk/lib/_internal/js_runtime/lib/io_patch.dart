@@ -419,7 +419,8 @@ class ServerSocket {
 @patch
 class RawSocket {
   @patch
-  static Future<RawSocket> connect(host, int port, {sourceAddress}) {
+  static Future<RawSocket> connect(host, int port,
+      {sourceAddress, Duration timeout}) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
@@ -427,7 +428,8 @@ class RawSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port, {sourceAddress}) {
+  static Future<Socket> connect(host, int port,
+      {sourceAddress, Duration timeout}) {
     throw new UnsupportedError("Socket constructor");
   }
 }

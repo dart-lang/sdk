@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 /// By default no debug info is printed.  To enable debug printing, mix in
 /// [TypeInferenceDebugging].
 class TypeInferenceBase {
-  void debugDependency(FieldNode fieldNode) {}
+  void debugDependency(AccessorNode accessorNode) {}
 
   bool debugExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
@@ -32,8 +32,8 @@ class TypeInferenceBase {
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
 /// be printed.
 class TypeInferenceDebugging implements TypeInferenceBase {
-  void debugDependency(FieldNode fieldNode) {
-    print('Dependency $fieldNode');
+  void debugDependency(AccessorNode accessorNode) {
+    print('Dependency $accessorNode');
   }
 
   bool debugExpressionEnter(
@@ -163,6 +163,12 @@ class TypeInferenceListener
           FunctionExpression expression, DartType inferredType) =>
       debugExpressionExit("functionExpression", expression, inferredType);
 
+  bool ifNullEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter('ifNull', expression, typeContext);
+
+  void ifNullExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit('ifNull', expression, inferredType);
+
   void ifStatementEnter(IfStatement statement) =>
       debugStatementEnter('ifStatement', statement);
 
@@ -205,12 +211,10 @@ class TypeInferenceListener
   void mapLiteralExit(MapLiteral expression, DartType typeContext) =>
       debugExpressionExit("mapLiteral", expression, typeContext);
 
-  bool methodInvocationEnter(
-          MethodInvocation expression, DartType typeContext) =>
+  bool methodInvocationEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("methodInvocation", expression, typeContext);
 
-  void methodInvocationExit(
-          MethodInvocation expression, DartType inferredType) =>
+  void methodInvocationExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("methodInvocation", expression, inferredType);
 
   bool notEnter(Not expression, DartType typeContext) =>
@@ -231,10 +235,10 @@ class TypeInferenceListener
   void propertyAssignExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyAssign", expression, inferredType);
 
-  bool propertyGetEnter(PropertyGet expression, DartType typeContext) =>
+  bool propertyGetEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("propertyGet", expression, typeContext);
 
-  void propertyGetExit(PropertyGet expression, DartType inferredType) =>
+  void propertyGetExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
@@ -243,7 +247,8 @@ class TypeInferenceListener
   void propertySetExit(PropertySet expression, DartType inferredType) =>
       debugExpressionExit("propertySet", expression, inferredType);
 
-  void recordDependency(FieldNode fieldNode) => debugDependency(fieldNode);
+  void recordDependency(AccessorNode accessorNode) =>
+      debugDependency(accessorNode);
 
   void redirectingInitializerEnter(RedirectingInitializer initializer) =>
       debugInitializerEnter("redirectingInitializer", initializer);

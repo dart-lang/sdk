@@ -229,22 +229,32 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   frame_index = first_frame_index;
   while (pos < num_variables()) {
     LocalVariable* variable = VariableAt(pos);
-    pos++;
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         AllocateContextVariable(variable, &context_owner);
         *found_captured_variables = true;
+        if (variable->name().raw() ==
+            Symbols::FunctionTypeArgumentsVar().raw()) {
+          ASSERT(pos == num_parameters);
+          // A captured type args variable has a slot allocated in the frame and
+          // one in the context, where it gets copied to.
+          frame_index--;
+        }
       } else {
+        ASSERT((variable->name().raw() !=
+                Symbols::FunctionTypeArgumentsVar().raw()) ||
+               (pos == num_parameters));
         variable->set_index(frame_index--);
       }
     }
+    pos++;
   }
   // Allocate variables of all children.
   int min_frame_index = frame_index;  // Frame index decreases with allocations.
   LocalScope* child = this->child();
   while (child != NULL) {
-    int const dummy_parameter_index = 0;    // Ignored, since no parameters.
-    int const num_parameters_in_child = 0;  // No parameters in children scopes.
+    const int dummy_parameter_index = 0;    // Ignored, since no parameters.
+    const int num_parameters_in_child = 0;  // No parameters in children scopes.
     int child_frame_index = child->AllocateVariables(
         dummy_parameter_index, num_parameters_in_child, frame_index,
         context_owner, found_captured_variables);

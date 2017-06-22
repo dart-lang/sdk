@@ -4,20 +4,6 @@
 
 library dart2js.serialization_test_helper;
 
-import 'dart:collection';
-import 'package:compiler/src/common/resolution.dart';
-import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
-import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/kernel/elements.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
-import 'package:compiler/src/serialization/equivalence.dart';
-import 'package:compiler/src/util/util.dart';
-import 'package:expect/expect.dart';
 import 'test_data.dart';
 
 /// Returns the test arguments for testing the [index]th skipped test. The

@@ -1957,6 +1957,40 @@ main(C c) {
 ''');
   }
 
+  test_createField_invalidInitializer_withoutType() async {
+    await resolveTestUnit('''
+class C {
+  C(this.text);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FIELD,
+        '''
+class C {
+  var text;
+
+  C(this.text);
+}
+''');
+  }
+
+  test_createField_invalidInitializer_withType() async {
+    await resolveTestUnit('''
+class C {
+  C(String this.text);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FIELD,
+        '''
+class C {
+  String text;
+
+  C(String this.text);
+}
+''');
+  }
+
   test_createField_setter_generic_BAD() async {
     await resolveTestUnit('''
 class A {

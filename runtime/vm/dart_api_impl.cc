@@ -5395,8 +5395,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 
 DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
                                         intptr_t buffer_len) {
-  API_TIMELINE_DURATION;
-
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
   return NULL;

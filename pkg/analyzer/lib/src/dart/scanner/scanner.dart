@@ -48,9 +48,15 @@ class Scanner extends fe.Scanner {
   factory Scanner(Source source, CharacterReader reader,
           AnalysisErrorListener errorListener) =>
       fe.Scanner.useFasta
-          ? new _Scanner2(
-              source, reader.getContents(), reader.offset, errorListener)
+          ? new Scanner.fasta(source, errorListener,
+              contents: reader.getContents(), offset: reader.offset)
           : new Scanner._(source, reader, errorListener);
+
+  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
+      {String contents, int offset: 0}) {
+    return new _Scanner2(
+        source, contents ?? source.contents.data, offset, errorListener);
+  }
 
   Scanner._(this.source, CharacterReader reader, this._errorListener)
       : super.create(reader);

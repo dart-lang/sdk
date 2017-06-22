@@ -2482,7 +2482,7 @@ void EffectGraphVisitor::BuildPushTypeArguments(
           Bind(new (Z) LoadLocalInstr(*node.type_args_var(), node.token_pos()));
     } else {
       const TypeArguments& type_args = node.type_arguments();
-      ASSERT(!type_args.IsNull() &&
+      ASSERT(!type_args.IsNull() && type_args.IsCanonical() &&
              (type_args.Length() == node.type_args_len()));
       type_args_val =
           BuildInstantiatedTypeArguments(node.token_pos(), type_args);
@@ -2551,6 +2551,7 @@ void ValueGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   if (node->is_conditional()) {
+    ASSERT(node->arguments()->type_args_len() == 0);
     ValueGraphVisitor for_receiver(owner());
     node->receiver()->Visit(&for_receiver);
     Append(for_receiver);
@@ -2600,7 +2601,6 @@ void EffectGraphVisitor::BuildClosureCall(ClosureCallNode* node,
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(
           node->arguments()->LengthWithTypeArgs() + 1);
-  BuildPushTypeArguments(*node->arguments(), arguments);
 
   ValueGraphVisitor for_closure(owner());
   node->closure()->Visit(&for_closure);
@@ -2608,6 +2608,7 @@ void EffectGraphVisitor::BuildClosureCall(ClosureCallNode* node,
   Value* closure_value = for_closure.value();
   LocalVariable* tmp_var = EnterTempLocalScope(closure_value);
 
+  BuildPushTypeArguments(*node->arguments(), arguments);
   Value* closure_val =
       Bind(new (Z) LoadLocalInstr(*tmp_var, node->token_pos()));
   PushArgumentInstr* push_closure = PushArgument(closure_val);
@@ -3893,6 +3894,78 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                              ST(node->token_pos())));
         }
       }
+    }
+  }
+
+  // Load the passed-in type argument vector from the temporary stack slot,
+  // prepend the function type arguments of the generic parent function, and
+  // store it to the final location, possibly in the context.
+  if (FLAG_reify_generic_functions && is_top_level_sequence &&
+      function.IsGeneric()) {
+    const ParsedFunction& parsed_function = owner()->parsed_function();
+    LocalVariable* type_args_var = parsed_function.function_type_arguments();
+    ASSERT(type_args_var->owner() == scope);
+    LocalVariable* parent_type_args_var =
+        parsed_function.parent_type_arguments();
+    if (type_args_var->is_captured() || (parent_type_args_var != NULL)) {
+      // Create a temporary local describing the original position.
+      const String& temp_name = Symbols::TempParam();
+      LocalVariable* temp_local =
+          new (Z) LocalVariable(TokenPosition::kNoSource,  // Token index.
+                                TokenPosition::kNoSource,  // Token index.
+                                temp_name,
+                                Object::dynamic_type());  // Type.
+      temp_local->set_index(parsed_function.first_stack_local_index());
+
+      // Mark this local as captured parameter so that the optimizer
+      // correctly handles these when compiling try-catch: Captured
+      // parameters are not in the stack environment, therefore they
+      // must be skipped when emitting sync-code in try-blocks.
+      temp_local->set_is_captured_parameter(true);  // TODO(regis): Correct?
+
+      Value* type_args_val =
+          Bind(BuildLoadLocal(*temp_local, node->token_pos()));
+      if (parent_type_args_var != NULL) {
+        ASSERT(parent_type_args_var->owner() != scope);
+        // Call the runtime to concatenate both vectors.
+        ZoneGrowableArray<PushArgumentInstr*>* arguments =
+            new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+        arguments->Add(PushArgument(type_args_val));
+        Value* parent_type_args_val =
+            Bind(BuildLoadLocal(*parent_type_args_var, node->token_pos()));
+        arguments->Add(PushArgument(parent_type_args_val));
+        Value* len_const = Bind(new (Z) ConstantInstr(
+            Smi::ZoneHandle(Z, Smi::New(function.NumTypeParameters() +
+                                        function.NumParentTypeParameters()))));
+        arguments->Add(PushArgument(len_const));
+        const Library& dart_internal =
+            Library::Handle(Z, Library::InternalLibrary());
+        const Function& prepend_function =
+            Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
+                                        Symbols::PrependTypeArguments()));
+        ASSERT(!prepend_function.IsNull());
+        const intptr_t kTypeArgsLen = 0;
+        type_args_val = Bind(new (Z) StaticCallInstr(
+            node->token_pos(), prepend_function, kTypeArgsLen,
+            Object::null_array(),  // No names.
+            arguments, owner()->ic_data_array(), owner()->GetNextDeoptId()));
+      }
+      Do(BuildStoreLocal(*type_args_var, type_args_val, ST(node->token_pos())));
+      if (type_args_var->is_captured()) {
+        // Write NULL to the source location to detect buggy accesses and
+        // allow GC of passed value if it gets overwritten by a new value in
+        // the function.
+        Value* null_constant =
+            Bind(new (Z) ConstantInstr(Object::ZoneHandle(Z, Object::null())));
+        Do(BuildStoreLocal(*temp_local, null_constant, ST(node->token_pos())));
+      } else {
+        // Do not write NULL, since the temp is also the final location.
+        ASSERT(temp_local->index() == type_args_var->index());
+      }
+    } else {
+      // The type args slot is the final location. No copy needed.
+      ASSERT(type_args_var->index() ==
+             parsed_function.first_stack_local_index());
     }
   }
 

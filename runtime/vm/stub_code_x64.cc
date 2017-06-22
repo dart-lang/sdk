@@ -833,6 +833,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Push arguments. At this point we only need to preserve kTargetCodeReg.
   ASSERT(kTargetCodeReg != RDX);
 
+  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
   // Load number of arguments into RBX.
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(RBX);

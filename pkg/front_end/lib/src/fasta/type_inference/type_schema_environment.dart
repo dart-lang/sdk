@@ -13,6 +13,39 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+// TODO(paulberry): try to push this functionality into kernel.
+FunctionType substituteTypeParams(
+    FunctionType type,
+    Map<TypeParameter, DartType> substitutionMap,
+    List<TypeParameter> newTypeParameters) {
+  var substitution = Substitution.fromMap(substitutionMap);
+  return new FunctionType(
+      type.positionalParameters.map(substitution.substituteType).toList(),
+      substitution.substituteType(type.returnType),
+      namedParameters: type.namedParameters
+          .map((named) => new NamedType(
+              named.name, substitution.substituteType(named.type)))
+          .toList(),
+      typeParameters: newTypeParameters,
+      requiredParameterCount: type.requiredParameterCount);
+}
+
+/// Given a [FunctionType], gets the type of the named parameter with the given
+/// [name], or `dynamic` if there is no parameter with the given name.
+DartType getNamedParameterType(FunctionType functionType, String name) {
+  return functionType.getNamedParameter(name) ?? const DynamicType();
+}
+
+/// Given a [FunctionType], gets the type of the [i]th positional parameter, or
+/// `dynamic` if there is no parameter with that index.
+DartType getPositionalParameterType(FunctionType functionType, int i) {
+  if (i < functionType.positionalParameters.length) {
+    return functionType.positionalParameters[i];
+  } else {
+    return const DynamicType();
+  }
+}
+
 /// A constraint on a type parameter that we're inferring.
 class TypeConstraint {
   /// The lower bound of the type being constrained.  This bound must be a

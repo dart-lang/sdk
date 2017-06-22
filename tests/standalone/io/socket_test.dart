@@ -197,6 +197,18 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
   });
 }
 
+void testConnectTimeout() {
+  asyncStart();
+  Duration timeout = new Duration(milliseconds: 20);
+  Socket.connect("8.8.8.7", 80, timeout: timeout).then((socket) {
+    Expect.fail("Unexpected connection made.");
+    asyncEnd();
+  }).catchError((e) {
+    Expect.isTrue(e is SocketException);
+    asyncEnd();
+  });
+}
+
 main() {
   testArguments();
   testSimpleBind();
@@ -209,4 +221,5 @@ main() {
   testConnectStreamDataClose(false);
   testConnectStreamDataCloseCancel(true);
   testConnectStreamDataCloseCancel(false);
+  testConnectTimeout();
 }

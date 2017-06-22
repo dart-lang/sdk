@@ -31,12 +31,12 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * byteStorePath: String
+   * byteStorePath: FilePath
    *
    *   The path to the directory containing the on-disk byte store that is to
    *   be used by any analysis drivers that are created.
    *
-   * sdkPath: String
+   * sdkPath: FilePath
    *
    *   The path to the directory containing the SDK that is to be used by any
    *   analysis drivers that are created.

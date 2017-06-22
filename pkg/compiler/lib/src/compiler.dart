@@ -8,7 +8,6 @@ import 'dart:async' show Future;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
-import 'closure.dart' as closureMapping show ClosureConversionTask;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
 import 'common/resolution.dart'
@@ -117,6 +116,8 @@ abstract class Compiler {
 
   Uri mainLibraryUri;
 
+  ClosedWorld backendClosedWorldForTesting;
+
   DiagnosticReporter get reporter => _reporter;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
@@ -143,7 +144,6 @@ abstract class Compiler {
   LibraryLoaderTask libraryLoader;
   SerializationTask serialization;
   ResolverTask resolver;
-  closureMapping.ClosureConversionTask closureDataLookup;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
@@ -194,7 +194,7 @@ abstract class Compiler {
         ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
-        ? new KernelBackendStrategy(this)
+        ? new KernelBackendStrategyImpl(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
     types = new Types(_resolution);
@@ -225,7 +225,6 @@ abstract class Compiler {
           measurer),
       parser = new ParserTask(this),
       resolver = createResolverTask(),
-      closureDataLookup = backendStrategy.createClosureConversionTask(this),
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
@@ -600,6 +599,7 @@ abstract class Compiler {
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution(mainFunction);
         ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+        backendClosedWorldForTesting = closedWorld;
         mainFunction = closedWorld.elementEnvironment.mainFunction;
 
         reporter.log('Inferring types...');
@@ -659,7 +659,7 @@ abstract class Compiler {
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    closureDataLookup.convertClosures(
+    backendStrategy.closureDataLookup.convertClosures(
         enqueuer.resolution.processedEntities, closedWorldRefiner);
     return closedWorldRefiner;
   }

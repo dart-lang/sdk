@@ -360,4 +360,35 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
+
+DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
+  const TypeArguments& function_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const TypeArguments& parent_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  if (function_type_arguments.IsNull() && parent_type_arguments.IsNull()) {
+    return TypeArguments::null();
+  }
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_len, arguments->NativeArgAt(2));
+  const intptr_t len = smi_len.Value();
+  const TypeArguments& result =
+      TypeArguments::Handle(zone, TypeArguments::New(len, Heap::kNew));
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t split = parent_type_arguments.IsNull()
+                             ? len - function_type_arguments.Length()
+                             : parent_type_arguments.Length();
+  for (intptr_t i = 0; i < split; i++) {
+    type = parent_type_arguments.IsNull() ? Type::DynamicType()
+                                          : parent_type_arguments.TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  for (intptr_t i = split; i < len; i++) {
+    type = function_type_arguments.IsNull()
+               ? Type::DynamicType()
+               : function_type_arguments.TypeAt(i - split);
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize();
+}
+
 }  // namespace dart

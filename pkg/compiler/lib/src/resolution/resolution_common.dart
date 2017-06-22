@@ -26,7 +26,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
         node, 'internal error: Unhandled node: ${node.getObjectDescription()}');
   }
 
-  R visitEmptyStatement(Node node) => null;
+  R visitEmptyStatement(EmptyStatement node) => null;
 
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);

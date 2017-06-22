@@ -141,8 +141,8 @@ a:focus, a:hover {
   "id": String
   "method": "plugin.versionCheck"
   "params": {
-    "<b>byteStorePath</b>": String
-    "<b>sdkPath</b>": String
+    "<b>byteStorePath</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>sdkPath</b>": <a href="#type_FilePath">FilePath</a>
     "<b>version</b>": String
   }
 }</pre><br><pre>response: {
@@ -162,13 +162,13 @@ a:focus, a:hover {
     </p>
     
     
-  <h4>parameters:</h4><dl><dt class="field"><b>byteStorePath: String</b></dt><dd>
+  <h4>parameters:</h4><dl><dt class="field"><b>byteStorePath: <a href="#type_FilePath">FilePath</a></b></dt><dd>
         
         <p>
           The path to the directory containing the on-disk byte store that is to
           be used by any analysis drivers that are created.
         </p>
-      </dd><dt class="field"><b>sdkPath: String</b></dt><dd>
+      </dd><dt class="field"><b>sdkPath: <a href="#type_FilePath">FilePath</a></b></dt><dd>
         
         <p>
           The path to the directory containing the SDK that is to be used by any
@@ -1369,14 +1369,14 @@ a:focus, a:hover {
       The options used to build an analysis context.
     </p>
     
-  <dl><dt class="field"><b>dartSdkSummaryPath: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+  <dl><dt class="field"><b>dartSdkSummaryPath: <a href="#type_FilePath">FilePath</a><span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The file path of the file containing the summary of the SDK that
           should be used to "analyze" the SDK. The field will be omitted if the
           summary should be found in the SDK.
         </p>
-      </dd><dt class="field"><b>defaultAnalysisOptionsFilePath: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+      </dd><dt class="field"><b>defaultAnalysisOptionsFilePath: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The file path of the analysis options file that should be used in
@@ -1391,7 +1391,7 @@ a:focus, a:hover {
           The field will be omitted if no additional variables need to be
           declared.
         </p>
-      </dd><dt class="field"><b>defaultPackageFilePath: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+      </dd><dt class="field"><b>defaultPackageFilePath: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The file path of the .packages file that should be used in place of
@@ -1399,7 +1399,7 @@ a:focus, a:hover {
           mechanism. The field will be omitted if the normal lookup mechanism
           should be used.
         </p>
-      </dd><dt class="field"><b>defaultPackagesDirectoryPath: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+      </dd><dt class="field"><b>defaultPackagesDirectoryPath: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The file path of the packages directory that should be used in place
@@ -1412,17 +1412,23 @@ a:focus, a:hover {
       A description of an analysis context.
     </p>
     
-  <dl><dt class="field"><b>root: String</b></dt><dd>
+  <dl><dt class="field"><b>root: <a href="#type_FilePath">FilePath</a></b></dt><dd>
         
         <p>
           The absolute path of the root directory containing the files to be
           analyzed.
         </p>
-      </dd><dt class="field"><b>exclude: List&lt;String&gt;</b></dt><dd>
+      </dd><dt class="field"><b>exclude: List&lt;<a href="#type_FilePath">FilePath</a>&gt;</b></dt><dd>
         
         <p>
           A list of the absolute paths of files and directories within the root
           directory that should not be analyzed.
+        </p>
+      </dd><dt class="field"><b>optionsFile: <a href="#type_FilePath">FilePath</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The absolute path of the analysis options file that should be used to
+          control the analysis of the files in the context.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_Element">Element: object</a></dt><dd>
     <p>
@@ -2221,7 +2227,7 @@ a:focus, a:hover {
         <p>
           The type of change represented by this event.
         </p>
-      </dd><dt class="field"><b>path: String</b></dt><dd>
+      </dd><dt class="field"><b>path: <a href="#type_FilePath">FilePath</a></b></dt><dd>
         
         <p>
           The absolute path of the file or directory that changed.

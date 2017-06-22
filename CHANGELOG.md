@@ -1,6 +1,13 @@
 ## 1.25.0
 
 ### Language
+* A string in a `part of` declaration may now be used to refer to the library
+  this file is part of.
+  A library part can now declare its library either as:
+  `part of name.of.library;` or as `part of "uriReferenceOfLibrary.dart";`.
+  This allows libraries with no library declarations (and therefore no name)
+  to have parts, and it allows tools to easily find the library of a part
+  file.
 
 #### Strong Mode
 
@@ -13,6 +20,11 @@
     methods are now supported on iOS and OSX.
   * Deprecated `SecurityContext.alpnSupported` as ALPN is now supported on all
     platforms.
+  * Added 'timeout' parameter to 'Socket.connect' and 'RawSocket.connect'. If a
+    connection attempt takes longer than the duration specified in 'timeout', a
+    'SocketException' will be thrown. Note: if the duration specified in
+    'timeout' is greater than the system level timeout duration, a timeout may
+    occur sooner than specified in 'timeout'.
 
 ### Dart VM
 

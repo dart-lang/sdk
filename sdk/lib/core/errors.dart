@@ -411,6 +411,7 @@ class IndexError extends ArgumentError implements RangeError {
  */
 class FallThroughError extends Error {
   FallThroughError();
+  external FallThroughError._create(String url, int line);
 
   external String toString();
 }

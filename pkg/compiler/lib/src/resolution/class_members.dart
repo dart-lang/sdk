@@ -105,7 +105,8 @@ abstract class MembersCreator {
     ClassElement superclass = supertype.element;
 
     // Inherit class and interface members from superclass.
-    void inheritClassMember(DeclaredMember member) {
+    void inheritClassMember(Member _member) {
+      DeclaredMember member = _member;
       if (shouldSkipMember(member)) return;
       if (!member.isStatic) {
         DeclaredMember inherited = member.inheritFrom(supertype);
@@ -136,7 +137,8 @@ abstract class MembersCreator {
       if (mixinApplication.mixin != null) {
         // Only mix in class members when the mixin type is not malformed.
 
-        void inheritMixinMember(DeclaredMember member) {
+        void inheritMixinMember(Member _member) {
+          DeclaredMember member = _member;
           if (shouldSkipMember(member)) return;
           Name name = member.name;
           if (!member.isAbstract && !member.isStatic) {
@@ -165,7 +167,8 @@ abstract class MembersCreator {
       LibraryElement library = cls.library;
       ResolutionInterfaceType thisType = cls.thisType;
 
-      void createMember(MemberElement element) {
+      void createMember(Element _element) {
+        MemberElement element = _element;
         if (element.isConstructor) return;
         String elementName = element.name;
         if (shouldSkipName(elementName)) return;

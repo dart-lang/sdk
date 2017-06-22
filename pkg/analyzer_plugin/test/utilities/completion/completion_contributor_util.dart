@@ -13,7 +13,6 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
-import 'package:analyzer_plugin/utilities/completion/replacement_range.dart';
 import 'package:test/test.dart';
 
 import '../../support/abstract_context.dart';
@@ -463,7 +462,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);
-    var range = new ReplacementRange.compute(request.offset, target);
+    var range = target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;
 

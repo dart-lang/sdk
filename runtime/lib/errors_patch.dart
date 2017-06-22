@@ -113,7 +113,10 @@ class _CastError extends Error implements CastError {
 
 @patch
 class FallThroughError {
-  FallThroughError._create(this._url, this._line);
+  @patch
+  FallThroughError._create(String url, int line)
+      : _url = url,
+        _line = line;
 
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
 

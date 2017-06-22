@@ -6,12 +6,18 @@
 
 library dart2js.test.bad_output_io;
 
+import 'dart:async' show Future;
 import 'dart:io' show exit;
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' show Diagnostic;
 import 'package:compiler/compiler_new.dart'
-    show CompilerDiagnostics, CompilerInput, CompilerOutput, OutputType;
+    show
+        CompilationResult,
+        CompilerDiagnostics,
+        CompilerInput,
+        CompilerOutput,
+        OutputType;
 import 'package:compiler/src/dart2js.dart'
     show exitFunc, compileFunc, compile, diagnosticHandler;
 import 'package:compiler/src/source_file_provider.dart'
@@ -28,6 +34,7 @@ class CollectingFormattingDiagnosticHandler
   bool isAborting = false;
   bool enableColors = false;
   bool throwOnError = false;
+  bool autoReadFileUri = false;
   var lastKind = null;
 
   final int FATAL = 0;
@@ -58,11 +65,15 @@ class CollectingFormattingDiagnosticHandler
   int throwOnErrorCount;
 }
 
-testOutputProvider(CompilerOptions options, CompilerInput input,
-    CompilerDiagnostics diagnostics, CompilerOutput output) {
+Future<CompilationResult> testOutputProvider(
+    CompilerOptions options,
+    CompilerInput input,
+    CompilerDiagnostics diagnostics,
+    CompilerOutput output) {
   diagnosticHandler = new CollectingFormattingDiagnosticHandler();
   output.createOutputSink(
       "/non/existing/directory/should/fail/file", "js", OutputType.js);
+  return null;
 }
 
 void main() {

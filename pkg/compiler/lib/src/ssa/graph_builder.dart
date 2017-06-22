@@ -72,7 +72,8 @@ abstract class GraphBuilder {
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;
 
-  ClosureDataLookup get closureDataLookup => compiler.closureDataLookup;
+  ClosureDataLookup get closureDataLookup =>
+      compiler.backendStrategy.closureDataLookup;
 
   NativeData get nativeData => closedWorld.nativeData;
 

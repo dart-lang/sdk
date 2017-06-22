@@ -44,10 +44,7 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   }
   logger_->Print(")");
   for (int i = 0; i < node->length(); ++i) {
-    logger_->Print("\n");
-    for (intptr_t p = 0; p < indent_; p++) {
-      logger_->Print("  ");
-    }
+    PrintNewlineAndIndent();
     node->NodeAt(i)->Visit(this);
   }
   logger_->Print(")");
@@ -88,18 +85,9 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
 
 
 void AstPrinter::VisitGenericLocalNode(AstNode* node,
-                                       const LocalVariable& var) {
-  logger_->Print(
-      "(%s %s%s \"%s\"", node->Name(), var.is_final() ? "final " : "",
-      String::Handle(var.type().Name()).ToCString(), var.name().ToCString());
-  if (var.HasIndex()) {
-    if (var.is_captured()) {
-      logger_->Print(" (context %d %d)", var.owner()->context_level(),
-                     var.index());
-    } else {
-      logger_->Print(" (stack %d)", var.index());
-    }
-  }
+                                       const LocalVariable& variable) {
+  logger_->Print("(%s ", node->Name());
+  PrintLocalVariable(&variable);
   logger_->Print(" ");
   node->VisitChildren(this);
   logger_->Print(")");
@@ -146,8 +134,51 @@ void AstPrinter::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
 }
 
 
+void AstPrinter::PrintLocalVariable(const LocalVariable* variable) {
+  logger_->Print("%s%s \"%s\"", variable->is_final() ? "final " : "",
+                 String::Handle(variable->type().Name()).ToCString(),
+                 variable->name().ToCString());
+  if (variable->HasIndex()) {
+    if (variable->is_captured()) {
+      logger_->Print(" (context %d %d)", variable->owner()->context_level(),
+                     variable->index());
+    } else {
+      logger_->Print(" (stack %d)", variable->index());
+    }
+  }
+}
+
+
+void AstPrinter::PrintNewlineAndIndent() {
+  logger_->Print("\n");
+  for (intptr_t p = 0; p < indent_; ++p) {
+    logger_->Print("  ");
+  }
+}
+
+
 void AstPrinter::VisitLetNode(LetNode* node) {
-  VisitGenericAstNode(node);
+  logger_->Print("(Let (");
+  // Indent the variables and initializers by two.
+  indent_ += 2;
+  for (intptr_t i = 0; i < node->num_temps(); ++i) {
+    if (i != 0) PrintNewlineAndIndent();
+    logger_->Print("(");
+    PrintLocalVariable(node->TempAt(i));
+    logger_->Print(" ");
+    node->InitializerAt(i)->Visit(this);
+    logger_->Print(")");
+  }
+  logger_->Print(")");
+
+  // Indent the body nodes by one.
+  --indent_;
+  for (intptr_t i = 0; i < node->nodes().length(); ++i) {
+    PrintNewlineAndIndent();
+    node->nodes()[i]->Visit(this);
+  }
+  logger_->Print(")");
+  --indent_;
 }
 
 

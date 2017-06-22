@@ -72,10 +72,26 @@ config("dart_no_snapshot_config") {
   defines += [ "DART_NO_SNAPSHOT" ]
 }
 
-# TODO(rmacnak): If Fuchsia adds a checked-in SDK, this should be folded back
-# into dart_config
-config("dart_use_target_arch_config") {
+config("dart_config") {
   defines = []
+
+  if (target_os == "android") {
+    defines += [ "TARGET_OS_ANDROID" ]
+  } else if (target_os == "fuchsia") {
+    defines += [ "TARGET_OS_FUCHSIA" ]
+  } else if (target_os == "ios") {
+    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "linux") {
+    defines += [ "TARGET_OS_LINUX" ]
+  } else if (target_os == "mac") {
+    defines += [ "TARGET_OS_MACOS" ]
+  } else if (target_os == "win") {
+    defines += [ "TARGET_OS_WINDOWS" ]
+  } else {
+    print("Unknown target_os: $target_os")
+    assert(false)
+  }
 
   if (dart_target_arch != "") {
     if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
@@ -105,28 +121,6 @@ config("dart_use_target_arch_config") {
       print("Invalid dart_target_arch: $dart_target_arch")
       assert(false)
     }
-  }
-}
-
-config("dart_config") {
-  defines = []
-
-  if (target_os == "android") {
-    defines += [ "TARGET_OS_ANDROID" ]
-  } else if (target_os == "fuchsia") {
-    defines += [ "TARGET_OS_FUCHSIA" ]
-  } else if (target_os == "ios") {
-    defines += [ "TARGET_OS_MACOS" ]
-    defines += [ "TARGET_OS_MACOS_IOS" ]
-  } else if (target_os == "linux") {
-    defines += [ "TARGET_OS_LINUX" ]
-  } else if (target_os == "mac") {
-    defines += [ "TARGET_OS_MACOS" ]
-  } else if (target_os == "win") {
-    defines += [ "TARGET_OS_WINDOWS" ]
-  } else {
-    print("Unknown target_os: $target_os")
-    assert(false)
   }
 
   if (dart_debug) {
@@ -205,6 +199,9 @@ template("libdart_library") {
                  ":dart_config",
                  ":dart_maybe_product_config",
                ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = [
              "vm:libdart_platform",
              "third_party/double-conversion/src:libdouble_conversion",
@@ -229,7 +226,6 @@ template("libdart_library") {
 }
 
 libdart_library("libdart_jit") {
-  extra_configs = [ ":dart_use_target_arch_config" ]
   extra_deps = [
     "vm:libdart_lib_jit",
     "vm:libdart_vm_jit",
@@ -237,10 +233,7 @@ libdart_library("libdart_jit") {
 }
 
 libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [
-    ":dart_precompiled_runtime_config",
-    ":dart_use_target_arch_config",
-  ]
+  extra_configs = [ ":dart_precompiled_runtime_config" ]
   extra_deps = [
     "vm:libdart_lib_precompiled_runtime",
     "vm:libdart_vm_precompiled_runtime",
@@ -251,7 +244,6 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
   extra_configs = [
     ":dart_no_snapshot_config",
     ":dart_precompiler_config",
-    ":dart_use_target_arch_config",
   ]
   extra_deps = [
     "vm:libdart_lib_nosnapshot_with_precompiler",
@@ -259,23 +251,8 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
   ]
 }
 
-# TODO(rmacnak): Remove if Fuchsia adds a checked-in SDK.
-libdart_library("libdart_nosnapshot_with_precompiler_host_arch") {
-  extra_configs = [
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib_nosnapshot_with_precompiler_host_arch",
-    "vm:libdart_vm_nosnapshot_with_precompiler_host_arch",
-  ]
-}
-
 libdart_library("libdart_with_precompiler") {
-  extra_configs = [
-    ":dart_precompiler_config",
-    ":dart_use_target_arch_config",
-  ]
+  extra_configs = [ ":dart_precompiler_config" ]
   extra_deps = [
     "vm:libdart_lib_with_precompiler",
     "vm:libdart_vm_with_precompiler",
@@ -312,6 +289,9 @@ executable("libdart_dependency_helper") {
     ":dart_config",
     ":dart_maybe_product_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   deps = [
     "third_party/double-conversion/src:libdouble_conversion",
     "vm:libdart_lib_jit",

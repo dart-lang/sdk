@@ -237,7 +237,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
       this.localFunctionsNeedingRti,
       this.classesUsingTypeVariableExpression);
 
-  bool checkClass(ClassEntity cls) => true;
+  bool checkClass(covariant ClassEntity cls) => true;
 
   bool classNeedsRti(ClassEntity cls) {
     assert(checkClass(cls));
@@ -300,7 +300,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
       : super(types);
 
-  bool checkClass(ClassEntity cls) => true;
+  bool checkClass(covariant ClassEntity cls) => true;
 
   @override
   void registerClassUsingTypeVariableExpression(ClassEntity cls) {
@@ -845,7 +845,8 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
         parameters = _elementEnvironment
             .getThisType(contextClass)
             .typeArguments
-            .map((TypeVariableType type) {
+            .map((DartType _type) {
+          TypeVariableType type = _type;
           return type.element.name;
         }).toList();
       }
@@ -951,7 +952,8 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   }
 }
 
-class TypeRepresentationGenerator implements ResolutionDartTypeVisitor {
+class TypeRepresentationGenerator
+    implements ResolutionDartTypeVisitor<dynamic, Emitter> {
   final Namer namer;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
@@ -1179,7 +1181,7 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends ResolutionDartTypeVisitor {
+class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   collect(DartType type, {bool isTypeArgument: false}) {
@@ -1211,7 +1213,8 @@ class ArgumentCollector extends ResolutionDartTypeVisitor {
   }
 }
 
-class FunctionArgumentCollector extends ResolutionDartTypeVisitor {
+class FunctionArgumentCollector
+    extends ResolutionDartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   FunctionArgumentCollector();

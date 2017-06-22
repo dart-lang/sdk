@@ -2113,6 +2113,38 @@ ASSEMBLER_TEST_RUN(Fmovdr, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Fmovrs, assembler) {
+  __ LoadDImmediate(V2, 1.0);
+  __ fcvtsd(V1, V2);
+  __ fmovrs(R0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovrs, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  int64_t result = EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
+  const uint32_t one = bit_cast<uint32_t, float>(1.0f);
+  EXPECT_EQ(one, static_cast<uint32_t>(result));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fmovsr, assembler) {
+  __ LoadImmediate(R2, bit_cast<uint32_t, float>(1.0f));
+  __ fmovsr(V1, R2);
+  __ fmovrs(R0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fmovsr, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  int64_t result = EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
+  const uint32_t one = bit_cast<uint32_t, float>(1.0f);
+  EXPECT_EQ(one, static_cast<uint32_t>(result));
+}
+
+
 ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
   __ SetupDartSP();
   __ LoadDImmediate(V1, 42.0);

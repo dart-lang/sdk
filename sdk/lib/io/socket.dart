@@ -424,8 +424,15 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * address to bind when making the connection. `sourceAddress` can either
    * be a `String` or an `InternetAddress`. If a `String` is passed it must
    * hold a numeric IP address.
+   *
+   * The argument [timeout] is used to specify the maximum allowed time to wait
+   * for a connection to be established. If [timeout] is longer than the system
+   * level timeout duration, a timeout may occur sooner than specified in
+   * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
+   * connection attempts to [host] are cancelled.
    */
-  external static Future<RawSocket> connect(host, int port, {sourceAddress});
+  external static Future<RawSocket> connect(host, int port,
+      {sourceAddress, Duration timeout});
 
   /**
    * Returns the number of received and non-read bytes in the socket that
@@ -522,8 +529,15 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * address to bind when making the connection. `sourceAddress` can either
    * be a `String` or an `InternetAddress`. If a `String` is passed it must
    * hold a numeric IP address.
+   *
+   * The argument [timeout] is used to specify the maximum allowed time to wait
+   * for a connection to be established. If [timeout] is longer than the system
+   * level timeout duration, a timeout may occur sooner than specified in
+   * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
+   * connection attempts to [host] are cancelled.
    */
-  external static Future<Socket> connect(host, int port, {sourceAddress});
+  external static Future<Socket> connect(host, int port,
+      {sourceAddress, Duration timeout});
 
   /**
    * Destroy the socket in both directions. Calling [destroy] will make the

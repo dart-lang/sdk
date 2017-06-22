@@ -33,35 +33,52 @@ import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
+import 'closure.dart';
 import 'element_map_impl.dart';
 import 'kernel_strategy.dart';
+
+/// A backend strategy based on Kernel IR nodes.
+abstract class KernelBackendStrategy implements BackendStrategy {
+  KernelToElementMap get elementMap;
+  GlobalLocalsMap get globalLocalsMapForTesting;
+}
 
 /// Backend strategy that uses the kernel elements as the backend model.
 // TODO(johnniwinther): Replace this with a strategy based on the J-element
 // model.
-class KernelBackendStrategy implements BackendStrategy {
+class KernelBackendStrategyImpl implements KernelBackendStrategy {
   final Compiler _compiler;
   Sorter _sorter;
+  ClosureConversionTask _closureDataLookup;
+  final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
 
-  KernelBackendStrategy(this._compiler);
+  KernelBackendStrategyImpl(this._compiler);
+
+  KernelToElementMap get elementMap {
+    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+    return frontendStrategy.elementMap;
+  }
+
+  GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(KernelClosedWorld closedWorld) {
+  ClosedWorldRefiner createClosedWorldRefiner(
+      covariant KernelClosedWorld closedWorld) {
     return closedWorld;
   }
 
   @override
   Sorter get sorter {
     if (_sorter == null) {
-      KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-      _sorter = new KernelSorter(frontendStrategy.elementMap);
+      _sorter = new KernelSorter(elementMap);
     }
     return _sorter;
   }
 
   @override
-  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
-      new KernelClosureConversionTask(compiler.measurer);
+  ClosureConversionTask get closureDataLookup =>
+      _closureDataLookup ??= new KernelClosureConversionTask(
+          _compiler.measurer, elementMap, _globalLocalsMap);
 
   @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
@@ -73,9 +90,8 @@ class KernelBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
     return new KernelCodegenWorldBuilder(
-        frontendStrategy.elementMap,
+        elementMap,
         closedWorld.elementEnvironment,
         nativeBasicData,
         closedWorld,
@@ -85,9 +101,8 @@ class KernelBackendStrategy implements BackendStrategy {
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    KernelFrontEndStrategy strategy = backend.compiler.frontendStrategy;
-    KernelToElementMap elementMap = strategy.elementMap;
-    return new KernelSsaBuilder(task, backend.compiler, elementMap);
+    return new KernelSsaBuilder(
+        task, backend.compiler, elementMap, _globalLocalsMap);
   }
 
   @override
@@ -138,11 +153,14 @@ class KernelSsaBuilder implements SsaBuilder {
   final CompilerTask task;
   final Compiler _compiler;
   final KernelToElementMap _elementMap;
+  final GlobalLocalsMap _globalLocalsMap;
 
-  KernelSsaBuilder(this.task, this._compiler, this._elementMap);
+  KernelSsaBuilder(
+      this.task, this._compiler, this._elementMap, this._globalLocalsMap);
 
   @override
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(work.element);
     KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
         work.element.enclosingClass,
@@ -150,11 +168,11 @@ class KernelSsaBuilder implements SsaBuilder {
         _compiler,
         _elementMap,
         new KernelToTypeInferenceMapImpl(closedWorld),
-        new KernelToLocalsMapImpl(work.element),
+        localsMap,
         closedWorld,
         _compiler.codegenWorldBuilder,
         work.registry,
-        _compiler.closureDataLookup,
+        _compiler.backendStrategy.closureDataLookup,
         // TODO(johnniwinther): Support these:
         const SourceInformationBuilder(),
         null, // Function node used as capture scope id.
@@ -248,6 +266,16 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 }
 
+class GlobalLocalsMap {
+  Map<MemberEntity, KernelToLocalsMap> _localsMaps =
+      <MemberEntity, KernelToLocalsMap>{};
+
+  KernelToLocalsMap getLocalsMap(MemberEntity member) {
+    return _localsMaps.putIfAbsent(
+        member, () => new KernelToLocalsMapImpl(member));
+  }
+}
+
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
   Map<ir.VariableDeclaration, KLocal> _map = <ir.VariableDeclaration, KLocal>{};
@@ -285,7 +313,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return const LoopClosureRepresentationInfo();
+    return closureLookup.getClosureRepresentationInfoForLoop(node);
   }
 }
 
@@ -310,57 +338,6 @@ class KLocal implements Local {
     sb.write(name);
     sb.write(')');
     return sb.toString();
-  }
-}
-
-/// Closure conversion code using our new Entity model. Closure conversion is
-/// necessary because the semantics of closures are slightly different in Dart
-/// than JavaScript. Closure conversion is separated out into two phases:
-/// generation of a new (temporary) representation to store where variables need
-/// to be hoisted/captured up at another level to re-write the closure, and then
-/// the code generation phase where we generate elements and/or instructions to
-/// represent this new code path.
-///
-/// For a general explanation of how closure conversion works at a high level,
-/// check out:
-/// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
-/// http://matt.might.net/articles/closure-conversion/.
-class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
-  KernelClosureConversionTask(Measurer measurer) : super(measurer);
-
-  /// The combined steps of generating our intermediate representation of
-  /// closures that need to be rewritten and generating the element model.
-  /// Ultimately these two steps will be split apart with the second step
-  /// happening later in compilation just before codegen. These steps are
-  /// combined here currently to provide a consistent interface to the rest of
-  /// the compiler until we are ready to separate these phases.
-  @override
-  void convertClosures(Iterable<MemberEntity> processedEntities,
-      ClosedWorldRefiner closedWorldRefiner) {
-    // TODO(efortuna): implement.
-  }
-
-  @override
-  ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
-    return const ClosureAnalysisInfo();
-  }
-
-  @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ir.Node loopNode) {
-    return const LoopClosureRepresentationInfo();
-  }
-
-  @override
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
-    if (entity is MemberEntity) {
-      ThisLocal thisLocal;
-      if (entity.isInstanceMember) {
-        thisLocal = new ThisLocal(entity);
-      }
-      return new ClosureClassMap(null, null, null, thisLocal);
-    }
-    return const ClosureRepresentationInfo();
   }
 }
 

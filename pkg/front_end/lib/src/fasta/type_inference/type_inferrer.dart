@@ -38,10 +38,39 @@ import 'package:kernel/ast.dart'
         SuperPropertyGet,
         SuperPropertySet,
         TypeParameterType,
+        VariableDeclaration,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
+
+bool isOverloadableArithmeticOperator(String name) {
+  return identical(name, '+') ||
+      identical(name, '-') ||
+      identical(name, '*') ||
+      identical(name, '%');
+}
+
+bool _isUserDefinableOperator(String name) {
+  return identical(name, '<') ||
+      identical(name, '>') ||
+      identical(name, '<=') ||
+      identical(name, '>=') ||
+      identical(name, '==') ||
+      identical(name, '-') ||
+      identical(name, '+') ||
+      identical(name, '/') ||
+      identical(name, '~/') ||
+      identical(name, '*') ||
+      identical(name, '%') ||
+      identical(name, '|') ||
+      identical(name, '^') ||
+      identical(name, '&') ||
+      identical(name, '<<') ||
+      identical(name, '>>') ||
+      identical(name, '[]=') ||
+      identical(name, '~');
+}
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
@@ -223,10 +252,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
-  /// The [FieldNode] whose initializer will be type inferred using this
+  /// The [AccessorNode] whose type will be type inferred using this
   /// [TypeInferrerImpl], or `null` if this [TypeInferrerImpl] will be used to
-  /// infer types outside the scope of a field initializer.
-  final FieldNode fieldNode;
+  /// infer types outside the scope of top level type inference.
+  final AccessorNode accessorNode;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -238,10 +267,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Not used when performing local inference.
   bool isImmediatelyEvident = true;
 
-  List<FieldNode> _dryRunDependencies;
+  List<AccessorNode> _dryRunDependencies;
 
   TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
-      this.thisType, this.fieldNode)
+      this.thisType, this.accessorNode)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -351,7 +380,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Ends a dry run started by [startDryRun] and returns the collected
   /// dependencies.
-  List<FieldNode> finishDryRun() {
+  List<AccessorNode> finishDryRun() {
     var dryRunDependencies = _dryRunDependencies;
     _dryRunDependencies = null;
     return dryRunDependencies;
@@ -431,18 +460,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
   Expression getFieldInitializer(KernelField field);
-
-  DartType getNamedParameterType(FunctionType functionType, String name) {
-    return functionType.getNamedParameter(name) ?? const DynamicType();
-  }
-
-  DartType getPositionalParameterType(FunctionType functionType, int i) {
-    if (i < functionType.positionalParameters.length) {
-      return functionType.positionalParameters[i];
-    } else {
-      return const DynamicType();
-    }
-  }
 
   DartType getSetterType(Member interfaceMember, DartType receiverType) {
     if (receiverType is InterfaceType) {
@@ -620,11 +637,106 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return inferredType;
   }
 
+  /// Performs the core type inference algorithm for method invocations (this
+  /// handles both null-aware and non-null-aware method invocations).
+  DartType inferMethodInvocation(
+      Expression expression,
+      Expression receiver,
+      int fileOffset,
+      MethodInvocation desugaredInvocation,
+      bool isImplicitCall,
+      DartType typeContext,
+      bool typeNeeded,
+      {VariableDeclaration receiverVariable}) {
+    typeNeeded =
+        listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the method that was invoked.
+    var receiverType = inferExpression(receiver, null, true);
+    if (strongMode) {
+      receiverVariable?.type = receiverType;
+    }
+    bool isOverloadedArithmeticOperator = false;
+    Member interfaceMember =
+        findMethodInvocationMember(receiverType, desugaredInvocation);
+    if (interfaceMember is Procedure) {
+      isOverloadedArithmeticOperator = typeSchemaEnvironment
+          .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
+    }
+    var calleeType = getCalleeFunctionType(interfaceMember, receiverType,
+        desugaredInvocation.name, !isImplicitCall);
+    bool forceArgumentInference = false;
+    if (isDryRun) {
+      if (_isUserDefinableOperator(desugaredInvocation.name.name)) {
+        // If this is an overloadable arithmetic operator, then type inference
+        // might depend on the RHS, so conservatively assume it does.
+        forceArgumentInference =
+            isOverloadableArithmeticOperator(desugaredInvocation.name.name);
+      } else {
+        // If no type arguments were given, then type inference might depend on
+        // the arguments (because the called method might be generic), so
+        // conservatively assume it does.
+        forceArgumentInference =
+            getExplicitTypeArguments(desugaredInvocation.arguments) == null;
+      }
+    }
+    var inferredType = inferInvocation(typeContext, typeNeeded, fileOffset,
+        calleeType, calleeType.returnType, desugaredInvocation.arguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType,
+        forceArgumentInference: forceArgumentInference);
+    listener.methodInvocationExit(expression, inferredType);
+    return inferredType;
+  }
+
   @override
   void inferParameterInitializer(
       Expression initializer, DartType declaredType) {
     assert(closureContext == null);
     inferExpression(initializer, declaredType, false);
+  }
+
+  /// Performs the core type inference algorithm for property gets (this handles
+  /// both null-aware and non-null-aware property gets).
+  DartType inferPropertyGet(
+      Expression expression,
+      Expression receiver,
+      int fileOffset,
+      PropertyGet desugaredGet,
+      DartType typeContext,
+      bool typeNeeded,
+      {VariableDeclaration receiverVariable}) {
+    typeNeeded =
+        listener.propertyGetEnter(expression, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the getter that was invoked.
+    var receiverType = inferExpression(receiver, null, true);
+    if (strongMode) {
+      receiverVariable?.type = receiverType;
+    }
+    Member interfaceMember =
+        findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
+    if (isTopLevel &&
+        ((interfaceMember is Procedure &&
+                interfaceMember.kind == ProcedureKind.Getter) ||
+            interfaceMember is Field)) {
+      if (TypeInferenceEngineImpl.fullTopLevelInference) {
+        if (interfaceMember is KernelField) {
+          var accessorNode = KernelMember.getAccessorNode(interfaceMember);
+          if (accessorNode != null) {
+            engine.inferAccessorFused(accessorNode, this.accessorNode);
+          }
+        }
+      } else {
+        // References to fields and getters can't be relied upon for top level
+        // inference.
+        recordNotImmediatelyEvident(fileOffset);
+      }
+    }
+    desugaredGet.interfaceTarget = interfaceMember;
+    var inferredType =
+        getCalleeType(interfaceMember, receiverType, desugaredGet.name);
+    // TODO(paulberry): Infer tear-off type arguments if appropriate.
+    listener.propertyGetExit(expression, inferredType);
+    return typeNeeded ? inferredType : null;
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.
@@ -650,13 +762,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
 
-  /// Records that the field represented by [fieldNode] is a dependency of the
-  /// static field for which we are currently doing a dry run of type inference.
+  /// Records that the accessor represented by [accessorNode] is a dependency of
+  /// the accessor for which we are currently doing a dry run of type inference.
   ///
   /// May only be called if a dry run is in progress.
-  void recordDryRunDependency(FieldNode fieldNode) {
-    listener.recordDependency(fieldNode);
-    _dryRunDependencies.add(fieldNode);
+  void recordDryRunDependency(AccessorNode accessorNode) {
+    listener.recordDependency(accessorNode);
+    _dryRunDependencies.add(accessorNode);
   }
 
   void recordNotImmediatelyEvident(int fileOffset) {
@@ -666,10 +778,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   /// Begins a dry run of type inference, in which the goal is to collect the
-  /// dependencies of a given field.
+  /// dependencies of a given accessor.
   void startDryRun() {
     assert(_dryRunDependencies == null);
-    _dryRunDependencies = <FieldNode>[];
+    _dryRunDependencies = <AccessorNode>[];
   }
 
   DartType wrapFutureOrType(DartType type) {

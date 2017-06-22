@@ -209,32 +209,34 @@ final Matcher isCompletionSuggestionKind =
  * ContextBuilderOptions
  *
  * {
- *   "dartSdkSummaryPath": optional String
- *   "defaultAnalysisOptionsFilePath": optional List<String>
+ *   "dartSdkSummaryPath": optional FilePath
+ *   "defaultAnalysisOptionsFilePath": optional List<FilePath>
  *   "declaredVariables": optional Map<String, String>
- *   "defaultPackageFilePath": optional List<String>
- *   "defaultPackagesDirectoryPath": optional List<String>
+ *   "defaultPackageFilePath": optional List<FilePath>
+ *   "defaultPackagesDirectoryPath": optional List<FilePath>
  * }
  */
 final Matcher isContextBuilderOptions = new LazyMatcher(
     () => new MatchesJsonObject("ContextBuilderOptions", null, optionalFields: {
-          "dartSdkSummaryPath": isString,
-          "defaultAnalysisOptionsFilePath": isListOf(isString),
+          "dartSdkSummaryPath": isFilePath,
+          "defaultAnalysisOptionsFilePath": isListOf(isFilePath),
           "declaredVariables": isMapOf(isString, isString),
-          "defaultPackageFilePath": isListOf(isString),
-          "defaultPackagesDirectoryPath": isListOf(isString)
+          "defaultPackageFilePath": isListOf(isFilePath),
+          "defaultPackagesDirectoryPath": isListOf(isFilePath)
         }));
 
 /**
  * ContextRoot
  *
  * {
- *   "root": String
- *   "exclude": List<String>
+ *   "root": FilePath
+ *   "exclude": List<FilePath>
+ *   "optionsFile": optional FilePath
  * }
  */
 final Matcher isContextRoot = new LazyMatcher(() => new MatchesJsonObject(
-    "ContextRoot", {"root": isString, "exclude": isListOf(isString)}));
+    "ContextRoot", {"root": isFilePath, "exclude": isListOf(isFilePath)},
+    optionalFields: {"optionsFile": isFilePath}));
 
 /**
  * Element
@@ -865,11 +867,11 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "type": WatchEventType
- *   "path": String
+ *   "path": FilePath
  * }
  */
 final Matcher isWatchEvent = new LazyMatcher(() => new MatchesJsonObject(
-    "WatchEvent", {"type": isWatchEventType, "path": isString}));
+    "WatchEvent", {"type": isWatchEventType, "path": isFilePath}));
 
 /**
  * WatchEventType
@@ -1438,14 +1440,17 @@ final Matcher isPluginShutdownResult = isNull;
  * plugin.versionCheck params
  *
  * {
- *   "byteStorePath": String
- *   "sdkPath": String
+ *   "byteStorePath": FilePath
+ *   "sdkPath": FilePath
  *   "version": String
  * }
  */
 final Matcher isPluginVersionCheckParams = new LazyMatcher(() =>
-    new MatchesJsonObject("plugin.versionCheck params",
-        {"byteStorePath": isString, "sdkPath": isString, "version": isString}));
+    new MatchesJsonObject("plugin.versionCheck params", {
+      "byteStorePath": isFilePath,
+      "sdkPath": isFilePath,
+      "version": isString
+    }));
 
 /**
  * plugin.versionCheck result

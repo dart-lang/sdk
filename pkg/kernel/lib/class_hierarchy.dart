@@ -115,13 +115,30 @@ abstract class ClassHierarchy {
   ///
   /// By default getters and setters are overridden separately.  The [isSetter]
   /// callback parameter determines which type of access is being overridden.
-  ///
-  /// However if [crossGettersSetters] is set to `true`, getters might be
-  /// reported as overriding setters, and vice versa - setter overriding
-  /// getters.  The callback should check the [Procedure.kind] property.
   void forEachOverridePair(Class class_,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool crossGettersSetters: false});
+      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+
+  /// Invokes [callback] for every function, field, or getter declared in
+  /// [class_] that has a corresponding setter in a supertype of [class_], and
+  /// for every setter or non-final field declared in [class_] that has a
+  /// corresponding function, field, or getter in a supertype of [class_].
+  ///
+  /// We use the term "inheritable" for members that are candidates for
+  /// inheritance but may have been overridden.  The "declared" members of a
+  /// mixin application are those declared in the mixed-in type. The callback is
+  /// invoked in the following case:
+  ///
+  /// A member declared in the class overrides a member inheritable through
+  /// one of the supertypes of the class.
+  ///
+  /// This method will not report that a member overrides itself. A given pair
+  /// may be reported multiple times when there are multiple inheritance paths
+  /// to the overridden member.
+  ///
+  /// By default getters and setters are overridden separately.  The [isSetter]
+  /// callback parameter corresponds to whether [declaredMember] is a setter.
+  void forEachCrossOverridePair(Class class_,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter));
 
   /// This method is invoked by the client after it changed the [classes], and
   /// some of the information that this hierarchy might have cached, is not
@@ -396,10 +413,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           isSetter: true);
       _reportOverrides(info.declaredSetters, superSetters, callback,
           isSetter: true, onlyAbstract: true);
-      if (crossGettersSetters) {
-        _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
-        _reportOverrides(info.declaredSetters, superGetters, callback);
-      }
     }
     if (!class_.isAbstract) {
       // If a non-abstract class declares an abstract method M whose
@@ -413,6 +426,21 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       _reportOverrides(info.implementedGettersAndCalls,
           info.declaredGettersAndCalls, callback);
       _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
+          isSetter: true);
+    }
+  }
+
+  @override
+  void forEachCrossOverridePair(Class class_,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool crossGettersSetters: false}) {
+    _ClassInfo info = _infoFor[class_];
+    for (var supertype in class_.supers) {
+      var superclass = supertype.classNode;
+      var superGetters = getInterfaceMembers(superclass);
+      var superSetters = getInterfaceMembers(superclass, setters: true);
+      _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
+      _reportOverrides(info.declaredSetters, superGetters, callback,
           isSetter: true);
     }
   }

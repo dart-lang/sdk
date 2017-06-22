@@ -214,7 +214,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         size: compiler.dumpInfoTask.sizeOf(element));
     _elementToInfo[element] = closureInfo;
 
-    ClosureRepresentationInfo closureRepresentation = compiler.closureDataLookup
+    ClosureRepresentationInfo closureRepresentation = compiler
+        .backendStrategy.closureDataLookup
         .getClosureRepresentationInfo(element.methodElement);
     assert(closureRepresentation.closureClassEntity == element);
 
@@ -367,7 +368,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 }
 
 class Selection {
-  final Element selectedElement;
+  final Entity selectedElement;
   final ReceiverConstraint mask;
   Selection(this.selectedElement, this.mask);
 }
@@ -458,7 +459,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
           selections.addAll(closedWorld
               .locateMembers(dynamicUse.selector, dynamicUse.mask)
-              .map((MemberElement e) => new Selection(e, dynamicUse.mask)));
+              .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),

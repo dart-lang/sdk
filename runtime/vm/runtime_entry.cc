@@ -390,7 +390,8 @@ static void PrintTypeCheck(const char* message,
 
   const AbstractType& instance_type =
       AbstractType::Handle(instance.GetType(Heap::kNew));
-  ASSERT(instance_type.IsInstantiated());
+  ASSERT(instance_type.IsInstantiated() ||
+         (instance.IsClosure() && instance_type.IsInstantiated(kCurrentClass)));
   if (type.IsInstantiated()) {
     OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n", message,
                  String::Handle(instance_type.Name()).ToCString(),
@@ -518,8 +519,7 @@ static void UpdateTypeTestCache(
         (last_instance_type_arguments.raw() == instance_type_arguments.raw()) &&
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw()) &&
-        (last_function_type_arguments.raw() ==
-         last_function_type_arguments.raw())) {
+        (last_function_type_arguments.raw() == function_type_arguments.raw())) {
       OS::PrintErr("  Error in test cache %p ix: %" Pd ",", new_cache.raw(), i);
       PrintTypeCheck(" duplicate cache entry", instance, type,
                      instantiator_type_arguments, function_type_arguments,
@@ -549,8 +549,7 @@ static void UpdateTypeTestCache(
         "    instance  [class: (%p '%s' cid: %" Pd
         "),    type-args: %p %s]\n"
         "    test-type [class: (%p '%s' cid: %" Pd
-        "), i-type-args: %p %s, "
-        ", f-type-args: %p %s]\n",
+        "), i-type-args: %p %s, f-type-args: %p %s]\n",
         new_cache.raw(), len,
 
         instance_class_id_or_function.raw(), instance_type_arguments.raw(),
@@ -566,9 +565,8 @@ static void UpdateTypeTestCache(
             .ToCString(),
         Class::Handle(test_type.type_class()).id(),
         instantiator_type_arguments.raw(),
-        instantiator_type_arguments.ToCString(),
-        instantiator_type_arguments.raw(),
-        instantiator_type_arguments.ToCString());
+        instantiator_type_arguments.ToCString(), function_type_arguments.raw(),
+        function_type_arguments.ToCString());
   }
 }
 

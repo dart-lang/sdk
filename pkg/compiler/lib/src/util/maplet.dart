@@ -54,7 +54,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
-  bool containsKey(K key) {
+  bool containsKey(Object key) {
     if (_extra == null) {
       return _key == key;
     } else if (_MARKER == _extra) {
@@ -70,7 +70,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
-  V operator [](K key) {
+  V operator [](Object key) {
     if (_extra == null) {
       return (_key == key) ? _value : null;
     } else if (_MARKER == _extra) {
@@ -166,7 +166,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     }
   }
 
-  V remove(K key) {
+  V remove(Object key) {
     if (_extra == null) {
       if (_key != key) return null;
       _key = _MARKER;

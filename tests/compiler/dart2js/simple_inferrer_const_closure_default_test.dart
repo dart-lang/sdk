@@ -46,21 +46,11 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
 
         checkArgument(String functionName, type) {
-          var functionElement = findElement(compiler, functionName);
+          dynamic functionElement = findElement(compiler, functionName);
           var signature = functionElement.functionSignature;
           var element = signature.requiredParameterCount > 0
               ? signature.requiredParameters.first
               : signature.optionalParameters.first;
-          Expect.equals(
-              type,
-              simplify(typesInferrer.getTypeOfElement(element), closedWorld),
-              functionName);
-        }
-
-        checkOptionalArgument(String functionName, type) {
-          var functionElement = findElement(compiler, functionName);
-          var signature = functionElement.functionSignature;
-          var element = signature.optionalParameters.first;
           Expect.equals(
               type,
               simplify(typesInferrer.getTypeOfElement(element), closedWorld),

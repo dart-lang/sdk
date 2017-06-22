@@ -145,7 +145,7 @@ class CodeLineAnnotationJsonStrategy implements JsonStrategy {
   }
 
   @override
-  encodeLineAnnotation(CodeSource lineAnnotation) {
+  encodeLineAnnotation(covariant CodeSource lineAnnotation) {
     if (lineAnnotation != null) {
       return lineAnnotation.toJson();
     }

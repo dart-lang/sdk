@@ -434,6 +434,7 @@ class ObjectPointerVisitor;
   V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
+  V(PrependTypeArguments, "_prependTypeArguments")                             \
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")
 

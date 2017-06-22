@@ -1260,7 +1260,7 @@ class FragmentEmitter {
     List<js.Property> globals = <js.Property>[];
 
     js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
-      return js.stringArray(fragments.map((DeferredFragment fragment) =>
+      return js.stringArray(fragments.map((Fragment fragment) =>
           "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
     }
 

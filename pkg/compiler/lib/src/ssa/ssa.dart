@@ -85,7 +85,7 @@ class SsaBuilderTask extends CompilerTask {
 }
 
 abstract class SsaBuilderFieldMixin {
-  ConstantValue getFieldInitialConstantValue(FieldEntity field);
+  ConstantValue getFieldInitialConstantValue(covariant FieldEntity field);
 
   /// Handle field initializer of [element]. Returns `true` if no code
   /// is needed for the field.

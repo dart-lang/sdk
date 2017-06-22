@@ -210,7 +210,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
     return positional.every(f) && named.values.every(f);
   }
 
-  bool contains(TypeInformation type) {
+  bool contains(Object type) {
     return positional.contains(type) || named.containsValue(type);
   }
 }

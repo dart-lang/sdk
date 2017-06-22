@@ -11,6 +11,7 @@ import '../common/resolution.dart';
 import '../compiler.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../script.dart';
 import '../serialization/impact_serialization.dart';
 import 'package:front_end/src/fasta/scanner.dart';
@@ -108,7 +109,8 @@ class ResolutionDeserializerSystem extends DeserializerSystem {
   }
 
   @override
-  bool isDeserialized(Element element) {
+  bool isDeserialized(Entity entity) {
+    Element element = entity;
     return deserializedLibraries.contains(element.library);
   }
 }

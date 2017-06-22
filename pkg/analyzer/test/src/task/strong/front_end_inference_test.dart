@@ -455,11 +455,11 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
-    if (node.element.enclosingElement is ClassElement) {
-      if (node.isGetter && node.returnType == null) {
+    if (node.element.enclosingElement is ClassElement && !node.isStatic) {
+      if (node.returnType == null) {
         _recordTopType(node.name.offset, node.element.returnType);
       }
-      if (node.isSetter) {
+      if (node.parameters != null) {
         for (var parameter in node.parameters.parameters) {
           // Note: it's tempting to check `parameter.type == null`, but that
           // doesn't work because of function-typed formal parameter syntax.

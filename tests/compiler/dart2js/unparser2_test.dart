@@ -102,7 +102,7 @@ class MessageCollector extends DiagnosticReporter {
   MessageCollector() {
     messages = [];
   }
-  void internalError(node, String reason) {
+  void internalError(node, covariant String reason) {
     messages.add(reason);
     throw reason;
   }
