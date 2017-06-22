@@ -60,6 +60,8 @@ Once you've gotten an LGTM from a project maintainer, submit your changes to the
 * Click the green "Merge pull request" button on the GitHub UI of your pull
   request (requires commit access)
 * `git push upstream name_of_your_branch:master` (requires commit access)
+* Having done all this, please make sure we have a good email address so we can credit you in our `AUTHORS` file.
+* Thank you!
 
 ### The small print
 Contributions made by corporations are covered by a different agreement than the
