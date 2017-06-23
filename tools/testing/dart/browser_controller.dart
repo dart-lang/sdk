@@ -505,10 +505,9 @@ class Chrome extends Browser {
           "--no-first-run",
         ];
 
-        // TODO(rnystrom): If you want Chrome to spawn with the dev tools tab
-        // open, which is handy for debugging, add:
-        //
-        //     --auto-open-devtools-for-tabs
+        // TODO(rnystrom): Uncomment this to open the dev tools tab when Chrome
+        // is spawned. Handy for debugging tests.
+        // args.add("--auto-open-devtools-for-tabs");
 
         return startBrowserProcess(_binary, args,
             environment: _getEnvironment());

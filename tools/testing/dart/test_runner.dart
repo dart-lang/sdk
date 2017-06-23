@@ -29,12 +29,12 @@ import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
-const int CRASHING_BROWSER_EXITCODE = -10;
-const int SLOW_TIMEOUT_MULTIPLIER = 4;
-const int NON_UTF_FAKE_EXITCODE = 0xFFFD;
+const int browserCrashExitCode = -10;
+const int slowTimeoutMultiplier = 4;
+const int nonUtfFakeExitCode = 0xFFFD;
 
-const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
-const MESSAGE_FAILED_TO_RUN_COMMAND = 'Failed to run command. return code=1';
+const cannotOpenDisplayMessage = 'Gtk-WARNING **: cannot open display';
+const failedToRunCommandMessage = 'Failed to run command. return code=1';
 
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
@@ -42,9 +42,9 @@ typedef void EnqueueMoreWork(ProcessQueue queue);
 typedef void Action();
 typedef Future<AdbCommandResult> StepFunction();
 
-// Some IO tests use these variables and get confused if the host environment
-// variables are inherited so they are excluded.
-const EXCLUDED_ENVIRONMENT_VARIABLES = const [
+/// Some IO tests use these variables and get confused if the host environment
+/// variables are inherited so they are excluded.
+const _excludedEnvironmentVariables = const [
   'http_proxy',
   'https_proxy',
   'no_proxy',
@@ -166,7 +166,7 @@ class TestCase extends UniqueObject {
   int get timeout {
     var result = configuration.timeout;
     if (expectedOutcomes.contains(Expectation.slow)) {
-      result *= SLOW_TIMEOUT_MULTIPLIER;
+      result *= slowTimeoutMultiplier;
     }
     return result;
   }
@@ -543,7 +543,7 @@ class RunningProcess {
       // If the output contained non-utf8 formatted data, then make the exit
       // code non-zero if it isn't already.
       if (exitCode == 0) {
-        exitCode = NON_UTF_FAKE_EXITCODE;
+        exitCode = nonUtfFakeExitCode;
       }
     }
     var commandOutput = createCommandOutput(
@@ -572,7 +572,7 @@ class RunningProcess {
         environment[key] = command.environmentOverrides[key];
       }
     }
-    for (var excludedEnvironmentVariable in EXCLUDED_ENVIRONMENT_VARIABLES) {
+    for (var excludedEnvironmentVariable in _excludedEnvironmentVariables) {
       environment.remove(excludedEnvironmentVariable);
     }
 
@@ -680,7 +680,7 @@ class BatchRunnerProcess {
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
-    if (outcome == "CRASH") exitCode = CRASHING_BROWSER_EXITCODE;
+    if (outcome == "CRASH") exitCode = browserCrashExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     var output = createCommandOutput(
         _command,
@@ -1298,7 +1298,7 @@ class CommandExecutorImpl implements CommandExecutor {
     var completer = new Completer<CommandOutput>();
 
     var callback = (BrowserTestOutput output) {
-      completer.complete(new BrowserCommandOutputImpl(browserCommand, output));
+      completer.complete(new BrowserCommandOutput(browserCommand, output));
     };
 
     BrowserTest browserTest;
@@ -1379,8 +1379,8 @@ bool shouldRetryCommand(CommandOutput output) {
       // No matter which command we ran: If we get failures due to the
       // "xvfb-run" issue 7564, try re-running the test.
       bool containsFailureMsg(String line) {
-        return line.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
-            line.contains(MESSAGE_FAILED_TO_RUN_COMMAND);
+        return line.contains(cannotOpenDisplayMessage) ||
+            line.contains(failedToRunCommandMessage);
       }
 
       if (stdout.any(containsFailureMsg) || stderr.any(containsFailureMsg)) {

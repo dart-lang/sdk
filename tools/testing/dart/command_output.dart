@@ -14,80 +14,38 @@ import 'expectation.dart';
 import 'test_runner.dart';
 import 'utils.dart';
 
-/**
- * CommandOutput records the output of a completed command: the process's exit
- * code, the standard output and standard error, whether the process timed out,
- * and the time the process took to run.  It does not contain a pointer to the
- * [TestCase] this is the output of, so some functions require the test case
- * to be passed as an argument.
- */
-abstract class CommandOutput {
-  Command get command;
+/// CommandOutput records the output of a completed command: the process's exit
+/// code, the standard output and standard error, whether the process timed out,
+/// and the time the process took to run. It does not contain a pointer to the
+/// [TestCase] this is the output of, so some functions require the test case
+/// to be passed as an argument.
+class CommandOutput extends UniqueObject {
+  final Command command;
 
-  Expectation result(TestCase testCase);
+  final bool hasTimedOut;
 
-  bool get hasCrashed;
+  final Duration time;
 
-  bool get hasTimedOut;
+  final int exitCode;
 
-  bool didFail(TestCase testCase);
+  final int pid;
 
-  bool hasFailed(TestCase testCase);
+  final List<int> stdout;
+  final List<int> stderr;
 
-  bool get canRunDependendCommands;
+  final bool compilationSkipped;
 
-  bool get successful; // otherwise we might to retry running
+  final List<String> diagnostics = [];
 
-  Duration get time;
-
-  int get exitCode;
-
-  int get pid;
-
-  List<int> get stdout;
-
-  List<int> get stderr;
-
-  List<String> get diagnostics;
-
-  bool get compilationSkipped;
-}
-
-class CommandOutputImpl extends UniqueObject implements CommandOutput {
-  Command command;
-  int exitCode;
-
-  bool timedOut;
-  List<int> stdout;
-  List<int> stderr;
-  Duration time;
-  List<String> diagnostics;
-  bool compilationSkipped;
-  int pid;
-
-  /**
-   * A flag to indicate we have already printed a warning about ignoring the VM
-   * crash, to limit the amount of output produced per test.
-   */
-  bool alreadyPrintedWarning = false;
-
-  CommandOutputImpl(
-      Command this.command,
-      int this.exitCode,
-      bool this.timedOut,
-      List<int> this.stdout,
-      List<int> this.stderr,
-      Duration this.time,
-      bool this.compilationSkipped,
-      int this.pid) {
-    diagnostics = [];
-  }
+  CommandOutput(this.command, this.exitCode, this.hasTimedOut, this.stdout,
+      this.stderr, this.time, this.compilationSkipped, this.pid);
 
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasFailed(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+
     return Expectation.pass;
   }
 
@@ -100,8 +58,8 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
     if (io.Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
-      if (exitCode == 3 || exitCode == CRASHING_BROWSER_EXITCODE) {
-        return !timedOut;
+      if (exitCode == 3 || exitCode == browserCrashExitCode) {
+        return !hasTimedOut;
       }
       // If a program receives an uncaught system exception, the program
       // terminates with the exception code as exit code.
@@ -109,16 +67,12 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
       // a crash of the program.
       // System exception codes can be found in 'winnt.h', for example
       // "#define STATUS_ACCESS_VIOLATION  ((DWORD) 0xC0000005)"
-      return (!timedOut && (exitCode < 0) && ((0x3FFFFF00 & exitCode) == 0));
+      return (!hasTimedOut && (exitCode < 0) && ((0x3FFFFF00 & exitCode) == 0));
     }
-    return !timedOut && ((exitCode < 0));
+    return !hasTimedOut && ((exitCode < 0));
   }
 
-  bool get hasTimedOut => timedOut;
-
-  bool didFail(TestCase testCase) {
-    return (exitCode != 0 && !hasCrashed);
-  }
+  bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
   bool get canRunDependendCommands {
     // FIXME(kustermann): We may need to change this
@@ -130,12 +84,13 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
     return !hasTimedOut && exitCode == 0;
   }
 
+  // TODO(bob): Remove.
   // Reverse result of a negative test.
   bool hasFailed(TestCase testCase) {
-    return testCase.isNegative ? !didFail(testCase) : didFail(testCase);
+    return testCase.isNegative ? !_didFail(testCase) : _didFail(testCase);
   }
 
-  bool get hasNonUtf8 => exitCode == NON_UTF_FAKE_EXITCODE;
+  bool get hasNonUtf8 => exitCode == nonUtfFakeExitCode;
 
   Expectation _negateOutcomeIfNegativeTest(
       Expectation outcome, bool isNegative) {
@@ -148,13 +103,13 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   }
 }
 
-class ContentShellCommandOutputImpl extends CommandOutputImpl {
+class ContentShellCommandOutput extends CommandOutput {
   // Although tests are reported as passing, content shell sometimes exits with
   // a nonzero exitcode which makes our dartium builders extremely falky.
   // See: http://dartbug.com/15139.
   // TODO(rnystrom): Is this still needed? The underlying bug is closed.
-  static int WHITELISTED_CONTENTSHELL_EXITCODE = -1073740022;
-  static bool isWindows = io.Platform.operatingSystem == 'windows';
+  static const _whitelistedContentShellExitCode = -1073740022;
+
   static bool _failedBecauseOfFlakyInfrastructure(
       Command command, bool timedOut, List<int> stderrBytes) {
     // If the browser test failed, it may have been because content shell
@@ -167,8 +122,8 @@ class ContentShellCommandOutputImpl extends CommandOutputImpl {
     var stderr = decodeUtf8(stderrBytes);
     // TODO(7564): See http://dartbug.com/7564
     // This may not be happening anymore.  Test by removing this suppression.
-    if (stderr.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
-        stderr.contains(MESSAGE_FAILED_TO_RUN_COMMAND)) {
+    if (stderr.contains(cannotOpenDisplayMessage) ||
+        stderr.contains(failedToRunCommandMessage)) {
       DebugLogger.warning(
           "Warning: Failure because of missing XDisplay. Test ignored");
       return true;
@@ -182,9 +137,9 @@ class ContentShellCommandOutputImpl extends CommandOutputImpl {
     return false;
   }
 
-  bool _infraFailure;
+  final bool _infraFailure;
 
-  ContentShellCommandOutputImpl(
+  ContentShellCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -226,12 +181,10 @@ class ContentShellCommandOutputImpl extends CommandOutputImpl {
   bool get canRunDependendCommands {
     // We cannot rely on the exit code of content_shell as a method to
     // determine if we were successful or not.
-    return super.canRunDependendCommands && !didFail(null);
+    return super.canRunDependendCommands && !_didFail(null);
   }
 
-  bool get hasCrashed {
-    return super.hasCrashed || _rendererCrashed;
-  }
+  bool get hasCrashed => super.hasCrashed || _rendererCrashed;
 
   Expectation _getOutcome() {
     if (_browserTestFailure) {
@@ -246,7 +199,7 @@ class ContentShellCommandOutputImpl extends CommandOutputImpl {
   bool get _browserTestFailure {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
-    bool hasContentType = false;
+    var hasContentType = false;
     var stdoutLines = decodeUtf8(super.stdout).split("\n");
     var containsFail = false;
     var containsPass = false;
@@ -287,18 +240,21 @@ class ContentShellCommandOutputImpl extends CommandOutputImpl {
         DebugLogger.warning(message);
         diagnostics.add(message);
       }
+
+      var isWindows = io.Platform.operatingSystem == 'windows';
       return (!hasCrashed &&
           exitCode != 0 &&
-          (!isWindows || exitCode != WHITELISTED_CONTENTSHELL_EXITCODE));
+          (!isWindows || exitCode != _whitelistedContentShellExitCode));
     }
+
     DebugLogger.warning("Couldn't find 'Content-Type: text/plain' in output. "
         "($command).");
     return true;
   }
 }
 
-class HTMLBrowserCommandOutputImpl extends ContentShellCommandOutputImpl {
-  HTMLBrowserCommandOutputImpl(
+class HtmlBrowserCommandOutput extends ContentShellCommandOutput {
+  HtmlBrowserCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -309,7 +265,7 @@ class HTMLBrowserCommandOutputImpl extends ContentShellCommandOutputImpl {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped);
 
-  bool didFail(TestCase testCase) {
+  bool _didFail(TestCase testCase) {
     return _getOutcome() != Expectation.pass;
   }
 
@@ -322,7 +278,7 @@ class HTMLBrowserCommandOutputImpl extends ContentShellCommandOutputImpl {
 }
 
 class BrowserTestJsonResult {
-  static const ALLOWED_TYPES = const [
+  static const _allowedTypes = const [
     'sync_exception',
     'window_onerror',
     'script_onerror',
@@ -353,7 +309,7 @@ class BrowserTestJsonResult {
         validate("Message must be a List", events is List);
 
         var messagesByType = <String, List<String>>{};
-        ALLOWED_TYPES.forEach((type) => messagesByType[type] = <String>[]);
+        _allowedTypes.forEach((type) => messagesByType[type] = <String>[]);
 
         for (var entry in events) {
           validate("An entry must be a Map", entry is Map);
@@ -363,8 +319,8 @@ class BrowserTestJsonResult {
           var timestamp = entry['timestamp'];
 
           validate("'type' of an entry must be a String", type is String);
-          validate("'type' has to be in $ALLOWED_TYPES.",
-              ALLOWED_TYPES.contains(type));
+          validate("'type' has to be in $_allowedTypes.",
+              _allowedTypes.contains(type));
           validate(
               "'timestamp' of an entry must be a number", timestamp is num);
 
@@ -443,12 +399,12 @@ class BrowserTestJsonResult {
   }
 }
 
-class BrowserCommandOutputImpl extends CommandOutputImpl
+class BrowserCommandOutput extends CommandOutput
     with UnittestSuiteMessagesMixin {
-  BrowserTestOutput _result;
-  Expectation _rawOutcome;
+  final BrowserTestOutput _result;
+  final Expectation _rawOutcome;
 
-  factory BrowserCommandOutputImpl(Command command, BrowserTestOutput result) {
+  factory BrowserCommandOutput(Command command, BrowserTestOutput result) {
     String indent(String string, int numSpaces) {
       var spaces = new List.filled(numSpaces, ' ').join('');
       return string
@@ -499,19 +455,18 @@ class BrowserCommandOutputImpl extends CommandOutputImpl
         'BrowserOutput.stderr:\n'
         '${indent(result.browserOutput.stderr.toString(), 2)}\n'
         '\n';
-    return new BrowserCommandOutputImpl._internal(
+    return new BrowserCommandOutput._internal(
         command, result, outcome, encodeUtf8(stdout), encodeUtf8(stderr));
   }
 
-  BrowserCommandOutputImpl._internal(Command command, BrowserTestOutput result,
+  BrowserCommandOutput._internal(Command command, BrowserTestOutput result,
       this._rawOutcome, List<int> stdout, List<int> stderr)
-      : super(command, 0, result.didTimeout, stdout, stderr, result.duration,
-            false, 0) {
-    _result = result;
-  }
+      : _result = result,
+        super(command, 0, result.didTimeout, stdout, stderr, result.duration,
+            false, 0);
 
   Expectation result(TestCase testCase) {
-    // Handle timeouts first
+    // Handle timeouts first.
     if (_result.didTimeout) {
       if (testCase.configuration.runtime == Runtime.ie11) {
         // TODO(28955): See http://dartbug.com/28955
@@ -523,7 +478,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    // Multitests are handled specially
+    // Multitests are handled specially.
     if (testCase.hasRuntimeError) {
       if (_rawOutcome == Expectation.runtimeError) return Expectation.pass;
       return Expectation.missingRuntimeError;
@@ -533,15 +488,13 @@ class BrowserCommandOutputImpl extends CommandOutputImpl
   }
 }
 
-class AnalysisCommandOutputImpl extends CommandOutputImpl {
+class AnalysisCommandOutput extends CommandOutput {
   // An error line has 8 fields that look like:
   // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
-  final int ERROR_LEVEL = 0;
-  final int ERROR_TYPE = 1;
-  final int FILENAME = 3;
-  final int FORMATTED_ERROR = 7;
+  static const int _errorLevel = 0;
+  static const int _formattedError = 7;
 
-  AnalysisCommandOutputImpl(
+  AnalysisCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -563,33 +516,33 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Get the errors/warnings from the analyzer
-    List<String> errors = [];
-    List<String> warnings = [];
+    var errors = <String>[];
+    var warnings = <String>[];
     parseAnalyzerOutput(errors, warnings);
 
     // Handle errors / missing errors
     if (testCase.expectCompileError) {
-      if (errors.length > 0) {
+      if (errors.isNotEmpty) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
     }
-    if (errors.length > 0) {
+    if (errors.isNotEmpty) {
       return Expectation.compileTimeError;
     }
 
     // Handle static warnings / missing static warnings
     if (testCase.hasStaticWarning) {
-      if (warnings.length > 0) {
+      if (warnings.isNotEmpty) {
         return Expectation.pass;
       }
       return Expectation.missingStaticWarning;
     }
-    if (warnings.length > 0) {
+    if (warnings.isNotEmpty) {
       return Expectation.staticWarning;
     }
 
-    assert(errors.length == 0 && warnings.length == 0);
+    assert(errors.isEmpty && warnings.isEmpty);
     assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
     return Expectation.pass;
   }
@@ -598,9 +551,9 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     // Parse a line delimited by the | character using \ as an escape character
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
-      StringBuffer field = new StringBuffer();
-      List<String> result = [];
-      bool escaped = false;
+      var field = new StringBuffer();
+      var result = <String>[];
+      var escaped = false;
       for (var i = 0; i < line.length; i++) {
         var c = line[i];
         if (!escaped && c == '\\') {
@@ -620,45 +573,46 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     }
 
     for (String line in decodeUtf8(super.stderr).split("\n")) {
-      if (line.length == 0) continue;
+      if (line.isEmpty) continue;
+
       List<String> fields = splitMachineError(line);
       // We only consider errors/warnings for files of interest.
-      if (fields.length > FORMATTED_ERROR) {
-        if (fields[ERROR_LEVEL] == 'ERROR') {
-          outErrors.add(fields[FORMATTED_ERROR]);
-        } else if (fields[ERROR_LEVEL] == 'WARNING') {
-          outWarnings.add(fields[FORMATTED_ERROR]);
+      if (fields.length > _formattedError) {
+        if (fields[_errorLevel] == 'ERROR') {
+          outErrors.add(fields[_formattedError]);
+        } else if (fields[_errorLevel] == 'WARNING') {
+          outWarnings.add(fields[_formattedError]);
         }
-        // OK to Skip error output that doesn't match the machine format
+        // OK to Skip error output that doesn't match the machine format.
       }
     }
   }
 }
 
-class VmCommandOutputImpl extends CommandOutputImpl
-    with UnittestSuiteMessagesMixin {
-  static const DART_VM_EXITCODE_DFE_ERROR = 252;
-  static const DART_VM_EXITCODE_COMPILE_TIME_ERROR = 254;
-  static const DART_VM_EXITCODE_UNCAUGHT_EXCEPTION = 255;
+class VMCommandOutput extends CommandOutput with UnittestSuiteMessagesMixin {
+  static const _dfeErrorExitCode = 252;
+  static const _compileErrorExitCode = 254;
+  static const _uncaughtExceptionExitCode = 255;
 
-  VmCommandOutputImpl(Command command, int exitCode, bool timedOut,
+  VMCommandOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time, int pid)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, pid);
 
   Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first
-    if (exitCode == DART_VM_EXITCODE_DFE_ERROR) return Expectation.dartkCrash;
+    // Handle crashes and timeouts first.
+    if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    // Multitests are handled specially
+    // Multitests are handled specially.
     if (testCase.expectCompileError) {
-      if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
+      if (exitCode == _compileErrorExitCode) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
     }
+
     if (testCase.hasRuntimeError) {
       // TODO(kustermann): Do we consider a "runtimeError" only an uncaught
       // exception or does any nonzero exit code fullfil this requirement?
@@ -668,27 +622,26 @@ class VmCommandOutputImpl extends CommandOutputImpl
       return Expectation.missingRuntimeError;
     }
 
-    // The actual outcome depends on the exitCode
-    Expectation outcome;
-    if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
+    // The actual outcome depends on the exitCode.
+    var outcome = Expectation.pass;
+    if (exitCode == _compileErrorExitCode) {
       outcome = Expectation.compileTimeError;
-    } else if (exitCode == DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
+    } else if (exitCode == _uncaughtExceptionExitCode) {
       outcome = Expectation.runtimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.
       outcome = Expectation.fail;
-    } else {
-      outcome = Expectation.pass;
     }
+
     outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 }
 
-class CompilationCommandOutputImpl extends CommandOutputImpl {
-  static const DART2JS_EXITCODE_CRASH = 253;
+class CompilationCommandOutput extends CommandOutput {
+  static const _crashExitCode = 253;
 
-  CompilationCommandOutputImpl(
+  CompilationCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -703,8 +656,8 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
     // Handle general crash/timeout detection.
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) {
-      bool isWindows = io.Platform.operatingSystem == 'windows';
-      bool isBrowserTestCase =
+      var isWindows = io.Platform.operatingSystem == 'windows';
+      var isBrowserTestCase =
           testCase.commands.any((command) => command is BrowserTestCommand);
       // TODO(26060) Dart2js batch mode hangs on Windows under heavy load.
       return (isWindows && isBrowserTestCase)
@@ -714,13 +667,13 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Handle dart2js specific crash detection
-    if (exitCode == DART2JS_EXITCODE_CRASH ||
-        exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_COMPILE_TIME_ERROR ||
-        exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
+    if (exitCode == _crashExitCode ||
+        exitCode == VMCommandOutput._compileErrorExitCode ||
+        exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
       return Expectation.crash;
     }
 
-    // Multitests are handled specially
+    // Multitests are handled specially.
     if (testCase.expectCompileError) {
       // Nonzero exit code of the compiler means compilation failed
       // TODO(kustermann): Do we have a special exit code in that case???
@@ -730,7 +683,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
       return Expectation.missingCompileTimeError;
     }
 
-    // TODO(kustermann): This is a hack, remove it
+    // TODO(kustermann): This is a hack, remove it.
     if (testCase.hasRuntimeError && testCase.commands.length > 1) {
       // We expected to run the test, but we got an compile time error.
       // If the compilation succeeded, we wouldn't be in here!
@@ -738,14 +691,14 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
       return Expectation.compileTimeError;
     }
 
-    Expectation outcome =
+    var outcome =
         exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 }
 
-class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
-  KernelCompilationCommandOutputImpl(
+class KernelCompilationCommandOutput extends CompilationCommandOutput {
+  KernelCompilationCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -759,8 +712,8 @@ class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
   bool get canRunDependendCommands {
     // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
     // TODO(asgerf): When the frontend supports it, continue running even if
-    //   there were compile-time errors. See kernel_sdk issue #18.
-    return !hasCrashed && !timedOut && exitCode == 0;
+    // there were compile-time errors. See kernel_sdk issue #18.
+    return !hasCrashed && !hasTimedOut && exitCode == 0;
   }
 
   Expectation result(TestCase testCase) {
@@ -775,22 +728,23 @@ class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
     return result;
   }
 
-  // If the compiler was able to produce a Kernel IR file we want to run the
-  // result on the Dart VM.  We therefore mark the [KernelCompilationCommand] as
-  // successful.
-  // => This ensures we test that the DartVM produces correct CompileTime errors
-  //    as it is supposed to for our test suites.
+  /// If the compiler was able to produce a Kernel IR file we want to run the
+  /// result on the Dart VM. We therefore mark the [KernelCompilationCommand]
+  /// as successful.
+  ///
+  /// This ensures we test that the DartVM produces correct CompileTime errors
+  /// as it is supposed to for our test suites.
   bool get successful => canRunDependendCommands;
 }
 
-class JsCommandlineOutputImpl extends CommandOutputImpl
+class JSCommandLineOutput extends CommandOutput
     with UnittestSuiteMessagesMixin {
-  JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
+  JSCommandLineOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
   Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first
+    // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
@@ -806,13 +760,13 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
   }
 }
 
-class PubCommandOutputImpl extends CommandOutputImpl {
-  PubCommandOutputImpl(PubCommand command, int exitCode, bool timedOut,
+class PubCommandOutput extends CommandOutput {
+  PubCommandOutput(PubCommand command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
   Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first
+    // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
@@ -827,10 +781,10 @@ class PubCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
-class ScriptCommandOutputImpl extends CommandOutputImpl {
+class ScriptCommandOutput extends CommandOutput {
   final Expectation _result;
 
-  ScriptCommandOutputImpl(ScriptCommand command, this._result,
+  ScriptCommandOutput(ScriptCommand command, this._result,
       String scriptExecutionInformation, Duration time)
       : super(command, 0, false, [], [], time, false, 0) {
     var lines = scriptExecutionInformation.split("\n");
@@ -848,41 +802,41 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
     List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
     [int pid = 0]) {
   if (command is ContentShellCommand) {
-    return new ContentShellCommandOutputImpl(
+    return new ContentShellCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is BrowserTestCommand) {
-    return new HTMLBrowserCommandOutputImpl(
+    return new HtmlBrowserCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AnalysisCommand) {
-    return new AnalysisCommandOutputImpl(
+    return new AnalysisCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is VmCommand) {
-    return new VmCommandOutputImpl(
+    return new VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is KernelCompilationCommand) {
-    return new KernelCompilationCommandOutputImpl(
+    return new KernelCompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
-    return new VmCommandOutputImpl(
+    return new VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
         command.displayName == 'app_jit') {
-      return new VmCommandOutputImpl(
+      return new VMCommandOutput(
           command, exitCode, timedOut, stdout, stderr, time, pid);
     }
-    return new CompilationCommandOutputImpl(
+    return new CompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
-    return new JsCommandlineOutputImpl(
+    return new JSCommandLineOutput(
         command, exitCode, timedOut, stdout, stderr, time);
   } else if (command is PubCommand) {
-    return new PubCommandOutputImpl(
+    return new PubCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time);
   }
 
-  return new CommandOutputImpl(command, exitCode, timedOut, stdout, stderr,
-      time, compilationSkipped, pid);
+  return new CommandOutput(command, exitCode, timedOut, stdout, stderr, time,
+      compilationSkipped, pid);
 }
 
 class UnittestSuiteMessagesMixin {
