@@ -12,6 +12,20 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 
 /**
+ * The information about a requested set of navigation information when
+ * computing navigation information in a `.dart` file.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DartNavigationRequest implements NavigationRequest {
+  /**
+   * The analysis result for the file in which the navigation regions are being
+   * requested.
+   */
+  ResolveResult get result;
+}
+
+/**
  * An object that [NavigationContributor]s use to record navigation regions.
  *
  * Clients may not extend, implement or mix-in this class.
@@ -74,8 +88,8 @@ class NavigationGenerator {
       }
     }
     collector.createRegions();
-    notifications.add(new AnalysisNavigationParams(request.result.path,
-            collector.regions, collector.targets, collector.files)
+    notifications.add(new AnalysisNavigationParams(
+            request.path, collector.regions, collector.targets, collector.files)
         .toNotification());
     return new GeneratorResult(null, notifications);
   }
@@ -123,13 +137,12 @@ abstract class NavigationRequest {
   int get offset;
 
   /**
+   * Return the path of the file in which navigation regions are being requested.
+   */
+  String get path;
+
+  /**
    * Return the resource provider associated with this request.
    */
   ResourceProvider get resourceProvider;
-
-  /**
-   * The analysis result for the file in which the navigation regions are being
-   * requested.
-   */
-  ResolveResult get result;
 }

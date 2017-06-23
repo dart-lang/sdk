@@ -41,7 +41,7 @@ class InheritedReferenceContributor extends Object
    */
   @override
   Future<Null> computeSuggestions(
-      CompletionRequest request, CompletionCollector collector) async {
+      DartCompletionRequest request, CompletionCollector collector) async {
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);
     OpType optype = new OpType.forCompletion(target, request.offset);
@@ -61,7 +61,7 @@ class InheritedReferenceContributor extends Object
    * Clients should not overload this function.
    */
   Future<Null> computeSuggestionsForClass(
-    CompletionRequest request,
+    DartCompletionRequest request,
     CompletionCollector collector,
     ClassElement classElement, {
     AstNode entryPoint,

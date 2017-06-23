@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart' hide AnalysisResult;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -98,9 +97,12 @@ class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
   }
 
   @override
-  Future<ResolveResult> getResolveResultForCompletion(
-      AnalysisDriverGeneric driver, String path) async {
-    return new AnalysisResult(
+  Future<CompletionRequest> getCompletionRequest(
+      CompletionGetSuggestionsParams parameters,
+      covariant AnalysisDriverGeneric driver) async {
+    AnalysisResult result = new AnalysisResult(
         null, null, null, null, null, null, null, null, null, null, null);
+    return new DartCompletionRequestImpl(
+        resourceProvider, parameters.offset, result);
   }
 }

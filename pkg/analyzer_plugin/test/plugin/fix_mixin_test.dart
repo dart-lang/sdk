@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart' hide AnalysisResult;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer_plugin/plugin/fix_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/src/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:path/src/context.dart';
 import 'package:test/test.dart';
@@ -71,7 +71,7 @@ class _TestFixContributor implements FixContributor {
   @override
   void computeFixes(FixesRequest request, FixCollector collector) {
     for (PrioritizedSourceChange change in changes) {
-      collector.addFix(request.error, change);
+      collector.addFix(request.errorsToFix[0], change);
     }
   }
 }
@@ -94,11 +94,13 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   }
 
   @override
-  Future<ResolveResult> getResolveResultForFixes(
-      AnalysisDriverGeneric driver, String path) async {
+  Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters,
+      covariant AnalysisDriverGeneric driver) async {
+    int offset = parameters.offset;
     AnalysisError error = new AnalysisError(
         new MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
-    return new AnalysisResult(null, null, null, null, null, null,
-        new LineInfo([0, 20]), null, null, [error], null);
+    AnalysisResult result = new AnalysisResult(null, null, null, null, null,
+        null, new LineInfo([0, 20]), null, null, [error], null);
+    return new DartFixesRequestImpl(resourceProvider, offset, [error], result);
   }
 }

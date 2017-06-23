@@ -31,7 +31,8 @@ abstract class AssistContributor {
    * Contribute assists for the location in the file specified by the given
    * [request] into the given [collector].
    */
-  void computeAssists(AssistRequest request, AssistCollector collector);
+  void computeAssists(
+      covariant AssistRequest request, AssistCollector collector);
 }
 
 /**
@@ -95,7 +96,15 @@ abstract class AssistRequest {
    * Return the resource provider associated with this request.
    */
   ResourceProvider get resourceProvider;
+}
 
+/**
+ * The information about a requested set of assists when computing assists in a
+ * `.dart` file.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DartAssistRequest implements AssistRequest {
   /**
    * The analysis result for the file in which the assists are being requested.
    */

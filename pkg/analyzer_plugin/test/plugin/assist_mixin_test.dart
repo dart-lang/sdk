@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart' hide AnalysisResult;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/assist_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/src/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:path/src/context.dart';
 import 'package:test/test.dart';
@@ -88,9 +88,11 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
   }
 
   @override
-  Future<ResolveResult> getResolveResultForAssists(
-      AnalysisDriverGeneric driver, String path) async {
-    return new AnalysisResult(
+  Future<AssistRequest> getAssistRequest(
+      EditGetAssistsParams parameters, covariant AnalysisDriver driver) async {
+    AnalysisResult result = new AnalysisResult(
         null, null, null, null, null, null, null, null, null, null, null);
+    return new DartAssistRequestImpl(
+        resourceProvider, parameters.offset, parameters.length, result);
   }
 }

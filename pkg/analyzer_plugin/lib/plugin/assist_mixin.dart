@@ -29,11 +29,11 @@ abstract class AssistsMixin implements ServerPlugin {
       covariant AnalysisDriverGeneric driver);
 
   /**
-   * Return the result of using the given analysis [driver] to produce a fully
-   * resolved AST for the file with the given [path].
+   * Return the assist request that should be passes to the contributors
+   * returned from [getAssistContributors].
    */
-  Future<ResolveResult> getResolveResultForAssists(
-      covariant AnalysisDriverGeneric driver, String path);
+  Future<AssistRequest> getAssistRequest(
+      EditGetAssistsParams parameters, covariant AnalysisDriverGeneric driver);
 
   @override
   Future<EditGetAssistsResult> handleEditGetAssists(
@@ -46,14 +46,30 @@ abstract class AssistsMixin implements ServerPlugin {
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
     AnalysisDriverGeneric driver = driverMap[contextRoot];
-    ResolveResult analysisResult =
-        await getResolveResultForAssists(driver, path);
-    AssistRequestImpl request = new AssistRequestImpl(
-        resourceProvider, parameters.offset, parameters.length, analysisResult);
+    AssistRequest request = await getAssistRequest(parameters, driver);
     AssistGenerator generator =
         new AssistGenerator(getAssistContributors(driver));
     GeneratorResult result = await generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
+  }
+}
+
+/**
+ * A mixin that can be used when creating a subclass of [ServerPlugin] and
+ * mixing in [AssistsMixin]. This implements the creation of the assists request
+ * based on the assumption that the driver being created is an [AnalysisDriver].
+ *
+ * Clients may not extend or implement this class, but are allowed to use it as
+ * a mix-in when creating a subclass of [ServerPlugin] that also uses
+ * [AssistsMixin] as a mix-in.
+ */
+abstract class DartAssistsMixin implements AssistsMixin {
+  @override
+  Future<AssistRequest> getAssistRequest(
+      EditGetAssistsParams parameters, covariant AnalysisDriver driver) async {
+    ResolveResult result = await driver.getResult(parameters.file);
+    return new DartAssistRequestImpl(
+        resourceProvider, parameters.offset, parameters.length, result);
   }
 }

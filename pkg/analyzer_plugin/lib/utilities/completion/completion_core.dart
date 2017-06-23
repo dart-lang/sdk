@@ -73,7 +73,7 @@ abstract class CompletionContributor {
    * the given [request] into the given [collector].
    */
   Future<Null> computeSuggestions(
-      CompletionRequest request, CompletionCollector collector);
+      covariant CompletionRequest request, CompletionCollector collector);
 }
 
 /**
@@ -142,13 +142,21 @@ abstract class CompletionRequest {
   ResourceProvider get resourceProvider;
 
   /**
+   * Throw an [AbortCompletion] if the completion request has been aborted.
+   */
+  void checkAborted();
+}
+
+/**
+ * The information about a requested list of completions when completing in a
+ * `.dart` file.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DartCompletionRequest implements CompletionRequest {
+  /**
    * The analysis result for the file in which the completion is being
    * requested.
    */
   ResolveResult get result;
-
-  /**
-   * Throw an [AbortCompletion] if the completion request has been aborted.
-   */
-  void checkAborted();
 }

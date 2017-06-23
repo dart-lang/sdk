@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
@@ -15,11 +17,13 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:test/test.dart';
 
-class MockAnalysisDriver extends AnalysisDriverGeneric {
-  /**
-   * The files that have been added to this driver.
-   */
-  List<String> addedFiles = <String>[];
+class MockAnalysisDriver extends AnalysisDriver {
+  @override
+  Set<String> addedFiles = new HashSet<String>();
+
+  MockAnalysisDriver()
+      : super(new AnalysisDriverScheduler(null), null, null, null, null, null,
+            new SourceFactory([]), new AnalysisOptionsImpl());
 
   @override
   bool get hasFilesToAnalyze => false;

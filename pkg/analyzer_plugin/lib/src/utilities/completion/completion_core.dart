@@ -62,26 +62,26 @@ class CompletionCollectorImpl implements CompletionCollector {
   }
 
   @override
-  void addSuggestion(CompletionSuggestion suggestion) {
-    suggestions.add(suggestion);
-  }
-
-  @override
   bool get offsetIsSet => offset != null;
 
   @override
   int get suggestionsLength => suggestions.length;
+
+  @override
+  void addSuggestion(CompletionSuggestion suggestion) {
+    suggestions.add(suggestion);
+  }
 }
 
 /**
- * Information about the completion request that was made.
- */
-class CompletionRequestImpl implements CompletionRequest {
-  @override
-  final int offset;
-
+* A concrete implementation of [DartCompletionRequest].
+*/
+class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final ResourceProvider resourceProvider;
+
+  @override
+  final int offset;
 
   @override
   final ResolveResult result;
@@ -94,7 +94,7 @@ class CompletionRequestImpl implements CompletionRequest {
   /**
    * Initialize a newly created request.
    */
-  CompletionRequestImpl(this.resourceProvider, this.result, this.offset);
+  DartCompletionRequestImpl(this.resourceProvider, this.offset, this.result);
 
   /**
    * Abort the current completion request.

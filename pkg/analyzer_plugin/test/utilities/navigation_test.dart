@@ -25,7 +25,7 @@ class NavigationGeneratorTest {
   test_none() {
     NavigationGenerator generator = new NavigationGenerator([]);
     NavigationRequest request =
-        new NavigationRequestImpl(provider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(provider, 0, 100, resolveResult);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
   }
@@ -34,7 +34,7 @@ class NavigationGeneratorTest {
     TestContributor contributor = new TestContributor();
     NavigationGenerator generator = new NavigationGenerator([contributor]);
     NavigationRequest request =
-        new NavigationRequestImpl(provider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(provider, 0, 100, resolveResult);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
@@ -53,7 +53,7 @@ class NavigationGeneratorTest {
     NavigationGenerator generator = new NavigationGenerator(
         [contributor1, contributor2, contributor3, contributor4]);
     NavigationRequest request =
-        new NavigationRequestImpl(provider, 0, 100, resolveResult);
+        new DartNavigationRequestImpl(provider, 0, 100, resolveResult);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(3));
     expect(
