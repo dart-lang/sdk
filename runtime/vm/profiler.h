@@ -521,15 +521,7 @@ class SampleBuffer {
   static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
   explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
-
-  ~SampleBuffer() {
-    if (samples_ != NULL) {
-      free(samples_);
-      samples_ = NULL;
-      cursor_ = 0;
-      capacity_ = 0;
-    }
-  }
+  ~SampleBuffer();
 
   intptr_t capacity() const { return capacity_; }
 
@@ -575,6 +567,7 @@ class SampleBuffer {
                                         const CodeLookupTable& clt);
   Sample* Next(Sample* sample);
 
+  VirtualMemory* memory_;
   Sample* samples_;
   intptr_t capacity_;
   uintptr_t cursor_;

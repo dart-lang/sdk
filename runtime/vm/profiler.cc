@@ -129,16 +129,29 @@ uword* Sample::GetPCArray() const {
 
 SampleBuffer::SampleBuffer(intptr_t capacity) {
   ASSERT(Sample::instance_size() > 0);
-  samples_ =
-      reinterpret_cast<Sample*>(calloc(capacity, Sample::instance_size()));
+
+  const intptr_t size = Utils::RoundUp(capacity * Sample::instance_size(),
+                                       VirtualMemory::PageSize());
+  const bool kNotExecutable = false;
+  memory_ = VirtualMemory::Reserve(size);
+  if ((memory_ == NULL) || !memory_->Commit(kNotExecutable, "dart-profiler")) {
+    OUT_OF_MEMORY();
+  }
+
+  samples_ = reinterpret_cast<Sample*>(memory_->address());
+  capacity_ = capacity;
+  cursor_ = 0;
+
   if (FLAG_trace_profiler) {
     OS::Print("Profiler holds %" Pd " samples\n", capacity);
     OS::Print("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
-    OS::Print("Profiler memory usage = %" Pd " bytes\n",
-              capacity * Sample::instance_size());
+    OS::Print("Profiler memory usage = %" Pd " bytes\n", size);
   }
-  capacity_ = capacity;
-  cursor_ = 0;
+}
+
+
+SampleBuffer::~SampleBuffer() {
+  delete memory_;
 }
 
 
