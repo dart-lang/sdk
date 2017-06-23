@@ -212,7 +212,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
 /**
  * HTTP parser which parses the data stream given to [consume].
  *
- * If an HTTP parser error occours, the parser will signal an error to either
+ * If an HTTP parser error occurs, the parser will signal an error to either
  * the current _HttpIncoming or the _parser itself.
  *
  * The connection upgrades (e.g. switching from HTTP/1.1 to the

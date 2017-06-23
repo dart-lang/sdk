@@ -280,7 +280,7 @@ bool _isToStringVisiting(Object o) {
 }
 
 /**
- * Convert elments of [iterable] to strings and store them in [parts].
+ * Convert elements of [iterable] to strings and store them in [parts].
  */
 void _iterablePartsToStrings(Iterable iterable, List parts) {
   /*

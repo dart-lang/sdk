@@ -30,7 +30,7 @@ abstract class SecureSocket implements Socket {
    * to continue the [SecureSocket] connection.
    *
    * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negogiation with the
+   * order of preference) to use during the ALPN protocol negotiation with the
    * server.  Example values are "http/1.1" or "h2".  The selected protocol
    * can be obtained via [SecureSocket.selectedProtocol].
    *
@@ -196,7 +196,7 @@ abstract class RawSecureSocket implements RawSocket {
    * to continue the [RawSecureSocket] connection.
    *
    * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negogiation with the
+   * order of preference) to use during the ALPN protocol negotiation with the
    * server.  Example values are "http/1.1" or "h2".  The selected protocol
    * can be obtained via [RawSecureSocket.selectedProtocol].
    */
