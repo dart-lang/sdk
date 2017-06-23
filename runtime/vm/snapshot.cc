@@ -29,7 +29,7 @@
 
 namespace dart {
 
-static const int kNumInitialReferences = 64;
+static const int kNumInitialReferences = 32;
 
 
 static bool IsSingletonClassId(intptr_t class_id) {
