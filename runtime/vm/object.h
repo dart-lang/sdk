@@ -2218,6 +2218,9 @@ class Function : public Object {
   RawType* SignatureType() const;
   RawType* ExistingSignatureType() const;
 
+  // Allocate and return a signature function equivalent to this function.
+  RawFunction* CanonicalSignatureFunction(TrailPtr trail) const;
+
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
 

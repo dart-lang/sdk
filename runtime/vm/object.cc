@@ -5731,6 +5731,44 @@ RawType* Function::ExistingSignatureType() const {
 }
 
 
+RawFunction* Function::CanonicalSignatureFunction(TrailPtr trail) const {
+  ASSERT(!IsSignatureFunction());
+  Zone* zone = Thread::Current()->zone();
+  Function& parent = Function::Handle(zone, parent_function());
+  if (!parent.IsNull() && !parent.IsSignatureFunction()) {
+    // Make sure the parent function is also a signature function.
+    parent = parent.CanonicalSignatureFunction(trail);
+  }
+  const Class& owner = Class::Handle(zone, Owner());
+  const Function& sig_fun = Function::Handle(
+      zone,
+      Function::NewSignatureFunction(owner, parent, TokenPosition::kNoSource));
+  // In case of a generic function, the function type parameters in the
+  // signature will still refer to the original function. This should not
+  // be a problem, since once finalized the indices will be identical.
+  sig_fun.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+  ASSERT(HasGenericParent() == sig_fun.HasGenericParent());
+  ASSERT(IsGeneric() == sig_fun.IsGeneric());
+  AbstractType& type = AbstractType::Handle(zone);
+  type = result_type();
+  type = type.Canonicalize(trail);
+  sig_fun.set_result_type(type);
+  const intptr_t num_params = NumParameters();
+  sig_fun.set_num_fixed_parameters(num_fixed_parameters());
+  sig_fun.SetNumOptionalParameters(NumOptionalParameters(),
+                                   HasOptionalPositionalParameters());
+  sig_fun.set_parameter_types(
+      Array::Handle(Array::New(num_params, Heap::kOld)));
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = ParameterTypeAt(i);
+    type = type.Canonicalize(trail);
+    sig_fun.SetParameterTypeAt(i, type);
+  }
+  sig_fun.set_parameter_names(Array::Handle(zone, parameter_names()));
+  return sig_fun.raw();
+}
+
+
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
@@ -17716,35 +17754,9 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     // In case of a function type, replace the actual function by a signature
     // function.
     if (IsFunctionType()) {
-      const Function& fun = Function::Handle(zone, signature());
-      if (!fun.IsSignatureFunction()) {
-        // In case of a generic function, the function type parameters in the
-        // signature will still refer to the original function. This should not
-        // be a problem, since they are finalized and the indices remain
-        // unchanged.
-        const Function& parent = Function::Handle(zone, fun.parent_function());
-        Function& sig_fun =
-            Function::Handle(zone, Function::NewSignatureFunction(
-                                       cls, parent, TokenPosition::kNoSource));
-        sig_fun.set_type_parameters(
-            TypeArguments::Handle(zone, fun.type_parameters()));
-        ASSERT(fun.HasGenericParent() == sig_fun.HasGenericParent());
-        ASSERT(fun.IsGeneric() == sig_fun.IsGeneric());
-        type = fun.result_type();
-        type = type.Canonicalize(trail);
-        sig_fun.set_result_type(type);
-        const intptr_t num_params = fun.NumParameters();
-        sig_fun.set_num_fixed_parameters(fun.num_fixed_parameters());
-        sig_fun.SetNumOptionalParameters(fun.NumOptionalParameters(),
-                                         fun.HasOptionalPositionalParameters());
-        sig_fun.set_parameter_types(
-            Array::Handle(Array::New(num_params, Heap::kOld)));
-        for (intptr_t i = 0; i < num_params; i++) {
-          type = fun.ParameterTypeAt(i);
-          type = type.Canonicalize(trail);
-          sig_fun.SetParameterTypeAt(i, type);
-        }
-        sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
+      Function& sig_fun = Function::Handle(zone, signature());
+      if (!sig_fun.IsSignatureFunction()) {
+        sig_fun = sig_fun.CanonicalSignatureFunction(trail);
         set_signature(sig_fun);
         // Note that the signature type of the signature function may be
         // different than the type being canonicalized.
