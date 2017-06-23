@@ -700,8 +700,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object/*=V*/ computeResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ descriptor) {
+  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> descriptor) {
     // Make sure we are not trying to invoke the task model in a reentrant
     // fashion.
     assert(!driver.isTaskRunning);
@@ -841,8 +840,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @deprecated
   @override
-  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) =>
-      (_configurationData[key] ?? key?.defaultValue) as Object/*=V*/;
+  V getConfigurationData<V>(ResultDescriptor<V> key) =>
+      (_configurationData[key] ?? key?.defaultValue) as V;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1026,8 +1025,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object/*=V*/ getResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     return _cache.getValue(target, result);
   }
 
@@ -1662,7 +1660,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisEngine.instance.logger.logInformation(message);
   }
 
-  bool _notEqual/*<T>*/(List/*<T>*/ first, List/*<T>*/ second) {
+  bool _notEqual<T>(List<T> first, List<T> second) {
     int length = first.length;
     if (length != second.length) {
       return true;

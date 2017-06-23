@@ -834,8 +834,7 @@ abstract class AstFactory {
    * are added to the list will have their parent set to the given [owner]. The
    * list will initially be populated with the given [elements].
    */
-  NodeList/*<E>*/ nodeList/*<E extends AstNode>*/(AstNode owner,
-      [List/*<E>*/ elements]);
+  NodeList<E> nodeList<E extends AstNode>(AstNode owner, [List<E> elements]);
 
   /**
    * Returns a newly created null literal.

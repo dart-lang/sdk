@@ -513,8 +513,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object/*=V*/ computeResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     fail("Unexpected invocation of computeResult");
     return null;
   }
@@ -551,7 +550,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
 
   @deprecated
   @override
-  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) {
+  V getConfigurationData<V>(ResultDescriptor<V> key) {
     fail("Unexpected invocation of getConfigurationData");
     return null;
   }
@@ -655,8 +654,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object/*=V*/ getResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     fail("Unexpected invocation of getResult");
     return null;
   }

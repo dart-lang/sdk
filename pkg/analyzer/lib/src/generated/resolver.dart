@@ -6669,7 +6669,7 @@ class ResolverVisitor extends ScopedVisitor {
         uninstantiatedType is FunctionType &&
         uninstantiatedType.typeFormals.isNotEmpty &&
         ts is StrongTypeSystemImpl) {
-      return ts.inferGenericFunctionOrType/*<FunctionType>*/(
+      return ts.inferGenericFunctionOrType<FunctionType>(
           uninstantiatedType,
           ParameterElement.EMPTY_LIST,
           DartType.EMPTY_LIST,

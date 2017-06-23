@@ -2651,7 +2651,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   Element get staticElement => null;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) => null;
+  E accept<E>(AstVisitor<E> visitor) => null;
 
   @override
   void visitChildren(AstVisitor visitor) {}

@@ -762,7 +762,7 @@ class ConstantEvaluationEngine {
           superclass.lookUpConstructor(superName, constructor.library);
       if (superConstructor != null) {
         if (superArguments == null) {
-          superArguments = astFactory.nodeList/*<Expression>*/(null);
+          superArguments = astFactory.nodeList<Expression>(null);
         }
 
         evaluateSuperConstructorCall(node, fieldMap, superConstructor,

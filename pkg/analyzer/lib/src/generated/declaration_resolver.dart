@@ -494,8 +494,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * If [identifier] is `null`, nothing is updated, but the element name is
    * still checked.
    */
-  Element/*=E*/ _match/*<E extends Element>*/(
-      SimpleIdentifier identifier, Element/*=E*/ element,
+  E _match<E extends Element>(SimpleIdentifier identifier, E element,
       {String elementName, int offset}) {
     elementName ??= identifier?.name ?? '';
     offset ??= identifier?.offset ?? -1;

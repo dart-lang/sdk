@@ -412,8 +412,7 @@ abstract class ElementHandle implements Element {
       object is Element && object.location == _location;
 
   @override
-  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
-      actualElement.accept(visitor);
+  T accept<T>(ElementVisitor<T> visitor) => actualElement.accept(visitor);
 
   @override
   String computeDocumentationComment() => documentationComment;
@@ -422,8 +421,7 @@ abstract class ElementHandle implements Element {
   AstNode computeNode() => actualElement.computeNode();
 
   @override
-  Element/*=E*/ getAncestor/*<E extends Element >*/(
-          Predicate<Element> predicate) =>
+  E getAncestor<E extends Element>(Predicate<Element> predicate) =>
       actualElement.getAncestor(predicate);
 
   @override

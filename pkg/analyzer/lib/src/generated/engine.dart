@@ -331,8 +331,7 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object/*=V*/ computeResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
+  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> result);
 
   /**
    * Notifies the context that the client is going to stop using this context.
@@ -365,7 +364,7 @@ abstract class AnalysisContext {
    * See [setConfigurationData].
    */
   @deprecated
-  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key);
+  V getConfigurationData<V>(ResultDescriptor<V> key);
 
   /**
    * Return the contents and timestamp of the given [source].
@@ -494,8 +493,7 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object/*=V*/ getResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
+  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path

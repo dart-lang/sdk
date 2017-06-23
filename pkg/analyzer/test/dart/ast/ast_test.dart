@@ -366,7 +366,7 @@ class NodeListTest extends EngineTestCase {
     AstNode parent = AstTestFactory.argumentList();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(parent);
+    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
     list.insert(0, secondNode);
     list.insert(0, firstNode);
     expect(list, hasLength(2));
@@ -387,7 +387,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_add_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.insert(-1, AstTestFactory.booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -398,7 +398,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_add_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.insert(1, AstTestFactory.booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -414,7 +414,7 @@ class NodeListTest extends EngineTestCase {
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     firstNodes.add(firstNode);
     firstNodes.add(secondNode);
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(parent);
+    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
     list.addAll(firstNodes);
     expect(list, hasLength(2));
     expect(list[0], same(firstNode));
@@ -440,7 +440,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_creation() {
     AstNode owner = AstTestFactory.argumentList();
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(owner);
+    NodeList<AstNode> list = astFactory.nodeList<AstNode>(owner);
     expect(list, isNotNull);
     expect(list, hasLength(0));
     expect(list.owner, same(owner));
@@ -448,7 +448,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_get_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1];
       fail("Expected IndexOutOfBoundsException");
@@ -459,7 +459,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_get_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1];
       fail("Expected IndexOutOfBoundsException");
@@ -470,13 +470,13 @@ class NodeListTest extends EngineTestCase {
 
   void test_getBeginToken_empty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     expect(list.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     AstNode node = AstTestFactory
         .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
     list.add(node);
@@ -485,13 +485,13 @@ class NodeListTest extends EngineTestCase {
 
   void test_getEndToken_empty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     expect(list.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     AstNode node = AstTestFactory
         .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
     list.add(node);
@@ -508,7 +508,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     expect(list.indexOf(firstNode), 0);
@@ -527,7 +527,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     expect(list.removeAt(1), same(secondNode));
@@ -538,7 +538,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_remove_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.removeAt(-1);
       fail("Expected IndexOutOfBoundsException");
@@ -549,7 +549,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_remove_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.removeAt(1);
       fail("Expected IndexOutOfBoundsException");
@@ -567,7 +567,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstTestFactory.integer(0);
@@ -581,7 +581,7 @@ class NodeListTest extends EngineTestCase {
   void test_set_negative() {
     AstNode node = AstTestFactory.booleanLiteral(true);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -593,7 +593,7 @@ class NodeListTest extends EngineTestCase {
   void test_set_tooBig() {
     AstNode node = AstTestFactory.booleanLiteral(true);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
       fail("Expected IndexOutOfBoundsException");

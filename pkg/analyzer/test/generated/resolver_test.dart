@@ -3624,5 +3624,5 @@ class _StaleElement extends ElementImpl {
   get kind => throw "_StaleElement's kind shouldn't be accessed";
 
   @override
-  /*=T*/ accept/*<T>*/(_) => throw "_StaleElement shouldn't be visited";
+  T accept<T>(_) => throw "_StaleElement shouldn't be visited";
 }
