@@ -9,8 +9,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/operation/operation.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
@@ -250,25 +248,6 @@ class MockServerChannel implements ServerCommunicationChannel {
     return new Future<Response>(() => responseController.stream
         .firstWhere((response) => response.id == id) as Future<Response>);
   }
-}
-
-/**
- * A mock [ServerOperation] for testing [AnalysisServer].
- */
-class MockServerOperation implements PerformAnalysisOperation {
-  final ServerOperationPriority priority;
-  final MockServerOperationPerformFunction _perform;
-
-  MockServerOperation(this.priority, this._perform);
-
-  @override
-  AnalysisContext get context => null;
-
-  @override
-  bool get isContinue => false;
-
-  @override
-  void perform(AnalysisServer server) => this._perform(server);
 }
 
 /**

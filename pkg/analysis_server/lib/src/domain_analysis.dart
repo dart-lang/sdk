@@ -12,8 +12,6 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart'
-    show NavigationOperation, OccurrencesOperation;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
@@ -437,19 +435,5 @@ class AnalysisDomainImpl implements AnalysisDomain {
 //    server.onContextsChanged.listen((ContextsChangedEvent event) {
 //      event.added.forEach(_subscribeForContext);
 //    });
-  }
-
-  @override
-  void scheduleNotification(
-      engine.AnalysisContext context, Source source, AnalysisService service) {
-    String file = source.fullName;
-    if (server.hasAnalysisSubscription(service, file)) {
-      if (service == AnalysisService.NAVIGATION) {
-        server.scheduleOperation(new NavigationOperation(context, source));
-      }
-      if (service == AnalysisService.OCCURRENCES) {
-        server.scheduleOperation(new OccurrencesOperation(context, source));
-      }
-    }
   }
 }

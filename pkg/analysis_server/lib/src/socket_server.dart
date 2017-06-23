@@ -95,8 +95,7 @@ class SocketServer {
         instrumentationService,
         diagnosticServer: diagnosticServer,
         fileResolverProvider: fileResolverProvider,
-        packageResolverProvider: packageResolverProvider,
-        rethrowExceptions: false);
+        packageResolverProvider: packageResolverProvider);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }
 }

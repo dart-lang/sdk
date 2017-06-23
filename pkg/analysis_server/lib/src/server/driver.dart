@@ -250,12 +250,6 @@ class Driver implements ServerStarter {
    * The name of the option used to specify if [print] should print to the
    * console instead of being intercepted.
    */
-  static const String INTERNAL_DELAY_FREQUENCY = 'internal-delay-frequency';
-
-  /**
-   * The name of the option used to specify if [print] should print to the
-   * console instead of being intercepted.
-   */
   static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
 
   /**
@@ -339,13 +333,6 @@ class Driver implements ServerStarter {
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser);
       return null;
-    }
-
-    // TODO (danrubel) Remove this workaround
-    // once the underlying VM and dart:io issue has been fixed.
-    if (results[INTERNAL_DELAY_FREQUENCY] != null) {
-      AnalysisServer.performOperationDelayFrequency =
-          int.parse(results[INTERNAL_DELAY_FREQUENCY], onError: (_) => 0);
     }
 
     int port;
@@ -540,7 +527,6 @@ class Driver implements ServerStarter {
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"
             " status and performance information");
-    parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
         help: "enable version 2 of semantic highlight",

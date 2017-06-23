@@ -23,9 +23,7 @@ import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
-import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -102,13 +100,6 @@ class AnalysisServer {
    * automatically during the build.
    */
   static final String VERSION = '1.18.1';
-
-  /**
-   * The number of milliseconds to perform operations before inserting
-   * a 1 millisecond delay so that the VM and dart:io can deliver content
-   * to stdin. This should be removed once the underlying problem is fixed.
-   */
-  static int performOperationDelayFrequency = 25;
 
   /**
    * The options of this server instance.
@@ -195,16 +186,6 @@ class AnalysisServer {
   final InstrumentationService instrumentationService;
 
   /**
-   * A queue of the operations to perform in this server.
-   */
-  ServerOperationQueue operationQueue;
-
-  /**
-   * True if there is a pending future which will execute [performOperation].
-   */
-  bool performOperationPending = false;
-
-  /**
    * A set of the [ServerService]s to send notifications for.
    */
   Set<ServerService> serverServices = new HashSet<ServerService>();
@@ -221,14 +202,6 @@ class AnalysisServer {
    */
   Map<AnalysisService, Set<String>> analysisServices =
       new HashMap<AnalysisService, Set<String>>();
-
-  /**
-   * A table mapping [AnalysisContext]s to the completers that should be
-   * completed when analysis of this context is finished.
-   */
-  Map<AnalysisContext, Completer<AnalysisDoneReason>>
-      contextAnalysisDoneCompleters =
-      new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
    * Performance information before initial analysis is complete.
@@ -260,11 +233,6 @@ class AnalysisServer {
   Completer _onAnalysisCompleteCompleter;
 
   /**
-   * The [Completer] that completes when the next operation is performed.
-   */
-  Completer _test_onOperationPerformedCompleter;
-
-  /**
    * The controller that is notified when analysis is started.
    */
   StreamController<bool> _onAnalysisStartedController;
@@ -273,20 +241,6 @@ class AnalysisServer {
    * The controller that is notified when a single file has been analyzed.
    */
   StreamController<ChangeNotice> _onFileAnalyzedController;
-
-  /**
-   * True if any exceptions thrown by analysis should be propagated up the call
-   * stack.
-   */
-  bool rethrowExceptions;
-
-  /**
-   * The next time (milliseconds since epoch) after which the analysis server
-   * should pause so that pending requests can be fetched by the system.
-   */
-  // Add 1 sec to prevent delay from impacting short running tests
-  int _nextPerformOperationDelayTime =
-      new DateTime.now().millisecondsSinceEpoch + 1000;
 
   /**
    * The content overlay for all analysis drivers.
@@ -397,8 +351,7 @@ class AnalysisServer {
       this.instrumentationService,
       {this.diagnosticServer,
       ResolverProvider fileResolverProvider: null,
-      ResolverProvider packageResolverProvider: null,
-      this.rethrowExceptions: true})
+      ResolverProvider packageResolverProvider: null})
       : notificationManager =
             new NotificationManager(channel, resourceProvider) {
     _performance = performanceDuringStartup;
@@ -418,7 +371,6 @@ class AnalysisServer {
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
-    operationQueue = new ServerOperationQueue();
 
     {
       String name = options.newAnalysisDriverLog;
@@ -543,30 +495,12 @@ class AnalysisServer {
   Stream get onFileChanged => _onFileChangedController.stream;
 
   /**
-   * The [Future] that completes when the next operation is performed.
-   */
-  Future get test_onOperationPerformed {
-    if (_test_onOperationPerformedCompleter == null) {
-      _test_onOperationPerformedCompleter = new Completer();
-    }
-    return _test_onOperationPerformedCompleter.future;
-  }
-
-  /**
    * Return the total time the server's been alive.
    */
   Duration get uptime {
     DateTime start = new DateTime.fromMillisecondsSinceEpoch(
         performanceDuringStartup.startTime);
     return new DateTime.now().difference(start);
-  }
-
-  /**
-   * Adds the given [ServerOperation] to the queue, but does not schedule
-   * operations execution.
-   */
-  void addOperation(ServerOperation operation) {
-    operationQueue.add(operation);
   }
 
   /**
@@ -788,7 +722,7 @@ class AnalysisServer {
    * Return `true` if analysis is complete.
    */
   bool isAnalysisComplete() {
-    return operationQueue.isEmpty && !analysisDriverScheduler.isAnalyzing;
+    return !analysisDriverScheduler.isAnalyzing;
   }
 
   /**
@@ -801,139 +735,13 @@ class AnalysisServer {
   }
 
   /**
-   * Perform the next available [ServerOperation].
-   */
-  void performOperation() {
-    assert(performOperationPending);
-    PerformanceTag.unknown.makeCurrent();
-    performOperationPending = false;
-    if (!running) {
-      // An error has occurred, or the connection to the client has been
-      // closed, since this method was scheduled on the event queue.  So
-      // don't do anything.  Instead clear the operation queue.
-      operationQueue.clear();
-      return;
-    }
-    // prepare next operation
-    ServerOperation operation = operationQueue.take();
-    if (operation == null) {
-      // This can happen if the operation queue is cleared while the operation
-      // loop is in progress.  No problem; we just need to exit the operation
-      // loop and wait for the next operation to be added.
-      ServerPerformanceStatistics.idle.makeCurrent();
-      return;
-    }
-    sendStatusNotification(operation);
-    // perform the operation
-    try {
-      operation.perform(this);
-    } catch (exception, stackTrace) {
-      sendServerErrorNotification(
-          'Failed to perform operation: $operation', exception, stackTrace,
-          fatal: true);
-      if (rethrowExceptions) {
-        throw new AnalysisException('Unexpected exception during analysis',
-            new CaughtException(exception, stackTrace));
-      }
-      shutdown();
-    } finally {
-      if (_test_onOperationPerformedCompleter != null) {
-        _test_onOperationPerformedCompleter.complete(operation);
-        _test_onOperationPerformedCompleter = null;
-      }
-      if (!operationQueue.isEmpty) {
-        ServerPerformanceStatistics.intertask.makeCurrent();
-        _schedulePerformOperation();
-      } else {
-        if (generalAnalysisServices
-            .contains(GeneralAnalysisService.ANALYZED_FILES)) {
-          sendAnalysisNotificationAnalyzedFiles(this);
-        }
-        sendStatusNotification(null);
-        _scheduleAnalysisImplementedNotification();
-        if (_onAnalysisCompleteCompleter != null) {
-          _onAnalysisCompleteCompleter.complete();
-          _onAnalysisCompleteCompleter = null;
-        }
-        ServerPerformanceStatistics.idle.makeCurrent();
-      }
-    }
-  }
-
-  /**
    * Trigger reanalysis of all files in the given list of analysis [roots], or
    * everything if the analysis roots is `null`.
    */
   void reanalyze(List<Resource> roots) {
-    // Clear any operations that are pending.
-    if (roots == null) {
-      operationQueue.clear();
-    } else {
-      // TODO(brianwilkerson) All of the contexts returned by _getContexts will
-      // be null. If we are still using the operation queue, then this needs to
-      // be changed to use drivers.
-//      for (AnalysisContext context in _getContexts(roots)) {
-//        operationQueue.contextRemoved(context);
-//      }
-    }
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
     contextManager.refresh(roots);
-  }
-
-  /**
-   * Schedule cache consistency validation in [context].
-   * The most of the validation must be done asynchronously.
-   */
-  void scheduleCacheConsistencyValidation(AnalysisContext context) {
-    if (context is InternalAnalysisContext) {
-      CacheConsistencyValidator validator = context.cacheConsistencyValidator;
-      List<Source> sources = validator.getSourcesToComputeModificationTimes();
-      // Compute modification times and notify the validator asynchronously.
-      new Future(() async {
-        try {
-          List<int> modificationTimes =
-              await resourceProvider.getModificationTimes(sources);
-          bool cacheInconsistencyFixed = validator
-              .sourceModificationTimesComputed(sources, modificationTimes);
-          if (cacheInconsistencyFixed) {
-            scheduleOperation(new PerformAnalysisOperation(context, false));
-          }
-        } catch (exception, stackTrace) {
-          sendServerErrorNotification(
-              'Failed to check cache consistency', exception, stackTrace);
-        }
-      });
-    }
-  }
-
-  /**
-   * Schedules execution of the given [ServerOperation].
-   */
-  void scheduleOperation(ServerOperation operation) {
-    addOperation(operation);
-    _schedulePerformOperation();
-  }
-
-  /**
-   * Schedules analysis of the given context.
-   */
-  void schedulePerformAnalysisOperation(AnalysisContext context) {
-    _onAnalysisStartedController.add(true);
-    scheduleOperation(new PerformAnalysisOperation(context, false));
-  }
-
-  /**
-   * This method is called when analysis of the given [AnalysisContext] is
-   * done.
-   */
-  void sendContextAnalysisDoneNotifications(
-      AnalysisContext context, AnalysisDoneReason reason) {
-    Completer<AnalysisDoneReason> completer =
-        contextAnalysisDoneCompleters.remove(context);
-    if (completer != null) {
-      completer.complete(reason);
-    }
   }
 
   /**
@@ -976,26 +784,6 @@ class AnalysisServer {
       stackTrace ??= exception.stackTrace;
     }
     exceptions.add(new ServerException(message, exception, stackTrace, fatal));
-  }
-
-  /**
-   * Send status notification to the client. The `operation` is the operation
-   * being performed or `null` if analysis is complete.
-   */
-  void sendStatusNotification(ServerOperation operation) {
-    // Only send status when subscribed.
-    if (!serverServices.contains(ServerService.STATUS)) {
-      return;
-    }
-    // Only send status when it changes
-    bool isAnalyzing = operation != null;
-    if (statusAnalyzing == isAnalyzing) {
-      return;
-    }
-    statusAnalyzing = isAnalyzing;
-    AnalysisStatus analysis = new AnalysisStatus(isAnalyzing);
-    channel.sendNotification(
-        new ServerStatusParams(analysis: analysis).toNotification());
   }
 
   /**
@@ -1131,21 +919,6 @@ class AnalysisServer {
   }
 
   /**
-   * Performs all scheduled analysis operations.
-   */
-  void test_performAllAnalysisOperations() {
-    while (true) {
-      ServerOperation operation = operationQueue.takeIf((operation) {
-        return operation is PerformAnalysisOperation;
-      });
-      if (operation == null) {
-        break;
-      }
-      operation.perform(this);
-    }
-  }
-
-  /**
    * Implementation for `analysis.updateContent`.
    */
   void updateContent(String id, Map<String, dynamic> changes) {
@@ -1271,34 +1044,6 @@ class AnalysisServer {
     if (files != null) {
       scheduleImplementedNotification(this, files);
     }
-  }
-
-  /**
-   * Schedules [performOperation] execution.
-   */
-  void _schedulePerformOperation() {
-    if (performOperationPending) {
-      return;
-    }
-    /*
-     * TODO (danrubel) Rip out this workaround once the underlying problem
-     * is fixed. Currently, the VM and dart:io do not deliver content
-     * on stdin in a timely manner if the event loop is busy.
-     * To work around this problem, we delay for 1 millisecond
-     * every 25 milliseconds.
-     *
-     * To disable this workaround and see the underlying problem,
-     * set performOperationDelayFrequency to zero
-     */
-    int now = new DateTime.now().millisecondsSinceEpoch;
-    if (now > _nextPerformOperationDelayTime &&
-        performOperationDelayFrequency > 0) {
-      _nextPerformOperationDelayTime = now + performOperationDelayFrequency;
-      new Future.delayed(new Duration(milliseconds: 1), performOperation);
-    } else {
-      new Future(performOperation);
-    }
-    performOperationPending = true;
   }
 
   /**

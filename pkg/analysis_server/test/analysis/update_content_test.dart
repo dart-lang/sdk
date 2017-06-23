@@ -65,7 +65,6 @@ class UpdateContentTest extends AbstractAnalysisTest {
     // update file, analyze, but don't sent notifications
     navigationCount = 0;
     server.updateContent('1', {testFile: new AddContentOverlay('foo() {}')});
-    server.test_performAllAnalysisOperations();
     expect(serverErrorCount, 0);
     expect(navigationCount, 0);
     // replace the file contents,
