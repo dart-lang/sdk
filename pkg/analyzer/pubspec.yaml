@@ -6,7 +6,7 @@ homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer
 environment:
   sdk: '>=1.20.0 <2.0.0'
 dependencies:
-  args: '>=0.12.1 <0.14.0'
+  args: '>=0.12.1 <2.0.0'
   charcode: ^1.1.0
   collection: ^1.10.1
   convert: ^2.0.0
