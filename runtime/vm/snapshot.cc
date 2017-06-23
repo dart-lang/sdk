@@ -755,6 +755,9 @@ void ImageWriter::WriteROData(WriteStream* stream) {
     uword marked_tags = obj.raw()->ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
     marked_tags = RawObject::MarkBit::update(true, marked_tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+    marked_tags |= static_cast<uword>(obj.raw()->ptr()->hash_) << 32;
+#endif
     stream->WriteWord(marked_tags);
     start += sizeof(uword);
     for (uword* cursor = reinterpret_cast<uword*>(start);
@@ -841,6 +844,11 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       uword marked_tags = insns.raw_ptr()->tags_;
       marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
       marked_tags = RawObject::MarkBit::update(true, marked_tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+      // Can't use GetObjectTagsAndHash because the update methods discard the
+      // high bits.
+      marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
+#endif
 
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
@@ -984,21 +992,6 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_.Print(".setfp r11, sp, #0\n");
 #endif
 
-#elif defined(TARGET_ARCH_MIPS)
-  COMPILE_ASSERT(FP == R30);
-  COMPILE_ASSERT(RA == R31);
-  assembly_stream_.Print(".cfi_def_cfa r30, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r30, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset r31, 4\n");   // saved pc is *(CFA+4)
-  // saved sp is CFA+16
-  // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        29
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_.Print(".cfi_escape 0x10, 29, 2, 0x23, 8\n");
 #endif
 }
 
@@ -1046,6 +1039,11 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     uword marked_tags = insns.raw_ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
     marked_tags = RawObject::MarkBit::update(true, marked_tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+    // Can't use GetObjectTagsAndHash because the update methods discard the
+    // high bits.
+    marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
+#endif
 
     instructions_blob_stream_.WriteWord(marked_tags);
     beginning += sizeof(uword);
@@ -1350,8 +1348,17 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 }
 
 
-uword SnapshotWriter::GetObjectTags(RawObject* raw) {
+uint32_t SnapshotWriter::GetObjectTags(RawObject* raw) {
   return raw->ptr()->tags_;
+}
+
+
+uword SnapshotWriter::GetObjectTagsAndHash(RawObject* raw) {
+  uword result = raw->ptr()->tags_;
+#if defined(HASH_IN_OBJECT_HEADER)
+  result |= static_cast<uword>(raw->ptr()->hash_) << 32;
+#endif
+  return result;
 }
 
 
@@ -1578,7 +1585,7 @@ void SnapshotWriter::WriteObjectImpl(RawObject* raw, bool as_reference) {
   // When we know that we are dealing with leaf or shallow objects we write
   // these objects inline even when 'as_reference' is true.
   const bool write_as_reference = as_reference && !raw->IsCanonical();
-  intptr_t tags = raw->ptr()->tags_;
+  uintptr_t tags = GetObjectTagsAndHash(raw);
 
   // Add object to the forward ref list and mark it so that future references
   // to this object in the snapshot will use this object id. Mark the
@@ -1655,7 +1662,7 @@ class WriteInlinedObjectVisitor : public ObjectVisitor {
   virtual void VisitObject(RawObject* obj) {
     intptr_t object_id = writer_->forward_list_->FindObject(obj);
     ASSERT(object_id != kInvalidIndex);
-    intptr_t tags = writer_->GetObjectTags(obj);
+    intptr_t tags = MessageWriter::GetObjectTagsAndHash(obj);
     writer_->WriteMarkedObjectImpl(obj, tags, object_id, kAsInlinedObject);
   }
 
@@ -1820,7 +1827,7 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClosure* closure) {
 
 RawClass* SnapshotWriter::GetFunctionOwner(RawFunction* func) {
   RawObject* owner = func->ptr()->owner_;
-  uword tags = GetObjectTags(owner);
+  uint32_t tags = GetObjectTags(owner);
   intptr_t class_id = RawObject::ClassIdTag::decode(tags);
   if (class_id == kClassCid) {
     return reinterpret_cast<RawClass*>(owner);

@@ -472,7 +472,7 @@ Note that breakpoints are added and removed on a per-isolate basis.
 ```
 @Instance|@Error|Sentinel evaluate(string isolateId,
                                    string targetId,
-                                   string expression
+                                   string expression,
                                    map<string,string> scope [optional])
 ```
 

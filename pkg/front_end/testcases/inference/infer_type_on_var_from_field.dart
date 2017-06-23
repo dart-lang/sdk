@@ -8,7 +8,7 @@ library test;
 class A {
   int x = 0;
 
-  test1() {
+  /*@topType=dynamic*/ test1() {
     var /*@type=int*/ a = /*@target=A::x*/ x;
     a = /*error:INVALID_ASSIGNMENT*/ "hi";
     a = 3;

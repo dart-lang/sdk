@@ -223,13 +223,13 @@ class LocalsHandler {
     enterScope(scopeData,
         forGenerativeConstructorBody: isGenerativeConstructorBody);
 
-    // If the freeVariableMapping is not empty, then this function was a
-    // nested closure that captures variables. Redirect the captured
-    // variables to fields in the closure.
-    closureData.forEachFreeVariable((Local from, FieldEntity to) {
-      redirectElement(from, to);
-    });
     if (closureData.isClosure) {
+      // If the freeVariableMapping is not empty, then this function was a
+      // nested closure that captures variables. Redirect the captured
+      // variables to fields in the closure.
+      closureData.forEachFreeVariable((Local from, FieldEntity to) {
+        redirectElement(from, to);
+      });
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
           new HThis(closureData.thisLocal, commonMasks.nonNullType);
@@ -310,7 +310,7 @@ class LocalsHandler {
     return redirectionMapping.containsKey(local);
   }
 
-  bool isUsedInTryOrGenerator(Local local) {
+  bool _isUsedInTryOrGenerator(Local local) {
     return closureData.variableIsUsedInTryOrSync(local);
   }
 
@@ -360,7 +360,7 @@ class LocalsHandler {
       builder.add(lookup);
       return lookup..sourceInformation = sourceInformation;
     } else {
-      assert(isUsedInTryOrGenerator(local));
+      assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
       HInstruction instruction = new HLocalGet(
           local, localValue, commonMasks.dynamicType, sourceInformation);
@@ -383,11 +383,7 @@ class LocalsHandler {
     // it could then have another name than the real parameter. And
     // the other one would not know it is just a copy of the real
     // parameter.
-    if (local is ParameterElement) {
-      assert(
-          builder.parameters.containsKey(local),
-          failedAt(local,
-              "No local value for parameter $local in ${builder.parameters}."));
+    if (builder.parameters.containsKey(local)) {
       return builder.parameters[local];
     }
 
@@ -426,7 +422,7 @@ class LocalsHandler {
       builder.add(new HFieldSet(redirect, box, value)
         ..sourceInformation = sourceInformation);
     } else {
-      assert(isUsedInTryOrGenerator(local));
+      assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
       builder.add(new HLocalSet(local, localValue, value)
         ..sourceInformation = sourceInformation);

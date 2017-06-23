@@ -336,7 +336,7 @@ abstract class Future<T> {
    *
    * In the case of an error, [cleanUp] (if provided), is invoked on any
    * non-null result of successful futures.
-   * This makes it posible to `cleanUp` resources that would otherwise be
+   * This makes it possible to `cleanUp` resources that would otherwise be
    * lost (since the returned future does not provide access to these values).
    * The [cleanUp] function is unused if there is no error.
    *
@@ -493,17 +493,17 @@ abstract class Future<T> {
   /**
    * Performs an operation repeatedly until it returns `false`.
    *
-   * The operation, [f], may be either synchronous or asynchronous.
+   * The operation, [action], may be either synchronous or asynchronous.
    *
    * The operation is called repeatedly as long as it returns either the [bool]
    * value `true` or a `Future<bool>` which completes with the value `true`.
    *
-   * If a call to [f] returns `false` or a [Future] that completes to `false`,
-   * iteration ends and the future returned by [doWhile] is completed with
-   * a `null` value.
+   * If a call to [action] returns `false` or a [Future] that completes to
+   * `false`, iteration ends and the future returned by [doWhile] is completed
+   * with a `null` value.
    *
-   * If a call to [f] throws or a future returned by [f] completes with
-   * an error, iteration ends and the future returned by [doWhile]
+   * If a call to [action] throws or a future returned by [action] completes
+   * with an error, iteration ends and the future returned by [doWhile]
    * completes with the same error.
    *
    * Calls to [action] may happen at any time,

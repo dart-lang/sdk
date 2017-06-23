@@ -22,11 +22,8 @@ DEFINE_FLAG(bool,
             code_comments,
             false,
             "Include comments into code and disassembly");
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
-DEFINE_FLAG(bool,
-            use_far_branches,
-            false,
-            "Enable far branches for ARM and MIPS");
+#if defined(TARGET_ARCH_ARM)
+DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches for ARM.");
 #endif
 
 static uword NewContents(intptr_t capacity) {

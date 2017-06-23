@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 
@@ -27,6 +27,11 @@ regress_17382_test: Skip # don't care about the static warning.
 regress_23408_test: Skip # don't care about the static warning.
 regress_25246_test: Skip
 getter_setter_in_lib_test: Fail # Issue 23286
+
+final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29657
+final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29657
+const_error_multiply_initialized_test/02: MissingCompileTimeError # Issue 29657
+const_error_multiply_initialized_test/04: MissingCompileTimeError # Issue 29657
 
 override_field_test/03: Fail # Issue 29703
 method_override7_test/03: Fail # Issue 11497

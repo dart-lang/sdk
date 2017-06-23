@@ -92,28 +92,16 @@ class TypeConstraintGatherer {
         supertype.typeParameters.isNotEmpty) {
       var subtypeSubstitution = <TypeParameter, DartType>{};
       var supertypeSubstitution = <TypeParameter, DartType>{};
+      var freshTypeVariables = <TypeParameter>[];
       if (!_matchTypeFormals(subtype.typeParameters, supertype.typeParameters,
-          subtypeSubstitution, supertypeSubstitution)) {
+          subtypeSubstitution, supertypeSubstitution, freshTypeVariables)) {
         return false;
       }
 
-      // TODO(paulberry): try to push this functionality into kernel.
-      FunctionType substituteTypeParams(
-          FunctionType type, Map<TypeParameter, DartType> substitutionMap) {
-        var substitution = Substitution.fromMap(substitutionMap);
-        return new FunctionType(
-            type.positionalParameters.map(substitution.substituteType).toList(),
-            substitution.substituteType(type.returnType),
-            namedParameters: type.namedParameters
-                .map((named) => new NamedType(
-                    named.name, substitution.substituteType(named.type)))
-                .toList(),
-            typeParameters: substitutionMap.keys.toList(),
-            requiredParameterCount: type.requiredParameterCount);
-      }
-
-      subtype = substituteTypeParams(subtype, subtypeSubstitution);
-      supertype = substituteTypeParams(supertype, supertypeSubstitution);
+      subtype = substituteTypeParams(
+          subtype, subtypeSubstitution, freshTypeVariables);
+      supertype = substituteTypeParams(
+          supertype, supertypeSubstitution, freshTypeVariables);
     }
 
     // Test the return types.
@@ -343,7 +331,8 @@ class TypeConstraintGatherer {
       List<TypeParameter> params1,
       List<TypeParameter> params2,
       Map<TypeParameter, DartType> substitution1,
-      Map<TypeParameter, DartType> substitution2) {
+      Map<TypeParameter, DartType> substitution2,
+      List<TypeParameter> freshTypeVariables) {
     int count = params1.length;
     if (count != params2.length) return false;
     // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
@@ -352,6 +341,7 @@ class TypeConstraintGatherer {
     // bounds.  See dartbug.com/29629.
     for (int i = 0; i < count; i++) {
       TypeParameter pFresh = new TypeParameter(params2[i].name);
+      freshTypeVariables.add(pFresh);
       DartType variableFresh = new TypeParameterType(pFresh);
       substitution1[params1[i]] = variableFresh;
       substitution2[params2[i]] = variableFresh;

@@ -386,148 +386,146 @@ class RunningProcess {
   }
 
   void _runCommand() {
-    command.outputIsUpToDate.then((bool isUpToDate) {
-      if (isUpToDate) {
-        compilationSkipped = true;
-        _commandComplete(0);
-      } else {
-        var processEnvironment = _createProcessEnvironment();
-        var args = command.arguments;
-        Future processFuture = io.Process.start(command.executable, args,
-            environment: processEnvironment,
-            workingDirectory: command.workingDirectory);
-        processFuture.then((io.Process process) {
-          StreamSubscription stdoutSubscription =
-              _drainStream(process.stdout, stdout);
-          StreamSubscription stderrSubscription =
-              _drainStream(process.stderr, stderr);
+    if (command.outputIsUpToDate) {
+      compilationSkipped = true;
+      _commandComplete(0);
+    } else {
+      var processEnvironment = _createProcessEnvironment();
+      var args = command.arguments;
+      Future processFuture = io.Process.start(command.executable, args,
+          environment: processEnvironment,
+          workingDirectory: command.workingDirectory);
+      processFuture.then((io.Process process) {
+        StreamSubscription stdoutSubscription =
+            _drainStream(process.stdout, stdout);
+        StreamSubscription stderrSubscription =
+            _drainStream(process.stderr, stderr);
 
-          var stdoutCompleter = new Completer<Null>();
-          var stderrCompleter = new Completer<Null>();
+        var stdoutCompleter = new Completer<Null>();
+        var stderrCompleter = new Completer<Null>();
 
-          bool stdoutDone = false;
-          bool stderrDone = false;
-          pid = process.pid;
+        bool stdoutDone = false;
+        bool stderrDone = false;
+        pid = process.pid;
 
-          // This timer is used to close stdio to the subprocess once we got
-          // the exitCode. Sometimes descendants of the subprocess keep stdio
-          // handles alive even though the direct subprocess is dead.
-          Timer watchdogTimer;
+        // This timer is used to close stdio to the subprocess once we got
+        // the exitCode. Sometimes descendants of the subprocess keep stdio
+        // handles alive even though the direct subprocess is dead.
+        Timer watchdogTimer;
 
-          closeStdout([_]) {
-            if (!stdoutDone) {
-              stdoutCompleter.complete();
-              stdoutDone = true;
-              if (stderrDone && watchdogTimer != null) {
-                watchdogTimer.cancel();
-              }
+        closeStdout([_]) {
+          if (!stdoutDone) {
+            stdoutCompleter.complete();
+            stdoutDone = true;
+            if (stderrDone && watchdogTimer != null) {
+              watchdogTimer.cancel();
             }
           }
+        }
 
-          closeStderr([_]) {
-            if (!stderrDone) {
-              stderrCompleter.complete();
-              stderrDone = true;
+        closeStderr([_]) {
+          if (!stderrDone) {
+            stderrCompleter.complete();
+            stderrDone = true;
 
-              if (stdoutDone && watchdogTimer != null) {
-                watchdogTimer.cancel();
-              }
+            if (stdoutDone && watchdogTimer != null) {
+              watchdogTimer.cancel();
             }
           }
+        }
 
-          // Close stdin so that tests that try to block on input will fail.
-          process.stdin.close();
-          timeoutHandler() async {
-            timedOut = true;
-            if (process != null) {
-              String executable;
-              if (io.Platform.isLinux) {
-                executable = 'eu-stack';
-              } else if (io.Platform.isMacOS) {
-                // Try to print stack traces of the timed out process.
-                // `sample` is a sampling profiler but we ask it sample for 1
-                // second with a 4 second delay between samples so that we only
-                // sample the threads once.
-                executable = '/usr/bin/sample';
-              } else if (io.Platform.isWindows) {
-                var isX64 = command.executable.contains("X64") ||
-                    command.executable.contains("SIMARM64");
-                if (configuration.windowsSdkPath != null) {
-                  executable = configuration.windowsSdkPath +
-                      "\\Debuggers\\${isX64 ? 'x64' : 'x86'}\\cdb.exe";
-                  diagnostics.add("Using $executable to print stack traces");
-                } else {
-                  diagnostics.add("win_sdk_path not found");
-                }
+        // Close stdin so that tests that try to block on input will fail.
+        process.stdin.close();
+        timeoutHandler() async {
+          timedOut = true;
+          if (process != null) {
+            String executable;
+            if (io.Platform.isLinux) {
+              executable = 'eu-stack';
+            } else if (io.Platform.isMacOS) {
+              // Try to print stack traces of the timed out process.
+              // `sample` is a sampling profiler but we ask it sample for 1
+              // second with a 4 second delay between samples so that we only
+              // sample the threads once.
+              executable = '/usr/bin/sample';
+            } else if (io.Platform.isWindows) {
+              var isX64 = command.executable.contains("X64") ||
+                  command.executable.contains("SIMARM64");
+              if (configuration.windowsSdkPath != null) {
+                executable = configuration.windowsSdkPath +
+                    "\\Debuggers\\${isX64 ? 'x64' : 'x86'}\\cdb.exe";
+                diagnostics.add("Using $executable to print stack traces");
               } else {
-                diagnostics.add("Capturing stack traces on"
-                    "${io.Platform.operatingSystem} not supported");
+                diagnostics.add("win_sdk_path not found");
               }
-              if (executable != null) {
-                var pids = await _getPidList(process.pid, diagnostics);
-                diagnostics.add("Process list including children: $pids");
-                for (pid in pids) {
-                  List<String> arguments;
-                  if (io.Platform.isLinux) {
-                    arguments = ['-p $pid'];
-                  } else if (io.Platform.isMacOS) {
-                    arguments = ['$pid', '1', '4000', '-mayDie'];
-                  } else if (io.Platform.isWindows) {
-                    arguments = ['-p', '$pid', '-c', '!uniqstack;qd'];
-                  } else {
-                    assert(false);
-                  }
-                  diagnostics.add("Trying to capture stack trace for pid $pid");
-                  try {
-                    var result = await io.Process.run(executable, arguments);
-                    diagnostics.addAll((result.stdout as String).split('\n'));
-                    diagnostics.addAll((result.stderr as String).split('\n'));
-                  } catch (error) {
-                    diagnostics.add("Unable to capture stack traces: $error");
-                  }
+            } else {
+              diagnostics.add("Capturing stack traces on"
+                  "${io.Platform.operatingSystem} not supported");
+            }
+            if (executable != null) {
+              var pids = await _getPidList(process.pid, diagnostics);
+              diagnostics.add("Process list including children: $pids");
+              for (pid in pids) {
+                List<String> arguments;
+                if (io.Platform.isLinux) {
+                  arguments = ['-p $pid'];
+                } else if (io.Platform.isMacOS) {
+                  arguments = ['$pid', '1', '4000', '-mayDie'];
+                } else if (io.Platform.isWindows) {
+                  arguments = ['-p', '$pid', '-c', '!uniqstack;qd'];
+                } else {
+                  assert(false);
+                }
+                diagnostics.add("Trying to capture stack trace for pid $pid");
+                try {
+                  var result = await io.Process.run(executable, arguments);
+                  diagnostics.addAll((result.stdout as String).split('\n'));
+                  diagnostics.addAll((result.stderr as String).split('\n'));
+                } catch (error) {
+                  diagnostics.add("Unable to capture stack traces: $error");
                 }
               }
+            }
 
-              if (!process.kill()) {
-                diagnostics.add("Unable to kill ${process.pid}");
-              }
+            if (!process.kill()) {
+              diagnostics.add("Unable to kill ${process.pid}");
             }
           }
+        }
 
-          stdoutSubscription.asFuture().then(closeStdout);
-          stderrSubscription.asFuture().then(closeStderr);
+        stdoutSubscription.asFuture().then(closeStdout);
+        stderrSubscription.asFuture().then(closeStderr);
 
-          process.exitCode.then((exitCode) {
-            if (!stdoutDone || !stderrDone) {
-              watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
-                DebugLogger.warning(
-                    "$MAX_STDIO_DELAY_PASSED_MESSAGE (command: $command)");
-                watchdogTimer = null;
-                stdoutSubscription.cancel();
-                stderrSubscription.cancel();
-                closeStdout();
-                closeStderr();
-              });
-            }
-
-            Future.wait([stdoutCompleter.future, stderrCompleter.future]).then(
-                (_) {
-              _commandComplete(exitCode);
+        process.exitCode.then((exitCode) {
+          if (!stdoutDone || !stderrDone) {
+            watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
+              DebugLogger.warning(
+                  "$MAX_STDIO_DELAY_PASSED_MESSAGE (command: $command)");
+              watchdogTimer = null;
+              stdoutSubscription.cancel();
+              stderrSubscription.cancel();
+              closeStdout();
+              closeStderr();
             });
-          });
+          }
 
-          timeoutTimer =
-              new Timer(new Duration(seconds: timeout), timeoutHandler);
-        }).catchError((e) {
-          // TODO(floitsch): should we try to report the stacktrace?
-          print("Process error:");
-          print("  Command: $command");
-          print("  Error: $e");
-          _commandComplete(-1);
-          return true;
+          Future
+              .wait([stdoutCompleter.future, stderrCompleter.future]).then((_) {
+            _commandComplete(exitCode);
+          });
         });
-      }
-    });
+
+        timeoutTimer =
+            new Timer(new Duration(seconds: timeout), timeoutHandler);
+      }).catchError((e) {
+        // TODO(floitsch): should we try to report the stacktrace?
+        print("Process error:");
+        print("  Command: $command");
+        print("  Error: $e");
+        _commandComplete(-1);
+        return true;
+      });
+    }
   }
 
   void _commandComplete(int exitCode) {

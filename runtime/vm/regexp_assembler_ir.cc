@@ -78,6 +78,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
     intptr_t capture_count,
     const ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
+    intptr_t osr_id,
     Zone* zone)
     : RegExpMacroAssembler(zone),
       thread_(Thread::Current()),
@@ -96,7 +97,9 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       saved_registers_count_((capture_count + 1) * 2),
       stack_array_cell_(Array::ZoneHandle(zone, Array::New(1, Heap::kOld))),
       // The registers array is allocated at a fixed size after assembly.
-      registers_array_(TypedData::ZoneHandle(zone, TypedData::null())) {
+      registers_array_(TypedData::ZoneHandle(zone, TypedData::null())),
+      // B0 is taken by GraphEntry thus block ids must start at 1.
+      block_id_(1) {
   switch (specialization_cid) {
     case kOneByteStringCid:
     case kExternalOneByteStringCid:
@@ -125,7 +128,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       *parsed_function_,
       new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex,
                                   GetNextDeoptId()),
-      Compiler::kNoOSRDeoptId);
+      osr_id);
   start_block_ = new (zone)
       JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
   success_block_ = new (zone)
@@ -223,7 +226,7 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
 void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
   set_current_instruction(backtrack_block_);
   TAG();
-  CheckPreemption();
+  CheckPreemption(/*is_backtrack=*/true);
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
@@ -302,8 +305,7 @@ void IRRegExpMacroAssembler::FinalizeRegistersArray() {
 }
 
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM) ||                  \
-    defined(TARGET_ARCH_MIPS)
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
 // Disabling unaligned accesses forces the regexp engine to load characters one
 // by one instead of up to 4 at once, along with the associated performance hit.
 // TODO(zerny): Be less conservative about disabling unaligned accesses.
@@ -1594,8 +1596,22 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
 
 void IRRegExpMacroAssembler::GrowStack() {
   TAG();
-  Value* cell = Bind(new (Z) ConstantInstr(stack_array_cell_));
-  StoreLocal(stack_, Bind(new (Z) GrowRegExpStackInstr(cell)));
+  const Library& lib = Library::Handle(Library::InternalLibrary());
+  const Function& grow_function = Function::ZoneHandle(
+      Z, lib.LookupFunctionAllowPrivate(Symbols::GrowRegExpStack()));
+  StoreLocal(stack_, Bind(StaticCall(grow_function, PushLocal(stack_))));
+
+  // Note: :stack and stack_array_cell content might diverge because each
+  // instance of :matcher code has its own stack_array_cell embedded into it
+  // as a constant but :stack is a local variable and its value might be
+  // comming from OSR or deoptimization. This means we should never use
+  // stack_array_cell in the body of the :matcher to reload the :stack.
+  PushArgumentInstr* stack_cell_push =
+      PushArgument(Bind(new (Z) ConstantInstr(stack_array_cell_)));
+  PushArgumentInstr* index_push = PushArgument(Bind(Uint64Constant(0)));
+  PushArgumentInstr* stack_push = PushLocal(stack_);
+  Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
+                  stack_cell_push, index_push, stack_push));
 }
 
 
@@ -1767,10 +1783,17 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 }
 
 
-void IRRegExpMacroAssembler::CheckPreemption() {
+void IRRegExpMacroAssembler::CheckPreemption(bool is_backtrack) {
   TAG();
-  AppendInstruction(new (Z) CheckStackOverflowInstr(TokenPosition::kNoSource, 0,
-                                                    GetNextDeoptId()));
+
+  // We don't have the loop_depth available when compiling regexps, but
+  // we set loop_depth to a non-zero value because this instruction does
+  // not act as an OSR entry outside loops.
+  AppendInstruction(new (Z) CheckStackOverflowInstr(
+      TokenPosition::kNoSource,
+      /*loop_depth=*/1, GetNextDeoptId(),
+      is_backtrack ? CheckStackOverflowInstr::kOsrAndPreemption
+                   : CheckStackOverflowInstr::kOsrOnly));
 }
 
 

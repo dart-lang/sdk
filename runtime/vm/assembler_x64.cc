@@ -27,7 +27,7 @@ Assembler::Assembler(bool use_far_branches)
       has_single_entry_point_(true),
       comments_(),
       constant_pool_allowed_(false) {
-  // Far branching mode is only needed and implemented for MIPS and ARM.
+  // Far branching mode is only needed and implemented for ARM.
   ASSERT(!use_far_branches);
 }
 
@@ -3433,10 +3433,12 @@ void Assembler::TryAllocate(const Class& cls,
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size));
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    // Extends the 32 bit tags with zeros, which is the uninitialized
+    // hash code.
     MoveImmediate(FieldAddress(instance_reg, Object::tags_offset()),
                   Immediate(tags));
   } else {
@@ -3480,9 +3482,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
+    // Extends the 32 bit tags with zeros, which is the uninitialized
+    // hash code.
     movq(FieldAddress(instance, Array::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);

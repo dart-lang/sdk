@@ -412,8 +412,8 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object> {
    * Encodes the given object [o].
    *
    * It is an error to invoke this method more than once on any instance. While
-   * this makes the input effectly non-chunked the output will be generated in
-   * a chunked way.
+   * this makes the input effectively non-chunked the output will be generated
+   * in a chunked way.
    */
   void add(Object o) {
     if (_isDone) {

@@ -500,7 +500,6 @@ class EmbeddedArray<T, 0> {
   M(BoxInt32)                                                                  \
   M(UnboxInt32)                                                                \
   M(UnboxedIntConverter)                                                       \
-  M(GrowRegExpStack)                                                           \
   M(Deoptimize)
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
@@ -535,6 +534,26 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define DECLARE_INSTRUCTION(type)                                              \
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_INSTRUCTION_BACKEND()
+
+#if defined(TARGET_ARCH_DBC)
+#define DECLARE_COMPARISON_METHODS                                             \
+  virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
+      const;                                                                   \
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
+                                       BranchLabels labels);                   \
+  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,   \
+                                                BranchLabels labels);
+#else
+#define DECLARE_COMPARISON_METHODS                                             \
+  virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
+      const;                                                                   \
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
+                                       BranchLabels labels);
+#endif
+
+#define DECLARE_COMPARISON_INSTRUCTION(type)                                   \
+  DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
+  DECLARE_COMPARISON_METHODS
 
 #ifndef PRODUCT
 #define PRINT_TO_SUPPORT virtual void PrintTo(BufferFormatter* f) const;
@@ -966,6 +985,13 @@ class Instruction : public ZoneAllocated {
 };
 
 
+struct BranchLabels {
+  Label* true_label;
+  Label* false_label;
+  Label* fall_through;
+};
+
+
 class PureInstruction : public Instruction {
  public:
   explicit PureInstruction(intptr_t deopt_id) : Instruction(deopt_id) {}
@@ -1202,13 +1228,6 @@ class BlockEntryInstr : public Instruction {
                      GrowableArray<BlockEntryInstr*>* preorder,
                      GrowableArray<intptr_t>* parent);
 
-  // Perform a depth first search to prune code not reachable from an OSR
-  // entry point.
-  bool PruneUnreachable(GraphEntryInstr* graph_entry,
-                        Instruction* parent,
-                        intptr_t osr_id,
-                        BitVector* block_marks);
-
   virtual intptr_t InputCount() const { return 0; }
   virtual Value* InputAt(intptr_t i) const {
     UNREACHABLE();
@@ -1276,6 +1295,12 @@ class BlockEntryInstr : public Instruction {
         offset_(-1),
         parallel_move_(NULL),
         loop_info_(NULL) {}
+
+  // Perform a depth first search to find OSR entry and
+  // link it to the given graph entry.
+  bool FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
+                             Instruction* parent,
+                             BitVector* block_marks);
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
@@ -1390,7 +1415,9 @@ class GraphEntryInstr : public BlockEntryInstr {
   }
   ConstantInstr* constant_null();
 
+  void RelinkToOsrEntry(Zone* zone, intptr_t max_block_id);
   bool IsCompiledForOsr() const;
+  intptr_t osr_id() const { return osr_id_; }
 
   intptr_t entry_count() const { return entry_count_; }
   void set_entry_count(intptr_t count) { entry_count_ = count; }
@@ -1920,13 +1947,6 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
 };
 
 
-struct BranchLabels {
-  Label* true_label;
-  Label* false_label;
-  Label* fall_through;
-};
-
-
 class InductionVariableInfo;
 
 
@@ -2345,11 +2365,33 @@ class ComparisonInstr : public Definition {
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
 
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
-                              BranchInstr* branch) = 0;
+  // Emits instructions to do the comparison and branch to the true or false
+  // label depending on the result.  This implementation will call
+  // EmitComparisonCode and then generate the branch instructions afterwards.
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
 
+  // Used by EmitBranchCode and EmitNativeCode depending on whether the boolean
+  // is to be turned into branches or instantiated.  May return a valid
+  // condition in which case the caller is expected to emit a branch to the
+  // true label based on that condition (or a branch to the false label on the
+  // opposite condition).  May also branch directly to the labels.
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels) = 0;
+
+#if defined(TARGET_ARCH_DBC)
+  // On the DBC platform EmitNativeCode needs to know ahead of time what
+  // 'Condition' will be returned by EmitComparisonCode. This call must return
+  // the same result as EmitComparisonCode, but should not emit any
+  // instructions.
+  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) = 0;
+#endif
+
+  // Emits code that generates 'true' or 'false', depending on the comparison.
+  // This implementation will call EmitComparisonCode.  If EmitComparisonCode
+  // does not use the labels (merely returning a condition) then EmitNativeCode
+  // may be able to use the condition to avoid a branch.
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   void SetDeoptId(const Instruction& instr) { CopyDeoptIdFrom(instr); }
 
@@ -3038,7 +3080,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                      bool needs_number_check,
                      intptr_t deopt_id);
 
-  DECLARE_INSTRUCTION(StrictCompare)
+  DECLARE_COMPARISON_INSTRUCTION(StrictCompare)
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -3047,11 +3089,6 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
@@ -3083,7 +3120,7 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
     SetInputAt(1, right);
   }
 
-  DECLARE_INSTRUCTION(TestSmi);
+  DECLARE_COMPARISON_INSTRUCTION(TestSmi);
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -3094,11 +3131,6 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
@@ -3124,7 +3156,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
     return cid_results_;
   }
 
-  DECLARE_INSTRUCTION(TestCids);
+  DECLARE_COMPARISON_INSTRUCTION(TestCids);
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -3141,11 +3173,6 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
   }
 
   virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -3173,18 +3200,13 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     set_operation_cid(cid);
   }
 
-  DECLARE_INSTRUCTION(EqualityCompare)
+  DECLARE_COMPARISON_INSTRUCTION(EqualityCompare)
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
@@ -3215,18 +3237,13 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
     set_operation_cid(cid);
   }
 
-  DECLARE_INSTRUCTION(RelationalOp)
+  DECLARE_COMPARISON_INSTRUCTION(RelationalOp)
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
@@ -5348,7 +5365,8 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DECLARE_INSTRUCTION(DoubleTestOp)
+  DECLARE_COMPARISON_INSTRUCTION(DoubleTestOp)
+
   virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -5359,11 +5377,6 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
   }
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6934,6 +6947,14 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
 
+#if defined(TARGET_ARCH_DBC)
+  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
+    UNREACHABLE();
+    return INVALID_CONDITION;
+  }
+#endif
+
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
  private:
@@ -7266,12 +7287,27 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
+  enum Kind {
+    // kOsrAndPreemption stack overflow checks are emitted in both unoptimized
+    // and optimized versions of the code and they serve as both preemption and
+    // OSR entry points.
+    kOsrAndPreemption,
+
+    // kOsrOnly stack overflow checks are only needed in the unoptimized code
+    // because we can't OSR optimized code.
+    kOsrOnly,
+  };
+
   CheckStackOverflowInstr(TokenPosition token_pos,
                           intptr_t loop_depth,
-                          intptr_t deopt_id)
+                          intptr_t deopt_id,
+                          Kind kind = kOsrAndPreemption)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
-        loop_depth_(loop_depth) {}
+        loop_depth_(loop_depth),
+        kind_(kind) {
+    ASSERT(kind != kOsrOnly || loop_depth > 0);
+  }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
@@ -7281,6 +7317,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7288,6 +7326,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  private:
   const TokenPosition token_pos_;
   const intptr_t loop_depth_;
+  const Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };
@@ -7953,24 +7992,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
-};
-
-
-class GrowRegExpStackInstr : public TemplateDefinition<1, Throws> {
- public:
-  explicit GrowRegExpStackInstr(Value* typed_data_cell) {
-    SetInputAt(0, typed_data_cell);
-  }
-
-  Value* typed_data_cell() const { return inputs_[0]; }
-
-  virtual bool ComputeCanDeoptimize() const { return MayThrow(); }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  DECLARE_INSTRUCTION(GrowRegExpStack);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GrowRegExpStackInstr);
 };
 
 

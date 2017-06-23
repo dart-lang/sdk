@@ -434,8 +434,10 @@ class ObjectPointerVisitor;
   V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
+  V(PrependTypeArguments, "_prependTypeArguments")                             \
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
-  V(_AsyncStarListenHelper, "_asyncStarListenHelper")
+  V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
+  V(GrowRegExpStack, "_growRegExpStack")
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

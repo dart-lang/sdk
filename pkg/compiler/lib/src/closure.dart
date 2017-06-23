@@ -23,6 +23,8 @@ import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
 
+// TODO(johnniwinther,efortuna): Split [ClosureConversionTask] from
+// [ClosureDataLookup].
 abstract class ClosureConversionTask<T> extends CompilerTask
     implements ClosureDataLookup<T> {
   ClosureConversionTask(Measurer measurer) : super(measurer);

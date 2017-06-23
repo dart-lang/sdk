@@ -10,7 +10,7 @@ class C {
 }
 
 class D extends C {
-  m<S>(x) => x;
+  /*@topType=D::m::S*/ m<S>(/*@topType=D::m::S*/ x) => x;
 }
 
 main() {

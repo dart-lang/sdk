@@ -207,7 +207,7 @@ class Isolate {
    * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
    * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
    *
-   * If the [errorAreFatal], [onExit] and/or [onError] parameters are provided,
+   * If the [errorsAreFatal], [onExit] and/or [onError] parameters are provided,
    * the isolate will act as if, respectively, [setErrorsFatal],
    * [addOnExitListener] and [addErrorListener] were called with the
    * corresponding parameter and was processed before the isolate starts
@@ -252,7 +252,7 @@ class Isolate {
    * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
    * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
    *
-   * If the [errorAreFatal], [onExit] and/or [onError] parameters are provided,
+   * If the [errorsAreFatal], [onExit] and/or [onError] parameters are provided,
    * the isolate will act as if, respectively, [setErrorsFatal],
    * [addOnExitListener] and [addErrorListener] were called with the
    * corresponding parameter and was processed before the isolate starts
@@ -416,7 +416,7 @@ class Isolate {
    *
    * If the same port has been passed via [addOnExitListener] more than once,
    * only one call to `removeOnExitListener` is needed to stop it from receiving
-   * exit messagees.
+   * exit messages.
    *
    * Closing the receive port that is associated with the [responsePort] does
    * not stop the isolate from sending uncaught errors, they are just going to
@@ -533,7 +533,7 @@ class Isolate {
    *
    * If the same port has been passed via [addErrorListener] more than once,
    * only one call to `removeErrorListener` is needed to stop it from receiving
-   * unaught errors.
+   * uncaught errors.
    *
    * Uncaught errors message may still be sent by the isolate
    * until this request is received and processed.

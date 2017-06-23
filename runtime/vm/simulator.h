@@ -15,8 +15,6 @@
 #include "vm/simulator_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/simulator_arm64.h"
-#elif defined(TARGET_ARCH_MIPS)
-#include "vm/simulator_mips.h"
 #elif defined(TARGET_ARCH_DBC)
 #include "vm/simulator_dbc.h"
 #else

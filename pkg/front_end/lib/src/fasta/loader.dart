@@ -183,8 +183,6 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
     return target.getDuplicatedFieldInitializerError(this);
   }
 
-  Builder getFallThroughError() => target.getFallThroughError(this);
-
   Builder getNativeAnnotation() => target.getNativeAnnotation(this);
 }
 

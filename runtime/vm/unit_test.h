@@ -162,11 +162,9 @@
   }
 
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS) ||                   \
-    defined(TARGET_ARCH_ARM64)
-#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS) ||                       \
-    defined(HOST_ARCH_ARM64)
-// Running on actual ARM or MIPS hardware, execute code natively.
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
+// Running on actual ARM hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
@@ -182,7 +180,7 @@
 #define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
   reinterpret_cast<name>(entry)(pointer_arg)
 #else
-// Not running on ARM or MIPS hardware, call simulator to execute code.
+// Not running on ARM hardware, call simulator to execute code.
 #if defined(ARCH_IS_64_BIT)
 #define EXECUTE_TEST_CODE_INT64(name, entry)                                   \
   static_cast<int64_t>(                                                        \
@@ -232,8 +230,8 @@
       Utils::Low32Bits(bit_cast<int64_t, double>(double_arg)),                 \
       Utils::High32Bits(bit_cast<int64_t, double>(double_arg)), 0, 0, false,   \
       true))
-#endif  // defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS)
-#endif  // defined(TARGET_ARCH_{ARM, ARM64, MIPS})
+#endif  // defined(HOST_ARCH_ARM)
+#endif  // defined(TARGET_ARCH_{ARM, ARM64})
 
 
 inline Dart_Handle NewString(const char* str) {

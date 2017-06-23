@@ -738,17 +738,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       if (grandparent is ConstructorReferenceNode) {
         ConstructorElement element =
             (grandparent as ConstructorReferenceNode).staticElement;
-        List<ParameterElement> parameters = element.parameters;
-        ParameterElement parameterElement = parameters.firstWhere((e) {
-          if (e is DefaultFieldFormalParameterElementImpl) {
-            return e.field.name == node.name.label.name;
+        if (element != null) {
+          List<ParameterElement> parameters = element.parameters;
+          ParameterElement parameterElement = parameters.firstWhere((e) {
+            if (e is DefaultFieldFormalParameterElementImpl) {
+              return e.field.name == node.name.label.name;
+            }
+            return e.parameterKind == ParameterKind.NAMED &&
+                e.name == node.name.label.name;
+          }, orElse: () => null);
+          // Suggest tear-offs.
+          if (parameterElement?.type is FunctionType) {
+            optype.includeVoidReturnSuggestions = true;
           }
-          return e.parameterKind == ParameterKind.NAMED &&
-              e.name == node.name.label.name;
-        }, orElse: () => null);
-        // Suggest tear-offs.
-        if (parameterElement?.type is FunctionType) {
-          optype.includeVoidReturnSuggestions = true;
         }
       }
     }

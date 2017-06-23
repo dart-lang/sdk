@@ -81,8 +81,8 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
     words_to_end = (raw_obj->Size() >> kWordSizeLog2);
   }
 #ifdef DEBUG
-  // String::MakeExternal and Array::MakeArray create trailing filler objects,
-  // but they are always unreachable. Verify that they are not marked.
+  // String::MakeExternal and Array::MakeFixedLength create trailing filler
+  // objects, but they are always unreachable. Verify that they are not marked.
   uword current = RawObject::ToAddr(raw_obj) + raw_obj->Size();
   uword end = page->object_end();
   while (current < end) {

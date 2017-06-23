@@ -87,16 +87,6 @@ abstract class TargetImplementation extends Target {
             bypassLibraryPrivacy: true);
   }
 
-  /// Returns a reference to the constructor of [FallThroughError] error.  The
-  /// constructor is expected to accept no arguments.
-  Builder getFallThroughError(Loader loader) {
-    if (cachedFallThroughError != null) {
-      return cachedFallThroughError;
-    }
-    return cachedFallThroughError =
-        loader.coreLibrary.getConstructor("FallThroughError");
-  }
-
   /// Returns a reference to the constructor used for creating `native`
   /// annotations. The constructor is expected to accept a single argument of
   /// type String, which is the name of the native method.

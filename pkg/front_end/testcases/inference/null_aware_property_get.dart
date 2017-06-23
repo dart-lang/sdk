@@ -11,6 +11,7 @@ class C {
 
 void f(C c) {
   var /*@type=int*/ x = c?. /*@target=C::x*/ x;
+  c?. /*@target=C::x*/ x;
 }
 
 main() {}

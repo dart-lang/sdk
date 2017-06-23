@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 enum_test: Fail # Issue 28340
 regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
@@ -23,6 +24,8 @@ mixin_supertype_subclass2_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
 mixin_of_mixin_test: CompileTimeError # Issue 23773
+
+final_attempt_reinitialization_test.dart: Skip # Issue 29659
 
 # The following tests are supposed to fail.
 # In testing-mode, dart2js supports all dart:X libraries (because it
@@ -133,9 +136,6 @@ regress_22976_test: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
-
-const_error_multiply_initialized_test/02: CompileTimeError # Issue 23618
-const_error_multiply_initialized_test/04: CompileTimeError # Issue 23618
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699

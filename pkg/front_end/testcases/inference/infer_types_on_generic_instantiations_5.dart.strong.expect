@@ -26,7 +26,7 @@ class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
     ;
   get y() → core::int
     return 0;
-  method m(dynamic a, (dynamic, self::B::E) → dynamic f) → dynamic {}
+  method m(dynamic a, (dynamic, self::B::E) → dynamic f) → core::String {}
 }
 static method foo() → dynamic {
   core::int y = new self::B::•<dynamic>().{self::B::m}(null, null);

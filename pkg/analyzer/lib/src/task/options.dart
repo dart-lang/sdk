@@ -233,10 +233,21 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     String content = getRequiredInput(CONTENT_INPUT_NAME);
+    //
+    // Record outputs.
+    //
+    outputs[ANALYSIS_OPTIONS_ERRORS] =
+        analyzeAnalysisOptions(source, content, context?.sourceFactory);
+    outputs[LINE_INFO] = computeLineInfo(content);
+  }
 
+  static List<AnalysisError> analyzeAnalysisOptions(
+      Source source, String content, SourceFactory sourceFactory) {
     List<AnalysisError> errors = <AnalysisError>[];
     Source initialSource = source;
     SourceSpan initialIncludeSpan;
+    AnalysisOptionsProvider optionsProvider =
+        new AnalysisOptionsProvider(sourceFactory);
 
     // Validate the specified options and any included option files
     void validate(Source source, Map<String, YamlNode> options) {
@@ -268,8 +279,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       SourceSpan span = node.span;
       initialIncludeSpan ??= span;
       String includeUri = span.text;
-      Source includedSource =
-          context.sourceFactory.resolveUri(source, includeUri);
+      Source includedSource = sourceFactory.resolveUri(source, includeUri);
       if (!includedSource.exists()) {
         errors.add(new AnalysisError(
             initialSource,
@@ -310,12 +320,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       errors.add(new AnalysisError(source, span.start.column + 1, span.length,
           AnalysisOptionsErrorCode.PARSE_ERROR, [e.message]));
     }
-
-    //
-    // Record outputs.
-    //
-    outputs[ANALYSIS_OPTIONS_ERRORS] = errors;
-    outputs[LINE_INFO] = computeLineInfo(content);
+    return errors;
   }
 
   /// Return a map from the names of the inputs of this kind of task to the

@@ -24,8 +24,6 @@
       ['"<(target_arch)"=="simarmv6"', { 'dart_target_arch': 'SIMARMV6', }],
       ['"<(target_arch)"=="simarmv5te"', { 'dart_target_arch': 'SIMARMV5TE', }],
       ['"<(target_arch)"=="simarm64"', { 'dart_target_arch': 'SIMARM64', }],
-      ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
-      ['"<(target_arch)"=="simmips"', { 'dart_target_arch': 'SIMMIPS', }],
       ['"<(target_arch)"=="simdbc"', { 'dart_target_arch': 'SIMDBC', }],
       ['"<(target_arch)"=="simdbc64"', { 'dart_target_arch': 'SIMDBC64', }],
       [ 'OS=="linux"', { 'dart_target_os': 'Linux', } ],
@@ -117,20 +115,6 @@
         'abstract': 1,
         'defines': [
           'TARGET_ARCH_ARM64',
-        ],
-      },
-
-      'Dart_simmips_Base': {
-        'abstract': 1,
-        'defines': [
-          'TARGET_ARCH_MIPS',
-        ]
-      },
-
-      'Dart_mips_Base': {
-        'abstract': 1,
-        'defines': [
-          'TARGET_ARCH_MIPS',
         ],
       },
 
@@ -336,36 +320,6 @@
         ],
       },
 
-      'DebugSIMMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_simmips_Base', 'Dart_Debug',
-          'Dart_<(dart_target_os)_Base',
-          'Dart_<(dart_target_os)_simmips_Base',
-          'Dart_<(dart_target_os)_Debug',
-        ],
-        'defines': [
-          'DEBUG',
-        ],
-      },
-
-      'ReleaseSIMMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_simmips_Base', 'Dart_Release',
-          'Dart_<(dart_target_os)_Base',
-          'Dart_<(dart_target_os)_simmips_Base',
-          'Dart_<(dart_target_os)_Release',
-        ],
-      },
-
-      'ProductSIMMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_simmips_Base', 'Dart_Product',
-          'Dart_<(dart_target_os)_Base',
-          'Dart_<(dart_target_os)_simmips_Base',
-          'Dart_<(dart_target_os)_Product',
-        ],
-      },
-
       'DebugSIMDBC': {
         'inherit_from': [
           'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
@@ -458,7 +412,7 @@
         ],
       },
 
-      # ARM and MIPS hardware configurations are only for Linux and Android.
+      # ARM hardware configurations are only for Linux and Android.
       'DebugXARM': {
         'inherit_from': [
           'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',
@@ -671,62 +625,6 @@
           'Dart_Base', 'Dart_arm64_Base', 'Dart_Product',
           'Dart_Linux_Base',
           'Dart_Linux_arm64_Base',
-          'Dart_Linux_Product',
-        ],
-      },
-
-      'DebugXMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_mips_Base', 'Dart_Debug',
-          'Dart_Linux_Base',
-          'Dart_Linux_xmips_Base',
-          'Dart_Linux_xmips_Debug',
-          'Dart_Linux_Debug',
-        ],
-      },
-
-      'ReleaseXMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_mips_Base', 'Dart_Release',
-          'Dart_Linux_Base',
-          'Dart_Linux_xmips_Base',
-          'Dart_Linux_xmips_Release',
-          'Dart_Linux_Release',
-        ],
-      },
-
-      'ProductXMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_mips_Base', 'Dart_Product',
-          'Dart_Linux_Base',
-          'Dart_Linux_xmips_Base',
-          'Dart_Linux_Product',
-        ],
-      },
-
-      'DebugMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_mips_Base', 'Dart_Debug',
-          'Dart_Linux_Base',
-          'Dart_Linux_mips_Base',
-          'Dart_Linux_Debug',
-        ],
-      },
-
-      'ReleaseMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_mips_Base', 'Dart_Release',
-          'Dart_Linux_Base',
-          'Dart_Linux_mips_Base',
-          'Dart_Linux_Release',
-        ],
-      },
-
-      'ProductMIPS': {
-        'inherit_from': [
-          'Dart_Base', 'Dart_mips_Base', 'Dart_Product',
-          'Dart_Linux_Base',
-          'Dart_Linux_mips_Base',
           'Dart_Linux_Product',
         ],
       },

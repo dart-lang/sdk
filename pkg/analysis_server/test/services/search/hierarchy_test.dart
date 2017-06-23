@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,11 +20,11 @@ main() {
 
 @reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
-  SearchEngineImpl2 searchEngine;
+  SearchEngineImpl searchEngine;
 
   void setUp() {
     super.setUp();
-    searchEngine = new SearchEngineImpl2([driver]);
+    searchEngine = new SearchEngineImpl([driver]);
   }
 
   test_getClassMembers() async {

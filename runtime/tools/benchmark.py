@@ -54,7 +54,7 @@ def BuildOptions():
       default=False, action="store_true")
   result.add_option("--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,simmips,arm,mips,dartc]',
+      metavar='[all,ia32,x64,simarm,arm,dartc]',
       default=utils.GuessArchitecture())
   result.add_option("--executable",
       help='Virtual machine to execute.',
@@ -68,7 +68,7 @@ def BuildOptions():
 
 def ProcessOptions(options):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simmips,dartc'
+    options.arch = 'ia32,x64,simarm,dartc'
   if options.mode == 'all':
     options.mode = 'debug,release'
   options.mode = options.mode.split(',')
@@ -78,7 +78,7 @@ def ProcessOptions(options):
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    if not arch in ['ia32', 'x64', 'simarm', 'simmips', 'arm', 'mips', 'dartc']:
+    if not arch in ['ia32', 'x64', 'simarm', 'arm', 'dartc']:
       print "Unknown arch %s" % arch
       return False
   return True

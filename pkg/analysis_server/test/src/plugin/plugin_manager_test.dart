@@ -119,11 +119,21 @@ class DiscoveredPluginInfoTest {
   }
 
   test_addContextRoot() {
+    String optionsFilePath = '/pkg1/analysis_options.yaml';
     ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    contextRoot1.optionsFilePath = optionsFilePath;
+    PluginSession session = new PluginSession(plugin);
+    TestServerCommunicationChannel channel =
+        new TestServerCommunicationChannel(session);
+    plugin.currentSession = session;
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
+    List<Request> sentRequests = channel.sentRequests;
+    expect(sentRequests, hasLength(1));
+    List<Map> roots = sentRequests[0].params['roots'];
+    expect(roots[0]['optionsFile'], optionsFilePath);
   }
 
   test_creation() {
@@ -660,6 +670,9 @@ class MinimalPlugin extends ServerPlugin {
 class TestNotificationManager implements NotificationManager {
   List<Notification> notifications = <Notification>[];
 
+  Map<String, Map<String, List<AnalysisError>>> recordedErrors =
+      <String, Map<String, List<AnalysisError>>>{};
+
   @override
   void handlePluginNotification(String pluginId, Notification notification) {
     notifications.add(notification);
@@ -668,6 +681,13 @@ class TestNotificationManager implements NotificationManager {
   @override
   noSuchMethod(Invocation invocation) {
     fail('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  void recordAnalysisErrors(
+      String pluginId, String filePath, List<AnalysisError> errorData) {
+    recordedErrors.putIfAbsent(
+        pluginId, () => <String, List<AnalysisError>>{})[filePath] = errorData;
   }
 }
 

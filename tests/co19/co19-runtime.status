@@ -13,22 +13,25 @@ LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Tests not included in the image.
 
-[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
-# Failures ok in tests below. VM moves super initializer to end of list.
-Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
-Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
-Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
+[ ($runtime == vm || $runtime == dart_precompiled) && ($compiler != dartk && $compiler != dartkp) ]
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: CompileTimeError # Issue 114
 
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 22200
+[ $runtime == dart_precompiled ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
+
+[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Issue 1296
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError, Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError, Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 1296
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
+Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError, fail # Dart issue 12916
+
 # Skip until Issue 29895 is fixed.
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: skip
-
-Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 
 Language/Statements/Assert/execution_t02: skip # co19 issue 734
 Language/Statements/Assert/execution_t03: skip # co19 issue 734
@@ -58,15 +61,15 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 [ ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == arm64 ]
 # These tests take too much memory (300 MB) for our 1 GB test machine.
 # co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
-[ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip  # Timeout
+[ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Timeout
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
@@ -221,7 +224,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # Requires deferred
 Language/Types/Dynamic_Type_System/deferred_type_error_t01: Skip # Requires deferred libraries
 Language/Types/Static_Types/deferred_type_t01: Skip # Requires deferred libraries
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # Requires deferred libraries
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Timeout
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: Pass, Timeout
 LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
@@ -235,6 +237,7 @@ LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Slow
 
 [ $runtime == vm && $mode == release && $system == linux && ($arch == x64 || $arch == ia32)]
 LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow

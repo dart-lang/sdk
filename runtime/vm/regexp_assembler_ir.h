@@ -32,6 +32,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                          intptr_t capture_count,
                          const ParsedFunction* parsed_function,
                          const ZoneGrowableArray<const ICData*>& ic_data_array,
+                         intptr_t osr_id,
                          Zone* zone);
   virtual ~IRRegExpMacroAssembler();
 
@@ -284,8 +285,8 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // Load a number of characters starting from index in the pattern string.
   Value* LoadCodeUnitsAt(LocalVariable* index, intptr_t character_count);
 
-  // Check whether preemption has been requested.
-  void CheckPreemption();
+  // Check whether preemption has been requested. Also serves as an OSR entry.
+  void CheckPreemption(bool is_backtrack);
 
   // Byte size of chars in the string to match (decided by the Mode argument)
   inline intptr_t char_size() { return static_cast<int>(mode_); }
@@ -343,7 +344,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // A utility class tracking ids of various objects such as blocks, temps, etc.
   class IdAllocator : public ValueObject {
    public:
-    IdAllocator() : next_id(0) {}
+    explicit IdAllocator(intptr_t first_id = 0) : next_id(first_id) {}
 
     intptr_t Count() const { return next_id; }
     intptr_t Alloc(intptr_t count = 1) {

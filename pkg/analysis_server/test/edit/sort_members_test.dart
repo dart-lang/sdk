@@ -180,8 +180,7 @@ class MyAnnotation {
 ''');
   }
 
-  @failingTest
-  test_OK_genericFunctionTypeInComments() async {
+  test_OK_genericFunctionType() async {
     addFile(
         projectPath + '/analysis_options.yaml',
         '''
@@ -204,14 +203,14 @@ class Super {}
 
 typedef dynamic Func(String x, String y);
 
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => null;
+F allowInterop<F extends Function>(F f) => null;
 
 Func bar(Func f) {
   return allowInterop(f);
 }
 ''');
     return _assertSorted('''
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => null;
+F allowInterop<F extends Function>(F f) => null;
 
 Func bar(Func f) {
   return allowInterop(f);

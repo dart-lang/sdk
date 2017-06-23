@@ -245,9 +245,9 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
-  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
-    return AtomicOperations::CompareAndSwapWord(&raw()->ptr()->tags_, old_tags,
-                                                new_tags);
+  uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
+    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
+                                                  old_tags, new_tags);
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -434,13 +434,11 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
-    uword tags = obj->ptr()->tags_;
-    return tags >> 32;
+    return obj->ptr()->hash_;
   }
 
-  static void SetCachedHash(RawObject* obj, uintptr_t hash) {
-    ASSERT(hash >> 32 == 0);
-    obj->ptr()->tags_ |= hash << 32;
+  static void SetCachedHash(RawObject* obj, uint32_t hash) {
+    obj->ptr()->hash_ = hash;
   }
 #endif
 
@@ -1896,6 +1894,8 @@ class ICData : public Object {
 
   intptr_t NumArgsTested() const;
 
+  intptr_t TypeArgsLen() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -2854,7 +2854,9 @@ class Function : public Object {
 
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
+  // The parent is the enclosing function or null if none.
   static RawFunction* NewSignatureFunction(const Object& owner,
+                                           const Function& parent,
                                            TokenPosition token_pos,
                                            Heap::Space space = Heap::kOld);
 
@@ -4228,9 +4230,6 @@ class Instructions : public Object {
 #elif defined(TARGET_ARCH_ARM64)
   static const intptr_t kCheckedEntryOffset = 16;
   static const intptr_t kUncheckedEntryOffset = 40;
-#elif defined(TARGET_ARCH_MIPS)
-  static const intptr_t kCheckedEntryOffset = 12;
-  static const intptr_t kUncheckedEntryOffset = 52;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
@@ -6827,16 +6826,14 @@ class String : public Instance {
     return result;
   }
 
+  static intptr_t Hash(RawString* raw);
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return GetCachedHash(raw()) != 0;
   }
 
-#if defined(HASH_IN_OBJECT_HEADER)
-  static intptr_t hash_offset() { return kInt32Size; }  // Wrong for big-endian?
-#else
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
-#endif
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
@@ -7652,7 +7649,10 @@ class Array : public Instance {
   // object or a regular Object so that it can be traversed during garbage
   // collection. The backing array of the original Growable Object Array is
   // set to an empty array.
-  static RawArray* MakeArray(const GrowableObjectArray& growable_array);
+  // If the unique parameter is false, the function is allowed to return
+  // a shared Array instance.
+  static RawArray* MakeFixedLength(const GrowableObjectArray& growable_array,
+                                   bool unique = false);
 
   RawArray* Slice(intptr_t start,
                   intptr_t count,
@@ -7766,8 +7766,6 @@ class GrowableObjectArray : public Instance {
     // reusing the type argument vector of the instantiator.
     ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated() &&
                               value.IsCanonical()));
-    const Array& contents = Array::Handle(data());
-    contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -7818,7 +7816,7 @@ class GrowableObjectArray : public Instance {
     return &(DataArray()->data()[index]);
   }
 
-  static const int kDefaultInitialCapacity = 4;
+  static const int kDefaultInitialCapacity = 0;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
   friend class Array;
@@ -7961,29 +7959,15 @@ class TypedData : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uword ComputeCanonicalTableHash() const;
 
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
     NoSafepointScope no_safepoint;                                             \
-    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     NoSafepointScope no_safepoint;                                             \
-    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
   }
-#else  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
-#define TYPED_GETTER_SETTER(name, type)                                        \
-  type Get##name(intptr_t byte_offset) const {                                 \
-    NoSafepointScope no_safepoint;                                             \
-    type result;                                                               \
-    memmove(&result, DataAddr(byte_offset), sizeof(type));                     \
-    return result;                                                             \
-  }                                                                            \
-  void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    memmove(DataAddr(byte_offset), &value, sizeof(type));                      \
-  }
-#endif  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)

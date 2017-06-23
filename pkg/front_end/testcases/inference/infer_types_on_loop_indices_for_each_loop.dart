@@ -67,3 +67,5 @@ test() {
     String y = x;
   }
 }
+
+main() {}

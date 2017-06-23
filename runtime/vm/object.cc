@@ -992,10 +992,17 @@ void Object::InitOnce(Isolate* isolate) {
 
 
 // An object visitor which will mark all visited objects. This is used to
-// premark all objects in the vm_isolate_ heap.
-class PremarkingVisitor : public ObjectVisitor {
+// premark all objects in the vm_isolate_ heap.  Also precalculates hash
+// codes so that we can get the identity hash code of objects in the read-
+// only VM isolate.
+class FinalizeVMIsolateVisitor : public ObjectVisitor {
  public:
-  PremarkingVisitor() {}
+  FinalizeVMIsolateVisitor()
+#if defined(HASH_IN_OBJECT_HEADER)
+      : counter_(1337)
+#endif
+  {
+  }
 
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
@@ -1005,8 +1012,35 @@ class PremarkingVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
+      if (obj->IsStringInstance()) {
+        RawString* str = reinterpret_cast<RawString*>(obj);
+        intptr_t hash = String::Hash(str);
+        String::SetCachedHash(str, hash);
+      }
+#if defined(HASH_IN_OBJECT_HEADER)
+      // These objects end up in the read-only VM isolate which is shared
+      // between isolates, so we have to prepopulate them with identity hash
+      // codes, since we can't add hash codes later.
+      if (Object::GetCachedHash(obj) == 0) {
+        // Some classes have identity hash codes that depend on their contents,
+        // not per object.
+        ASSERT(!obj->IsStringInstance());
+        if (!obj->IsMint() && !obj->IsDouble() && !obj->IsBigint() &&
+            !obj->IsRawNull() && !obj->IsBool()) {
+          counter_ += 2011;  // The year Dart was announced and a prime.
+          counter_ &= 0x3fffffff;
+          if (counter_ == 0) counter_++;
+          Object::SetCachedHash(obj, counter_);
+        }
+      }
+#endif
     }
   }
+
+ private:
+#if defined(HASH_IN_OBJECT_HEADER)
+  int32_t counter_;
+#endif
 };
 
 
@@ -1086,7 +1120,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   {
     ASSERT(isolate == Dart::vm_isolate());
     WritableVMIsolateScope scope(Thread::Current());
-    PremarkingVisitor premarker;
+    FinalizeVMIsolateVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
     isolate->heap()->IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
@@ -1121,13 +1155,15 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw->ptr()->tags_;
+      uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = AtomicOperations::CompareAndSwapWord(&raw->ptr()->tags_,
-                                                    old_tags, new_tags);
+        // We can't use obj.CompareAndSwapTags here because we don't have a
+        // handle for the new object.
+        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
+                                                      old_tags, new_tags);
       } while (tags != old_tags);
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
@@ -1139,13 +1175,12 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw->ptr()->tags_;
+      uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = AtomicOperations::CompareAndSwapWord(&raw->ptr()->tags_,
-                                                    old_tags, new_tags);
+        tags = obj.CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
     }
   }
@@ -1867,12 +1902,15 @@ void Object::InitializeObject(uword address,
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
   }
-  uword tags = 0;
+  uint32_t tags = 0;
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
+#if defined(HASH_IN_OBJECT_HEADER)
+  reinterpret_cast<RawObject*>(address)->hash_ = 0;
+#endif
   ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
 }
 
@@ -2673,6 +2711,14 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                 false,  // Not native.
                 *this, TokenPosition::kMinSource));
   ArgumentsDescriptor desc(args_desc);
+  if (desc.TypeArgsLen() > 0) {
+    // Make dispatcher function generic, since type arguments are passed.
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, TypeArguments::New(desc.TypeArgsLen()));
+    // TODO(regis): Can we leave the array uninitialized to save memory?
+    invocation.set_type_parameters(type_params);
+  }
+
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
                                       false);  // Not positional.
@@ -3020,7 +3066,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
     // Preserve the original implicit constructor.
     new_functions.Add(orig_implicit_ctor);
   }
-  Array& new_list = Array::Handle(Array::MakeArray(new_functions));
+  Array& new_list = Array::Handle(Array::MakeFixedLength(new_functions));
   SetFunctions(new_list);
 
   // Merge the two list of fields. Raise an error when duplicates are found or
@@ -3084,7 +3130,7 @@ static RawString* BuildClosureSource(const Array& formal_params,
   src_pieces.Add(Symbols::RParenArrow());
   src_pieces.Add(expr);
   src_pieces.Add(Symbols::Semicolon());
-  return String::ConcatAll(Array::Handle(Array::MakeArray(src_pieces)));
+  return String::ConcatAll(Array::Handle(Array::MakeFixedLength(src_pieces)));
 }
 
 
@@ -4835,6 +4881,9 @@ void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
 
 
 bool TypeArguments::IsResolved() const {
+  if (IsCanonical()) {
+    return true;
+  }
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
@@ -6514,10 +6563,11 @@ RawFunction* Function::InstantiateSignatureFrom(
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
+  const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
   Function& sig = Function::Handle(
-      zone,
-      Function::NewSignatureFunction(owner, TokenPosition::kNoSource, space));
+      zone, Function::NewSignatureFunction(owner, parent,
+                                           TokenPosition::kNoSource, space));
   sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
@@ -6908,6 +6958,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
+                                            const Function& parent,
                                             TokenPosition token_pos,
                                             Heap::Space space) {
   const Function& result = Function::Handle(Function::New(
@@ -6919,6 +6970,7 @@ RawFunction* Function::NewSignatureFunction(const Object& owner,
       /* is_native = */ false,
       owner,  // Same as function type scope class.
       token_pos, space));
+  result.set_parent_function(parent);
   result.set_is_reflectable(false);
   result.set_is_visible(false);
   result.set_is_debuggable(false);
@@ -8679,7 +8731,7 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
     prev = curr;
     curr = next;
   }
-  const Array& source = Array::Handle(Array::MakeArray(literals));
+  const Array& source = Array::Handle(Array::MakeFixedLength(literals));
   return String::ConcatAll(source);
 }
 
@@ -9400,7 +9452,7 @@ intptr_t Script::GetTokenLineUsingLineStarts(
       }
       tkit.Advance();
     }
-    line_starts_array = Array::MakeArray(line_starts_list);
+    line_starts_array = Array::MakeFixedLength(line_starts_list);
     set_line_starts(line_starts_array);
   }
 
@@ -10648,7 +10700,7 @@ RawArray* Library::LoadedScripts() const {
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
-    const Array& scripts_array = Array::Handle(Array::MakeArray(scripts));
+    const Array& scripts_array = Array::Handle(Array::MakeFixedLength(scripts));
     StorePointer(&raw_ptr()->loaded_scripts_, scripts_array.raw());
   }
   return loaded_scripts();
@@ -13093,9 +13145,11 @@ const char* ICData::ToCString() const {
   const String& name = String::Handle(target_name());
   const intptr_t num_args = NumArgsTested();
   const intptr_t num_checks = NumberOfChecks();
+  const intptr_t type_args_len = TypeArgsLen();
   return OS::SCreate(Thread::Current()->zone(),
-                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd "",
-                     name.ToCString(), num_args, num_checks);
+                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd
+                     " type-args-len: %" Pd "",
+                     name.ToCString(), num_args, num_checks, type_args_len);
 }
 
 
@@ -13175,6 +13229,12 @@ void ICData::set_tag(intptr_t value) const {
 
 intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
+}
+
+
+intptr_t ICData::TypeArgsLen() const {
+  ArgumentsDescriptor args_desc(Array::Handle(arguments_descriptor()));
+  return args_desc.TypeArgsLen();
 }
 
 
@@ -14717,7 +14777,10 @@ const char* Code::Name() const {
   if (obj.IsNull()) {
     // Regular stub.
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
-    ASSERT(name != NULL);
+    if (name == NULL) {
+      ASSERT(!StubCode::HasBeenInitialized());
+      return zone->PrintToString("[this stub]");  // Not yet recorded.
+    }
     return zone->PrintToString("[Stub] %s", name);
   } else if (obj.IsClass()) {
     // Allocation stub.
@@ -16001,6 +16064,11 @@ bool Instance::IsInstanceOf(
         return true;
       }
       if (!sig_fun.HasInstantiatedSignature()) {
+        // The following signature instantiation of sig_fun with its own type
+        // parameters only works if sig_fun has no generic parent, which is
+        // guaranteed to be the case, since the looked up call() function
+        // cannot be nested. It is most probably not even generic.
+        ASSERT(!sig_fun.HasGenericParent());
         const TypeArguments& function_type_arguments =
             TypeArguments::Handle(zone, sig_fun.type_parameters());
         // No bound error possible, since the instance exists.
@@ -16788,9 +16856,22 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // TODO(regis): Should we update TypeParameter::IsEquivalent() instead?
       if (type_param.IsFunctionTypeParameter() &&
           other_type_param.IsFunctionTypeParameter() &&
-          type_param.IsFinalized() && other_type_param.IsFinalized() &&
-          (type_param.index() == other_type_param.index())) {
-        return true;
+          type_param.IsFinalized() && other_type_param.IsFinalized()) {
+        // To be compatible, the function type parameters should be declared at
+        // the same position in the generic function. Their index therefore
+        // needs adjustement before comparison.
+        // Example: 'foo<F>(bar<B>(B b)) { }' and 'baz<Z>(Z z) { }', baz can be
+        // assigned to bar, although B has index 1 and Z index 0.
+        const Function& sig_fun =
+            Function::Handle(zone, type_param.parameterized_function());
+        const Function& other_sig_fun =
+            Function::Handle(zone, other_type_param.parameterized_function());
+        const int offset = sig_fun.NumParentTypeParameters();
+        const int other_offset = other_sig_fun.NumParentTypeParameters();
+        if (type_param.index() - offset ==
+            other_type_param.index() - other_offset) {
+          return true;
+        }
       }
     }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
@@ -17418,8 +17499,10 @@ RawAbstractType* Type::CloneUnfinalized() const {
   Function& fun = Function::Handle(zone, signature());
   if (!fun.IsNull()) {
     const Class& owner = Class::Handle(zone, fun.Owner());
-    Function& fun_clone = Function::Handle(
-        zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
+    const Function& parent = Function::Handle(zone, fun.parent_function());
+    Function& fun_clone =
+        Function::Handle(zone, Function::NewSignatureFunction(
+                                   owner, parent, TokenPosition::kNoSource));
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, fun.type_parameters());
     if (!type_params.IsNull()) {
@@ -17486,9 +17569,11 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     ASSERT(type_cls.IsTypedefClass() || type_cls.IsClosureClass());
     // If the scope class is not a typedef and if it is generic, it must be the
     // mixin class, set it to the new owner.
+    const Function& parent = Function::Handle(zone, fun.parent_function());
+    // TODO(regis): Is it safe to reuse the parent function with the old owner?
     Function& fun_clone = Function::Handle(
-        zone,
-        Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
+        zone, Function::NewSignatureFunction(new_owner, parent,
+                                             TokenPosition::kNoSource));
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, fun.type_parameters());
     if (!type_params.IsNull()) {
@@ -17633,11 +17718,18 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     if (IsFunctionType()) {
       const Function& fun = Function::Handle(zone, signature());
       if (!fun.IsSignatureFunction()) {
-        Function& sig_fun = Function::Handle(
-            zone,
-            Function::NewSignatureFunction(cls, TokenPosition::kNoSource));
+        // In case of a generic function, the function type parameters in the
+        // signature will still refer to the original function. This should not
+        // be a problem, since they are finalized and the indices remain
+        // unchanged.
+        const Function& parent = Function::Handle(zone, fun.parent_function());
+        Function& sig_fun =
+            Function::Handle(zone, Function::NewSignatureFunction(
+                                       cls, parent, TokenPosition::kNoSource));
         sig_fun.set_type_parameters(
             TypeArguments::Handle(zone, fun.type_parameters()));
+        ASSERT(fun.HasGenericParent() == sig_fun.HasGenericParent());
+        ASSERT(fun.IsGeneric() == sig_fun.IsGeneric());
         type = fun.result_type();
         type = type.Canonicalize(trail);
         sig_fun.set_result_type(type);
@@ -20273,6 +20365,35 @@ static intptr_t HashImpl(const T* characters, intptr_t len) {
 }
 
 
+intptr_t String::Hash(RawString* raw) {
+  StringHasher hasher;
+  uword length = Smi::Value(raw->ptr()->length_);
+  if (raw->IsOneByteString() || raw->IsExternalOneByteString()) {
+    const uint8_t* data;
+    if (raw->IsOneByteString()) {
+      data = reinterpret_cast<RawOneByteString*>(raw)->ptr()->data();
+    } else {
+      ASSERT(raw->IsExternalOneByteString());
+      RawExternalOneByteString* str =
+          reinterpret_cast<RawExternalOneByteString*>(raw);
+      data = str->ptr()->external_data_->data();
+    }
+    return String::Hash(data, length);
+  } else {
+    const uint16_t* data;
+    if (raw->IsTwoByteString()) {
+      data = reinterpret_cast<RawTwoByteString*>(raw)->ptr()->data();
+    } else {
+      ASSERT(raw->IsExternalTwoByteString());
+      RawExternalTwoByteString* str =
+          reinterpret_cast<RawExternalTwoByteString*>(raw);
+      data = str->ptr()->external_data_->data();
+    }
+    return String::Hash(data, length);
+  }
+}
+
+
 intptr_t String::Hash(const char* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
@@ -21093,11 +21214,11 @@ RawString* String::MakeExternal(void* array,
 
       // Update the class information of the object.
       const intptr_t class_id = kExternalOneByteStringCid;
-      uword tags = raw_ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw_ptr()->tags_;
+      uint32_t old_tags;
       do {
         old_tags = tags;
-        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
         tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
@@ -21130,11 +21251,11 @@ RawString* String::MakeExternal(void* array,
 
       // Update the class information of the object.
       const intptr_t class_id = kExternalTwoByteStringCid;
-      uword tags = raw_ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw_ptr()->tags_;
+      uint32_t old_tags;
       do {
         old_tags = tags;
-        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
         tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
@@ -22022,11 +22143,11 @@ void Array::MakeImmutable() const {
   if (IsImmutable()) return;
   ASSERT(!IsCanonical());
   NoSafepointScope no_safepoint;
-  uword tags = raw_ptr()->tags_;
-  uword old_tags;
+  uint32_t tags = raw_ptr()->tags_;
+  uint32_t old_tags;
   do {
     old_tags = tags;
-    uword new_tags =
+    uint32_t new_tags =
         RawObject::ClassIdTag::update(kImmutableArrayCid, old_tags);
     tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
@@ -22066,20 +22187,32 @@ RawArray* Array::Grow(const Array& source,
 }
 
 
-RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
+RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
+                                 bool unique) {
   ASSERT(!growable_array.IsNull());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   intptr_t used_len = growable_array.Length();
   // Get the type arguments and prepare to copy them.
   const TypeArguments& type_arguments =
       TypeArguments::Handle(growable_array.GetTypeArguments());
-  if ((used_len == 0) && (type_arguments.IsNull())) {
-    // This is a raw List (as in no type arguments), so we can return the
-    // simple empty array.
-    return Object::empty_array().raw();
+  if (used_len == 0) {
+    if (type_arguments.IsNull() && !unique) {
+      // This is a raw List (as in no type arguments), so we can return the
+      // simple empty array.
+      return Object::empty_array().raw();
+    }
+
+    // The backing array may be a shared instance, or may not have correct
+    // type parameters. Create a new empty array.
+    Heap::Space space = thread->IsMutatorThread() ? Heap::kNew : Heap::kOld;
+    Array& array = Array::Handle(zone, Array::New(0, space));
+    array.SetTypeArguments(type_arguments);
+    return array.raw();
   }
   intptr_t capacity_len = growable_array.Capacity();
-  Zone* zone = Thread::Current()->zone();
   const Array& array = Array::Handle(zone, growable_array.data());
+  ASSERT(array.IsArray());
   array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
@@ -22093,10 +22226,10 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
-  uword old_tags;
+  uint32_t old_tags;
   do {
     old_tags = tags;
-    uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+    uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
     tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
   // TODO(22501): For the heap to remain walkable by the sweeper, it must
@@ -22157,8 +22290,8 @@ RawImmutableArray* ImmutableArray::New(intptr_t len, Heap::Space space) {
 void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
   ASSERT(!IsNull());
   if (Length() == Capacity()) {
-    // TODO(Issue 2500): Need a better growth strategy.
-    intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
+    // Grow from 0 to 3, and then double + 1.
+    intptr_t new_capacity = (Capacity() * 2) | 3;
     if (new_capacity <= Capacity()) {
       Exceptions::ThrowOOM();
       UNREACHABLE();
@@ -22195,7 +22328,9 @@ RawObject* GrowableObjectArray::RemoveLast() const {
 
 RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
                                                  Heap::Space space) {
-  const Array& data = Array::Handle(Array::New(capacity, space));
+  RawArray* raw_data = (capacity == 0) ? Object::empty_array().raw()
+                                       : Array::New(capacity, space);
+  const Array& data = Array::Handle(raw_data);
   return New(data, space);
 }
 
@@ -22352,12 +22487,14 @@ RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
 
 
 simd128_value_t Float32x4::value() const {
-  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
+  return ReadUnaligned(
+      reinterpret_cast<const simd128_value_t*>(&raw_ptr()->value_));
 }
 
 
 void Float32x4::set_value(simd128_value_t value) const {
-  StoreSimd128(&raw_ptr()->value_[0], value);
+  StoreUnaligned(reinterpret_cast<simd128_value_t*>(&raw()->ptr()->value_),
+                 value);
 }
 
 
@@ -22487,12 +22624,14 @@ int32_t Int32x4::w() const {
 
 
 simd128_value_t Int32x4::value() const {
-  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
+  return ReadUnaligned(
+      reinterpret_cast<const simd128_value_t*>(&raw_ptr()->value_));
 }
 
 
 void Int32x4::set_value(simd128_value_t value) const {
-  StoreSimd128(&raw_ptr()->value_[0], value);
+  StoreUnaligned(reinterpret_cast<simd128_value_t*>(&raw()->ptr()->value_),
+                 value);
 }
 
 

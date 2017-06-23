@@ -73,7 +73,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
 
 // The fixed size section of the (fake) Dart frame called via a stub by the
-// optimized function contains FP, PP (ARM and MIPS only), PC-marker and
+// optimized function contains FP, PP (ARM only), PC-marker and
 // return-address. This section is copied as well, so that its contained
 // values can be updated before returning to the deoptimized function.
 // Note: on DBC stack grows upwards unlike on all other architectures.

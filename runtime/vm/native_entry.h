@@ -53,7 +53,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 #ifdef DEBUG
 #define SET_NATIVE_RETVAL(args, value)                                         \
   RawObject* retval = value;                                                   \
-  ASSERT(retval->IsDartInstance());                                            \
+  ASSERT(retval->IsDartInstance() || retval->IsTypeArguments());               \
   arguments->SetReturnUnsafe(retval);
 #else
 #define SET_NATIVE_RETVAL(arguments, value) arguments->SetReturnUnsafe(value);

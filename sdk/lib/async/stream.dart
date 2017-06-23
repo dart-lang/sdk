@@ -271,7 +271,7 @@ abstract class Stream<T> {
    *     }
    *
    *     class DuplicationTransformer implements StreamTransformer<String, String> {
-   *       // Some generic types ommitted for brevety.
+   *       // Some generic types omitted for brevity.
    *       Stream bind(Stream stream) => new Stream<String>.eventTransformed(
    *           stream,
    *           (EventSink sink) => new DuplicationSink(sink));
@@ -466,7 +466,7 @@ abstract class Stream<T> {
    * * Otherwise it is an element. Then the [convert] function is called
    * with the element as argument to produce a convert-stream for the element.
    * * If that call throws, the error is emitted on the returned stream.
-   * * If the call returnes `null`, no further action is taken for the elements.
+   * * If the call returns `null`, no further action is taken for the elements.
    * * Otherwise, this stream is paused and convert-stream is listened to.
    * Every data and error event of the convert-stream is emitted on the returned
    * stream in the order it is produced.
@@ -782,7 +782,7 @@ abstract class Stream<T> {
    * have been processed.
    *
    * If the stream contains an error, or if the call to [action] throws,
-   * the returne future completes with that error, and processing stops.
+   * the returned future completes with that error, and processing stops.
    */
   Future forEach(void action(T element)) {
     _Future future = new _Future();
@@ -1550,7 +1550,7 @@ abstract class StreamSubscription<T> {
    * The [handleDone] function is called when the stream closes.
    * The value may be `null`, in which case no function is called.
    *
-   * This method reaplces the current handler set by the invocation of
+   * This method replaces the current handler set by the invocation of
    * [Stream.listen], by calling [asFuture], or by a previous call to [onDone].
    */
   void onDone(void handleDone());

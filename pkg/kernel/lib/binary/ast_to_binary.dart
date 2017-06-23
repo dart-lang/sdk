@@ -1096,7 +1096,10 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
-    writeUInt30(node.parameter.binaryOffset);
+    List<TypeParameter> typeParameters =
+        _typeParameterIndexer.indexList[node.parameter];
+    writeUInt30(typeParameters[0].binaryOffset);
+    writeUInt30(typeParameters.indexOf(node.parameter));
     writeOptionalNode(node.bound);
   }
 
@@ -1208,11 +1211,14 @@ class SwitchCaseIndexer {
 
 class TypeParameterIndexer {
   final Map<TypeParameter, int> index = <TypeParameter, int>{};
+  final Map<TypeParameter, List<TypeParameter>> indexList =
+      <TypeParameter, List<TypeParameter>>{};
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
     for (var parameter in typeParameters) {
       index[parameter] = stackHeight;
+      indexList[parameter] = typeParameters;
       ++stackHeight;
     }
   }

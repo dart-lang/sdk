@@ -289,7 +289,7 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   large_pages_ = page;
   IncreaseCapacityInWords(page_size_in_words);
   // Only one object in this page (at least until String::MakeExternal or
-  // Array::MakeArray is called).
+  // Array::MakeFixedLength is called).
   page->set_object_end(page->object_start() + size);
   return page;
 }

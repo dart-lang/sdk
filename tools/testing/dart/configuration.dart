@@ -361,6 +361,16 @@ class Configuration {
       print("-rflutter is applicable only for --arch=x64");
     }
 
+    if (compiler == Compiler.dartdevc && !useSdk) {
+      isValid = false;
+      print("--compiler dartdevc requires --use-sdk");
+    }
+
+    if (compiler == Compiler.dartdevc && !isStrong) {
+      isValid = false;
+      print("--compiler dartdevc requires --strong");
+    }
+
     return isValid;
   }
 
@@ -433,8 +443,6 @@ class Architecture {
   static const simarmv6 = const Architecture._('simarmv6');
   static const simarmv5te = const Architecture._('simarmv5te');
   static const simarm64 = const Architecture._('simarm64');
-  static const mips = const Architecture._('mips');
-  static const simmips = const Architecture._('simmips');
   static const simdbc = const Architecture._('simdbc');
   static const simdbc64 = const Architecture._('simdbc64');
 
@@ -451,8 +459,6 @@ class Architecture {
     simarmv6,
     simarmv5te,
     simarm64,
-    mips,
-    simmips,
     simdbc,
     simdbc64
   ], key: (Architecture architecture) => architecture.name);
@@ -476,15 +482,23 @@ class Compiler {
   static const precompiler = const Compiler._('precompiler');
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
+  static const dartdevc = const Compiler._('dartdevc');
   static const appJit = const Compiler._('app_jit');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, Compiler>.fromIterable(
-      [none, precompiler, dart2js, dart2analyzer, appJit, dartk, dartkp],
-      key: (Compiler compiler) => compiler.name);
+  static final _all = new Map<String, Compiler>.fromIterable([
+    none,
+    precompiler,
+    dart2js,
+    dart2analyzer,
+    dartdevc,
+    appJit,
+    dartk,
+    dartkp
+  ], key: (Compiler compiler) => compiler.name);
 
   static Compiler find(String name) {
     var compiler = _all[name];
@@ -520,6 +534,15 @@ class Compiler {
           Runtime.opera,
           Runtime.chromeOnAndroid,
           Runtime.safariMobileSim
+        ];
+
+      case Compiler.dart2js:
+      case Compiler.dartdevc:
+        // TODO(rnystrom): Expand to support other JS execution environments
+        // (other browsers, d8) when tested and working.
+        return const [
+          Runtime.none,
+          Runtime.chrome,
         ];
 
       case Compiler.dart2analyzer:

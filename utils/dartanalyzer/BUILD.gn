@@ -48,9 +48,7 @@ template("generate_summary") {
   type = invoker.type
   assert(type == "spec" || type == "strong")
   compiled_action(target_name) {
-    # TODO(rmacnak): If Fuchsia adds a checked-in SDK, revert this to use
-    # the 'dart' binary.
-    tool = "../../runtime/bin:dart_bootstrap_host_arch"
+    tool = "../../runtime/bin:dart"
     inputs = sdk_lib_files + analyzer_files
 
     output = "$root_gen_dir/$type.sum"

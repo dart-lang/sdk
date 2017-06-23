@@ -442,6 +442,13 @@ const dart::String& TranslationHelper::DartFieldName(Name* kernel_name) {
 }
 
 
+const dart::String& TranslationHelper::DartFieldName(NameIndex parent,
+                                                     StringIndex field) {
+  dart::String& name = DartString(field);
+  return ManglePrivateName(parent, &name);
+}
+
+
 const dart::String& TranslationHelper::DartInitializerName(Name* kernel_name) {
   // The [DartFieldName] will take care of mangling the name.
   dart::String& name =
@@ -685,9 +692,6 @@ FlowGraphBuilder::FlowGraphBuilder(
       try_catch_block_(NULL),
       next_used_try_index_(0),
       catch_block_(NULL),
-      type_translator_(&translation_helper_,
-                       &active_class_,
-                       /* finalize= */ true),
       streaming_flow_graph_builder_(NULL) {
   Script& script = Script::Handle(Z, parsed_function->function().script());
   H.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
@@ -737,16 +741,11 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
       instructions = Fragment(instructions.entry, entry);
     }
 
-    Statement* finalizer = try_finally_block_->finalizer();
     intptr_t finalizer_kernel_offset =
         try_finally_block_->finalizer_kernel_offset();
     try_finally_block_ = try_finally_block_->outer();
-    if (finalizer != NULL) {
-      UNREACHABLE();
-    } else {
-      instructions += streaming_flow_graph_builder_->BuildStatementAt(
-          finalizer_kernel_offset);
-    }
+    instructions += streaming_flow_graph_builder_->BuildStatementAt(
+        finalizer_kernel_offset);
 
     // We only need to make sure that if the finalizer ended normally, we
     // continue towards the next outer try-finally.
@@ -951,11 +950,12 @@ Fragment FlowGraphBuilder::AllocateContext(int size) {
 }
 
 
-Fragment FlowGraphBuilder::AllocateObject(const dart::Class& klass,
+Fragment FlowGraphBuilder::AllocateObject(TokenPosition position,
+                                          const dart::Class& klass,
                                           intptr_t argument_count) {
   ArgumentArray arguments = GetArguments(argument_count);
   AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(TokenPosition::kNoSource, klass, arguments);
+      new (Z) AllocateObjectInstr(position, klass, arguments);
   Push(allocate);
   return Fragment(allocate);
 }
@@ -1177,13 +1177,14 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
 }
 
 
-Fragment FlowGraphBuilder::ClosureCall(int argument_count,
+Fragment FlowGraphBuilder::ClosureCall(intptr_t type_args_len,
+                                       intptr_t argument_count,
                                        const Array& argument_names) {
   Value* function = Pop();
-  ArgumentArray arguments = GetArguments(argument_count);
-  const intptr_t kTypeArgsLen = 0;  // Generic closures not yet supported.
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
   ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(function, arguments, kTypeArgsLen, argument_names,
+      ClosureCallInstr(function, arguments, type_args_len, argument_names,
                        TokenPosition::kNoSource, GetNextDeoptId());
   Push(call);
   return Fragment(call);
@@ -1558,7 +1559,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   Fragment instructions;
 
   // Create instance of _FallThroughError
-  instructions += AllocateObject(klass, 0);
+  instructions += AllocateObject(TokenPosition::kNoSource, klass, 0);
   LocalVariable* instance = MakeTemporary();
 
   // Call _TypeError._create constructor.
@@ -2309,6 +2310,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   LocalScope* scope = parsed_function_->node_sequence()->scope();
 
+  if (descriptor.TypeArgsLen() > 0) {
+    LocalVariable* type_args = parsed_function_->function_type_arguments();
+    ASSERT(type_args != NULL);
+    body += LoadLocal(type_args);
+    body += PushArgument();
+  }
+
   LocalVariable* closure = NULL;
   if (is_closure_call) {
     closure = scope->VariableAt(0);
@@ -2337,8 +2345,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += LoadLocal(closure);
     body += LoadField(Closure::function_offset());
 
-    body += ClosureCall(descriptor.Count(), argument_names);
+    body += ClosureCall(descriptor.TypeArgsLen(), descriptor.Count(),
+                        argument_names);
   } else {
+    if (descriptor.TypeArgsLen() > 0) {
+      UNIMPLEMENTED();
+    }
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
                          Token::kILLEGAL, descriptor.Count(), argument_names);
   }
@@ -2380,313 +2392,6 @@ ArgumentArray FlowGraphBuilder::GetArguments(int count) {
   return arguments;
 }
 
-
-#define STREAM_EXPRESSION_IF_POSSIBLE(node)                                    \
-  if (node->can_stream()) {                                                    \
-    fragment_ = streaming_flow_graph_builder_->BuildExpressionAt(              \
-        node->kernel_offset());                                                \
-    return;                                                                    \
-  }
-
-
-AbstractType& DartTypeTranslator::TranslateType(DartType* node) {
-  node->AcceptDartTypeVisitor(this);
-
-  // We return a new `ZoneHandle` here on purpose: The intermediate language
-  // instructions do not make a copy of the handle, so we do it.
-  return AbstractType::ZoneHandle(Z, result_.raw());
-}
-
-
-AbstractType& DartTypeTranslator::TranslateTypeWithoutFinalization(
-    DartType* node) {
-  bool saved_finalize = finalize_;
-  finalize_ = false;
-  AbstractType& result = TranslateType(node);
-  finalize_ = saved_finalize;
-  return result;
-}
-
-
-const AbstractType& DartTypeTranslator::TranslateVariableType(
-    VariableDeclaration* variable) {
-  AbstractType& abstract_type = TranslateType(variable->type());
-
-  // We return a new `ZoneHandle` here on purpose: The intermediate language
-  // instructions do not make a copy of the handle, so we do it.
-  AbstractType& type = Type::ZoneHandle(Z);
-
-  if (abstract_type.IsMalformed()) {
-    type = AbstractType::dynamic_type().raw();
-  } else {
-    type = result_.raw();
-  }
-
-  return type;
-}
-
-
-void DartTypeTranslator::VisitInvalidType(InvalidType* node) {
-  result_ = ClassFinalizer::NewFinalizedMalformedType(
-      Error::Handle(Z),  // No previous error.
-      Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
-      "[InvalidType] in Kernel IR.");
-}
-
-
-void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
-  // The spec describes in section "19.1 Static Types":
-  //
-  //     Any use of a malformed type gives rise to a static warning. A
-  //     malformed type is then interpreted as dynamic by the static type
-  //     checker and the runtime unless explicitly specified otherwise.
-  //
-  // So we convert malformed return/parameter types to `dynamic`.
-  TypeParameterScope scope(this, &node->type_parameters());
-
-  Function& signature_function = Function::ZoneHandle(
-      Z, Function::NewSignatureFunction(*active_class_->klass,
-                                        TokenPosition::kNoSource));
-
-  node->return_type()->AcceptDartTypeVisitor(this);
-  if (result_.IsMalformed()) {
-    result_ = AbstractType::dynamic_type().raw();
-  }
-  signature_function.set_result_type(result_);
-
-  const intptr_t positional_count = node->positional_parameters().length();
-  const intptr_t named_count = node->named_parameters().length();
-  const intptr_t all_count = positional_count + named_count;
-  const intptr_t required_count = node->required_parameter_count();
-
-  // The additional first parameter is the receiver type (set to dynamic).
-  signature_function.set_num_fixed_parameters(1 + required_count);
-  signature_function.SetNumOptionalParameters(
-      all_count - required_count, positional_count > required_count);
-
-  const Array& parameter_types =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
-  signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names =
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
-  signature_function.set_parameter_names(parameter_names);
-
-  intptr_t pos = 0;
-  parameter_types.SetAt(pos, AbstractType::dynamic_type());
-  parameter_names.SetAt(pos, H.DartSymbol("_receiver_"));
-  pos++;
-  for (intptr_t i = 0; i < positional_count; i++, pos++) {
-    node->positional_parameters()[i]->AcceptDartTypeVisitor(this);
-    if (result_.IsMalformed()) {
-      result_ = AbstractType::dynamic_type().raw();
-    }
-    parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbol("noname"));
-  }
-  for (intptr_t i = 0; i < named_count; i++, pos++) {
-    NamedParameter* parameter = node->named_parameters()[i];
-    parameter->type()->AcceptDartTypeVisitor(this);
-    if (result_.IsMalformed()) {
-      result_ = AbstractType::dynamic_type().raw();
-    }
-    parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbol(parameter->name()));
-  }
-
-  Type& signature_type =
-      Type::ZoneHandle(Z, signature_function.SignatureType());
-
-  if (finalize_) {
-    signature_type ^=
-        ClassFinalizer::FinalizeType(*active_class_->klass, signature_type);
-    // Do not refer to signature_function anymore, since it may have been
-    // replaced during canonicalization.
-    signature_function = Function::null();
-  }
-
-  result_ = signature_type.raw();
-}
-
-
-static intptr_t FindTypeParameterIndex(List<TypeParameter>* parameters,
-                                       TypeParameter* param) {
-  for (intptr_t i = 0; i < parameters->length(); i++) {
-    if (param == (*parameters)[i]) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
-void DartTypeTranslator::VisitTypeParameterType(TypeParameterType* node) {
-  for (TypeParameterScope* scope = type_parameter_scope_; scope != NULL;
-       scope = scope->outer()) {
-    const intptr_t index =
-        FindTypeParameterIndex(scope->parameters(), node->parameter());
-    if (index >= 0) {
-      result_ ^= dart::Type::DynamicType();
-      return;
-    }
-  }
-
-  if ((active_class_->member != NULL) && active_class_->member->IsProcedure()) {
-    Procedure* procedure = Procedure::Cast(active_class_->member);
-    if ((procedure->function() != NULL) &&
-        (procedure->function()->type_parameters().length() > 0)) {
-      //
-      // WARNING: This is a little hackish:
-      //
-      // We have a static factory constructor. The kernel IR gives the factory
-      // constructor function it's own type parameters (which are equal in name
-      // and number to the ones of the enclosing class).
-      // I.e.,
-      //
-      //   class A<T> {
-      //     factory A.x() { return new B<T>(); }
-      //   }
-      //
-      //  is basically translated to this:
-      //
-      //   class A<T> {
-      //     static A.x<T'>() { return new B<T'>(); }
-      //   }
-      //
-      const intptr_t index = FindTypeParameterIndex(
-          &procedure->function()->type_parameters(), node->parameter());
-      if (index >= 0) {
-        if (procedure->kind() == Procedure::kFactory) {
-          // The index of the type parameter in [parameters] is
-          // the same index into the `klass->type_parameters()` array.
-          result_ ^=
-              TypeArguments::Handle(Z, active_class_->klass->type_parameters())
-                  .TypeAt(index);
-        } else {
-          result_ ^= dart::Type::DynamicType();
-        }
-        return;
-      }
-    }
-  }
-
-  ASSERT(active_class_->kernel_class != NULL);
-  List<TypeParameter>* parameters =
-      &active_class_->kernel_class->type_parameters();
-  const intptr_t index = FindTypeParameterIndex(parameters, node->parameter());
-  if (index >= 0) {
-    // The index of the type parameter in [parameters] is
-    // the same index into the `klass->type_parameters()` array.
-    result_ ^= TypeArguments::Handle(Z, active_class_->klass->type_parameters())
-                   .TypeAt(index);
-    return;
-  }
-
-  UNREACHABLE();
-}
-
-
-void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
-  // NOTE: That an interface type like `T<A, B>` is considered to be
-  // malformed iff `T` is malformed.
-  //   => We therefore ignore errors in `A` or `B`.
-  const TypeArguments& type_arguments = TranslateTypeArguments(
-      node->type_arguments().raw_array(), node->type_arguments().length());
-
-
-  Object& klass = Object::Handle(Z, H.LookupClassByKernelClass(node->klass()));
-  result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
-  if (finalize_) {
-    ASSERT(active_class_->klass != NULL);
-    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
-  }
-}
-
-
-void DartTypeTranslator::VisitDynamicType(DynamicType* node) {
-  result_ = Object::dynamic_type().raw();
-}
-
-
-void DartTypeTranslator::VisitVoidType(VoidType* node) {
-  result_ = Object::void_type().raw();
-}
-
-
-void DartTypeTranslator::VisitBottomType(BottomType* node) {
-  result_ =
-      dart::Class::Handle(Z, I->object_store()->null_class()).CanonicalType();
-}
-
-
-const TypeArguments& DartTypeTranslator::TranslateTypeArguments(
-    DartType** dart_types,
-    intptr_t length) {
-  bool only_dynamic = true;
-  for (intptr_t i = 0; i < length; i++) {
-    if (!dart_types[i]->IsDynamicType()) {
-      only_dynamic = false;
-      break;
-    }
-  }
-  TypeArguments& type_arguments = TypeArguments::ZoneHandle(Z);
-  if (!only_dynamic) {
-    type_arguments = TypeArguments::New(length);
-    for (intptr_t i = 0; i < length; i++) {
-      dart_types[i]->AcceptDartTypeVisitor(this);
-      if (result_.IsMalformed()) {
-        type_arguments = TypeArguments::null();
-        return type_arguments;
-      }
-      type_arguments.SetTypeAt(i, result_);
-    }
-    if (finalize_) {
-      type_arguments = type_arguments.Canonicalize();
-    }
-  }
-  return type_arguments;
-}
-
-
-const TypeArguments& DartTypeTranslator::TranslateInstantiatedTypeArguments(
-    const dart::Class& receiver_class,
-    DartType** receiver_type_arguments,
-    intptr_t length) {
-  const TypeArguments& type_arguments =
-      TranslateTypeArguments(receiver_type_arguments, length);
-  if (type_arguments.IsNull()) return type_arguments;
-
-  // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
-  // finalize the argument types.
-  // (This can for example make the [type_arguments] vector larger)
-  Type& type = Type::Handle(
-      Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
-  if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
-  }
-
-  const TypeArguments& instantiated_type_arguments =
-      TypeArguments::ZoneHandle(Z, type.arguments());
-  return instantiated_type_arguments;
-}
-
-
-const Type& DartTypeTranslator::ReceiverType(const dart::Class& klass) {
-  ASSERT(!klass.IsNull());
-  ASSERT(!klass.IsTypedefClass());
-  // Note that if klass is _Closure, the returned type will be _Closure,
-  // and not the signature type.
-  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
-  if (!type.IsNull()) {
-    return type;
-  }
-  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                   klass.token_pos());
-  if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(klass, type);
-    klass.SetCanonicalType(type);
-  }
-  return type;
-}
 
 RawObject* EvaluateMetadata(const dart::Field& metadata_field) {
   LongJumpScope jump;

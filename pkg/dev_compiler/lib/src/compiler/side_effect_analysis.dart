@@ -15,11 +15,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 /// True is the expression can be evaluated multiple times without causing
 /// code execution. This is true for final fields. This can be true for local
 /// variables, if:
-/// * they are not assigned within the [context].
-/// * they are not assigned in a function closure anywhere.
-/// True is the expression can be evaluated multiple times without causing
-/// code execution. This is true for final fields. This can be true for local
-/// variables, if:
 ///
 /// * they are not assigned within the [context] scope.
 /// * they are not assigned in a function closure anywhere.

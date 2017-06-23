@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/file_system/file_system.dart';
@@ -171,7 +171,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    searchEngine = new SearchEngineImpl2([driver]);
+    searchEngine = new SearchEngineImpl([driver]);
     astProvider = new AstProviderForDriver(driver);
   }
 }

@@ -767,6 +767,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
   __ movl(EDX, Address(EDX, VMHandles::kOffsetOfRawPtrInHandle));
 
+  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
   // Load number of arguments into EBX.
   __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(EBX);
@@ -1077,7 +1078,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EBX: next object start.
     // EDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);

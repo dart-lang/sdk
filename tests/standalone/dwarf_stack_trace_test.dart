@@ -9,7 +9,8 @@ import 'dart:io';
 
 bar() {
   // Keep the 'throw' and its argument on separate lines.
-  throw "Hello, Dwarf!";
+  throw // force linebreak with dartfmt
+      "Hello, Dwarf!";
 }
 
 foo() {

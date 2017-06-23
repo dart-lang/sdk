@@ -18,8 +18,7 @@ processor architecture.
 
 To upload new versions of these tar files, use the "upload_to_google_storage"
 tool in depot_tools, and download the new stable SDKs from the dartlang.org
-web page. The mips and arm executables must be copied from the machines that
+web page. The arm executables must be copied from the machines that
 build them, and stripped. Because these SDKs are used for the presubmit
 dartfmt check on changed files, they may need to be updated often when
 dartfmt is changing rapidly.
-

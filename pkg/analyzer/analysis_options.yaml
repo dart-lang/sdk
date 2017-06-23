@@ -4,5 +4,5 @@ linter:
   rules:
     - empty_constructor_bodies
     - empty_statements
-    - unnecessary_brace_in_string_interp
+    - unnecessary_brace_in_string_interps
     - valid_regexps

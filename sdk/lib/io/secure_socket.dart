@@ -30,19 +30,28 @@ abstract class SecureSocket implements Socket {
    * to continue the [SecureSocket] connection.
    *
    * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negogiation with the
+   * order of preference) to use during the ALPN protocol negotiation with the
    * server.  Example values are "http/1.1" or "h2".  The selected protocol
    * can be obtained via [SecureSocket.selectedProtocol].
+   *
+   * The argument [timeout] is used to specify the maximum allowed time to wait
+   * for a connection to be established. If [timeout] is longer than the system
+   * level timeout duration, a timeout may occur sooner than specified in
+   * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
+   * connection attempts to [host] are cancelled.
+
    */
   static Future<SecureSocket> connect(host, int port,
       {SecurityContext context,
       bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
+      List<String> supportedProtocols,
+      Duration timeout}) {
     return RawSecureSocket
         .connect(host, port,
             context: context,
             onBadCertificate: onBadCertificate,
-            supportedProtocols: supportedProtocols)
+            supportedProtocols: supportedProtocols,
+            timeout: timeout)
         .then((rawSocket) => new SecureSocket._(rawSocket));
   }
 
@@ -187,17 +196,18 @@ abstract class RawSecureSocket implements RawSocket {
    * to continue the [RawSecureSocket] connection.
    *
    * [supportedProtocols] is an optional list of protocols (in decreasing
-   * order of preference) to use during the ALPN protocol negogiation with the
+   * order of preference) to use during the ALPN protocol negotiation with the
    * server.  Example values are "http/1.1" or "h2".  The selected protocol
    * can be obtained via [RawSecureSocket.selectedProtocol].
    */
   static Future<RawSecureSocket> connect(host, int port,
       {SecurityContext context,
       bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
+      List<String> supportedProtocols,
+      Duration timeout}) {
     _RawSecureSocket._verifyFields(
         host, port, false, false, false, onBadCertificate);
-    return RawSocket.connect(host, port).then((socket) {
+    return RawSocket.connect(host, port, timeout: timeout).then((socket) {
       return secure(socket,
           context: context,
           onBadCertificate: onBadCertificate,

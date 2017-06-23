@@ -42,17 +42,25 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
   // Please note that no handle is created for the argument.
   // This is safe since the argument is only used in a tail call.
   // The performance benefit is more than 5% when using hashCode.
+#if defined(HASH_IN_OBJECT_HEADER)
+  return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
+#else
   Heap* heap = isolate->heap();
   ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
   return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+#endif
 }
 
 
 DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
+#if defined(HASH_IN_OBJECT_HEADER)
+  Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
+#else
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   Heap* heap = isolate->heap();
   heap->SetHash(instance.raw(), hash.Value());
+#endif
   return Object::null();
 }
 
@@ -358,6 +366,37 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #else
   return Bool::False().raw();
 #endif  // defined(ARCH_IS_64_BIT)
+}
+
+
+DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
+  const TypeArguments& function_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const TypeArguments& parent_type_arguments =
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  if (function_type_arguments.IsNull() && parent_type_arguments.IsNull()) {
+    return TypeArguments::null();
+  }
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_len, arguments->NativeArgAt(2));
+  const intptr_t len = smi_len.Value();
+  const TypeArguments& result =
+      TypeArguments::Handle(zone, TypeArguments::New(len, Heap::kNew));
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t split = parent_type_arguments.IsNull()
+                             ? len - function_type_arguments.Length()
+                             : parent_type_arguments.Length();
+  for (intptr_t i = 0; i < split; i++) {
+    type = parent_type_arguments.IsNull() ? Type::DynamicType()
+                                          : parent_type_arguments.TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  for (intptr_t i = split; i < len; i++) {
+    type = function_type_arguments.IsNull()
+               ? Type::DynamicType()
+               : function_type_arguments.TypeAt(i - split);
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize();
 }
 
 }  // namespace dart

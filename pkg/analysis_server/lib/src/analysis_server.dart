@@ -35,8 +35,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
-import 'package:analysis_server/src/single_context_manager.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -321,12 +320,6 @@ class AnalysisServer {
   final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
 
   /**
-   * The controller for sending [ContextsChangedEvent]s.
-   */
-  StreamController<ContextsChangedEvent> _onContextsChangedController =
-      new StreamController<ContextsChangedEvent>.broadcast();
-
-  /**
    * The file resolver provider used to override the way file URI's are
    * resolved in some contexts.
    */
@@ -405,7 +398,6 @@ class AnalysisServer {
       {this.diagnosticServer,
       ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
-      bool useSingleContextManager: false,
       this.rethrowExceptions: true})
       : notificationManager =
             new NotificationManager(channel, resourceProvider) {
@@ -448,19 +440,14 @@ class AnalysisServer {
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
 
-    if (useSingleContextManager) {
-      contextManager = new SingleContextManager(resourceProvider, sdkManager,
-          packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
-    } else {
-      contextManager = new ContextManagerImpl(
-          resourceProvider,
-          sdkManager,
-          packageResolverProvider,
-          packageMapProvider,
-          analyzedFilesGlobs,
-          instrumentationService,
-          defaultContextOptions);
-    }
+    contextManager = new ContextManagerImpl(
+        resourceProvider,
+        sdkManager,
+        packageResolverProvider,
+        packageMapProvider,
+        analyzedFilesGlobs,
+        instrumentationService,
+        defaultContextOptions);
     this.fileResolverProvider = fileResolverProvider;
     this.packageResolverProvider = packageResolverProvider;
     ServerContextManagerCallbacks contextManagerCallbacks =
@@ -481,7 +468,7 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
-    searchEngine = new SearchEngineImpl2(driverMap.values);
+    searchEngine = new SearchEngineImpl(driverMap.values);
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
@@ -489,13 +476,6 @@ class AnalysisServer {
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
   }
-
-  /**
-   * Return the [AnalysisContext]s that are being used to analyze the analysis
-   * roots.
-   */
-  Iterable<AnalysisContext> get analysisContexts =>
-      contextManager.analysisContexts;
 
   /**
    * Return a list of the globs used to determine which files should be analyzed.
@@ -524,12 +504,6 @@ class AnalysisServer {
   Map<Folder, nd.AnalysisDriver> get driverMap => contextManager.driverMap;
 
   /**
-   * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
-   * them.
-   */
-  Map<Folder, AnalysisContext> get folderMap => contextManager.folderMap;
-
-  /**
    * The [Future] that completes when analysis is complete.
    */
   Future get onAnalysisComplete {
@@ -548,12 +522,6 @@ class AnalysisServer {
   Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
   }
-
-  /**
-   * The stream that is notified when contexts are added or removed.
-   */
-  Stream<ContextsChangedEvent> get onContextsChanged =>
-      _onContextsChangedController.stream;
 
   /**
    * The stream that is notified when a single file has been added. This exists
@@ -694,19 +662,6 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] for the "innermost" context whose associated
-   * folder is or contains the given path.  ("innermost" refers to the nesting
-   * of contexts, so if there is a context for path /foo and a context for
-   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
-   * the context for /foo/bar.)
-   *
-   * If no context contains the given path, `null` is returned.
-   */
-  AnalysisContext getContainingContext(String path) {
-    return contextManager.getContextFor(path);
-  }
-
-  /**
    * Return the [nd.AnalysisDriver] for the "innermost" context whose associated
    * folder is or contains the given path.  ("innermost" refers to the nesting
    * of contexts, so if there is a context for path /foo and a context for
@@ -776,23 +731,6 @@ class AnalysisServer {
     nd.AnalysisResult result = await getAnalysisResult(path);
     return result?.unit;
   }
-
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -931,9 +869,12 @@ class AnalysisServer {
     if (roots == null) {
       operationQueue.clear();
     } else {
-      for (AnalysisContext context in _getContexts(roots)) {
-        operationQueue.contextRemoved(context);
-      }
+      // TODO(brianwilkerson) All of the contexts returned by _getContexts will
+      // be null. If we are still using the operation queue, then this needs to
+      // be changed to use drivers.
+//      for (AnalysisContext context in _getContexts(roots)) {
+//        operationQueue.contextRemoved(context);
+//      }
     }
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
@@ -1321,20 +1262,6 @@ class AnalysisServer {
     return null;
   }
 
-  /**
-   * Return a set of all contexts whose associated folder is contained within,
-   * or equal to, one of the resources in the given list of [resources].
-   */
-  Set<AnalysisContext> _getContexts(List<Resource> resources) {
-    Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
-    resources.forEach((Resource resource) {
-      if (resource is Folder) {
-        contexts.addAll(contextManager.contextsInAnalysisRoot(resource));
-      }
-    });
-    return contexts;
-  }
-
   bool _hasAnalysisServiceSubscription(AnalysisService service, String file) {
     return analysisServices[service]?.contains(file) ?? false;
   }
@@ -1385,10 +1312,10 @@ class AnalysisServer {
     if (index == null) {
       return;
     }
-    onContextsChanged.listen((ContextsChangedEvent event) {
-      // TODO(brianwilkerson) `onContextsChanged` should never have anything
-      // written to it. Figure out whether we need something like this under the
-      // new analysis driver, and remove this method if not.
+    // TODO(brianwilkerson) onContextsChanged never has anything written to it.
+    // Figure out whether we need something like this under the new analysis
+    // driver, and remove this method if not.
+//    onContextsChanged.listen((ContextsChangedEvent event) {
 //      for (AnalysisContext context in event.added) {
 //        context
 //            .onResultChanged(RESOLVED_UNIT3)
@@ -1412,7 +1339,7 @@ class AnalysisServer {
 //      for (AnalysisContext context in event.removed) {
 //        index.removeContext(context);
 //      }
-    });
+//    });
   }
 }
 
@@ -1428,27 +1355,6 @@ class AnalysisServerOptions {
 
   // IDE options
   bool enableVerboseFlutterCompletions = false;
-}
-
-/**
- * Information about a file - an [AnalysisContext] that analyses the file,
- * and the [Source] representing the file in this context.
- */
-class ContextSourcePair {
-  /**
-   * A context that analysis the file.
-   * May be `null` if the file is not analyzed by any context.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The source that corresponds to the file.
-   * May be `null` if the file is not a regular file.
-   * If the file cannot be found in the [context], then it has a `file` uri.
-   */
-  final Source source;
-
-  ContextSourcePair(this.context, this.source);
 }
 
 /**
@@ -1469,6 +1375,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   final ResourceProvider resourceProvider;
 
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
+
+  @override
+  NotificationManager get notificationManager =>
+      analysisServer.notificationManager;
 
   @override
   nd.AnalysisDriver addAnalysisDriver(
@@ -1583,19 +1493,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  AnalysisContext addContext(Folder folder, AnalysisOptions options) {
-    ContextBuilder builder = createContextBuilder(folder, options);
-    AnalysisContext context = builder.buildContext(folder.path);
-
-    analysisServer.folderMap[folder] = context;
-    analysisServer._onContextsChangedController
-        .add(new ContextsChangedEvent(added: [context]));
-    analysisServer.schedulePerformAnalysisOperation(context);
-
-    return context;
-  }
-
-  @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {
@@ -1675,13 +1572,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
     driver.dispose();
-  }
-
-  @override
-  void updateContextPackageUriResolver(AnalysisContext context) {
-    analysisServer._onContextsChangedController
-        .add(new ContextsChangedEvent(changed: [context]));
-    analysisServer.schedulePerformAnalysisOperation(context);
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {

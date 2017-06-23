@@ -154,7 +154,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
     * will be taken as evidence that ANSI escape sequences are supported.
     * On Windows, only versions of Windows 10 after v.1511
     * ("TH2", OS build 10586) will be detected as supporting the output of
-    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversary
     * Update", OS build 14393) will be detected as supporting the input of
     * ANSI escape sequences.
     */
@@ -228,7 +228,7 @@ class Stdout extends _StdSink implements IOSink {
     * will be taken as evidence that ANSI escape sequences are supported.
     * On Windows, only versions of Windows 10 after v.1511
     * ("TH2", OS build 10586) will be detected as supporting the output of
-    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversary
     * Update", OS build 14393) will be detected as supporting the input of
     * ANSI escape sequences.
     */

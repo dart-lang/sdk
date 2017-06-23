@@ -6,12 +6,12 @@ class C extends self::D {
   constructor •() → void
     : super self::D::•()
     ;
-  set foo(core::int x) → dynamic {}
+  set foo(core::int x) → void {}
 }
 class D extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  set foo(core::int x) → dynamic {}
+  set foo(core::int x) → void {}
 }
 static method main() → dynamic {}

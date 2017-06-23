@@ -97,16 +97,6 @@ static void CheckOffsets() {
   CHECK_OFFSET(Isolate::object_store_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
-#if defined(TARGET_ARCH_MIPS)
-  // These offsets are embedded in precompiled instructions. We need simmips
-  // (compiler) and mips (runtime) to agree.
-  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
-  CHECK_OFFSET(Thread::stack_limit_offset(), 4);
-  CHECK_OFFSET(Thread::object_null_offset(), 40);
-  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
-  CHECK_OFFSET(Isolate::object_store_offset(), 28);
-  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
-#endif
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
@@ -701,8 +691,6 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
                                                            : " softfp");
 #elif defined(TARGET_ARCH_ARM64)
     buffer.AddString(" arm64");
-#elif defined(TARGET_ARCH_MIPS)
-    buffer.AddString(" mips");
 #elif defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)

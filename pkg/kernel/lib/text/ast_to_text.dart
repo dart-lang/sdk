@@ -839,7 +839,10 @@ class Printer extends Visitor<Null> {
 
   visitConditionalExpression(ConditionalExpression node) {
     writeExpression(node.condition, Precedence.LOGICAL_OR);
-    writeSpaced('?');
+    ensureSpace();
+    write('?');
+    writeStaticType(node.staticType);
+    writeSpace();
     writeExpression(node.then);
     writeSpaced(':');
     writeExpression(node.otherwise);
@@ -1111,6 +1114,14 @@ class Printer extends Visitor<Null> {
       writeSymbol('}');
     } else {
       writeName(name);
+    }
+  }
+
+  void writeStaticType(DartType type) {
+    if (type != null) {
+      writeSymbol('{');
+      writeType(type);
+      writeSymbol('}');
     }
   }
 
@@ -1398,7 +1409,12 @@ class Printer extends Visitor<Null> {
   visitFunctionDeclaration(FunctionDeclaration node) {
     writeIndentation();
     writeWord('function');
-    writeFunction(node.function, name: getVariableName(node.variable));
+    if (node.function != null) {
+      writeFunction(node.function, name: getVariableName(node.variable));
+    } else {
+      writeWord(getVariableName(node.variable));
+      endLine('...;');
+    }
   }
 
   void writeVariableDeclaration(VariableDeclaration node,

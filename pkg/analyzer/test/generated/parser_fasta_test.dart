@@ -6,10 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -21,6 +23,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'parser_test.dart';
+import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -280,6 +283,9 @@ class FastaParserTestCase extends Object
   bool enableGenericMethodComments = false;
 
   @override
+  bool get usingFasta => true;
+
+  @override
   set enableAssertInitializer(bool value) {
     if (value == true) {
       // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
@@ -387,10 +393,24 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  CompilationUnit parseCompilationUnit(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, (parser) => parser.parseUnit, errorCodes)
-        as CompilationUnit;
+  CompilationUnit parseCompilationUnit(String content,
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+    // Scan tokens
+    var source = new StringSource(content, 'parser_test_StringSource.dart');
+    GatheringErrorListener listener = new GatheringErrorListener();
+    var scanner = new Scanner.fasta(source, listener);
+    scanner.scanGenericMethodComments = enableGenericMethodComments;
+    _fastaTokens = scanner.tokenize();
+
+    // Run parser
+    analyzer.Parser parser =
+        new analyzer.Parser(source, listener, useFasta: true);
+    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+
+    // Assert and return result
+    listener.assertErrorsWithCodes(expectedErrorCodes);
+    expect(unit, isNotNull);
+    return unit;
   }
 
   @override
@@ -942,12 +962,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_builtIn_asFunctionName() {
     // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
     // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
@@ -967,12 +981,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
   }
 
   @override

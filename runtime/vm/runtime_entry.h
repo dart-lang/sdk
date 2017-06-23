@@ -130,7 +130,7 @@ class RuntimeEntry : public ValueObject {
 
 #define END_LEAF_RUNTIME_ENTRY }
 
-// TODO(rmacnak): Fix alignment issue on simarm and simmips and use
+// TODO(rmacnak): Fix alignment issue on simarm and use
 // DEFINE_LEAF_RUNTIME_ENTRY instead.
 #define DEFINE_RAW_LEAF_RUNTIME_ENTRY(name, argument_count, is_float, func)    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \

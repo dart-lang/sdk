@@ -591,7 +591,11 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
           // The parent function, owner, and token position of a shared
           // canonical function type are meaningless, since the canonical
           // representent is picked arbitrarily.
-          signature.set_parent_function(Function::Handle());
+          // The parent function is however still required to finalize function
+          // type parameters when the function has a generic parent.
+          if (!signature.HasGenericParent()) {
+            signature.set_parent_function(Function::Handle());
+          }
           // TODO(regis): As long as we support metadata in typedef signatures,
           // we cannot reset these fields used to reparse a typedef.
           // Note that the scope class of a typedef function type is always
@@ -976,12 +980,15 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 TypeArguments::Handle(ref_super_type_arg.arguments());
             // Mark as finalized before finalizing to avoid cycles.
             ref_super_type_arg.SetIsFinalized();
-            // Since the instantiator is different, do not pass the current
-            // instantiation trail, but create a new one by passing NULL.
+            // Although the instantiator is different between cls and super_cls,
+            // we still need to pass the current instantiation trail as to avoid
+            // divergence. Finalizing the type arguments of super_cls may indeed
+            // recursively require instantiating the same type_refs already
+            // present in the trail (see issue #29949).
             FinalizeTypeArguments(
                 super_cls, super_args,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
-                bound_error, pending_types, NULL);
+                bound_error, pending_types, instantiation_trail);
             if (FLAG_trace_type_finalization) {
               THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
                         String::Handle(super_type_arg.Name()).ToCString(),
@@ -2422,7 +2429,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       cloned_funcs.Add(func);
     }
   }
-  functions = Array::MakeArray(cloned_funcs);
+  functions = Array::MakeFixedLength(cloned_funcs);
   cls.SetFunctions(functions);
 
   // Now clone the fields from the mixin class. There should be no
@@ -2657,7 +2664,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     const Class& mixin_cls = Class::Handle(mixin_type.type_class());
 
     CreateForwardingConstructors(cls, mixin_cls, cloned_funcs);
-    const Array& functions = Array::Handle(Array::MakeArray(cloned_funcs));
+    const Array& functions =
+        Array::Handle(Array::MakeFixedLength(cloned_funcs));
     cls.SetFunctions(functions);
   }
   // Every class should have at least a constructor, unless it is a top level

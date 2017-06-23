@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $strong ]
+*: SkipByDesign # tests/lib_strong has the strong mode versions of these tests.
+
 [ ! $checked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
@@ -460,6 +463,9 @@ mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
+[ $compiler == precompiler && $mode == debug ]
+async/stream_distinct_test: Crash  # Issue 29994.
+
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
@@ -571,7 +577,6 @@ mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError
 mirrors/mixin_test: RuntimeError
-mirrors/new_instance_with_type_arguments_test: RuntimeError
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError
@@ -626,11 +631,10 @@ mirrors/variable_is_const_test/01: Crash
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
-mirrors/invocation_fuzz_test/smi: Fail
+mirrors/invocation_fuzz_test/smi: Crash
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
-mirrors/regress_16321_test/01: MissingCompileTimeError
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]

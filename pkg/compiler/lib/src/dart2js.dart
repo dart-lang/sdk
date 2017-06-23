@@ -131,6 +131,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool showWarnings;
   bool showHints;
   bool enableColors;
+  bool loadFromDill = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
@@ -277,6 +278,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough('--categories=${categories.join(",")}');
   }
 
+  void setLoadFromDill(String argument) {
+    loadFromDill = true;
+    passThrough(argument);
+  }
+
   void handleThrowOnError(String argument) {
     throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
@@ -329,7 +335,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernel, passThrough),
-    new OptionHandler(Flags.loadFromDill, passThrough),
+    new OptionHandler(Flags.loadFromDill, setLoadFromDill),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -453,6 +459,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
   for (String hint in hints) {
     diagnosticHandler.info(hint, api.Diagnostic.HINT);
+  }
+  if (loadFromDill) {
+    diagnosticHandler.autoReadFileUri = true;
   }
 
   if (wantHelp || wantVersion) {

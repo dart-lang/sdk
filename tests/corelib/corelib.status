@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $strong ]
+*: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip
@@ -179,6 +182,7 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
+regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
 
 [ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).

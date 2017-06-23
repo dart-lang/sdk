@@ -6,8 +6,8 @@
 library test;
 
 class A {
-  int operator +(other) => 1;
-  double operator -(other) => 2.0;
+  int operator +(/*@topType=dynamic*/ other) => 1;
+  double operator -(/*@topType=dynamic*/ other) => 2.0;
 }
 
 class B {

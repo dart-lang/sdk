@@ -1530,7 +1530,7 @@ class CodeGenerator extends Object
     var fnBody =
         js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
       _runtimeModule,
-      _declareMemberName(method, useDisplayName: true),
+      _declareMemberName(method),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);
@@ -4695,41 +4695,14 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _emitNullSafe(Expression node) {
-    // Desugar ?. sequence by passing a sequence of callbacks that applies
-    // each operation in sequence:
-    //
-    //     obj?.foo()?.bar
-    // -->
-    //     nullSafe(obj, _ => _.foo(), _ => _.bar);
-    //
-    // This pattern has the benefit of preserving order, as well as minimizing
-    // code expansion: each `?.` becomes `, _ => _`, plus one helper call.
-    //
-    // TODO(jmesserly): we could desugar with MetaLet instead, which may
-    // lead to higher performing code, but at the cost of readability.
-    var tail = <JS.Expression>[];
-    for (;;) {
-      var op = _getOperator(node);
-      if (op != null && op.lexeme == '?.') {
-        var nodeTarget = _getTarget(node);
-        if (!isNullable(nodeTarget)) {
-          node = _stripNullAwareOp(node, nodeTarget);
-          break;
-        }
-
-        var param = _createTemporary('_', nodeTarget.staticType,
-            nullable: false, dynamicInvoke: isDynamicInvoke(nodeTarget));
-        var baseNode = _stripNullAwareOp(node, param);
-        tail.add(
-            new JS.ArrowFun(<JS.Parameter>[_visit(param)], _visit(baseNode)));
-        node = nodeTarget;
-      } else {
-        break;
-      }
-    }
-    if (tail.isEmpty) return _visit(node);
-    return _callHelper(
-        'nullSafe(#, #)', [_visit(node) as JS.Expression, tail.reversed]);
+    // Desugar `obj?.name` as ((x) => x == null ? null : x.name)(obj)
+    var target = _getTarget(node);
+    var vars = <JS.MetaLetVariable, JS.Expression>{};
+    var t = _bindValue(vars, 't', target, context: target);
+    return new JS.MetaLet(vars, [
+      js.call('# == null ? null : #',
+          [_visit(t), _visit(_stripNullAwareOp(node, t))])
+    ]);
   }
 
   static Token _getOperator(Expression node) {
@@ -4829,8 +4802,13 @@ class CodeGenerator extends Object
         result = _callHelper('bind(this, #, #)',
             [safeName, _emitTargetAccess(jsTarget, name, accessor)]);
       } else if (_isObjectMemberCall(target, memberName)) {
-        result = _callHelper('bind(#, #, #.#)',
-            [jsTarget, _propertyName(memberName), _runtimeModule, memberName]);
+        var fn = js.call(
+            memberName == 'noSuchMethod'
+                ? 'function(i) { return #.#(this, i); }'
+                : 'function() { return #.#(this); }',
+            [_runtimeModule, memberName]);
+        result = _callHelper(
+            'bind(#, #, #)', [jsTarget, _propertyName(memberName), fn]);
       } else {
         result = _callHelper('bind(#, #)', [jsTarget, safeName]);
       }
@@ -5360,14 +5338,12 @@ class CodeGenerator extends Object
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _declareMemberName(ExecutableElement e,
-      {bool useExtension, useDisplayName = false}) {
+  JS.Expression _declareMemberName(ExecutableElement e, {bool useExtension}) {
     var name = (e is PropertyAccessorElement) ? e.variable.name : e.name;
     return _emitMemberName(name,
         isStatic: e.isStatic,
         useExtension:
-            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement),
-        useDisplayName: useDisplayName);
+            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement));
   }
 
   /// This handles member renaming for private names and operators.
@@ -5414,7 +5390,6 @@ class CodeGenerator extends Object
       {DartType type,
       bool isStatic: false,
       bool useExtension,
-      bool useDisplayName: false,
       bool alwaysSymbolizeNative: false,
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
@@ -5428,22 +5403,20 @@ class CodeGenerator extends Object
 
     // When generating synthetic names, we use _ as the prefix, since Dart names
     // won't have this (eliminated above), nor will static names reach here.
-    if (!useDisplayName) {
-      switch (name) {
-        case '[]':
-          name = '_get';
-          break;
-        case '[]=':
-          name = '_set';
-          break;
-        case 'unary-':
-          name = '_negate';
-          break;
-        case 'constructor':
-        case 'prototype':
-          name = '_$name';
-          break;
-      }
+    switch (name) {
+      case '[]':
+        name = '_get';
+        break;
+      case '[]=':
+        name = '_set';
+        break;
+      case 'unary-':
+        name = '_negate';
+        break;
+      case 'constructor':
+      case 'prototype':
+        name = '_$name';
+        break;
     }
 
     var result = _propertyName(name);

@@ -7,7 +7,7 @@ class C<T extends core::Object> extends self::D<self::C::T> {
   constructor •() → void
     : super self::D::•()
     ;
-  method f<U extends core::Object>(dynamic g) → dynamic
+  method f<U extends core::Object>(() → core::List<self::C::f::U> g) → void
     return null;
 }
 abstract class D<T extends core::Object> extends core::Object {

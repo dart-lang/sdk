@@ -1336,7 +1336,7 @@ RawArray* Parser::EvaluateMetadata() {
     const Instance& val = EvaluateConstExpr(expr_pos, expr);
     meta_values.Add(val, Heap::kOld);
   }
-  return Array::MakeArray(meta_values);
+  return Array::MakeFixedLength(meta_values);
 }
 
 
@@ -1803,6 +1803,17 @@ void Parser::BuildDispatcherScope(const Function& func,
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
   AddFormalParamsToScope(&params, current_block_->scope);
+
+  if (desc.TypeArgsLen() > 0) {
+    ASSERT(func.IsGeneric() && !func.HasGenericParent());
+    // Insert function type arguments variable to scope.
+    LocalVariable* type_args_var = new (Z) LocalVariable(
+        TokenPosition::kNoSource, TokenPosition::kNoSource,
+        Symbols::FunctionTypeArgumentsVar(), Object::dynamic_type());
+    current_block_->scope->AddVariable(type_args_var);
+    ASSERT(FunctionLevel() == 0);
+    parsed_function_->set_function_type_arguments(type_args_var);
+  }
 }
 
 
@@ -1822,7 +1833,9 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 
   // Receiver is local 0.
   LocalScope* scope = current_block_->scope;
-  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  ArgumentListNode* func_args = new ArgumentListNode(
+      token_pos, parsed_function_->function_type_arguments(),
+      desc.TypeArgsLen());
   for (intptr_t i = 0; i < desc.Count(); ++i) {
     func_args->Add(new LoadLocalNode(token_pos, scope->VariableAt(i)));
   }
@@ -1898,9 +1911,12 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
   }
 
   // Pass arguments 1..n to the closure call.
-  ArgumentListNode* args = new (Z) ArgumentListNode(token_pos);
+  ArgumentListNode* args = new (Z)
+      ArgumentListNode(token_pos, parsed_function_->function_type_arguments(),
+                       desc.TypeArgsLen());
   const Array& names =
       Array::Handle(Z, Array::New(desc.NamedCount(), Heap::kOld));
+
   // Positional parameters.
   intptr_t i = 1;
   for (; i < desc.PositionalCount(); ++i) {
@@ -2219,10 +2235,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // signature functions (except typedef signature functions), therefore
       // we do not need to keep the correct script via a patch class. Use the
       // actual current class as owner of the signature function.
-      Function& signature_function =
-          Function::Handle(Z, Function::NewSignatureFunction(
-                                  current_class(), TokenPosition::kNoSource));
-      signature_function.set_parent_function(innermost_function());
+      Function& signature_function = Function::Handle(
+          Z,
+          Function::NewSignatureFunction(current_class(), innermost_function(),
+                                         TokenPosition::kNoSource));
       innermost_function_ = signature_function.raw();
 
       // Finish parsing the function type parameter.
@@ -3006,6 +3022,8 @@ AstNode* Parser::CheckDuplicateFieldInit(
     AstNode* init_value) {
   ASSERT(!field->is_static());
   AstNode* result = NULL;
+  const String& field_name = String::Handle(field->name());
+  String& initialized_name = String::Handle(Z);
 
   // The initializer_list is divided into two sections. The sections
   // are separated by a NULL entry: [f0, ... fn, NULL, fn+1, ...]
@@ -3020,6 +3038,13 @@ AstNode* Parser::CheckDuplicateFieldInit(
     if (initialized_field == NULL) {
       break;
     }
+
+    initialized_name ^= initialized_field->name();
+    if (initialized_name.Equals(field_name) && field->has_initializer()) {
+      ReportError(init_pos, "final field '%s' is already initialized.",
+                  field_name.ToCString());
+    }
+
     if (initialized_field->raw() == field->raw()) {
       // This final field has been initialized by an inlined
       // initializer expression. This is a runtime error.
@@ -4974,7 +4999,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   }
   CheckConstructors(&members);
 
-  // Need to compute this here since MakeArray() will clear the
+  // Need to compute this here since MakeFixedLength() will clear the
   // functions array in members.
   const bool need_implicit_constructor =
       !members.has_constructor() && !cls.is_patch();
@@ -5240,12 +5265,52 @@ void Parser::AddImplicitConstructor(const Class& cls) {
 }
 
 
+void Parser::CheckFinalInitializationConflicts(const ClassDesc* class_desc,
+                                               const MemberDesc* member) {
+  const ParamList* params = &member->params;
+  if (!params->has_field_initializer) {
+    return;
+  }
+
+  const ZoneGrowableArray<ParamDesc>& parameters = *params->parameters;
+  const GrowableArray<const Field*>& fields = class_desc->fields();
+  String& field_name = String::Handle(Z);
+
+  for (intptr_t p = 0; p < parameters.length(); p++) {
+    const ParamDesc& current_param = parameters[p];
+    if (!current_param.is_field_initializer) {
+      continue;
+    }
+
+    const String& param_name = *current_param.name;
+    for (intptr_t i = 0; i < fields.length(); i++) {
+      const Field* current_field = fields.At(i);
+      if (!current_field->is_final() || !current_field->has_initializer()) {
+        continue;
+      }
+
+      field_name ^= current_field->name();
+      if (param_name.Equals(field_name)) {
+        ReportError(current_param.name_pos,
+                    "final field '%s' is already initialized.",
+                    param_name.ToCString());
+      }
+    }
+  }
+}
+
+
 // Check for cycles in constructor redirection.
 void Parser::CheckConstructors(ClassDesc* class_desc) {
   // Check for cycles in constructor redirection.
   const GrowableArray<MemberDesc>& members = class_desc->members();
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
+    if (member->IsConstructor()) {
+      // Check that our constructors don't try and reinitialize an initialized
+      // final variable.
+      CheckFinalInitializationConflicts(class_desc, member);
+    }
     if (member->redirect_name == NULL) {
       continue;
     }
@@ -5422,8 +5487,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
         Z, ParseFunctionType(result_type, ClassFinalizer::kDoNotResolve));
     signature_function = function_type.signature();
   } else {
-    signature_function =
-        Function::NewSignatureFunction(function_type_alias, alias_name_pos);
+    signature_function = Function::NewSignatureFunction(
+        function_type_alias, Function::Handle(Z), alias_name_pos);
     innermost_function_ = signature_function.raw();
     ParamList params;
     // Parse the formal parameters of the function type.
@@ -5698,7 +5763,11 @@ RawTypeArguments* Parser::ParseTypeArguments(
       ReportError("right angle bracket expected");
     }
     if (finalization != ClassFinalizer::kIgnore) {
-      return NewTypeArguments(types);
+      TypeArguments& type_args = TypeArguments::Handle(NewTypeArguments(types));
+      if (finalization == ClassFinalizer::kCanonicalize) {
+        type_args = type_args.Canonicalize();
+      }
+      return type_args.raw();
     }
   }
   return TypeArguments::null();
@@ -5730,7 +5799,7 @@ void Parser::ParseInterfaceList(const Class& cls) {
     }
     all_interfaces.Add(interface, Heap::kOld);
   } while (CurrentToken() == Token::kCOMMA);
-  cls_interfaces = Array::MakeArray(all_interfaces);
+  cls_interfaces = Array::MakeFixedLength(all_interfaces);
   cls.set_interfaces(cls_interfaces);
 }
 
@@ -5756,8 +5825,8 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     }
     mixin_types.Add(mixin_type, Heap::kOld);
   } while (CurrentToken() == Token::kCOMMA);
-  return MixinAppType::New(super_type,
-                           Array::Handle(Z, Array::MakeArray(mixin_types)));
+  return MixinAppType::New(
+      super_type, Array::Handle(Z, Array::MakeFixedLength(mixin_types)));
 }
 
 
@@ -6286,7 +6355,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       }
       // Check if this conditional line overrides the default import.
       const String& key = String::Handle(String::ConcatAll(
-          Array::Handle(Array::MakeArray(pieces)), allocation_space_));
+          Array::Handle(Array::MakeFixedLength(pieces)), allocation_space_));
       const String& value =
           (valueNode == NULL)
               ? Symbols::True()
@@ -6345,10 +6414,10 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       }
     }
     if (show_list.Length() > 0) {
-      show_names = Array::MakeArray(show_list);
+      show_names = Array::MakeFixedLength(show_list);
     }
     if (hide_list.Length() > 0) {
-      hide_names = Array::MakeArray(hide_list);
+      hide_names = Array::MakeFixedLength(hide_list);
     }
   }
   ExpectSemicolon();
@@ -9697,7 +9766,13 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
     SkipExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
-      SkipExpr();
+      if (CurrentToken() != Token::kRPAREN) {
+        SkipExpr();
+        if (CurrentToken() == Token::kCOMMA) {
+          // Allow trailing comma.
+          ConsumeToken();
+        }
+      }
     }
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -9714,12 +9789,18 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   TokenPosition message_pos = TokenPosition::kNoSource;
   if (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
-    message_pos = TokenPos();
-    message = ParseExpr(kAllowConst, kConsumeCascades);
-    if (is_const && !message->IsPotentiallyConst()) {
-      ReportError(
-          message_pos,
-          "initializer assert expression must be compile time constant.");
+    if (CurrentToken() != Token::kRPAREN) {
+      message_pos = TokenPos();
+      message = ParseExpr(kAllowConst, kConsumeCascades);
+      if (is_const && !message->IsPotentiallyConst()) {
+        ReportError(
+            message_pos,
+            "initializer assert expression must be compile time constant.");
+      }
+      if (CurrentToken() == Token::kCOMMA) {
+        // Allow trailing comma.
+        ConsumeToken();
+      }
     }
   }
   ExpectToken(Token::kRPAREN);
@@ -10381,7 +10462,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
       handler_pos, catch_handler_list,
-      Array::ZoneHandle(Z, Array::MakeArray(handler_types)), context_var,
+      Array::ZoneHandle(Z, Array::MakeFixedLength(handler_types)), context_var,
       exception_var, stack_trace_var,
       is_async ? saved_exception_var : exception_var,
       is_async ? saved_stack_trace_var : stack_trace_var,
@@ -11742,7 +11823,7 @@ ArgumentListNode* Parser::ParseActualParameters(
   ExpectToken(Token::kRPAREN);
   SetAllowFunctionLiterals(saved_mode);
   if (named_argument_seen) {
-    arguments->set_names(Array::Handle(Z, Array::MakeArray(names)));
+    arguments->set_names(Array::Handle(Z, Array::MakeFixedLength(names)));
   }
   return arguments;
 }
@@ -12565,12 +12646,15 @@ void Parser::ResolveType(AbstractType* type) {
   if (type->arguments() != TypeArguments::null()) {
     const TypeArguments& arguments =
         TypeArguments::Handle(Z, type->arguments());
-    const intptr_t num_arguments = arguments.Length();
-    AbstractType& type_argument = AbstractType::Handle(Z);
-    for (intptr_t i = 0; i < num_arguments; i++) {
-      type_argument = arguments.TypeAt(i);
-      ResolveType(&type_argument);
-      arguments.SetTypeAt(i, type_argument);
+    // Already resolved if canonical.
+    if (!arguments.IsCanonical()) {
+      const intptr_t num_arguments = arguments.Length();
+      AbstractType& type_argument = AbstractType::Handle(Z);
+      for (intptr_t i = 0; i < num_arguments; i++) {
+        type_argument = arguments.TypeAt(i);
+        ResolveType(&type_argument);
+        arguments.SetTypeAt(i, type_argument);
+      }
     }
   }
   if (type->IsFunctionType()) {
@@ -13276,10 +13360,9 @@ RawType* Parser::ParseFunctionType(
   }
   do {
     ConsumeToken();
-    const Function& signature_function =
-        Function::Handle(Z, Function::NewSignatureFunction(
-                                current_class(), TokenPosition::kNoSource));
-    signature_function.set_parent_function(innermost_function());
+    const Function& signature_function = Function::Handle(
+        Z, Function::NewSignatureFunction(current_class(), innermost_function(),
+                                          TokenPosition::kNoSource));
     innermost_function_ = signature_function.raw();
     signature_function.set_result_type(type);
     // Parse optional type parameters.

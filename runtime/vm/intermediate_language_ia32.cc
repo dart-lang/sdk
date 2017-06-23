@@ -600,13 +600,13 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 }
 
 
-void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
-
+void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
+  if (true_condition != INVALID_CONDITION) {
+    EmitBranchOnCondition(compiler, true_condition, labels);
+  }
 
   Register result = locs()->out(0).reg();
   Label done;
@@ -619,13 +619,13 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                          BranchInstr* branch) {
-  ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
-
+void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                     BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
+  if (true_condition != INVALID_CONDITION) {
+    EmitBranchOnCondition(compiler, true_condition, labels);
+  }
 }
 
 
@@ -655,20 +655,6 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
   Condition true_condition = (kind() == Token::kNE) ? NOT_ZERO : ZERO;
   return true_condition;
-}
-
-
-void TestSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Never emitted outside of the BranchInstr.
-  UNREACHABLE();
-}
-
-
-void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                  BranchInstr* branch) {
-  BranchLabels labels = compiler->CreateBranchLabels(branch);
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -723,30 +709,9 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   } else {
     __ jmp(deopt);
   }
-  // Dummy result as the last instruction is a jump, any conditional
-  // branch using the result will therefore be skipped.
-  return ZERO;
-}
-
-
-void TestCidsInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                   BranchInstr* branch) {
-  BranchLabels labels = compiler->CreateBranchLabels(branch);
-  EmitComparisonCode(compiler, labels);
-}
-
-
-void TestCidsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result_reg = locs()->out(0).reg();
-  Label is_true, is_false, done;
-  BranchLabels labels = {&is_true, &is_false, &is_false};
-  EmitComparisonCode(compiler, labels);
-  __ Bind(&is_false);
-  __ LoadObject(result_reg, Bool::False());
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&is_true);
-  __ LoadObject(result_reg, Bool::True());
-  __ Bind(&done);
+  // Dummy result as this method already did the jump, there's no need
+  // for the caller to branch on a condition.
+  return INVALID_CONDITION;
 }
 
 
@@ -797,31 +762,6 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
   }
-}
-
-
-void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label is_true, is_false;
-  BranchLabels labels = {&is_true, &is_false, &is_false};
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
-
-  Register result = locs()->out(0).reg();
-  Label done;
-  __ Bind(&is_false);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&is_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
-}
-
-
-void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                       BranchInstr* branch) {
-  BranchLabels labels = compiler->CreateBranchLabels(branch);
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -2349,8 +2289,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ movl(EDX, Address(EDI, 0 * kWordSize));  // Cached instantiator type args.
   __ cmpl(EDX, instantiator_type_args_reg);
   __ j(NOT_EQUAL, &next, Assembler::kNearJump);
-  __ movl(ECX, Address(EDI, 1 * kWordSize));  // Cached function type args.
-  __ cmpl(ECX, function_type_args_reg);
+  __ movl(EBX, Address(EDI, 1 * kWordSize));  // Cached function type args.
+  __ cmpl(EBX, function_type_args_reg);
   __ j(EQUAL, &found, Assembler::kNearJump);
   __ Bind(&next);
   __ addl(EDI, Immediate(StubCode::kInstantiationSizeInWords * kWordSize));
@@ -3992,32 +3932,6 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ cmpl(temp, Immediate(0x7FF00000));
     return is_negated ? NOT_EQUAL : EQUAL;
   }
-}
-
-
-void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                       BranchInstr* branch) {
-  ASSERT(compiler->is_optimizing());
-  BranchLabels labels = compiler->CreateBranchLabels(branch);
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
-}
-
-
-void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label is_true, is_false;
-  BranchLabels labels = {&is_true, &is_false, &is_false};
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
-
-  Register result = locs()->out(0).reg();
-  Label done;
-  __ Bind(&is_false);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done);
-  __ Bind(&is_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
 }
 
 
@@ -6717,35 +6631,6 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 }
 
 
-void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-
-  Label is_true, is_false;
-  BranchLabels labels = {&is_true, &is_false, &is_false};
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
-
-  Register result = locs()->out(0).reg();
-  Label done;
-  __ Bind(&is_false);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&is_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
-}
-
-
-void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                        BranchInstr* branch) {
-  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-
-  BranchLabels labels = compiler->CreateBranchLabels(branch);
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  EmitBranchOnCondition(compiler, true_condition, labels);
-}
-
-
 // Detect pattern when one value is zero and another is a power of 2.
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
@@ -6770,8 +6655,11 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(EDX, EDX);
 
   // Emit comparison code. This must not overwrite the result register.
+  // IfThenElseInstr::Supports() should prevent EmitComparisonCode from using
+  // the labels or returning an invalid condition.
   BranchLabels labels = {NULL, NULL, NULL};
   Condition true_condition = comparison()->EmitComparisonCode(compiler, labels);
+  ASSERT(true_condition != INVALID_CONDITION);
 
   const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
 
@@ -6896,30 +6784,6 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   __ Call(*StubCode::DebugStepCheck_entry());
   compiler->EmitCallsiteMetaData(token_pos(), deopt_id_, stub_kind_, locs());
-}
-
-
-LocationSummary* GrowRegExpStackInstr::MakeLocationSummary(Zone* zone,
-                                                           bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_out(0, Location::RegisterLocation(EAX));
-  return locs;
-}
-
-
-void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register typed_data = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  __ PushObject(Object::null_object());
-  __ pushl(typed_data);
-  compiler->GenerateRuntimeCall(TokenPosition::kNoSource, deopt_id(),
-                                kGrowRegExpStackRuntimeEntry, 1, locs());
-  __ Drop(1);
-  __ popl(result);
 }
 
 

@@ -40,12 +40,15 @@ void Deserializer::InitializeHeader(RawObject* raw,
                                     bool is_vm_isolate,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uword tags = 0;
+  uint32_t tags = 0;
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_isolate, tags);
   tags = RawObject::CanonicalObjectTag::update(is_canonical, tags);
   raw->ptr()->tags_ = tags;
+#if defined(HASH_IN_OBJECT_HEADER)
+  raw->ptr()->hash_ = 0;
+#endif
 }
 
 
@@ -3472,7 +3475,7 @@ class MintDeserializationCluster : public DeserializationCluster {
       }
     }
     const Array& constants_array =
-        Array::Handle(zone, Array::MakeArray(new_constants));
+        Array::Handle(zone, Array::MakeFixedLength(new_constants));
     const Class& mint_cls =
         Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
     mint_cls.set_constants(constants_array);

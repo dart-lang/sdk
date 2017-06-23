@@ -26,7 +26,7 @@ declare_args() {
 
   # Explicitly set the target architecture in case of precompilation. Leaving
   # this unspecified results in automatic target architecture detection.
-  # Available options are: arm, arm64, mips, x64 and ia32
+  # Available options are: arm, arm64, x64, and ia32
   dart_target_arch = ""
 
   # The optimization level to use for debug builds.
@@ -72,42 +72,6 @@ config("dart_no_snapshot_config") {
   defines += [ "DART_NO_SNAPSHOT" ]
 }
 
-# TODO(rmacnak): If Fuchsia adds a checked-in SDK, this should be folded back
-# into dart_config
-config("dart_use_target_arch_config") {
-  defines = []
-
-  if (dart_target_arch != "") {
-    if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
-      defines += [ "TARGET_ARCH_ARM" ]
-    } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_6" ]
-    } else if (dart_target_arch == "armv5te" ||
-               dart_target_arch == "simarmv5te") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_5TE" ]
-    } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
-      defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "mips" || dart_target_arch == "simmips") {
-      defines += [ "TARGET_ARCH_MIPS" ]
-    } else if (dart_target_arch == "x64") {
-      defines += [ "TARGET_ARCH_X64" ]
-    } else if (dart_target_arch == "ia32") {
-      defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
-               dart_target_arch == "simdbc64" ||
-               dart_target_arch == "armsimdbc" ||
-               dart_target_arch == "armsimdbc64") {
-      defines += [ "TARGET_ARCH_DBC" ]
-      defines += [ "USING_SIMULATOR" ]
-    } else {
-      print("Invalid dart_target_arch: $dart_target_arch")
-      assert(false)
-    }
-  }
-}
-
 config("dart_config") {
   defines = []
 
@@ -127,6 +91,34 @@ config("dart_config") {
   } else {
     print("Unknown target_os: $target_os")
     assert(false)
+  }
+
+  if (dart_target_arch != "") {
+    if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
+      defines += [ "TARGET_ARCH_ARM" ]
+    } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
+      defines += [ "TARGET_ARCH_ARM" ]
+      defines += [ "TARGET_ARCH_ARM_6" ]
+    } else if (dart_target_arch == "armv5te" ||
+               dart_target_arch == "simarmv5te") {
+      defines += [ "TARGET_ARCH_ARM" ]
+      defines += [ "TARGET_ARCH_ARM_5TE" ]
+    } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
+      defines += [ "TARGET_ARCH_ARM64" ]
+    } else if (dart_target_arch == "x64") {
+      defines += [ "TARGET_ARCH_X64" ]
+    } else if (dart_target_arch == "ia32") {
+      defines += [ "TARGET_ARCH_IA32" ]
+    } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
+               dart_target_arch == "simdbc64" ||
+               dart_target_arch == "armsimdbc" ||
+               dart_target_arch == "armsimdbc64") {
+      defines += [ "TARGET_ARCH_DBC" ]
+      defines += [ "USING_SIMULATOR" ]
+    } else {
+      print("Invalid dart_target_arch: $dart_target_arch")
+      assert(false)
+    }
   }
 
   if (dart_debug) {
@@ -205,6 +197,9 @@ template("libdart_library") {
                  ":dart_config",
                  ":dart_maybe_product_config",
                ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = [
              "vm:libdart_platform",
              "third_party/double-conversion/src:libdouble_conversion",
@@ -229,7 +224,6 @@ template("libdart_library") {
 }
 
 libdart_library("libdart_jit") {
-  extra_configs = [ ":dart_use_target_arch_config" ]
   extra_deps = [
     "vm:libdart_lib_jit",
     "vm:libdart_vm_jit",
@@ -237,10 +231,7 @@ libdart_library("libdart_jit") {
 }
 
 libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [
-    ":dart_precompiled_runtime_config",
-    ":dart_use_target_arch_config",
-  ]
+  extra_configs = [ ":dart_precompiled_runtime_config" ]
   extra_deps = [
     "vm:libdart_lib_precompiled_runtime",
     "vm:libdart_vm_precompiled_runtime",
@@ -251,7 +242,6 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
   extra_configs = [
     ":dart_no_snapshot_config",
     ":dart_precompiler_config",
-    ":dart_use_target_arch_config",
   ]
   extra_deps = [
     "vm:libdart_lib_nosnapshot_with_precompiler",
@@ -259,23 +249,8 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
   ]
 }
 
-# TODO(rmacnak): Remove if Fuchsia adds a checked-in SDK.
-libdart_library("libdart_nosnapshot_with_precompiler_host_arch") {
-  extra_configs = [
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib_nosnapshot_with_precompiler_host_arch",
-    "vm:libdart_vm_nosnapshot_with_precompiler_host_arch",
-  ]
-}
-
 libdart_library("libdart_with_precompiler") {
-  extra_configs = [
-    ":dart_precompiler_config",
-    ":dart_use_target_arch_config",
-  ]
+  extra_configs = [ ":dart_precompiler_config" ]
   extra_deps = [
     "vm:libdart_lib_with_precompiler",
     "vm:libdart_vm_with_precompiler",
@@ -312,6 +287,9 @@ executable("libdart_dependency_helper") {
     ":dart_config",
     ":dart_maybe_product_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   deps = [
     "third_party/double-conversion/src:libdouble_conversion",
     "vm:libdart_lib_jit",

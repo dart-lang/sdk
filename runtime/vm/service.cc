@@ -2353,8 +2353,9 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
   if (BuildScope(thread, js, names, values)) {
     return true;
   }
-  const Array& names_array = Array::Handle(zone, Array::MakeArray(names));
-  const Array& values_array = Array::Handle(zone, Array::MakeArray(values));
+  const Array& names_array = Array::Handle(zone, Array::MakeFixedLength(names));
+  const Array& values_array =
+      Array::Handle(zone, Array::MakeFixedLength(values));
 
   const String& expr_str = String::Handle(zone, String::New(expr));
   ObjectIdRing::LookupResult lookup_result;
@@ -3510,8 +3511,7 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
     Service::SendGraphEvent(thread, roots, collect_garbage);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "OK");
+  PrintSuccess(js);
   return true;
 }
 

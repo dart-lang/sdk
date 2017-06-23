@@ -99,7 +99,7 @@ void parseFiles(Set<Source> files) {
   parseTimer.stop();
 
   // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  if (old != scanTotalChars) print('input size changed? $old chars');
   report("scan", scanTimer.elapsedMicroseconds);
 
   var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
@@ -136,7 +136,7 @@ void scanFiles(Set<Source> files) {
   }
 
   // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  if (old != scanTotalChars) print('input size changed? $old chars');
   report("scan", scanTimer.elapsedMicroseconds);
 }
 
@@ -167,7 +167,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
   loadTimer.stop();
 
-  print('input size: ${scanTotalChars} chars');
+  print('input size: $scanTotalChars chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
   report("load", loadTime);
   report("scan", scanTimer.elapsedMicroseconds);

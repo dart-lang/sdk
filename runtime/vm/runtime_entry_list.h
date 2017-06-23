@@ -42,7 +42,6 @@ namespace dart {
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
   V(InitStaticField)                                                           \
-  V(GrowRegExpStack)                                                           \
   V(CompileFunction)                                                           \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetMiss)                                                          \

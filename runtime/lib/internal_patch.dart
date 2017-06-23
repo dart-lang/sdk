@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide Symbol;
+import 'dart:typed_data' show Int32List;
 
 @patch
 List makeListFixedLength(List growableList)
@@ -63,4 +64,19 @@ class Lists {
       }
     }
   }
+}
+
+// Prepend the parent type arguments (maybe null) to the function type
+// arguments (may be null). The result is null if both input vectors are null
+// or is a newly allocated and canonicalized vector of length 'len'.
+_prependTypeArguments(functionTypeArguments, parentTypeArguments, len)
+    native "Internal_prependTypeArguments";
+
+// Called by IRRegExpMacroAssembler::GrowStack.
+Int32List _growRegExpStack(Int32List stack) {
+  final newStack = new Int32List(stack.length * 2);
+  for (int i = 0; i < stack.length; i++) {
+    newStack[i] = stack[i];
+  }
+  return newStack;
 }

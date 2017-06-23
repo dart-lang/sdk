@@ -796,7 +796,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(intptr_t library_id,
 
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(script.GenerateLineNumberArray());
-  return Api::NewHandle(T, Array::MakeArray(info));
+  return Api::NewHandle(T, Array::MakeFixedLength(info));
 }
 
 
@@ -929,7 +929,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
       import_list.Add(Smi::Handle(Smi::New(imported.index())));
     }
   }
-  return Api::NewHandle(T, Array::MakeArray(import_list));
+  return Api::NewHandle(T, Array::MakeFixedLength(import_list));
 }
 
 

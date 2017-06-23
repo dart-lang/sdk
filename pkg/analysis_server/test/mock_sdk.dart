@@ -130,7 +130,8 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
-  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
+  Iterable<T> map<T>(T f(E e)) => null;
+  T fold<T>(T initialValue, T combine(T previousValue, E element));
 }
 
 class List<E> implements Iterable<E> {
@@ -145,12 +146,6 @@ class List<E> implements Iterable<E> {
   bool get isEmpty => false;
   E get first => null;
   E get last => null;
-
-  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
-
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
-
 }
 
 abstract class Map<K, V> extends Object {

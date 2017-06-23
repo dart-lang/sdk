@@ -222,8 +222,9 @@ abstract class PluginInfo {
     if (currentSession != null) {
       AnalysisSetContextRootsParams params = new AnalysisSetContextRootsParams(
           contextRoots
-              .map((analyzer.ContextRoot contextRoot) =>
-                  new ContextRoot(contextRoot.root, contextRoot.exclude))
+              .map((analyzer.ContextRoot contextRoot) => new ContextRoot(
+                  contextRoot.root, contextRoot.exclude,
+                  optionsFile: contextRoot.optionsFilePath))
               .toList());
       currentSession.sendRequest(params);
     }
@@ -308,7 +309,7 @@ class PluginManager {
     // TODO(brianwilkerson) Figure out the right list of plugin paths.
     _whitelistGlobs = <Glob>[
       new Glob(resourceProvider.pathContext.separator,
-          '**/analyze_angular/tools/analysis_plugin')
+          '**/angular_analyzer_plugin/tools/analyzer_plugin')
     ];
   }
 

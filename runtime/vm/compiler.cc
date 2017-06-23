@@ -115,9 +115,11 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
   const Function& function = parsed_function->function();
+  // TODO(regis): Kernel Front End needs to allocate a local to hold type args.
   return (function.kernel_offset() > 0) ||
-         (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
-         (function.kind() == RawFunction::kInvokeFieldDispatcher);
+         (!FLAG_reify_generic_functions &&
+          ((function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
+           (function.kind() == RawFunction::kInvokeFieldDispatcher)));
 }
 
 
@@ -168,17 +170,21 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
   // Compile to the dart IR.
-  RegExpEngine::CompilationResult result = RegExpEngine::CompileIR(
-      parsed_function->regexp_compile_data(), parsed_function, ic_data_array);
+  RegExpEngine::CompilationResult result =
+      RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
+                              parsed_function, ic_data_array, osr_id);
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
   parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
 
-  // Build the flow graph.
-  FlowGraphBuilder builder(*parsed_function, ic_data_array,
-                           /* not building var desc */ NULL,
-                           /* not inlining */ NULL, osr_id);
+  // When compiling for OSR, use a depth first search to find the OSR
+  // entry and make graph entry jump to it instead of normal entry.
+  // Catch entries are always considered reachable, even if they
+  // become unreachable after OSR.
+  if (osr_id != Compiler::kNoOSRDeoptId) {
+    result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
+  }
 
   return new (zone)
       FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);
@@ -716,11 +722,10 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
-  // far branches on ARM and MIPS. In the else branch of the setjmp call,
-  // done is set to false, and use_far_branches is set to true if there is a
-  // longjmp from the ARM or MIPS assemblers. In all other paths through this
-  // while loop, done is set to true. use_far_branches is always false on ia32
-  // and x64.
+  // far branches on ARM. In the else branch of the setjmp call, done is set to
+  // false, and use_far_branches is set to true if there is a longjmp from the
+  // ARM assembler. In all other paths through this while loop, done is set to
+  // true. use_far_branches is always false on ia32 and x64.
   volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;

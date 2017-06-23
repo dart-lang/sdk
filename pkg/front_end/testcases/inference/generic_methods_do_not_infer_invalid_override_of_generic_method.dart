@@ -10,7 +10,9 @@ class C {
 }
 
 class D extends C {
-/*error:INVALID_METHOD_OVERRIDE*/ m(x) => x;
+/*error:INVALID_METHOD_OVERRIDE*/ /*@topType=dynamic*/ m(
+          /*@topType=dynamic*/ x) =>
+      x;
 }
 
 main() {

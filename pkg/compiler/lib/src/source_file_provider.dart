@@ -34,7 +34,7 @@ abstract class SourceFileProvider implements CompilerInput {
     }
   }
 
-  Future<api.Input> _readFromFile(Uri resourceUri, api.InputKind inputKind) {
+  api.Input _readFromFileSync(Uri resourceUri, api.InputKind inputKind) {
     assert(resourceUri.scheme == 'file');
     List<int> source;
     try {
@@ -43,8 +43,7 @@ abstract class SourceFileProvider implements CompilerInput {
     } on FileSystemException catch (ex) {
       String message = ex.osError?.message;
       String detail = message != null ? ' ($message)' : '';
-      return new Future.error(
-          "Error reading '${relativizeUri(resourceUri)}' $detail");
+      throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
     dartCharactersRead += source.length;
     api.Input input;
@@ -58,6 +57,28 @@ abstract class SourceFileProvider implements CompilerInput {
         break;
     }
     sourceFiles[resourceUri] = input;
+    return input;
+  }
+
+  /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
+  /// returned.
+  api.Input autoReadFromFile(Uri resourceUri) {
+    try {
+      return _readFromFileSync(resourceUri, InputKind.utf8);
+    } catch (e) {
+      // Silence the error. The [resourceUri] was not requested by the user and
+      // was only needed to give better error messages.
+    }
+    return null;
+  }
+
+  Future<api.Input> _readFromFile(Uri resourceUri, api.InputKind inputKind) {
+    api.Input input;
+    try {
+      input = _readFromFileSync(resourceUri, inputKind);
+    } catch (e) {
+      return new Future.error(e);
+    }
     return new Future.value(input);
   }
 
@@ -147,6 +168,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
   bool isAborting = false;
   bool enableColors = false;
   bool throwOnError = false;
+  bool autoReadFileUri = false;
   int throwOnErrorCount = 0;
   api.Diagnostic lastKind = null;
   int fatalCount = 0;
@@ -232,6 +254,14 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       print('${color(message)}');
     } else {
       api.Input file = provider.sourceFiles[uri];
+      if (file == null &&
+          autoReadFileUri &&
+          uri.scheme == 'file' &&
+          uri.path.endsWith('.dart')) {
+        // When reading from .dill files, the original source files haven't been
+        // loaded. Load the file if possible to provide a better error message.
+        file = provider.autoReadFromFile(uri);
+      }
       if (file is SourceFile) {
         print(file.getLocationMessage(color(message), begin, end,
             colorize: color));

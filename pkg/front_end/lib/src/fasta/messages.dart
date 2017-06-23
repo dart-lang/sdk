@@ -81,6 +81,12 @@ Location getLocation(String path, int charOffset) {
       ?.getLocation(path, charOffset);
 }
 
+Location getLocationFromUri(Uri uri, int charOffset) {
+  if (charOffset == -1) return null;
+  String path = relativizeUri(uri);
+  return getLocation(path, charOffset);
+}
+
 String getSourceLine(Location location) {
   if (location == null) return null;
   return CompilerContext.current.uriToSource[location.file]

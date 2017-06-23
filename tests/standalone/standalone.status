@@ -119,30 +119,15 @@ io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
 io/file_input_stream_test: Skip # Issue 26109
 
-[ $runtime != vm || $arch == arm || $arch == arm64 || $arch == mips || ($system == windows && $mode == debug) ]
+[ $runtime != vm || $arch == arm || $arch == arm64 || ($system == windows && $mode == debug) ]
 fragmentation_test: Skip # VM test uses too much memory for small systems.
 
-[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
-[ $arch == simmips ]
-io/socket_bind_test: Pass, Fail # Issue 28315
-io/http_server_response_test: Pass, Crash # Issue 29012
-
 [ ($arch == simarm || $arch == simdbc || $arch == simdbc64) && $mode == debug && $checked ]
 io/web_socket_test: Pass, Fail # Issue 26814
-
-[ $arch == mips ]
-io/file_stat_test: Fail # Issue 17440
-io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
-io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
-io/socket_source_address_test: Fail # Issue 22597
-
-[ $arch == mips && $mode == debug ]
-io/web_socket_test: SkipSlow # Times out. Issue 20352
-io/test_runner_test: Skip # Flakily times out in a subtest. Issue 201351
-io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too slow.
 
 [ $compiler == none && $runtime == dartium && ! $checked ]
 assert_test: Fail # Issue 14651.

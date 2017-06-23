@@ -87,10 +87,8 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  static const int _kDefaultCapacity = 2;
-
   factory _GrowableList(int length) {
-    var data = new _List((length == 0) ? _kDefaultCapacity : length);
+    var data = _allocateData(length);
     var result = new _GrowableList<T>.withData(data);
     if (length > 0) {
       result._setLength(length);
@@ -99,7 +97,7 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   factory _GrowableList.withCapacity(int capacity) {
-    var data = new _List((capacity == 0) ? _kDefaultCapacity : capacity);
+    var data = _allocateData(capacity);
     return new _GrowableList<T>.withData(data);
   }
 
@@ -112,16 +110,6 @@ class _GrowableList<T> extends ListBase<T> {
   void set length(int new_length) {
     int old_capacity = _capacity;
     int new_capacity = new_length;
-    if (new_length == 0) {
-      // Ensure that we use _kDefaultCapacity only when the old_capacity
-      // is greater than _kDefaultCapacity otherwise we end up growing the
-      // the array.
-      if (old_capacity < _kDefaultCapacity) {
-        new_capacity = old_capacity;
-      } else {
-        new_capacity = _kDefaultCapacity;
-      }
-    }
     if (new_capacity > old_capacity) {
       _grow(new_capacity);
       _setLength(new_length);
@@ -152,14 +140,10 @@ class _GrowableList<T> extends ListBase<T> {
 
   void operator []=(int index, T value) native "GrowableList_setIndexed";
 
-  // The length of this growable array. It is always less than or equal to the
-  // length of the object array, which itself is always greater than 0, so that
-  // grow() does not have to check for a zero length object array before
-  // doubling its size.
   void add(T value) {
     var len = length;
     if (len == _capacity) {
-      _grow(len * 2);
+      _grow(_nextCapacity(len));
     }
     _setLength(len + 1);
     this[len] = value;
@@ -178,7 +162,7 @@ class _GrowableList<T> extends ListBase<T> {
       var newLen = len + iterLen;
       if (newLen > cap) {
         do {
-          cap *= 2;
+          cap = _nextCapacity(cap);
         } while (newLen > cap);
         _grow(cap);
       }
@@ -204,7 +188,7 @@ class _GrowableList<T> extends ListBase<T> {
         if (this.length != newLen) throw new ConcurrentModificationError(this);
         len = newLen;
       }
-      _grow(_capacity * 2);
+      _grow(_nextCapacity(_capacity));
     } while (true);
   }
 
@@ -232,20 +216,36 @@ class _GrowableList<T> extends ListBase<T> {
     ;
   }
 
-  void _grow(int new_capacity) {
-    var new_data = new _List(new_capacity);
-    for (int i = 0; i < length; i++) {
-      new_data[i] = this[i];
+  // Shared array used as backing for new empty growable arrays.
+  static final _List _emptyList = new _List(0);
+
+  static _List _allocateData(int capacity) {
+    if (capacity == 0) {
+      // Use shared empty list as backing.
+      return _emptyList;
     }
-    _setData(new_data);
+    // Round up size to the next odd number, since this is free
+    // because of alignment requirements of the GC.
+    return new _List(capacity | 1);
+  }
+
+  // Grow from 0 to 3, and then double + 1.
+  int _nextCapacity(int old_capacity) => (old_capacity * 2) | 3;
+
+  void _grow(int new_capacity) {
+    var newData = _allocateData(new_capacity);
+    for (int i = 0; i < length; i++) {
+      newData[i] = this[i];
+    }
+    _setData(newData);
   }
 
   void _shrink(int new_capacity, int new_length) {
-    var new_data = new _List(new_capacity);
+    var newData = _allocateData(new_capacity);
     for (int i = 0; i < new_length; i++) {
-      new_data[i] = this[i];
+      newData[i] = this[i];
     }
-    _setData(new_data);
+    _setData(newData);
   }
 
   // Iterable interface.

@@ -97,18 +97,6 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'checked vm tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
-        'vm-linux-debug-simmips-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
-        'vm-linux-release-simmips-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'vm-linux-debug-simarm-be',
       ], testSteps: const <String>[
         'vm tests',

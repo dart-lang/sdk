@@ -98,7 +98,7 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
       kernel::StringIndex uri_index = kernel_library->import_uri();
       const String& kernel_name = reader.DartSymbol(uri_index);
       if (kernel_name.Equals(dart_name)) {
-        reader.ReadLibrary(kernel_library);
+        reader.ReadLibrary(kernel_library->kernel_offset());
         library.SetLoaded();
         break;
       }

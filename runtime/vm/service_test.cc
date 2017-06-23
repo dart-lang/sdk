@@ -80,17 +80,17 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& value =
       Api::UnwrapGrowableObjectArrayHandle(zone, expr_val);
-  const Array& result = Array::Handle(Array::MakeArray(value));
+  const Array& result = Array::Handle(Array::MakeFixedLength(value));
   GrowableObjectArray& growable = GrowableObjectArray::Handle();
   growable ^= result.At(4);
   // Append dummy isolate id to parameter values.
   growable.Add(dummy_isolate_id);
-  Array& array = Array::Handle(Array::MakeArray(growable));
+  Array& array = Array::Handle(Array::MakeFixedLength(growable));
   result.SetAt(4, array);
   growable ^= result.At(5);
   // Append dummy isolate id to parameter values.
   growable.Add(dummy_isolate_id);
-  array = Array::MakeArray(growable);
+  array = Array::MakeFixedLength(growable);
   result.SetAt(5, array);
   return result.raw();
 }

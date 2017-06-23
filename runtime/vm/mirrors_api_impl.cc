@@ -124,7 +124,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
     return Api::NewError(
         "%s expects argument 'target' to be a class or library.", CURRENT_FUNC);
   }
-  return Api::NewHandle(T, Array::MakeArray(names));
+  return Api::NewHandle(T, Array::MakeFixedLength(names));
 }
 
 
@@ -336,7 +336,7 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
     name = cls.UserVisibleName();
     names.Add(name);
   }
-  return Api::NewHandle(T, Array::MakeArray(names));
+  return Api::NewHandle(T, Array::MakeFixedLength(names));
 }
 
 

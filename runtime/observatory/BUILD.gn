@@ -4,6 +4,7 @@
 
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
+import("../../build/dart_host_toolchain.gni")
 
 # Currently paths here are hard coded for convenience in building Mojo/Flutter.
 declare_args() {
@@ -40,13 +41,11 @@ if (dart_host_pub_exe != "") {
     dart_host_pub_exe,
   ]
 } else if (!prebuilt_dart_exe_works) {
-  pub_build_deps += [ "../bin:dart_bootstrap_host_arch($host_toolchain)" ]
+  pub_build_deps += [ "../bin:dart_bootstrap($dart_host_toolchain)" ]
 
-  dart_out_dir =
-      get_label_info("../bin:dart_bootstrap_host_arch($host_toolchain)",
-                     "root_out_dir")
-  dart_bootstrap =
-      rebase_path("$dart_out_dir/dart_bootstrap_host_arch$executable_suffix")
+  dart_out_dir = get_label_info("../bin:dart_bootstrap($dart_host_toolchain)",
+                                "root_out_dir")
+  dart_bootstrap = rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
 
   pub_build_args = [
     "--sdk=True",

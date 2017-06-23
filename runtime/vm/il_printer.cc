@@ -500,9 +500,11 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s'", dst_type().ToCString(), dst_name().ToCString());
-  f->Print(" instantiator_type_arguments(");
+  f->Print(", %s, '%s',", dst_type().ToCString(), dst_name().ToCString());
+  f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
   f->Print(")");
 }
 
@@ -515,6 +517,7 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" function=");
   InputAt(0)->PrintTo(f);
+  f->Print("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -523,7 +526,7 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s", function_name().ToCString());
+  f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -539,7 +542,8 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s", instance_call()->function_name().ToCString());
+  f->Print(" %s<%" Pd ">", instance_call()->function_name().ToCString(),
+           instance_call()->type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -589,7 +593,8 @@ void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s ", String::Handle(function().name()).ToCString());
+  f->Print(" %s<%" Pd "> ", String::Handle(function().name()).ToCString(),
+           type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -652,9 +657,11 @@ void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(" IS %s", String::Handle(type().Name()).ToCString());
-  f->Print(" type-arg(");
+  f->Print(" IS %s,", String::Handle(type().Name()).ToCString());
+  f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
   f->Print(")");
 }
 
@@ -713,15 +720,23 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
   const String& type_name = String::Handle(type().Name());
-  f->Print("%s, ", type_name.ToCString());
+  f->Print("%s,", type_name.ToCString());
+  f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
+  f->Print(")");
 }
 
 
 void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
   const String& type_args = String::Handle(type_arguments().Name());
-  f->Print("%s, ", type_args.ToCString());
+  f->Print("%s,", type_args.ToCString());
+  f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
+  f->Print(")");
 }
 
 

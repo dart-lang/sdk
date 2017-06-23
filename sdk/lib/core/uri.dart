@@ -4106,7 +4106,7 @@ List<Uint8List> _createTables() {
 
 /// Scan a string using the [_scannerTables] state machine.
 ///
-/// Scans [uri] from [start] to [end], startig in state [state] and
+/// Scans [uri] from [start] to [end], starting in state [state] and
 /// writing output into [indices].
 ///
 /// Returns the final state.

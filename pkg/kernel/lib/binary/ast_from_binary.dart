@@ -1122,7 +1122,8 @@ class BinaryBuilder {
         return new FunctionType(positional, returnType);
       case Tag.TypeParameterType:
         int index = readUInt();
-        readUInt(); // offset of the TypeParameter declaration in the binary.
+        readUInt(); // offset of parameter list in the binary.
+        readUInt(); // index in the list.
         var bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index], bound);
       default:

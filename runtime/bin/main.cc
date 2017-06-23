@@ -826,19 +826,30 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 }
 
 
+#define SAVE_ERROR_AND_EXIT(result)                                            \
+  *error = strdup(Dart_GetError(result));                                      \
+  if (Dart_IsCompilationError(result)) {                                       \
+    *exit_code = kCompilationErrorExitCode;                                    \
+  } else if (Dart_IsApiError(result)) {                                        \
+    *exit_code = kApiErrorExitCode;                                            \
+  } else {                                                                     \
+    *exit_code = kErrorExitCode;                                               \
+  }                                                                            \
+  Dart_ExitScope();                                                            \
+  Dart_ShutdownIsolate();                                                      \
+  return NULL;
+
+
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
-    *error = strdup(Dart_GetError(result));                                    \
-    if (Dart_IsCompilationError(result)) {                                     \
-      *exit_code = kCompilationErrorExitCode;                                  \
-    } else if (Dart_IsApiError(result)) {                                      \
-      *exit_code = kApiErrorExitCode;                                          \
-    } else {                                                                   \
-      *exit_code = kErrorExitCode;                                             \
-    }                                                                          \
-    Dart_ExitScope();                                                          \
-    Dart_ShutdownIsolate();                                                    \
-    return NULL;                                                               \
+    SAVE_ERROR_AND_EXIT(result);                                               \
+  }
+
+
+#define CHECK_RESULT_CLEANUP(result, cleanup)                                  \
+  if (Dart_IsError(result)) {                                                  \
+    delete (cleanup);                                                          \
+    SAVE_ERROR_AND_EXIT(result);                                               \
   }
 
 
@@ -1028,23 +1039,35 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
-  bool isolate_run_app_snapshot = true;
+  bool skip_library_load = true;
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
 #else
   // JIT: Service isolate uses the core libraries snapshot.
-  bool isolate_run_app_snapshot = false;
+  bool skip_library_load = false;
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  Dart_Isolate isolate = NULL;
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, NULL);
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
-      flags, isolate_data, error);
+#if defined(DART_PRECOMPILED_RUNTIME)
+  isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
+                               isolate_snapshot_instructions, flags,
+                               isolate_data, error);
+#else
+  if (dfe.UsePlatformBinary()) {
+    isolate = Dart_CreateIsolateFromKernel(
+        script_uri, NULL, dfe.kernel_platform(), flags, isolate_data, error);
+  } else {
+    isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
+                                 isolate_snapshot_instructions, flags,
+                                 isolate_data, error);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -1055,8 +1078,15 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (dfe.UsePlatformBinary()) {
+    Dart_Handle library = Dart_LoadKernel(dfe.kernel_vmservice_io());
+    CHECK_RESULT_CLEANUP(library, isolate_data);
+    skip_library_load = true;
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   // Load embedder specific bits and return.
-  bool skip_library_load = isolate_run_app_snapshot;
   if (!VmService::Setup(vm_service_server_ip, vm_service_server_port,
                         skip_library_load, vm_service_dev_mode,
                         trace_loading)) {
@@ -1832,6 +1862,22 @@ void main(int argc, char** argv) {
     Process::SetExitHook(SnapshotOnExitHook);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If a kernel platform binary file is specified, read it. This
+  // step will become redundant once we have the snapshot version
+  // of the kernel core/platform libraries.
+  if (dfe.UsePlatformBinary()) {
+    if (dfe.ReadPlatform() == NULL) {
+      Log::PrintErr("The platform binary is not a valid Dart Kernel file.");
+      Platform::Exit(kErrorExitCode);
+    }
+    if (dfe.ReadVMServiceIO() == NULL) {
+      Log::PrintErr("Could not read dart:vmservice_io binary file.");
+      Platform::Exit(kErrorExitCode);
+    }
+  }
+#endif
+
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Start event handler.
@@ -1865,18 +1911,6 @@ void main(int argc, char** argv) {
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // If a kernel platform binary file is specified, read it. This
-  // step will become redundant once we have the snapshot version
-  // of the kernel core/platform libraries.
-  if (dfe.UsePlatformBinary()) {
-    if (dfe.ReadPlatform() == NULL) {
-      Log::PrintErr("The platform binary is not a valid Dart Kernel file.");
-      Platform::Exit(kErrorExitCode);
-    }
-  }
-#endif
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {

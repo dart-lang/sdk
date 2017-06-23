@@ -48,7 +48,7 @@ class RastaSsaBuilder extends SsaAstBuilderBase {
           closedWorld,
           backend.compiler.codegenWorldBuilder,
           work.registry,
-          backend.compiler.closureDataLookup,
+          backend.compiler.backendStrategy.closureDataLookup,
           sourceInformationFactory.createBuilderForContext(work.element),
           resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null,
           targetIsConstructorBody: element is ConstructorBodyElement);

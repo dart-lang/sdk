@@ -38,7 +38,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
+import 'frontend_accessors.dart' show buildIsNull, makeBinary;
+
+import '../messages.dart' as messages show getLocationFromUri;
 
 import '../../scanner/token.dart' show BeginToken, Token;
 
@@ -866,10 +868,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(new KernelIfNullExpression(
         variable,
-        new KernelConditionalExpression(
+        new ConditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token)),
             b,
-            new VariableGet(variable))));
+            new VariableGet(variable),
+            null)));
   }
 
   /// Handle `a?.b(...)`.
@@ -2429,10 +2432,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FunctionNode function = pop();
     exitLocalScope();
     var declaration = pop();
-    var returnType = pop() ?? const DynamicType();
+    var returnType = pop();
+    var hasImplicitReturnType = returnType == null;
+    returnType ??= const DynamicType();
     pop(); // Modifiers.
     exitFunction();
     if (declaration is FunctionDeclaration) {
+      KernelFunctionDeclaration.setHasImplicitReturnType(
+          declaration, hasImplicitReturnType);
       function.returnType = returnType;
       declaration.variable.type = function.functionType;
       declaration.function = function;
@@ -2996,9 +3003,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   Expression buildFallThroughError(int charOffset) {
     warningNotError("Switch case may fall through to next case.", charOffset);
-    Builder constructor = library.loader.getFallThroughError();
+
+    Location location = messages.getLocationFromUri(uri, charOffset);
+
     return new Throw(buildStaticInvocation(
-        constructor.target, new Arguments.empty(),
+        library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
+        new Arguments(<Expression>[
+          new StringLiteral(location?.file ?? uri.toString()),
+          new IntLiteral(location?.line ?? 0)
+        ]),
         charOffset: charOffset));
   }
 
@@ -3195,13 +3208,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
-      return makeLet(
+      return new KernelNullAwareMethodInvocation(
           variable,
-          new KernelConditionalExpression(
+          new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
               new NullLiteral(),
               new MethodInvocation(new VariableGet(variable), name, arguments)
-                ..fileOffset = offset));
+                ..fileOffset = offset,
+              null)
+            ..fileOffset = offset)
+        ..fileOffset = offset;
     } else {
       return new KernelMethodInvocation(receiver, name, arguments,
           isImplicitCall: isImplicitCall)

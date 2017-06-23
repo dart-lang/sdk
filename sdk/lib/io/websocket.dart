@@ -223,7 +223,7 @@ abstract class WebSocketTransformer
    * Upgrades a [HttpRequest] to a [WebSocket] connection. If the
    * request is not a valid WebSocket upgrade request an HTTP response
    * with status code 500 will be returned. Otherwise the returned
-   * future will complete with the [WebSocket] when the upgrade pocess
+   * future will complete with the [WebSocket] when the upgrade process
    * is complete.
    *
    * If [protocolSelector] is provided, [protocolSelector] will be called to

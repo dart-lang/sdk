@@ -12,7 +12,7 @@
 #include "platform/assert.h"
 
 // As with Windows, on IA32 and X64, we use the cpuid instruction.
-// The analogous instruction is privileged on ARM and MIPS, so we resort to
+// The analogous instruction is privileged on ARM, so we resort to
 // reading from /proc/cpuinfo.
 
 namespace dart {
@@ -42,14 +42,6 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "CPU implementer";
   fields_[kCpuInfoHardware] = "CPU implementer";
   fields_[kCpuInfoFeatures] = "Features";
-  fields_[kCpuInfoArchitecture] = "CPU architecture";
-  method_ = kCpuInfoSystem;
-  ProcCpuInfo::InitOnce();
-#elif defined(HOST_ARCH_MIPS)
-  fields_[kCpuInfoProcessor] = "system type";
-  fields_[kCpuInfoModel] = "cpu model";
-  fields_[kCpuInfoHardware] = "cpu model";
-  fields_[kCpuInfoFeatures] = "ASEs implemented";
   fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();

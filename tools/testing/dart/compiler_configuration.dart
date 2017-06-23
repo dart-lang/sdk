@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'command.dart';
 import 'configuration.dart';
+import 'path.dart';
 import 'runtime_configuration.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -72,6 +73,13 @@ abstract class CompilerConfiguration {
             useFastStartup: configuration.useFastStartup,
             useKernel: configuration.useDart2JSWithKernel,
             extraDart2jsOptions: configuration.dart2jsOptions);
+
+      case Compiler.dartdevc:
+        return new DartdevcCompilerConfiguration(
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            isHostChecked: configuration.isHostChecked);
+        break;
 
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(
@@ -480,11 +488,11 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     return Command.compilation(
         moniker,
         outputFileName,
-        !useSdk,
         bootstrapDependencies(buildDir),
         computeCompilerPath(buildDir),
         arguments,
-        environmentOverrides);
+        environmentOverrides,
+        alwaysCompile: !useSdk);
   }
 
   List<Uri> bootstrapDependencies(String buildDir) {
@@ -556,6 +564,54 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
+/// Configuration for dart2js compiler.
+class DartdevcCompilerConfiguration extends CompilerConfiguration {
+  DartdevcCompilerConfiguration(
+      {bool isDebug, bool isChecked, bool isHostChecked})
+      : super._subclass(
+            isDebug: isDebug,
+            isChecked: isChecked,
+            isHostChecked: isHostChecked,
+            useSdk: true);
+
+  String computeCompilerPath(String buildDir) {
+    return "$buildDir/dart-sdk/bin/dartdevc$executableScriptSuffix";
+  }
+
+  CommandArtifact computeCompilationArtifact(String buildDir, String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    // TODO(rnystrom): There is a lot of overlap between this code and
+    // _dartdevcCompileCommand() in test_suite.dart. This code path is only hit
+    // when the test is expected to have a compile error. Consider refactoring
+    // to unify the two (and likewise for dart2js).
+
+    // TODO(rnystrom): Are there other arguments here that we need to keep?
+    // What about arguments specified in the test itself?
+    var inputFile = arguments.last;
+
+    var compilerArguments = [
+      "--dart-sdk",
+      "$buildDir/dart-sdk",
+      "--library-root",
+      new Path(inputFile).directoryPath.toString(),
+      "-o",
+      "$tempDir/out.js",
+      inputFile
+    ];
+
+    var command = Command.compilation(
+        Compiler.dartdevc.name,
+        "$tempDir/out.js",
+        bootstrapDependencies(buildDir),
+        computeCompilerPath(buildDir),
+        compilerArguments,
+        environmentOverrides);
+
+    return new CommandArtifact(
+        [command], "$tempDir/out.js", "application/javascript");
+  }
+}
+
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final Architecture arch;
   final bool useBlobs;
@@ -622,8 +678,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     }
     args.addAll(arguments);
 
-    return Command.compilation('precompiler', tempDir, !useSdk,
-        bootstrapDependencies(buildDir), exec, args, environmentOverrides);
+    return Command.compilation('precompiler', tempDir,
+        bootstrapDependencies(buildDir), exec, args, environmentOverrides,
+        alwaysCompile: !useSdk);
   }
 
   Command computeAssembleCommand(String tempDir, String buildDir,
@@ -665,15 +722,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
         break;
       case Architecture.ia32:
       case Architecture.simarm:
-      case Architecture.simmips:
-        ccFlags = "-m32";
-        break;
       case Architecture.arm:
       case Architecture.arm64:
         ccFlags = null;
-        break;
-      case Architecture.mips:
-        ccFlags = "-EL";
         break;
       default:
         throw "Architecture not supported: ${arch.name}";
@@ -689,8 +740,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     args.add('$tempDir/out.aotsnapshot');
     args.add('$tempDir/out.S');
 
-    return Command.compilation('assemble', tempDir, !useSdk,
-        bootstrapDependencies(buildDir), exec, args, environmentOverrides);
+    return Command.compilation('assemble', tempDir,
+        bootstrapDependencies(buildDir), exec, args, environmentOverrides,
+        alwaysCompile: !useSdk);
   }
 
   // This step reduces the amount of space needed to run the precompilation
@@ -700,8 +752,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var exec = 'rm';
     var args = ['$tempDir/out.S'];
 
-    return Command.compilation('remove_assembly', tempDir, !useSdk,
-        bootstrapDependencies(buildDir), exec, args, environmentOverrides);
+    return Command.compilation('remove_assembly', tempDir,
+        bootstrapDependencies(buildDir), exec, args, environmentOverrides,
+        alwaysCompile: !useSdk);
   }
 
   List<String> filterVmOptions(List<String> vmOptions) {
@@ -783,8 +836,9 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
     args.addAll(arguments);
 
-    return Command.compilation('app_jit', tempDir, !useSdk,
-        bootstrapDependencies(buildDir), exec, args, environmentOverrides);
+    return Command.compilation('app_jit', tempDir,
+        bootstrapDependencies(buildDir), exec, args, environmentOverrides,
+        alwaysCompile: !useSdk);
   }
 
   List<String> computeCompilerArguments(

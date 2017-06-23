@@ -47,9 +47,24 @@ part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 part 'types.dart';
 
+/// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
+abstract class KernelToWorldBuilder implements KernelToElementMap {
+  /// Returns `true` if [field] has a constant initializer.
+  bool hasConstantFieldInitializer(FieldEntity field);
+
+  /// Returns the constant initializer for [field].
+  ConstantValue getConstantFieldInitializer(FieldEntity field);
+
+  /// Calls [f] for each parameter of [function] providing the type and name of
+  /// the parameter and the [defaultValue] if the parameter is optional.
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue));
+}
+
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
-class KernelToElementMapImpl extends KernelToElementMapMixin {
+class KernelToElementMapImpl extends KernelToElementMapMixin
+    implements KernelToWorldBuilder {
   final Environment _environment;
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
@@ -675,12 +690,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   @override
   FieldEntity getField(ir.Field node) => _getField(node);
 
-  bool hasConstantFieldInitializer(KField field) {
+  bool hasConstantFieldInitializer(covariant KField field) {
     _FieldData data = _memberList[field.memberIndex];
     return getFieldConstantValue(data.node) != null;
   }
 
-  ConstantValue getConstantFieldInitializer(KField field) {
+  ConstantValue getConstantFieldInitializer(covariant KField field) {
     _FieldData data = _memberList[field.memberIndex];
     ConstantValue value = getFieldConstantValue(data.node);
     assert(value != null,
@@ -694,7 +709,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   @override
   FunctionEntity getMethod(ir.Procedure node) => _getMethod(node);
 
-  void forEachParameter(KFunction function,
+  void forEachParameter(covariant KFunction function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     _FunctionData data = _memberList[function.memberIndex];
     data.forEachParameter(this, f);
@@ -1754,7 +1769,8 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 }
 
-class JsKernelToElementMap extends KernelToElementMapMixin {
+class JsKernelToElementMap extends KernelToElementMapMixin
+    implements KernelToWorldBuilder {
   final JsToFrontendMap _map;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
@@ -1878,5 +1894,23 @@ class JsKernelToElementMap extends KernelToElementMapMixin {
   @override
   ConstantValue getFieldConstantValue(ir.Field field) {
     throw new UnsupportedError("JsKernelToElementMap.getFieldConstantValue");
+  }
+
+  @override
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    throw new UnsupportedError("JsKernelToElementMap.forEachParameter");
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(FieldEntity field) {
+    throw new UnsupportedError(
+        "JsKernelToElementMap.getConstantFieldInitializer");
+  }
+
+  @override
+  bool hasConstantFieldInitializer(FieldEntity field) {
+    throw new UnsupportedError(
+        "JsKernelToElementMap.hasConstantFieldInitializer");
   }
 }

@@ -996,7 +996,7 @@ const intptr_t kNumberOfFpuRegisters = 1;
 // instruction is executed if the comparison is true and skipped over overwise.
 // Condition NEXT_IS_FALSE means the following instruction is executed if the
 // comparison is false and skipped over otherwise.
-enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE };
+enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE, INVALID_CONDITION };
 
 }  // namespace dart
 

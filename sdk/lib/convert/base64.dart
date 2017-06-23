@@ -396,7 +396,7 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
     if (bufferCache == null || bufferCache.length < bufferLength) {
       bufferCache = new Uint8List(bufferLength);
     }
-    // Return a view of the buffer, so it has the reuested length.
+    // Return a view of the buffer, so it has the requested length.
     return new Uint8List.view(bufferCache.buffer, 0, bufferLength);
   }
 }
@@ -542,7 +542,7 @@ class _Base64Decoder {
    * contains six bits per seen character.
    *
    * If padding has been seen the value is negative. It's the bitwise negation
-   * of the number of remanining allowed padding characters (always ~0 or ~1).
+   * of the number of remaining allowed padding characters (always ~0 or ~1).
    *
    * A state of `0` or `~0` are valid places to end decoding, all other values
    * mean that a four-character block has not been completed.

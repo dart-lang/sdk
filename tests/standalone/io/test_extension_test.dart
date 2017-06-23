@@ -57,11 +57,9 @@ String getArchFromBuildDir(String buildDirectory) {
   if (buildDirectory.endsWith('SIMARM64')) return '';
   if (buildDirectory.endsWith('SIMDBC')) return '';
   if (buildDirectory.endsWith('SIMDBC64')) return '';
-  if (buildDirectory.endsWith('SIMMIPS')) return '';
   if (buildDirectory.endsWith('ARM')) return '-arm';
   if (buildDirectory.endsWith('ARM64')) return '-arm64';
   if (buildDirectory.endsWith('IA32')) return '-ia32';
-  if (buildDirectory.endsWith('MIPS')) return '-mips';
   if (buildDirectory.endsWith('X64')) return '-x64';
   return 'unknown';
 }

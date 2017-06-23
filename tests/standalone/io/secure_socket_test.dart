@@ -80,9 +80,22 @@ Future test(String certType, String password) {
   return completer.future;
 }
 
+void testConnectTimeout() {
+  asyncStart();
+  Duration timeout = new Duration(milliseconds: 20);
+  SecureSocket.connect("8.8.8.7", 80, timeout: timeout).then((socket) {
+    Expect.fail("Unexpected connection made.");
+    asyncEnd();
+  }).catchError((e) {
+    Expect.isTrue(e is SocketException);
+    asyncEnd();
+  });
+}
+
 main() async {
   asyncStart();
   await test('pem', 'dartdart');
   await test('p12', 'dartdart');
+  testConnectTimeout();
   asyncEnd();
 }

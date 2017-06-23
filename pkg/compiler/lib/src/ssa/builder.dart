@@ -431,8 +431,6 @@ class SsaAstGraphBuilder extends ast.Visitor
   bool tryInlineMethod(MethodElement element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
       {ResolutionInterfaceType instanceType}) {
-    registry.registerStaticUse(new StaticUse.inlining(element));
-
     if (nativeData.isJsInteropMember(element) &&
         !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
@@ -582,6 +580,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void doInlining() {
+      registry.registerStaticUse(new StaticUse.inlining(declaration));
+
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the
       // NoSuchMethodError message as if we had called it.

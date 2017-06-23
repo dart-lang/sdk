@@ -7,7 +7,7 @@ library test;
 
 class A {
   int x;
-  B operator +(other) => null;
+  B operator +(/*@topType=dynamic*/ other) => null;
 }
 
 class B extends A {

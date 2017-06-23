@@ -17,8 +17,6 @@
 #include "vm/stack_frame_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/stack_frame_arm64.h"
-#elif defined(TARGET_ARCH_MIPS)
-#include "vm/stack_frame_mips.h"
 #elif defined(TARGET_ARCH_DBC)
 #include "vm/stack_frame_dbc.h"
 #else

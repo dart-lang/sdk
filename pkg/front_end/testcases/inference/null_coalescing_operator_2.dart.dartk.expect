@@ -4,5 +4,5 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   core::List<dynamic> x;
-  core::List<dynamic> y = x.==(null) ? <dynamic>[] : x;
+  core::List<dynamic> y = x.==(null) ?{dynamic} <dynamic>[] : x;
 }

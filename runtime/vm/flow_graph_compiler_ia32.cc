@@ -1089,6 +1089,41 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  // Check for a passed type argument vector if the function is generic.
+  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+    __ Comment("Check passed-in type args");
+    Label store_type_args, ok;
+    __ cmpl(FieldAddress(EDX, ArgumentsDescriptor::type_args_len_offset()),
+            Immediate(0));
+    if (is_optimizing()) {
+      // Initialize type_args to null if none passed in.
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movl(EAX, raw_null);
+      __ j(EQUAL, &store_type_args, Assembler::kNearJump);
+    } else {
+      __ j(EQUAL, &ok, Assembler::kNearJump);  // Already initialized to null.
+    }
+    // TODO(regis): Verify that type_args_len is correct.
+    // Load the passed type args vector in EAX from
+    // fp[kParamEndSlotFromFp + num_args + 1]; num_args (EBX) is Smi.
+    __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
+    __ movl(EAX,
+            Address(EBP, EBX, TIMES_2, (kParamEndSlotFromFp + 1) * kWordSize));
+    // Store EAX into the stack slot reserved for the function type arguments.
+    // If the function type arguments variable is captured, a copy will happen
+    // after the context is allocated.
+    const intptr_t slot_base = parsed_function().first_stack_local_index();
+    ASSERT(parsed_function().function_type_arguments()->is_captured() ||
+           parsed_function().function_type_arguments()->index() == slot_base);
+    __ Bind(&store_type_args);
+    __ movl(Address(EBP, slot_base * kWordSize), EAX);
+    __ Bind(&ok);
+  }
+
+  // TODO(regis): Verify that no vector is passed if not generic, unless already
+  // checked during resolution.
+
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   ASSERT(!block_order().is_empty());
   VisitBlocks();
@@ -1277,7 +1312,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs) {
-  if (function.HasOptionalParameters()) {
+  if (function.HasOptionalParameters() ||
+      (FLAG_reify_generic_functions && function.IsGeneric())) {
     __ LoadObject(EDX, arguments_descriptor);
   } else {
     __ xorl(EDX, EDX);  // GC safe smi zero because of stub.

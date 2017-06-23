@@ -4,6 +4,7 @@
 
 @patch
 class Function {
+  // TODO(regis): Pass type arguments to generic functions. Wait for API spec.
   static _apply(List arguments, List names) native "Function_apply";
 
   @patch

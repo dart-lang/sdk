@@ -165,6 +165,9 @@ class Error {
 @patch
 class FallThroughError {
   @patch
+  FallThroughError._create(String url, int line);
+
+  @patch
   String toString() => super.toString();
 }
 
