@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field dynamic v = self::f.call(() → core::int {
+static field core::List<core::int> v = self::f.call<core::int>(() → core::int {
   return 1;
 });
 static method f<T extends core::Object>(() → self::f::T g) → core::List<self::f::T>

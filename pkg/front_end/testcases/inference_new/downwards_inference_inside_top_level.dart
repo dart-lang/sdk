@@ -5,10 +5,17 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A<T> {
-  A(T x);
+class A {
+  B<int> b;
 }
 
-var /*@topType=List<A<int>>*/ t1 = <A<int>>[new /*@typeArgs=int*/ A(1)];
+class B<T> {
+  B(T x);
+}
+
+var /*@topType=List<B<int>>*/ t3 = /*@typeArgs=B<int>*/ [
+  new
+      /*error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=int*/ B(3)
+];
 
 main() {}

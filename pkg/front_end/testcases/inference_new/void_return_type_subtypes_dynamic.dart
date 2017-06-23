@@ -5,16 +5,18 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
-  B<int> b;
+T run<T>(T f()) {
+  print("running");
+  var /*@type=run::T*/ t = f();
+  print("done running");
+  return t;
 }
 
-class B<T> {
-  B(T x);
+void printRunning() {
+  print("running");
 }
 
-var /*@topType=A*/ t1 = new A()
-  .. /*@target=A::b*/ b = new /*@typeArgs=int*/ B(1);
-var /*@topType=List<B<int>>*/ t2 = <B<int>>[new /*@typeArgs=int*/ B(2)];
+var /*@topType=void*/ y = /*info:USE_OF_VOID_RESULT, error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=void*/ run(
+    printRunning);
 
 main() {}

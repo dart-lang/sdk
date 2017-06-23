@@ -428,7 +428,8 @@ class KernelConditionalExpression extends ConditionalExpression
     typeNeeded =
         inferrer.listener.conditionalExpressionEnter(this, typeContext) ||
             typeNeeded;
-    if (!inferrer.isTopLevel) {
+    if (!inferrer.isTopLevel ||
+        TypeInferenceEngineImpl.expandedTopLevelInference) {
       inferrer.inferExpression(
           condition, inferrer.coreTypes.boolClass.rawType, false);
     }

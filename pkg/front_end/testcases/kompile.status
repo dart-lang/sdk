@@ -389,6 +389,8 @@ inference/unsafe_block_closure_inference_method_call_no_type_param: Crash
 inference/void_return_type_subtypes_dynamic: Crash
 inference_new/dependency_only_if_generic_method: Crash
 inference_new/dependency_only_if_overloaded: Crash
+inference_new/downwards_inference_inside_top_level: Crash
+inference_new/downwards_inference_inside_top_level_2: Crash
 inference_new/field_inference_circularity: Crash
 inference_new/infer_assign_to_index: Crash
 inference_new/infer_assign_to_property: Crash
@@ -402,6 +404,9 @@ inference_new/list_literals_can_infer_null_top_level: Crash
 inference_new/map_literals_can_infer_null_top_level: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash
+inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
+inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
+inference_new/void_return_type_subtypes_dynamic: Crash
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Crash

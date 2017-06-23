@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field dynamic x = self::run<dynamic>(self::printRunning);
+static field void y = self::run<void>(self::printRunning);
 static method run<T extends core::Object>(() → self::run::T f) → self::run::T {
   core::print("running");
   self::run::T t = f.call();
@@ -12,14 +12,4 @@ static method run<T extends core::Object>(() → self::run::T f) → self::run::
 static method printRunning() → void {
   core::print("running");
 }
-static method main() → dynamic {
-  function printRunning() → void {
-    core::print("running");
-  }
-  dynamic x = self::run<dynamic>(printRunning);
-  void y = self::run<void>(printRunning);
-  x = 123;
-  x = "hi";
-  y = 123;
-  y = "hi";
-}
+static method main() → dynamic {}
