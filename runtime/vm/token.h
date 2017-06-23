@@ -148,7 +148,7 @@ namespace dart {
 #define DART_KEYWORD_LIST(KW)                                                  \
   KW(kABSTRACT, "abstract", 0, kPseudoKeyword) /* == kFirstKeyword */          \
   KW(kAS, "as", 11, kPseudoKeyword)                                            \
-  KW(kASSERT, "assert", 11, kKeyword)                                          \
+  KW(kASSERT, "assert", 0, kKeyword)                                           \
   KW(kBREAK, "break", 0, kKeyword)                                             \
   KW(kCASE, "case", 0, kKeyword)                                               \
   KW(kCATCH, "catch", 0, kKeyword)                                             \
