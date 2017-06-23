@@ -1229,7 +1229,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
         write: () {
           // The write event handler is automatically disabled by the
           // event handler when it fires.
-          _writeEventsEnabled = false;
+          writeEventsEnabled = false;
           _controller.add(RawSocketEvent.WRITE);
         },
         closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
@@ -1726,7 +1726,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         write: () {
           // The write event handler is automatically disabled by the
           // event handler when it fires.
-          _writeEventsEnabled = false;
+          writeEventsEnabled = false;
           _controller.add(RawSocketEvent.WRITE);
         },
         closed: () => _controller.add(RawSocketEvent.READ_CLOSED),

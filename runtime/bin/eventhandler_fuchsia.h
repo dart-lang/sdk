@@ -10,28 +10,99 @@
 #endif
 
 #include <errno.h>
+#include <magenta/status.h>
+#include <magenta/syscalls.h>
+#include <magenta/syscalls/object.h>
+#include <magenta/syscalls/port.h>
+#include <mxio/private.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "bin/reference_counting.h"
+#include "bin/thread.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
 
+class DescriptorInfo;
+
+class IOHandle : public ReferenceCounted<IOHandle> {
+ public:
+  explicit IOHandle(intptr_t fd)
+      : ReferenceCounted(),
+        mutex_(new Mutex()),
+        write_events_enabled_(true),
+        read_events_enabled_(true),
+        fd_(fd),
+        handle_(MX_HANDLE_INVALID),
+        wait_key_(0),
+        mxio_(__mxio_fd_to_io(fd)) {}
+
+  intptr_t fd() const { return fd_; }
+
+  // Called from SocketBase::{Read(), Write()} and ServerSocket::Accept() on
+  // the Dart thread.
+  intptr_t Read(void* buffer, intptr_t num_bytes);
+  intptr_t Write(const void* buffer, intptr_t num_bytes);
+  intptr_t Accept(struct sockaddr* addr, socklen_t* addrlen);
+
+  // Called from the EventHandler thread.
+  void Close();
+  uint32_t MaskToEpollEvents(intptr_t mask);
+  // If port is MX_HANDLE_INVALID, AsyncWait uses the port from the previous
+  // call with a valid port handle.
+  bool AsyncWait(mx_handle_t port, uint32_t events, uint64_t key);
+  void CancelWait(mx_handle_t port, uint64_t key);
+  uint32_t WaitEnd(mx_signals_t observed);
+  intptr_t ToggleEvents(intptr_t event_mask);
+
+  static intptr_t EpollEventsToMask(intptr_t events);
+
+ private:
+  ~IOHandle() {
+    if (mxio_ != NULL) {
+      __mxio_release(mxio_);
+    }
+    delete mutex_;
+  }
+
+  bool AsyncWaitLocked(mx_handle_t port, uint32_t events, uint64_t key);
+
+  // Mutex that protects the state here.
+  Mutex* mutex_;
+  bool write_events_enabled_;
+  bool read_events_enabled_;
+  // TODO(zra): Add flag to enable/disable peer closed signal?
+  intptr_t fd_;
+  mx_handle_t handle_;
+  mx_handle_t port_;
+  uint64_t wait_key_;
+  mxio_t* mxio_;
+
+  friend class ReferenceCounted<IOHandle>;
+  DISALLOW_COPY_AND_ASSIGN(IOHandle);
+};
+
 class DescriptorInfo : public DescriptorInfoBase {
  public:
-  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) {}
+  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) {
+    IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+    handle->Retain();
+  }
 
-  virtual ~DescriptorInfo() {}
-
-  intptr_t GetPollEvents();
+  virtual ~DescriptorInfo() {
+    IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
+    handle->Release();
+  }
 
   virtual void Close() {
-    // Should be VOID_TEMP_FAILURE_RETRY
-    VOID_NO_RETRY_EXPECTED(close(fd_));
-    fd_ = -1;
+    IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
+    handle->Close();
   }
+
+  IOHandle* io_handle() const { return reinterpret_cast<IOHandle*>(fd_); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfo);
@@ -63,7 +134,7 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
-  void UpdateEpollInstance(intptr_t old_mask, DescriptorInfo* di);
+  void UpdatePort(intptr_t old_mask, DescriptorInfo* di);
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.
@@ -73,22 +144,25 @@ class EventHandlerImplementation {
   void Shutdown();
 
  private:
+  static const uint64_t kInterruptPacketKey = 1;
+
   static void Poll(uword args);
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
+  static void AddToPort(mx_handle_t port_handle, DescriptorInfo* di);
+  static void RemoveFromPort(mx_handle_t port_handle, DescriptorInfo* di);
 
   int64_t GetTimeout() const;
-  void HandleEvents(struct epoll_event* events, int size);
+  void HandlePacket(mx_port_packet_t* pkt);
   void HandleTimeout();
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
-  intptr_t GetPollEvents(intptr_t events, DescriptorInfo* di);
-  void HandleInterruptFd();
+  intptr_t GetPollEvents(intptr_t events);
+  void HandleInterrupt(InterruptMessage* msg);
 
   HashMap socket_map_;
   TimeoutQueue timeout_queue_;
   bool shutdown_;
-  int interrupt_fds_[2];
-  int epoll_fd_;
+  mx_handle_t port_handle_;
 
   DISALLOW_COPY_AND_ASSIGN(EventHandlerImplementation);
 };
