@@ -298,6 +298,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // to fail.  TODO(paulberry): fix this.
     if (!strongMode) return null;
 
+    receiverType = resolveTypeParameter(receiverType);
+
     if (receiverType is InterfaceType) {
       var interfaceMember = classHierarchy
           .getInterfaceMember(receiverType.classNode, name, setter: setter);
@@ -910,6 +912,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(isTopLevel);
     isImmediatelyEvident = false;
     // TODO(paulberry): report an error.
+  }
+
+  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  DartType resolveTypeParameter(DartType type) {
+    DartType resolveOneStep(DartType type) {
+      if (type is TypeParameterType) {
+        return type.bound;
+      } else {
+        return null;
+      }
+    }
+
+    var resolved = resolveOneStep(type);
+    if (resolved == null) return type;
+
+    // Detect circularities using the tortoise-and-hare algorithm.
+    type = resolved;
+    DartType hare = resolveOneStep(type);
+    if (hare == null) return type;
+    while (true) {
+      if (identical(type, hare)) {
+        // We found a circularity.  Give up and return `dynamic`.
+        return const DynamicType();
+      }
+
+      // Hare takes two steps
+      var step1 = resolveOneStep(hare);
+      if (step1 == null) return hare;
+      var step2 = resolveOneStep(step1);
+      if (step2 == null) return hare;
+      hare = step2;
+
+      // Tortoise takes one step
+      type = resolveOneStep(type);
+    }
   }
 
   /// Begins a dry run of type inference, in which the goal is to collect the

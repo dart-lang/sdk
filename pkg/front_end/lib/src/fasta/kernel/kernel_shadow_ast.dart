@@ -1959,41 +1959,6 @@ class KernelTypeInferrer extends TypeInferrerImpl {
       // everything, this case should no longer be needed.
     }
   }
-
-  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
-  DartType resolveTypeParameter(DartType type) {
-    DartType resolveOneStep(DartType type) {
-      if (type is TypeParameterType) {
-        return type.bound;
-      } else {
-        return null;
-      }
-    }
-
-    var resolved = resolveOneStep(type);
-    if (resolved == null) return type;
-
-    // Detect circularities using the tortoise-and-hare algorithm.
-    type = resolved;
-    DartType hare = resolveOneStep(type);
-    if (hare == null) return type;
-    while (true) {
-      if (identical(type, hare)) {
-        // We found a circularity.  Give up and return `dynamic`.
-        return const DynamicType();
-      }
-
-      // Hare takes two steps
-      var step1 = resolveOneStep(hare);
-      if (step1 == null) return hare;
-      var step2 = resolveOneStep(step1);
-      if (step2 == null) return hare;
-      hare = step2;
-
-      // Tortoise takes one step
-      type = resolveOneStep(type);
-    }
-  }
 }
 
 /// Shadow object for [TypeLiteral].
