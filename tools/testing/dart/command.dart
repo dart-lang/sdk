@@ -103,13 +103,6 @@ class Command {
         sourceDirectory, destinationDirectory);
   }
 
-  static Command pub(String pubCommand, String pubExecutable,
-      String pubspecYamlDirectory, String pubCacheDirectory,
-      {List<String> arguments: const <String>[]}) {
-    return new PubCommand._(pubCommand, pubExecutable, pubspecYamlDirectory,
-        pubCacheDirectory, arguments);
-  }
-
   static Command makeSymlink(String link, String target) {
     return new MakeSymlinkCommand._(link, target);
   }
@@ -477,28 +470,6 @@ class JSCommandlineCommand extends ProcessCommand {
       String displayName, String executable, List<String> arguments,
       [Map<String, String> environmentOverrides = null])
       : super._(displayName, executable, arguments, environmentOverrides);
-}
-
-class PubCommand extends ProcessCommand {
-  final String command;
-
-  PubCommand._(String pubCommand, String pubExecutable,
-      String pubspecYamlDirectory, String pubCacheDirectory, List<String> args)
-      : command = pubCommand,
-        super._(
-            'pub_$pubCommand',
-            new io.File(pubExecutable).absolute.path,
-            [pubCommand]..addAll(args),
-            {'PUB_CACHE': pubCacheDirectory},
-            pubspecYamlDirectory);
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.addJson(command);
-  }
-
-  bool _equal(PubCommand other) =>
-      super._equal(other) && command == other.command;
 }
 
 /// [ScriptCommand]s are executed by dart code.

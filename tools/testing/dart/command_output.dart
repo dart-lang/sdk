@@ -760,27 +760,6 @@ class JSCommandLineOutput extends CommandOutput
   }
 }
 
-class PubCommandOutput extends CommandOutput {
-  PubCommandOutput(PubCommand command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
-
-  Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first.
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-
-    if (exitCode == 0) {
-      return Expectation.pass;
-    } else if ((command as PubCommand).command == 'get') {
-      return Expectation.pubGetError;
-    } else {
-      return Expectation.fail;
-    }
-  }
-}
-
 class ScriptCommandOutput extends CommandOutput {
   final Expectation _result;
 
@@ -829,9 +808,6 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
     return new JSCommandLineOutput(
-        command, exitCode, timedOut, stdout, stderr, time);
-  } else if (command is PubCommand) {
-    return new PubCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time);
   }
 
