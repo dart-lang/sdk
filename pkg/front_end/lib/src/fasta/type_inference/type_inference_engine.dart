@@ -528,13 +528,17 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
     assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
-    Class enclosingClass = formal.parent.parent.parent;
-    for (var field in enclosingClass.fields) {
-      if (field.name.name == formal.name) {
-        return field.type;
+    var enclosingClass = formal.parent?.parent?.parent;
+    if (enclosingClass is Class) {
+      for (var field in enclosingClass.fields) {
+        if (field.name.name == formal.name) {
+          return field.type;
+        }
       }
     }
-    // No matching field.  The error should be reported elsewhere.
+    // No matching field, or something else has gone wrong (e.g. initializing
+    // formal outside of a class declaration).  The error should be reported
+    // elsewhere, so just infer `dynamic`.
     return const DynamicType();
   }
 
