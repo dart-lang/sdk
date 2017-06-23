@@ -854,6 +854,7 @@ LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # Ple
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-strokePath-gradient-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
@@ -876,6 +877,7 @@ LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: Pass, RuntimeError # 
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError, Pass # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Pass, RuntimeError # Please triage this failure
@@ -2349,6 +2351,7 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out.
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError, Pass # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # Please triage this failure
@@ -3704,6 +3707,8 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this f
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/Element/onMouseEnter_A01_t01: RuntimeError, Pass # Please triage this failure
+LibTest/html/Element/onMouseOver_A01_t01: RuntimeError, Pass # Please triage this failure
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/querySelectorAll_A01_t02: RuntimeError # Please triage this failure
