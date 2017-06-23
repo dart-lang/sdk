@@ -43,6 +43,10 @@ abstract class ClosureDataLookup<T> {
   /// used inside the scope of [node].
   // TODO(johnniwinther): Split this up into two functions, one for members and
   // one for local functions.
+  ScopeInfo getScopeInfo(covariant Entity member);
+
+  /// This returns the same information as ScopeInfo, but can be called in
+  /// situations when you are sure you are dealing with a closure specifically.
   ClosureRepresentationInfo getClosureRepresentationInfo(
       covariant Entity member);
 
@@ -52,6 +56,35 @@ abstract class ClosureDataLookup<T> {
 
   /// Accessor to the information about closures that the SSA builder will use.
   ClosureAnalysisInfo getClosureAnalysisInfo(T node);
+}
+
+/// Class that represents one level of scoping information, whether this scope
+/// is a closure or not. This is specifically used to store information
+/// about the usage of variables in try or sync blocks, because they need to be
+/// boxed.
+///
+/// Variables that are used in a try must be treated as boxed because the
+/// control flow can be non-linear. Also parameters to a `sync*` generator must
+/// be boxed, because of the way we rewrite sync* functions. See also comments
+/// in [ClosureClassMap.useLocal].
+class ScopeInfo {
+  const ScopeInfo();
+
+  /// Returns true if this [variable] is used inside a `try` block or a `sync*`
+  /// generator (this is important to know because boxing/redirection needs to
+  /// happen for those local variables).
+  ///
+  /// Variables that are used in a try must be treated as boxed because the
+  /// control flow can be non-linear.
+  ///
+  /// Also parameters to a `sync*` generator must be boxed, because of the way
+  /// we rewrite sync* functions. See also comments in
+  /// [ClosureClassMap.useLocal].
+  bool variableIsUsedInTryOrSync(Local variable) => false;
+
+  /// Convenience reference pointer to the element representing `this`.
+  /// If this scope is not in an instance member, it will be null.
+  Local get thisLocal => null;
 }
 
 /// Class that provides a black-box interface to information gleaned from
@@ -138,7 +171,7 @@ class LoopClosureRepresentationInfo extends ClosureAnalysisInfo {
 /// used in the inner scope of this closure, we say `y` is a "captured"
 /// variable.
 /// TODO(efortuna): Make interface simpler in subsequent refactorings.
-class ClosureRepresentationInfo {
+class ClosureRepresentationInfo extends ScopeInfo {
   const ClosureRepresentationInfo();
 
   /// The original local function before any translation.
@@ -162,25 +195,9 @@ class ClosureRepresentationInfo {
   /// accessor to that set of fields.
   List<Local> get createdFieldEntities => const <Local>[];
 
-  /// Convenience reference pointer to the element representing `this`.
-  /// It is only set for instance-members.
-  Local get thisLocal => null;
-
   /// Convenience pointer to the field entity representation in the closure
   /// class of the element representing `this`.
   FieldEntity get thisFieldEntity => null;
-
-  /// Returns true if this [variable] is used inside a `try` block or a `sync*`
-  /// generator (this is important to know because boxing/redirection needs to
-  /// happen for those local variables).
-  ///
-  /// Variables that are used in a try must be treated as boxed because the
-  /// control flow can be non-linear.
-  ///
-  /// Also parameters to a `sync*` generator must be boxed, because of the way
-  /// we rewrite sync* functions. See also comments in
-  /// [ClosureClassMap.useLocal].
-  bool variableIsUsedInTryOrSync(Local variable) => false;
 
   /// Loop through every variable that has been captured in this closure. This
   /// consists of all the free variables (variables captured *just* in this
@@ -231,6 +248,10 @@ class ClosureTask extends ClosureConversionTask<Node> {
   ClosureAnalysisInfo getClosureAnalysisInfo(Node node) {
     var value = _closureInfoMap[node];
     return value == null ? const ClosureAnalysisInfo() : value;
+  }
+
+  ScopeInfo getScopeInfo(Element member) {
+    return getClosureToClassMapping(member);
   }
 
   ClosureRepresentationInfo getClosureRepresentationInfo(Element member) {
@@ -690,13 +711,17 @@ class ClosureClassMap implements ClosureRepresentationInfo {
   /// not contain any nested closure.
   final Map<Node, ClosureScope> capturingScopes = new Map<Node, ClosureScope>();
 
+  /// Set of [variable]s referenced in this scope that are used inside a
+  /// `try` block or a `sync*` generator (this is important to know because
+  /// boxing/redirection needs to happen for those local variables).
+  ///
   /// Variables that are used in a try must be treated as boxed because the
   /// control flow can be non-linear.
   ///
   /// Also parameters to a `sync*` generator must be boxed, because of the way
   /// we rewrite sync* functions. See also comments in [useLocal].
   // TODO(johnniwinther): Add variables to this only if the variable is mutated.
-  final Set<Local> variablesUsedInTryOrGenerator = new Set<Local>();
+  final Set<Local> variablesUsedInTryOrSync = new Set<Local>();
 
   ClosureClassMap(this.closureEntity, this.closureClassEntity, this.callMethod,
       this.thisLocal);
@@ -728,7 +753,7 @@ class ClosureClassMap implements ClosureRepresentationInfo {
   FieldEntity get thisFieldEntity => freeVariableMap[thisLocal];
 
   bool variableIsUsedInTryOrSync(Local variable) =>
-      variablesUsedInTryOrGenerator.contains(variable);
+      variablesUsedInTryOrSync.contains(variable);
 
   Local getLocalVariableForClosureField(ClosureFieldElement field) {
     return field.local;
@@ -969,13 +994,13 @@ class ClosureTranslator extends Visitor {
       if (variable != closureData.thisLocal &&
           variable != closureData.closureEntity &&
           variable is! TypeVariableLocal) {
-        closureData.variablesUsedInTryOrGenerator.add(variable);
+        closureData.variablesUsedInTryOrSync.add(variable);
       }
     } else if (variable is LocalParameterElement &&
         variable.functionDeclaration.asyncMarker == AsyncMarker.SYNC_STAR) {
       // Parameters in a sync* function are shared between each Iterator created
       // by the Iterable returned by the function, therefore they must be boxed.
-      closureData.variablesUsedInTryOrGenerator.add(variable);
+      closureData.variablesUsedInTryOrSync.add(variable);
     }
   }
 

@@ -836,8 +836,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, function.memberContext,
         function.contextClass, instanceType, nativeData, interceptorData);
-    localsHandler.closureData =
-        closureDataLookup.getClosureRepresentationInfo(function);
+    localsHandler.scopeInfo = closureDataLookup.getScopeInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
@@ -846,7 +845,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     int argumentIndex = 0;
     if (function.isInstanceMember) {
-      localsHandler.updateLocal(localsHandler.closureData.thisLocal,
+      localsHandler.updateLocal(localsHandler.scopeInfo.thisLocal,
           compiledArguments[argumentIndex++]);
     }
 
@@ -1005,17 +1004,16 @@ class SsaAstGraphBuilder extends ast.Visitor
       resolvedAst = callee.resolvedAst;
       final oldElementInferenceResults = elementInferenceResults;
       elementInferenceResults = globalInferenceResults.resultOfMember(callee);
-      ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
-      ClosureRepresentationInfo newClosureData =
-          closureDataLookup.getClosureRepresentationInfo(callee);
-      localsHandler.closureData = newClosureData;
+      ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
+      ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(callee);
+      localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
             closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
-      localsHandler.closureData = oldClosureData;
+      localsHandler.scopeInfo = oldScopeInfo;
       resolvedAst = oldResolvedAst;
       elementInferenceResults = oldElementInferenceResults;
     });
@@ -1426,10 +1424,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       });
     }
 
-    ClosureRepresentationInfo closureData =
-        closureDataLookup.getClosureRepresentationInfo(element);
-    localsHandler.startFunction(element, closureData,
-        closureDataLookup.getClosureAnalysisInfo(node), parameters,
+    localsHandler.startFunction(
+        element,
+        closureDataLookup.getScopeInfo(element),
+        closureDataLookup.getClosureAnalysisInfo(node),
+        parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 

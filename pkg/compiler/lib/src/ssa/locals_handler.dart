@@ -32,7 +32,7 @@ class LocalsHandler {
   Map<Local, HInstruction> directLocals = new Map<Local, HInstruction>();
   Map<Local, FieldEntity> redirectionMapping = new Map<Local, FieldEntity>();
   final GraphBuilder builder;
-  ClosureRepresentationInfo closureData;
+  ScopeInfo scopeInfo;
   Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
       new Map<TypeVariableType, TypeVariableLocal>();
   final Entity executableContext;
@@ -113,7 +113,7 @@ class LocalsHandler {
         contextClass = other.contextClass,
         instanceType = other.instanceType,
         builder = other.builder,
-        closureData = other.closureData,
+        scopeInfo = other.scopeInfo,
         _nativeData = other._nativeData,
         _interceptorData = other._interceptorData,
         activationVariables = other.activationVariables,
@@ -197,15 +197,12 @@ class LocalsHandler {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
-  void startFunction(
-      MemberEntity element,
-      ClosureRepresentationInfo closureData,
-      ClosureAnalysisInfo scopeData,
-      Map<Local, TypeMask> parameters,
+  void startFunction(MemberEntity element, ScopeInfo scopeInfo,
+      ClosureAnalysisInfo scopeData, Map<Local, TypeMask> parameters,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
-    this.closureData = closureData;
+    this.scopeInfo = scopeInfo;
 
     parameters.forEach((Local local, TypeMask typeMask) {
       if (isGenerativeConstructorBody) {
@@ -223,7 +220,11 @@ class LocalsHandler {
     enterScope(scopeData,
         forGenerativeConstructorBody: isGenerativeConstructorBody);
 
-    if (closureData.isClosure) {
+    // When we remove the element model, we can just use the first check
+    // (because the underlying elements won't all be *both* ScopeInfos and
+    // ClosureRepresentationInfos).
+    if (scopeInfo is ClosureRepresentationInfo && scopeInfo.isClosure) {
+      ClosureRepresentationInfo closureData = scopeInfo;
       // If the freeVariableMapping is not empty, then this function was a
       // nested closure that captures variables. Redirect the captured
       // variables to fields in the closure.
@@ -240,10 +241,10 @@ class LocalsHandler {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      HThis thisInstruction = new HThis(closureData.thisLocal, getTypeOfThis());
+      HThis thisInstruction = new HThis(scopeInfo.thisLocal, getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
-      directLocals[closureData.thisLocal] = thisInstruction;
+      directLocals[scopeInfo.thisLocal] = thisInstruction;
     }
 
     // If this method is an intercepted method, add the extra
@@ -264,14 +265,14 @@ class LocalsHandler {
       SyntheticLocal parameter = createLocal(name);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
-      builder.graph.entry.addAfter(directLocals[closureData.thisLocal], value);
+      builder.graph.entry.addAfter(directLocals[scopeInfo.thisLocal], value);
       if (builder.lastAddedParameter == null) {
         // If this is the first parameter inserted, make sure it stays first.
         builder.lastAddedParameter = value;
       }
       if (isInterceptedClass) {
         // Only use the extra parameter in intercepted classes.
-        directLocals[closureData.thisLocal] = value;
+        directLocals[scopeInfo.thisLocal] = value;
       }
     } else if (isNativeUpgradeFactory) {
       SyntheticLocal parameter = createLocal('receiver');
@@ -293,12 +294,13 @@ class LocalsHandler {
   bool isAccessedDirectly(Local local) {
     assert(local != null);
     return !redirectionMapping.containsKey(local) &&
-        !closureData.variableIsUsedInTryOrSync(local);
+        !scopeInfo.variableIsUsedInTryOrSync(local);
   }
 
   bool isStoredInClosureField(Local local) {
     assert(local != null);
     if (isAccessedDirectly(local)) return false;
+    if (scopeInfo is! ClosureRepresentationInfo) return false;
     FieldEntity redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
     return redirectTarget is ClosureFieldElement;
@@ -311,7 +313,7 @@ class LocalsHandler {
   }
 
   bool _isUsedInTryOrGenerator(Local local) {
-    return closureData.variableIsUsedInTryOrSync(local);
+    return scopeInfo.variableIsUsedInTryOrSync(local);
   }
 
   /// Returns an [HInstruction] for the given element. If the element is
@@ -339,6 +341,7 @@ class LocalsHandler {
       }
       return value;
     } else if (isStoredInClosureField(local)) {
+      ClosureRepresentationInfo closureData = scopeInfo;
       ClosureFieldElement redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureEntity);
       TypeMask type = local is BoxLocal
@@ -370,7 +373,7 @@ class LocalsHandler {
   }
 
   HInstruction readThis() {
-    HInstruction res = readLocal(closureData.thisLocal);
+    HInstruction res = readLocal(scopeInfo.thisLocal);
     if (res.instructionType == null) {
       res.instructionType = getTypeOfThis();
     }
@@ -494,7 +497,7 @@ class LocalsHandler {
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {
         // We know 'this' cannot be modified.
-        if (local != closureData.thisLocal) {
+        if (local != scopeInfo.thisLocal) {
           HPhi phi =
               new HPhi.singleInput(local, instruction, commonMasks.dynamicType);
           loopEntry.addPhi(phi);
@@ -551,7 +554,7 @@ class LocalsHandler {
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
     otherLocals.directLocals.forEach((Local local, HInstruction instruction) {
       // We know 'this' cannot be modified.
-      if (local == closureData.thisLocal) {
+      if (local == scopeInfo.thisLocal) {
         assert(directLocals[local] == instruction);
         joinedLocals[local] = instruction;
       } else {
@@ -582,7 +585,7 @@ class LocalsHandler {
     Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Local local, HInstruction instruction) {
-      if (local != closureData.thisLocal) {
+      if (local != scopeInfo.thisLocal) {
         HPhi phi = new HPhi.noInputs(local, commonMasks.dynamicType);
         joinedLocals[local] = phi;
         joinBlock.addPhi(phi);
@@ -603,13 +606,13 @@ class LocalsHandler {
     }
     if (thisValue != null) {
       // If there was a "this" for the scope, add it to the new locals.
-      joinedLocals[closureData.thisLocal] = thisValue;
+      joinedLocals[scopeInfo.thisLocal] = thisValue;
     }
 
     // Remove locals that are not in all handlers.
     directLocals = new Map<Local, HInstruction>();
     joinedLocals.forEach((Local local, HInstruction instruction) {
-      if (local != closureData.thisLocal &&
+      if (local != scopeInfo.thisLocal &&
           instruction.inputs.length != localsHandlers.length) {
         joinBlock.removePhi(instruction);
       } else {
@@ -624,7 +627,7 @@ class LocalsHandler {
   TypeMask getTypeOfThis() {
     TypeMask result = cachedTypeOfThis;
     if (result == null) {
-      ThisLocal local = closureData.thisLocal;
+      ThisLocal local = scopeInfo.thisLocal;
       ClassEntity cls = local.enclosingClass;
       if (closedWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be

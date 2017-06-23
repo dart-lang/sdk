@@ -605,13 +605,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // Set the locals handler state as if we were inlining the constructor.
     ConstructorEntity astElement = _elementMap.getConstructor(constructor);
-    ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
-    ClosureRepresentationInfo newClosureData =
-        closureDataLookup.getClosureRepresentationInfo(astElement);
+    ClosureRepresentationInfo oldScopeInfo = localsHandler.scopeInfo;
+    ClosureRepresentationInfo newScopeInfo =
+        closureDataLookup.getScopeInfo(astElement);
     if (astElement is ConstructorElement) {
       // TODO(johnniwinther): Support constructor (body) entities.
       ResolvedAst resolvedAst = astElement.resolvedAst;
-      localsHandler.closureData = newClosureData;
+      localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
             closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
@@ -622,7 +622,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     inlinedFrom(astElement, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
-    localsHandler.closureData = oldClosureData;
+    localsHandler.scopeInfo = oldScopeInfo;
   }
 
   /// Builds generative constructor body.
@@ -705,7 +705,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     localsHandler.startFunction(
         targetElement,
-        closureDataLookup.getClosureRepresentationInfo(targetElement),
+        closureDataLookup.getScopeInfo(targetElement),
         closureDataLookup.getClosureAnalysisInfo(functionNode),
         parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);

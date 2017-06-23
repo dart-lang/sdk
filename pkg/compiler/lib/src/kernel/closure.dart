@@ -97,6 +97,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     return const ClosureAnalysisInfo();
   }
 
+  @override
+  ScopeInfo getScopeInfo(Entity entity) {
+    // TODO(efortuna): Specialize this function from the one below.
+    return getClosureRepresentationInfo(entity);
+  }
+
   /// TODO(johnniwinther,efortuna): Implement this.
   @override
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
