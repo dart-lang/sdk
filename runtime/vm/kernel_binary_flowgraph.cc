@@ -3304,20 +3304,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   normal_entry->LinkTo(body.entry);
 
-  // When compiling for OSR, use a depth first search to prune instructions
-  // unreachable from the OSR entry. Catch entries are always considered
-  // reachable, even if they become unreachable after OSR.
+  GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_;
+  // When compiling for OSR, use a depth first search to find the OSR
+  // entry and make graph entry jump to it instead of normal entry.
+  // Catch entries are always considered reachable, even if they
+  // become unreachable after OSR.
   if (flow_graph_builder_->osr_id_ != Compiler::kNoOSRDeoptId) {
-    BitVector* block_marks =
-        new (Z) BitVector(Z, flow_graph_builder_->next_block_id_);
-    bool found = flow_graph_builder_->graph_entry_->PruneUnreachable(
-        flow_graph_builder_->graph_entry_, NULL, flow_graph_builder_->osr_id_,
-        block_marks);
-    ASSERT(found);
+    graph_entry->RelinkToOsrEntry(Z, flow_graph_builder_->next_block_id_);
   }
-  return new (Z)
-      FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
+  return new (Z) FlowGraph(*parsed_function(), graph_entry,
+                           flow_graph_builder_->next_block_id_ - 1);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildGetMainClosure() {

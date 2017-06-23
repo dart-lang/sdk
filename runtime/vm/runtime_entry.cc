@@ -2341,21 +2341,4 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   field.EvaluateInitializer();
 }
 
-
-DEFINE_RUNTIME_ENTRY(GrowRegExpStack, 1) {
-  const Array& typed_data_cell = Array::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(!typed_data_cell.IsNull() && typed_data_cell.Length() == 1);
-  const TypedData& old_data = TypedData::CheckedHandle(typed_data_cell.At(0));
-  ASSERT(!old_data.IsNull());
-  const intptr_t cid = old_data.GetClassId();
-  const intptr_t old_size = old_data.Length();
-  const intptr_t new_size = 2 * old_size;
-  const intptr_t elm_size = old_data.ElementSizeInBytes();
-  const TypedData& new_data =
-      TypedData::Handle(TypedData::New(cid, new_size, Heap::kOld));
-  TypedData::Copy(new_data, 0, old_data, 0, old_size * elm_size);
-  typed_data_cell.SetAt(0, new_data);
-  arguments.SetReturn(new_data);
-}
-
 }  // namespace dart

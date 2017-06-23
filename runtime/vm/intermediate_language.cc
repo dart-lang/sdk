@@ -1084,10 +1084,19 @@ bool BlockEntryInstr::DiscoverBlock(BlockEntryInstr* predecessor,
 }
 
 
-bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
-                                       Instruction* parent,
-                                       intptr_t osr_id,
-                                       BitVector* block_marks) {
+void GraphEntryInstr::RelinkToOsrEntry(Zone* zone, intptr_t max_block_id) {
+  ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
+  BitVector* block_marks = new (zone) BitVector(zone, max_block_id + 1);
+  bool found = FindOsrEntryAndRelink(this, /*parent=*/NULL, block_marks);
+  ASSERT(found);
+}
+
+
+bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
+                                            Instruction* parent,
+                                            BitVector* block_marks) {
+  const intptr_t osr_id = graph_entry->osr_id();
+
   // Search for the instruction with the OSR id.  Use a depth first search
   // because basic blocks have not been discovered yet.  Prune unreachable
   // blocks by replacing the normal entry with a jump to the block
@@ -1121,8 +1130,8 @@ bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
 
   // Recursively search the successors.
   for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
-    if (instr->SuccessorAt(i)->PruneUnreachable(graph_entry, instr, osr_id,
-                                                block_marks)) {
+    if (instr->SuccessorAt(i)->FindOsrEntryAndRelink(graph_entry, instr,
+                                                     block_marks)) {
       return true;
     }
   }
@@ -2062,6 +2071,22 @@ Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
       Type()->IsEqualTo(value()->definition()->Type())) {
     return value()->definition();
   }
+  return this;
+}
+
+
+Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
+  switch (kind_) {
+    case kOsrAndPreemption:
+      return this;
+    case kOsrOnly:
+      // Don't need OSR entries in the optimized code.
+      return NULL;
+  }
+
+  // Switch above exhausts all possibilities but some compilers can't figure
+  // it out.
+  UNREACHABLE();
   return this;
 }
 

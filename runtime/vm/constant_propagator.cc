@@ -268,7 +268,6 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
 
-void ConstantPropagator::VisitGrowRegExpStack(GrowRegExpStackInstr* instr) {}
 
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {

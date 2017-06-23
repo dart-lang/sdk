@@ -500,7 +500,6 @@ class EmbeddedArray<T, 0> {
   M(BoxInt32)                                                                  \
   M(UnboxInt32)                                                                \
   M(UnboxedIntConverter)                                                       \
-  M(GrowRegExpStack)                                                           \
   M(Deoptimize)
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
@@ -1229,13 +1228,6 @@ class BlockEntryInstr : public Instruction {
                      GrowableArray<BlockEntryInstr*>* preorder,
                      GrowableArray<intptr_t>* parent);
 
-  // Perform a depth first search to prune code not reachable from an OSR
-  // entry point.
-  bool PruneUnreachable(GraphEntryInstr* graph_entry,
-                        Instruction* parent,
-                        intptr_t osr_id,
-                        BitVector* block_marks);
-
   virtual intptr_t InputCount() const { return 0; }
   virtual Value* InputAt(intptr_t i) const {
     UNREACHABLE();
@@ -1303,6 +1295,12 @@ class BlockEntryInstr : public Instruction {
         offset_(-1),
         parallel_move_(NULL),
         loop_info_(NULL) {}
+
+  // Perform a depth first search to find OSR entry and
+  // link it to the given graph entry.
+  bool FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
+                             Instruction* parent,
+                             BitVector* block_marks);
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
@@ -1417,7 +1415,9 @@ class GraphEntryInstr : public BlockEntryInstr {
   }
   ConstantInstr* constant_null();
 
+  void RelinkToOsrEntry(Zone* zone, intptr_t max_block_id);
   bool IsCompiledForOsr() const;
+  intptr_t osr_id() const { return osr_id_; }
 
   intptr_t entry_count() const { return entry_count_; }
   void set_entry_count(intptr_t count) { entry_count_ = count; }
@@ -7287,12 +7287,27 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
+  enum Kind {
+    // kOsrAndPreemption stack overflow checks are emitted in both unoptimized
+    // and optimized versions of the code and they serve as both preemption and
+    // OSR entry points.
+    kOsrAndPreemption,
+
+    // kOsrOnly stack overflow checks are only needed in the unoptimized code
+    // because we can't OSR optimized code.
+    kOsrOnly,
+  };
+
   CheckStackOverflowInstr(TokenPosition token_pos,
                           intptr_t loop_depth,
-                          intptr_t deopt_id)
+                          intptr_t deopt_id,
+                          Kind kind = kOsrAndPreemption)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
-        loop_depth_(loop_depth) {}
+        loop_depth_(loop_depth),
+        kind_(kind) {
+    ASSERT(kind != kOsrOnly || loop_depth > 0);
+  }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
@@ -7302,6 +7317,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7309,6 +7326,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  private:
   const TokenPosition token_pos_;
   const intptr_t loop_depth_;
+  const Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };
@@ -7974,24 +7992,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
-};
-
-
-class GrowRegExpStackInstr : public TemplateDefinition<1, Throws> {
- public:
-  explicit GrowRegExpStackInstr(Value* typed_data_cell) {
-    SetInputAt(0, typed_data_cell);
-  }
-
-  Value* typed_data_cell() const { return inputs_[0]; }
-
-  virtual bool ComputeCanDeoptimize() const { return MayThrow(); }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  DECLARE_INSTRUCTION(GrowRegExpStack);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GrowRegExpStackInstr);
 };
 
 

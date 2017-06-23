@@ -170,17 +170,21 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
   // Compile to the dart IR.
-  RegExpEngine::CompilationResult result = RegExpEngine::CompileIR(
-      parsed_function->regexp_compile_data(), parsed_function, ic_data_array);
+  RegExpEngine::CompilationResult result =
+      RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
+                              parsed_function, ic_data_array, osr_id);
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.
   parsed_function->AllocateIrregexpVariables(result.num_stack_locals);
 
-  // Build the flow graph.
-  FlowGraphBuilder builder(*parsed_function, ic_data_array,
-                           /* not building var desc */ NULL,
-                           /* not inlining */ NULL, osr_id);
+  // When compiling for OSR, use a depth first search to find the OSR
+  // entry and make graph entry jump to it instead of normal entry.
+  // Catch entries are always considered reachable, even if they
+  // become unreachable after OSR.
+  if (osr_id != Compiler::kNoOSRDeoptId) {
+    result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
+  }
 
   return new (zone)
       FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);

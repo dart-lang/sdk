@@ -4540,11 +4540,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
 
-  // When compiling for OSR, use a depth first search to prune instructions
-  // unreachable from the OSR entry. Catch entries are always considered
-  // reachable, even if they become unreachable after OSR.
+  // When compiling for OSR, use a depth first search to find the OSR
+  // entry and make graph entry jump to it instead of normal entry.
+  // Catch entries are always considered reachable, even if they
+  // become unreachable after OSR.
   if (osr_id_ != Compiler::kNoOSRDeoptId) {
-    PruneUnreachable();
+    graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_);
   }
 
   FlowGraph* graph =
@@ -4556,15 +4557,6 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 void FlowGraphBuilder::AppendAwaitTokenPosition(TokenPosition token_pos) {
   await_token_positions_->Add(token_pos);
-}
-
-
-void FlowGraphBuilder::PruneUnreachable() {
-  ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
-  BitVector* block_marks = new (Z) BitVector(Z, last_used_block_id_ + 1);
-  bool found =
-      graph_entry_->PruneUnreachable(graph_entry_, NULL, osr_id_, block_marks);
-  ASSERT(found);
 }
 
 
