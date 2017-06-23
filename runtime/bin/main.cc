@@ -1494,7 +1494,11 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     if ((gen_snapshot_kind == kAppAOT) || (gen_snapshot_kind == kAppJIT)) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the app snapshot.
-      if (!VmService::LoadForGenPrecompiled()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+      if (!VmService::LoadForGenPrecompiled(NULL)) {
+#else
+      if (!VmService::LoadForGenPrecompiled(dfe.kernel_vmservice_io())) {
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
         Log::PrintErr("VM service loading failed: %s\n",
                       VmService::GetErrorMessage());
         exit(kErrorExitCode);

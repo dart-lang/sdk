@@ -60,6 +60,7 @@ namespace dart {
 #define Z (T->zone())
 
 
+DECLARE_FLAG(bool, use_dart_frontend);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -5642,6 +5643,22 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static Dart_Handle LoadKernelProgram(Dart_Handle url, Thread* T, void* kernel) {
+  kernel::KernelReader reader(reinterpret_cast<kernel::Program*>(kernel));
+  const Object& tmp = reader.ReadProgram();
+  if (tmp.IsError()) {
+    return Api::NewHandle(T, tmp.raw());
+  }
+
+  const String& url_str = Api::UnwrapStringHandle(Z, url);
+  Library& library =
+      Library::Handle(T->zone(), Library::LookupLibrary(T, url_str));
+  return Api::NewHandle(T, library.raw());
+}
+#endif
+
+
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle resolved_url,
                                          Dart_Handle source,
@@ -5650,6 +5667,16 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Kernel isolate is loaded from script in case of dart_bootstrap
+  // even when FLAG_use_dart_frontend is true. Hence, do not interpret
+  // |source| as a kernel if the current isolate is the kernel isolate.
+  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+    return LoadKernelProgram(url, T, reinterpret_cast<void*>(source));
+  }
+#endif
+
   const String& url_str = Api::UnwrapStringHandle(Z, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
