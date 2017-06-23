@@ -2001,8 +2001,7 @@ class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return typeNeeded ? inferrer.coreTypes.typeClass.rawType : null;
   }
 }
 

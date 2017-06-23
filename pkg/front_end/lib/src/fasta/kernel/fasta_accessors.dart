@@ -12,6 +12,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelPropertyAssign,
         KernelStaticAssignment,
         KernelThisExpression,
+        KernelTypeLiteral,
         KernelVariableAssignment;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
@@ -954,9 +955,9 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
             new StringLiteral(message)..fileOffset = offsetForToken(token))
           ..fileOffset = offset;
       } else {
-        super.expression =
-            new TypeLiteral(buildType(null, nonInstanceAccessIsError: true))
-              ..fileOffset = offsetForToken(token);
+        super.expression = new KernelTypeLiteral(
+            buildType(null, nonInstanceAccessIsError: true))
+          ..fileOffset = offsetForToken(token);
       }
     }
     return super.expression;

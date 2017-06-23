@@ -60,7 +60,6 @@ inference/generic_functions_return_typedef: Fail
 inference/generic_methods_infer_js_builtin: Fail
 inference/property_set: Fail
 inference/property_set_bad_setter: Crash
-inference/reference_to_typedef: Fail
 inference/refine_binary_expression_type_type_parameter_t_double: Fail
 inference/refine_binary_expression_type_type_parameter_t_int: Fail
 inference/refine_binary_expression_type_type_parameter_t_t: Fail
