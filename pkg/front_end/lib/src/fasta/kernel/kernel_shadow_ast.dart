@@ -1957,7 +1957,7 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   DartType resolveTypeParameter(DartType type) {
     DartType resolveOneStep(DartType type) {
       if (type is TypeParameterType) {
-        return type.bound ?? type.parameter.bound;
+        return type.bound;
       } else {
         return null;
       }

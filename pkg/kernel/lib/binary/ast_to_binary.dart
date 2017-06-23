@@ -1100,7 +1100,7 @@ class BinaryPrinter extends Visitor {
         _typeParameterIndexer.indexList[node.parameter];
     writeUInt30(typeParameters[0].binaryOffset);
     writeUInt30(typeParameters.indexOf(node.parameter));
-    writeOptionalNode(node.bound);
+    writeOptionalNode(node.promotedBound);
   }
 
   visitVectorType(VectorType node) {

@@ -4244,9 +4244,9 @@ class TypeParameterType extends DartType {
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
   /// is therefore the same as the bound of [parameter].
-  DartType bound;
+  DartType promotedBound;
 
-  TypeParameterType(this.parameter, [this.bound]);
+  TypeParameterType(this.parameter, [this.promotedBound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
 
@@ -4257,6 +4257,9 @@ class TypeParameterType extends DartType {
   }
 
   int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+
+  /// Returns the bound of the type parameter, accounting for promotions.
+  DartType get bound => promotedBound ?? parameter.bound;
 }
 
 /// Declaration of a type variable.
