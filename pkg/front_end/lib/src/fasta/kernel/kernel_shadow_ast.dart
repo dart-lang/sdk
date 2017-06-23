@@ -1465,7 +1465,7 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
-    var writeContext = writeMember?.setterType;
+    var writeContext = inferrer.getSetterType(writeMember, receiverType);
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.propertyAssignExit(desugared, inferredType);
     return inferredType;
