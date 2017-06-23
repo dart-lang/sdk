@@ -25,7 +25,7 @@
 % - Specifies that leaving an await-for loop must wait for the subscription
 %   to be canceled.
 % - An await-for loop only pauses the subscription if it does something async.
-% - Assert statements may now also include a "message" operand.
+% - Assert statements allows a "message" operand and a trailing comma.
 % - The Null type is now considered a subtype of all types in most cases.
 % - Specify what NEWLINE means in multiline strings.
 % - Specified the FutureOf type.
@@ -6720,9 +6720,15 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' expression ( `,` expression )? `)' `{\escapegrammar ;}'
+   assert `(' expression ( `,' expression )? `,'? `)' `{\escapegrammar ;}'
       .
 \end{grammar}
+
+\LMHash{}
+The grammar allows a trailing comma before the closing parenthesis,
+similarly to an argument list. That comma, if present, has no effect.
+An assert statement with a trailing comme is equivalent to one with that
+comma removed.
 
 \LMHash{}
 An assert statement on the form \code{\ASSERT($e$);)} is equivalent to a statment on the form \code{\ASSERT($e$, null);}.
@@ -6740,7 +6746,7 @@ If the assertion failed, $e$ is evaluated to an object $m$.
 Then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
 
 \LMHash{}
- It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.
+It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.
 
 \rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that).  It cannot be viewed as a function call that is being optimized away because the argument might have side effects.
 }
