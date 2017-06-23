@@ -280,7 +280,6 @@ inference/infer_types_on_generic_instantiations_in_library_cycle_a: Crash
 inference/infer_types_on_generic_instantiations_infer: Crash
 inference/infer_types_on_loop_indices_for_each_loop: Crash
 inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
-inference/infer_use_of_void: Crash
 inference/infer_variable_void: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_nonstatic_field_depends_on_static_field_complex: Crash
@@ -400,6 +399,7 @@ inference_new/infer_assign_to_ref: Crash
 inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
+inference_new/infer_use_of_void: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash
 

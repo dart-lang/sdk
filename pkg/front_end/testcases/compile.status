@@ -199,7 +199,6 @@ inference/infer_types_on_generic_instantiations_in_library_cycle_a: Fail
 inference/infer_types_on_generic_instantiations_infer: Fail
 inference/infer_types_on_loop_indices_for_each_loop: Fail
 inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
-inference/infer_use_of_void: Fail
 inference/infer_variable_void: Fail
 inference/inferred_initializing_formal_checks_default_value: Fail
 inference/inferred_nonstatic_field_depends_on_static_field_complex: Fail
