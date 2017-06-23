@@ -323,13 +323,11 @@ inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/lambda_return_type: Crash
 inference/lambda_void_context: Crash
 inference/list_literal_typed: Crash
-inference/list_literals_can_infer_null_top_level: Crash
 inference/list_literals_top_level: Crash
 inference/local_constructor_from_arguments: Crash
 inference/local_return_and_yield: Crash
 inference/map_literals: Fail
 inference/map_literals_can_infer_null: Fail
-inference/map_literals_can_infer_null_top_level: Crash
 inference/map_literals_top_level: Crash
 inference/method_call_with_type_arguments_instance_method: Crash
 inference/method_call_with_type_arguments_instance_method_identifier_sequence: Crash
@@ -400,6 +398,8 @@ inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_use_of_void: Crash
+inference_new/list_literals_can_infer_null_top_level: Crash
+inference_new/map_literals_can_infer_null_top_level: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash
 

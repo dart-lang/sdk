@@ -5,6 +5,8 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=Map<dynamic, dynamic>*/ x = /*@typeArgs=dynamic, dynamic*/ {
-  null: null
-};
+var /*@topType=List<Null>*/ x = /*@typeArgs=Null*/ [null];
+
+main() {
+  x;
+}

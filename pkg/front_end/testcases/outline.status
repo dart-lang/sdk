@@ -220,11 +220,9 @@ inference/instantiate_to_bounds_not_generic: Fail
 inference/lambda_does_not_have_propagated_type_hint: Fail
 inference/list_literals: Fail
 inference/list_literals_can_infer_null_bottom: Fail
-inference/list_literals_can_infer_null_top_level: Fail
 inference/list_literals_top_level: Fail
 inference/map_literals: Fail
 inference/map_literals_can_infer_null: Fail
-inference/map_literals_can_infer_null_top_level: Fail
 inference/map_literals_top_level: Fail
 inference/method_call_with_type_arguments_instance_method: Fail
 inference/method_call_with_type_arguments_instance_method_identifier_sequence: Fail
