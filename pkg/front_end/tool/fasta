@@ -58,7 +58,7 @@ case "${1//_/-}" in
     ;;
   testing)
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"
-    set -- "$@" "--config=${REPO_DIR}/pkg/front_end/test/fasta/testing.json"
+    set -- "$@" "--config=${REPO_DIR}/pkg/front_end/testing.json"
     ;;
   generate-messages) SCRIPT="${TOOL_DIR}/generate_messages.dart";;
   *)

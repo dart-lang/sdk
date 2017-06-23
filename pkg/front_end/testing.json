@@ -3,16 +3,16 @@
 "":"for details. All rights reserved. Use of this source code is governed by a",
 "":"BSD-style license that can be found in the LICENSE.md file.",
 
-  "packages": "../../../../.packages",
+  "packages": "../../.packages",
 
   "suites": [
 
     {
       "name": "scanner",
       "kind": "Chain",
-      "source": "scanner/scanner_suite.dart",
-      "path": "../../../../",
-      "status": "scanner/scanner.status",
+      "source": "test/fasta/scanner/scanner_suite.dart",
+      "path": "../../",
+      "status": "test/fasta/scanner/scanner.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -23,9 +23,9 @@
     {
       "name": "parser",
       "kind": "Chain",
-      "source": "parser/parser_suite.dart",
-      "path": "../../../../",
-      "status": "parser/parser.status",
+      "source": "test/fasta/parser/parser_suite.dart",
+      "path": "../../",
+      "status": "test/fasta/parser/parser.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -42,9 +42,9 @@
     {
       "name": "outline",
       "kind": "Chain",
-      "source": "outline_test.dart",
-      "path": "../../testcases/",
-      "status": "outline.status",
+      "source": "test/fasta/outline_test.dart",
+      "path": "testcases/",
+      "status": "testcases/outline.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -59,9 +59,9 @@
     {
       "name": "compile",
       "kind": "Chain",
-      "source": "compile_test.dart",
-      "path": "../../testcases/",
-      "status": "compile.status",
+      "source": "test/fasta/compile_test.dart",
+      "path": "testcases/",
+      "status": "testcases/compile.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -76,9 +76,9 @@
     {
       "name": "kompile",
       "kind": "Chain",
-      "source": "kompile_test.dart",
-      "path": "../../testcases/",
-      "status": "kompile.status",
+      "source": "test/fasta/kompile_test.dart",
+      "path": "testcases/",
+      "status": "testcases/kompile.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -93,9 +93,9 @@
     {
       "name": "strong",
       "kind": "Chain",
-      "source": "strong_test.dart",
-      "path": "../../testcases/",
-      "status": "strong.status",
+      "source": "test/fasta/strong_test.dart",
+      "path": "testcases/",
+      "status": "testcases/strong.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -110,9 +110,9 @@
     {
       "name": "shaker",
       "kind": "Chain",
-      "source": "shaker_test.dart",
-      "path": "../../testcases/shaker/",
-      "status": "shaker.status",
+      "source": "test/fasta/shaker_test.dart",
+      "path": "testcases/shaker/",
+      "status": "testcases/shaker.status",
       "pattern": [
         "\\.dart$"
       ],
@@ -124,9 +124,9 @@
     {
       "name": "language",
       "kind": "Chain",
-      "source": "sdk_test.dart",
-      "path": "../../../../tests/language/",
-      "status": "language.status",
+      "source": "test/fasta/sdk_test.dart",
+      "path": "../../tests/language/",
+      "status": "testcases/language.status",
       "process-multitests": true,
       "pattern": [
         "_test\\.dart$"
@@ -195,12 +195,12 @@
 
   "analyze": {
 
-    "options": "../../analysis_options.yaml",
+    "options": "analysis_options.yaml",
 
     "uris": [
-      "../../lib",
-      "../../tool",
-      "../../../kernel/lib"
+      "lib/",
+      "tool/",
+      "../kernel/lib/"
     ],
 
     "note": "Tests are included via git grep below.",

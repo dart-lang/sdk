@@ -19,4 +19,4 @@ class ScannerContext extends ChainContext {
 }
 
 main(List<String> arguments) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, "../../../testing.json");
