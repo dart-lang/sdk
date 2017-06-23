@@ -485,13 +485,22 @@ rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Fail
 
-regress/issue_29975: Fail # Issue 29975.
-regress/issue_29976: Crash # Issue 29976.
-regress/issue_29977: Crash # Issue 29977.
-regress/issue_29979: Crash # Issue 29979.
-regress/issue_29981: Crash # Issue 29981.
-regress/issue_29982: Crash # Issue 29982.
-regress/issue_29984: RuntimeError # Issue 29984.
-regress/issue_29985: Crash # Issue 29985.
-regress/issue_29986: Crash # Issue 29986.
-regress/issue_29987: Crash # Issue 29987.
+regress/issue_29937: Crash
+regress/issue_29940: Crash
+regress/issue_29941: Crash
+regress/issue_29942: Crash
+regress/issue_29943: Crash
+regress/issue_29944: Crash
+regress/issue_29945: Crash
+regress/issue_29975: Fail
+regress/issue_29976: Crash
+regress/issue_29977: Crash
+regress/issue_29978: Crash
+regress/issue_29979: Crash
+regress/issue_29980: Crash
+regress/issue_29981: Crash
+regress/issue_29982: Crash
+regress/issue_29984: RuntimeError
+regress/issue_29985: Crash
+regress/issue_29986: Crash
+regress/issue_29987: Crash
