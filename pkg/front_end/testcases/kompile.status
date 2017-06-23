@@ -401,6 +401,7 @@ inference_new/infer_assign_to_ref: Crash
 inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
+inference_new/infer_logical: Crash
 inference_new/infer_use_of_void: Crash
 inference_new/list_literals_can_infer_null_top_level: Crash
 inference_new/map_literals_can_infer_null_top_level: Crash

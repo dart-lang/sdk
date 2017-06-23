@@ -1074,8 +1074,14 @@ class KernelLogicalExpression extends LogicalExpression
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded = inferrer.listener.logicalExpressionEnter(this, typeContext) ||
+        typeNeeded;
+    var boolType = inferrer.coreTypes.boolClass.rawType;
+    inferrer.inferExpression(left, boolType, false);
+    inferrer.inferExpression(right, boolType, false);
+    var inferredType = typeNeeded ? boolType : null;
+    inferrer.listener.logicalExpressionExit(this, inferredType);
+    return inferredType;
   }
 }
 
