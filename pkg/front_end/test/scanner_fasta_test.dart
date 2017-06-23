@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/scanner.dart' as usedForFuzzTesting;
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
@@ -20,10 +21,32 @@ import 'scanner_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ScannerTest_Fasta);
+    defineReflectiveTests(ScannerTest_Fasta_FuzzTestAPI);
     defineReflectiveTests(ScannerTest_Fasta_UTF8);
     defineReflectiveTests(ScannerTest_Fasta_Direct);
     defineReflectiveTests(ScannerTest_Fasta_Direct_UTF8);
   });
+}
+
+@reflectiveTest
+class ScannerTest_Fasta_FuzzTestAPI {
+  test_API() {
+    // These two API are used when fuzz testing the scanner.
+    String source = 'class A { }';
+
+    usedForFuzzTesting.ScannerResult result =
+        usedForFuzzTesting.scanString(source);
+    expect(result?.hasErrors, isFalse);
+    expect(result.tokens?.type, same(Keyword.CLASS));
+
+    // UTF8 encode source with trailing zero
+    List<int> bytes = UTF8.encode(source).toList();
+    bytes.add(0);
+
+    result = usedForFuzzTesting.scan(bytes);
+    expect(result?.hasErrors, isFalse);
+    expect(result.tokens?.type, same(Keyword.CLASS));
+  }
 }
 
 @reflectiveTest
