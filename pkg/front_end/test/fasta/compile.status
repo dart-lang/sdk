@@ -348,3 +348,15 @@ rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
+
+regress/issue_29975: Fail # Issue 29975.
+regress/issue_29976: Crash # Issue 29976.
+regress/issue_29977: Crash # Issue 29977.
+regress/issue_29979: Crash # Issue 29979.
+regress/issue_29981: Crash # Issue 29981.
+regress/issue_29982: Crash # Issue 29982.
+regress/issue_29983: Crash # Issue 29983.
+regress/issue_29984: Crash # Issue 29984.
+regress/issue_29985: Crash # Issue 29985.
+regress/issue_29986: Crash # Issue 29986.
+regress/issue_29987: Crash # Issue 29987.

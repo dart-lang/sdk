@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method f() → dynamic
+  ;
+static method main() → dynamic
+  ;

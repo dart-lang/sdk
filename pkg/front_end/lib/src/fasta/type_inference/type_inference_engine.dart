@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionType,
         InterfaceType,
+        Location,
         Member,
         Procedure,
         TypeParameter,
@@ -24,6 +25,10 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
+
+import '../errors.dart' show Crash;
+
+import '../messages.dart' show getLocationFromNode;
 
 /// Data structure for tracking dependencies among fields, getters, and setters
 /// that require type inference.
@@ -279,8 +284,17 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         new _AccessorWalker().walk(accessorNode);
       }
     }
-    for (var formal in initializingFormals) {
-      formal.type = _inferInitializingFormalType(formal);
+    for (KernelVariableDeclaration formal in initializingFormals) {
+      try {
+        formal.type = _inferInitializingFormalType(formal);
+      } catch (e, s) {
+        Location location = getLocationFromNode(formal);
+        if (location == null) {
+          rethrow;
+        } else {
+          throw new Crash(Uri.parse(location.file), formal.fileOffset, e, s);
+        }
+      }
     }
   }
 
