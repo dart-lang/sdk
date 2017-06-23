@@ -1536,8 +1536,11 @@ class KernelRethrow extends Rethrow implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded =
+        inferrer.listener.rethrowEnter(this, typeContext) || typeNeeded;
+    var inferredType = typeNeeded ? const BottomType() : null;
+    inferrer.listener.rethrowExit(this, inferredType);
+    return inferredType;
   }
 }
 
@@ -1825,8 +1828,11 @@ class KernelThrow extends Throw implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded = inferrer.listener.throwEnter(this, typeContext) || typeNeeded;
     inferrer.inferExpression(expression, null, false);
-    return typeNeeded ? const BottomType() : null;
+    var inferredType = typeNeeded ? const BottomType() : null;
+    inferrer.listener.throwExit(this, inferredType);
+    return inferredType;
   }
 }
 

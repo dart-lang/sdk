@@ -252,6 +252,7 @@ inference/infer_parameter_type_setter_from_field: Crash
 inference/infer_parameter_type_setter_from_setter: Crash
 inference/infer_prefix_expression: Crash
 inference/infer_prefix_expression_custom: Crash
+inference/infer_rethrow: Crash
 inference/infer_return_of_statement_lambda: Crash
 inference/infer_setter_cross_to_getter: Crash
 inference/infer_setter_from_later_inferred_setter: Crash
@@ -266,6 +267,7 @@ inference/infer_statics_transitively_b: Crash
 inference/infer_statics_with_method_invocations: Crash
 inference/infer_statics_with_method_invocations_a: Crash
 inference/infer_throw: Crash
+inference/infer_throw_downwards: Crash
 inference/infer_type_on_overridden_fields2: Crash
 inference/infer_type_on_overridden_fields4: Crash
 inference/infer_type_on_var_from_field: Crash

@@ -262,6 +262,12 @@ class TypeInferenceListener
   void redirectingInitializerExit(RedirectingInitializer initializer) =>
       debugInitializerExit("redirectingInitializer", initializer);
 
+  bool rethrowEnter(Rethrow expression, DartType typeContext) =>
+      debugExpressionEnter('rethrow', expression, typeContext);
+
+  void rethrowExit(Rethrow expression, DartType inferredType) =>
+      debugExpressionExit('rethrow', expression, inferredType);
+
   void returnStatementEnter(ReturnStatement statement) =>
       debugStatementEnter('returnStatement', statement);
 
@@ -301,6 +307,12 @@ class TypeInferenceListener
 
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
       debugExpressionExit("StringLiteral", expression, inferredType);
+
+  bool throwEnter(Throw expression, DartType typeContext) =>
+      debugExpressionEnter('throw', expression, typeContext);
+
+  void throwExit(Throw expression, DartType inferredType) =>
+      debugExpressionExit('throw', expression, inferredType);
 
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("variableAssign", expression, typeContext);
