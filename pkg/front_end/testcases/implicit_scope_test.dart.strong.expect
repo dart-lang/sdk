@@ -27,7 +27,7 @@ class ImplicitScopeTest extends core::Object {
     }
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
-    for (core::int i = 0; i.<(10); i = i.+(1)) {
+    for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
       dynamic a = "bar";
       dynamic b = "baz";
     }

@@ -709,6 +709,26 @@ class KernelForInStatement extends ForInStatement implements KernelStatement {
   }
 }
 
+/// Concrete shadow object representing a classic for loop in kernel form.
+class KernelForStatement extends ForStatement implements KernelStatement {
+  KernelForStatement(List<VariableDeclaration> variables, Expression condition,
+      List<Expression> updates, Statement body)
+      : super(variables, condition, updates, body);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.forStatementEnter(this);
+    variables.forEach(inferrer.inferStatement);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
+    for (var update in updates) {
+      inferrer.inferExpression(update, null, false);
+    }
+    inferrer.inferStatement(body);
+    inferrer.listener.forStatementExit(this);
+  }
+}
+
 /// Concrete shadow object representing a local function declaration in kernel
 /// form.
 class KernelFunctionDeclaration extends FunctionDeclaration

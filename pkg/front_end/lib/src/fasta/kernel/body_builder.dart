@@ -1510,7 +1510,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new LabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new ForStatement(variables, condition, updates, body);
+    Statement result =
+        new KernelForStatement(variables, condition, updates, body);
     if (begin != null) {
       result = new Block(<Statement>[begin, result]);
     }
