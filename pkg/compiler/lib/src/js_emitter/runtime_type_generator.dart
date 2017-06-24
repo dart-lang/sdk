@@ -298,7 +298,7 @@ class RuntimeTypeGenerator {
       if (call != null && call.isFunction) {
         FunctionElement callFunction = call;
         // A superclass might already implement the Function interface. In such
-        // a case, we can avoid emiting the is test here.
+        // a case, we can avoid emitting the is test here.
         if (!cls.superclass.implementsFunction(_commonElements)) {
           _generateInterfacesIsTests(_commonElements.functionClass,
               generateIsTest, generateSubstitution, generated);

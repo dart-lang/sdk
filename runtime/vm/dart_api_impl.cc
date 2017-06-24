@@ -1302,7 +1302,7 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
       // We exit the API scope entered above.
       Dart_ExitScope();
       // A Thread structure has been associated to the thread, we do the
-      // safepoint transition explicity here instead of using the
+      // safepoint transition explicitly here instead of using the
       // TransitionXXX scope objects as the reverse transition happens
       // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
       T->set_execution_state(Thread::kThreadInNative);
@@ -1353,7 +1353,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
     // The Thread structure is disassociated from the isolate, we do the
-    // safepoint transition explicity here instead of using the TransitionXXX
+    // safepoint transition explicitly here instead of using the TransitionXXX
     // scope objects as the original transition happened outside this scope in
     // Dart_EnterIsolate/Dart_CreateIsolate.
     T->ExitSafepoint();
@@ -1405,7 +1405,7 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
         "Dart VM is shutting down");
   }
   // A Thread structure has been associated to the thread, we do the
-  // safepoint transition explicity here instead of using the
+  // safepoint transition explicitly here instead of using the
   // TransitionXXX scope objects as the reverse transition happens
   // outside this scope in Dart_ExitIsolate/Dart_ShutdownIsolate.
   Thread* T = Thread::Current();
@@ -1547,7 +1547,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
   // The Thread structure is disassociated from the isolate, we do the
-  // safepoint transition explicity here instead of using the TransitionXXX
+  // safepoint transition explicitly here instead of using the TransitionXXX
   // scope objects as the original transition happened outside this scope in
   // Dart_EnterIsolate/Dart_CreateIsolate.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
@@ -5910,7 +5910,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   I->DoneLoading();
 
   // TODO(hausner): move the remaining code below (finalization and
-  // invoing of _completeDeferredLoads) into Isolate::DoneLoading().
+  // invoking of _completeDeferredLoads) into Isolate::DoneLoading().
 
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);

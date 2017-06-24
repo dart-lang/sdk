@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-// This test is very similar to NamedParameters3Test, but exersizes a
+// This test is very similar to NamedParameters3Test, but exercises a
 // different corner case in the frog compiler. frog wasn't detecting unused
 // named arguments when no other arguments were expected. So, this test
 // purposely passes the exact number of positional parameters.

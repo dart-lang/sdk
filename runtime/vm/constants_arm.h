@@ -26,7 +26,7 @@ namespace dart {
 
 
 // The Linux/Android ABI and the iOS ABI differ in their choice of frame
-// pointer, their treatment of R9, and the interproduceral stack alignment.
+// pointer, their treatment of R9, and the interprocedural stack alignment.
 
 // EABI (Linux, Android)
 // See "Procedure Call Standard for the ARM Architecture".

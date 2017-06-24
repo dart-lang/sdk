@@ -3755,7 +3755,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
   const TokenPosition token_pos_;
-  // Marks initialiing stores. E.g. in the constructor.
+  // Marks initializing stores. E.g. in the constructor.
   bool is_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);

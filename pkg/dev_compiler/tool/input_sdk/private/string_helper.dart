@@ -178,7 +178,7 @@ String stringReplaceAllFuncUnchecked(String receiver, Pattern pattern,
     return stringReplaceAllStringFuncUnchecked(
         receiver, pattern, onMatch, onNonMatch);
   }
-  // Placing the Pattern test here is indistingishable from placing it at the
+  // Placing the Pattern test here is indistinguishable from placing it at the
   // top of the method but it saves an extra check on the `pattern is String`
   // path.
   if (pattern is! Pattern) {

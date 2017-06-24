@@ -1615,7 +1615,7 @@ void JitOptimizer::VisitStoreInstanceField(StoreInstanceFieldInstr* instr) {
 
 void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
   // Replace generic allocation with a sequence of inlined allocation and
-  // explicit initalizing stores.
+  // explicit initializing stores.
   AllocateUninitializedContextInstr* replacement =
       new AllocateUninitializedContextInstr(instr->token_pos(),
                                             instr->num_context_variables());

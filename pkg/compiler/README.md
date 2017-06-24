@@ -242,7 +242,7 @@ revisited
   AI: change how we build the SDK to launch dart2js from here, most logic might
   remain inside `lib/src/dart2js.dart` for testing purposes.
 
-* `bin/resolver.dart`: an experiemntal binary we used to run the resolver and
+* `bin/resolver.dart`: an experimental binary we used to run the resolver and
   serializer. As we are moving to work on top of kernel this is deprecated and
   should be deleted.
 
@@ -268,7 +268,7 @@ library during `pub-build` and `pub-serve`.
   is another), and delete the legacy API.
 
 **lib/src folder**: most of the compiler lives here, as very little of its
-funtionality is publicly exposed.
+functionality is publicly exposed.
 
 
 * `lib/src/dart2js.dart`: the command-line script that runs dart2js. When
@@ -362,7 +362,7 @@ funtionality is publicly exposed.
     expressions may be folded. Different implementations of the constant system
     are used to target Dart or JavaScript.
 
-  * `lib/src/compile_time_constants.dart`: defines how constant expresions are
+  * `lib/src/compile_time_constants.dart`: defines how constant expressions are
     created from a parsed AST.
 
   * `lib/src/constant_system_dart.dart`: defines an implementation of a constant

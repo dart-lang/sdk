@@ -754,7 +754,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             dataAvailable = _remainingContent;
           }
           // Always present the data as a view. This way we can handle all
-          // cases like this, and the user will not experince different data
+          // cases like this, and the user will not experience different data
           // typed (which could lead to polymorphic user code).
           List<int> data = new Uint8List.view(
               _buffer.buffer, _buffer.offsetInBytes + _index, dataAvailable);

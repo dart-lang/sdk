@@ -19,7 +19,7 @@ class AllocationSinking : public ZoneAllocated {
 
   const GrowableArray<Definition*>& candidates() const { return candidates_; }
 
-  // Find the materialization insterted for the given allocation
+  // Find the materialization inserted for the given allocation
   // at the given exit.
   MaterializeObjectInstr* MaterializationFor(Definition* alloc,
                                              Instruction* exit);

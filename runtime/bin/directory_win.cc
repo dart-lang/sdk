@@ -492,7 +492,7 @@ bool Directory::Rename(const char* path, const char* new_path) {
     return false;
   }
   ExistsResult new_exists = ExistsHelper(system_new_path.wide());
-  // MoveFile does not allow replacing exising directories. Therefore,
+  // MoveFile does not allow replacing existing directories. Therefore,
   // if the new_path is currently a directory we need to delete it
   // first.
   if (new_exists == EXISTS) {

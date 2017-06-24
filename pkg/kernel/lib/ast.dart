@@ -1551,7 +1551,7 @@ abstract class Expression extends TreeNode {
   /// Should only be used on code compiled in strong mode, as this method
   /// assumes the IR is strongly typed.
   ///
-  /// This method futhermore assumes that the type of the expression actually
+  /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].
   /// If this is not the case, either an exception is thrown or the raw type of
   /// [superclass] is returned.

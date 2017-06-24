@@ -307,7 +307,7 @@ class _DeclarationSet {
       startNamed++;
 
       // TODO(jacobr): we are unnecessarily using an O(n^2) algorithm here.
-      // If we have JS APIs with a lange number of named parameters we should
+      // If we have JS APIs with a large number of named parameters we should
       // optimize this. Either use a HashSet or invert this, walking over
       // parameters, querying invocation, and making sure we match
       //invocation.namedArguments.size keys.
@@ -842,7 +842,7 @@ List<String> _generateInteropPatchFiles(
     (isArray ? implementsArray : implements).add(fullName);
     if (!isArray && !isFunction && !isJSObject) {
       // For DOM classes we need to be a bit more conservative at tagging them
-      // as implementing JS inteorp classes risks strange unintended
+      // as implementing JS interop classes risks strange unintended
       // consequences as unrleated code may have instanceof checks.  Checking
       // for isJSObject ensures we do not accidentally pull in existing
       // dart:html classes as they all have JSObject as a base class.

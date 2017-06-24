@@ -349,7 +349,7 @@ test() {
 ''');
   }
 
-  test_constantGenericTypeArg_explict() async {
+  test_constantGenericTypeArg_explicit() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
     await checkFile('''
 abstract class Equality<R> {}

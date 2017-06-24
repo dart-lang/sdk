@@ -784,7 +784,7 @@ _loadPackagesFile(SendPort sp, bool traceLoading, Uri packagesFile) async {
 _findPackagesFile(SendPort sp, bool traceLoading, Uri base) async {
   try {
     // Walk up the directory hierarchy to check for the existence of
-    // .packages files in parent directories and for the existense of a
+    // .packages files in parent directories and for the existence of a
     // packages/ directory on the first iteration.
     var dir = new File.fromUri(base).parent;
     var prev = null;

@@ -2223,7 +2223,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invoked with the arguments. The [target] is the target of the invocation
    * ('e'). The [targetType] is the type of the target. The [methodName] is th
    * name of the method being invoked ('m').  [isConditional] indicates
-   * whether the invocatoin uses a '?.' operator.
+   * whether the invocation uses a '?.' operator.
    */
   Element _resolveInvokedElementWithTarget(Expression target,
       DartType targetType, SimpleIdentifier methodName, bool isConditional) {

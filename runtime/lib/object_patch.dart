@@ -16,7 +16,7 @@ class Object {
   // bit). A new hashCode value is calculated using a random number generator.
   static final _hashCodeRnd = new Random();
 
-  // Shared static implentation for hashCode and _identityHashCode.
+  // Shared static implementation for hashCode and _identityHashCode.
   static int _objectHashCode(obj) {
     var result = _getHash(obj);
     if (result == 0) {

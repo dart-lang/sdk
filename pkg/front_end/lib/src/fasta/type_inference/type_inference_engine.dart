@@ -125,7 +125,7 @@ class MethodNode {
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
-/// of method bodies and initalizers.
+/// of method bodies and initializers.
 ///
 /// This class describes the interface for use by clients of type inference
 /// (e.g. DietListener).  Derived classes should derive from

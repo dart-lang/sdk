@@ -1754,7 +1754,7 @@ RawObject* Simulator::Call(const Code& code,
     // Invoke target function.
     {
       const uint16_t argc = rA;
-      // Lookup the funciton in the ICData.
+      // Look up the function in the ICData.
       RawObject* ic_data_obj = SP[0];
       RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
       RawObject** data = ic_data->ptr()->ic_data_->ptr()->data();

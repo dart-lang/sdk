@@ -557,7 +557,7 @@ class Elements {
    * For non-operator names, this method just returns its input.
    *
    * The results returned from this method are guaranteed to be valid
-   * JavaScript identifers, except it may include reserved words for
+   * JavaScript identifiers, except it may include reserved words for
    * non-operator names.
    */
   static String operatorNameToIdentifier(String name) {
@@ -1823,11 +1823,11 @@ abstract class MemberSignature {
   /// parameters.
   ResolutionFunctionType get functionType;
 
-  /// Returns `true` if this member is a getter, possibly implictly defined by a
+  /// Returns `true` if this member is a getter, possibly implicitly defined by a
   /// field declaration.
   bool get isGetter;
 
-  /// Returns `true` if this member is a setter, possibly implictly defined by a
+  /// Returns `true` if this member is a setter, possibly implicitly defined by a
   /// field declaration.
   bool get isSetter;
 

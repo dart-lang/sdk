@@ -233,8 +233,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
 }
 
 
-// Transforms boolean expressions into a sequence of evaluatons that only lazily
-// evaluate subexpressions.
+// Transforms boolean expressions into a sequence of evaluations that only
+// lazily evaluate subexpressions.
 //
 // Example:
 //
@@ -281,7 +281,7 @@ LocalScope* AwaitTransformer::ChainNewScope(LocalScope* parent) {
 void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
   AstNode* new_left = Transform(node->left());
   AstNode* new_right = NULL;
-  // Preserve lazy evaluaton.
+  // Preserve lazy evaluation.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
     new_right = LazyTransform(node->kind(), new_left, node->right());
   } else {

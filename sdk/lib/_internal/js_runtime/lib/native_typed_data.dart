@@ -1878,7 +1878,7 @@ bool _isInvalidArrayIndex(int index) {
 
 /// Checks that [index] is a valid index into [list] which has length [length].
 ///
-/// That is, [index] is an insteger in the range `0..length - 1`.
+/// That is, [index] is an integer in the range `0..length - 1`.
 void _checkValidIndex(int index, List list, int length) {
   if (_isInvalidArrayIndex(index) || JS('int', '#', index) >= length) {
     throw diagnoseIndexError(list, index);

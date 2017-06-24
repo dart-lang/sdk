@@ -1053,7 +1053,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             "The network interface does not have an address "
             "of the same family as the multicast address");
       } else {
-        // Default to the ANY address if no iterface is specified.
+        // Default to the ANY address if no interface is specified.
         return InternetAddress.ANY_IP_V4;
       }
     } else {

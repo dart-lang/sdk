@@ -519,12 +519,12 @@ class ProcessStarter {
               execvp(path_, const_cast<char* const*>(program_arguments_)));
           ReportChildError();
         } else {
-          // Exit the intermeiate process.
+          // Exit the intermediate process.
           exit(0);
         }
       }
     } else {
-      // Exit the intermeiate process.
+      // Exit the intermediate process.
       exit(0);
     }
   }

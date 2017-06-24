@@ -706,7 +706,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
-  // No generetional barrier needed, since we store into a new object.
+  // No generational barrier needed, since we store into a new object.
   __ StoreIntoObjectNoBarrier(
       RAX, FieldAddress(RAX, Array::type_arguments_offset()), RBX);
 
@@ -2145,7 +2145,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base), Immediate(kIllegalCid));
   __ j(ZERO, &load_target, Assembler::kNearJump);
 
-  // Try next extry in the table.
+  // Try next entry in the table.
   __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
   __ jmp(&loop);
 

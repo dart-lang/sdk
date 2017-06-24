@@ -383,7 +383,7 @@ class MemberTypeInformation extends ElementTypeInformation
 
   /**
    * If [element] is a function, [closurizedCount] is the number of
-   * times it is closurized. The value gets updated while infering.
+   * times it is closurized. The value gets updated while inferring.
    */
   int closurizedCount = 0;
 
@@ -456,7 +456,7 @@ class MemberTypeInformation extends ElementTypeInformation
   // Closurized methods never become stable to ensure that the information in
   // [users] is accurate. The inference stops tracking users for stable types.
   // Note that we only override the getter, the setter will still modify the
-  // state of the [isStable] field inhertied from [TypeInformation].
+  // state of the [isStable] field inherited from [TypeInformation].
   bool get isStable => super.isStable && !isClosurized;
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {

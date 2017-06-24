@@ -229,7 +229,7 @@ class AnalysisDriver {
    */
   bool performAnalysisTask() {
     //
-    // TODO(brianwilkerson) This implementaiton does not allow us to prioritize
+    // TODO(brianwilkerson) This implementation does not allow us to prioritize
     // work across contexts. What we need is a way for an external client to ask
     // to have all priority files analyzed for each context, then ask for normal
     // files to be analyzed. There are a couple of ways to do this.

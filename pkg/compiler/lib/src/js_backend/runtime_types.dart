@@ -108,7 +108,7 @@ abstract class RuntimeTypesSubstitutions {
   Substitution getSubstitution(ClassEntity cls, ClassEntity other);
 
   /// Compute the required type checks and substitutions for the given
-  /// instantitated and checked classes.
+  /// instantiated and checked classes.
   TypeChecks computeChecks(
       Set<ClassEntity> instantiated, Set<ClassEntity> checked);
 
@@ -944,7 +944,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     // adding ground-term type parameters, as they would just be 'dynamic'.
     // TODO(sra): Since the result string is used only in constructing constant
     // names, it would result in more readable names if the final string was a
-    // legal JavaScript identifer.
+    // legal JavaScript identifier.
     if (interface.typeArguments.isEmpty) return name;
     String arguments =
         new List.filled(interface.typeArguments.length, 'dynamic').join(', ');

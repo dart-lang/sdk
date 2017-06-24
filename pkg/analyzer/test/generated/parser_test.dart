@@ -4155,7 +4155,7 @@ main() {
     parseExpression("f()++", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
-  void test_unexpectedToken_returnInExpressionFuntionBody() {
+  void test_unexpectedToken_returnInExpressionFunctionBody() {
     parseCompilationUnit(
         "f() => return null;", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }

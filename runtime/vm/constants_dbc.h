@@ -86,7 +86,7 @@ namespace dart {
 //
 //  - Nop D
 //
-//    This instuction does nothing. It may refer to an object in the constant
+//    This instruction does nothing. It may refer to an object in the constant
 //    pool that may be decoded by other instructions.
 //
 //  - Compile
@@ -225,7 +225,7 @@ namespace dart {
 //
 //  - DMin, DMax, DAdd, DSub, DMul, DDiv, DPow, DMod rA, rB, rC
 //
-//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
+//    Arithmetic operations on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
 //
 //  - DNeg, DCos, DSin, DSqrt rA, rD
 //
@@ -334,7 +334,7 @@ namespace dart {
 //    Cond is Le, Lt, Ge, Gt, unsigned variants ULe, ULt, UGe, UGt, and
 //    unboxed double variants DEq, DNe, DLe, DLt, DGe, DGt.
 //    Skips the next instruction unless FP[rA] <Cond> FP[rD]. Assumes that
-//    FP[rA] and FP[rD] are Smis or unboxed doubles as inidcated by <Cond>.
+//    FP[rA] and FP[rD] are Smis or unboxed doubles as indicated by <Cond>.
 //
 //  - CreateArrayTOS
 //

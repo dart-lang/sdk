@@ -44,7 +44,7 @@ void main() {
   // the grammar, and as such in the following regex a-z cannot be matched as a range.
   shouldBe(new RegExp(r"[\d-a-z]+").firstMatch("az1-3y"), ["az1-3"]);
 
-  // An escaped hypen should not be confused for an invalid range.
+  // An escaped hyphen should not be confused for an invalid range.
   shouldBe(new RegExp(r"[\d\-x]+").firstMatch("1-3xy"), ["1-3x"]);
   shouldBe(new RegExp(r"[x\-\d]+").firstMatch("1-3xy"), ["1-3x"]);
   shouldBe(new RegExp(r"[\d\-\d]+").firstMatch("1-3xy"), ["1-3"]);

@@ -4898,7 +4898,7 @@ class Code : public Object {
       intptr_t pc_offset,
       GrowableArray<const Function*>* functions,
       GrowableArray<TokenPosition>* token_positions) const;
-  // Same as above, expect the pc is intepreted as a return address (as needed
+  // Same as above, expect the pc is interpreted as a return address (as needed
   // for a stack trace or the bottom frames of a profiler sample).
   void GetInlinedFunctionsAtReturnAddress(
       intptr_t pc_offset,
@@ -5652,7 +5652,7 @@ class Instance : public Object {
 
   static intptr_t NextFieldOffset() { return sizeof(RawInstance); }
 
-  // The follwoing raw methods are used for morphing.
+  // The following raw methods are used for morphing.
   // They are needed due to the extraction of the class in IsValidFieldOffset.
   RawObject** RawFieldAddrAtOffset(intptr_t offset) const {
     return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);

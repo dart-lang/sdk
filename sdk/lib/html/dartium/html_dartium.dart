@@ -50982,7 +50982,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // Opera reports the character code in the keyCode field.
       e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
-    // Now we guestimate about what the keycode is that was actually
+    // Now we guesstimate about what the keycode is that was actually
     // pressed, given previous keydown information.
     e._shadowKeyCode = _determineKeyCodeForKeypress(e);
 
@@ -52985,7 +52985,7 @@ class _Utils {
     // Inject all the already defined console variables.
     _consoleTempVariables._data.forEach(addArg);
 
-    // TODO(jacobr): remove the parentheses around the expresson once
+    // TODO(jacobr): remove the parentheses around the expression once
     // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
     // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
     // quietly ignores trailing Dart statements resulting in user confusion

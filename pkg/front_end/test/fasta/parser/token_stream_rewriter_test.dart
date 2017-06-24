@@ -133,7 +133,7 @@ abstract class TokenStreamRewriterTest {
 /// Concrete implementation of [TokenStreamRewriterTest] in which
 /// [Token.previous] values are set to null.
 ///
-/// This forces [TokenStreamRewriter] to use its more complex heursitc for
+/// This forces [TokenStreamRewriter] to use its more complex heuristic for
 /// finding previous tokens.
 @reflectiveTest
 class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {

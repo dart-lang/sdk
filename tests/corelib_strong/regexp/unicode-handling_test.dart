@@ -29,7 +29,7 @@ void main() {
   description(
       'Test for proper handling of Unicode RegExps and <a href="http://bugzilla.webkit.org/show_bug.cgi?id=7445">bug 7445</a>: Gmail puts wrong subject in replies.');
 
-  // Regex to match Re in various languanges straight from Gmail source
+  // Regex to match Re in various languages straight from Gmail source
   var I3 = new RegExp(
       r"^\s*(fwd|re|aw|antw|antwort|wg|sv|ang|odp|betreff|betr|transf|reenv\.|reenv|in|res|resp|resp\.|enc|\u8f6c\u53d1|\u56DE\u590D|\u041F\u0435\u0440\u0435\u0441\u043B|\u041E\u0442\u0432\u0435\u0442):\s*(.*)$",
       caseSensitive: false);

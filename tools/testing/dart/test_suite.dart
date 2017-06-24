@@ -792,7 +792,8 @@ class StandardTestSuite extends TestSuite {
 
       if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
         // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expecations for one entire test file.
+        // Find all the different sub-test expectations for one entire test
+        // file.
         var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
         expectationsMap = <String, Set<Expectation>>{};
         for (var name in subtestNames) {

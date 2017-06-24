@@ -148,8 +148,8 @@ static const char* GetPreferredLanguageName() {
 const char* Platform::LocaleName() {
   // First see if there is a preferred language. If not, return the
   // current locale name.
-  const char* preferred_langauge = GetPreferredLanguageName();
-  return (preferred_langauge != NULL) ? preferred_langauge : GetLocaleName();
+  const char* preferred_language = GetPreferredLanguageName();
+  return (preferred_language != NULL) ? preferred_language : GetLocaleName();
 }
 
 

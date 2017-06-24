@@ -16,7 +16,7 @@
 // Observation: it is not illegal to use a built-in identifier as a library
 // prefix.
 //
-// Observation: it is not legal to use a built-in identifer as a type
+// Observation: it is not legal to use a built-in identifier as a type
 // annotation. A type annotation is not fully defined in the
 // specification, so we assume this means that the grammar production
 // "type" cannot match a built-in identifier. Unfortunately, this

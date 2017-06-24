@@ -1919,7 +1919,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         if (name == 'index') {
           indexField = field;
         } else if (name == '_name') {
-          // Ingore _name field.
+          // Ignore _name field.
         } else {
           indexField = null;
           break;

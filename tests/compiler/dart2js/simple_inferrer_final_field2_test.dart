@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test that a non-used generative constructor does not prevent
-// infering types for fields.
+// inferring types for fields.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';

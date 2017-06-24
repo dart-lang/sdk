@@ -36,7 +36,7 @@ main() {
   Expect.isFalse(identical(fun, bound));
 
   // It is legal to invoke the callback in a different zone. This is, of course,
-  // etremely discouraged.
+  // extremely discouraged.
   var result = bound(399);
   Expect.equals(498, result);
   Expect.equals(499, restoredValue);

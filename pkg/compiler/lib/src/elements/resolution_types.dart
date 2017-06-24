@@ -96,7 +96,7 @@ abstract class ResolutionDartType implements DartType {
    */
   ResolutionDartType get userProvidedBadType => null;
 
-  /// Is [: true :] if this type has no explict type arguments.
+  /// Is [: true :] if this type has no explicit type arguments.
   bool get isRaw => true;
 
   /// Returns the raw version of this type.

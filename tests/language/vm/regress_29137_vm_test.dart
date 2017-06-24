@@ -26,7 +26,7 @@ rot8(v) => _rotl32(v, 8);
 
 main() {
   // Note: value is selected in such a way that (value << 8) is not a smi - this
-  // triggers emittion of BinaryMintOp instructions for shifts.
+  // triggers emission of BinaryMintOp instructions for shifts.
   const value = 0xF0F00000;
   const rotated = 0xF00000F0;
   Expect.equals(rotated, rot8(value));

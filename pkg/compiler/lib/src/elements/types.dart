@@ -18,7 +18,7 @@ import 'entities.dart';
 ///
 /// Current only 'resolution_types.dart' implement this hierarchy but when the
 /// compiler moves to use [Entity] instead of [Element] this hierarchy can be
-/// implementated directly but other entity systems, for instance based directly
+/// implemented directly but other entity systems, for instance based directly
 /// on kernel ir without the need for [Element].
 
 abstract class DartType {

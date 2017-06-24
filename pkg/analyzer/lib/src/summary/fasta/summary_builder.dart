@@ -182,7 +182,7 @@ class ConstExpressionBuilder extends ExpressionListener {
 
 // bit-masks to encode async modifiers as bits on an int.
 
-/// Parser listener to build simplified AST expresions.
+/// Parser listener to build simplified AST expressions.
 ///
 /// The parser produces different trees depending on whether it is used for
 /// constants or initializers, so subclasses specialize the logic accordingly.
@@ -197,7 +197,7 @@ abstract class ExpressionListener extends StackListener {
   /// Whether this listener is used to build const expressions.
   bool get forConst => false;
 
-  /// Whether to ignore the next reduction. Used to ignore nested expresions
+  /// Whether to ignore the next reduction. Used to ignore nested expressions
   /// that are either invalid (in constants) or unnecessary (for initializers).
   bool get ignore => _withinFunction > 0 || _withinCascades > 0;
 

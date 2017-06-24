@@ -158,7 +158,7 @@ class NativeArguments {
       // The closure object is hidden and not accessible from native code.
       // However, if the function is an instance closure function, the captured
       // receiver located in the context is made accessible in native code at
-      // index 0, thereby hidding the closure object at index 0.
+      // index 0, thereby hiding the closure object at index 0.
       count--;
     }
     return count;

@@ -2247,7 +2247,7 @@ class ExceptionAndStackTrace {
  */
 unwrapException(ex) {
   /// If error implements Error, save [ex] in [error.$thrownJsError].
-  /// Otherwise, do nothing. Later, the stack trace can then be extraced from
+  /// Otherwise, do nothing. Later, the stack trace can then be extracted from
   /// [ex].
   saveStackTrace(error) {
     if (error is Error) {

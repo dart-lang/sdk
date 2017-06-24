@@ -79,7 +79,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
         line.add(byte);
       }
     } else {
-      // Case having to handel CR LF as a single unretained line terminator.
+      // Case having to handle CR LF as a single unretained line terminator.
       outer:
       while (true) {
         int byte = readByteSync();

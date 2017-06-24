@@ -7375,7 +7375,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   ASSERT(!closure_func.IsNull());
   ASSERT(closure_body != NULL);
 
-  // Explicitly reference variables of the async genenerator function from the
+  // Explicitly reference variables of the async generator function from the
   // closure body in order to mark them as captured.
   LocalVariable* existing_var =
       closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
@@ -7998,7 +7998,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     }
   }
 
-  // Add variable to scope after parsing the initalizer expression.
+  // Add variable to scope after parsing the initializer expression.
   // The expression must not be able to refer to the variable.
   if (!current_block_->scope->AddVariable(variable)) {
     LocalVariable* existing_var =
@@ -9836,7 +9836,7 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   if (parsed_function()->have_seen_await()) {
     // The await transformation must be done manually because assertions
     // are parsed as statements, not expressions. Thus, we need to check
-    // explicitely whether the arguments contain await operators. (Note that
+    // explicitly whether the arguments contain await operators. (Note that
     // we must not parse the arguments with ParseAwaitableExpr(). In the
     // corner case of assert(await a, await b), this would create two
     // sibling scopes containing the temporary values for a and b. Both
@@ -10206,7 +10206,7 @@ SequenceNode* Parser::ParseCatchClauses(
     // There isn't a generic catch clause so create a clause body that
     // rethrows the exception.  This includes the case that there were no
     // catch clauses.
-    // An await cannot possibly be executed inbetween the catch entry and here,
+    // An await cannot possibly be executed in between the catch entry and here,
     // therefore, it is safe to rethrow the stack-based :exception_var instead
     // of the captured copy :saved_exception_var.
     current = new (Z) SequenceNode(handler_pos, NULL);
@@ -10838,7 +10838,7 @@ AstNode* Parser::ParseStatement() {
     // Rethrow of current exception.
     ConsumeToken();
     ExpectSemicolon();
-    // Check if it is ok to do a rethrow. Find the inntermost enclosing
+    // Check if it is ok to do a rethrow. Find the innermost enclosing
     // catch block.
     TryStack* try_statement = try_stack_;
     while ((try_statement != NULL) && !try_statement->inside_catch()) {
@@ -14754,7 +14754,7 @@ AstNode* Parser::ParsePrimary() {
                                                ? InvocationMirror::kMethod
                                                : InvocationMirror::kGetter;
         // Note: Adding a statement to current block is a hack, parsing an
-        // espression should have no side-effect.
+        // expression should have no side-effect.
         current_block_->statements->Add(ThrowNoSuchMethodError(
             qual_ident_pos, current_class(), qualified_name,
             NULL,  // No arguments.

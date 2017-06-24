@@ -1768,7 +1768,7 @@ ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
 
 //  - CheckClassId rA, D
 //
-//    If the object at FP[rA]'s class id matches hthe class id in PP[D], then
+//    If the object at FP[rA]'s class id matches the class id in PP[D], then
 //    skip the following instruction.
 ASSEMBLER_TEST_GENERATE(CheckClassIdSmiPass, assembler) {
   __ Frame(2);
@@ -1883,7 +1883,7 @@ ASSEMBLER_TEST_RUN(IfNeNullNotNull, test) {
 //    Cond is Le, Lt, Ge, Gt, unsigned variants ULe, ULt, UGe, UGt, and
 //    unboxed double variants DEq, DNe, DLe, DLt, DGe, DGt.
 //    Skips the next instruction unless FP[rA] <Cond> FP[rD]. Assumes that
-//    FP[rA] and FP[rD] are Smis or unboxed doubles as inidcated by <Cond>.
+//    FP[rA] and FP[rD] are Smis or unboxed doubles as indicated by <Cond>.
 ASSEMBLER_TEST_GENERATE(IfLeTrue, assembler) {
   __ Frame(3);
   __ LoadConstant(0, Smi::Handle(Smi::New(-1)));
@@ -2588,7 +2588,7 @@ ASSEMBLER_TEST_RUN(CheckedUnboxFail, test) {
 
 //  - DAdd, DSub, DMul, DDiv rA, rB, rC
 //
-//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
+//    Arithmetic operations on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
 ASSEMBLER_TEST_GENERATE(DAdd, assembler) {
   __ Frame(3);
   __ LoadConstant(0, Double::Handle(Double::New(41.0, Heap::kOld)));

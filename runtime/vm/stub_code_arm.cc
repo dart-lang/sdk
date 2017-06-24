@@ -2153,7 +2153,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ tst(R6, Operand(R6));
   __ b(&load_target, EQ);  // branch if miss.
 
-  // Try next extry in the table.
+  // Try next entry in the table.
   __ AddImmediate(R3, Smi::RawValue(1));
   __ b(&loop);
 }

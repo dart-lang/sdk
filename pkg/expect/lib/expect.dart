@@ -440,7 +440,7 @@ class Expect {
       [_CheckExceptionFn check = null, String reason = null]) {
     String msg = reason == null ? "" : "($reason)";
     if (f is! _Nullary) {
-      // Only throws from executing the funtion body should count as throwing.
+      // Only throws from executing the function body should count as throwing.
       // The failure to even call `f` should throw outside the try/catch.
       _fail("Expect.throws$msg: Function f not callable with zero arguments");
     }

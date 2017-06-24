@@ -58,7 +58,7 @@ _convertJsonToDart(json, reviver(key, value)) {
       return e;
     }
 
-    // This test is needed to avoid identifing '{"__proto__":[]}' as an Array.
+    // This test is needed to avoid identifying '{"__proto__":[]}' as an Array.
     // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
     // bug 621 below is fixed.
     if (JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
@@ -103,7 +103,7 @@ _convertJsonToDartLazy(object) {
     return object;
   }
 
-  // This test is needed to avoid identifing '{"__proto__":[]}' as an array.
+  // This test is needed to avoid identifying '{"__proto__":[]}' as an array.
   // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
   // bug https://code.google.com/p/v8/issues/detail?id=621 is fixed.
   if (JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {

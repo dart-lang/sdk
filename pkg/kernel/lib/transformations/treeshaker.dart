@@ -127,7 +127,7 @@ class TreeShaker {
   /// Map from used members (regardless of host) to a summary object describing
   /// how the member invokes other members on `this`.
   ///
-  /// The summary object is a heterogenous list containing the [Member]s that
+  /// The summary object is a heterogeneous list containing the [Member]s that
   /// are invoked using `super` and the [Name]s that are dispatched on `this`.
   ///
   /// Names that are dispatched as a setter are preceded by the

@@ -19,7 +19,7 @@ class NativeGenerator {
 
   /// Generates the code for isolate affinity tags.
   ///
-  /// Independently Dart programs on the same page must not interfer and
+  /// Independently Dart programs on the same page must not interfere and
   /// this code sets up the variables needed to guarantee that behavior.
   static jsAst.Statement generateIsolateAffinityTagInitialization(
       BackendUsage backendUsage,

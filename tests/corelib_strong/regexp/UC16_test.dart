@@ -32,7 +32,8 @@ import 'package:expect/expect.dart';
 void main() {
   // UC16
   // Characters used:
-  // "\u03a3\u03c2\u03c3\u039b\u03bb" - Sigma, final sigma, sigma, Lambda, lamda
+  // "\u03a3\u03c2\u03c3\u039b\u03bb" - Sigma, final sigma, sigma, Lambda,
+  // lambda
   shouldBe(
       new RegExp(r"x(.)\1x", caseSensitive: false).firstMatch("x\u03a3\u03c3x"),
       ["x\u03a3\u03c3x", "\u03a3"],

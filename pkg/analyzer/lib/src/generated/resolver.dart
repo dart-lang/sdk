@@ -1857,7 +1857,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           Expression initializer = variableDeclaration.initializer;
           if (initializer != null) {
             // Ignore any errors produced during validation--if the constant
-            // can't be eavluated we'll just report a single error.
+            // can't be evaluated we'll just report a single error.
             AnalysisErrorListener errorListener =
                 AnalysisErrorListener.NULL_LISTENER;
             ErrorReporter subErrorReporter =

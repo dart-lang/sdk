@@ -1072,7 +1072,7 @@ class ClosureTranslator extends Visitor {
         // In checked mode, using a type variable in a type annotation may lead
         // to a runtime type check that needs to access the type argument and
         // therefore the closure needs a this-element, if it is not in a field
-        // initializer; field initatializers are evaluated in a context where
+        // initializer; field initializers are evaluated in a context where
         // the type arguments are available in locals.
         registerNeedsThis();
       }

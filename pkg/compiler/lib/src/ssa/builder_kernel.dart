@@ -3360,7 +3360,7 @@ class TryCatchFinallyBuilder {
     endFinallyBlock?.addSuccessor(exitBlock);
 
     // If a block inside try/catch aborts (eg with a return statement),
-    // we explicitely mark this block a predecessor of the catch
+    // we explicitly mark this block a predecessor of the catch
     // block and the finally block.
     _addExitTrySuccessor(startCatchBlock);
     _addExitTrySuccessor(startFinallyBlock);

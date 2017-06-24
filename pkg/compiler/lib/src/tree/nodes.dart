@@ -1284,7 +1284,7 @@ class StringQuoting {
     const StringQuoting($SQ, raw: true, leftQuoteLength: 3),
     const StringQuoting($DQ, raw: false, leftQuoteLength: 3),
     const StringQuoting($DQ, raw: true, leftQuoteLength: 3),
-    // Leading single whitespace or espaped newline.
+    // Leading single whitespace or escaped newline.
     const StringQuoting($SQ, raw: false, leftQuoteLength: 4),
     const StringQuoting($SQ, raw: true, leftQuoteLength: 4),
     const StringQuoting($DQ, raw: false, leftQuoteLength: 4),

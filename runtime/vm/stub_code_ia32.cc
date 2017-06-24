@@ -668,7 +668,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // ECX: array element type.
   // EDX: Array length as Smi (preserved).
   // Store the type argument field.
-  // No generetional barrier needed, since we store into a new object.
+  // No generational barrier needed, since we store into a new object.
   __ StoreIntoObjectNoBarrier(
       EAX, FieldAddress(EAX, Array::type_arguments_offset()), ECX);
 
@@ -2091,7 +2091,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ cmpl(FieldAddress(EDI, EDX, TIMES_4, base), Immediate(kIllegalCid));
   __ j(ZERO, &load_target, Assembler::kNearJump);
 
-  // Try next extry in the table.
+  // Try next entry in the table.
   __ AddImmediate(EDX, Immediate(Smi::RawValue(1)));
   __ jmp(&loop);
 

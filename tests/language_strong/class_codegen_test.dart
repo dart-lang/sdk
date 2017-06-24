@@ -20,7 +20,7 @@ class C extends A {
 
 main() {
   // We don't instantiate A, but the codegen still needs to emit (parts of) it
-  // for inheritence purposes.
+  // for inheritance purposes.
   var b = new B();
   var c = new C();
   Expect.equals(3, b.foo());

@@ -164,7 +164,7 @@ config("compiler") {
     ldflags += common_mac_flags
   } else if (is_posix) {
     # CPU architecture. We may or may not be doing a cross compile now, so for
-    # simplicity we always explicitly set the architecture.
+    # simplicitly we always explicitly set the architecture.
     if (current_cpu == "x64") {
       cflags += [
         "-m64",

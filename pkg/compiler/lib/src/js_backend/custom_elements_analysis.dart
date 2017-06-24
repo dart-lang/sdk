@@ -205,7 +205,7 @@ class CustomElementsAnalysisJoin {
           escapingConstructors
               .forEach(_backendUsageBuilder.registerGlobalFunctionDependency);
         }
-        // Force the generaton of the type constant that is the key to an entry
+        // Force the generation of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = _makeTypeConstant(cls);
         impactBuilder

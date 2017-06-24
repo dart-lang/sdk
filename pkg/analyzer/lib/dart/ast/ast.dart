@@ -4964,7 +4964,7 @@ abstract class MethodInvocation extends InvocationExpression {
 }
 
 /**
- * An expression that implicity makes reference to a method.
+ * An expression that implicitly makes reference to a method.
  *
  * Clients may not extend, implement or mix-in this class.
  */

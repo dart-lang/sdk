@@ -60,7 +60,7 @@ VM_UNIT_TEST_CASE(Monitor) {
     // We expect to be timing out here.
     EXPECT_EQ(Monitor::kTimedOut, wait_result);
 
-    // Check whether this attempt falls within the exptected time limits.
+    // Check whether this attempt falls within the expected time limits.
     int64_t wakeup_time = (stop - start) / kMicrosecondsPerMillisecond;
     OS::Print("wakeup_time: %" Pd64 "\n", wakeup_time);
     const int kAcceptableTimeJitter = 20;    // Measured in milliseconds.
