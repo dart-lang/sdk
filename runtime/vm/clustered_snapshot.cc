@@ -40,15 +40,12 @@ void Deserializer::InitializeHeader(RawObject* raw,
                                     bool is_vm_isolate,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uint32_t tags = 0;
+  uword tags = 0;
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_isolate, tags);
   tags = RawObject::CanonicalObjectTag::update(is_canonical, tags);
   raw->ptr()->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  raw->ptr()->hash_ = 0;
-#endif
 }
 
 

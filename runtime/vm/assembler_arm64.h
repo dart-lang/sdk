@@ -742,19 +742,16 @@ class Assembler : public ValueObject {
     EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
   }
 
-  void ldxr(Register rt, Register rn, OperandSize size = kDoubleWord) {
+  void ldxr(Register rt, Register rn) {
     // rt = value
     // rn = address
-    EmitLoadStoreExclusive(LDXR, R31, rn, rt, size);
+    EmitLoadStoreExclusive(LDXR, R31, rn, rt, kDoubleWord);
   }
-  void stxr(Register rs,
-            Register rt,
-            Register rn,
-            OperandSize size = kDoubleWord) {
+  void stxr(Register rs, Register rt, Register rn) {
     // rs = status (1 = failure, 0 = success)
     // rt = value
     // rn = address
-    EmitLoadStoreExclusive(STXR, rs, rn, rt, size);
+    EmitLoadStoreExclusive(STXR, rs, rn, rt, kDoubleWord);
   }
   void clrex() {
     const int32_t encoding = static_cast<int32_t>(CLREX);
@@ -1704,8 +1701,8 @@ class Assembler : public ValueObject {
                               Register rn,
                               Register rt,
                               OperandSize sz = kDoubleWord) {
-    ASSERT(sz == kDoubleWord || sz == kWord);
-    const int32_t size = B31 | (sz == kDoubleWord ? B30 : 0);
+    ASSERT(sz == kDoubleWord);
+    const int32_t size = B31 | B30;
 
     ASSERT((rs != kNoRegister) && (rs != ZR));
     ASSERT((rn != kNoRegister) && (rn != ZR));

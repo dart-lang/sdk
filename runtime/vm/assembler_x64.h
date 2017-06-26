@@ -690,8 +690,16 @@ class Assembler : public ValueObject {
 
   void lock();
   void cmpxchgl(const Address& address, Register reg);
+  void lock_cmpxchgl(const Address& address, Register reg) {
+    lock();
+    cmpxchgl(address, reg);
+  }
 
   void cmpxchgq(const Address& address, Register reg);
+  void lock_cmpxchgq(const Address& address, Register reg) {
+    lock();
+    cmpxchgq(address, reg);
+  }
 
   void cpuid();
 
@@ -791,11 +799,6 @@ class Assembler : public ValueObject {
   void LockCmpxchgq(const Address& address, Register reg) {
     lock();
     cmpxchgq(address, reg);
-  }
-
-  void LockCmpxchgl(const Address& address, Register reg) {
-    lock();
-    cmpxchgl(address, reg);
   }
 
   void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
