@@ -1365,7 +1365,8 @@ f(int i, String s) {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (DartFileEditBuilder builder) {
       Iterable<_MockSource> sources = newUris.map((newUri) {
-        String path = newUri.contains(':') ? null : '/$newUri';
+        String path =
+            newUri.contains(':') ? null : provider.convertPath('/$newUri');
         return new _MockSource(path, Uri.parse(newUri));
       });
       builder.importLibraries(sources);
