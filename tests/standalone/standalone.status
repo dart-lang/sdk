@@ -267,8 +267,8 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 [ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
 io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
 
-[ $runtime == dart_precompiled || $mode == product && ($compiler != dartk && $compiler != dartkp)]
- io/skipping_dart2js_compilations_test: RuntimeError # Issue 30008
+[ $runtime == dart_precompiled ]
+io/skipping_dart2js_compilations_test: RuntimeError # Issue 30008
 
 [ $compiler == app_jit ]
 assert_test: RuntimeError # Script name change?
