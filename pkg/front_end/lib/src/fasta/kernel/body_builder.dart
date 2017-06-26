@@ -897,13 +897,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (!target.isAccessor) {
         if (areArgumentsCompatible(target.function, node.arguments)) {
           Expression result = new KernelDirectMethodInvocation(
-              new ThisExpression()..fileOffset = node.fileOffset,
+              new KernelThisExpression()..fileOffset = node.fileOffset,
               target,
-              node.arguments);
+              node.arguments)
+            ..fileOffset = node.fileOffset;
           // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
           // remove the next line:
           result =
-              new KernelSuperMethodInvocation(node.name, node.arguments, null);
+              new KernelSuperMethodInvocation(node.name, node.arguments, target)
+                ..fileOffset = node.fileOffset;
           return result;
         } else {
           isNoSuchMethod = true;
@@ -915,7 +917,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           node.name.name, node.arguments, node.fileOffset);
     }
     Expression receiver = new KernelDirectPropertyGet(
-        new ThisExpression()..fileOffset = node.fileOffset, target);
+        new KernelThisExpression()..fileOffset = node.fileOffset, target);
     // TODO(ahe): Use [DirectPropertyGet] when possible, that is, remove the
     // next line:
     receiver = new KernelSuperPropertyGet(node.name, target);
@@ -992,7 +994,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         noSuchMethodName,
         new Arguments(<Expression>[
           library.loader.instantiateInvocation(
-              new ThisExpression()..fileOffset = charOffset,
+              new KernelThisExpression()..fileOffset = charOffset,
               name,
               arguments,
               charOffset,

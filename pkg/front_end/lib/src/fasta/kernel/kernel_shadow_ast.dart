@@ -530,21 +530,23 @@ class KernelDirectMethodInvocation extends DirectMethodInvocation
       Expression receiver, Procedure target, Arguments arguments)
       : super(receiver, target, arguments);
 
-  KernelDirectMethodInvocation.byReference(
-      Expression receiver, Reference targetReference, Arguments arguments)
-      : super.byReference(receiver, targetReference, arguments);
-
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
-    // TODO(paulberry): Determine the right thing to do here.
-    throw 'TODO(paulberry)';
+    // DirectMethodInvocation can only occur as a result of a use of `super`,
+    // and `super` can't appear inside a field initializer.  So this code should
+    // never be reached.
+    internalError(
+        'Unexpected call to _collectDependencies for DirectMethodInvocation');
   }
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+        'target', new InstrumentationValueForMember(target));
+    return inferrer.inferMethodInvocation(
+        this, receiver, fileOffset, false, typeContext, typeNeeded,
+        interfaceMember: target, methodName: target.name, arguments: arguments);
   }
 }
 
@@ -1286,8 +1288,9 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferMethodInvocation(this, receiver, fileOffset, this,
-        _isImplicitCall, typeContext, typeNeeded);
+    return inferrer.inferMethodInvocation(
+        this, receiver, fileOffset, _isImplicitCall, typeContext, typeNeeded,
+        desugaredInvocation: this);
   }
 }
 
@@ -1341,11 +1344,11 @@ class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
         this,
         variable.initializer,
         fileOffset,
-        _desugaredInvocation,
         false,
         typeContext,
         typeNeeded || inferrer.strongMode,
-        receiverVariable: variable);
+        receiverVariable: variable,
+        desugaredInvocation: _desugaredInvocation);
     if (inferrer.strongMode) {
       body.staticType = inferredType;
     }
@@ -1807,8 +1810,13 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+        'target', new InstrumentationValueForMember(interfaceTarget));
+    return inferrer.inferMethodInvocation(this, new KernelThisExpression(),
+        fileOffset, false, typeContext, typeNeeded,
+        interfaceMember: interfaceTarget,
+        methodName: name,
+        arguments: arguments);
   }
 }
 

@@ -17,7 +17,7 @@ class Foo extends self::Object&Mixin {
     : super core::Object::•()
     ;
   method foo() → dynamic
-    return super.foo();
+    return super.{self::Mixin::foo}();
   method bar() → dynamic
     return super.{self::Mixin::field};
 }

@@ -45,14 +45,14 @@ class C extends self::B {
     : super self::B::•()
     ;
   method test() → dynamic {
-    super.~();
-    self::use(super.~());
-    super.unary-();
-    self::use(super.unary-());
-    super.==(87);
-    self::use(super.==(87));
-    !super.==(87);
-    self::use(!super.==(87));
+    super.{self::A::~}();
+    self::use(super.{self::A::~}());
+    super.{self::A::unary-}();
+    self::use(super.{self::A::unary-}());
+    super.{self::A::==}(87);
+    self::use(super.{self::A::==}(87));
+    !super.{self::A::==}(87);
+    self::use(!super.{self::A::==}(87));
     super.{self::A::a};
     self::use(super.{self::A::a});
     super.{self::B::b};
@@ -139,10 +139,10 @@ class C extends self::B {
     self::use(super.{self::A::i}.call());
     super.{self::A::[]}(87).call();
     self::use(super.{self::A::[]}(87).call());
-    super.m();
-    self::use(super.m());
-    super.m(87);
-    self::use(super.m(87));
+    super.{self::A::m}();
+    self::use(super.{self::A::m}());
+    super.{self::A::m}(87);
+    self::use(super.{self::A::m}(87));
     super.a = 42;
     self::use(super.a = 42);
     super.b = 42;

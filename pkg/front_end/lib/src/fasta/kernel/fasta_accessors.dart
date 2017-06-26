@@ -761,7 +761,8 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
-      return new DirectMethodInvocation(new ThisExpression(), getter, arguments)
+      return new DirectMethodInvocation(
+          new KernelThisExpression(), getter, arguments)
         ..fileOffset = offset;
     }
   }

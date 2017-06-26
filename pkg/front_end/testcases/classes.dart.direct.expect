@@ -20,7 +20,7 @@ class B extends self::A {
     ;
   method method() → dynamic {
     core::print("B.method x: ${this.x} y: ${this.y}");
-    super.method();
+    super.{self::A::method}();
   }
 }
 static method main() → dynamic {

@@ -780,11 +780,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Expression expression,
       Expression receiver,
       int fileOffset,
-      MethodInvocation desugaredInvocation,
       bool isImplicitCall,
       DartType typeContext,
       bool typeNeeded,
-      {VariableDeclaration receiverVariable}) {
+      {VariableDeclaration receiverVariable,
+      MethodInvocation desugaredInvocation,
+      Member interfaceMember,
+      Name methodName,
+      Arguments arguments}) {
     typeNeeded =
         listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
@@ -793,31 +796,32 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       receiverVariable?.type = receiverType;
     }
     bool isOverloadedArithmeticOperator = false;
-    Member interfaceMember =
+    interfaceMember ??=
         findMethodInvocationMember(receiverType, desugaredInvocation);
+    methodName ??= desugaredInvocation.name;
+    arguments ??= desugaredInvocation.arguments;
     if (interfaceMember is Procedure) {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
     }
-    var calleeType = getCalleeFunctionType(interfaceMember, receiverType,
-        desugaredInvocation.name, !isImplicitCall);
+    var calleeType = getCalleeFunctionType(
+        interfaceMember, receiverType, methodName, !isImplicitCall);
     bool forceArgumentInference = false;
     if (isDryRun) {
-      if (_isUserDefinableOperator(desugaredInvocation.name.name)) {
+      if (_isUserDefinableOperator(methodName.name)) {
         // If this is an overloadable arithmetic operator, then type inference
         // might depend on the RHS, so conservatively assume it does.
         forceArgumentInference =
-            isOverloadableArithmeticOperator(desugaredInvocation.name.name);
+            isOverloadableArithmeticOperator(methodName.name);
       } else {
         // If no type arguments were given, then type inference might depend on
         // the arguments (because the called method might be generic), so
         // conservatively assume it does.
-        forceArgumentInference =
-            getExplicitTypeArguments(desugaredInvocation.arguments) == null;
+        forceArgumentInference = getExplicitTypeArguments(arguments) == null;
       }
     }
     var inferredType = inferInvocation(typeContext, typeNeeded, fileOffset,
-        calleeType, calleeType.returnType, desugaredInvocation.arguments,
+        calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         forceArgumentInference: forceArgumentInference);
