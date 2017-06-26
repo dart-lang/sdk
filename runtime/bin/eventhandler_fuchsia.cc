@@ -17,10 +17,10 @@
 #include <magenta/syscalls/object.h>
 #include <magenta/syscalls/port.h>
 #include <mxio/private.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -89,7 +89,7 @@ intptr_t IOHandle::Read(void* buffer, intptr_t num_bytes) {
   // re-subscription is necessary. Logic in the caller decides which errors are
   // real, and which are ignore-and-continue.
   read_events_enabled_ = true;
-  if (!AsyncWaitLocked(MX_HANDLE_INVALID, EPOLLIN, wait_key_)) {
+  if (!AsyncWaitLocked(MX_HANDLE_INVALID, POLLIN, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
 
@@ -107,7 +107,7 @@ intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
 
   // Resubscribe to write events.
   write_events_enabled_ = true;
-  if (!AsyncWaitLocked(MX_HANDLE_INVALID, EPOLLOUT, wait_key_)) {
+  if (!AsyncWaitLocked(MX_HANDLE_INVALID, POLLOUT, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
 
@@ -124,7 +124,7 @@ intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
 
   // Re-subscribe to read events.
   read_events_enabled_ = true;
-  if (!AsyncWaitLocked(MX_HANDLE_INVALID, EPOLLIN, wait_key_)) {
+  if (!AsyncWaitLocked(MX_HANDLE_INVALID, POLLIN, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
 
@@ -141,32 +141,32 @@ void IOHandle::Close() {
 
 uint32_t IOHandle::MaskToEpollEvents(intptr_t mask) {
   MutexLocker ml(mutex_);
-  // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
+  // Do not ask for POLLERR and POLLHUP explicitly as they are
   // triggered anyway.
-  uint32_t events = EPOLLRDHUP;
+  uint32_t events = POLLRDHUP;
   if (read_events_enabled_ && ((mask & (1 << kInEvent)) != 0)) {
-    events |= EPOLLIN;
+    events |= POLLIN;
   }
   if (write_events_enabled_ && ((mask & (1 << kOutEvent)) != 0)) {
-    events |= EPOLLOUT;
+    events |= POLLOUT;
   }
   return events;
 }
 
 
 intptr_t IOHandle::EpollEventsToMask(intptr_t events) {
-  if ((events & EPOLLERR) != 0) {
-    // Return error only if EPOLLIN is present.
-    return ((events & EPOLLIN) != 0) ? (1 << kErrorEvent) : 0;
+  if ((events & POLLERR) != 0) {
+    // Return error only if POLLIN is present.
+    return ((events & POLLIN) != 0) ? (1 << kErrorEvent) : 0;
   }
   intptr_t event_mask = 0;
-  if ((events & EPOLLIN) != 0) {
+  if ((events & POLLIN) != 0) {
     event_mask |= (1 << kInEvent);
   }
-  if ((events & EPOLLOUT) != 0) {
+  if ((events & POLLOUT) != 0) {
     event_mask |= (1 << kOutEvent);
   }
-  if ((events & (EPOLLHUP | EPOLLRDHUP)) != 0) {
+  if ((events & (POLLHUP | POLLRDHUP)) != 0) {
     event_mask |= (1 << kCloseEvent);
   }
   return event_mask;

@@ -20,12 +20,12 @@
 #include <magenta/types.h>
 #include <mxio/private.h>
 #include <mxio/util.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/epoll.h>
 #include <unistd.h>
 
 #include "bin/dartutils.h"
@@ -515,7 +515,7 @@ bool Process::Wait(intptr_t pid,
   const uint64_t out_key = reinterpret_cast<uint64_t>(out_tmp);
   const uint64_t err_key = reinterpret_cast<uint64_t>(err_tmp);
   const uint64_t exit_key = reinterpret_cast<uint64_t>(exit_tmp);
-  const uint32_t events = EPOLLRDHUP | EPOLLIN;
+  const uint32_t events = POLLRDHUP | POLLIN;
   if (!out_tmp->AsyncWait(port, events, out_key)) {
     return false;
   }
@@ -537,29 +537,29 @@ bool Process::Wait(intptr_t pid,
     IOHandle* event_handle = reinterpret_cast<IOHandle*>(pkt.key);
     const intptr_t event_mask = event_handle->WaitEnd(pkt.signal.observed);
     if (event_handle == out_tmp) {
-      if ((event_mask & EPOLLIN) != 0) {
+      if ((event_mask & POLLIN) != 0) {
         const intptr_t avail = FDUtils::AvailableBytes(out_tmp->fd());
         if (!out_data.Read(out_tmp->fd(), avail)) {
           return false;
         }
       }
-      if ((event_mask & EPOLLRDHUP) != 0) {
+      if ((event_mask & POLLRDHUP) != 0) {
         out_tmp->CancelWait(port, out_key);
         out_tmp = NULL;
       }
     } else if (event_handle == err_tmp) {
-      if ((event_mask & EPOLLIN) != 0) {
+      if ((event_mask & POLLIN) != 0) {
         const intptr_t avail = FDUtils::AvailableBytes(err_tmp->fd());
         if (!err_data.Read(err_tmp->fd(), avail)) {
           return false;
         }
       }
-      if ((event_mask & EPOLLRDHUP) != 0) {
+      if ((event_mask & POLLRDHUP) != 0) {
         err_tmp->CancelWait(port, err_key);
         err_tmp = NULL;
       }
     } else if (event_handle == exit_tmp) {
-      if ((event_mask & EPOLLIN) != 0) {
+      if ((event_mask & POLLIN) != 0) {
         const intptr_t avail = FDUtils::AvailableBytes(exit_tmp->fd());
         if (avail == 8) {
           intptr_t b =
@@ -569,7 +569,7 @@ bool Process::Wait(intptr_t pid,
           }
         }
       }
-      if ((event_mask & EPOLLRDHUP) != 0) {
+      if ((event_mask & POLLRDHUP) != 0) {
         exit_tmp->CancelWait(port, exit_key);
         exit_tmp = NULL;
       }

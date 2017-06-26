@@ -15,7 +15,6 @@
 #include <magenta/syscalls/object.h>
 #include <magenta/syscalls/port.h>
 #include <mxio/private.h>
-#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
