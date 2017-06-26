@@ -2668,7 +2668,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
-    AssertStatement statement = new AssertStatement(condition,
+    AssertStatement statement = new KernelAssertStatement(condition,
         conditionStartOffset: leftParenthesis.offset + 1,
         conditionEndOffset: rightParenthesis.offset,
         message: message);

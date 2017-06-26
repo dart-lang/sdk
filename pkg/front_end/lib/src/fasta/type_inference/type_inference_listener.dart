@@ -87,6 +87,12 @@ class TypeInferenceListener
   void asExpressionExit(AsExpression expression, DartType inferredType) =>
       debugExpressionExit("asExpression", expression, inferredType);
 
+  void assertStatementEnter(AssertStatement statement) =>
+      debugStatementEnter('assertStatement', statement);
+
+  void assertStatementExit(AssertStatement statement) =>
+      debugStatementExit('assertStatement', statement);
+
   bool awaitExpressionEnter(AwaitExpression expression, DartType typeContext) =>
       debugExpressionEnter("awaitExpression", expression, typeContext);
 

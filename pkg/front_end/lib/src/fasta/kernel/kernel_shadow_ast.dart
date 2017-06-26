@@ -90,6 +90,26 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing an assertion statement in kernel form.
+class KernelAssertStatement extends AssertStatement implements KernelStatement {
+  KernelAssertStatement(Expression condition,
+      {Expression message, int conditionStartOffset, int conditionEndOffset})
+      : super(condition,
+            message: message,
+            conditionStartOffset: conditionStartOffset,
+            conditionEndOffset: conditionEndOffset);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.assertStatementEnter(this);
+    inferrer.inferExpression(condition, null, false);
+    if (message != null) {
+      inferrer.inferExpression(message, null, false);
+    }
+    inferrer.listener.assertStatementExit(this);
+  }
+}
+
 /// Shadow object for [AwaitExpression].
 class KernelAwaitExpression extends AwaitExpression
     implements KernelExpression {
