@@ -205,6 +205,12 @@ class TypeInferenceListener
   void isNotExpressionExit(Not expression, DartType inferredType) =>
       debugExpressionExit("isNotExpression", expression, inferredType);
 
+  void labeledStatementEnter(LabeledStatement statement) =>
+      debugStatementEnter('labeledStatement', statement);
+
+  void labeledStatementExit(LabeledStatement statement) =>
+      debugStatementExit('labeledStatement', statement);
+
   bool listLiteralEnter(ListLiteral expression, DartType typeContext) =>
       debugExpressionEnter("listLiteral", expression, typeContext);
 
@@ -315,6 +321,12 @@ class TypeInferenceListener
 
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
       debugExpressionExit("StringLiteral", expression, inferredType);
+
+  void switchStatementEnter(SwitchStatement statement) =>
+      debugStatementEnter('switchStatement', statement);
+
+  void switchStatementExit(SwitchStatement statement) =>
+      debugStatementExit('switchStatement', statement);
 
   bool throwEnter(Throw expression, DartType typeContext) =>
       debugExpressionEnter('throw', expression, typeContext);

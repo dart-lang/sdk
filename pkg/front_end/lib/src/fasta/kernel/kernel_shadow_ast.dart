@@ -986,6 +986,19 @@ class KernelIsNotExpression extends Not implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a labeled statement in kernel form.
+class KernelLabeledStatement extends LabeledStatement
+    implements KernelStatement {
+  KernelLabeledStatement(Statement body) : super(body);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.labeledStatementEnter(this);
+    inferrer.inferStatement(body);
+    inferrer.listener.labeledStatementExit(this);
+  }
+}
+
 /// Concrete shadow object representing a list literal in kernel form.
 class KernelListLiteral extends ListLiteral implements KernelExpression {
   final DartType _declaredTypeArgument;
@@ -1786,6 +1799,25 @@ class KernelSuperPropertyGet extends SuperPropertyGet
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
     return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Concrete shadow object representing a switch statement in kernel form.
+class KernelSwitchStatement extends SwitchStatement implements KernelStatement {
+  KernelSwitchStatement(Expression expression, List<SwitchCase> cases)
+      : super(expression, cases);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.switchStatementEnter(this);
+    var expressionType = inferrer.inferExpression(expression, null, true);
+    for (var switchCase in cases) {
+      for (var caseExpression in switchCase.expressions) {
+        inferrer.inferExpression(caseExpression, expressionType, false);
+      }
+      inferrer.inferStatement(switchCase.body);
+    }
+    inferrer.listener.switchStatementExit(this);
   }
 }
 

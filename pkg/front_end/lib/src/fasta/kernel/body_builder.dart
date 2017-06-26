@@ -1508,7 +1508,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     Statement result =
@@ -1517,7 +1517,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       result = new Block(<Statement>[begin, result]);
     }
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2488,12 +2488,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     Statement result = new DoStatement(body, condition);
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2523,7 +2523,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     VariableDeclaration variable;
@@ -2560,7 +2560,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         isAsync: awaitToken != null)
       ..fileOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2594,13 +2594,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     if (target.breakTarget.hasUsers) {
       if (statement is! LabeledStatement) {
-        statement = new LabeledStatement(statement);
+        statement = new KernelLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(statement);
     }
     if (target.continueTarget.hasUsers) {
       if (statement is! LabeledStatement) {
-        statement = new LabeledStatement(statement);
+        statement = new KernelLabeledStatement(statement);
       }
       target.continueTarget.resolveContinues(statement);
     }
@@ -2634,12 +2634,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     Statement result = new WhileStatement(condition, body);
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2834,9 +2834,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitSwitchScope();
     exitLocalScope();
     Expression expression = popForValue();
-    Statement result = new SwitchStatement(expression, cases);
+    Statement result = new KernelSwitchStatement(expression, cases);
     if (target.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       target.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
