@@ -46,7 +46,29 @@
     * Fixed a Safari issue during bootstrapping (note that Safari is still not
       officially supported but does work for trivial examples).
 
-## 1.24.0
+## 1.24.2 - 22-06-2017
+
+* Fixes for debugging in Dartium.
+  * Fix DevConsole crash with JS
+      (https://github.com/dart-lang/sdk/issues/29873).
+  * Fix debugging in WebStorm, NULL returned for JS objects
+      (https://github.com/dart-lang/sdk/issues/29854).
+
+## 1.24.1 - 14-06-2017
+
+* Bug fixes for dartdevc support in `pub serve`.
+  * Fixed module config invalidation logic so modules are properly
+    recalculated when package layout changes.
+  * Fixed exception when handling require.js errors that aren't script load
+    errors.
+  * Fixed an issue where requesting the bootstrap.js file before the dart.js
+    file would result in a 404.
+  * Fixed a Safari issue during bootstrapping (note that Safari is still not
+    officially supported but does work for trivial examples).
+* Fix for a Dartium issue where there was no sound in checked mode
+    (https://github.com/dart-lang/sdk/issues/29810).
+
+## 1.24.0 - 12-06-2017
 
 ### Language
 * During a dynamic type check, `void` is not required to be `null` anymore.
@@ -251,7 +273,7 @@
   Unless we learn about any critical use of Dart on MIPS in the meantime, we're
   planning to deprecate support for MIPS starting with the next stable release.
 
-## 1.23.0
+## 1.23.0 - 2017-04-21
 
 #### Strong Mode
 
@@ -434,6 +456,15 @@ analyzer:
     it technically meant dartfmt could change the semantics of the code.
   * Preserve a blank line between enum cases.
   * Other small formatting tweaks.
+
+
+## 1.22.1 - 2017-02-22
+
+Patch release, resolves two issues:
+* Dart VM crash: [Issue 28072](https://github.com/dart-lang/sdk/issues/28757)
+
+* Dart VM bug combining types, await, and deferred loading: [Issue 28678](https://github.com/dart-lang/sdk/issues/28678)
+
 
 ## 1.22.0 - 2017-02-14
 
@@ -694,6 +725,12 @@ analyzer:
     release by setting the environment variable `DART_USE_GYP` before running
     `gclient sync` or `gclient runhooks`, but this will be removed in a future
     release.
+
+## 1.21.1 - 2017-01-13
+
+Patch release, resolves one issue:
+
+* Dart VM: Snapshots of generic functions fail. [Issue 28072](https://github.com/dart-lang/sdk/issues/28072)
 
 ## 1.21.0 - 2016-12-07
 
@@ -1286,7 +1323,7 @@ Then your library will work without any additional changes.
 ### Tool changes
 
 * Dartium and content shell
-  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
+  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
     content shell – are now based on Chrome version 45 (instead of Chrome 39).
   * Dart browser libraries (`dart:html`, `dart:svg`, etc) *have not* been
     updated.
@@ -1831,7 +1868,7 @@ Patch release, resolves three issues:
   dart2dart (aka `dart2js --output-type=dart`) utility as part
   of dart2js
 
-## 1.10.0 – 2015-04-29
+## 1.10.0 – 2015-04-29
 
 ### Core library changes
 
@@ -1895,7 +1932,7 @@ This is a bug fix release which merges a number of commits from `bleeding_edge`.
   Pub can fail to load transformers necessary for local development -
   [r44876](https://code.google.com/p/dart/source/detail?r=44876)
 
-## 1.9.1 – 2015-03-25
+## 1.9.1 – 2015-03-25
 
 ### Language changes
 
@@ -2009,7 +2046,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
   * Isolates spawned via `Isolate.spawn` now allow most objects, including
     top-level and static functions, to be sent between them.
 
-## 1.8.5 – 2015-01-21
+## 1.8.5 – 2015-01-21
 
 * Code generation for SIMD on ARM and ARM64 is fixed.
 
@@ -2019,7 +2056,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [issue 21795]: https://code.google.com/p/dart/issues/detail?id=21795
 
-## 1.8.3 – 2014-12-10
+## 1.8.3 – 2014-12-10
 
 * Breakpoints can be set in the Editor using file suffixes ([issue 21280][]).
 
@@ -2077,7 +2114,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [alpn]: https://tools.ietf.org/html/rfc7301
 
-## 1.7.0 – 2014-10-15
+## 1.7.0 – 2014-10-15
 
 ### Tool changes
 
