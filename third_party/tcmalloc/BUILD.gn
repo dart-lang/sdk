@@ -71,6 +71,11 @@ source_set("tcmalloc") {
   configs -= [ "//build/config/compiler:chromium_code" ]
   configs += [ ":internal_config" ]
 
+  # Thumb mode disabled due to bug in clang integrated assembler
+  # TODO(https://llvm.org/bugs/show_bug.cgi?id=31058)
+  configs -= [ "//build/config/compiler:compiler_arm_thumb" ]
+  configs += [ "//build/config/compiler:compiler_arm" ]
+
   public_configs = [ ":link_config" ]
 
   deps = [
