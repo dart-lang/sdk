@@ -32,15 +32,19 @@ class UsageInfo {
   /// never more than slightly above 100.0).
   final double cpuPercentage;
 
-  /// The process memory usage in bytes.
+  /// The process memory usage in kilobytes.
   final int memoryKB;
 
   UsageInfo(this.cpuPercentage, this.memoryKB);
 
   double get memoryMB => memoryKB / 1024;
+
+  String toString() => '$cpuPercentage% ${memoryMB.toStringAsFixed(1)}MB';
 }
 
 class _PosixProcessProfiler extends ProcessProfiler {
+  static final RegExp stringSplitRegExp = new RegExp(r'\s+');
+
   _PosixProcessProfiler() : super._();
 
   @override
@@ -76,7 +80,7 @@ class _PosixProcessProfiler extends ProcessProfiler {
     try {
       // "  0.0 378940"
       String line = psResults.split('\n').first.trim();
-      List<String> values = line.split(' ');
+      List<String> values = line.split(stringSplitRegExp);
       return new UsageInfo(double.parse(values[0]), int.parse(values[1]));
     } catch (e) {
       return null;
