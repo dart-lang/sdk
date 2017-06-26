@@ -27,6 +27,7 @@ import '../js_backend/runtime_types.dart'
         Substitution,
         TypeCheck,
         TypeChecks;
+import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
 import '../world.dart';
 
@@ -38,6 +39,19 @@ typedef void FunctionTypeSignatureEmitter(
     FunctionEntity method, FunctionType methodType);
 
 typedef void SubstitutionEmitter(ClassEntity element, {bool emitNull});
+
+class TypeTest {
+  final jsAst.Name name;
+  final jsAst.Node expression;
+
+  TypeTest(this.name, this.expression);
+}
+
+class TypeTests {
+  TypeTest isTest;
+  TypeTest substitution;
+  TypeTest signature;
+}
 
 class TypeTestProperties {
   /// The index of the function type into the metadata.
@@ -52,7 +66,38 @@ class TypeTestProperties {
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassEntity] for which the is checks were
   /// generated.
-  final Map<jsAst.Name, jsAst.Node> properties = <jsAst.Name, jsAst.Node>{};
+  final Map<ClassEntity, TypeTests> _properties = <ClassEntity, TypeTests>{};
+
+  void addIsTest(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
+    TypeTests typeTests = _properties.putIfAbsent(cls, () => new TypeTests());
+    typeTests.isTest = new TypeTest(name, expression);
+  }
+
+  void addSubstitution(
+      ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
+    TypeTests typeTests = _properties.putIfAbsent(cls, () => new TypeTests());
+    typeTests.substitution = new TypeTest(name, expression);
+  }
+
+  void addSignature(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
+    TypeTests typeTests = _properties.putIfAbsent(cls, () => new TypeTests());
+    typeTests.signature = new TypeTest(name, expression);
+  }
+
+  void forEachProperty(
+      Sorter sorter, void f(jsAst.Name name, jsAst.Node expression)) {
+    void handleTypeTest(TypeTest typeTest) {
+      if (typeTest == null) return;
+      f(typeTest.name, typeTest.expression);
+    }
+
+    for (ClassEntity cls in sorter.sortClasses(_properties.keys)) {
+      TypeTests typeTests = _properties[cls];
+      handleTypeTest(typeTests.isTest);
+      handleTypeTest(typeTests.substitution);
+      handleTypeTest(typeTests.signature);
+    }
+  }
 }
 
 class RuntimeTypeGenerator {
@@ -120,7 +165,7 @@ class RuntimeTypeGenerator {
     void generateIsTest(ClassEntity other) {
       if (_nativeData.isNativeClass(classElement) ||
           !_closedWorld.isSubclassOf(classElement, other)) {
-        result.properties[_namer.operatorIs(other)] = js('1');
+        result.addIsTest(other, _namer.operatorIs(other), js('1'));
       }
     }
 
@@ -147,7 +192,7 @@ class RuntimeTypeGenerator {
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
             emitterTask.emitter, type, thisAccess);
         jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
-        result.properties[operatorSignature] = encoding;
+        result.addSignature(classElement, operatorSignature, encoding);
       }
     }
 
@@ -166,7 +211,7 @@ class RuntimeTypeGenerator {
         expression = new jsAst.LiteralNull();
       }
       if (expression != null) {
-        result.properties[_namer.substitutionName(cls)] = expression;
+        result.addSubstitution(cls, _namer.substitutionName(cls), expression);
       }
     }
 
@@ -177,7 +222,8 @@ class RuntimeTypeGenerator {
       if (substitution != null) {
         jsAst.Expression body =
             _rtiEncoder.getSubstitutionCode(emitterTask.emitter, substitution);
-        result.properties[_namer.substitutionName(checkedClass)] = body;
+        result.addSubstitution(
+            checkedClass, _namer.substitutionName(checkedClass), body);
       }
     }
 
@@ -196,7 +242,7 @@ class RuntimeTypeGenerator {
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
             emitterTask.emitter, type, thisAccess);
         jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
-        result.properties[operatorSignature] = encoding;
+        result.addSignature(classElement, operatorSignature, encoding);
       }
     }
     return result;
