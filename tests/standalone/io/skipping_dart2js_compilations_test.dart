@@ -132,10 +132,10 @@ class CommandCompletedHandler {
   CommandCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
 
   void processCompletedTest(CommandOutput output) {
-    Expect.isTrue(output.exitCode == 0);
-    Expect.isTrue(output.stderr.length == 0);
+    Expect.equals(0, output.exitCode);
+    Expect.equals(0, output.stderr.length);
     if (_shouldHaveRun) {
-      Expect.isTrue(output.stdout.length == 0);
+      Expect.equals(0, output.stdout.length);
       Expect.isTrue(
           new File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
     } else {
