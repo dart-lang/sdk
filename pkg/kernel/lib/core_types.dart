@@ -71,6 +71,7 @@ class CoreTypes {
 
   Library _asyncLibrary;
   Class _futureClass;
+  Class _stackTraceClass;
   Class _streamClass;
   Class _completerClass;
   Class _futureOrClass;
@@ -233,6 +234,10 @@ class CoreTypes {
 
   Procedure get printProcedure {
     return _printProcedure ??= _index.getTopLevelMember('dart:core', 'print');
+  }
+
+  Class get stackTraceClass {
+    return _stackTraceClass ??= _index.getClass('dart:core', 'StackTrace');
   }
 
   Class get streamClass {

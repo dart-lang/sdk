@@ -334,6 +334,18 @@ class TypeInferenceListener
   void throwExit(Throw expression, DartType inferredType) =>
       debugExpressionExit('throw', expression, inferredType);
 
+  void tryCatchEnter(TryCatch statement) =>
+      debugStatementEnter('tryCatch', statement);
+
+  void tryCatchExit(TryCatch statement) =>
+      debugStatementExit('tryCatch', statement);
+
+  void tryFinallyEnter(TryFinally statement) =>
+      debugStatementEnter('tryFinally', statement);
+
+  void tryFinallyExit(TryFinally statement) =>
+      debugStatementExit('tryFinally', statement);
+
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("variableAssign", expression, typeContext);
 

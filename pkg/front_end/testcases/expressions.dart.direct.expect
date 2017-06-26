@@ -21,7 +21,7 @@ static method main() → dynamic {
   try {
     throw "fisk";
   }
-  on core::String catch(final dynamic e, final dynamic s) {
+  on core::String catch(final core::String e, final core::StackTrace s) {
     core::print(e);
     if(!s.==(null))
       core::print(s);
@@ -72,7 +72,7 @@ static method main() → dynamic {
     core::print(throw new core::NoSuchMethodError::_withType(null, #toString, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null));
     throw "Shouldn't work";
   }
-  on core::NoSuchMethodError catch(final dynamic e) {
+  on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
     core::print("As expected: ${e}");
   }
   core::print(core::int::parse("42"));

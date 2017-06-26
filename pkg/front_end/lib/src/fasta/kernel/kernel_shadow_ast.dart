@@ -1874,6 +1874,35 @@ class KernelThrow extends Throw implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a try-catch block in kernel form.
+class KernelTryCatch extends TryCatch implements KernelStatement {
+  KernelTryCatch(Statement body, List<Catch> catches) : super(body, catches);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.tryCatchEnter(this);
+    inferrer.inferStatement(body);
+    for (var catch_ in catches) {
+      inferrer.inferStatement(catch_.body);
+    }
+    inferrer.listener.tryCatchExit(this);
+  }
+}
+
+/// Concrete shadow object representing a try-finally block in kernel form.
+class KernelTryFinally extends TryFinally implements KernelStatement {
+  KernelTryFinally(Statement body, Statement finalizer)
+      : super(body, finalizer);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.tryFinallyEnter(this);
+    inferrer.inferStatement(body);
+    inferrer.inferStatement(finalizer);
+    inferrer.listener.tryFinallyExit(this);
+  }
+}
+
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
 class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {

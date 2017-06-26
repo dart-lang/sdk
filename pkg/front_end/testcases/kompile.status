@@ -362,6 +362,10 @@ inference/subexpressions_of_explicitly_typed_fields: Crash
 inference/this_reference: Crash
 inference/top_level_return_and_yield: Crash
 inference/toplevel_inference_toplevel_var: Crash
+inference/try_catch: Crash
+inference/try_catch_finally: Crash
+inference/try_catch_promotion: Crash
+inference/try_finally: Crash
 inference/type_cast: Crash
 inference/type_promotion_ignores_local_functions: Crash
 inference/type_promotion_not_and_not: Crash

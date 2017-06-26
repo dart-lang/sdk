@@ -1940,9 +1940,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (catchParameters != null) {
       if (catchParameters.required.length > 0) {
         exception = catchParameters.required[0];
+        exception.type = type;
       }
       if (catchParameters.required.length > 1) {
         stackTrace = catchParameters.required[1];
+        stackTrace.type = coreTypes.stackTraceClass.rawType;
       }
       if (catchParameters.required.length > 2 ||
           catchParameters.optional != null) {
@@ -1962,10 +1964,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement tryBlock = popStatement();
     if (compileTimeErrorInTry == null) {
       if (catches != null) {
-        tryBlock = new TryCatch(tryBlock, catches);
+        tryBlock = new KernelTryCatch(tryBlock, catches);
       }
       if (finallyBlock != null) {
-        tryBlock = new TryFinally(tryBlock, finallyBlock);
+        tryBlock = new KernelTryFinally(tryBlock, finallyBlock);
       }
       push(tryBlock);
     } else {
