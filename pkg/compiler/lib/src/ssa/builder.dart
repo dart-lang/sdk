@@ -1706,6 +1706,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     loopHandler.handleLoop(
         node,
         closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1722,6 +1723,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     loopHandler.handleLoop(
         node,
         closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        elements.getTargetDefinition(node),
         () {},
         buildCondition,
         () {}, () {
@@ -1736,11 +1738,11 @@ class SsaAstGraphBuilder extends ast.Visitor
         closureDataLookup.getClosureRepresentationInfoForLoop(node);
     localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
-    JumpHandler jumpHandler = loopHandler.beginLoopHeader(node);
+    JumpTarget target = elements.getTargetDefinition(node);
+    JumpHandler jumpHandler = loopHandler.beginLoopHeader(node, target);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target = elements.getTargetDefinition(node);
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -1853,8 +1855,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = elements.getTargetDefinition(node);
-        LabelDefinition label = target.addLabel(null, 'loop');
-        label.setBreakTarget();
+        LabelDefinition label =
+            target.addLabel(null, 'loop', isBreakTarget: true);
         HLabeledBlockInformation info = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
@@ -5377,18 +5379,18 @@ class SsaAstGraphBuilder extends ast.Visitor
    * to distinguish the synthesized loop created for a switch statement with
    * continue statements from simple switch statements.
    */
-  JumpHandler createJumpHandler(ast.Statement node, {bool isLoopJump}) {
-    JumpTarget element = elements.getTargetDefinition(node);
-    if (element == null || !identical(element.statement, node)) {
+  JumpHandler createJumpHandler(ast.Statement node, JumpTarget jumpTarget,
+      {bool isLoopJump}) {
+    if (jumpTarget == null || !identical(jumpTarget.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(reporter);
     }
     if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
       // with continue statements.
-      return new AstSwitchCaseJumpHandler(this, element, node);
+      return new AstSwitchCaseJumpHandler(this, jumpTarget, node);
     }
-    return new JumpHandler(this, element);
+    return new JumpHandler(this, jumpTarget);
   }
 
   visitAsyncForIn(ast.AsyncForIn node) {
@@ -5444,6 +5446,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       loopHandler.handleLoop(
           node,
           closureDataLookup.getClosureRepresentationInfoForLoop(node),
+          elements.getTargetDefinition(node),
           buildInitializer,
           buildCondition,
           buildUpdate,
@@ -5516,6 +5519,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     loopHandler.handleLoop(
         node,
         closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
         () {},
@@ -5640,6 +5644,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     loopHandler.handleLoop(
         node,
         closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -5839,7 +5844,9 @@ class SsaAstGraphBuilder extends ast.Visitor
    */
   void buildSimpleSwitchStatement(
       ast.SwitchStatement node, Map<ast.CaseMatch, ConstantValue> constants) {
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
+    JumpHandler jumpHandler = createJumpHandler(
+        node, elements.getTargetDefinition(node),
+        isLoopJump: false);
     HInstruction buildExpression() {
       visit(node.expression);
       return pop();
@@ -5909,7 +5916,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     HInstruction initialValue = graph.addConstantNull(closedWorld);
     localsHandler.updateLocal(switchTarget, initialValue);
 
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
+    JumpHandler jumpHandler =
+        createJumpHandler(node, switchTarget, isLoopJump: false);
     dynamic switchCases = node.cases;
     if (!hasDefault) {
       // Use [:null:] as the marker for a synthetic default clause.
@@ -5993,6 +6001,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       loopHandler.handleLoop(
           node,
           closureDataLookup.getClosureRepresentationInfoForLoop(node),
+          switchTarget,
           () {},
           buildCondition,
           () {},

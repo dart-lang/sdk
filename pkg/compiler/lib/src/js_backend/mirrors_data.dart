@@ -340,7 +340,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
   /// annotations. The arguments corresponds to the unions of the corresponding
   /// fields of the annotations.
-  // TODO(johnniwinther): Change type of [metaTargets] to `Set<ClassEntity>`.
+  // TODO(redemption): Change type of [metaTargets] to `Set<ClassEntity>`.
   void registerMirrorUsage(
       Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {
     if (symbols == null && targets == null && metaTargets == null) {

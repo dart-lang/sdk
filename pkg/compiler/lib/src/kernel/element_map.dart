@@ -1075,9 +1075,39 @@ abstract class KernelToLocalsMap {
   /// Returns the [Local] for [node].
   Local getLocal(ir.VariableDeclaration node);
 
-  /// Returns the [JumpTarget] for the branch in [node].
-  // TODO(johnniwinther): Split this by kind of [node]?
-  JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false});
+  /// Returns the [JumpTarget] for the break statement [node].
+  JumpTarget getJumpTargetForBreak(ir.BreakStatement node);
+
+  /// Returns the [JumpTarget] defined by the labelled statement [node] or
+  /// `null` if [node] is not a jump target.
+  JumpTarget getJumpTargetForLabel(ir.LabeledStatement node);
+
+  /// Returns the [JumpTarget] defined by the switch statement [node] or `null`
+  /// if [node] is not a jump target.
+  JumpTarget getJumpTargetForSwitch(ir.SwitchStatement node);
+
+  /// Returns the [JumpTarget] for the continue switch statement [node].
+  JumpTarget getJumpTargetForContinueSwitch(ir.ContinueSwitchStatement node);
+
+  /// Returns the [JumpTarget] defined by the switch case [node] or `null`
+  /// if [node] is not a jump target.
+  JumpTarget getJumpTargetForSwitchCase(ir.SwitchCase node);
+
+  /// Returns the [JumpTarget] defined the do statement [node] or `null`
+  /// if [node] is not a jump target.
+  JumpTarget getJumpTargetForDo(ir.DoStatement node);
+
+  /// Returns the [JumpTarget] defined by the for statement [node] or `null`
+  /// if [node] is not a jump target.
+  JumpTarget getJumpTargetForFor(ir.ForStatement node);
+
+  /// Returns the [JumpTarget] defined by the for-in statement [node] or `null`
+  /// if [node] is not a jump target.
+  JumpTarget getJumpTargetForForIn(ir.ForInStatement node);
+
+  /// Returns the [JumpTarget] defined by the while statement [node] or `null`
+  /// if [node] is not a jump target.
+  JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
 
   /// Returns the [LoopClosureRepresentationInfo] for the loop [node] in
   /// [closureClassMaps].

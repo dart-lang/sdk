@@ -609,7 +609,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ClosureRepresentationInfo newScopeInfo =
         closureDataLookup.getScopeInfo(astElement);
     if (astElement is ConstructorElement) {
-      // TODO(johnniwinther): Support constructor (body) entities.
+      // TODO(redemption): Support constructor (body) entities.
       ResolvedAst resolvedAst = astElement.resolvedAst;
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
@@ -659,7 +659,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           visitThen: () {
             closeAndGotoExit(new HReturn(
                 graph.addConstantBool(false, closedWorld),
-                // TODO(johnniwinther): Provider source information like
+                // TODO(redemption): Provider source information like
                 // `sourceInformationBuilder.buildImplicitReturn(method)`.
                 null));
           },
@@ -911,6 +911,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         forStatement,
         localsMap.getClosureRepresentationInfoForLoop(
             closureDataLookup, forStatement),
+        localsMap.getJumpTargetForFor(forStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1040,6 +1041,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
             closureDataLookup, forInStatement),
+        localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1091,6 +1093,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
             closureDataLookup, forInStatement),
+        localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
         () {},
@@ -1138,6 +1141,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
             closureDataLookup, forInStatement),
+        localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1189,6 +1193,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         whileStatement,
         localsMap.getClosureRepresentationInfoForLoop(
             closureDataLookup, whileStatement),
+        localsMap.getJumpTargetForWhile(whileStatement),
         () {},
         buildCondition,
         () {}, () {
@@ -1204,11 +1209,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     LoopClosureRepresentationInfo loopClosureInfo = localsMap
         .getClosureRepresentationInfoForLoop(closureDataLookup, doStatement);
     localsHandler.startLoop(loopClosureInfo);
-    JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement);
+    JumpTarget target = localsMap.getJumpTargetForDo(doStatement);
+    JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement, target);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target = localsMap.getJumpTarget(doStatement);
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -1304,7 +1309,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           null,
           loopEntryBlock.loopInformation.target,
           loopEntryBlock.loopInformation.labels,
-          // TODO(johnniwinther): Provide source information like:
+          // TODO(redemption): Provide source information like:
           // sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement))
           null);
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
@@ -1322,9 +1327,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        JumpTarget target = localsMap.getJumpTarget(doStatement);
-        LabelDefinition label = target.addLabel(null, 'loop');
-        label.setBreakTarget();
+        JumpTarget target = localsMap.getJumpTargetForDo(doStatement);
+        LabelDefinition label =
+            target.addLabel(null, 'loop', isBreakTarget: true);
         HLabeledBlockInformation info = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
@@ -1446,8 +1451,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// [isLoopJump] is true when the jump handler is for a loop. This is used
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
-  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump: false}) {
-    JumpTarget target = localsMap.getJumpTarget(node);
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget target,
+      {bool isLoopJump: false}) {
     if (target == null) {
       // No breaks or continues to this node.
       return new NullJumpHandler(reporter);
@@ -1463,7 +1468,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitBreakStatement(ir.BreakStatement breakStatement) {
     assert(!isAborted());
     handleInTryStatement();
-    JumpTarget target = localsMap.getJumpTarget(breakStatement.target);
+    JumpTarget target = localsMap.getJumpTargetForBreak(breakStatement);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
@@ -1486,7 +1491,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       body.accept(this);
       return;
     }
-    JumpHandler handler = createJumpHandler(labeledStatement);
+    JumpHandler handler = createJumpHandler(
+        labeledStatement, localsMap.getJumpTargetForLabel(labeledStatement));
 
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
 
@@ -1536,7 +1542,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitContinueSwitchStatement(
       ir.ContinueSwitchStatement switchStatement) {
     handleInTryStatement();
-    JumpTarget target = localsMap.getJumpTarget(switchStatement.target);
+    JumpTarget target =
+        localsMap.getJumpTargetForContinueSwitch(switchStatement);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
@@ -1563,7 +1570,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       switchIndex++;
     }
 
-    JumpHandler jumpHandler = createJumpHandler(switchStatement);
+    JumpHandler jumpHandler = createJumpHandler(
+        switchStatement, localsMap.getJumpTargetForSwitch(switchStatement));
     if (!hasContinue) {
       // If the switch statement has no switch cases targeted by continue
       // statements we encode the switch statement directly.
@@ -1656,7 +1664,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
-    JumpTarget switchTarget = localsMap.getJumpTarget(switchStatement);
+    JumpTarget switchTarget = localsMap.getJumpTargetForSwitch(switchStatement);
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
     var switchCases = switchStatement.cases;
@@ -1725,6 +1733,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           switchStatement,
           localsMap.getClosureRepresentationInfoForLoop(
               closureDataLookup, switchStatement),
+          switchTarget,
           () {},
           buildCondition,
           () {},

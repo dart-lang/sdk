@@ -525,7 +525,7 @@ class ProgramBuilder {
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
-          // TODO(johnniwinther): Handle class entities.
+          // TODO(redemption): Handle class entities.
           ClassElement e = cls;
           e.declaration.forEachMember((_, _member) {
             MemberElement member = _member;
@@ -755,7 +755,7 @@ class ProgramBuilder {
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       _elementEnvironment.forEachClassMember(cls, visitMember);
       if (cls is ClassElement) {
-        // TODO(johnniwinther): Support constructor bodies for entities.
+        // TODO(redemption): Support constructor bodies for entities.
         cls.forEachConstructorBody((ConstructorBodyElement constructorBody) =>
             visitMember(cls, constructorBody));
       }
@@ -947,7 +947,7 @@ class ProgramBuilder {
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
-      // TODO(johnniwinther): Handle function entities.
+      // TODO(redemption): Handle function entities.
       MethodElement method = element;
       FunctionSignature signature = method.functionSignature;
       requiredParameterCount = signature.requiredParameterCount;
@@ -1155,7 +1155,7 @@ class ProgramBuilder {
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
-      // TODO(johnniwinther): Support entities;
+      // TODO(redemption): Support entities;
       MethodElement method = element;
       FunctionSignature signature = method.functionSignature;
       requiredParameterCount = signature.requiredParameterCount;

@@ -3340,7 +3340,7 @@ class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
 class LabelDefinitionX implements LabelDefinition<Node> {
   final Label label;
   final String labelName;
-  final JumpTarget<Node> target;
+  final JumpTargetX target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
@@ -3386,9 +3386,13 @@ class JumpTargetX implements JumpTarget<Node> {
 
   bool get isTarget => isBreakTarget || isContinueTarget;
 
-  LabelDefinition<Node> addLabel(Label label, String labelName) {
-    LabelDefinition<Node> result = new LabelDefinitionX(label, labelName, this);
+  LabelDefinition<Node> addLabel(Label label, String labelName,
+      {bool isBreakTarget: false}) {
+    LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
+    if (isBreakTarget) {
+      result.setBreakTarget();
+    }
     return result;
   }
 

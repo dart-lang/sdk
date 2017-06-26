@@ -194,7 +194,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
         !_mirrorsData.isClassReferencedFromMirrorSystem(cls)) {
       return null;
     }
-    // TODO(johnniwinther): Handle class entities.
+    // TODO(redemption): Handle class entities.
     ClassElement element = cls;
     return _buildMetadataFunction(element);
   }
@@ -203,14 +203,14 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     if (!_mirrorsData.mustRetainMetadata) {
       return false;
     }
-    // TODO(johnniwinther): Handle member entities.
+    // TODO(redemption): Handle member entities.
     MemberElement element = member;
     return _mirrorsData.isMemberReferencedFromMirrorSystem(element);
   }
 
   jsAst.Fun buildFieldMetadataFunction(FieldEntity field) {
     if (!_mustEmitMetadataForMember(field)) return null;
-    // TODO(johnniwinther): Handle field entities.
+    // TODO(redemption): Handle field entities.
     FieldElement element = field;
     return _buildMetadataFunction(element);
   }

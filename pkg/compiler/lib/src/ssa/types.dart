@@ -19,7 +19,7 @@ class TypeMaskFactory {
 
   static TypeMask inferredTypeForMember(
       MemberEntity element, GlobalTypeInferenceResults results) {
-    // TODO(johnniwinther): Support inferred types for member entities.
+    // TODO(redemption): Support inferred types for member entities.
     if (element is! MemberElement) {
       return results.closedWorld.commonMasks.dynamicType;
     }

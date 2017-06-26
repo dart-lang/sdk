@@ -105,7 +105,7 @@ class RuntimeTypeGenerator {
     TypeTestProperties result = new TypeTestProperties();
     if (cls is! ClassElement) return result;
 
-    // TODO(johnniwinther): Handle class entities.
+    // TODO(redemption): Handle class entities.
     ClassElement classElement = cls;
     assert(classElement.isDeclaration, failedAt(classElement));
 

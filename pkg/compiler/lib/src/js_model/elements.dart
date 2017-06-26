@@ -103,7 +103,7 @@ class JsToFrontendMapImpl implements JsToFrontendMap {
       } else if (member.isConstructor) {
         ConstructorEntity constructor = member;
         if (constructor.isFactoryConstructor) {
-          // TODO(johnniwinther): This should be a JFunction.
+          // TODO(redemption): This should be a JFunction.
           newMember = new JFactoryConstructor(_toBackendMember.length, cls,
               memberName, constructor.parameterStructure,
               isExternal: constructor.isExternal,

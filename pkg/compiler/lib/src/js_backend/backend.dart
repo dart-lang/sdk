@@ -965,7 +965,7 @@ class JavaScriptBackend {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
-    // TODO(johnniwinther): Support `preMirrorsMethodCount` for entities.
+    // TODO(redemption): Support `preMirrorsMethodCount` for entities.
     if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
         totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
       int mirrorCount =

@@ -154,7 +154,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         return false;
       }
     }
-    // TODO(johnniwinther): Support remaining checks on [Entity]s.
+    // TODO(redemption): Support remaining checks on [Entity]s.
     return true;
   }
 

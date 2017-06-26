@@ -229,6 +229,51 @@ class KernelAstAdapter extends KernelToElementMapMixin
     return getElement(variable) as LocalElement;
   }
 
+  @override
+  JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
+    return getJumpTarget(node.target);
+  }
+
+  @override
+  JumpTarget getJumpTargetForLabel(ir.LabeledStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForSwitch(ir.SwitchStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForContinueSwitch(ir.ContinueSwitchStatement node) {
+    return getJumpTarget(node.target);
+  }
+
+  @override
+  JumpTarget getJumpTargetForSwitchCase(ir.SwitchCase node) {
+    return getJumpTarget(node, isContinueTarget: true);
+  }
+
+  @override
+  JumpTarget getJumpTargetForDo(ir.DoStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForFor(ir.ForStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForForIn(ir.ForInStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForWhile(ir.WhileStatement node) {
+    return getJumpTarget(node);
+  }
+
   KernelJumpTarget getJumpTarget(ir.TreeNode node,
       {bool isContinueTarget: false}) {
     return _jumpTargets.putIfAbsent(node, () {
@@ -386,7 +431,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   }
 }
 
-class KernelJumpTarget extends JumpTarget<ast.Node> {
+class KernelJumpTarget implements JumpTargetX {
   static int index = 0;
 
   /// Pointer to the actual executable statements that a jump target refers to.
@@ -450,9 +495,13 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   }
 
   @override
-  LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName) {
-    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
+  LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName,
+      {bool isBreakTarget: false}) {
+    LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
+    if (isBreakTarget) {
+      result.setBreakTarget();
+    }
     return result;
   }
 
@@ -494,7 +543,7 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
     int switchIndex = 1;
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       JumpTarget continueTarget =
-          localsMap.getJumpTarget(switchCase, isContinueTarget: true);
+          localsMap.getJumpTargetForSwitchCase(switchCase);
       assert(continueTarget is KernelJumpTarget);
       targetIndexMap[continueTarget] = switchIndex;
       assert(builder.jumpTargets[continueTarget] == null);

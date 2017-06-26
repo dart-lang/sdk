@@ -15,9 +15,6 @@ abstract class LabelDefinition<T> extends Entity {
   bool get isTarget;
   bool get isBreakTarget;
   bool get isContinueTarget;
-
-  void setBreakTarget();
-  void setContinueTarget();
 }
 
 /// A jump target is the reference point of a statement or switch-case,
@@ -32,9 +29,6 @@ abstract class JumpTarget<T> extends Local {
   bool get isContinueTarget;
   bool get isSwitch;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set isBreakTarget(bool value);
-  void set isContinueTarget(bool value);
-
-  LabelDefinition<T> addLabel(covariant T label, String labelName);
+  LabelDefinition<T> addLabel(covariant T label, String labelName,
+      {bool isBreakTarget: false});
 }

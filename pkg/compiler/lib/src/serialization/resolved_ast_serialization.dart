@@ -580,7 +580,7 @@ class ResolvedAstDeserializer {
             decoder.getElement(Key.EXECUTABLE_CONTEXT);
         Node statement = nodeList[decoder.getInt(Key.NODE)];
         int nestingLevel = decoder.getInt(Key.NESTING_LEVEL);
-        JumpTarget jumpTarget =
+        JumpTargetX jumpTarget =
             new JumpTargetX(statement, nestingLevel, executableContext);
         jumpTarget.isBreakTarget = decoder.getBool(Key.IS_BREAK_TARGET);
         jumpTarget.isContinueTarget = decoder.getBool(Key.IS_CONTINUE_TARGET);

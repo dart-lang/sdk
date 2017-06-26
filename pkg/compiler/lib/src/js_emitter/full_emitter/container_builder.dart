@@ -147,7 +147,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       ..addAll(task.metadataCollector.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
-      // TODO(johnniwinther): Support entities.
+      // TODO(redemption): Support entities.
       MethodElement method = member;
       method.functionSignature.forEachParameter((Element parameter) {
         expressions.add(task.metadataCollector.reifyName(parameter.name));

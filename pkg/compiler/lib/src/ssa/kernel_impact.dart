@@ -124,7 +124,7 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      // TODO(redemption): Provide the correct value for [isJsInterop].
       impactBuilder.registerNativeData(elementAdapter
           .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
       impactBuilder.registerNativeData(
@@ -165,7 +165,7 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      // TODO(redemption): Provide the correct value for [isJsInterop].
       impactBuilder.registerNativeData(elementAdapter
           .getNativeBehaviorForMethod(procedure, isJsInterop: false));
     }

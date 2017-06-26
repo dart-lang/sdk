@@ -1362,7 +1362,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isDeferredLoadLibraryGetter(covariant KMember member) {
-    // TODO(johnniwinther): Support these.
+    // TODO(redemption): Support these.
     return false;
   }
 
@@ -1568,7 +1568,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   bool implementsFunction(ClassEntity cls) {
-    // TODO(johnniwinther): Implement this.
+    // TODO(redemption): Implement this.
     return false;
   }
 
@@ -1764,7 +1764,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
   @override
   bool isJsInteropMember(MemberEntity element) {
-    // TODO(johnniwinther): Compute this.
+    // TODO(redemption): Compute this.
     return false;
   }
 }

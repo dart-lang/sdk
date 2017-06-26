@@ -44,7 +44,7 @@ abstract class KernelBackendStrategy implements BackendStrategy {
 }
 
 /// Backend strategy that uses the kernel elements as the backend model.
-// TODO(johnniwinther): Replace this with a strategy based on the J-element
+// TODO(redemption): Replace this with a strategy based on the J-element
 // model.
 class KernelBackendStrategyImpl implements KernelBackendStrategy {
   final Compiler _compiler;
@@ -173,7 +173,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _compiler.codegenWorldBuilder,
         work.registry,
         _compiler.backendStrategy.closureDataLookup,
-        // TODO(johnniwinther): Support these:
+        // TODO(redemption): Support these:
         const SourceInformationBuilder(),
         null, // Function node used as capture scope id.
         targetIsConstructorBody: false);
@@ -298,8 +298,54 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false}) {
-    // TODO(johnniwinther): Support jump targets.
+  JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
+    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTargetForBreak');
+  }
+
+  @override
+  JumpTarget getJumpTargetForContinueSwitch(ir.ContinueSwitchStatement node) {
+    throw new UnimplementedError(
+        'KernelToLocalsMapImpl.getJumpTargetForContinueSwitch');
+  }
+
+  @override
+  JumpTarget getJumpTargetForSwitchCase(ir.SwitchCase node) {
+    throw new UnimplementedError(
+        'KernelToLocalsMapImpl.getJumpTargetForSwitchCase');
+  }
+
+  @override
+  JumpTarget getJumpTargetForDo(ir.DoStatement node) {
+    // TODO(redemption): Support do statement as jump target.
+    return null;
+  }
+
+  @override
+  JumpTarget getJumpTargetForLabel(ir.LabeledStatement node) {
+    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTargetForLabel');
+  }
+
+  @override
+  JumpTarget getJumpTargetForSwitch(ir.SwitchStatement node) {
+    throw new UnimplementedError(
+        'KernelToLocalsMapImpl.getJumpTargetForSwitch');
+  }
+
+  @override
+  JumpTarget getJumpTargetForFor(ir.ForStatement node) {
+    // TODO(redemption): Support for statement as jump target.
+    return null;
+  }
+
+  @override
+  JumpTarget getJumpTargetForForIn(ir.ForInStatement node) {
+    // TODO(redemption): Support for-in statement as jump target.
+    return null;
+  }
+
+  @override
+  JumpTarget getJumpTargetForWhile(ir.WhileStatement node) {
+    // TODO(redemption): Support while statement as jump target.
     return null;
   }
 
