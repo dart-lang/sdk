@@ -335,6 +335,7 @@ main() {
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
 import 'dart:async';
+
 import 'my_lib.dart';
 main() {
   for (Future<int> future in getFutures()) {
@@ -484,6 +485,7 @@ main() {
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
 import 'dart:async';
+
 import 'my_lib.dart';
 main() {
   Future<int> v = getFutureInt();
@@ -529,6 +531,7 @@ main() {
           '''
 library my_app;
 import 'dart:async';
+
 import 'my_lib.dart';
 part 'test.dart';
 ''');

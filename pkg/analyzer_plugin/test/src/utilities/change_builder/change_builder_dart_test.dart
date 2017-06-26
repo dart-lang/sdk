@@ -75,6 +75,266 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 @reflectiveTest
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
+  test_importLibraries_DP() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:aaa';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:ccc/ccc.dart';
+''',
+        ['dart:bbb', 'package:bbb/bbb.dart'],
+        '''
+import 'dart:aaa';
+import 'dart:bbb';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:bbb/bbb.dart';
+import 'package:ccc/ccc.dart';
+''');
+  }
+
+  test_importLibraries_PD() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:aaa';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:ccc/ccc.dart';
+''',
+        ['package:bbb/bbb.dart', 'dart:bbb'],
+        '''
+import 'dart:aaa';
+import 'dart:bbb';
+import 'dart:ccc';
+
+import 'package:aaa/aaa.dart';
+import 'package:bbb/bbb.dart';
+import 'package:ccc/ccc.dart';
+''');
+  }
+
+  test_importLibrary_afterLibraryDirective_dart() async {
+    await _assertImportLibraries(
+        '''
+library test;
+
+class A {}
+''',
+        ['dart:async'],
+        '''
+library test;
+
+import 'dart:async';
+
+
+class A {}
+''');
+  }
+
+  test_importLibrary_dart_beforeDart() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:aaa';
+import 'dart:ccc';
+''',
+        ['dart:bbb'],
+        '''
+import 'dart:aaa';
+import 'dart:bbb';
+import 'dart:ccc';
+''');
+  }
+
+  test_importLibrary_dart_beforeDart_first() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:bbb';
+''',
+        ['dart:aaa'],
+        '''
+import 'dart:aaa';
+import 'dart:bbb';
+''');
+  }
+
+  test_importLibrary_dart_beforePackage() async {
+    await _assertImportLibraries(
+        '''
+import 'package:foo/foo.dart';
+''',
+        ['dart:async'],
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''');
+  }
+
+  test_importLibrary_package_afterDart() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:async';
+''',
+        ['package:aaa/aaa.dart'],
+        '''
+import 'dart:async';
+
+import 'package:aaa/aaa.dart';
+''');
+  }
+
+  test_importLibrary_package_afterPackage() async {
+    await _assertImportLibraries(
+        '''
+import 'package:aaa/a1.dart';
+
+import 'foo.dart';
+''',
+        ['package:aaa/a2.dart'],
+        '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_package_beforePackage() async {
+    await _assertImportLibraries(
+        '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a3.dart';
+
+import 'foo.dart';
+''',
+        ['package:aaa/a2.dart'],
+        '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+import 'package:aaa/a3.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_package_beforePackage_first() async {
+    await _assertImportLibraries(
+        '''
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''',
+        ['package:aaa/a1.dart'],
+        '''
+import 'package:aaa/a1.dart';
+import 'package:aaa/a2.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_package_beforeRelative() async {
+    await _assertImportLibraries(
+        '''
+import 'foo.dart';
+''',
+        ['package:aaa/aaa.dart'],
+        '''
+import 'package:aaa/aaa.dart';
+
+import 'foo.dart';
+''');
+  }
+
+  test_importLibrary_relative_afterDart() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:async';
+''',
+        ['aaa.dart'],
+        '''
+import 'dart:async';
+
+import 'aaa.dart';
+''');
+  }
+
+  test_importLibrary_relative_afterPackage() async {
+    await _assertImportLibraries(
+        '''
+import 'package:foo/foo.dart';
+''',
+        ['aaa.dart'],
+        '''
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+''');
+  }
+
+  test_importLibrary_relative_beforeRelative() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'ccc.dart';
+''',
+        ['bbb.dart'],
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'bbb.dart';
+import 'ccc.dart';
+''');
+  }
+
+  test_importLibrary_relative_beforeRelative_first() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'bbb.dart';
+''',
+        ['aaa.dart'],
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+import 'bbb.dart';
+''');
+  }
+
+  test_importLibrary_relative_last() async {
+    await _assertImportLibraries(
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+''',
+        ['aaa.dart'],
+        '''
+import 'dart:async';
+
+import 'package:foo/foo.dart';
+
+import 'aaa.dart';
+''');
+  }
+
   test_writeClassDeclaration_interfaces() async {
     String path = provider.convertPath('/test.dart');
     addSource(path, 'class A {}');
@@ -1098,6 +1358,27 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
+  Future<Null> _assertImportLibraries(
+      String initialCode, List<String> newUris, String expectedCode) async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, initialCode);
+    DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
+    await builder.addFileEdit(path, 1, (DartFileEditBuilder builder) {
+      Iterable<_MockSource> sources = newUris.map((newUri) {
+        String path = newUri.contains(':') ? null : '/$newUri';
+        return new _MockSource(path, Uri.parse(newUri));
+      });
+      builder.importLibraries(sources);
+    });
+
+    String resultCode = initialCode;
+    List<SourceEdit> edits = getEdits(builder);
+    for (SourceEdit edit in edits) {
+      resultCode = edit.apply(resultCode);
+    }
+    expect(resultCode, expectedCode);
+  }
+
   Future<ClassElement> _getClassElement(String path, String name) async {
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.getType(name);
@@ -1198,4 +1479,16 @@ class C extends B {}
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
   }
+}
+
+class _MockSource implements Source {
+  @override
+  final String fullName;
+
+  @override
+  final Uri uri;
+
+  _MockSource(this.fullName, this.uri);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

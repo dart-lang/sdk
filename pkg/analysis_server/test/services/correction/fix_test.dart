@@ -4712,6 +4712,7 @@ main() {
         DartFixKind.CREATE_FUNCTION,
         '''
 import 'dart:async';
+
 import 'lib.dart';
 main() {
   test(getFuture());

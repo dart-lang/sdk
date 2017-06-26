@@ -1081,41 +1081,100 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     // Insert imports: between existing imports.
     if (importDirectives.isNotEmpty) {
-      bool isFirstPackage = true;
       for (String importUri in uriList) {
-        bool inserted = false;
+        bool isDart = importUri.startsWith('dart:');
         bool isPackage = importUri.startsWith('package:');
-        bool isAfterDart = false;
-        for (ImportDirective existingImport in importDirectives) {
-          if (existingImport.uriContent.startsWith('dart:')) {
-            isAfterDart = true;
-          }
-          if (existingImport.uriContent.startsWith('package:')) {
-            isFirstPackage = false;
-          }
-          if (importUri.compareTo(existingImport.uriContent) < 0) {
-            addInsertion(existingImport.offset, (EditBuilder builder) {
+        bool inserted = false;
+
+        void insert(
+            {ImportDirective prev,
+            ImportDirective next,
+            String uri,
+            bool trailingNewLine: false}) {
+          if (prev != null) {
+            addInsertion(prev.end, (EditBuilder builder) {
+              builder.writeln();
               builder.write("import '");
-              builder.write(importUri);
-              builder.writeln("';");
+              builder.write(uri);
+              builder.write("';");
             });
-            inserted = true;
-            break;
+          } else {
+            addInsertion(next.offset, (EditBuilder builder) {
+              builder.write("import '");
+              builder.write(uri);
+              builder.writeln("';");
+              if (trailingNewLine) {
+                builder.writeln();
+              }
+            });
           }
+          inserted = true;
+        }
+
+        ImportDirective lastExisting;
+        ImportDirective lastExistingDart;
+        ImportDirective lastExistingPackage;
+        bool isLastExistingDart = false;
+        bool isLastExistingPackage = false;
+        for (ImportDirective existingImport in importDirectives) {
+          String existingUri = existingImport.uriContent;
+
+          bool isExistingDart = existingUri.startsWith('dart:');
+          bool isExistingPackage = existingUri.startsWith('package:');
+          bool isExistingRelative = !existingUri.contains(':');
+
+          bool isNewBeforeExisting = importUri.compareTo(existingUri) < 0;
+
+          if (isDart) {
+            if (!isExistingDart || isNewBeforeExisting) {
+              insert(
+                  prev: lastExistingDart,
+                  next: existingImport,
+                  uri: importUri,
+                  trailingNewLine: !isExistingDart);
+              break;
+            }
+          } else if (isPackage) {
+            if (isExistingRelative || isNewBeforeExisting) {
+              insert(
+                  prev: lastExistingPackage,
+                  next: existingImport,
+                  uri: importUri,
+                  trailingNewLine: isExistingRelative);
+              break;
+            }
+          } else {
+            if (!isExistingDart && !isExistingPackage && isNewBeforeExisting) {
+              insert(next: existingImport, uri: importUri);
+              break;
+            }
+          }
+
+          lastExisting = existingImport;
+          if (isExistingDart) {
+            lastExistingDart = existingImport;
+          } else if (isExistingPackage) {
+            lastExistingPackage = existingImport;
+          }
+          isLastExistingDart = isExistingDart;
+          isLastExistingPackage = isExistingPackage;
         }
         if (!inserted) {
-          addInsertion(importDirectives.last.end, (EditBuilder builder) {
-            if (isPackage && isFirstPackage && isAfterDart) {
-              builder.writeln();
+          addInsertion(lastExisting.end, (EditBuilder builder) {
+            if (isPackage) {
+              if (isLastExistingDart) {
+                builder.writeln();
+              }
+            } else {
+              if (isLastExistingDart || isLastExistingPackage) {
+                builder.writeln();
+              }
             }
             builder.writeln();
             builder.write("import '");
             builder.write(importUri);
             builder.write("';");
           });
-        }
-        if (isPackage) {
-          isFirstPackage = false;
         }
       }
       return;
