@@ -552,6 +552,21 @@ class KernelDirectPropertyGet extends DirectPropertyGet
   }
 }
 
+/// Concrete shadow object representing a do loop in kernel form.
+class KernelDoStatement extends DoStatement implements KernelStatement {
+  KernelDoStatement(Statement body, Expression condition)
+      : super(body, condition);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.doStatementEnter(this);
+    inferrer.inferStatement(body);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
+    inferrer.listener.doStatementExit(this);
+  }
+}
+
 /// Concrete shadow object representing a double literal in kernel form.
 class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
   KernelDoubleLiteral(double value) : super(value);
@@ -2233,6 +2248,21 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
         typeNeeded ? (promotedType ?? declaredOrInferredType) : null;
     inferrer.listener.variableGetExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a while loop in kernel form.
+class KernelWhileStatement extends WhileStatement implements KernelStatement {
+  KernelWhileStatement(Expression condition, Statement body)
+      : super(condition, body);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.whileStatementEnter(this);
+    inferrer.inferExpression(
+        condition, inferrer.coreTypes.boolClass.rawType, false);
+    inferrer.inferStatement(body);
+    inferrer.listener.whileStatementExit(this);
   }
 }
 

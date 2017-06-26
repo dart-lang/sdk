@@ -125,6 +125,12 @@ class TypeInferenceListener
           InvocationExpression expression, DartType inferredType) =>
       debugExpressionExit("constructorInvocation", expression, inferredType);
 
+  void doStatementEnter(DoStatement statement) =>
+      debugStatementEnter("doStatement", statement);
+
+  void doStatementExit(DoStatement statement) =>
+      debugStatementExit("doStatement", statement);
+
   bool doubleLiteralEnter(DoubleLiteral expression, DartType typeContext) =>
       debugExpressionEnter("doubleLiteral", expression, typeContext);
 
@@ -369,6 +375,12 @@ class TypeInferenceListener
 
   void variableSetExit(VariableSet expression, DartType inferredType) =>
       debugExpressionExit("variableSet", expression, inferredType);
+
+  void whileStatementEnter(WhileStatement statement) =>
+      debugStatementEnter("whileStatement", statement);
+
+  void whileStatementExit(WhileStatement statement) =>
+      debugStatementExit("whileStatement", statement);
 
   void yieldStatementEnter(YieldStatement statement) =>
       debugStatementEnter('yieldStatement', statement);

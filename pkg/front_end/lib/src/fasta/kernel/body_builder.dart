@@ -2493,7 +2493,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new DoStatement(body, condition);
+    Statement result = new KernelDoStatement(body, condition);
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2639,7 +2639,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new WhileStatement(condition, body);
+    Statement result = new KernelWhileStatement(condition, body);
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
