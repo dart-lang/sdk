@@ -276,7 +276,11 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
     SetReadException("Invalid object found in message.");
   }
   str_ ^= ReadObjectImpl(kAsInlinedObject);
-  cls = library_.LookupClassAllowPrivate(str_);
+  if (str_.raw() == Symbols::TopLevel().raw()) {
+    cls = library_.toplevel_class();
+  } else {
+    cls = library_.LookupClassAllowPrivate(str_);
+  }
   if (cls.IsNull()) {
     SetReadException("Invalid object found in message.");
   }
