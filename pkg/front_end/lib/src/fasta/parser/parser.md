@@ -6,9 +6,6 @@ BSD-style license that can be found in the LICENSE file.
 
 # Uses of peek in the parser
 
-  * In parseClass, the parser uses peekAfterNominalType to select between a
-    mixin application and a regular extends.
-
   * In parseType, the parser uses peekAfterIfType to tell the difference
     between `id` and `id id`.
 

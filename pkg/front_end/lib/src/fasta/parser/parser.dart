@@ -655,9 +655,10 @@ class Parser {
     return expect(';', token);
   }
 
-  Token parseMixinApplication(Token token) {
+  /// Parse a mixin application starting from `with`. Assumes that the first
+  /// type has already been parsed.
+  Token parseMixinApplicationRest(Token token) {
     listener.beginMixinApplication(token);
-    token = parseType(token);
     Token withKeyword = token;
     token = expect('with', token);
     token = parseTypeList(token);
@@ -1020,7 +1021,8 @@ class Parser {
 
   Token parseNamedMixinApplication(
       Token token, Token begin, Token classKeyword, Token name, Token equals) {
-    token = parseMixinApplication(token);
+    token = parseType(token);
+    token = parseMixinApplicationRest(token);
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
@@ -1035,10 +1037,9 @@ class Parser {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
-      if (optional('with', peekAfterNominalType(token.next))) {
-        token = parseMixinApplication(token.next);
-      } else {
-        token = parseType(token.next);
+      token = parseType(token.next);
+      if (optional('with', token)) {
+        token = parseMixinApplicationRest(token);
       }
     } else {
       extendsKeyword = null;

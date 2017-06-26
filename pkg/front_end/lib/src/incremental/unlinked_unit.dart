@@ -119,8 +119,8 @@ class _BodySkippingParser extends Parser {
     return super.parseFunctionBody(token, isExpression, allowAbstract);
   }
 
-  Token parseMixinApplication(Token token) {
+  Token parseMixinApplicationRest(Token token) {
     hasMixin = true;
-    return super.parseMixinApplication(token);
+    return super.parseMixinApplicationRest(token);
   }
 }
