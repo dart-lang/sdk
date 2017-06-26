@@ -799,7 +799,7 @@ class ProcessStarter {
     launchpad_create(job, program_arguments_[0], &lp);
     launchpad_set_args(lp, program_arguments_count_, program_arguments_);
     launchpad_set_environ(lp, program_environment_);
-    launchpad_clone(lp, LP_CLONE_MXIO_ROOT);
+    launchpad_clone(lp, LP_CLONE_MXIO_NAMESPACE);
     // TODO(zra): Use the supplied working directory when launchpad adds an
     // API to set it.
     launchpad_clone(lp, LP_CLONE_MXIO_CWD);
