@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
 import '../closure.dart';
+import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
@@ -279,8 +280,24 @@ class GlobalLocalsMap {
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
   Map<ir.VariableDeclaration, KLocal> _map = <ir.VariableDeclaration, KLocal>{};
+  Map<ir.LabeledStatement, KJumpTarget> _jumpTargetMap;
 
   MemberEntity get currentMember => _members.last;
+
+  // TODO(johnniwinther): Compute this eagerly from the root of the member.
+  void _ensureJumpMap(ir.TreeNode node) {
+    if (_jumpTargetMap == null) {
+      JumpVisitor visitor = new JumpVisitor(currentMember);
+
+      // Find the root node for the current member.
+      while (node is! ir.Member) {
+        node = node.parent;
+      }
+
+      node.accept(visitor);
+      _jumpTargetMap = visitor.jumpTargetMap;
+    }
+  }
 
   KernelToLocalsMapImpl(MemberEntity member) {
     _members.add(member);
@@ -299,54 +316,63 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
-    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTargetForBreak');
+    _ensureJumpMap(node.target);
+    JumpTarget target = _jumpTargetMap[node.target];
+    assert(target != null, failedAt(currentMember, 'No target for $node.'));
+    return target;
   }
 
   @override
   JumpTarget getJumpTargetForContinueSwitch(ir.ContinueSwitchStatement node) {
+    _ensureJumpMap(node.target);
     throw new UnimplementedError(
         'KernelToLocalsMapImpl.getJumpTargetForContinueSwitch');
   }
 
   @override
   JumpTarget getJumpTargetForSwitchCase(ir.SwitchCase node) {
+    _ensureJumpMap(node);
     throw new UnimplementedError(
         'KernelToLocalsMapImpl.getJumpTargetForSwitchCase');
   }
 
   @override
   JumpTarget getJumpTargetForDo(ir.DoStatement node) {
-    // TODO(redemption): Support do statement as jump target.
-    return null;
+    _ensureJumpMap(node);
+    return _jumpTargetMap[node.parent];
   }
 
   @override
   JumpTarget getJumpTargetForLabel(ir.LabeledStatement node) {
-    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTargetForLabel');
+    _ensureJumpMap(node);
+    JumpTarget target = _jumpTargetMap[node];
+    assert(target != null, failedAt(currentMember, 'No target for $node.'));
+    return target;
   }
 
   @override
   JumpTarget getJumpTargetForSwitch(ir.SwitchStatement node) {
+    _ensureJumpMap(node);
     throw new UnimplementedError(
         'KernelToLocalsMapImpl.getJumpTargetForSwitch');
   }
 
   @override
   JumpTarget getJumpTargetForFor(ir.ForStatement node) {
-    // TODO(redemption): Support for statement as jump target.
-    return null;
+    _ensureJumpMap(node);
+    return _jumpTargetMap[node.parent];
   }
 
   @override
   JumpTarget getJumpTargetForForIn(ir.ForInStatement node) {
-    // TODO(redemption): Support for-in statement as jump target.
-    return null;
+    _ensureJumpMap(node);
+    return _jumpTargetMap[node.parent];
   }
 
   @override
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node) {
-    // TODO(redemption): Support while statement as jump target.
-    return null;
+    _ensureJumpMap(node);
+    return _jumpTargetMap[node.parent];
   }
 
   @override
@@ -360,6 +386,60 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
     return closureLookup.getClosureRepresentationInfoForLoop(node);
+  }
+}
+
+class JumpVisitor extends ir.Visitor {
+  final MemberEntity member;
+  final Map<ir.LabeledStatement, KJumpTarget> jumpTargetMap =
+      <ir.LabeledStatement, KJumpTarget>{};
+
+  JumpVisitor(this.member);
+
+  KJumpTarget _getJumpTarget(ir.LabeledStatement node) {
+    return jumpTargetMap.putIfAbsent(node, () {
+      return new KJumpTarget(member, jumpTargetMap.length);
+    });
+  }
+
+  @override
+  defaultNode(ir.Node node) => node.visitChildren(this);
+
+  @override
+  visitBreakStatement(ir.BreakStatement node) {
+    KJumpTarget target = _getJumpTarget(node.target);
+    target.isBreakTarget = true;
+    super.visitBreakStatement(node);
+  }
+}
+
+class KJumpTarget extends JumpTarget<ir.Node> {
+  final MemberEntity memberContext;
+  final int nestingLevel;
+
+  KJumpTarget(this.memberContext, this.nestingLevel);
+
+  bool isBreakTarget = false;
+  bool isContinueTarget = false;
+  bool isSwitch = false;
+
+  @override
+  Entity get executableContext => memberContext;
+
+  @override
+  LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
+      {bool isBreakTarget: false}) {
+    throw new UnimplementedError('KJumpTarget.addLabel');
+  }
+
+  @override
+  List<LabelDefinition<ir.Node>> get labels {
+    return const <LabelDefinition<ir.Node>>[];
+  }
+
+  @override
+  ir.Node get statement {
+    throw new UnimplementedError('KJumpTarget.statement');
   }
 }
 

@@ -48,6 +48,10 @@ main() {
   new Class('');
   Class.staticField;
   var x = null;
+  for (int i = 0; i < 10; i++) {
+    x = i;
+    if (i == 5) break;
+  }
   return x;
 }
 '''

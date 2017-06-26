@@ -12,7 +12,8 @@ abstract class LabelDefinition<T> extends Entity {
   String get labelName;
   JumpTarget<T> get target;
 
-  bool get isTarget;
+  bool get isTarget => isBreakTarget || isContinueTarget;
+
   bool get isBreakTarget;
   bool get isContinueTarget;
 }
@@ -20,11 +21,14 @@ abstract class LabelDefinition<T> extends Entity {
 /// A jump target is the reference point of a statement or switch-case,
 /// either by label or as the default target of a break or continue.
 abstract class JumpTarget<T> extends Local {
+  String get name => 'target';
+
+  bool get isTarget => isBreakTarget || isContinueTarget;
+
   T get statement;
   int get nestingLevel;
   List<LabelDefinition<T>> get labels;
 
-  bool get isTarget;
   bool get isBreakTarget;
   bool get isContinueTarget;
   bool get isSwitch;
