@@ -8,6 +8,7 @@ import 'dart:io' as io;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/context/context_root.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -207,6 +208,25 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       ContextRoot contextRoot = new ContextRoot(pkgPath, []);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
       await manager.stopAll();
+    });
+    pkg1Dir.deleteSync(recursive: true);
+  }
+
+  @failingTest
+  test_addPluginToContextRoot_pubspec() async {
+    // We can't successfully run pub until after the analyzer_plugin package has
+    // been published.
+    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    await withPubspecPlugin(test: (String pluginPath) async {
+      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+      await manager.addPluginToContextRoot(contextRoot, pluginPath);
+      String packagesPath =
+          resourceProvider.pathContext.join(pluginPath, '.packages');
+      File packagesFile = resourceProvider.getFile(packagesPath);
+      bool exists = packagesFile.exists;
+      await manager.stopAll();
+      expect(exists, isTrue, reason: '.packages file was not created');
     });
     pkg1Dir.deleteSync(recursive: true);
   }
@@ -579,6 +599,54 @@ abstract class PluginTestSupport {
   }
 
   /**
+   * Create a directory structure representing a plugin on disk, run the given
+   * [test] function, and then remove the directory. The directory will have the
+   * following structure:
+   * ```
+   * pluginDirectory
+   *   pubspec.yaml
+   *   bin
+   *     plugin.dart
+   * ```
+   * The name of the plugin directory will be the [pluginName], if one is
+   * provided (in order to allow more than one plugin to be created by a single
+   * test). The 'plugin.dart' file will contain the given [content], or default
+   * content that implements a minimal plugin if the contents are not given. The
+   * [test] function will be passed the path of the directory that was created.
+   */
+  Future<Null> withPubspecPlugin(
+      {String content,
+      String pluginName,
+      Future<Null> test(String pluginPath)}) async {
+    io.Directory tempDirectory =
+        io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
+    try {
+      String pluginPath = tempDirectory.resolveSymbolicLinksSync();
+      //
+      // Create a pubspec.yaml file.
+      //
+      io.File pubspecFile = new io.File(path.join(pluginPath, 'pubspec.yaml'));
+      pubspecFile.writeAsStringSync(_getPubspecFileContent());
+      //
+      // Create the 'bin' directory.
+      //
+      String binPath = path.join(pluginPath, 'bin');
+      new io.Directory(binPath).createSync();
+      //
+      // Create the 'plugin.dart' file.
+      //
+      io.File pluginFile = new io.File(path.join(binPath, 'plugin.dart'));
+      pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
+      //
+      // Run the actual test code.
+      //
+      await test(pluginPath);
+    } finally {
+      tempDirectory.deleteSync(recursive: true);
+    }
+  }
+
+  /**
    * Convert the [sdkPackageMap] into a plugin-specific map by applying the
    * given relative path [delta] to each line.
    */
@@ -650,6 +718,18 @@ class MinimalPlugin extends ServerPlugin {
           _convertPackageMap(path.dirname(sdkPackagesFile.path), sdkPackageMap);
     }
     return _packagesFileContent;
+  }
+
+  /**
+   * Return the content to be used for the 'pubspec.yaml' file.
+   */
+  String _getPubspecFileContent() {
+    return '''
+name: 'test'
+dependencies:
+  analyzer: any
+  analyzer_plugin: any
+''';
   }
 
   /**

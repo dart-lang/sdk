@@ -4,7 +4,8 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io' show Platform;
+import 'dart:convert';
+import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/context/context_root.dart' as analyzer;
@@ -23,6 +24,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart' as watcher;
 
 /**
@@ -333,7 +335,7 @@ class PluginManager {
     bool isNew = plugin == null;
     if (isNew) {
       List<String> pluginPaths = _pathsFor(path);
-      if (pluginPaths == null) {
+      if (pluginPaths == null || pluginPaths[1] == null) {
         return;
       }
       plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
@@ -578,7 +580,21 @@ class PluginManager {
       File packagesFile = pluginFolder.getChildAssumingFile('.packages');
       if (!packagesFile.exists) {
         if (runPub) {
-          // TODO(brianwilkerson) Run pub in the pluginFolder.
+          String vmPath = Platform.executable;
+          String pubPath = path.join(path.dirname(vmPath), 'pub');
+          ProcessResult result = Process.runSync(pubPath, <String>['get'],
+              stderrEncoding: UTF8,
+              stdoutEncoding: UTF8,
+              workingDirectory: pluginFolder.path);
+          if (result.exitCode != 0) {
+            StringBuffer buffer = new StringBuffer();
+            buffer.writeln('Failed to run pub get');
+            buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+            buffer.writeln('  exitCode = ${result.exitCode}');
+            buffer.writeln('  stdout = ${result.stdout}');
+            buffer.writeln('  stderr = ${result.stderr}');
+            instrumentationService.logError(buffer.toString());
+          }
           if (!packagesFile.exists) {
             packagesFile = null;
           }
