@@ -180,6 +180,29 @@ enum Assert {
   Statement,
 }
 
+/// Indication of how the parser should continue after (attempting) to parse a
+/// type.
+///
+/// Depending on the continuation, the parser may not parse a type at all.
+enum TypeContinuation {
+  /// Indicates that a type is unconditionally expected.
+  Required,
+
+  /// Indicates that a type may follow. If the following matches one of these
+  /// productions, it is parsed as a type:
+  ///
+  ///  - `'void'`
+  ///  - `'Function' ( '(' | '<' )`
+  ///  - `identifier ('.' identifier)? ('<' ... '>')? identifer`
+  ///
+  /// Otherwise, do nothing.
+  Optional,
+
+  /// Indicates that the keyword `typedef` has just been seen, and the parser
+  /// should parse the following as a type unless it is followed by `=`.
+  Typedef,
+}
+
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
 ///
@@ -615,14 +638,15 @@ class Parser {
     Token typedefKeyword = token;
     listener.beginFunctionTypeAlias(token);
     Token equals;
-    if (optional('=', peekAfterNominalType(token.next))) {
+    Token afterType = parseType(token.next, TypeContinuation.Typedef);
+    if (afterType == null) {
       token = parseIdentifier(token.next, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token);
       equals = token;
       token = expect('=', token);
       token = parseType(token);
     } else {
-      token = parseType(token.next, isOptional: true);
+      token = afterType;
       token = parseIdentifier(token, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token, MemberKind.FunctionTypeAlias);
@@ -968,40 +992,28 @@ class Parser {
   }
 
   Token parseClassOrNamedMixinApplication(Token token) {
+    listener.beginClassOrNamedMixinApplication(token);
     Token begin = token;
-    Token abstractKeyword;
-    Token classKeyword = token;
     if (optional('abstract', token)) {
-      abstractKeyword = token;
-      token = token.next;
-      classKeyword = token;
-    }
-    assert(optional('class', classKeyword));
-    int modifierCount = 0;
-    if (abstractKeyword != null) {
-      parseModifier(abstractKeyword);
-      modifierCount++;
-    }
-    listener.handleModifiers(modifierCount);
-    bool isMixinApplication = optional('=', peekAfterNominalType(token));
-    Token name = token.next;
-
-    if (isMixinApplication) {
-      token = parseIdentifier(name, IdentifierContext.namedMixinDeclaration);
-      listener.beginNamedMixinApplication(begin, name);
+      token = parseModifier(token);
+      listener.handleModifiers(1);
     } else {
-      token = parseIdentifier(name, IdentifierContext.classDeclaration);
-      listener.beginClassDeclaration(begin, name);
+      listener.handleModifiers(0);
     }
-
+    Token classKeyword = token;
+    token = expect("class", token);
+    Token name = token;
+    token =
+        parseIdentifier(name, IdentifierContext.classOrNamedMixinDeclaration);
     token = parseTypeVariablesOpt(token);
-
     if (optional('=', token)) {
+      listener.beginNamedMixinApplication(begin, name);
       Token equals = token;
       token = token.next;
       return parseNamedMixinApplication(
           token, begin, classKeyword, name, equals);
     } else {
+      listener.beginClassDeclaration(begin, name);
       return parseClass(token, begin, classKeyword, name);
     }
   }
@@ -1139,9 +1151,21 @@ class Parser {
         (optional('<', token.next) || optional('(', token.next));
   }
 
-  Token parseType(Token token, {bool isOptional: false}) {
-    if (isOptional) {
-      do {
+  /// Parse a type, if it is appropriate to do so.
+  ///
+  /// If this method can parse a type, it will return the next (non-null) token
+  /// after the type. Otherwise, it returns null.
+  Token parseType(Token token,
+      [TypeContinuation continuation = TypeContinuation.Required]) {
+    switch (continuation) {
+      case TypeContinuation.Typedef:
+        if (optional('=', peekAfterNominalType(token))) {
+          return null; // This isn't a type, it's a new-style typedef.
+        }
+        continue optional;
+
+      optional:
+      case TypeContinuation.Optional:
         if (optional("void", token)) {
           if (isGeneralizedFunctionType(token.next)) {
             // This is a type, parse it.
@@ -1164,7 +1188,13 @@ class Parser {
           listener.handleNoType(token);
           return token;
         }
-      } while (false);
+        break;
+
+      case TypeContinuation.Required:
+        break;
+
+      default:
+        throw "Internal error: Unhandled continuation '$continuation'.";
     }
     Token begin = token;
     if (isGeneralizedFunctionType(token)) {
@@ -1399,7 +1429,7 @@ class Parser {
     if (type == null) {
       listener.handleNoType(name);
     } else {
-      parseType(type, isOptional: true);
+      parseType(type, TypeContinuation.Optional);
     }
     Token token =
         parseIdentifier(name, IdentifierContext.topLevelFunctionDeclaration);
@@ -1799,7 +1829,11 @@ class Parser {
     listener.handleModifiers(count);
 
     Token beforeType = token;
-    token = parseType(token, isOptional: returnTypeAllowed || !typeRequired);
+    token = parseType(
+        token,
+        returnTypeAllowed || !typeRequired
+            ? TypeContinuation.Optional
+            : TypeContinuation.Required);
     if (typeRequired && beforeType == token) {
       reportRecoverableErrorCode(token, codeTypeRequired);
     }
@@ -2104,7 +2138,7 @@ class Parser {
     if (type == null) {
       listener.handleNoType(name);
     } else {
-      parseType(type, isOptional: true);
+      parseType(type, TypeContinuation.Optional);
     }
     Token token;
     if (optional('operator', name)) {
@@ -2238,7 +2272,7 @@ class Parser {
     Token beginToken = token;
     listener.beginFunction(token);
     listener.handleModifiers(0);
-    token = parseType(token, isOptional: true);
+    token = parseType(token, TypeContinuation.Optional);
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.functionExpressionName);
     listener.endFunctionName(beginToken, token);

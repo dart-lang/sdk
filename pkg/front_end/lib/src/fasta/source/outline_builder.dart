@@ -247,8 +247,18 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void beginClassOrNamedMixinApplication(Token token) {
+    library.beginNestedDeclaration(null);
+  }
+
+  @override
   void beginClassDeclaration(Token begin, Token name) {
-    library.beginNestedDeclaration(name.lexeme);
+    library.currentDeclaration.name = name.lexeme;
+  }
+
+  @override
+  void beginNamedMixinApplication(Token beginToken, Token name) {
+    library.currentDeclaration.name = name.lexeme;
   }
 
   @override
@@ -406,11 +416,6 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder supertype = pop();
     push(
         library.addMixinApplication(supertype, mixins, withKeyword.charOffset));
-  }
-
-  @override
-  void beginNamedMixinApplication(Token begin, Token name) {
-    library.beginNestedDeclaration(name.lexeme, hasMembers: false);
   }
 
   @override

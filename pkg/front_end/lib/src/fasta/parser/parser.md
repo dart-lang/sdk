@@ -6,12 +6,6 @@ BSD-style license that can be found in the LICENSE file.
 
 # Uses of peek in the parser
 
-  * In parseTypedef, the parser uses peekAfterNominalType to select between old
-    style and new style.
-
-  * In parseClassOrNamedMixinApplication, the parser uses peekAfterNominalType
-    to select between named mixin application or class declaration.
-
   * In parseClass, the parser uses peekAfterNominalType to select between a
     mixin application and a regular extends.
 

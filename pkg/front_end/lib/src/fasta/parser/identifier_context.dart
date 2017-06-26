@@ -95,16 +95,12 @@ class IdentifierContext {
   static const enumValueDeclaration =
       const IdentifierContext._('enumValueDeclaration', inDeclaration: true);
 
-  /// Identifier is the name being declared by a named mixin declaration (e.g.
-  /// `Foo` in `class Foo = X with Y;`).
-  static const namedMixinDeclaration = const IdentifierContext._(
-      'namedMixinDeclaration',
+  /// Identifier is the name being declared by a class declaration or a named
+  /// mixin application, for example, `Foo` in `class Foo = X with Y;`.
+  static const classOrNamedMixinDeclaration = const IdentifierContext._(
+      'classOrNamedMixinDeclaration',
       inDeclaration: true,
       isBuiltInIdentifierAllowed: false);
-
-  /// Identifier is the name being declared by a class declaration.
-  static const classDeclaration = const IdentifierContext._('classDeclaration',
-      inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).

@@ -227,8 +227,6 @@ class AstBuilder extends ScopeListener {
           assert(element != null);
           identifier.staticElement = element;
         }
-      } else if (context == IdentifierContext.classDeclaration) {
-        className = identifier.name;
       }
       push(identifier);
     }
@@ -1335,6 +1333,12 @@ class AstBuilder extends ScopeListener {
     debugEvent("ClassBody");
     push(new _ClassBody(
         beginToken, popList(memberCount) ?? <ClassMember>[], endToken));
+  }
+
+  @override
+  void beginClassDeclaration(Token beginToken, Token name) {
+    assert(className == null);
+    className = name.lexeme;
   }
 
   @override

@@ -77,6 +77,9 @@ class Listener {
     logEvent("ClassBody");
   }
 
+  /// Called before parsing a class or named mixin application.
+  void beginClassOrNamedMixinApplication(Token token) {}
+
   void beginClassDeclaration(Token beginToken, Token name) {}
 
   /// Handle the end of a class declaration.  Substructures:
