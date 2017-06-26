@@ -130,6 +130,9 @@ declare_args() {
 
   # Compile for Thread Sanitizer to find threading bugs.
   is_tsan = false
+
+  # Compile for Chromecast.
+  is_chromecast = false
 }
 
 # =============================================================================
@@ -190,6 +193,9 @@ if (current_os == "win") {
   is_nacl = false
   is_posix = true
   is_win = false
+  if (is_chromecast) {
+    is_chromeos = true
+  }
 }
 
 # =============================================================================
