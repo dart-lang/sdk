@@ -1882,7 +1882,12 @@ class KernelThisExpression extends ThisExpression implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return typeNeeded ? (inferrer.thisType ?? const DynamicType()) : null;
+    typeNeeded =
+        inferrer.listener.thisExpressionEnter(this, typeContext) || typeNeeded;
+    var inferredType =
+        typeNeeded ? (inferrer.thisType ?? const DynamicType()) : null;
+    inferrer.listener.thisExpressionExit(this, inferredType);
+    return inferredType;
   }
 }
 
@@ -2072,7 +2077,11 @@ class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return typeNeeded ? inferrer.coreTypes.typeClass.rawType : null;
+    typeNeeded =
+        inferrer.listener.typeLiteralEnter(this, typeContext) || typeNeeded;
+    var inferredType = typeNeeded ? inferrer.coreTypes.typeClass.rawType : null;
+    inferrer.listener.typeLiteralExit(this, inferredType);
+    return inferredType;
   }
 }
 

@@ -340,6 +340,12 @@ class TypeInferenceListener
   void switchStatementExit(SwitchStatement statement) =>
       debugStatementExit('switchStatement', statement);
 
+  bool thisExpressionEnter(ThisExpression expression, DartType typeContext) =>
+      debugExpressionEnter("thisExpression", expression, typeContext);
+
+  void thisExpressionExit(ThisExpression expression, DartType inferredType) =>
+      debugExpressionExit("thisExpression", expression, inferredType);
+
   bool throwEnter(Throw expression, DartType typeContext) =>
       debugExpressionEnter('throw', expression, typeContext);
 
@@ -357,6 +363,12 @@ class TypeInferenceListener
 
   void tryFinallyExit(TryFinally statement) =>
       debugStatementExit('tryFinally', statement);
+
+  bool typeLiteralEnter(TypeLiteral expression, DartType typeContext) =>
+      debugExpressionEnter("typeLiteral", expression, typeContext);
+
+  void typeLiteralExit(TypeLiteral expression, DartType inferredType) =>
+      debugExpressionExit("typeLiteral", expression, inferredType);
 
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("variableAssign", expression, typeContext);
