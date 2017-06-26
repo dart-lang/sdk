@@ -542,6 +542,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
       if (node.supertype == null) {
         env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
         env.isMixinApplication = false;
+        env.interfaces = const <InterfaceType>[];
       } else {
         InterfaceType processSupertype(ir.Supertype node) {
           InterfaceType type = _typeConverter.visitSupertype(node);
@@ -569,6 +570,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
             new _KernelOrderedTypeSetBuilder(this, cls);
         env.orderedTypeSet =
             setBuilder.createOrderedTypeSet(env.supertype, interfaces);
+        env.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
   }
@@ -612,6 +614,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.isUnnamedMixinApplication;
+  }
+
+  Iterable<InterfaceType> _getInterfaces(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.interfaces;
   }
 
   void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
@@ -924,6 +932,7 @@ class _KClassEnv {
   InterfaceType rawType;
   InterfaceType supertype;
   InterfaceType mixedInType;
+  List<InterfaceType> interfaces;
   OrderedTypeSet orderedTypeSet;
 
   Map<String, ir.Member> _constructorMap;
@@ -1548,6 +1557,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             elementMap.elementEnvironment,
+            elementMap.types,
             elementMap.commonElements,
             elementMap._constantEnvironment.constantSystem,
             nativeBasicData,
@@ -1594,6 +1604,7 @@ class KernelClosedWorld extends ClosedWorldBase {
 
   KernelClosedWorld(this._elementMap,
       {ElementEnvironment elementEnvironment,
+      DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
@@ -1609,6 +1620,7 @@ class KernelClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, ClassSet> classSets})
       : super(
             elementEnvironment: elementEnvironment,
+            dartTypes: dartTypes,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,

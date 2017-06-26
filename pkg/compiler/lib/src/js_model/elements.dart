@@ -465,6 +465,7 @@ class JTypeVariable implements TypeVariableEntity {
 class JsClosedWorld extends ClosedWorldBase {
   JsClosedWorld(
       {ElementEnvironment elementEnvironment,
+      DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
@@ -480,6 +481,7 @@ class JsClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, ClassSet> classSets})
       : super(
             elementEnvironment: elementEnvironment,
+            dartTypes: dartTypes,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,

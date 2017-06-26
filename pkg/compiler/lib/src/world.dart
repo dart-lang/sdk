@@ -50,6 +50,8 @@ abstract class ClosedWorld implements World {
 
   ElementEnvironment get elementEnvironment;
 
+  DartTypes get dartTypes;
+
   CommonElements get commonElements;
 
   CommonMasks get commonMasks;
@@ -433,6 +435,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   CommonMasks _commonMasks;
 
   final ElementEnvironment elementEnvironment;
+  final DartTypes dartTypes;
   final CommonElements commonElements;
 
   // TODO(johnniwinther): Avoid this.
@@ -443,6 +446,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   ClosedWorldBase(
       {this.elementEnvironment,
+      this.dartTypes,
       this.commonElements,
       this.constantSystem,
       this.nativeData,
@@ -1163,6 +1167,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 class ClosedWorldImpl extends ClosedWorldBase {
   ClosedWorldImpl(
       {ElementEnvironment elementEnvironment,
+      DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
@@ -1178,6 +1183,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
       Map<ClassEntity, ClassSet> classSets})
       : super(
             elementEnvironment: elementEnvironment,
+            dartTypes: dartTypes,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,

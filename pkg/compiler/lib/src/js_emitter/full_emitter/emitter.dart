@@ -1629,7 +1629,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program =
+    Program program = programForTesting =
         programBuilder.buildProgram(storeFunctionTypesInMetadata: true);
 
     outputStaticNonFinalFieldLists =

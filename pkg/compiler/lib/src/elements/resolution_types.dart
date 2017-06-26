@@ -1138,6 +1138,11 @@ class Types extends DartTypes {
   }
 
   @override
+  Iterable<InterfaceType> getInterfaces(covariant ClassElement cls) {
+    return new List<InterfaceType>.from(cls.interfaces.toList());
+  }
+
+  @override
   FunctionType getCallType(covariant ResolutionInterfaceType type) =>
       type.callType;
 

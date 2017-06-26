@@ -22,6 +22,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             _resolution.elementEnvironment,
+            _resolution.types,
             _resolution.commonElements,
             backend.constantSystem,
             nativeBasicData,
@@ -176,6 +177,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     _closed = true;
     return _closedWorldCache = new ClosedWorldImpl(
         elementEnvironment: _elementEnvironment,
+        dartTypes: _dartTypes,
         commonElements: _commonElements,
         constantSystem: _constantSystem,
         nativeData: _nativeDataBuilder.close(),

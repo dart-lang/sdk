@@ -2666,7 +2666,7 @@ Future setup(test(MockCompiler compiler)) {
 ResolutionDartType analyzeType(MockCompiler compiler, String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor = new TypeCheckerVisitor(
-      compiler, new TreeElementMapping(null), compiler.types);
+      compiler, new TreeElementMapping(null), compiler.resolution.types);
   return visitor.analyze(node);
 }
 
@@ -2710,7 +2710,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
     }
     // Type check last class declaration or member.
     TypeCheckerVisitor checker =
-        new TypeCheckerVisitor(compiler, mapping, compiler.types);
+        new TypeCheckerVisitor(compiler, mapping, compiler.resolution.types);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     collector.clear();
     checker.analyze(node, mustHaveType: false);
@@ -2747,7 +2747,7 @@ analyze(MockCompiler compiler, String text,
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   TypeCheckerVisitor checker =
-      new TypeCheckerVisitor(compiler, elements, compiler.types);
+      new TypeCheckerVisitor(compiler, elements, compiler.resolution.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
   checker.analyze(node, mustHaveType: false);
@@ -2788,7 +2788,7 @@ analyzeIn(MockCompiler compiler, FunctionElement element, String text,
   Node node = listener.popNode();
   TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker =
-      new TypeCheckerVisitor(compiler, elements, compiler.types);
+      new TypeCheckerVisitor(compiler, elements, compiler.resolution.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
   checker.analyze(node, mustHaveType: false);

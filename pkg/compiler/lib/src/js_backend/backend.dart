@@ -744,7 +744,9 @@ class JavaScriptBackend {
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
-        compiler.enqueuer.resolution.worldBuilder, closedWorld, compiler.types,
+        compiler.enqueuer.resolution.worldBuilder,
+        closedWorld,
+        compiler.frontendStrategy.dartTypes,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }

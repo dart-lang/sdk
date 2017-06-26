@@ -60,7 +60,7 @@ class TypeCheckerTask extends CompilerTask {
     reporter.withCurrentElement(element.implementation, () {
       measure(() {
         TypeCheckerVisitor visitor = new TypeCheckerVisitor(
-            compiler, resolvedAst.elements, compiler.types);
+            compiler, resolvedAst.elements, compiler.resolution.types);
         if (element.isField) {
           visitor.analyzingInitializer = true;
           ResolutionDartType type =
@@ -112,7 +112,7 @@ abstract class ElementAccess {
     }
     ResolutionInterfaceType functionType =
         compiler.resolution.commonElements.functionType;
-    return compiler.types
+    return compiler.resolution.types
         .isAssignable(computeType(compiler.resolution), functionType);
   }
 }

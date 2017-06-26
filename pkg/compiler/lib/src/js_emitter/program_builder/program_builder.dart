@@ -693,7 +693,10 @@ class ProgramBuilder {
         _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
+        _elementEnvironment,
         _commonElements,
+        _types,
+        _closedWorld,
         _closureDataLookup,
         _task,
         _namer,

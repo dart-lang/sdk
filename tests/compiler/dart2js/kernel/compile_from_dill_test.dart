@@ -175,6 +175,13 @@ Future<ResultKind> mainInternal(List<String> args,
       elementFilter: elementFilter,
       verbose: arguments.verbose);
 
+  checkEmitters(compiler1.backend.emitter, compiler2.backend.emitter,
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      typeEquivalence: (DartType a, DartType b) {
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      verbose: arguments.verbose);
+
   print('--- checking output------- -----------------------------------------');
   collector1.outputMap
       .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {

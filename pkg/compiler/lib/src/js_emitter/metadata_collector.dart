@@ -8,8 +8,6 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common.dart';
 import '../constants/values.dart';
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionTypedefType;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../elements/elements.dart'
     show
@@ -24,6 +22,9 @@ import '../elements/elements.dart'
         MetadataAnnotation,
         ParameterElement;
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionTypedefType;
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/constant_handler_javascript.dart';
@@ -327,8 +328,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _addGlobalMetadata(_emitter.constantReference(constant));
   }
 
-  jsAst.Expression reifyType(ResolutionDartType type,
-      {ignoreTypeVariables: false}) {
+  jsAst.Expression reifyType(DartType type, {ignoreTypeVariables: false}) {
     return reifyTypeForOutputUnit(type, _deferredLoadTask.mainOutputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
   }

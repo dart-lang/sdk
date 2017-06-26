@@ -339,6 +339,80 @@ bool checkConstantValueLists(Object object1, Object object2, String property,
       object1, object2, property, list1, list2, checkConstantValues);
 }
 
+void checkLists(
+    List list1, List list2, String messagePrefix, bool sameElement(a, b),
+    {bool verbose: false,
+    void onSameElement(a, b),
+    void onDifferentElements(a, b),
+    void onUnfoundElement(a),
+    void onExtraElement(b),
+    String elementToString(key): defaultToString}) {
+  List<List> common = <List>[];
+  List mismatch = [];
+  List unfound = [];
+  List extra = [];
+  int index = 0;
+  while (index < list1.length && index < list2.length) {
+    var element1 = list1[index];
+    var element2 = list2[index];
+    if (sameElement(element1, element2)) {
+      if (onSameElement != null) {
+        onSameElement(element1, element2);
+      }
+      common.add([element1, element2]);
+    } else {
+      if (onDifferentElements != null) {
+        onDifferentElements(element1, element2);
+      }
+      mismatch = [element1, element2];
+      break;
+    }
+    index++;
+  }
+  for (int tail = index; tail < list1.length; tail++) {
+    var element1 = list1[tail];
+    if (onUnfoundElement != null) {
+      onUnfoundElement(element1);
+    }
+    unfound.add(element1);
+  }
+  for (int tail = index; tail < list2.length; tail++) {
+    var element2 = list2[tail];
+    if (onExtraElement != null) {
+      onExtraElement(element2);
+    }
+    extra.add(element2);
+  }
+  StringBuffer sb = new StringBuffer();
+  sb.write("$messagePrefix:");
+  if (verbose) {
+    sb.write("\n Common: \n");
+    for (List pair in common) {
+      var element1 = pair[0];
+      var element2 = pair[1];
+      sb.write("  [${elementToString(element1)},"
+          "${elementToString(element2)}]\n");
+    }
+  }
+  if (mismatch.isNotEmpty) {
+    sb.write("\n Mismatch @ $index:\n  "
+        "${mismatch.map(elementToString).join('\n  ')}");
+  }
+
+  if (unfound.isNotEmpty || verbose) {
+    sb.write("\n Unfound:\n  ${unfound.map(elementToString).join('\n  ')}");
+  }
+  if (extra.isNotEmpty || verbose) {
+    sb.write("\n Extra: \n  ${extra.map(elementToString).join('\n  ')}");
+  }
+  String message = sb.toString();
+  if (mismatch.isNotEmpty) {
+    Expect.fail(message);
+  } else if (verbose) {
+    print(message);
+  }
+}
+
 void checkSets(
     Iterable set1, Iterable set2, String messagePrefix, bool sameElement(a, b),
     {bool failOnUnfound: true,

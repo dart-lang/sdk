@@ -46,6 +46,11 @@ class _KernelDartTypes extends DartTypes {
   }
 
   @override
+  Iterable<InterfaceType> getInterfaces(ClassEntity cls) {
+    return elementMap._getInterfaces(cls);
+  }
+
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     return elementMap._asInstanceOf(type, cls);
   }

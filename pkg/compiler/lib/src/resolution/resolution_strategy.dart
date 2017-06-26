@@ -65,7 +65,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
 
   ElementEnvironment get elementEnvironment => _elementEnvironment;
 
-  DartTypes get dartTypes => _compiler.types;
+  DartTypes get dartTypes => _compiler.resolution.types;
 
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
@@ -115,7 +115,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
     return new ResolutionRuntimeTypesNeedBuilderImpl(
-        elementEnvironment, _compiler.types);
+        elementEnvironment, dartTypes);
   }
 
   ResolutionWorldBuilder createResolutionWorldBuilder(

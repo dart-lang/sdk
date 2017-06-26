@@ -18,6 +18,8 @@ import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/enqueuer.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
+import 'package:compiler/src/js_emitter/code_emitter_task.dart';
+import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -633,7 +635,7 @@ void checkResolutionEnqueuers(
     ResolutionEnqueuer enqueuer2,
     {bool elementEquivalence(Entity a, Entity b): _areEntitiesEquivalent,
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
-    bool elementFilter(Element element),
+    bool elementFilter(Entity element),
     bool verbose: false,
     bool skipClassUsageTesting: false}) {
   elementFilter ??= (_) => true;
@@ -795,4 +797,67 @@ void checkCodegenEnqueuers(CodegenEnqueuer enqueuer1, CodegenEnqueuer enqueuer2,
       elementEquivalence,
       areAbstractUsagesEquivalent,
       verbose: verbose);
+}
+
+// TODO(johnniwinther): Check all emitter properties.
+void checkEmitters(CodeEmitterTask emitter1, CodeEmitterTask emitter2,
+    {bool elementEquivalence(Entity a, Entity b): _areEntitiesEquivalent,
+    bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
+    bool elementFilter(Element element),
+    bool verbose: false}) {
+  checkEmitterPrograms(
+      emitter1.emitter.programForTesting, emitter2.emitter.programForTesting);
+
+  checkSets(
+      emitter1.typeTestRegistry.rtiNeededClasses,
+      emitter2.typeTestRegistry.rtiNeededClasses,
+      "TypeTestRegistry rti needed classes mismatch",
+      elementEquivalence,
+      verbose: verbose);
+
+  checkSets(
+      emitter1.typeTestRegistry.checkedFunctionTypes,
+      emitter2.typeTestRegistry.checkedFunctionTypes,
+      "TypeTestRegistry checked function types mismatch",
+      typeEquivalence,
+      verbose: verbose);
+
+  checkSets(
+      emitter1.typeTestRegistry.checkedClasses,
+      emitter2.typeTestRegistry.checkedClasses,
+      "TypeTestRegistry checked classes mismatch",
+      elementEquivalence,
+      verbose: verbose);
+}
+
+// TODO(johnniwinther): Check all program properties.
+void checkEmitterPrograms(Program program1, Program program2) {
+  checkLists(program1.fragments, program2.fragments, 'fragments',
+      (a, b) => a.outputFileName == b.outputFileName,
+      onSameElement: checkEmitterFragments);
+}
+
+// TODO(johnniwinther): Check all fragment properties.
+void checkEmitterFragments(Fragment fragment1, Fragment fragment2) {
+  checkLists(fragment1.libraries, fragment2.libraries, 'libraries',
+      (a, b) => a.element.canonicalUri == b.element.canonicalUri,
+      onSameElement: checkEmitterLibraries);
+}
+
+// TODO(johnniwinther): Check all library properties.
+void checkEmitterLibraries(Library library1, Library library2) {
+  checkLists(library1.classes, library2.classes, 'classes',
+      (a, b) => a.element.name == b.element.name,
+      onSameElement: checkEmitterClasses);
+// TODO(johnniwinther): Check static method properties.
+  checkLists(library1.statics, library2.statics, 'statics',
+      (a, b) => a.name.key == b.name.key);
+}
+
+// TODO(johnniwinther): Check all class properties.
+void checkEmitterClasses(Class class1, Class class2) {
+  checkLists(class1.methods, class2.methods, 'methods',
+      (a, b) => a.name.key == b.name.key);
+  checkLists(class1.isChecks, class2.isChecks, 'isChecks',
+      (a, b) => a.name.key == b.name.key);
 }
