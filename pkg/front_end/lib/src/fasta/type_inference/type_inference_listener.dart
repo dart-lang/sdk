@@ -340,6 +340,12 @@ class TypeInferenceListener
   void switchStatementExit(SwitchStatement statement) =>
       debugStatementExit('switchStatement', statement);
 
+  bool symbolLiteralEnter(SymbolLiteral expression, DartType typeContext) =>
+      debugExpressionEnter("symbolLiteral", expression, typeContext);
+
+  void symbolLiteralExit(SymbolLiteral expression, DartType inferredType) =>
+      debugExpressionExit("symbolLiteral", expression, inferredType);
+
   bool thisExpressionEnter(ThisExpression expression, DartType typeContext) =>
       debugExpressionEnter("thisExpression", expression, typeContext);
 

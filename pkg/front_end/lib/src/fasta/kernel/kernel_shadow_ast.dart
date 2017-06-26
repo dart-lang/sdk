@@ -1865,8 +1865,12 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded =
+        inferrer.listener.symbolLiteralEnter(this, typeContext) || typeNeeded;
+    var inferredType =
+        typeNeeded ? inferrer.coreTypes.symbolClass.rawType : null;
+    inferrer.listener.symbolLiteralExit(this, inferredType);
+    return inferredType;
   }
 }
 
