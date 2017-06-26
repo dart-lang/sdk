@@ -349,8 +349,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
-      ClosureAnalysisInfo scopeData = closureDataLookup
-          .getClosureAnalysisInfo(constructorElement.resolvedAst.node);
+      ClosureScope scopeData = closureDataLookup
+          .getClosureScope(constructorElement.resolvedAst.node);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -614,7 +614,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
-            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
+            closureDataLookup.getClosureScope(resolvedAst.node),
             forGenerativeConstructorBody:
                 astElement.isGenerativeConstructorBody);
       }
@@ -706,7 +706,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     localsHandler.startFunction(
         targetElement,
         closureDataLookup.getScopeInfo(targetElement),
-        closureDataLookup.getClosureAnalysisInfo(functionNode),
+        closureDataLookup.getClosureScope(functionNode),
         parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);
@@ -904,8 +904,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     JumpTarget jumpTarget = localsMap.getJumpTargetForFor(forStatement);
     loopHandler.handleLoop(
         forStatement,
-        localsMap.getClosureRepresentationInfoForLoop(
-            closureDataLookup, forStatement),
+        localsMap.getLoopClosureScope(closureDataLookup, forStatement),
         jumpTarget,
         buildInitializer,
         buildCondition,
@@ -1034,8 +1033,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         forInStatement,
-        localsMap.getClosureRepresentationInfoForLoop(
-            closureDataLookup, forInStatement),
+        localsMap.getLoopClosureScope(closureDataLookup, forInStatement),
         localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
@@ -1086,8 +1084,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         forInStatement,
-        localsMap.getClosureRepresentationInfoForLoop(
-            closureDataLookup, forInStatement),
+        localsMap.getLoopClosureScope(closureDataLookup, forInStatement),
         localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
@@ -1134,8 +1131,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Build fake try body:
     loopHandler.handleLoop(
         forInStatement,
-        localsMap.getClosureRepresentationInfoForLoop(
-            closureDataLookup, forInStatement),
+        localsMap.getLoopClosureScope(closureDataLookup, forInStatement),
         localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
@@ -1186,8 +1182,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         whileStatement,
-        localsMap.getClosureRepresentationInfoForLoop(
-            closureDataLookup, whileStatement),
+        localsMap.getLoopClosureScope(closureDataLookup, whileStatement),
         localsMap.getJumpTargetForWhile(whileStatement),
         () {},
         buildCondition,
@@ -1201,8 +1196,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(efortuna): I think this can be rewritten using
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    LoopClosureRepresentationInfo loopClosureInfo = localsMap
-        .getClosureRepresentationInfoForLoop(closureDataLookup, doStatement);
+    LoopClosureScope loopClosureInfo =
+        localsMap.getLoopClosureScope(closureDataLookup, doStatement);
     localsHandler.startLoop(loopClosureInfo);
     JumpTarget target = localsMap.getJumpTargetForDo(doStatement);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement, target);
@@ -1740,8 +1735,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildLoop() {
       loopHandler.handleLoop(
           switchStatement,
-          localsMap.getClosureRepresentationInfoForLoop(
-              closureDataLookup, switchStatement),
+          localsMap.getLoopClosureScope(closureDataLookup, switchStatement),
           switchTarget,
           () {},
           buildCondition,

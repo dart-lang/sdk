@@ -136,7 +136,7 @@ class LocalsHandler {
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(ClosureAnalysisInfo closureInfo,
+  void enterScope(ClosureScope closureInfo,
       {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
@@ -154,7 +154,7 @@ class LocalsHandler {
     directLocals[closureInfo.context] = box;
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
-    closureInfo.forEachCapturedVariable((_from, _to) {
+    closureInfo.forEachBoxedVariable((_from, _to) {
       LocalVariableElement from = _from;
       BoxFieldElement to = _to;
       // The [from] can only be a parameter for function-scopes and not
@@ -178,19 +178,20 @@ class LocalsHandler {
 
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
-  void updateCaptureBox(Local boxElement, List<Local> toBeCopiedElements) {
+  void updateCaptureBox(LoopClosureScope loopInfo) {
+    Local boxElement = loopInfo.context;
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(boxElement);
     HInstruction newBox = createBox();
-    for (Local boxedVariable in toBeCopiedElements) {
+    loopInfo.forEachBoxedVariable((Local boxedVariable, _) {
       // [readLocal] uses the [boxElement] to find its box. By replacing it
       // behind its back we can still get to the old values.
       updateLocal(boxElement, oldBox);
       HInstruction oldValue = readLocal(boxedVariable);
       updateLocal(boxElement, newBox);
       updateLocal(boxedVariable, oldValue);
-    }
+    });
     updateLocal(boxElement, newBox);
   }
 
@@ -198,7 +199,7 @@ class LocalsHandler {
   ///
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberEntity element, ScopeInfo scopeInfo,
-      ClosureAnalysisInfo scopeData, Map<Local, TypeMask> parameters,
+      ClosureScope scopeData, Map<Local, TypeMask> parameters,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
@@ -206,7 +207,7 @@ class LocalsHandler {
 
     parameters.forEach((Local local, TypeMask typeMask) {
       if (isGenerativeConstructorBody) {
-        if (scopeData.isCaptured(local)) {
+        if (scopeData.isBoxed(local)) {
           // The parameter will be a field in the box passed as the
           // last parameter. So no need to have it.
           return;
@@ -476,7 +477,7 @@ class LocalsHandler {
   ///    <updates>
   ///    goto loop-entry;
   ///  loop-exit:
-  void startLoop(LoopClosureRepresentationInfo loopInfo) {
+  void startLoop(LoopClosureScope loopInfo) {
     if (loopInfo.hasBoxedVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
@@ -509,7 +510,7 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(LoopClosureRepresentationInfo loopInfo) {
+  void enterLoopBody(LoopClosureScope loopInfo) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!loopInfo.hasBoxedVariables) {
@@ -517,14 +518,14 @@ class LocalsHandler {
     }
   }
 
-  void enterLoopUpdates(LoopClosureRepresentationInfo loopInfo) {
+  void enterLoopUpdates(LoopClosureScope loopInfo) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
     // In all other cases a new box will be created when entering the body of
     // the next iteration.
     if (loopInfo.hasBoxedVariables) {
-      updateCaptureBox(loopInfo.context, loopInfo.boxedVariables);
+      updateCaptureBox(loopInfo);
     }
   }
 

@@ -93,8 +93,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// TODO(johnniwinther,efortuna): Implement this.
   @override
-  ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
-    return const ClosureAnalysisInfo();
+  ClosureScope getClosureScope(ir.Node node) {
+    return const ClosureScope();
   }
 
   @override
@@ -105,9 +105,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// TODO(johnniwinther,efortuna): Implement this.
   @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ir.Node loopNode) {
-    return const LoopClosureRepresentationInfo();
+  LoopClosureScope getLoopClosureScope(ir.Node loopNode) {
+    return const LoopClosureScope();
   }
 
   @override
