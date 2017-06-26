@@ -437,7 +437,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
     if (port != 0) {
       const bool success = DartUtils::PostInt32(port, 1 << kDestroyedEvent);
       if (!success) {
-        LOG_ERR("Failed to post destroy event to port %ld\n", port);
+        LOG_INFO("Failed to post destroy event to port %ld\n", port);
       }
     }
   } else if (IS_COMMAND(msg->data, kReturnTokenCommand)) {
@@ -492,7 +492,7 @@ void EventHandlerImplementation::HandlePacket(mx_port_packet_t* pkt) {
       if (!success) {
         // This can happen if e.g. the isolate that owns the port has died
         // for some reason.
-        LOG_ERR("Failed to post event to port %ld\n", port);
+        LOG_INFO("Failed to post event to port %ld\n", port);
       }
     }
   }
