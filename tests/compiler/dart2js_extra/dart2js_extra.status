@@ -152,7 +152,6 @@ mirrors_used_closure_test: Crash # Issue 27394
 mirrors_used_metatargets_test: Crash # Issue 27394
 mirrors_used_native_test: Crash # Issue 27394
 reflect_native_types_test: Crash # Issue 27394
-type_argument_factory_nocrash_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 js_dispatch_property_test: Crash # Issue 27394

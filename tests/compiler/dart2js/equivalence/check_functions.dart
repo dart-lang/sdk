@@ -849,7 +849,7 @@ void checkEmitterLibraries(Library library1, Library library2) {
   checkLists(library1.classes, library2.classes, 'classes',
       (a, b) => a.element.name == b.element.name,
       onSameElement: checkEmitterClasses);
-// TODO(johnniwinther): Check static method properties.
+  // TODO(johnniwinther): Check static method properties.
   checkLists(library1.statics, library2.statics, 'statics',
       (a, b) => a.name.key == b.name.key);
 }

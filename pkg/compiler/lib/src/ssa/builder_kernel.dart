@@ -2264,7 +2264,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   /// Build argument list in canonical order for a static [target], including
-  /// filling in the defaulted argument value.
+  /// filling in the default argument value.
   List<HInstruction> _visitArgumentsForStaticTarget(
       ir.FunctionNode target, ir.Arguments arguments) {
     // Visit arguments in source order, then re-order and fill in defaults.
@@ -2276,7 +2276,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       values.add(_defaultValueForParameter(parameter));
     }
 
-    if (arguments.named.isNotEmpty) {
+    if (target.namedParameters.isNotEmpty) {
       var namedValues = <String, HInstruction>{};
       for (ir.NamedExpression argument in arguments.named) {
         argument.value.accept(this);
@@ -2301,6 +2301,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         }
       }
       assert(namedValues.isEmpty);
+    } else {
+      assert(arguments.named.isEmpty);
     }
 
     return values;

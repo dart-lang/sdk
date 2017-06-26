@@ -32,7 +32,7 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
-foo() => 1;
+foo({named}) => 1;
 bar(a) => !a;
 class Class {
   var field;
