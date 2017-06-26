@@ -580,7 +580,12 @@ class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
     if (send.name.name == '[]=') {
       return closedWorld.commonMasks.dynamicType;
     }
-    return _resultOf(_target).typeOfSend(_astAdapter.getNode(send));
+    ast.Node node = _astAdapter.getNodeOrNull(send);
+    if (node == null) {
+      assert(send.name.name == '==');
+      return closedWorld.commonMasks.dynamicType;
+    }
+    return _resultOf(_target).typeOfSend(node);
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {

@@ -49,10 +49,17 @@ main() {
   new Class('');
   Class.staticField;
   var x = null;
+  var y1 = x == null;
+  var y2 = null == x;
+  var z1 = x?.toString();
+  var z2 = x ?? y1;
+  var z3 = x ??= y2;
+  var w = x == null ? null : x.toString();
   for (int i = 0; i < 10; i++) {
     x = i;
     if (i == 5) break;
   }
+  print(x);
   return x;
 }
 '''
