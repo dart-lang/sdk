@@ -15,6 +15,7 @@ import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -267,6 +268,40 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
+  Future getPostfixCompletion(Request request) async {
+    var params = new EditGetPostfixCompletionParams.fromRequest(request);
+    SourceChange change;
+
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      CompilationUnitElement unitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      if (unitElement.context != null) {
+        PostfixCompletionContext context = new PostfixCompletionContext(
+            params.file,
+            result.lineInfo,
+            params.offset,
+            params.key,
+            result.driver,
+            unit,
+            unitElement,
+            result.errors);
+        PostfixCompletionProcessor processor =
+            new PostfixCompletionProcessor(context);
+        PostfixCompletion completion = await processor.compute();
+        change = completion.change;
+      }
+    }
+    if (change == null) {
+      change = new SourceChange("", edits: []);
+    }
+
+    Response response =
+        new EditGetPostfixCompletionResult(change).toResponse(request.id);
+    server.sendResponse(response);
+  }
+
   Future getStatementCompletion(Request request) async {
     var params = new EditGetStatementCompletionParams.fromRequest(request);
     SourceChange change;
@@ -324,11 +359,61 @@ class EditDomainHandler extends AbstractRequestHandler {
       } else if (requestName == EDIT_GET_STATEMENT_COMPLETION) {
         getStatementCompletion(request);
         return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_IS_POSTFIX_COMPLETION_APPLICABLE) {
+        isPostfixCompletionApplicable(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_GET_POSTFIX_COMPLETION) {
+        getPostfixCompletion(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_LIST_POSTFIX_COMPLETION_TEMPLATES) {
+        listPostfixCompletionTemplates(request);
+        return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
+  }
+
+  Future isPostfixCompletionApplicable(Request request) async {
+    var params = new EditGetPostfixCompletionParams.fromRequest(request);
+    bool value = false;
+
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      CompilationUnitElement unitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      if (unitElement.context != null) {
+        PostfixCompletionContext context = new PostfixCompletionContext(
+            params.file,
+            result.lineInfo,
+            params.offset,
+            params.key,
+            result.driver,
+            unit,
+            unitElement,
+            result.errors);
+        PostfixCompletionProcessor processor =
+            new PostfixCompletionProcessor(context);
+        value = await processor.isApplicable();
+      }
+    }
+
+    Response response = new EditIsPostfixCompletionApplicableResult(value)
+        .toResponse(request.id);
+    server.sendResponse(response);
+  }
+
+  Future listPostfixCompletionTemplates(Request request) async {
+    var templates = DartPostfixCompletion.ALL_TEMPLATES
+        .map((pfc) =>
+            new PostfixTemplateDescriptor(pfc.name, pfc.key, pfc.example))
+        .toList();
+
+    Response response = new EditListPostfixCompletionTemplatesResult(templates)
+        .toResponse(request.id);
+    server.sendResponse(response);
   }
 
   Future<Null> organizeDirectives(Request request) async {

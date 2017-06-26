@@ -95,12 +95,19 @@ const String EDIT_FORMAT = 'edit.format';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';
+//const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
+const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
+const String EDIT_GET_POSTFIX_COMPLETION = "edit.getPostfixCompletion";
+const String EDIT_IS_POSTFIX_COMPLETION_APPLICABLE =
+    "edit.isPostfixCompletionApplicable";
+const String EDIT_LIST_POSTFIX_COMPLETION_TEMPLATES =
+    "edit.listPostfixCompletionTemplates";
 
 //
 // Execution methods
 //
 const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
-const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
+//const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
 const String EDIT_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
 
