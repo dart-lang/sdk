@@ -901,11 +901,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       forStatement.body.accept(this);
     }
 
+    JumpTarget jumpTarget = localsMap.getJumpTargetForFor(forStatement);
     loopHandler.handleLoop(
         forStatement,
         localsMap.getClosureRepresentationInfoForLoop(
             closureDataLookup, forStatement),
-        localsMap.getJumpTargetForFor(forStatement),
+        jumpTarget,
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1466,10 +1467,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
-    if (handler.labels.isNotEmpty) {
-      handler.generateBreak(handler.labels.first);
+    if (localsMap.generateContinueForBreak(breakStatement)) {
+      if (handler.labels.isNotEmpty) {
+        handler.generateContinue(handler.labels.first);
+      } else {
+        handler.generateContinue();
+      }
     } else {
-      handler.generateBreak();
+      if (handler.labels.isNotEmpty) {
+        handler.generateBreak(handler.labels.first);
+      } else {
+        handler.generateBreak();
+      }
     }
   }
 
@@ -1485,8 +1494,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       body.accept(this);
       return;
     }
-    JumpHandler handler = createJumpHandler(
-        labeledStatement, localsMap.getJumpTargetForLabel(labeledStatement));
+    JumpTarget jumpTarget = localsMap.getJumpTargetForLabel(labeledStatement);
+    if (jumpTarget == null) {
+      // The label is not needed.
+      body.accept(this);
+      return;
+    }
+
+    JumpHandler handler = createJumpHandler(labeledStatement, jumpTarget);
 
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
 

@@ -280,7 +280,8 @@ class GlobalLocalsMap {
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
   Map<ir.VariableDeclaration, KLocal> _map = <ir.VariableDeclaration, KLocal>{};
-  Map<ir.LabeledStatement, KJumpTarget> _jumpTargetMap;
+  Map<ir.TreeNode, KJumpTarget> _jumpTargetMap;
+  Set<ir.BreakStatement> _breaksAsContinue;
 
   MemberEntity get currentMember => _members.last;
 
@@ -296,6 +297,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
       node.accept(visitor);
       _jumpTargetMap = visitor.jumpTargetMap;
+      _breaksAsContinue = visitor.breaksAsContinue;
     }
   }
 
@@ -317,9 +319,14 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
     _ensureJumpMap(node.target);
-    JumpTarget target = _jumpTargetMap[node.target];
+    JumpTarget target = _jumpTargetMap[node];
     assert(target != null, failedAt(currentMember, 'No target for $node.'));
     return target;
+  }
+
+  @override
+  bool generateContinueForBreak(ir.BreakStatement node) {
+    return _breaksAsContinue.contains(node);
   }
 
   @override
@@ -345,9 +352,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForLabel(ir.LabeledStatement node) {
     _ensureJumpMap(node);
-    JumpTarget target = _jumpTargetMap[node];
-    assert(target != null, failedAt(currentMember, 'No target for $node.'));
-    return target;
+    return _jumpTargetMap[node];
   }
 
   @override
@@ -360,7 +365,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForFor(ir.ForStatement node) {
     _ensureJumpMap(node);
-    return _jumpTargetMap[node.parent];
+    return _jumpTargetMap[node];
   }
 
   @override
@@ -390,25 +395,66 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 }
 
 class JumpVisitor extends ir.Visitor {
+  int index = 0;
   final MemberEntity member;
-  final Map<ir.LabeledStatement, KJumpTarget> jumpTargetMap =
-      <ir.LabeledStatement, KJumpTarget>{};
+  final Map<ir.TreeNode, KJumpTarget> jumpTargetMap =
+      <ir.TreeNode, KJumpTarget>{};
+  final Set<ir.BreakStatement> breaksAsContinue = new Set<ir.BreakStatement>();
 
   JumpVisitor(this.member);
 
-  KJumpTarget _getJumpTarget(ir.LabeledStatement node) {
+  KJumpTarget _getJumpTarget(ir.TreeNode node) {
     return jumpTargetMap.putIfAbsent(node, () {
-      return new KJumpTarget(member, jumpTargetMap.length);
+      return new KJumpTarget(member, index++);
     });
   }
 
   @override
   defaultNode(ir.Node node) => node.visitChildren(this);
 
+  bool _canBeBreakTarget(ir.TreeNode node) {
+    // TODO(johnniwinther): Add more.
+    return node is ir.ForStatement;
+  }
+
+  bool _canBeContinueTarget(ir.TreeNode node) {
+    // TODO(johnniwinther): Add more.
+    return node is ir.ForStatement;
+  }
+
   @override
   visitBreakStatement(ir.BreakStatement node) {
-    KJumpTarget target = _getJumpTarget(node.target);
-    target.isBreakTarget = true;
+    // TODO(johnniwinther): Add labels if the enclosing loop is not the implicit
+    // break target.
+    KJumpTarget target;
+    ir.TreeNode body = node.target.body;
+    ir.TreeNode parent = node.target.parent;
+    if (_canBeBreakTarget(body)) {
+      // We have code like
+      //
+      //     l1: for (int i = 0; i < 10; i++) {
+      //        break l1:
+      //     }
+      //
+      // and can therefore use the for loop as the break target.
+      target = _getJumpTarget(body);
+      target.isBreakTarget = true;
+    } else if (_canBeContinueTarget(parent)) {
+      // We have code like
+      //
+      //     for (int i = 0; i < 10; i++) l1: {
+      //        break l1:
+      //     }
+      //
+      // and can therefore use the for loop as a continue target.
+      target = _getJumpTarget(parent);
+      target.isContinueTarget = true;
+      breaksAsContinue.add(node);
+    } else {
+      target = _getJumpTarget(node.target);
+      target.isBreakTarget = true;
+    }
+    jumpTargetMap[node] = target;
     super.visitBreakStatement(node);
   }
 }
@@ -440,6 +486,21 @@ class KJumpTarget extends JumpTarget<ir.Node> {
   @override
   ir.Node get statement {
     throw new UnimplementedError('KJumpTarget.statement');
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('KJumpTarget[');
+    sb.write('memberContext=');
+    sb.write(memberContext);
+    sb.write(',nestingLevel=');
+    sb.write(nestingLevel);
+    sb.write(',isBreakTarget=');
+    sb.write(isBreakTarget);
+    sb.write(',isContinueTarget=');
+    sb.write(isContinueTarget);
+    sb.write(']');
+    return sb.toString();
   }
 }
 

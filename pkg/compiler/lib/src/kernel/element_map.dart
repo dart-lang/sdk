@@ -1078,6 +1078,9 @@ abstract class KernelToLocalsMap {
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);
 
+  /// Returns `true` if [node] should generate a `continue` to its [JumpTarget].
+  bool generateContinueForBreak(ir.BreakStatement node);
+
   /// Returns the [JumpTarget] defined by the labelled statement [node] or
   /// `null` if [node] is not a jump target.
   JumpTarget getJumpTargetForLabel(ir.LabeledStatement node);

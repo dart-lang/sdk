@@ -235,6 +235,9 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
+  bool generateContinueForBreak(ir.BreakStatement node) => false;
+
+  @override
   JumpTarget getJumpTargetForLabel(ir.LabeledStatement node) {
     return getJumpTarget(node);
   }

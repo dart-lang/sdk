@@ -21,10 +21,24 @@ import '../serialization/helper.dart';
 const SOURCE = const {
   'main.dart': '''
 main() {
-  print('Hello World!');
+  for (int i = 0; i < 10; i++) {
+    if (i == 5) continue;
+    print('Hello World: \$i!');
+    if (i == 7) break;
+  }
 }
 '''
 };
+
+const OUTPUT = '''
+Hello World: 0!
+Hello World: 1!
+Hello World: 2!
+Hello World: 3!
+Hello World: 4!
+Hello World: 6!
+Hello World: 7!
+''';
 
 main(List<String> args) {
   asyncTest(() async {
@@ -69,6 +83,7 @@ Future<ResultKind> mainInternal(List<String> args,
   print('d8 output:');
   print(out);
   Expect.equals(0, runResult.exitCode);
+  Expect.equals(OUTPUT, runResult.stdout.replaceAll('\r\n', '\n'));
 
   return ResultKind.success;
 }

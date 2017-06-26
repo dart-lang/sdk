@@ -56,6 +56,7 @@ main() {
   var z3 = x ??= y2;
   var w = x == null ? null : x.toString();
   for (int i = 0; i < 10; i++) {
+    if (i == 5) continue;
     x = i;
     if (i == 5) break;
   }
