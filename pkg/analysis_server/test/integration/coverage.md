@@ -27,11 +27,11 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] edit.getAssists
 - [x] edit.getAvailableRefactorings
 - [x] edit.getFixes
-- [ ] edit.getPostfixCompletion
+- [x] edit.getPostfixCompletion
 - [x] edit.getRefactoring
 - [x] edit.getStatementCompletion
-- [ ] edit.isPostfixCompletionApplicable
-- [ ] edit.listPostfixCompletionTemplates
+- [x] edit.isPostfixCompletionApplicable
+- [x] edit.listPostfixCompletionTemplates
 - [x] edit.sortMembers
 - [x] edit.organizeDirectives
 
