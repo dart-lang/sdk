@@ -2878,7 +2878,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Can't break to '$name' in a different function.",
           breakKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new BreakStatement(null)
+      BreakStatement statement = new KernelBreakStatement(null)
         ..fileOffset = breakKeyword.charOffset;
       target.addBreak(statement);
       push(statement);
@@ -2911,7 +2911,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = new ContinueSwitchStatement(null);
+        ContinueSwitchStatement statement =
+            new KernelContinueSwitchStatement(null);
         target.addGoto(statement);
         push(statement);
         return;
@@ -2928,7 +2929,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Can't continue at '$name' in a different function.",
           continueKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new BreakStatement(null)
+      BreakStatement statement = new KernelBreakStatement(null)
         ..fileOffset = continueKeyword.charOffset;
       target.addContinue(statement);
       push(statement);

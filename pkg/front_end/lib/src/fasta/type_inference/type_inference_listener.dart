@@ -109,6 +109,12 @@ class TypeInferenceListener
   void boolLiteralExit(BoolLiteral expression, DartType inferredType) =>
       debugExpressionExit("boolLiteral", expression, inferredType);
 
+  void breakStatementEnter(BreakStatement statement) =>
+      debugStatementEnter('breakStatement', statement);
+
+  void breakStatementExit(BreakStatement statement) =>
+      debugStatementExit('breakStatement', statement);
+
   bool cascadeExpressionEnter(Let expression, DartType typeContext) =>
       debugExpressionEnter("cascade", expression, typeContext);
 
@@ -130,6 +136,12 @@ class TypeInferenceListener
   void constructorInvocationExit(
           InvocationExpression expression, DartType inferredType) =>
       debugExpressionExit("constructorInvocation", expression, inferredType);
+
+  void continueSwitchStatementEnter(ContinueSwitchStatement statement) =>
+      debugStatementEnter('continueSwitchStatement', statement);
+
+  void continueSwitchStatementExit(ContinueSwitchStatement statement) =>
+      debugStatementExit('continueSwitchStatement', statement);
 
   void doStatementEnter(DoStatement statement) =>
       debugStatementEnter("doStatement", statement);
