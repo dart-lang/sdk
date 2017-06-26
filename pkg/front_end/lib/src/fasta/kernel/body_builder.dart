@@ -917,12 +917,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           node.name.name, node.arguments, node.fileOffset);
     }
     Expression receiver = new KernelDirectPropertyGet(
-        new KernelThisExpression()..fileOffset = node.fileOffset, target);
+        new KernelThisExpression()..fileOffset = node.fileOffset, target)
+      ..fileOffset = node.fileOffset;
     // TODO(ahe): Use [DirectPropertyGet] when possible, that is, remove the
     // next line:
-    receiver = new KernelSuperPropertyGet(node.name, target);
+    receiver = new KernelSuperPropertyGet(node.name, target)
+      ..fileOffset = node.fileOffset;
     return buildMethodInvocation(
-        receiver, callName, node.arguments, node.fileOffset,
+        receiver, callName, node.arguments, node.arguments.fileOffset,
         isImplicitCall: true);
   }
 

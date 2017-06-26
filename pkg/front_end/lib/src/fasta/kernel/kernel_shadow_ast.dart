@@ -556,21 +556,21 @@ class KernelDirectPropertyGet extends DirectPropertyGet
   KernelDirectPropertyGet(Expression receiver, Member target)
       : super(receiver, target);
 
-  KernelDirectPropertyGet.byReference(
-      Expression receiver, Reference targetReference)
-      : super.byReference(receiver, targetReference);
-
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
-    // TODO(paulberry): Determine the right thing to do here.
-    throw 'TODO(paulberry)';
+    // DirectPropertyGet can only occur as a result of a use of `super`, and
+    // `super` can't appear inside a field initializer.  So this code should
+    // never be reached.
+    internalError(
+        'Unexpected call to _collectDependencies for DirectPropertyGet');
   }
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferPropertyGet(
+        this, receiver, fileOffset, typeContext, typeNeeded,
+        propertyName: target.name);
   }
 }
 
@@ -1381,14 +1381,9 @@ class KernelNullAwarePropertyGet extends Let implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    var inferredType = inferrer.inferPropertyGet(
-        this,
-        variable.initializer,
-        fileOffset,
-        _desugaredGet,
-        typeContext,
-        typeNeeded || inferrer.strongMode,
-        receiverVariable: variable);
+    var inferredType = inferrer.inferPropertyGet(this, variable.initializer,
+        fileOffset, typeContext, typeNeeded || inferrer.strongMode,
+        receiverVariable: variable, desugaredGet: _desugaredGet);
     if (inferrer.strongMode) {
       body.staticType = inferredType;
     }
@@ -1562,7 +1557,8 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     return inferrer.inferPropertyGet(
-        this, receiver, fileOffset, this, typeContext, typeNeeded);
+        this, receiver, fileOffset, typeContext, typeNeeded,
+        desugaredGet: this);
   }
 }
 
@@ -1796,10 +1792,6 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
       [Procedure interfaceTarget])
       : super(name, arguments, interfaceTarget);
 
-  KernelSuperMethodInvocation.byReference(
-      Name name, Arguments arguments, Reference interfaceTargetReference)
-      : super.byReference(name, arguments, interfaceTargetReference);
-
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
     // Super expressions should never occur in top level type inference.
@@ -1826,10 +1818,6 @@ class KernelSuperPropertyGet extends SuperPropertyGet
   KernelSuperPropertyGet(Name name, [Member interfaceTarget])
       : super(name, interfaceTarget);
 
-  KernelSuperPropertyGet.byReference(
-      Name name, Reference interfaceTargetReference)
-      : super.byReference(name, interfaceTargetReference);
-
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
     // Super expressions should never occur in top level type inference.
@@ -1840,8 +1828,9 @@ class KernelSuperPropertyGet extends SuperPropertyGet
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferPropertyGet(
+        this, new KernelThisExpression(), fileOffset, typeContext, typeNeeded,
+        propertyName: name);
   }
 }
 

@@ -838,14 +838,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  DartType inferPropertyGet(
-      Expression expression,
-      Expression receiver,
-      int fileOffset,
+  DartType inferPropertyGet(Expression expression, Expression receiver,
+      int fileOffset, DartType typeContext, bool typeNeeded,
+      {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
-      DartType typeContext,
-      bool typeNeeded,
-      {VariableDeclaration receiverVariable}) {
+      Name propertyName}) {
     typeNeeded =
         listener.propertyGetEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the getter that was invoked.
@@ -853,8 +850,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
+    propertyName ??= desugaredGet.name;
     Member interfaceMember =
-        findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
+        findInterfaceMember(receiverType, propertyName, fileOffset);
     if (isTopLevel &&
         ((interfaceMember is Procedure &&
                 interfaceMember.kind == ProcedureKind.Getter) ||
@@ -872,9 +870,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         recordNotImmediatelyEvident(fileOffset);
       }
     }
-    desugaredGet.interfaceTarget = interfaceMember;
+    desugaredGet?.interfaceTarget = interfaceMember;
     var inferredType =
-        getCalleeType(interfaceMember, receiverType, desugaredGet.name);
+        getCalleeType(interfaceMember, receiverType, propertyName);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
     listener.propertyGetExit(expression, inferredType);
     return typeNeeded ? inferredType : null;

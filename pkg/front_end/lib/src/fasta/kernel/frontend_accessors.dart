@@ -14,6 +14,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelNullAwarePropertyGet,
         KernelPropertyAssign,
         KernelPropertyGet,
+        KernelSuperPropertyGet,
         KernelThisExpression,
         KernelVariableDeclaration,
         KernelVariableGet;
@@ -374,7 +375,7 @@ class SuperPropertyAccessor extends Accessor {
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
     if (getter == null) return makeInvalidRead();
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    var read = new SuperPropertyGet(name, getter)
+    var read = new KernelSuperPropertyGet(name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;

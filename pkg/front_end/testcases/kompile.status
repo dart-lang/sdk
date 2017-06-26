@@ -361,6 +361,10 @@ inference/static_method_tear_off: Crash
 inference/string_literal: Crash
 inference/subexpressions_of_explicitly_typed_fields: Crash
 inference/super_method_invocation: RuntimeError
+inference/super_property_get: Crash
+inference/super_property_get_invoke_function_typed: Crash
+inference/super_property_get_invoke_implicit_call: Crash
+inference/super_property_get_tearoff: VerificationError
 inference/this_reference: Crash
 inference/top_level_return_and_yield: Crash
 inference/toplevel_inference_toplevel_var: Crash

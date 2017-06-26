@@ -507,6 +507,19 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         _recordTypeArguments(node.methodName.offset, inferredTypeArguments);
       }
     }
+    var methodElement = node.methodName.staticElement;
+    if (node.target is SuperExpression &&
+        methodElement is PropertyAccessorElement) {
+      // This is a hack since analyzer doesn't record .call targets
+      var getterClass = methodElement.returnType.element;
+      if (getterClass is ClassElement) {
+        var target = getterClass.lookUpMethod('call', null) ??
+            getterClass.lookUpGetter('call', null);
+        if (target != null) {
+          _recordTarget(node.argumentList.offset, target);
+        }
+      }
+    }
   }
 
   visitPrefixExpression(PrefixExpression node) {
