@@ -15,6 +15,7 @@ import 'dart:_internal'
     show EfficientLengthIterable, MappedIterable, IterableElementError;
 
 import 'dart:_native_typed_data';
+import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
 part 'linked_hash_map.dart';
@@ -183,17 +184,8 @@ class Primitives {
   /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
-  /// Returns the type of [object] as a string (including type arguments).
-  ///
-  /// In minified mode, uses the unminified names if available.
-  static String objectTypeName(Object object) {
-    return getRuntimeType(object).toString();
-  }
-
-  /// In minified mode, uses the unminified names if available.
   static String objectToString(Object object) {
-    // String name = objectTypeName(object);
-    String name = JS('String', 'dart.typeName(dart.getReifiedType(#))', object);
+    String name = dart.typeName(dart.getReifiedType(object));
     return "Instance of '$name'";
   }
 
