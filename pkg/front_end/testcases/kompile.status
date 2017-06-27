@@ -377,6 +377,7 @@ inference/try_finally: Crash
 inference/type_cast: Crash
 inference/type_promotion_ignores_local_functions: Crash
 inference/type_promotion_not_and_not: Crash
+inference/unresolved_super: VerificationError
 inference/unsafe_block_closure_inference_closure_call: Crash
 inference/unsafe_block_closure_inference_constructor_call_explicit_dynamic_param: Crash
 inference/unsafe_block_closure_inference_constructor_call_explicit_type_param: Crash
