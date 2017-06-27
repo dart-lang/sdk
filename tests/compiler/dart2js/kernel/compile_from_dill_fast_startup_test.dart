@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test compilation equivalence between source and .dill based
-// compilation using the default emitter (full_emitter).
-library dart2js.kernel.compile_from_dill_test;
+// compilation using the fast_startup emitter.
+library dart2js.kernel.compile_from_dill_fast_startup_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import '../serialization/helper.dart';
 
 import 'compile_from_dill_test_helper.dart';
 
+// TODO(johnniwinther): Maybe share this with 'compile_from_dill_test.dart'.
 const SOURCE = const {
   'main.dart': '''
 foo({named}) => 1;
@@ -30,18 +32,10 @@ main() {
   new Class('');
   Class.staticField;
   var x = null;
-  var y1 = x == null;
-  var y2 = null == x;
-  var z1 = x?.toString();
-  var z2 = x ?? y1;
-  var z3 = x ??= y2;
-  var w = x == null ? null : x.toString();
   for (int i = 0; i < 10; i++) {
-    if (i == 5) continue;
     x = i;
     if (i == 5) break;
   }
-  print(x);
   return x;
 }
 '''
@@ -69,5 +63,6 @@ Future<ResultKind> mainInternal(List<String> args,
   return runTest(entryPoint, memorySourceFiles,
       verbose: arguments.verbose,
       skipWarnings: skipWarnings,
-      skipErrors: skipErrors);
+      skipErrors: skipErrors,
+      options: [Flags.fastStartup]);
 }
