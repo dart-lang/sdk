@@ -12135,7 +12135,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             ReportError("generic type arguments not supported.");
           }
           func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
-          if (!FLAG_reify_generic_functions) {
+          if (FLAG_reify_generic_functions) {
+            if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
+                (FunctionLevel() > 0)) {
+              // Make sure that the instantiators are captured.
+              CaptureAllInstantiators();
+            }
+          } else {
             func_type_args = TypeArguments::null();
           }
         }
@@ -12228,7 +12234,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ReportError("generic type arguments not supported.");
         }
         func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
-        if (!FLAG_reify_generic_functions) {
+        if (FLAG_reify_generic_functions) {
+          if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
+              (FunctionLevel() > 0)) {
+            // Make sure that the instantiators are captured.
+            CaptureAllInstantiators();
+          }
+        } else {
           func_type_args = TypeArguments::null();
         }
       }
@@ -14839,7 +14851,13 @@ AstNode* Parser::ParsePrimary() {
             ReportError("generic type arguments not supported.");
           }
           func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
-          if (!FLAG_reify_generic_functions) {
+          if (FLAG_reify_generic_functions) {
+            if (!func_type_args.IsNull() && !func_type_args.IsInstantiated() &&
+                (FunctionLevel() > 0)) {
+              // Make sure that the instantiators are captured.
+              CaptureAllInstantiators();
+            }
+          } else {
             func_type_args = TypeArguments::null();
           }
         }

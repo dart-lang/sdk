@@ -109,6 +109,15 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   scope_->set_begin_token_pos(function.token_pos());
   scope_->set_end_token_pos(function.end_token_pos());
 
+  // Add function type arguments variable before current context variable.
+  if (FLAG_reify_generic_functions && function.IsGeneric()) {
+    LocalVariable* type_args_var = MakeVariable(
+        TokenPosition::kNoSource, TokenPosition::kNoSource,
+        Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
+    scope_->AddVariable(type_args_var);
+    parsed_function_->set_function_type_arguments(type_args_var);
+  }
+
   LocalVariable* context_var = parsed_function->current_context_var();
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
