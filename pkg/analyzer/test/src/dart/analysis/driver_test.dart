@@ -1323,6 +1323,18 @@ class B {}
     expect(result.path, testFile);
   }
 
+  test_getResult_genericFunctionType_parameter_named() async {
+    String content = '''
+class C {
+  test({bool Function(String) p}) {}
+}
+''';
+    addTestFile(content, priority: true);
+
+    var result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+  }
+
   test_getResult_inferTypes_finalField() async {
     addTestFile(
         r'''
