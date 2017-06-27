@@ -1491,5 +1491,6 @@ class _MockSource implements Source {
 
   _MockSource(this.fullName, this.uri);
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
