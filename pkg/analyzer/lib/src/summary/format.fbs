@@ -1151,6 +1151,12 @@ table AnalysisDriverUnlinkedUnit {
   referencedNames:[string] (id: 0);
 
   /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  subtypedNames:[string] (id: 4);
+
+  /**
    * Unlinked information for the unit.
    */
   unit:UnlinkedUnit (id: 1);

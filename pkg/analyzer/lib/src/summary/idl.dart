@@ -332,6 +332,13 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
   List<String> get referencedNames;
 
   /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  @Id(4)
+  List<String> get subtypedNames;
+
+  /**
    * Unlinked information for the unit.
    */
   @Id(1)

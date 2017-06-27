@@ -116,6 +116,7 @@ class FileState {
   Set<String> _definedTopLevelNames;
   Set<String> _definedClassMemberNames;
   Set<String> _referencedNames;
+  Set<String> _subtypedNames;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
@@ -277,6 +278,12 @@ class FileState {
   Set<String> get referencedNames => _referencedNames;
 
   /**
+   * The names which are used in `extends`, `with` or `implements` clauses in
+   * the file. Import prefixes and type arguments are not included.
+   */
+  Set<String> get subtypedNames => _subtypedNames;
+
+  /**
    * Return public top-level declarations declared in the file. The keys to the
    * map are names of declarations.
    */
@@ -435,14 +442,16 @@ class FileState {
         CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-          List<String> referencedNames = computeReferencedNames(unit).toList();
           DefinedNames definedNames = computeDefinedNames(unit);
+          List<String> referencedNames = computeReferencedNames(unit).toList();
+          List<String> subtypedNames = computeSubtypedNames(unit).toList();
           bytes = new AnalysisDriverUnlinkedUnitBuilder(
                   unit: unlinkedUnit,
                   definedTopLevelNames: definedNames.topLevelNames.toList(),
                   definedClassMemberNames:
                       definedNames.classMemberNames.toList(),
-                  referencedNames: referencedNames)
+                  referencedNames: referencedNames,
+                  subtypedNames: subtypedNames)
               .toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
@@ -455,6 +464,7 @@ class FileState {
     _definedClassMemberNames =
         driverUnlinkedUnit.definedClassMemberNames.toSet();
     _referencedNames = driverUnlinkedUnit.referencedNames.toSet();
+    _subtypedNames = driverUnlinkedUnit.subtypedNames.toSet();
     _unlinked = driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
     _topLevelDeclarations = null;

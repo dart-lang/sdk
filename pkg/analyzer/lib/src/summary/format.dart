@@ -1698,6 +1698,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   List<String> _definedClassMemberNames;
   List<String> _definedTopLevelNames;
   List<String> _referencedNames;
+  List<String> _subtypedNames;
   UnlinkedUnitBuilder _unit;
 
   @override
@@ -1732,6 +1733,17 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   }
 
   @override
+  List<String> get subtypedNames => _subtypedNames ??= <String>[];
+
+  /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  void set subtypedNames(List<String> value) {
+    this._subtypedNames = value;
+  }
+
+  @override
   UnlinkedUnitBuilder get unit => _unit;
 
   /**
@@ -1745,10 +1757,12 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
       {List<String> definedClassMemberNames,
       List<String> definedTopLevelNames,
       List<String> referencedNames,
+      List<String> subtypedNames,
       UnlinkedUnitBuilder unit})
       : _definedClassMemberNames = definedClassMemberNames,
         _definedTopLevelNames = definedTopLevelNames,
         _referencedNames = referencedNames,
+        _subtypedNames = subtypedNames,
         _unit = unit;
 
   /**
@@ -1788,6 +1802,14 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
         signature.addString(x);
       }
     }
+    if (this._subtypedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._subtypedNames.length);
+      for (var x in this._subtypedNames) {
+        signature.addString(x);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -1799,6 +1821,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     fb.Offset offset_definedClassMemberNames;
     fb.Offset offset_definedTopLevelNames;
     fb.Offset offset_referencedNames;
+    fb.Offset offset_subtypedNames;
     fb.Offset offset_unit;
     if (!(_definedClassMemberNames == null ||
         _definedClassMemberNames.isEmpty)) {
@@ -1815,6 +1838,10 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
       offset_referencedNames = fbBuilder.writeList(
           _referencedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
+    if (!(_subtypedNames == null || _subtypedNames.isEmpty)) {
+      offset_subtypedNames = fbBuilder.writeList(
+          _subtypedNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
     if (_unit != null) {
       offset_unit = _unit.finish(fbBuilder);
     }
@@ -1827,6 +1854,9 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     }
     if (offset_referencedNames != null) {
       fbBuilder.addOffset(0, offset_referencedNames);
+    }
+    if (offset_subtypedNames != null) {
+      fbBuilder.addOffset(4, offset_subtypedNames);
     }
     if (offset_unit != null) {
       fbBuilder.addOffset(1, offset_unit);
@@ -1862,6 +1892,7 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
   List<String> _definedClassMemberNames;
   List<String> _definedTopLevelNames;
   List<String> _referencedNames;
+  List<String> _subtypedNames;
   idl.UnlinkedUnit _unit;
 
   @override
@@ -1888,6 +1919,13 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
   }
 
   @override
+  List<String> get subtypedNames {
+    _subtypedNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
+    return _subtypedNames;
+  }
+
+  @override
   idl.UnlinkedUnit get unit {
     _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
     return _unit;
@@ -1905,6 +1943,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
       _result["definedTopLevelNames"] = definedTopLevelNames;
     if (referencedNames.isNotEmpty)
       _result["referencedNames"] = referencedNames;
+    if (subtypedNames.isNotEmpty) _result["subtypedNames"] = subtypedNames;
     if (unit != null) _result["unit"] = unit.toJson();
     return _result;
   }
@@ -1914,6 +1953,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
         "definedClassMemberNames": definedClassMemberNames,
         "definedTopLevelNames": definedTopLevelNames,
         "referencedNames": referencedNames,
+        "subtypedNames": subtypedNames,
         "unit": unit,
       };
 
