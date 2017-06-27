@@ -71,6 +71,11 @@ class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
+  /// Cache of [AnalysisOptionsImpl] objects that correspond to directories
+  /// with analyzed files, used to reduce searching for `analysis_options.yaml`
+  /// files.
+  static Map<String, AnalysisOptionsImpl> _directoryToAnalysisOptions = {};
+
   static ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
 
   /// The plugins that are defined outside the `analyzer_cli` package.
@@ -311,88 +316,6 @@ class Driver implements CommandLineStarter {
     });
   }
 
-  /// Determine whether the context created during a previous call to
-  /// [_analyzeAll] can be re-used in order to analyze using [options].
-  bool _canContextBeReused(
-      CommandLineOptions options, AnalysisOptionsImpl other) {
-    // TODO(paulberry): add a command-line option that disables context re-use.
-    if (_context == null) {
-      return false;
-    }
-
-    // Check command line options.
-    if (options.packageRootPath != _previousOptions.packageRootPath) {
-      return false;
-    }
-    if (options.packageConfigPath != _previousOptions.packageConfigPath) {
-      return false;
-    }
-    if (!_equalMaps(
-        options.definedVariables, _previousOptions.definedVariables)) {
-      return false;
-    }
-    if (options.log != _previousOptions.log) {
-      return false;
-    }
-    if (options.disableHints != _previousOptions.disableHints) {
-      return false;
-    }
-    if (options.enableStrictCallChecks !=
-        _previousOptions.enableStrictCallChecks) {
-      return false;
-    }
-    if (options.enableAssertInitializer !=
-        _previousOptions.enableAssertInitializer) {
-      return false;
-    }
-    if (options.showPackageWarnings != _previousOptions.showPackageWarnings) {
-      return false;
-    }
-    if (options.showPackageWarningsPrefix !=
-        _previousOptions.showPackageWarningsPrefix) {
-      return false;
-    }
-    if (options.showSdkWarnings != _previousOptions.showSdkWarnings) {
-      return false;
-    }
-    if (options.lints != _previousOptions.lints) {
-      return false;
-    }
-    if (options.strongMode != _previousOptions.strongMode) {
-      return false;
-    }
-    if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
-      return false;
-    }
-    if (!_equalLists(
-        options.buildSummaryInputs, _previousOptions.buildSummaryInputs)) {
-      return false;
-    }
-    if (options.disableCacheFlushing != _previousOptions.disableCacheFlushing) {
-      return false;
-    }
-
-    // Check analysis options.
-    var c = _context.analysisOptions;
-    if (!(other.enableAssertInitializer == c.enableAssertInitializer &&
-        other.enableStrictCallChecks == c.enableStrictCallChecks &&
-        other.enableLazyAssignmentOperators ==
-            c.enableLazyAssignmentOperators &&
-        other.enableSuperMixins == c.enableSuperMixins &&
-        other.enableTiming == c.enableTiming &&
-        other.generateImplicitErrors == c.generateImplicitErrors &&
-        other.generateSdkErrors == c.generateSdkErrors &&
-        other.hint == c.hint &&
-        other.lint == c.lint &&
-        AnalysisOptionsImpl.compareLints(other.lintRules, c.lintRules) &&
-        other.preserveComments == c.preserveComments &&
-        other.strongMode == c.strongMode)) {
-      return false;
-    }
-
-    return true;
-  }
-
   /// Decide on the appropriate policy for which files need to be fully parsed
   /// and which files need to be diet parsed, based on [options], and return an
   /// [AnalyzeFunctionBodiesPredicate] that implements this policy.
@@ -521,11 +444,10 @@ class Driver implements CommandLineStarter {
     return new SourceFactory(resolvers, packageInfo.packages);
   }
 
-  // TODO(devoncarew): This needs to respect analysis_options excludes.
-
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
   Iterable<io.File> _collectFiles(String filePath) {
+    // TODO(devoncarew): This needs to respect analysis_options excludes.
     List<io.File> files = <io.File>[];
     io.File file = new io.File(filePath);
     if (file.existsSync()) {
@@ -567,16 +489,25 @@ class Driver implements CommandLineStarter {
   /// Create an analysis context that is prepared to analyze sources according
   /// to the given [options], and store it in [_context].
   void _createAnalysisContext(CommandLineOptions options) {
+    // If not the same command-line options, clear cached information.
+    if (!_equalCommandLineOptions(_previousOptions, options)) {
+      _previousOptions = options;
+      _directoryToAnalysisOptions.clear();
+      _context = null;
+      analysisDriver = null;
+    }
+
     AnalysisOptionsImpl analysisOptions =
         createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
     analysisOptions.analyzeFunctionBodiesPredicate =
         _chooseDietParsingPolicy(options);
 
-    if (_canContextBeReused(options, analysisOptions)) {
+    // If we have the analysis driver, and the new analysis options are the
+    // same, we can reuse this analysis driver.
+    if (_context != null &&
+        _equalAnalysisOptions(_context.analysisOptions, analysisOptions)) {
       return;
     }
-
-    _previousOptions = options;
 
     // Save stats from previous context before clobbering it.
     if (_context != null) {
@@ -658,6 +589,23 @@ class Driver implements CommandLineStarter {
     }
 
     return null;
+  }
+
+  /// Return whether [a] and [b] options are equal for the purpose of
+  /// command line analysis.
+  bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
+    return a.enableAssertInitializer == b.enableAssertInitializer &&
+        a.enableStrictCallChecks == b.enableStrictCallChecks &&
+        a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
+        a.enableSuperMixins == b.enableSuperMixins &&
+        a.enableTiming == b.enableTiming &&
+        a.generateImplicitErrors == b.generateImplicitErrors &&
+        a.generateSdkErrors == b.generateSdkErrors &&
+        a.hint == b.hint &&
+        a.lint == b.lint &&
+        AnalysisOptionsImpl.compareLints(a.lintRules, b.lintRules) &&
+        a.preserveComments == b.preserveComments &&
+        a.strongMode == b.strongMode;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {
@@ -805,8 +753,22 @@ class Driver implements CommandLineStarter {
       outSink.writeln(text);
     }
 
-    AnalysisOptionsImpl contextOptions = new ContextBuilder(
-            resourceProvider, null, null,
+    // Prepare the directory which is, or contains, the context root.
+    String contextRootDirectory;
+    if (resourceProvider.getFolder(contextRoot).exists) {
+      contextRootDirectory = contextRoot;
+    } else {
+      contextRootDirectory = resourceProvider.pathContext.dirname(contextRoot);
+    }
+
+    // Check if there is the options object for the content directory.
+    AnalysisOptionsImpl contextOptions =
+        _directoryToAnalysisOptions[contextRootDirectory];
+    if (contextOptions != null) {
+      return contextOptions;
+    }
+
+    contextOptions = new ContextBuilder(resourceProvider, null, null,
             options: options.contextBuilderOptions)
         .getAnalysisOptions(contextRoot,
             verbosePrint: options.verbose ? verbosePrint : null);
@@ -820,6 +782,7 @@ class Driver implements CommandLineStarter {
       contextOptions.enableAssertInitializer = options.enableAssertInitializer;
     }
 
+    _directoryToAnalysisOptions[contextRootDirectory] = contextOptions;
     return contextOptions;
   }
 
@@ -850,6 +813,63 @@ class Driver implements CommandLineStarter {
 
     // Set context options.
     context.analysisOptions = analysisOptions;
+  }
+
+  /// Return whether the [newOptions] are equal to the [previous].
+  static bool _equalCommandLineOptions(
+      CommandLineOptions previous, CommandLineOptions newOptions) {
+    if (previous == null || newOptions == null) {
+      return false;
+    }
+    if (newOptions.packageRootPath != previous.packageRootPath) {
+      return false;
+    }
+    if (newOptions.packageConfigPath != previous.packageConfigPath) {
+      return false;
+    }
+    if (!_equalMaps(newOptions.definedVariables, previous.definedVariables)) {
+      return false;
+    }
+    if (newOptions.log != previous.log) {
+      return false;
+    }
+    if (newOptions.disableHints != previous.disableHints) {
+      return false;
+    }
+    if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
+      return false;
+    }
+    if (newOptions.enableAssertInitializer !=
+        previous.enableAssertInitializer) {
+      return false;
+    }
+    if (newOptions.showPackageWarnings != previous.showPackageWarnings) {
+      return false;
+    }
+    if (newOptions.showPackageWarningsPrefix !=
+        previous.showPackageWarningsPrefix) {
+      return false;
+    }
+    if (newOptions.showSdkWarnings != previous.showSdkWarnings) {
+      return false;
+    }
+    if (newOptions.lints != previous.lints) {
+      return false;
+    }
+    if (newOptions.strongMode != previous.strongMode) {
+      return false;
+    }
+    if (newOptions.enableSuperMixins != previous.enableSuperMixins) {
+      return false;
+    }
+    if (!_equalLists(
+        newOptions.buildSummaryInputs, previous.buildSummaryInputs)) {
+      return false;
+    }
+    if (newOptions.disableCacheFlushing != previous.disableCacheFlushing) {
+      return false;
+    }
+    return true;
   }
 
   /// Perform a deep comparison of two string lists.
