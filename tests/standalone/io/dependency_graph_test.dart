@@ -4,40 +4,41 @@
 
 import 'package:expect/expect.dart';
 
-import '../../../tools/testing/dart/dependency_graph.dart' as graph;
+import '../../../tools/testing/dart/dependency_graph.dart';
 
 main() {
-  var dgraph = new graph.Graph();
+  var graph = new Graph<int>();
   var numberOfEvents = 0;
-  var eventAssertions = [];
+  var addEventAssertions = [];
+  var changeEventAssertions = [];
 
-  graph.Node newNode(int i, List deps) {
-    graph.Node node = dgraph.newNode(i, deps);
-    Expect.isTrue(node.userData == i);
-    Expect.isTrue(dgraph.nodes.contains(node));
+  Node<int> newNode(int i, List<Node<int>> deps) {
+    var node = graph.add(i, deps);
+    Expect.isTrue(node.data == i);
+    Expect.isTrue(graph.nodes.contains(node));
     for (var dep in deps) {
       Expect.isTrue(node.dependencies.contains(dep));
       Expect.isTrue(dep.neededFor.contains(node));
     }
 
     numberOfEvents++;
-    eventAssertions.add((event) {
-      Expect.isTrue(event is graph.NodeAddedEvent);
-      Expect.isTrue(event.node == node);
+    addEventAssertions.add((event) {
+      Expect.isTrue(event == node);
+      Expect.isTrue(event.data == i);
     });
 
     return node;
   }
 
-  changeState(graph.Node node, graph.NodeState newState) {
+  changeState(Node<int> node, NodeState newState) {
     var oldState = node.state;
 
-    dgraph.changeState(node, newState);
+    graph.changeState(node, newState);
     Expect.isTrue(node.state == newState);
 
     numberOfEvents++;
-    eventAssertions.add((event) {
-      Expect.isTrue(event is graph.StateChangedEvent);
+    changeEventAssertions.add((event) {
+      Expect.isTrue(event is StateChangedEvent);
       Expect.isTrue(event.node == node);
       Expect.isTrue(event.from == oldState);
       Expect.isTrue(event.to == newState);
@@ -47,16 +48,22 @@ main() {
   var node1, node2, node3;
 
   node1 = newNode(1, []);
-  changeState(node1, graph.NodeState.Processing);
+  changeState(node1, NodeState.processing);
   node2 = newNode(2, [node1]);
-  changeState(node1, graph.NodeState.Successful);
+  changeState(node1, NodeState.successful);
   node3 = newNode(3, [node1, node2]);
-  changeState(node2, graph.NodeState.Failed);
-  changeState(node3, graph.NodeState.UnableToRun);
+  changeState(node2, NodeState.failed);
+  changeState(node3, NodeState.unableToRun);
 
-  dgraph.events.take(numberOfEvents).toList().then((events) {
+  graph.added.take(numberOfEvents).toList().then((events) {
     for (var i = 0; i < events.length; i++) {
-      eventAssertions[i](events[i]);
+      addEventAssertions[i](events[i]);
+    }
+  });
+
+  graph.changed.take(numberOfEvents).toList().then((events) {
+    for (var i = 0; i < events.length; i++) {
+      changeEventAssertions[i](events[i]);
     }
   });
 }

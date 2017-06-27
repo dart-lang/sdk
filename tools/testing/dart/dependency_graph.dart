@@ -2,66 +2,75 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dependency_graph;
-
 import 'dart:async';
+
 import 'utils.dart';
 
-/*
- * [Graph] represents a datastructure for representing an DAG (directed acyclic
- * graph). Each node in the graph is in a given [NodeState] and can have data
- * attached to it with [Node.userData].
- *
- * It's interface consists basically of these methods:
- *   - newNode: Adds a new node to the graph with the given dependencies and
- *              the given user data. The node is in the [NodeState.Initialized]
- *              state.
- *   - changeState: Changes the state of a node.
- *   - sealGraph: Makes the graph immutable.
- *   - stateCount: Counts the number of nodes who are in a given [NodeState].
- *
- * Users of a [Graph] can listen for events by subscribing to the [events]
- * stream. Three types of events will be fired (after the graph was modified):
- *   - NodeAddedEvent: Fired after a node was added ot the graph.
- *   - StateChangedEvent: Fired after the state of a node changed.
- *   - GraphSealedEvent: Fired after the graph was marked as immutable/sealed.
- */
-class Graph {
-  final _nodes = new Set<Node>();
-  final StreamController<GraphEvent> _eventController;
+/// A directed acyclic graph where each node is in a [NodeState] and can have
+/// data attached to it with [Node.data].
+///
+/// The graph exposes a few broadcast streams that can be subscribed to in
+/// order to be notified of modifications to the graph.
+class Graph<T> {
+  final _nodes = new Set<Node<T>>();
   final _stateCounts = <NodeState, int>{};
-  final Stream<GraphEvent> _eventStream;
   bool _isSealed = false;
 
+  /// Notifies when nodes are added to the graph.
+  final Stream<Node<T>> added;
+  final StreamController<Node<T>> _addedController;
+
+  /// Notifies when a node's state has changed.
+  final Stream<StateChangedEvent<T>> changed;
+  final StreamController<StateChangedEvent<T>> _changedController;
+
+  /// Notifies when the graph is sealed.
+  final Stream<Null> sealed;
+  final StreamController<Null> _sealedController;
+
   factory Graph() {
-    var controller = new StreamController<GraphEvent>();
-    return new Graph._(controller, controller.stream.asBroadcastStream());
+    var added = new StreamController<Node<T>>();
+    var changed = new StreamController<StateChangedEvent<T>>();
+    var sealed = new StreamController<Null>();
+
+    return new Graph._(
+        added,
+        added.stream.asBroadcastStream(),
+        changed,
+        changed.stream.asBroadcastStream(),
+        sealed,
+        sealed.stream.asBroadcastStream());
   }
 
-  Graph._(this._eventController, this._eventStream);
+  Graph._(this._addedController, this.added, this._changedController,
+      this.changed, this._sealedController, this.sealed);
 
-  Iterable<Node> get nodes => _nodes;
-  Stream<GraphEvent> get events => _eventStream;
+  Iterable<Node<T>> get nodes => _nodes;
   bool get isSealed => _isSealed;
 
+  /// Counts the number of nodes who are in [state].
   int stateCount(NodeState state) {
     int count = _stateCounts[state];
     return count == null ? 0 : count;
   }
 
-  void DumpCounts() {
+  void dumpCounts() {
     for (var state in _stateCounts.keys) {
       print("Count[$state] = ${_stateCounts[state]}");
     }
   }
 
-  void sealGraph() {
+  /// Makes the graph immutable.
+  void seal() {
     assert(!_isSealed);
     _isSealed = true;
-    _emitEvent(new GraphSealedEvent());
+    _emitEvent(_sealedController, null);
   }
 
-  Node newNode(Object userData, Iterable<Node> dependencies) {
+  /// Adds a new node to the graph with [dependencies] and [userData].
+  ///
+  /// The node is in the [NodeState.initialized] state.
+  Node<T> add(T userData, Iterable<Node<T>> dependencies) {
     assert(!_isSealed);
 
     var node = new Node._(userData);
@@ -72,7 +81,7 @@ class Graph {
       node._dependencies.add(dependency);
     }
 
-    _emitEvent(new NodeAddedEvent(node));
+    _emitEvent(_addedController, node);
 
     _stateCounts.putIfAbsent(node.state, () => 0);
     _stateCounts[node.state] += 1;
@@ -80,68 +89,60 @@ class Graph {
     return node;
   }
 
-  void changeState(Node node, NodeState newState) {
+  /// Changes the state of [node] to [state].
+  void changeState(Node<T> node, NodeState state) {
     var fromState = node.state;
-    node._state = newState;
+    node._state = state;
 
     _stateCounts[fromState] -= 1;
-    _stateCounts.putIfAbsent(newState, () => 0);
-    _stateCounts[newState] += 1;
+    _stateCounts.putIfAbsent(state, () => 0);
+    _stateCounts[state] += 1;
 
-    _emitEvent(new StateChangedEvent(node, fromState, newState));
+    _emitEvent(
+        _changedController, new StateChangedEvent(node, fromState, state));
   }
 
-  void _emitEvent(GraphEvent event) {
-    // We emit events asynchronously so the graph can be build up in small
-    // batches and the events are delivered in small batches.
+  /// We emit events asynchronously so the graph can be build up in small
+  /// batches and the events are delivered in small batches.
+  void _emitEvent<E>(StreamController<E> controller, E event) {
     Timer.run(() {
-      _eventController.add(event);
+      controller.add(event);
     });
   }
 }
 
-class Node extends UniqueObject {
-  final Object _userData;
-  NodeState _state = NodeState.Initialized;
-  Set<Node> _dependencies = new Set<Node>();
-  Set<Node> _neededFor = new Set<Node>();
+/// A single node in a [Graph].
+class Node<T> extends UniqueObject {
+  final T data;
+  NodeState _state = NodeState.initialized;
+  final Set<Node<T>> _dependencies = new Set();
+  final Set<Node<T>> _neededFor = new Set();
 
-  Node._(this._userData);
+  Node._(this.data);
 
-  Object get userData => _userData;
   NodeState get state => _state;
-  Iterable<Node> get dependencies => _dependencies;
-  Iterable<Node> get neededFor => _neededFor;
+  Iterable<Node<T>> get dependencies => _dependencies;
+  Iterable<Node<T>> get neededFor => _neededFor;
 }
 
-class NodeState extends UniqueObject {
-  static NodeState Initialized = new NodeState._("Initialized");
-  static NodeState Waiting = new NodeState._("Waiting");
-  static NodeState Enqueuing = new NodeState._("Enqueuing");
-  static NodeState Processing = new NodeState._("Running");
-  static NodeState Successful = new NodeState._("Successful");
-  static NodeState Failed = new NodeState._("Failed");
-  static NodeState UnableToRun = new NodeState._("UnableToRun");
+class NodeState {
+  static const initialized = const NodeState._("Initialized");
+  static const waiting = const NodeState._("Waiting");
+  static const enqueuing = const NodeState._("Enqueuing");
+  static const processing = const NodeState._("Running");
+  static const successful = const NodeState._("Successful");
+  static const failed = const NodeState._("Failed");
+  static const unableToRun = const NodeState._("UnableToRun");
 
   final String name;
 
-  NodeState._(this.name);
+  const NodeState._(this.name);
 
   String toString() => name;
 }
 
-abstract class GraphEvent {}
-
-class GraphSealedEvent extends GraphEvent {}
-
-class NodeAddedEvent extends GraphEvent {
-  final Node node;
-
-  NodeAddedEvent(this.node);
-}
-
-class StateChangedEvent extends GraphEvent {
-  final Node node;
+class StateChangedEvent<T> {
+  final Node<T> node;
   final NodeState from;
   final NodeState to;
 

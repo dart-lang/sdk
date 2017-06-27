@@ -344,9 +344,9 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+  LoopClosureScope getLoopClosureScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getClosureRepresentationInfoForLoop(getNode(node));
+    return closureLookup.getLoopClosureScope(getNode(node));
   }
 }
 

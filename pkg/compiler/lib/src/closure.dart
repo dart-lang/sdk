@@ -52,10 +52,10 @@ abstract class ClosureDataLookup<T> {
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(T loopNode);
+  LoopClosureScope getLoopClosureScope(T loopNode);
 
   /// Accessor to the information about closures that the SSA builder will use.
-  ClosureAnalysisInfo getClosureAnalysisInfo(T node);
+  ClosureScope getClosureScope(T node);
 }
 
 /// Class that represents one level of scoping information, whether this scope
@@ -70,6 +70,10 @@ abstract class ClosureDataLookup<T> {
 class ScopeInfo {
   const ScopeInfo();
 
+  /// Convenience reference pointer to the element representing `this`.
+  /// If this scope is not in an instance member, it will be null.
+  Local get thisLocal => null;
+
   /// Returns true if this [variable] is used inside a `try` block or a `sync*`
   /// generator (this is important to know because boxing/redirection needs to
   /// happen for those local variables).
@@ -82,16 +86,29 @@ class ScopeInfo {
   /// [ClosureClassMap.useLocal].
   bool variableIsUsedInTryOrSync(Local variable) => false;
 
-  /// Convenience reference pointer to the element representing `this`.
-  /// If this scope is not in an instance member, it will be null.
-  Local get thisLocal => null;
+  /// Loop through each variable that has been defined in this scope, modified
+  /// anywhere (this scope or another scope) and used in another scope. Because
+  /// it is used in another scope, these variables need to be "boxed", creating
+  /// a thin wrapper around accesses to these variables so that accesses get
+  /// the correct updated value. The variables in variablesUsedInTryOrSync may
+  /// be included in this set.
+  ///
+  /// In the case of loops, this is the set of iteration variables (or any
+  /// variables declared in the for loop expression (`for (...here...)`) that
+  /// need to be boxed to snapshot their value.
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
+
+  /// True if [variable] has been mutated and is also used in another scope.
+  bool isBoxed(Local variable) => false;
+
+  /// True if this scope declares any variables that need to be boxed.
+  bool get hasBoxedVariables => false;
 }
 
-/// Class that provides a black-box interface to information gleaned from
-/// analyzing a closure's characteristics, most commonly used to influence how
-/// code should be generated in SSA builder stage.
-class ClosureAnalysisInfo {
-  const ClosureAnalysisInfo();
+/// Class representing the usage of a scope that has been captured in the
+/// context of a closure.
+class ClosureScope extends ScopeInfo {
+  const ClosureScope();
 
   /// If true, this closure accesses a variable that was defined in an outside
   /// scope and this variable gets modified at some point (sometimes we say that
@@ -105,23 +122,14 @@ class ClosureAnalysisInfo {
   /// scoped into this context from outside. This is an accessor to the
   /// contextBox that [requiresContextBox] is testing is required.
   Local get context => null;
-
-  /// True if the specified variable has been mutated inside the scope of this
-  /// closure.
-  bool isCaptured(Local variable) => false;
-
-  /// Loop through every variable that has been captured in this closure. This
-  /// consists of all the free variables (variables captured *just* in this
-  /// closure) and all variables captured in nested scopes that we may be
-  /// capturing as well.
-  void forEachCapturedVariable(f(Local from, FieldEntity to)) {}
 }
 
-/// Class that describes the actual mechanics of how a loop is
-/// converted/rewritten without closures. Unlike JS, the value of a declared
-/// loop iteration variable in any closure is captured/snapshotted inside at
-/// each iteration point, as if we created a new local variable for that value
-/// inside the loop. For example, for the following loop:
+/// Class that describes the actual mechanics of how values of variables
+/// instantiated in a loop are captured inside closures in the loop body.
+/// Unlike JS, the value of a declared loop iteration variable in any closure
+/// is captured/snapshotted inside at each iteration point, as if we created a
+/// new local variable for that value inside the loop. For example, for the
+/// following loop:
 ///
 ///     var lst = [];
 ///     for (int i = 0; i < 5; i++) lst.add(()=>i);
@@ -131,16 +139,8 @@ class ClosureAnalysisInfo {
 /// the result would be [5, 5, 5, 5, 5]. Because of this difference we need to
 /// create a closure for these sorts of loops to capture the variable's value at
 /// each iteration, by boxing the iteration variable[s].
-class LoopClosureRepresentationInfo extends ClosureAnalysisInfo {
-  const LoopClosureRepresentationInfo();
-
-  /// True if this loop declares any variables that need to be boxed.
-  bool get hasBoxedVariables => false;
-
-  /// The set of iteration variables (or variables declared in the for loop
-  /// expression (`for (...here...)`) that need to be boxed to snapshot their
-  /// value.
-  List<Local> get boxedVariables => const <Local>[];
+class LoopClosureScope extends ClosureScope {
+  const LoopClosureScope();
 }
 
 /// Class that describes the actual mechanics of how the converted, rewritten
@@ -209,7 +209,11 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// Loop through each variable that has been boxed in this closure class. Only
   /// captured variables that are mutated need to be "boxed" (which basically
   /// puts a thin layer between updates and reads to this variable to ensure
-  /// that every place that accesses it gets the correct updated value).
+  /// that every place that accesses it gets the correct updated value). This
+  /// includes looping over variables that were boxed from other scopes, not
+  /// strictly variables defined in this closure, unlike the behavior in
+  /// the superclass ScopeInfo.
+  @override
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
 
   /// Loop through each free variable in this closure. Free variables are the
@@ -228,7 +232,7 @@ class ClosureRepresentationInfo extends ScopeInfo {
 }
 
 class ClosureTask extends ClosureConversionTask<Node> {
-  Map<Node, ClosureScope> _closureInfoMap = <Node, ClosureScope>{};
+  Map<Node, ClosureScopeImpl> _closureInfoMap = <Node, ClosureScopeImpl>{};
   Map<Element, ClosureClassMap> _closureMappingCache =
       <Element, ClosureClassMap>{};
   Compiler compiler;
@@ -245,9 +249,9 @@ class ClosureTask extends ClosureConversionTask<Node> {
     createClosureClasses(closedWorldRefiner);
   }
 
-  ClosureAnalysisInfo getClosureAnalysisInfo(Node node) {
+  ClosureScope getClosureScope(Node node) {
     var value = _closureInfoMap[node];
-    return value == null ? const ClosureAnalysisInfo() : value;
+    return value == null ? const ClosureScope() : value;
   }
 
   ScopeInfo getScopeInfo(Element member) {
@@ -258,10 +262,9 @@ class ClosureTask extends ClosureConversionTask<Node> {
     return getClosureToClassMapping(member);
   }
 
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      Node loopNode) {
+  LoopClosureScope getLoopClosureScope(Node loopNode) {
     var value = _closureInfoMap[loopNode];
-    return value == null ? const LoopClosureRepresentationInfo() : value;
+    return value == null ? const LoopClosureScope() : value;
   }
 
   /// Returns the [ClosureClassMap] computed for [resolvedAst].
@@ -629,8 +632,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
-class ClosureScope
-    implements ClosureAnalysisInfo, LoopClosureRepresentationInfo {
+class ClosureScopeImpl implements ClosureScope, LoopClosureScope {
   final BoxLocal boxElement;
   final Map<Local, BoxFieldElement> capturedVariables;
 
@@ -639,17 +641,27 @@ class ClosureScope
   // Otherwise contains the empty List.
   List<Local> boxedLoopVariables = const <Local>[];
 
-  ClosureScope(this.boxElement, this.capturedVariables);
+  ClosureScopeImpl(this.boxElement, this.capturedVariables);
 
   Local get context => boxElement;
 
   bool get requiresContextBox => capturedVariables.keys.isNotEmpty;
 
-  List<Local> get boxedVariables => boxedLoopVariables;
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {
+    if (capturedVariables.isNotEmpty) {
+      capturedVariables.forEach(f);
+    } else {
+      for (Local l in boxedLoopVariables) {
+        // The boxes for loop variables are constructed on-demand per-iteration
+        // in the locals handler.
+        f(l, null);
+      }
+    }
+  }
 
-  bool get hasBoxedVariables => !boxedLoopVariables.isEmpty;
+  bool get hasBoxedVariables => !capturedVariables.isEmpty;
 
-  bool isCaptured(Local variable) {
+  bool isBoxed(Local variable) {
     return capturedVariables.containsKey(variable);
   }
 
@@ -658,10 +670,18 @@ class ClosureScope
     capturedVariables.forEach(f);
   }
 
+  // Should not be called. Added to make the new interface happy.
+  bool variableIsUsedInTryOrSync(Local variable) =>
+      throw new UnsupportedError("ClosureScopeImpl.variableIsUsedInTryOrSync");
+
+  // Should not be called. Added to make the new interface happy.
+  Local get thisLocal =>
+      throw new UnsupportedError("ClosureScopeImpl.thisLocal");
+
   String toString() {
     String separator = '';
     StringBuffer sb = new StringBuffer();
-    sb.write('ClosureScope(');
+    sb.write('ClosureScopeImpl(');
     if (boxElement != null) {
       sb.write('box=$boxElement');
       separator = ',';
@@ -705,11 +725,12 @@ class ClosureClassMap implements ClosureRepresentationInfo {
   /// their locations.
   final Map<Local, FieldEntity> freeVariableMap = new Map<Local, FieldEntity>();
 
-  /// Maps [Loop] and [FunctionExpression] nodes to their [ClosureScope] which
+  /// Maps [Loop] and [FunctionExpression] nodes to their [ClosureScopeImpl] which
   /// contains their box and the captured variables that are stored in the box.
   /// This map will be empty if the method/closure of this [ClosureData] does
   /// not contain any nested closure.
-  final Map<Node, ClosureScope> capturingScopes = new Map<Node, ClosureScope>();
+  final Map<Node, ClosureScopeImpl> capturingScopes =
+      new Map<Node, ClosureScopeImpl>();
 
   /// Set of [variable]s referenced in this scope that are used inside a
   /// `try` block or a `sync*` generator (this is important to know because
@@ -725,6 +746,9 @@ class ClosureClassMap implements ClosureRepresentationInfo {
 
   ClosureClassMap(this.closureEntity, this.closureClassEntity, this.callMethod,
       this.thisLocal);
+
+  bool get hasBoxedVariables =>
+      throw new UnsupportedError("ClosureClassMap.hasBoxedVariables");
 
   List<Local> get createdFieldEntities {
     List<Local> fields = <Local>[];
@@ -780,7 +804,7 @@ class ClosureClassMap implements ClosureRepresentationInfo {
       if (variable is BoxLocal) return;
       f(variable, copy);
     });
-    capturingScopes.values.forEach((ClosureScope scope) {
+    capturingScopes.values.forEach((ClosureScopeImpl scope) {
       scope.forEachCapturedVariable(f);
     });
   }
@@ -791,9 +815,17 @@ class ClosureClassMap implements ClosureRepresentationInfo {
       if (!isVariableBoxed(variable)) return;
       f(variable, copy);
     });
-    capturingScopes.values.forEach((ClosureScope scope) {
+    capturingScopes.values.forEach((ClosureScopeImpl scope) {
       scope.forEachCapturedVariable(f);
     });
+  }
+
+  bool isBoxed(Local local) {
+    bool variableIsBoxed = false;
+    forEachBoxedVariable((LocalVariableElement element, BoxFieldElement field) {
+      if (element == local) variableIsBoxed = true;
+    });
+    return variableIsBoxed;
   }
 }
 
@@ -806,7 +838,7 @@ class ClosureTranslator extends Visitor {
   bool inTryStatement = false;
 
   final Map<Element, ClosureClassMap> closureMappingCache;
-  final Map<Node, ClosureScope> closureInfo;
+  final Map<Node, ClosureScopeImpl> closureInfo;
 
   // Map of captured variables. Initially they will map to `null`. If
   // a variable needs to be boxed then the scope declaring the variable
@@ -1215,7 +1247,7 @@ class ClosureTranslator extends Visitor {
       boxCapturedVariable(variable);
     }
     if (!scopeMapping.isEmpty) {
-      ClosureScope scope = new ClosureScope(box, scopeMapping);
+      ClosureScopeImpl scope = new ClosureScopeImpl(box, scopeMapping);
       closureData.capturingScopes[node] = scope;
       assert(closureInfo[node] == null);
       closureInfo[node] = scope;
@@ -1280,7 +1312,7 @@ class ClosureTranslator extends Visitor {
         }
       }
     });
-    ClosureScope scopeData = closureData.capturingScopes[node];
+    ClosureScopeImpl scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     scopeData.boxedLoopVariables = boxedLoopVariables;
   }

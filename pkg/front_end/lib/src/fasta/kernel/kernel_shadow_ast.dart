@@ -171,6 +171,19 @@ class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a break or continue statement in kernel
+/// form.
+class KernelBreakStatement extends BreakStatement implements KernelStatement {
+  KernelBreakStatement(LabeledStatement target) : super(target);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.breakStatementEnter(this);
+    // No inference needs to be done.
+    inferrer.listener.breakStatementExit(this);
+  }
+}
+
 /// Concrete shadow object representing a cascade expression.
 ///
 /// A cascade expression of the form `a..b()..c()` is represented as the kernel
@@ -497,6 +510,20 @@ class KernelConstructorInvocation extends ConstructorInvocation
         arguments);
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a continue statement from a switch
+/// statement, in kernel form.
+class KernelContinueSwitchStatement extends ContinueSwitchStatement
+    implements KernelStatement {
+  KernelContinueSwitchStatement(SwitchCase target) : super(target);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.continueSwitchStatementEnter(this);
+    // No inference needs to be done.
+    inferrer.listener.continueSwitchStatementExit(this);
   }
 }
 

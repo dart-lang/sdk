@@ -388,9 +388,9 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+  LoopClosureScope getLoopClosureScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getClosureRepresentationInfoForLoop(node);
+    return closureLookup.getLoopClosureScope(node);
   }
 }
 

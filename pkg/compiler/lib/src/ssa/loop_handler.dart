@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure.dart' show LoopClosureRepresentationInfo;
+import '../closure.dart' show LoopClosureScope;
 import '../elements/jumps.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
@@ -30,7 +30,7 @@ abstract class LoopHandler<T> {
   /// None of the functions must leave anything on the stack.
   void handleLoop(
       T loop,
-      LoopClosureRepresentationInfo loopClosureInfo,
+      LoopClosureScope loopClosureInfo,
       JumpTarget jumpTarget,
       void initialize(),
       HInstruction condition(),

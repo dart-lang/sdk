@@ -22,7 +22,7 @@ import 'browser_controller.dart';
 import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
-import 'dependency_graph.dart' as dgraph;
+import 'dependency_graph.dart';
 import 'expectation.dart';
 import 'runtime_configuration.dart';
 import 'test_progress.dart';
@@ -818,55 +818,55 @@ class BatchRunnerProcess {
  * on them, so we can safely use them as keys in Map/Set objects.
  */
 class TestCaseEnqueuer {
-  final dgraph.Graph graph;
+  final Graph<Command> graph;
   final Function _onTestCaseAdded;
 
-  final command2node = new Map<Command, dgraph.Node>();
-  final command2testCases = new Map<Command, List<TestCase>>();
+  final command2node = <Command, Node<Command>>{};
+  final command2testCases = <Command, List<TestCase>>{};
   final remainingTestCases = new Set<TestCase>();
 
   TestCaseEnqueuer(this.graph, this._onTestCaseAdded);
 
   void enqueueTestSuites(List<TestSuite> testSuites) {
-    void newTest(TestCase testCase) {
-      remainingTestCases.add(testCase);
-
-      dgraph.Node lastNode;
-      for (var command in testCase.commands) {
-        // Make exactly *one* node in the dependency graph for every command.
-        // This ensures that we never have two commands c1 and c2 in the graph
-        // with "c1 == c2".
-        var node = command2node[command];
-        if (node == null) {
-          var requiredNodes = (lastNode != null) ? [lastNode] : <dgraph.Node>[];
-          node = graph.newNode(command, requiredNodes);
-          command2node[command] = node;
-          command2testCases[command] = <TestCase>[];
-        }
-        // Keep mapping from command to all testCases that refer to it
-        command2testCases[command].add(testCase);
-
-        lastNode = node;
-      }
-      _onTestCaseAdded(testCase);
-    }
-
     // Cache information about test cases per test suite. For multiple
     // configurations there is no need to repeatedly search the file
     // system, generate tests, and search test files for options.
-    var testCache = new Map<String, List<TestInformation>>();
+    var testCache = <String, List<TestInformation>>{};
 
-    Iterator<TestSuite> iterator = testSuites.iterator;
+    var iterator = testSuites.iterator;
     void enqueueNextSuite() {
       if (!iterator.moveNext()) {
         // We're finished with building the dependency graph.
-        graph.sealGraph();
+        graph.seal();
       } else {
-        iterator.current.forEachTest(newTest, testCache, enqueueNextSuite);
+        iterator.current.forEachTest(_newTest, testCache, enqueueNextSuite);
       }
     }
 
     enqueueNextSuite();
+  }
+
+  void _newTest(TestCase testCase) {
+    remainingTestCases.add(testCase);
+
+    Node<Command> lastNode;
+    for (var command in testCase.commands) {
+      // Make exactly *one* node in the dependency graph for every command.
+      // This ensures that we never have two commands c1 and c2 in the graph
+      // with "c1 == c2".
+      var node = command2node[command];
+      if (node == null) {
+        var requiredNodes = (lastNode != null) ? [lastNode] : <Node<Command>>[];
+        node = graph.add(command, requiredNodes);
+        command2node[command] = node;
+        command2testCases[command] = <TestCase>[];
+      }
+      // Keep mapping from command to all testCases that refer to it
+      command2testCases[command].add(testCase);
+
+      lastNode = node;
+    }
+    _onTestCaseAdded(testCase);
   }
 }
 
@@ -878,31 +878,23 @@ class TestCaseEnqueuer {
  *    have a state of NodeState.Failed/NodeState.UnableToRun.
  */
 class CommandEnqueuer {
-  static final INIT_STATES = [
-    dgraph.NodeState.Initialized,
-    dgraph.NodeState.Waiting
+  static const _initStates = const [NodeState.initialized, NodeState.waiting];
+
+  static const _finishedStates = const [
+    NodeState.successful,
+    NodeState.failed,
+    NodeState.unableToRun
   ];
-  static final FINISHED_STATES = [
-    dgraph.NodeState.Successful,
-    dgraph.NodeState.Failed,
-    dgraph.NodeState.UnableToRun
-  ];
-  final dgraph.Graph _graph;
+
+  final Graph<Command> _graph;
 
   CommandEnqueuer(this._graph) {
-    var eventCondition = _graph.events.where;
+    _graph.added.listen(_changeNodeStateIfNecessary);
 
-    eventCondition((e) => e is dgraph.NodeAddedEvent).listen((e) {
-      var event = e as dgraph.NodeAddedEvent;
-      dgraph.Node node = event.node;
-      _changeNodeStateIfNecessary(node);
-    });
-
-    eventCondition((e) => e is dgraph.StateChangedEvent).listen((e) {
-      var event = e as dgraph.StateChangedEvent;
-      if ([dgraph.NodeState.Waiting, dgraph.NodeState.Processing]
-          .contains(event.from)) {
-        if (FINISHED_STATES.contains(event.to)) {
+    _graph.changed.listen((event) {
+      if (event.from == NodeState.waiting ||
+          event.from == NodeState.processing) {
+        if (_finishedStates.contains(event.to)) {
           for (var dependendNode in event.node.neededFor) {
             _changeNodeStateIfNecessary(dependendNode);
           }
@@ -913,22 +905,20 @@ class CommandEnqueuer {
 
   // Called when either a new node was added or if one of it's dependencies
   // changed it's state.
-  void _changeNodeStateIfNecessary(dgraph.Node node) {
-    if (INIT_STATES.contains(node.state)) {
-      bool anyDependenciesUnsuccessful = node.dependencies.any((dep) => [
-            dgraph.NodeState.Failed,
-            dgraph.NodeState.UnableToRun
-          ].contains(dep.state));
+  void _changeNodeStateIfNecessary(Node<Command> node) {
+    if (_initStates.contains(node.state)) {
+      bool anyDependenciesUnsuccessful = node.dependencies.any((dep) =>
+          [NodeState.failed, NodeState.unableToRun].contains(dep.state));
 
-      var newState = dgraph.NodeState.Waiting;
+      var newState = NodeState.waiting;
       if (anyDependenciesUnsuccessful) {
-        newState = dgraph.NodeState.UnableToRun;
+        newState = NodeState.unableToRun;
       } else {
-        bool allDependenciesSuccessful = node.dependencies
-            .every((dep) => dep.state == dgraph.NodeState.Successful);
+        bool allDependenciesSuccessful =
+            node.dependencies.every((dep) => dep.state == NodeState.successful);
 
         if (allDependenciesSuccessful) {
-          newState = dgraph.NodeState.Enqueuing;
+          newState = NodeState.enqueuing;
         }
       }
       if (node.state != newState) {
@@ -952,7 +942,7 @@ class CommandEnqueuer {
  * and the [executor] has cleaned up it's resources.
  */
 class CommandQueue {
-  final dgraph.Graph graph;
+  final Graph<Command> graph;
   final CommandExecutor executor;
   final TestCaseEnqueuer enqueuer;
 
@@ -969,34 +959,29 @@ class CommandQueue {
 
   CommandQueue(this.graph, this.enqueuer, this.executor, this._maxProcesses,
       this._maxBrowserProcesses, this._verbose) {
-    var eventCondition = graph.events.where;
-    eventCondition((e) => e is dgraph.StateChangedEvent).listen((e) {
-      var event = e as dgraph.StateChangedEvent;
-      if (event.to == dgraph.NodeState.Enqueuing) {
-        assert(event.from == dgraph.NodeState.Initialized ||
-            event.from == dgraph.NodeState.Waiting);
-        graph.changeState(event.node, dgraph.NodeState.Processing);
-        var command = event.node.userData as Command;
-        if (event.node.dependencies.length > 0) {
+    graph.changed.listen((event) {
+      if (event.to == NodeState.enqueuing) {
+        assert(event.from == NodeState.initialized ||
+            event.from == NodeState.waiting);
+        graph.changeState(event.node, NodeState.processing);
+        var command = event.node.data;
+        if (event.node.dependencies.isNotEmpty) {
           _runQueue.addFirst(command);
         } else {
           _runQueue.add(command);
         }
         Timer.run(() => _tryRunNextCommand());
+      } else if (event.to == NodeState.unableToRun) {
+        _checkDone();
       }
     });
+
     // We're finished if the graph is sealed and all nodes are in a finished
     // state (Successful, Failed or UnableToRun).
     // So we're calling '_checkDone()' to check whether that condition is met
     // and we can cleanup.
-    graph.events.listen((dgraph.GraphEvent event) {
-      if (event is dgraph.GraphSealedEvent) {
-        _checkDone();
-      } else if (event is dgraph.StateChangedEvent) {
-        if (event.to == dgraph.NodeState.UnableToRun) {
-          _checkDone();
-        }
-      }
+    graph.sealed.listen((event) {
+      _checkDone();
     });
   }
 
@@ -1039,9 +1024,9 @@ class CommandQueue {
 
         _commandOutputStream.add(output);
         if (output.canRunDependendCommands) {
-          graph.changeState(node, dgraph.NodeState.Successful);
+          graph.changeState(node, NodeState.successful);
         } else {
-          graph.changeState(node, dgraph.NodeState.Failed);
+          graph.changeState(node, NodeState.failed);
         }
 
         _numProcesses--;
@@ -1058,10 +1043,10 @@ class CommandQueue {
         _runQueue.isEmpty &&
         _numProcesses == 0 &&
         graph.isSealed &&
-        graph.stateCount(dgraph.NodeState.Initialized) == 0 &&
-        graph.stateCount(dgraph.NodeState.Waiting) == 0 &&
-        graph.stateCount(dgraph.NodeState.Enqueuing) == 0 &&
-        graph.stateCount(dgraph.NodeState.Processing) == 0) {
+        graph.stateCount(NodeState.initialized) == 0 &&
+        graph.stateCount(NodeState.waiting) == 0 &&
+        graph.stateCount(NodeState.enqueuing) == 0 &&
+        graph.stateCount(NodeState.processing) == 0) {
       _finishing = true;
       executor.cleanup().then((_) {
         _completer.complete();
@@ -1099,7 +1084,7 @@ abstract class CommandExecutor {
   Future cleanup();
   // TODO(kustermann): The [timeout] parameter should be a property of Command
   Future<CommandOutput> runCommand(
-      dgraph.Node node, covariant Command command, int timeout);
+      Node<Command> node, covariant Command command, int timeout);
 }
 
 class CommandExecutorImpl implements CommandExecutor {
@@ -1401,53 +1386,51 @@ bool shouldRetryCommand(CommandOutput output) {
  * closed.
  */
 class TestCaseCompleter {
-  static final COMPLETED_STATES = [
-    dgraph.NodeState.Failed,
-    dgraph.NodeState.Successful
+  static const _completedStates = const [
+    NodeState.failed,
+    NodeState.successful
   ];
-  final dgraph.Graph graph;
-  final TestCaseEnqueuer enqueuer;
-  final CommandQueue commandQueue;
 
-  Map<Command, CommandOutput> _outputs = new Map<Command, CommandOutput>();
+  final Graph<Command> _graph;
+  final TestCaseEnqueuer _enqueuer;
+  final CommandQueue _commandQueue;
+
+  final Map<Command, CommandOutput> _outputs = {};
+  final StreamController<TestCase> _controller = new StreamController();
   bool _closed = false;
-  StreamController<TestCase> _controller = new StreamController<TestCase>();
 
-  TestCaseCompleter(this.graph, this.enqueuer, this.commandQueue) {
-    var eventCondition = graph.events.where;
-    bool finishedRemainingTestCases = false;
+  TestCaseCompleter(this._graph, this._enqueuer, this._commandQueue) {
+    var finishedRemainingTestCases = false;
 
     // Store all the command outputs -- they will be delivered synchronously
     // (i.e. before state changes in the graph)
-    commandQueue.completedCommands.listen((CommandOutput output) {
+    _commandQueue.completedCommands.listen((CommandOutput output) {
       _outputs[output.command] = output;
     }, onDone: () {
-      _completeTestCasesIfPossible(new List.from(enqueuer.remainingTestCases));
+      _completeTestCasesIfPossible(new List.from(_enqueuer.remainingTestCases));
       finishedRemainingTestCases = true;
-      assert(enqueuer.remainingTestCases.isEmpty);
+      assert(_enqueuer.remainingTestCases.isEmpty);
       _checkDone();
     });
 
     // Listen for NodeState.Processing -> NodeState.{Successful,Failed}
     // changes.
-    eventCondition((event) => event is dgraph.StateChangedEvent).listen((e) {
-      var event = e as dgraph.StateChangedEvent;
-      if (event.from == dgraph.NodeState.Processing &&
-          !finishedRemainingTestCases) {
-        var command = event.node.userData;
+    _graph.changed.listen((event) {
+      if (event.from == NodeState.processing && !finishedRemainingTestCases) {
+        var command = event.node.data;
 
-        assert(COMPLETED_STATES.contains(event.to));
+        assert(_completedStates.contains(event.to));
         assert(_outputs[command] != null);
 
-        _completeTestCasesIfPossible(enqueuer.command2testCases[command]);
+        _completeTestCasesIfPossible(_enqueuer.command2testCases[command]);
         _checkDone();
       }
     });
 
-    // Listen also for GraphSealedEvent's. If there is not a single node in the
+    // Listen also for GraphSealedEvents. If there is not a single node in the
     // graph, we still want to finish after the graph was sealed.
-    eventCondition((event) => event is dgraph.GraphSealedEvent).listen((_) {
-      if (!_closed && enqueuer.remainingTestCases.isEmpty) {
+    _graph.sealed.listen((_) {
+      if (!_closed && _enqueuer.remainingTestCases.isEmpty) {
         _controller.close();
         _closed = true;
       }
@@ -1457,7 +1440,7 @@ class TestCaseCompleter {
   Stream<TestCase> get finishedTestCases => _controller.stream;
 
   void _checkDone() {
-    if (!_closed && graph.isSealed && enqueuer.remainingTestCases.isEmpty) {
+    if (!_closed && _graph.isSealed && _enqueuer.remainingTestCases.isEmpty) {
       _controller.close();
       _closed = true;
     }
@@ -1475,9 +1458,9 @@ class TestCaseCompleter {
     }
 
     void completeTestCase(TestCase testCase) {
-      if (enqueuer.remainingTestCases.contains(testCase)) {
+      if (_enqueuer.remainingTestCases.contains(testCase)) {
         _controller.add(testCase);
-        enqueuer.remainingTestCases.remove(testCase);
+        _enqueuer.remainingTestCases.remove(testCase);
       } else {
         DebugLogger.error("${testCase.displayName} would be finished twice");
       }
@@ -1498,7 +1481,7 @@ class ProcessQueue {
   Configuration _globalConfiguration;
 
   Function _allDone;
-  final dgraph.Graph _graph = new dgraph.Graph();
+  final Graph<Command> _graph = new Graph();
   List<EventListener> _eventListener;
 
   ProcessQueue(
@@ -1512,9 +1495,7 @@ class ProcessQueue {
       [bool verbose = false,
       AdbDevicePool adbDevicePool]) {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
-      _graph.events
-          .where((event) => event is dgraph.GraphSealedEvent)
-          .listen((_) {
+      _graph.sealed.listen((_) {
         var testCases = testCaseEnqueuer.remainingTestCases.toList();
         testCases.sort((a, b) => a.displayName.compareTo(b.displayName));
 
@@ -1553,13 +1534,13 @@ class ProcessQueue {
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");
-          _graph.DumpCounts();
+          _graph.dumpCounts();
           print("");
           var unfinishedNodeStates = [
-            dgraph.NodeState.Initialized,
-            dgraph.NodeState.Waiting,
-            dgraph.NodeState.Enqueuing,
-            dgraph.NodeState.Processing
+            NodeState.initialized,
+            NodeState.waiting,
+            NodeState.enqueuing,
+            NodeState.processing
           ];
 
           for (var nodeState in unfinishedNodeStates) {
@@ -1569,7 +1550,7 @@ class ProcessQueue {
               print("");
               for (var node in _graph.nodes) {
                 if (node.state == nodeState) {
-                  var command = node.userData;
+                  var command = node.data;
                   var testCases = testCaseEnqueuer.command2testCases[command];
                   print("  Command: $command");
                   for (var testCase in testCases) {
@@ -1591,9 +1572,7 @@ class ProcessQueue {
       }
 
       // When the graph building is finished, notify event listeners.
-      _graph.events
-          .where((event) => event is dgraph.GraphSealedEvent)
-          .listen((event) {
+      _graph.sealed.listen((_) {
         eventAllTestsKnown();
       });
 

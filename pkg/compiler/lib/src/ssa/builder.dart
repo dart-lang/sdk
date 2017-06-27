@@ -1009,7 +1009,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
-            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
+            closureDataLookup.getClosureScope(resolvedAst.node),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1365,8 +1365,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // If there are locals that escape (ie mutated in closures), we
       // pass the box to the constructor.
       // The box must be passed before any type variable.
-      ClosureAnalysisInfo scopeData =
-          closureDataLookup.getClosureAnalysisInfo(node);
+      ClosureScope scopeData = closureDataLookup.getClosureScope(node);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -1427,7 +1426,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     localsHandler.startFunction(
         element,
         closureDataLookup.getScopeInfo(element),
-        closureDataLookup.getClosureAnalysisInfo(node),
+        closureDataLookup.getClosureScope(node),
         parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
@@ -1461,8 +1460,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
-              .getClosureAnalysisInfo(node)
-              .isCaptured(parameterElement)) {
+              .getClosureScope(node)
+              .isBoxed(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
             return;
@@ -1705,7 +1704,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getLoopClosureScope(node),
         elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
@@ -1720,13 +1719,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       return popBoolified();
     }
 
-    loopHandler.handleLoop(
-        node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
-        elements.getTargetDefinition(node),
-        () {},
-        buildCondition,
-        () {}, () {
+    loopHandler.handleLoop(node, closureDataLookup.getLoopClosureScope(node),
+        elements.getTargetDefinition(node), () {}, buildCondition, () {}, () {
       visit(node.body);
     });
   }
@@ -1734,8 +1728,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    var loopClosureInfo =
-        closureDataLookup.getClosureRepresentationInfoForLoop(node);
+    var loopClosureInfo = closureDataLookup.getLoopClosureScope(node);
     localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
     JumpTarget target = elements.getTargetDefinition(node);
@@ -5445,7 +5438,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     buildProtectedByFinally(() {
       loopHandler.handleLoop(
           node,
-          closureDataLookup.getClosureRepresentationInfoForLoop(node),
+          closureDataLookup.getLoopClosureScope(node),
           elements.getTargetDefinition(node),
           buildInitializer,
           buildCondition,
@@ -5518,7 +5511,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getLoopClosureScope(node),
         elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
@@ -5643,7 +5636,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getLoopClosureScope(node),
         elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
@@ -5998,14 +5991,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void buildLoop() {
-      loopHandler.handleLoop(
-          node,
-          closureDataLookup.getClosureRepresentationInfoForLoop(node),
-          switchTarget,
-          () {},
-          buildCondition,
-          () {},
-          buildSwitch);
+      loopHandler.handleLoop(node, closureDataLookup.getLoopClosureScope(node),
+          switchTarget, () {}, buildCondition, () {}, buildSwitch);
     }
 
     if (hasDefault) {
