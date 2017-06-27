@@ -2134,15 +2134,9 @@ class KernelTypePromoter extends TypePromoterImpl {
 
   @override
   bool isPromotionCandidate(VariableDeclaration variable) {
-    if (variable is KernelVariableDeclaration) {
-      return !variable._isLocalFunction;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      return true;
-    }
+    assert(variable is KernelVariableDeclaration);
+    KernelVariableDeclaration kernelVariableDeclaration = variable;
+    return !kernelVariableDeclaration._isLocalFunction;
   }
 
   @override
