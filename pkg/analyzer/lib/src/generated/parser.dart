@@ -180,6 +180,12 @@ class Parser {
   static const int _MAX_TREE_DEPTH = 300;
 
   /**
+   * A flag indicating whether the analyzer [Parser] factory method
+   * will return a fasta based parser or an analyzer based parser.
+   */
+  static bool useFasta = const bool.fromEnvironment("useFastaParser");
+
+  /**
    * The source being parsed.
    */
   final Source _source;
@@ -268,12 +274,6 @@ class Parser {
    * `/*=T*/` and `/*<T>*/`.
    */
   bool parseGenericMethodComments = false;
-
-  /**
-   * A flag indicating whether the analyzer [Parser] factory method
-   * will return a fasta based parser or an analyzer based parser.
-   */
-  static bool useFasta = const bool.fromEnvironment("useFastaParser");
 
   /**
    * Initialize a newly created parser to parse tokens in the given [_source]
@@ -2888,6 +2888,21 @@ class Parser {
     } else if (inFunctionType && _matchesIdentifier()) {
       type = parseTypeAnnotation(false);
     } else if (!optional) {
+      // If there is a valid type immediately following an unexpected token,
+      // then report and skip the unexpected token.
+      Token next = _peek();
+      Keyword nextKeyword = next.keyword;
+      if (nextKeyword == Keyword.FINAL ||
+          nextKeyword == Keyword.CONST ||
+          nextKeyword == Keyword.VAR ||
+          _isTypedIdentifier(next) ||
+          inFunctionType && _tokenMatchesIdentifier(next)) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
+        _advance();
+        return parseFinalConstVarOrType(optional,
+            inFunctionType: inFunctionType);
+      }
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
     } else {

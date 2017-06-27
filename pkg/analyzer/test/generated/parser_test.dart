@@ -2896,6 +2896,16 @@ class Foo {
         "void f(var x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
 
+  void test_genericFunctionType_extraLessThan() {
+    createParser('''
+class Wrong<T> {
+  T Function(<List<int> foo) bar;
+}''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
   void test_getterInFunction_block_noReturnType() {
     FunctionDeclarationStatement statement =
         parseStatement("get x { return _x; }");
