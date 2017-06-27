@@ -265,7 +265,7 @@ class RawObject {
     kCanonicalBit = 1,
     kVMHeapObjectBit = 2,
     kRememberedBit = 3,
-    kReservedTagPos = 4,  // kReservedBit{10K,100K,1M,10M}
+    kReservedTagPos = 4,  // kReservedBit{100K,1M,10M}
     kReservedTagSize = 4,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,

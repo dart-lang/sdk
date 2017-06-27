@@ -157,7 +157,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           NOT_IN_PRODUCT(class_table->UpdateAllocatedOld(cid, size));
         } else {
           // Promotion did not succeed. Copy into the to space instead.
-          scavenger_->failed_to_promote_ = true;
           new_addr = scavenger_->TryAllocate(size);
           NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
@@ -339,8 +338,7 @@ Scavenger::Scavenger(Heap* heap,
       delayed_weak_properties_(NULL),
       gc_time_micros_(0),
       collections_(0),
-      external_size_(0),
-      failed_to_promote_(false) {
+      external_size_(0) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -798,8 +796,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ASSERT(!scavenging_);
   scavenging_ = true;
 
-  failed_to_promote_ = false;
-
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
 
@@ -907,25 +903,6 @@ void Scavenger::FreeExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ -= size;
   ASSERT(external_size_ >= 0);
-}
-
-
-void Scavenger::Evacuate() {
-  // We need a safepoint here to prevent allocation right before or right after
-  // the scavenge.
-  // The former can introduce an object that we might fail to collect.
-  // The latter means even if the scavenge promotes every object in the new
-  // space, the new allocation means the space is not empty,
-  // causing the assertion below to fail.
-  SafepointOperationScope scope(Thread::Current());
-
-  // Forces the next scavenge to promote all the objects in the new space.
-  survivor_end_ = top_;
-  Scavenge();
-
-  // It is possible for objects to stay in the new space
-  // if the VM cannot create more pages for these objects.
-  ASSERT((UsedInWords() == 0) || failed_to_promote_);
 }
 
 }  // namespace dart

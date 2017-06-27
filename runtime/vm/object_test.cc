@@ -3382,8 +3382,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  isolate->heap()->CollectAllGarbage();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3401,8 +3400,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  isolate->heap()->CollectAllGarbage();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());

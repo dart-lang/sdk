@@ -149,7 +149,11 @@ class Scavenger {
   void Scavenge(bool invoke_api_callbacks);
 
   // Promote all live objects.
-  void Evacuate();
+  void Evacuate() {
+    Scavenge();
+    Scavenge();
+    ASSERT(UsedInWords() == 0);
+  }
 
   // Accessors to generate code for inlined allocation.
   uword* TopAddress() { return &top_; }
@@ -292,8 +296,6 @@ class Scavenger {
 
   // The total size of external data associated with objects in this scavenger.
   intptr_t external_size_;
-
-  bool failed_to_promote_;
 
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;

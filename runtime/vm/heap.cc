@@ -444,10 +444,7 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
-
-  // New space is evacuated so this GC will collect all dead objects
-  // kept alive by a cross-generational pointer.
-  new_space_.Evacuate();
+  CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
   CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
 }
 
