@@ -313,11 +313,14 @@ class Driver implements CommandLineStarter {
 
   /// Determine whether the context created during a previous call to
   /// [_analyzeAll] can be re-used in order to analyze using [options].
-  bool _canContextBeReused(CommandLineOptions options) {
+  bool _canContextBeReused(
+      CommandLineOptions options, AnalysisOptionsImpl other) {
     // TODO(paulberry): add a command-line option that disables context re-use.
     if (_context == null) {
       return false;
     }
+
+    // Check command line options.
     if (options.packageRootPath != _previousOptions.packageRootPath) {
       return false;
     }
@@ -368,6 +371,25 @@ class Driver implements CommandLineStarter {
     if (options.disableCacheFlushing != _previousOptions.disableCacheFlushing) {
       return false;
     }
+
+    // Check analysis options.
+    var c = _context.analysisOptions;
+    if (!(other.enableAssertInitializer == c.enableAssertInitializer &&
+        other.enableStrictCallChecks == c.enableStrictCallChecks &&
+        other.enableLazyAssignmentOperators ==
+            c.enableLazyAssignmentOperators &&
+        other.enableSuperMixins == c.enableSuperMixins &&
+        other.enableTiming == c.enableTiming &&
+        other.generateImplicitErrors == c.generateImplicitErrors &&
+        other.generateSdkErrors == c.generateSdkErrors &&
+        other.hint == c.hint &&
+        other.lint == c.lint &&
+        AnalysisOptionsImpl.compareLints(other.lintRules, c.lintRules) &&
+        other.preserveComments == c.preserveComments &&
+        other.strongMode == c.strongMode)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -545,9 +567,15 @@ class Driver implements CommandLineStarter {
   /// Create an analysis context that is prepared to analyze sources according
   /// to the given [options], and store it in [_context].
   void _createAnalysisContext(CommandLineOptions options) {
-    if (_canContextBeReused(options)) {
+    AnalysisOptionsImpl analysisOptions =
+        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
+    analysisOptions.analyzeFunctionBodiesPredicate =
+        _chooseDietParsingPolicy(options);
+
+    if (_canContextBeReused(options, analysisOptions)) {
       return;
     }
+
     _previousOptions = options;
 
     // Save stats from previous context before clobbering it.
@@ -576,11 +604,6 @@ class Driver implements CommandLineStarter {
     // Read any input summaries.
     SummaryDataStore summaryDataStore = new SummaryDataStore(
         useSummaries ? options.buildSummaryInputs : <String>[]);
-
-    AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
-    analysisOptions.analyzeFunctionBodiesPredicate =
-        _chooseDietParsingPolicy(options);
 
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries, analysisOptions);

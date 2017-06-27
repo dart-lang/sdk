@@ -1707,6 +1707,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   /**
+   * Return whether the given lists of lints are equal.
+   */
+  static bool compareLints(List<Linter> a, List<Linter> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].lintCode != b[i].lintCode) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Predicate used for [analyzeFunctionBodiesPredicate] when
    * [analyzeFunctionBodies] is set to `true`.
    */
