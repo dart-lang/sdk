@@ -143,10 +143,11 @@ class ContainerBuilder extends CodeEmitterHelper {
           : js.quoteName(tearOffName))
       ..add(js.number(requiredParameterCount))
       ..add(js.number(optionalParameterCount))
-      ..add(memberTypeExpression == null ? js("null") : memberTypeExpression)
-      ..addAll(task.metadataCollector.reifyDefaultArguments(member));
+      ..add(memberTypeExpression == null ? js("null") : memberTypeExpression);
 
     if (canBeReflected || canBeApplied) {
+      expressions.addAll(task.metadataCollector.reifyDefaultArguments(member));
+
       // TODO(redemption): Support entities.
       MethodElement method = member;
       method.functionSignature.forEachParameter((Element parameter) {
