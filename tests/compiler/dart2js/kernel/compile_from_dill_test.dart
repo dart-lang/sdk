@@ -41,6 +41,17 @@ main() {
     x = i;
     if (i == 5) break;
   }
+  int i = 0;
+  while (i < 10) {
+    if (i == 5) continue;
+    x = i;
+    if (i == 5) break;
+  }
+  for (var v in [3, 5]) {
+    if (v == 5) continue;
+    x = v;
+    if (v == 5) break;
+  }
   print(x);
   return x;
 }

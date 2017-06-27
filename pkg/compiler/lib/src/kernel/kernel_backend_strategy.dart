@@ -371,13 +371,13 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForForIn(ir.ForInStatement node) {
     _ensureJumpMap(node);
-    return _jumpTargetMap[node.parent];
+    return _jumpTargetMap[node];
   }
 
   @override
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node) {
     _ensureJumpMap(node);
-    return _jumpTargetMap[node.parent];
+    return _jumpTargetMap[node];
   }
 
   @override
@@ -414,12 +414,16 @@ class JumpVisitor extends ir.Visitor {
 
   bool _canBeBreakTarget(ir.TreeNode node) {
     // TODO(johnniwinther): Add more.
-    return node is ir.ForStatement;
+    return node is ir.ForStatement ||
+        node is ir.ForInStatement ||
+        node is ir.WhileStatement;
   }
 
   bool _canBeContinueTarget(ir.TreeNode node) {
     // TODO(johnniwinther): Add more.
-    return node is ir.ForStatement;
+    return node is ir.ForStatement ||
+        node is ir.ForInStatement ||
+        node is ir.WhileStatement;
   }
 
   @override
