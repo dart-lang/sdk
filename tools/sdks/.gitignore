@@ -1,6 +1,12 @@
 /linux/dart-sdk
 /linux/dart-sdk.tar.gz
+/linux/dartsdk-linux-x64-release.zip
+/linux/dartsdk-linux-x64-release.zip.sha256sum
 /win/dart-sdk
 /win/dart-sdk.tar.gz
+/win/dartsdk-windows-x64-release.zip
+/win/dartsdk-windows-x64-release.zip.sha256sum
 /mac/dart-sdk
 /mac/dart-sdk.tar.gz
+/mac/dartsdk-macos-x64-release.zip
+/mac/dartsdk-macos-x64-release.zip.sha256sum
