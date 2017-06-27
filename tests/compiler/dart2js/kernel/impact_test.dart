@@ -779,7 +779,7 @@ void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
 }
 
 void checkElement(
-    Compiler compiler, KernelToElementMapMixin elementMap, AstElement element,
+    Compiler compiler, KernelToElementMapImpl elementMap, AstElement element,
     {bool fullTest: false}) {
   if (!fullTest && element.library.isPlatformLibrary) {
     return;

@@ -48,7 +48,7 @@ part 'no_such_method_resolver.dart';
 part 'types.dart';
 
 /// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
-abstract class KernelToWorldBuilder implements KernelToElementMap {
+abstract class KernelToWorldBuilder implements KernelToElementMapForBuilding {
   /// Returns `true` if [field] has a constant initializer.
   bool hasConstantFieldInitializer(FieldEntity field);
 
@@ -64,7 +64,7 @@ abstract class KernelToWorldBuilder implements KernelToElementMap {
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
 class KernelToElementMapImpl extends KernelToElementMapMixin
-    implements KernelToWorldBuilder {
+    implements KernelToWorldBuilder, KernelToElementMapForImpact {
   final Environment _environment;
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
@@ -1112,7 +1112,7 @@ class _FunctionData extends _MemberData {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
-  void forEachParameter(KernelToElementMap elementMap,
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
       DartType type = elementMap.getDartType(node.type);
@@ -1480,7 +1480,7 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
 /// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
 /// [_EvaluationEnvironment] for the evaluation.
 class KernelConstantEnvironment implements ConstantEnvironment {
-  KernelToElementMap _worldBuilder;
+  KernelToElementMapForBuilding _worldBuilder;
   Map<ConstantExpression, ConstantValue> _valueMap =
       <ConstantExpression, ConstantValue>{};
 
@@ -1836,13 +1836,6 @@ class JsKernelToElementMap extends KernelToElementMapMixin
   @override
   MemberEntity getMember(ir.Member node) {
     return _map.toBackendMember(_elementMap.getMember(node));
-  }
-
-  @override
-  ConstructorEntity getSuperConstructor(
-      ir.Constructor constructor, ir.Member target) {
-    return _map
-        .toBackendMember(_elementMap.getSuperConstructor(constructor, target));
   }
 
   @override

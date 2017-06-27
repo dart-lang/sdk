@@ -40,7 +40,7 @@ import 'kernel_strategy.dart';
 
 /// A backend strategy based on Kernel IR nodes.
 abstract class KernelBackendStrategy implements BackendStrategy {
-  KernelToElementMap get elementMap;
+  KernelToElementMapForBuilding get elementMap;
   GlobalLocalsMap get globalLocalsMapForTesting;
 }
 
@@ -55,7 +55,7 @@ class KernelBackendStrategyImpl implements KernelBackendStrategy {
 
   KernelBackendStrategyImpl(this._compiler);
 
-  KernelToElementMap get elementMap {
+  KernelToElementMapForBuilding get elementMap {
     KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
     return frontendStrategy.elementMap;
   }
@@ -153,7 +153,7 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
 class KernelSsaBuilder implements SsaBuilder {
   final CompilerTask task;
   final Compiler _compiler;
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
 
   KernelSsaBuilder(

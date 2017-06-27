@@ -139,7 +139,7 @@ Future<ResultKind> mainInternal(List<String> args,
       printSteps: true);
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMap elementMap = frontendStrategy.elementMap;
+  KernelToElementMapForBuilding elementMap = frontendStrategy.elementMap;
 
   Expect.isFalse(compiler2.compilationFailed);
 

@@ -33,36 +33,78 @@ abstract class KernelToElementMap {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
 
-  /// [ElementEnvironment] for library, class and member lookup.
-  ElementEnvironment get elementEnvironment;
-
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
-
-  /// Returns the [FunctionType] of the [node].
-  FunctionType getFunctionType(ir.FunctionNode node);
-
-  /// Returns the list of [DartType]s corresponding to [types].
-  List<DartType> getDartTypes(List<ir.DartType> types);
-
-  /// Returns the [InterfaceType] corresponding to [type].
-  InterfaceType getInterfaceType(ir.InterfaceType type);
 
   /// Return the [InterfaceType] corresponding to the [cls] with the given
   /// [typeArguments].
   InterfaceType createInterfaceType(
       ir.Class cls, List<ir.DartType> typeArguments);
 
-  /// Returns the [CallStructure] corresponding to the [arguments].
-  CallStructure getCallStructure(ir.Arguments arguments);
-
   /// Returns the [Selector] corresponding to the invocation or getter/setter
   /// access of [node].
   Selector getSelector(ir.Expression node);
 
+  /// Returns the [MemberEntity] corresponding to the member [node].
+  MemberEntity getMember(ir.Member node);
+
+  /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  FunctionEntity getMethod(ir.Procedure node);
+
   /// Returns the [ConstructorEntity] corresponding to the generative or factory
   /// constructor [node].
   ConstructorEntity getConstructor(ir.Member node);
+
+  /// Returns the [FieldEntity] corresponding to the field [node].
+  FieldEntity getField(ir.Field node);
+
+  /// Returns the [Local] corresponding to the [node]. The node must be either
+  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Local getLocalFunction(ir.TreeNode node);
+
+  /// Returns the super [MemberEntity] for a super invocation, get or set of
+  /// [name] from the member [context].
+  ///
+  /// The IR doesn't always resolve super accesses to the corresponding
+  /// [target]. If not, the target is computed using [name] and [setter] from
+  /// the enclosing class of [context].
+  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+      {bool setter: false});
+
+  /// Returns the [Name] corresponding to [name].
+  Name getName(ir.Name name);
+
+  /// Return `true` if [node] is the `dart:_foreign_helper` library.
+  bool isForeignLibrary(ir.Library node);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node);
+
+  /// Returns the [js.Name] for the `JsGetName` [constant] value.
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
+
+  /// Computes the [ConstantValue] for the constant [expression].
+  // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
+  // used in impact builder for symbol constants.
+  ConstantValue getConstantValue(ir.Expression expression,
+      {bool requireConstant: true, bool implicitNull: false});
+}
+
+/// Interface that translates between Kernel IR nodes and entities used for
+/// computing the [WorldImpact] for members.
+abstract class KernelToElementMapForImpact extends KernelToElementMap {
+  /// Returns the [CallStructure] corresponding to the [arguments].
+  CallStructure getCallStructure(ir.Arguments arguments);
 
   /// Returns the [ConstructorEntity] corresponding to a super initializer in
   /// [constructor].
@@ -83,45 +125,8 @@ abstract class KernelToElementMap {
   ConstructorEntity getSuperConstructor(
       ir.Constructor constructor, ir.Member target);
 
-  /// Returns the [MemberEntity] corresponding to the member [node].
-  MemberEntity getMember(ir.Member node);
-
-  /// Returns the kernel IR node that defines the [member].
-  ir.Node getMemberNode(covariant MemberEntity member);
-
-  /// Returns the [FunctionEntity] corresponding to the procedure [node].
-  FunctionEntity getMethod(ir.Procedure node);
-
-  /// Returns the super [MemberEntity] for a super invocation, get or set of
-  /// [name] from the member [context].
-  ///
-  /// The IR doesn't always resolve super accesses to the corresponding
-  /// [target]. If not, the target is computed using [name] and [setter] from
-  /// the enclosing class of [context].
-  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
-      {bool setter: false});
-
-  /// Returns the [FieldEntity] corresponding to the field [node].
-  FieldEntity getField(ir.Field node);
-
-  /// Returns the [ClassEntity] corresponding to the class [node].
-  ClassEntity getClass(ir.Class node);
-
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Local getLocalFunction(ir.TreeNode node);
-
-  /// Returns the [LibraryEntity] corresponding to the library [node].
-  LibraryEntity getLibrary(ir.Library node);
-
-  /// Returns the [Name] corresponding to [name].
-  Name getName(ir.Name name);
-
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   bool isNativeClass(ir.Class node);
-
-  /// Return `true` if [node] is the `dart:_foreign_helper` library.
-  bool isForeignLibrary(ir.Library node);
 
   /// Computes the native behavior for reading the native [field].
   native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
@@ -134,36 +139,41 @@ abstract class KernelToElementMap {
   native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure,
       {bool isJsInterop});
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
-  /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
-
-  /// Computes the [native.NativeBehavior] for a call to the
-  /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
-      ir.StaticInvocation node);
-
   /// Compute the kind of foreign helper function called by [node], if any.
   ForeignKind getForeignKind(ir.StaticInvocation node);
-
-  /// Returns the [js.Name] for the `JsGetName` [constant] value.
-  js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
-
-  /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
-  js.Template getJsBuiltinTemplate(
-      ConstantValue constant, CodeEmitterTask emitter);
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+}
 
-  /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue getConstantValue(ir.Expression expression,
-      {bool requireConstant: true, bool implicitNull: false});
+/// Interface that translates between Kernel IR nodes and entities used for
+/// global type inference and building the SSA graph for members.
+abstract class KernelToElementMapForBuilding implements KernelToElementMap {
+  /// [ElementEnvironment] for library, class and member lookup.
+  ElementEnvironment get elementEnvironment;
+
+  /// Returns the [FunctionType] of the [node].
+  FunctionType getFunctionType(ir.FunctionNode node);
+
+  /// Returns the list of [DartType]s corresponding to [types].
+  List<DartType> getDartTypes(List<ir.DartType> types);
+
+  /// Returns the [InterfaceType] corresponding to [type].
+  InterfaceType getInterfaceType(ir.InterfaceType type);
+
+  /// Returns the kernel IR node that defines the [member].
+  ir.Node getMemberNode(covariant MemberEntity member);
+
+  /// Returns the [ClassEntity] corresponding to the class [node].
+  ClassEntity getClass(ir.Class node);
+
+  /// Returns the [LibraryEntity] corresponding to the library [node].
+  LibraryEntity getLibrary(ir.Library node);
+
+  /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
+  js.Template getJsBuiltinTemplate(
+      ConstantValue constant, CodeEmitterTask emitter);
 
   /// Return the [ConstantValue] the initial value of [field] or `null` if
   /// the initializer is not a constant expression.
@@ -187,7 +197,8 @@ enum ForeignKind {
   NONE,
 }
 
-abstract class KernelToElementMapMixin implements KernelToElementMap {
+abstract class KernelToElementMapMixin
+    implements KernelToElementMapForBuilding {
   DiagnosticReporter get reporter;
   native.BehaviorBuilder get nativeBehaviorBuilder;
   ConstantValue computeConstantValue(ConstantExpression constant,
@@ -199,7 +210,6 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
         name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
-  @override
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();

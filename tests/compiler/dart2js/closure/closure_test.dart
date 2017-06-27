@@ -50,7 +50,7 @@ void computeClosureData(Compiler compiler, MemberEntity _member,
 void computeKernelClosureData(Compiler compiler, MemberEntity member,
     Map<Id, String> actualMap, Map<Id, SourceSpan> sourceSpanMap) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMap elementMap = backendStrategy.elementMap;
+  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
   new ClosureIrChecker(actualMap, sourceSpanMap, elementMap, member,
@@ -100,7 +100,7 @@ class ClosureIrChecker extends AbstractIrComputer {
   ClosureIrChecker(
       Map<Id, String> actualMap,
       Map<Id, SourceSpan> sourceSpanMap,
-      KernelToElementMap elementMap,
+      KernelToElementMapForBuilding elementMap,
       MemberEntity member,
       this._localsMap,
       this.closureDataLookup)

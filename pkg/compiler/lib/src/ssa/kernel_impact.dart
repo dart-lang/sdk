@@ -63,7 +63,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 }
 
 ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelToElementMap elementAdapter) {
+    ir.Member member, KernelToElementMapForImpact elementAdapter) {
   KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
@@ -77,7 +77,7 @@ ResolutionImpact buildKernelImpact(
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
-  final KernelToElementMap elementAdapter;
+  final KernelToElementMapForImpact elementAdapter;
   final ir.Member currentMember;
 
   KernelImpactBuilder(this.elementAdapter, this.currentMember)

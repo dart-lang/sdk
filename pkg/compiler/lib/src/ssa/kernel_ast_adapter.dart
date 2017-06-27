@@ -35,7 +35,7 @@ import 'types.dart';
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
 class KernelAstAdapter extends KernelToElementMapMixin
-    implements KernelToLocalsMap {
+    implements KernelToLocalsMap, KernelToElementMapForImpact {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;

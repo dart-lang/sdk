@@ -87,7 +87,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   TreeElements get elements => astAdapter.elements;
 
   SourceInformationBuilder sourceInformationBuilder;
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapForBuilding _elementMap;
   final KernelToTypeInferenceMap _typeInferenceMap;
   final KernelToLocalsMap localsMap;
   LoopHandler<ir.Node> loopHandler;

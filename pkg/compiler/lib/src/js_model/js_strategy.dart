@@ -36,16 +36,16 @@ class JsBackendStrategy implements KernelBackendStrategy {
   final JsToFrontendMap _map = new JsToFrontendMapImpl();
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
-  KernelToElementMap _elementMap;
+  KernelToElementMapForBuilding _elementMap;
   ClosureConversionTask _closureDataLookup;
   final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
 
   JsBackendStrategy(this._compiler);
 
-  KernelToElementMap get elementMap {
+  KernelToElementMapForBuilding get elementMap {
     if (_elementMap == null) {
       KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
-      KernelToElementMap elementMap = strategy.elementMap;
+      KernelToElementMapForBuilding elementMap = strategy.elementMap;
       _elementMap = new JsKernelToElementMap(
           _map, _elementEnvironment, _commonElements, elementMap);
     }

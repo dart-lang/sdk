@@ -70,7 +70,7 @@ class KernelClosureDataBuilder extends ir.Visitor {
 /// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
 /// http://matt.might.net/articles/closure-conversion/.
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   Map<Entity, ClosureRepresentationInfo> _infoMap =
       <Entity, ClosureRepresentationInfo>{};

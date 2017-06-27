@@ -149,7 +149,7 @@ class ResolvedAstComputer extends AbstractResolvedAstComputer
 void computeIrMemberData(Compiler compiler, MemberEntity member,
     Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMap elementMap = backendStrategy.elementMap;
+  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   new IrComputer(actualMap, spannableMap).run(elementMap.getMemberNode(member));
 }
 
