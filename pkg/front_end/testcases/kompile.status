@@ -131,6 +131,7 @@ inference/downwards_inference_on_map_literals: Crash
 inference/downwards_inference_yield_yield_star: Fail
 inference/field_refers_to_static_getter: Crash
 inference/field_refers_to_top_level_getter: Crash
+inference/for_in_loop_promotion: Crash
 inference/future_or_subtyping: Crash
 inference/future_then: Crash
 inference/future_then_2: Crash
