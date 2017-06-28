@@ -135,8 +135,8 @@ abstract class ClassHierarchy {
   /// may be reported multiple times when there are multiple inheritance paths
   /// to the overridden member.
   ///
-  /// By default getters and setters are overridden separately.  The [isSetter]
-  /// callback parameter corresponds to whether [declaredMember] is a setter.
+  /// The [isSetter] callback parameter corresponds to whether [declaredMember]
+  /// is a setter.
   void forEachCrossOverridePair(Class class_,
       callback(Member declaredMember, Member interfaceMember, bool isSetter));
 
