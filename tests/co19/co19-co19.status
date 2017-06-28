@@ -18,21 +18,13 @@ Language/Statements/Assert/syntax_t04: Pass, Fail # assert now has an optional s
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
-LibTest/async/Zone/bindBinaryCallback_A01_t02: Fail # co19 issue TODO
-LibTest/async/Zone/bindCallback_A01_t02: Fail # co19 issue TODO
-LibTest/async/Zone/bindUnaryCallback_A01_t02: Fail # co19 issue TODO
-
 [ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
-
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co19 issue 66
 Language/Expressions/Instance_Creation/Const/abstract_class_t03: Pass, Fail # co19 issue 66
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
-LibTest/async/Zone/runBinaryGuarded_A01_t01: Fail # co19 issue TODO
-LibTest/async/Zone/runGuarded_A01_t01: Fail # co19 issue TODO
-LibTest/async/Zone/runUnaryGuarded_A01_t01: Fail # co19 issue TODO
 LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t04: RuntimeError # Issue 17735

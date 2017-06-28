@@ -144,7 +144,8 @@ void scheduleMicrotask(void callback()) {
         null, null, currentZone, currentZone.registerCallback(callback));
     return;
   }
-  Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));
+  Zone.current
+      .scheduleMicrotask(Zone.current.bindCallback(callback, runGuarded: true));
 }
 
 class _AsyncRun {

@@ -21,9 +21,9 @@ main() {
     events.add("forked.fork");
     Function descriptionRun = zoneSpecification.run;
     ZoneSpecification modified = new ZoneSpecification.from(zoneSpecification,
-        run: <R>(self, parent, origin, R f()) {
+        run: (self, parent, origin, f) {
       events.add("wrapped run");
-      return descriptionRun<R>(self, parent, origin, () {
+      return descriptionRun(self, parent, origin, () {
         events.add("wrapped f");
         return f();
       });
@@ -33,7 +33,7 @@ main() {
 
   events.add("start");
   Zone forkedChild = forked.fork(specification: new ZoneSpecification(
-      run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
+      run: (Zone self, ZoneDelegate parent, Zone origin, f()) {
     events.add("executing child run");
     return parent.run(origin, f);
   }));

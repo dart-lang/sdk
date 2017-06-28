@@ -14,8 +14,7 @@ main() {
 
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
-      registerCallback:
-          <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
+      registerCallback: (Zone self, ZoneDelegate parent, Zone origin, f()) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
     Expect.identical(Zone.current, Zone.ROOT);

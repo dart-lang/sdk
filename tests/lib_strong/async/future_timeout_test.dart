@@ -155,8 +155,7 @@ main() {
       return 42;
     };
     forked = Zone.current.fork(specification: new ZoneSpecification(
-        registerCallback:
-            <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
+        registerCallback: (Zone self, ZoneDelegate parent, Zone origin, f()) {
       if (!identical(f, callback)) return f;
       registerCallDelta++; // Increment calls to register.
       expect(origin, forked);

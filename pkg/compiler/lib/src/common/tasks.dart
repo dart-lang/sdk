@@ -115,7 +115,7 @@ abstract class CompilerTask {
   /// of other measuring zones, but we still need to call through the parent
   /// chain. Consequently, we use a zone value keyed by [measurer] to see if
   /// we should measure or not when delegating.
-  R _run<R>(Zone self, ZoneDelegate parent, Zone zone, R f()) {
+  _run(Zone self, ZoneDelegate parent, Zone zone, f()) {
     if (zone[measurer] != this) return parent.run(zone, f);
     CompilerTask previous = _start();
     try {
@@ -126,8 +126,7 @@ abstract class CompilerTask {
   }
 
   /// Same as [run] except that [f] takes one argument, [arg].
-  R _runUnary<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R f(T arg), T arg) {
+  _runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
     if (zone[measurer] != this) return parent.runUnary(zone, f, arg);
     CompilerTask previous = _start();
     try {
@@ -138,8 +137,7 @@ abstract class CompilerTask {
   }
 
   /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
-  R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
-      R f(T1 a1, T2 a2), T1 a1, T2 a2) {
+  _runBinary(Zone self, ZoneDelegate parent, Zone zone, f(a1, a2), a1, a2) {
     if (zone[measurer] != this) return parent.runBinary(zone, f, a1, a2);
     CompilerTask previous = _start();
     try {

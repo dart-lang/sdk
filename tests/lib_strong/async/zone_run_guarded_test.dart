@@ -13,13 +13,11 @@ main() {
   // runGuarded calls run, captures the synchronous error (if any) and
   // gives that one to handleUncaughtError.
 
-  var result;
-
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked;
   forked = Zone.current.fork(
       specification: new ZoneSpecification(
-          run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
+          run: (Zone self, ZoneDelegate parent, Zone origin, f()) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
     Expect.identical(Zone.ROOT, Zone.current);
@@ -30,20 +28,19 @@ main() {
     Expect.identical(Zone.ROOT, Zone.current);
     Expect.identical(forked, origin);
     events.add("forked.handleUncaught $error");
-    result = 499;
+    return 499;
   }));
 
-  forked.runGuarded(() {
+  var result = forked.runGuarded(() {
     events.add("runGuarded 1");
     Expect.identical(forked, Zone.current);
-    result = 42;
+    return 42;
   });
   Expect.identical(Zone.ROOT, Zone.current);
   Expect.equals(42, result);
   events.add("after runGuarded 1");
 
-  result = null;
-  forked.runGuarded(() {
+  result = forked.runGuarded(() {
     events.add("runGuarded 2");
     Expect.identical(forked, Zone.current);
     throw 42;
@@ -59,10 +56,9 @@ main() {
     "forked.handleUncaught 42"
   ], events);
 
-  result = null;
   events.clear();
   asyncStart();
-  forked.runGuarded(() {
+  result = forked.runGuarded(() {
     Expect.identical(forked, Zone.current);
     events.add("run closure");
     forked.scheduleMicrotask(() {

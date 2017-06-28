@@ -116,8 +116,8 @@ main() {
         expectedDebugTrace = [fork3Trace, fork2Trace, globalTrace];
         throw "gee";
       });
-    });
-  });
+    }, runGuarded: false);
+  }, runGuarded: false);
   openTests++;
   f();
   f2();

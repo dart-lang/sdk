@@ -190,8 +190,8 @@ main() {
   ];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
-  void uncaughtErrorHandler(self, parent, zone, error, stack) {}
-
+  uncaughtErrorHandler(self, parent, zone, error, stack) {}
+  ;
   var zoneSpec =
       new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
   testZone = Zone.current.fork(specification: zoneSpec);

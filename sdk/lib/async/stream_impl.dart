@@ -332,7 +332,7 @@ class _BufferingStreamSubscription<T>
     _checkState(wasInputPaused);
   }
 
-  void _sendError(Object error, StackTrace stackTrace) {
+  void _sendError(var error, StackTrace stackTrace) {
     assert(!_isCanceled);
     assert(!_isPaused);
     assert(!_inCallback);
@@ -345,11 +345,12 @@ class _BufferingStreamSubscription<T>
       _state |= _STATE_IN_CALLBACK;
       // TODO(floitsch): this dynamic should be 'void'.
       if (_onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
-        ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback =
-            _onError;
+        ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback = _onError
+            as Object/*=ZoneBinaryCallback<dynamic, Object, StackTrace>*/;
         _zone.runBinaryGuarded(errorCallback, error, stackTrace);
       } else {
-        _zone.runUnaryGuarded<Object>(_onError, error);
+        _zone.runUnaryGuarded<dynamic, Object>(
+            _onError as Object/*=ZoneUnaryCallback<dynamic, Object>*/, error);
       }
       _state &= ~_STATE_IN_CALLBACK;
     }

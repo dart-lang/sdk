@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:async';
 
 Future<String> getVersion(var rootPath) {
   var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
