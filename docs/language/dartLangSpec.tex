@@ -6568,13 +6568,13 @@ The {\em break statement} consists of the reserved word \BREAK{} and an optional
 \LMHash{}
 Let $s_b$ be a \BREAK{} statement.
 If $s_b$ is of the form \code{\BREAK{} $L$;},
-then let $s_E$ be the innermost labeled statement with label $L$ enclosing $s_b$.
+then it is a compile-time error if $s_b$ is not enclosed in a labeled statement
+with the label $L$ within the innermost function in which $s_b$ occurs.
 If $s_b$ is of the form \code{\BREAK{};},
-then let $s_E$ be the innermost \code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in}),
+then it is a compile-time error if $s_b$ is not enclosed in an
+\code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in}),
 \DO{} (\ref{do}), \FOR{} (\ref{for}), \SWITCH{} (\ref{switch})
-or \WHILE{} (\ref{while}) statement enclosing $s_b$.
-It is a compile-time error if no such statement $s_E$ exists within
-the innermost function in which $s_b$ occurs.
+or \WHILE{} (\ref{while}) statement within the innermost function in which $s_b$ occurs.
 
 \LMHash{}
 Execution of a \BREAK{} statement \code{\BREAK{} $L$;} breaks to the label $L$ (\ref{completion}).
@@ -6597,15 +6597,16 @@ The {\em continue statement} consists of the reserved word \CONTINUE{} and an op
 \LMHash{}
 Let $s_c$ be a \CONTINUE{} statement.
 If $s_c$ is of the form \code{\CONTINUE{} $L$;},
-then let $s_E$ be the innermost labeled \code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in}),
+then it is a compile-time error if $s_c$ is not enclosed in either an
+\code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in}),
 \DO{} (\ref{do}), \FOR{} (\ref{for}), or \WHILE{} (\ref{while})
-statement or \SWITCH{} statement with a labeled case clause,
-which is labeled with $L$ and encloses $s_c$.
+statement labeled with $L$, or in a \SWITCH{} statement with a case clause
+labeled with $L$, within the innermost function in which $s_c$ occurs.
 If $s_c$ is of the form \code{\CONTINUE{};}
-then let $s_E$ be the innermost \code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in})
-\DO{} (\ref{do}), \FOR{} (\ref{for}), or \WHILE{} (\ref{while})
-statement enclosing $s_c$.
-It is a compile-time error if no such statement or case clause $s_E$ exists within the innermost function in which  $s_c$ occurs.
+then it is a compile-time error if $s_c$ is not enclosed in an
+\code{\AWAIT{} \FOR{}} (\ref{asynchronousFor-in})
+\DO{} (\ref{do}), \FOR{} (\ref{for}), or \WHILE{} (\ref{while}) statement
+within the innermost function in which $s_c$ occurs.
 
 Execution of a \CONTINUE{} statement \code{\CONTINUE{} $L$;} continues to the label $L$ (\ref{completion}).
 
