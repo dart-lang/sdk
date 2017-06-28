@@ -326,13 +326,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
-      methodInvocation.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        methodInvocation.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else if (methodInvocation is SuperMethodInvocation) {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
-      methodInvocation.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        methodInvocation.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else {
       throw internalError(

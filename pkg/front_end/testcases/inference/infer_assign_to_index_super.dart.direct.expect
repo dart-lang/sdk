@@ -43,20 +43,20 @@ class Test extends self::Base {
     : super self::Base::•()
     ;
   method test() → void {
-    super.[]=(self::f<dynamic>(), self::f<dynamic>());
-    let final dynamic #t1 = self::f<dynamic>() in super.[](#t1).==(null) ? let final dynamic #t2 = self::f<dynamic>() in let final dynamic #t3 = super.[]=(#t1, #t2) in #t2 : null;
-    let final dynamic #t4 = self::f<dynamic>() in super.[]=(#t4, super.[](#t4).+(self::f<dynamic>()));
-    let final dynamic #t5 = self::f<dynamic>() in super.[]=(#t5, super.[](#t5).*(self::f<dynamic>()));
-    let final dynamic #t6 = self::f<dynamic>() in super.[]=(#t6, super.[](#t6).&(self::f<dynamic>()));
-    let final dynamic #t7 = self::f<dynamic>() in let final dynamic #t8 = super.[](#t7).-(1) in let final dynamic #t9 = super.[]=(#t7, #t8) in #t8;
-    let final dynamic #t10 = self::f<dynamic>() in super.[]=(#t10, super.[](#t10).-(1));
-    dynamic v1 = let final dynamic #t11 = self::f<dynamic>() in let final dynamic #t12 = self::f<dynamic>() in let final dynamic #t13 = super.[]=(#t11, #t12) in #t12;
-    dynamic v2 = let final dynamic #t14 = self::f<dynamic>() in let final dynamic #t15 = super.[](#t14) in #t15.==(null) ? let final dynamic #t16 = self::f<dynamic>() in let final dynamic #t17 = super.[]=(#t14, #t16) in #t16 : #t15;
-    dynamic v3 = let final dynamic #t18 = self::f<dynamic>() in let final dynamic #t19 = super.[](#t18).+(self::f<dynamic>()) in let final dynamic #t20 = super.[]=(#t18, #t19) in #t19;
-    dynamic v4 = let final dynamic #t21 = self::f<dynamic>() in let final dynamic #t22 = super.[](#t21).*(self::f<dynamic>()) in let final dynamic #t23 = super.[]=(#t21, #t22) in #t22;
-    dynamic v5 = let final dynamic #t24 = self::f<dynamic>() in let final dynamic #t25 = super.[](#t24).&(self::f<dynamic>()) in let final dynamic #t26 = super.[]=(#t24, #t25) in #t25;
-    dynamic v6 = let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = super.[](#t27).-(1) in let final dynamic #t29 = super.[]=(#t27, #t28) in #t28;
-    dynamic v7 = let final dynamic #t30 = self::f<dynamic>() in let final dynamic #t31 = super.[](#t30) in let final dynamic #t32 = super.[]=(#t30, #t31.-(1)) in #t31;
+    super.{self::Base::[]=}(self::f<dynamic>(), self::f<dynamic>());
+    let final dynamic #t1 = self::f<dynamic>() in super.{self::Base::[]}(#t1).==(null) ? let final dynamic #t2 = self::f<dynamic>() in let final dynamic #t3 = super.{self::Base::[]=}(#t1, #t2) in #t2 : null;
+    let final dynamic #t4 = self::f<dynamic>() in super.{self::Base::[]=}(#t4, super.{self::Base::[]}(#t4).+(self::f<dynamic>()));
+    let final dynamic #t5 = self::f<dynamic>() in super.{self::Base::[]=}(#t5, super.{self::Base::[]}(#t5).*(self::f<dynamic>()));
+    let final dynamic #t6 = self::f<dynamic>() in super.{self::Base::[]=}(#t6, super.{self::Base::[]}(#t6).&(self::f<dynamic>()));
+    let final dynamic #t7 = self::f<dynamic>() in let final dynamic #t8 = super.{self::Base::[]}(#t7).-(1) in let final dynamic #t9 = super.{self::Base::[]=}(#t7, #t8) in #t8;
+    let final dynamic #t10 = self::f<dynamic>() in super.{self::Base::[]=}(#t10, super.{self::Base::[]}(#t10).-(1));
+    dynamic v1 = let final dynamic #t11 = self::f<dynamic>() in let final dynamic #t12 = self::f<dynamic>() in let final dynamic #t13 = super.{self::Base::[]=}(#t11, #t12) in #t12;
+    dynamic v2 = let final dynamic #t14 = self::f<dynamic>() in let final dynamic #t15 = super.{self::Base::[]}(#t14) in #t15.==(null) ? let final dynamic #t16 = self::f<dynamic>() in let final dynamic #t17 = super.{self::Base::[]=}(#t14, #t16) in #t16 : #t15;
+    dynamic v3 = let final dynamic #t18 = self::f<dynamic>() in let final dynamic #t19 = super.{self::Base::[]}(#t18).+(self::f<dynamic>()) in let final dynamic #t20 = super.{self::Base::[]=}(#t18, #t19) in #t19;
+    dynamic v4 = let final dynamic #t21 = self::f<dynamic>() in let final dynamic #t22 = super.{self::Base::[]}(#t21).*(self::f<dynamic>()) in let final dynamic #t23 = super.{self::Base::[]=}(#t21, #t22) in #t22;
+    dynamic v5 = let final dynamic #t24 = self::f<dynamic>() in let final dynamic #t25 = super.{self::Base::[]}(#t24).&(self::f<dynamic>()) in let final dynamic #t26 = super.{self::Base::[]=}(#t24, #t25) in #t25;
+    dynamic v6 = let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = super.{self::Base::[]}(#t27).-(1) in let final dynamic #t29 = super.{self::Base::[]=}(#t27, #t28) in #t28;
+    dynamic v7 = let final dynamic #t30 = self::f<dynamic>() in let final dynamic #t31 = super.{self::Base::[]}(#t30) in let final dynamic #t32 = super.{self::Base::[]=}(#t30, #t31.-(1)) in #t31;
   }
 }
 static method f<T extends core::Object>() → self::f::T

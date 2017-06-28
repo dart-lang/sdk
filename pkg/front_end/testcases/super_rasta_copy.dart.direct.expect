@@ -93,8 +93,8 @@ class C extends self::B {
     self::use(let final dynamic #t23 = super.h in let final dynamic #t24 = super.h = #t23.+(1) in #t23);
     super.i = super.i.+(1);
     self::use(let final dynamic #t25 = super.i in let final dynamic #t26 = super.i = #t25.+(1) in #t25);
-    let final dynamic #t27 = 87 in super.[]=(#t27, super.[](#t27).+(1));
-    self::use(let final dynamic #t28 = 87 in let final dynamic #t29 = super.[](#t28) in let final dynamic #t30 = super.[]=(#t28, #t29.+(1)) in #t29);
+    let final dynamic #t27 = 87 in super.{self::A::[]=}(#t27, super.{self::A::[]}(#t27).+(1));
+    self::use(let final dynamic #t28 = 87 in let final dynamic #t29 = super.{self::A::[]}(#t28) in let final dynamic #t30 = super.{self::A::[]=}(#t28, #t29.+(1)) in #t29);
     let final dynamic #t31 = super.m.+(1) in let final dynamic #t32 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t31].toList(growable: false), true)) in #t31;
     self::use(let final dynamic #t33 = super.m in let final dynamic #t34 = let final dynamic #t35 = #t33.+(1) in let final dynamic #t36 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t35].toList(growable: false), true)) in #t35 in #t33);
     super.a = super.a.+(1);
@@ -115,8 +115,8 @@ class C extends self::B {
     self::use(super.h = super.h.+(1));
     super.i = super.i.+(1);
     self::use(super.i = super.i.+(1));
-    let final dynamic #t45 = 87 in let final dynamic #t46 = super.[](#t45).+(1) in let final dynamic #t47 = super.[]=(#t45, #t46) in #t46;
-    self::use(let final dynamic #t48 = 87 in let final dynamic #t49 = super.[](#t48).+(1) in let final dynamic #t50 = super.[]=(#t48, #t49) in #t49);
+    let final dynamic #t45 = 87 in let final dynamic #t46 = super.{self::A::[]}(#t45).+(1) in let final dynamic #t47 = super.{self::A::[]=}(#t45, #t46) in #t46;
+    self::use(let final dynamic #t48 = 87 in let final dynamic #t49 = super.{self::A::[]}(#t48).+(1) in let final dynamic #t50 = super.{self::A::[]=}(#t48, #t49) in #t49);
     let final dynamic #t51 = super.m.+(1) in let final dynamic #t52 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t51].toList(growable: false), true)) in #t51;
     self::use(let final dynamic #t53 = super.m.+(1) in let final dynamic #t54 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t53].toList(growable: false), true)) in #t53);
     super.{self::A::a}.call();
@@ -161,8 +161,8 @@ class C extends self::B {
     self::use(super.h = 42);
     super.i = 42;
     self::use(super.i = 42);
-    super.[]=(87, 42);
-    self::use(let final dynamic #t63 = 87 in let final dynamic #t64 = 42 in let final dynamic #t65 = super.[]=(#t63, #t64) in #t64);
+    super.{self::A::[]=}(87, 42);
+    self::use(let final dynamic #t63 = 87 in let final dynamic #t64 = 42 in let final dynamic #t65 = super.{self::A::[]=}(#t63, #t64) in #t64);
     let final dynamic #t66 = 42 in let final dynamic #t67 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t66].toList(growable: false), true)) in #t66;
     self::use(let final dynamic #t68 = 42 in let final dynamic #t69 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t68].toList(growable: false), true)) in #t68);
     super.a.==(null) ? super.a = 42 : null;
@@ -183,8 +183,8 @@ class C extends self::B {
     self::use(let final dynamic #t85 = super.h in #t85.==(null) ? super.h = 42 : #t85);
     super.i.==(null) ? super.i = 42 : null;
     self::use(let final dynamic #t86 = super.i in #t86.==(null) ? super.i = 42 : #t86);
-    let final dynamic #t87 = 87 in super.[](#t87).==(null) ? let final dynamic #t88 = 42 in let final dynamic #t89 = super.[]=(#t87, #t88) in #t88 : null;
-    self::use(let final dynamic #t90 = 87 in let final dynamic #t91 = super.[](#t90) in #t91.==(null) ? let final dynamic #t92 = 42 in let final dynamic #t93 = super.[]=(#t90, #t92) in #t92 : #t91);
+    let final dynamic #t87 = 87 in super.{self::A::[]}(#t87).==(null) ? let final dynamic #t88 = 42 in let final dynamic #t89 = super.{self::A::[]=}(#t87, #t88) in #t88 : null;
+    self::use(let final dynamic #t90 = 87 in let final dynamic #t91 = super.{self::A::[]}(#t90) in #t91.==(null) ? let final dynamic #t92 = 42 in let final dynamic #t93 = super.{self::A::[]=}(#t90, #t92) in #t92 : #t91);
     super.m.==(null) ? let final dynamic #t94 = 42 in let final dynamic #t95 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t94].toList(growable: false), true)) in #t94 : null;
     self::use(let final dynamic #t96 = super.m in #t96.==(null) ? let final dynamic #t97 = 42 in let final dynamic #t98 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t97].toList(growable: false), true)) in #t97 : #t96);
     super.a = super.a.+(42);
@@ -205,8 +205,8 @@ class C extends self::B {
     self::use(super.h = super.h.+(42));
     super.i = super.i.+(42);
     self::use(super.i = super.i.+(42));
-    let final dynamic #t107 = 87 in super.[]=(#t107, super.[](#t107).+(42));
-    self::use(let final dynamic #t108 = 87 in let final dynamic #t109 = super.[](#t108).+(42) in let final dynamic #t110 = super.[]=(#t108, #t109) in #t109);
+    let final dynamic #t107 = 87 in super.{self::A::[]=}(#t107, super.{self::A::[]}(#t107).+(42));
+    self::use(let final dynamic #t108 = 87 in let final dynamic #t109 = super.{self::A::[]}(#t108).+(42) in let final dynamic #t110 = super.{self::A::[]=}(#t108, #t109) in #t109);
     let final dynamic #t111 = super.m.+(42) in let final dynamic #t112 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t111].toList(growable: false), true)) in #t111;
     self::use(let final dynamic #t113 = super.m.+(42) in let final dynamic #t114 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t113].toList(growable: false), true)) in #t113);
     super.a = super.a.-(42);
@@ -227,8 +227,8 @@ class C extends self::B {
     self::use(super.h = super.h.-(42));
     super.i = super.i.-(42);
     self::use(super.i = super.i.-(42));
-    let final dynamic #t123 = 87 in super.[]=(#t123, super.[](#t123).-(42));
-    self::use(let final dynamic #t124 = 87 in let final dynamic #t125 = super.[](#t124).-(42) in let final dynamic #t126 = super.[]=(#t124, #t125) in #t125);
+    let final dynamic #t123 = 87 in super.{self::A::[]=}(#t123, super.{self::A::[]}(#t123).-(42));
+    self::use(let final dynamic #t124 = 87 in let final dynamic #t125 = super.{self::A::[]}(#t124).-(42) in let final dynamic #t126 = super.{self::A::[]=}(#t124, #t125) in #t125);
     let final dynamic #t127 = super.m.-(42) in let final dynamic #t128 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t127].toList(growable: false), true)) in #t127;
     self::use(let final dynamic #t129 = super.m.-(42) in let final dynamic #t130 = super.noSuchMethod(new core::_InvocationMirror::•("set:m", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, #t129].toList(growable: false), true)) in #t129);
   }
