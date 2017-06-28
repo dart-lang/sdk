@@ -1025,18 +1025,18 @@ class Parser {
     token = parseTypeVariablesOpt(token);
     if (optional('=', token)) {
       listener.beginNamedMixinApplication(begin, name);
-      Token equals = token;
-      token = token.next;
-      return parseNamedMixinApplication(
-          token, begin, classKeyword, name, equals);
+      return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
       listener.beginClassDeclaration(begin, name);
-      return parseClass(token, begin, classKeyword, name);
+      return parseClass(token, begin, classKeyword);
     }
   }
 
   Token parseNamedMixinApplication(
-      Token token, Token begin, Token classKeyword, Token name, Token equals) {
+      Token token, Token begin, Token classKeyword) {
+    assert(optional('=', token));
+    Token equals = token;
+    token = token.next;
     token = parseType(token);
     token = parseMixinApplicationRest(token);
     Token implementsKeyword = null;
@@ -1049,7 +1049,7 @@ class Parser {
     return expect(';', token);
   }
 
-  Token parseClass(Token token, Token begin, Token classKeyword, Token name) {
+  Token parseClass(Token token, Token begin, Token classKeyword) {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
