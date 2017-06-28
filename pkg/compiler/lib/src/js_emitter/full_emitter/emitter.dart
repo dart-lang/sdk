@@ -1951,10 +1951,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (commonElements.mirrorsLibrary != null &&
-        !compiler.options.loadFromDill) {
-      // TODO(johnniwinther): Add `isMirrorsUsed` to [BackendData] instead
-      // of checking `mirrorsLibrary`.
+    if (_closedWorld.backendUsage.isMirrorsUsed) {
       options.add('mirrors');
     }
     if (compiler.options.useContentSecurityPolicy) options.add("CSP");

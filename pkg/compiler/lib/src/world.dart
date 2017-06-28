@@ -1061,7 +1061,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
-    for (MemberElement e in _allFunctions.filter(selector, mask, this)) {
+    for (MemberEntity e in _allFunctions.filter(selector, mask, this)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

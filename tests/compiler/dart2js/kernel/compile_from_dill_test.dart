@@ -19,7 +19,17 @@ bar(a) => !a;
 class Class {
   var field;
   static var staticField;
-  Class(this.field);
+
+  Class();
+  Class.named(this.field);
+
+  method() {}
+}
+
+class SubClass extends Class {
+  method() {
+    super.method();
+  }  
 }
 main() {
   foo();
@@ -27,7 +37,8 @@ main() {
   [];
   {};
   new Object();
-  new Class('');
+  new Class.named('');
+  new SubClass().method();
   Class.staticField;
   var x = null;
   var y1 = x == null;

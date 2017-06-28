@@ -717,6 +717,9 @@ class JsBackendUsage implements BackendUsage {
   bool get isFunctionApplyUsed => _backendUsage.isFunctionApplyUsed;
 
   @override
+  bool get isMirrorsUsed => _backendUsage.isMirrorsUsed;
+
+  @override
   bool get isNoSuchMethodUsed => _backendUsage.isNoSuchMethodUsed;
 }
 

@@ -543,7 +543,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   void computeMembersNeededForReflection(
       ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
     if (_membersNeededForReflection != null) return;
-    if (closedWorld.commonElements.mirrorsLibrary == null) {
+    if (!closedWorld.backendUsage.isMirrorsUsed) {
       createImmutableSets();
       return;
     }
