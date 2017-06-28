@@ -620,6 +620,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return the cached [AnalysisDriverResolvedUnit] for the file with the given
+   * [file], or `null` if the cache does not contain this information.
+   */
+  AnalysisDriverResolvedUnit getResolvedUnitObject(FileState file) {
+    FileState library = file.isPart ? file.library : file;
+    if (library != null) {
+      String signature = _getResolvedUnitSignature(library, file);
+      String key = _getResolvedUnitKey(signature);
+      List<int> bytes = _byteStore.get(key);
+      if (bytes != null) {
+        return new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return a [Future] that completes with a [AnalysisResult] for the Dart
    * file with the given [path]. If the file is not a Dart file or cannot
    * be analyzed, the [Future] completes with `null`.

@@ -120,6 +120,47 @@ class Search {
   }
 
   /**
+   * Return direct [SubtypeResult]s for either the [type] or [subtype].
+   */
+  Future<List<SubtypeResult>> subtypes(
+      {ClassElement type, SubtypeResult subtype}) async {
+    String name;
+    String id;
+    if (type != null) {
+      name = type.name;
+      id = type.librarySource.uri.toString() +
+          ';' +
+          type.source.uri.toString() +
+          ';' +
+          name;
+    } else {
+      name = subtype.name;
+      id = subtype.id;
+    }
+
+    List<SubtypeResult> results = [];
+    for (String path in _driver.addedFiles) {
+      FileState file = _driver.fsState.getFileForPath(path);
+      if (file.subtypedNames.contains(name)) {
+        AnalysisDriverResolvedUnit unit = _driver.getResolvedUnitObject(file);
+        if (unit != null) {
+          for (AnalysisDriverSubtype subtype in unit.index.subtypes) {
+            if (subtype.supertypes.contains(id)) {
+              FileState library = file.isPart ? file.library : file;
+              results.add(new SubtypeResult(
+                  library.uriStr + ';' + file.uriStr + ';' + subtype.name,
+                  subtype.name,
+                  subtype.members));
+            }
+          }
+        }
+      }
+    }
+
+    return results;
+  }
+
+  /**
    * Returns top-level elements with names matching the given [regExp].
    */
   Future<List<Element>> topLevelElements(RegExp regExp) async {
@@ -497,6 +538,28 @@ class SearchResult {
  * The kind of reference in a [SearchResult].
  */
 enum SearchResultKind { READ, READ_WRITE, WRITE, INVOCATION, REFERENCE }
+
+/**
+ * A single subtype of a type.
+ */
+class SubtypeResult {
+  /**
+   * The identifier of the subtype.
+   */
+  final String id;
+
+  /**
+   * The name of the subtype.
+   */
+  final String name;
+
+  /**
+   * The names of members declared in the class.
+   */
+  final List<String> members;
+
+  SubtypeResult(this.id, this.name, this.members);
+}
 
 /**
  * A visitor that finds the deep-most [Element] that contains the [offset].
