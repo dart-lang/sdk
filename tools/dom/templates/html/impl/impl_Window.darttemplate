@@ -115,7 +115,7 @@ $if DART2JS
   @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone/*<num, dynamic>*/(callback));
+    return _requestAnimationFrame(_wrapZone(callback));
   }
 
   /**

@@ -49043,9 +49043,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   // TODO(leafp): It would be better to write this as
   // _onData = onData == null ? null :
-  //   onData is _wrapZoneCallback<Event, dynamic>
-  //     ? _wrapZone/*<Event, dynamic>*/(onData)
-  //     : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
+  //   onData is void Function(Event)
+  //     ? _wrapZone<Event>(onData)
+  //     : _wrapZone<Event>((e) => onData(e as T))
   // In order to support existing tests which pass the wrong type of events but
   // use a more general listener, without causing as much slowdown for things
   // which are typed correctly.  But this currently runs afoul of restrictions
@@ -49054,7 +49054,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       this._target, this._eventType, void onData(T event), this._useCapture)
       : _onData = onData == null
             ? null
-            : _wrapZone<Event, dynamic>((e) => (onData as dynamic)(e)) {
+            : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
 
@@ -49076,7 +49076,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
     // Remove current event listener.
     _unlisten();
-    _onData = _wrapZone/*<Event, dynamic>*/(handleData);
+    _onData = _wrapZone<Event>(handleData);
     _tryResume();
   }
 
@@ -52383,24 +52383,18 @@ class _WrappedEvent implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jacobr): remove these typedefs when dart:async supports generic types.
-typedef R _wrapZoneCallback<A, R>(A a);
-typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
-
-_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(
-    _wrapZoneCallback/*<A, R>*/ callback) {
+void Function(T) _wrapZone<T>(void Function(T) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindUnaryCallback/*<R, A>*/(callback, runGuarded: true);
+  return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(
-    _wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
+void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current
-      .bindBinaryCallback/*<R, A, B>*/(callback, runGuarded: true);
+  return Zone.current.bindBinaryCallbackGuarded(callback);
 }
 
 /**

@@ -12,14 +12,14 @@ main() {
 
   bool shouldForward = true;
   Expect.identical(Zone.ROOT, Zone.current);
-  Zone forked = Zone.current.fork(specification: new ZoneSpecification(
-      runUnary: (Zone self, ZoneDelegate parent, Zone origin, f(arg), arg) {
+  Zone forked = Zone.current.fork(specification: new ZoneSpecification(runUnary:
+      <R, T>(Zone self, ZoneDelegate parent, Zone origin, R f(arg), T arg) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
     Expect.identical(Zone.current, Zone.ROOT);
     events.add("forked.run1");
     if (shouldForward) return parent.runUnary(origin, f, arg + 1);
-    return 42;
+    return 42 as R;
   }));
 
   events.add("zone forked");

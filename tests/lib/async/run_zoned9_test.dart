@@ -24,13 +24,11 @@ main() {
       Expect.equals(0, e);
       Expect.isTrue(sawInnerHandler);
       // If we are waiting for an error, don't asyncEnd, but let it time out.
-      if (false) //# 01: runtime error
+      throw e;  //# 01: ok
       asyncEnd();
-      throw e; //  //# 01: continued
     });
   } catch (e) {
-    // We should never see an error here.
-    if (false) //  //# 01: continued
+    asyncEnd(); return;  //# 01: continued
     rethrow;
   }
 }

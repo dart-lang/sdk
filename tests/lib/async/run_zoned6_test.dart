@@ -8,20 +8,19 @@ import 'package:async_helper/async_helper.dart';
 
 main() {
   asyncStart();
-  // Ensure that `runZoned`'s onError handles synchronous errors but delegates
-  // to the top-level when the handler returns false.
+  // Ensure that `runZoned`'s onError handles synchronous errors, and throwing
+  // in the error handler at that point (when it is a synchronous error) yields
+  // a synchronous error.
   try {
     runZoned(() {
       throw 0;
     }, onError: (e) {
       Expect.equals(0, e);
-               if (false) //# 01: runtime error
+      throw e;  //#01 : ok
       asyncEnd();
-               throw e; //# 01: runtime error
     });
   } catch (e) {
-    // We should never see an error here.
-    if (false) //# 01: continued
+    asyncEnd(); return;  //# 01: continued
     rethrow;
   }
 }
