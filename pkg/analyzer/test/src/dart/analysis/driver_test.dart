@@ -1661,6 +1661,51 @@ var A2 = B1;
     expect(result.unit, isNotNull);
   }
 
+  test_getResult_importLibrary_thenRemoveIt() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+class B extends A {}
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    await scheduler.waitForIdle();
+
+    // No errors in b.dart
+    {
+      AnalysisResult result = await driver.getResult(b);
+      expect(result.errors, isEmpty);
+    }
+
+    // Remove a.dart and reanalyze.
+    provider.deleteFile(a);
+    driver.removeFile(a);
+
+    // The unresolved URI error must be reported.
+    {
+      AnalysisResult result = await driver.getResult(b);
+      expect(
+          result.errors,
+          contains(predicate((AnalysisError e) =>
+              e.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST)));
+    }
+
+    // Restore a.dart and reanalyze.
+    provider.newFile(a, 'class A {}');
+    driver.addFile(a);
+
+    // No errors in b.dart again.
+    {
+      AnalysisResult result = await driver.getResult(b);
+      expect(result.errors, isEmpty);
+    }
+  }
+
   test_getResult_twoPendingFutures() async {
     String content = 'main() {}';
     addTestFile(content, priority: true);

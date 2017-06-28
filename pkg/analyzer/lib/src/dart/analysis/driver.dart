@@ -480,6 +480,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (AnalysisEngine.isDartFileName(path)) {
       _fileTracker.addFile(path);
+      // If the file is known, it has already been read, even if it did not
+      // exist. Now we are notified that the file exists, so we need to
+      // re-read it and make sure that we invalidate signature of the files
+      // that reference it.
+      if (_fsState.knownFilePaths.contains(path)) {
+        _changeFile(path);
+      }
     }
   }
 
@@ -503,8 +510,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void changeFile(String path) {
     _throwIfChangesAreNotAllowed();
-    _fileTracker.changeFile(path);
-    _priorityResults.clear();
+    _changeFile(path);
   }
 
   /**
@@ -960,6 +966,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void removeFile(String path) {
     _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
+    _priorityResults.clear();
+  }
+
+  /**
+   * Implementation for [changeFile].
+   */
+  void _changeFile(String path) {
+    _fileTracker.changeFile(path);
     _priorityResults.clear();
   }
 
