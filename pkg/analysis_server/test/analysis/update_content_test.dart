@@ -50,26 +50,6 @@ class UpdateContentTest extends AbstractAnalysisTest {
     }
   }
 
-  test_discardNotifications_onSourceChange() async {
-    createProject();
-    addTestFile('');
-    await server.onAnalysisComplete;
-    server.setAnalysisSubscriptions({
-      AnalysisService.NAVIGATION: [testFile].toSet()
-    });
-    // update file, analyze, but don't sent notifications
-    navigationCount = 0;
-    server.updateContent('1', {testFile: new AddContentOverlay('foo() {}')});
-    expect(serverErrorCount, 0);
-    expect(navigationCount, 0);
-    // replace the file contents,
-    // should discard any pending notification operations
-    server.updateContent('2', {testFile: new AddContentOverlay('bar() {}')});
-    await server.onAnalysisComplete;
-    expect(serverErrorCount, 0);
-    expect(navigationCount, 1);
-  }
-
   test_illegal_ChangeContentOverlay() {
     // It should be illegal to send a ChangeContentOverlay for a file that
     // doesn't have an overlay yet.
