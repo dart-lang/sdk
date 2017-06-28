@@ -12266,6 +12266,30 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(statement.semicolon, isNotNull);
   }
 
+  void test_parseAssertStatement_trailingComma_message() {
+    var statement = parseStatement('assert (x, "m",);') as AssertStatement;
+    assertNoErrors();
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_trailingComma_noMessage() {
+    var statement = parseStatement('assert (x,);') as AssertStatement;
+    assertNoErrors();
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNull);
+    expect(statement.message, isNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
   void test_parseBlock_empty() {
     var block = parseStatement('{}') as Block;
     assertNoErrors();

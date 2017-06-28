@@ -801,10 +801,19 @@ class Parser {
     Expression message;
     if (_matches(TokenType.COMMA)) {
       comma = getAndAdvance();
-      message = parseExpression2();
+      if (_matches(TokenType.CLOSE_PAREN)) {
+        comma = null;
+      } else {
+        message = parseExpression2();
+        if (_matches(TokenType.COMMA)) {
+          getAndAdvance();
+        }
+      }
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     Token semicolon = _expect(TokenType.SEMICOLON);
+    // TODO(brianwilkerson) We should capture the trailing comma in the AST, but
+    // that would be a breaking change, so we drop it for now.
     return astFactory.assertStatement(
         keyword, leftParen, expression, comma, message, rightParen, semicolon);
   }
