@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test(core::List<core::num> nums) → invalid-type {
-  for (core::num x in nums) {
+  for (dynamic x in nums) {
     if(x is core::int) {
       dynamic y = x{core::int};
     }

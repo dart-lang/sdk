@@ -736,7 +736,7 @@ class KernelForInStatement extends ForInStatement implements KernelStatement {
     KernelVariableDeclaration variable;
     if (_declaresVariable) {
       variable = this.variable;
-      if (variable._implicitlyTyped) {
+      if (inferrer.strongMode && variable._implicitlyTyped) {
         typeNeeded = true;
         // TODO(paulberry): In this case, should the context be `Iterable<?>`?
       } else {
