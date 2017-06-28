@@ -148,6 +148,7 @@ class Search {
             if (subtype.supertypes.contains(id)) {
               FileState library = file.isPart ? file.library : file;
               results.add(new SubtypeResult(
+                  library.uriStr,
                   library.uriStr + ';' + file.uriStr + ';' + subtype.name,
                   subtype.name,
                   subtype.members));
@@ -544,6 +545,11 @@ enum SearchResultKind { READ, READ_WRITE, WRITE, INVOCATION, REFERENCE }
  */
 class SubtypeResult {
   /**
+   * The URI of the library.
+   */
+  final String libraryUri;
+
+  /**
    * The identifier of the subtype.
    */
   final String id;
@@ -554,11 +560,11 @@ class SubtypeResult {
   final String name;
 
   /**
-   * The names of members declared in the class.
+   * The names of instance members declared in the class.
    */
   final List<String> members;
 
-  SubtypeResult(this.id, this.name, this.members);
+  SubtypeResult(this.libraryUri, this.id, this.name, this.members);
 
   @override
   String toString() => id;

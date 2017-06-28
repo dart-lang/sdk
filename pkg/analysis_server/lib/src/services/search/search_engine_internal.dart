@@ -23,6 +23,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<Set<String>> membersOfSubtypes(ClassElement type) async {
     List<AnalysisDriver> drivers = _drivers.toList();
 
+    String libraryUriStr = type.librarySource.uri.toString();
     bool hasSubtypes = false;
     Set<String> visitedIds = new Set<String>();
     Set<String> members = new Set<String>();
@@ -34,9 +35,11 @@ class SearchEngineImpl implements SearchEngine {
       for (AnalysisDriver driver in drivers) {
         List<SubtypeResult> subtypes =
             await driver.search.subtypes(type: type, subtype: subtype);
-        for (var subtype in subtypes) {
+        for (SubtypeResult subtype in subtypes) {
           hasSubtypes = true;
-          members.addAll(subtype.members);
+          members.addAll(subtype.libraryUri == libraryUriStr
+              ? subtype.members
+              : subtype.members.where((name) => !name.startsWith('_')));
           await addMembers(null, subtype);
         }
       }

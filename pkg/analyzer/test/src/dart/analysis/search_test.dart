@@ -1114,8 +1114,16 @@ class F {}
     SubtypeResult c = subtypes.singleWhere((r) => r.name == 'C');
     SubtypeResult d = subtypes.singleWhere((r) => r.name == 'D');
 
+    expect(b.libraryUri, testUri);
+    expect(b.id, '$testUri;$testUri;B');
     expect(b.members, ['methodB']);
+
+    expect(c.libraryUri, testUri);
+    expect(c.id, '$testUri;$testUri;C');
     expect(c.members, ['methodC']);
+
+    expect(d.libraryUri, testUri);
+    expect(d.id, '$testUri;$testUri;D');
     expect(d.members, ['methodD']);
 
     // Search by 'id'.

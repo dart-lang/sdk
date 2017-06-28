@@ -163,6 +163,50 @@ class B {
     expect(members, isNull);
   }
 
+  test_membersOfSubtypes_private() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(
+        a,
+        '''
+class A {
+  void a() {}
+  void _b() {}
+  void _c() {}
+}
+class B extends A {
+  void _b() {}
+}
+''');
+    provider.newFile(
+        b,
+        '''
+import 'a.dart';
+class C extends A {
+  void a() {}
+  void _c() {}
+}
+class D extends B {
+  void _c() {}
+}
+''');
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+    await scheduler.waitForIdle();
+
+    var resultA = await driver1.getResult(a);
+    ClassElement elementA = resultA.unit.element.types[0];
+
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
+    Set<String> members = await searchEngine.membersOfSubtypes(elementA);
+    expect(members, unorderedEquals(['a', '_b']));
+  }
+
   test_searchAllSubtypes() async {
     var p = _p('/test.dart');
 
