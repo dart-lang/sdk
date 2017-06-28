@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,7 +35,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ANALYZED_FILES) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
       AnalysisAnalyzedFilesParams params =
           new AnalysisAnalyzedFilesParams.fromNotification(notification);
       analyzedFilesReceived = true;

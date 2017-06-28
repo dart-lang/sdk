@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -125,7 +125,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   bool skipShutdown = false;
 
   /**
-   * True if we are currently subscribed to [SERVER_STATUS] updates.
+   * True if we are currently subscribed to [SERVER_NOTIFICATION_STATUS] updates.
    */
   bool _subscribedToServerStatus = false;
 
@@ -240,8 +240,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Send the server an 'analysis.setAnalysisRoots' command directing it to
    * analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
-   * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
-   * can be used.
+   * then also enable [SERVER_NOTIFICATION_STATUS] notifications so that
+   * [analysisFinished] can be used.
    */
   Future standardAnalysisSetup({bool subscribeStatus: true}) {
     List<Future> futures = <Future>[];

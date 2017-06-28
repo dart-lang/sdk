@@ -8,9 +8,9 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
@@ -338,34 +338,35 @@ class EditDomainHandler extends AbstractRequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EDIT_FORMAT) {
+      if (requestName == EDIT_REQUEST_FORMAT) {
         return format(request);
-      } else if (requestName == EDIT_GET_ASSISTS) {
+      } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
         getAssists(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
+      } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
-      } else if (requestName == EDIT_GET_FIXES) {
+      } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_REFACTORING) {
+      } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
-      } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
+      } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
         organizeDirectives(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_SORT_MEMBERS) {
+      } else if (requestName == EDIT_REQUEST_SORT_MEMBERS) {
         sortMembers(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_STATEMENT_COMPLETION) {
+      } else if (requestName == EDIT_REQUEST_GET_STATEMENT_COMPLETION) {
         getStatementCompletion(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_IS_POSTFIX_COMPLETION_APPLICABLE) {
+      } else if (requestName == EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE) {
         isPostfixCompletionApplicable(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_POSTFIX_COMPLETION) {
+      } else if (requestName == EDIT_REQUEST_GET_POSTFIX_COMPLETION) {
         getPostfixCompletion(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_LIST_POSTFIX_COMPLETION_TEMPLATES) {
+      } else if (requestName ==
+          EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
         listPostfixCompletionTemplates(request);
         return Response.DELAYED_RESPONSE;
       }

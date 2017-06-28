@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -52,7 +53,7 @@ main() {
 
     group('setSubscriptions', () {
       test('invalid service name', () {
-        Request request = new Request('0', SERVER_SET_SUBSCRIPTIONS, {
+        Request request = new Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
         var response = handler.handleRequest(request);

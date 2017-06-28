@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -52,7 +52,7 @@ main() {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ERRORS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }

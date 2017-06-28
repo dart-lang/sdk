@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -228,8 +228,8 @@ main() {
 
     group('updateOptions', () {
       test('invalid', () {
-        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {
-          OPTIONS: {'not-an-option': true}
+        var request = new Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS, {
+          ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: {'not-an-option': true}
         });
         var response = handler.handleRequest(request);
         // Invalid options should be silently ignored.
@@ -238,8 +238,8 @@ main() {
 
       test('null', () {
         // null is allowed as a synonym for {}.
-        var request =
-            new Request('0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: null});
+        var request = new Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS,
+            {ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: null});
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
       });
@@ -252,10 +252,10 @@ testUpdateContent() {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     return helper.onAnalysisComplete.then((_) {
-      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
-        'files': {
+      Request request = new Request('0', ANALYSIS_REQUEST_UPDATE_CONTENT, {
+        ANALYSIS_REQUEST_UPDATE_CONTENT_FILES: {
           helper.testFile: {
-            TYPE: 'foo',
+            'type': 'foo',
           }
         }
       });
@@ -382,7 +382,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ERRORS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
@@ -454,16 +454,16 @@ class AnalysisTestHelper {
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
-      if (notification.event == ANALYSIS_ERRORS) {
+      if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
         var decoded = new AnalysisErrorsParams.fromNotification(notification);
         filesErrors[decoded.file] = decoded.errors;
       }
-      if (notification.event == ANALYSIS_HIGHLIGHTS) {
+      if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
         var params =
             new AnalysisHighlightsParams.fromNotification(notification);
         filesHighlights[params.file] = params.regions;
       }
-      if (notification.event == ANALYSIS_NAVIGATION) {
+      if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
         var params =
             new AnalysisNavigationParams.fromNotification(notification);
         filesNavigation[params.file] = params.regions;
@@ -646,7 +646,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   Completer _resultsAvailable = new Completer();
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_HIGHLIGHTS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = new AnalysisHighlightsParams.fromNotification(notification);
       filesHighlights[params.file] = params.regions;
       _resultsAvailable.complete(null);

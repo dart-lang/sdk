@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart'
     show Index, createMemoryIndex;
@@ -79,7 +79,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
-    if (notification.event == SEARCH_RESULTS) {
+    if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
       var params = new SearchResultsParams.fromNotification(notification);
       String id = params.id;
       _ResultSet resultSet = resultSets[id];

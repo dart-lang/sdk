@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
@@ -109,7 +110,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       expect(allSuggestions.containsKey(id), isFalse);
       allSuggestions[id] = params.results;
       _getResultsCompleter(id).complete(null);
-    } else if (notification.event == SERVER_ERROR) {
+    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       fail('server error: ${notification.toJson()}');
     }
   }

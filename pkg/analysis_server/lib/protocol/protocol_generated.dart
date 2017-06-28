@@ -7597,12 +7597,12 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   List<PostfixTemplateDescriptor> _templates;
 
   /**
-   * The list of available template.
+   * The list of available templates.
    */
   List<PostfixTemplateDescriptor> get templates => _templates;
 
   /**
-   * The list of available template.
+   * The list of available templates.
    */
   void set templates(List<PostfixTemplateDescriptor> value) {
     assert(value != null);

@@ -7,9 +7,9 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
@@ -106,9 +106,9 @@ class DiagnosticDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == DIAGNOSTIC_GET_DIAGNOSTICS) {
+      if (requestName == DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS) {
         return computeDiagnostics(request);
-      } else if (requestName == DIAGNOSTIC_GET_SERVER_PORT) {
+      } else if (requestName == DIAGNOSTIC_REQUEST_GET_SERVER_PORT) {
         handleGetServerPort(request);
         return Response.DELAYED_RESPONSE;
       }

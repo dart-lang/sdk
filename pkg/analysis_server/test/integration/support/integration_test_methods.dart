@@ -1561,7 +1561,7 @@ abstract class IntegrationTestMixin {
    *
    * templates: List<PostfixTemplateDescriptor>
    *
-   *   The list of available template.
+   *   The list of available templates.
    */
   Future<EditListPostfixCompletionTemplatesResult>
       sendEditListPostfixCompletionTemplates() async {
