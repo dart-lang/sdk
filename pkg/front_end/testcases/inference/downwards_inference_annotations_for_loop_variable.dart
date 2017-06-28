@@ -7,13 +7,12 @@ library test;
 
 class Foo {
   const Foo(List<String> l);
-  const Foo.named(List<String> l);
 }
 
-@Foo(/*@typeArgs=String*/ const [])
-class Bar {}
-
-@Foo.named(/*@typeArgs=String*/ const [])
-class Baz {}
+void test() {
+  for (@Foo(/*@typeArgs=String*/ const []) int i = 0;
+       i /*@target=num::<*/< 1; i++) {}
+  for (@Foo(/*@typeArgs=String*/ const []) int i in /*@typeArgs=int*/[0]) {}
+}
 
 main() {}

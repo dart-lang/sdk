@@ -7,13 +7,9 @@ library test;
 
 class Foo {
   const Foo(List<String> l);
-  const Foo.named(List<String> l);
 }
 
 @Foo(/*@typeArgs=String*/ const [])
-class Bar {}
-
-@Foo.named(/*@typeArgs=String*/ const [])
-class Baz {}
+typedef void F();
 
 main() {}

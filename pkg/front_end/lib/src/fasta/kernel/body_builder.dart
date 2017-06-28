@@ -446,6 +446,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     pop(); // Modifiers.
     List annotations = pop();
     if (annotations != null) {
+      _typeInferrer.inferMetadata(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       annotations.forEach(field.addAnnotation);
@@ -589,6 +590,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     KernelFunctionBuilder builder = member;
     builder.body = body;
     Member target = builder.target;
+    _typeInferrer.inferMetadata(annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -613,6 +615,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       internalError("Unhandled: ${builder.runtimeType}");
     }
+  }
+
+  @override
+  List<Expression> finishMetadata() {
+    List<Expression> expressions = pop();
+    _typeInferrer.inferMetadata(expressions);
+    return expressions;
   }
 
   void finishConstructor(

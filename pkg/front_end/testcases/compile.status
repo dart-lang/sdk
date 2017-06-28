@@ -67,7 +67,7 @@ inference/dont_infer_type_on_dynamic: Fail
 inference/dont_infer_type_when_initializer_is_null: Fail
 inference/downward_inference_fixes_no_upwards_errors: Fail
 inference/downward_inference_miscellaneous: Fail
-inference/downwards_inference_annotations: Fail
+inference/downwards_inference_annotations_locals: Fail # Issue #30031
 inference/downwards_inference_assignment_statements: Fail
 inference/downwards_inference_async_await: Fail
 inference/downwards_inference_for_each: Fail

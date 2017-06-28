@@ -6,14 +6,14 @@
 library test;
 
 class Foo {
-  const Foo(List<String> l);
-  const Foo.named(List<String> l);
+  const Foo(dynamic l);
 }
 
-@Foo(/*@typeArgs=String*/ const [])
-class Bar {}
+void test() {
+  const /*@type=int*/ x = 0;
 
-@Foo.named(/*@typeArgs=String*/ const [])
-class Baz {}
+  @Foo(/*@typeArgs=int*/ const [x])
+  var /*@type=dynamic*/ y;
+}
 
 main() {}

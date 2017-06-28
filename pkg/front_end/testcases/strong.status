@@ -53,7 +53,14 @@ unused_methods: Fail
 void-methods: Fail
 
 inference/constructors_too_many_positional_arguments: Fail
-inference/downwards_inference_annotations: Fail
+inference/downwards_inference_annotations_for_loop_variable: Fail # Issue #30035
+inference/downwards_inference_annotations_locals: Fail # Issue #30031 and Issue #30035
+inference/downwards_inference_annotations_locals_referring_to_locals: Fail # Issue #30035
+inference/downwards_inference_annotations_parameter: Fail # Issue #30035
+inference/downwards_inference_annotations_parameter_local: Fail # Issue #30035
+inference/downwards_inference_annotations_type_variable: Fail # Issue #30035
+inference/downwards_inference_annotations_type_variable_local: Fail # Issue #30035
+inference/downwards_inference_annotations_typedef: Fail # Issue #30034
 inference/downwards_inference_on_function_of_t_using_the_t: Fail
 inference/future_then_explicit_future: Fail
 inference/generic_functions_return_typedef: Fail

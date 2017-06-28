@@ -7,13 +7,16 @@ library test;
 
 class Foo {
   const Foo(List<String> l);
-  const Foo.named(List<String> l);
 }
 
-@Foo(/*@typeArgs=String*/ const [])
-class Bar {}
+class C<@Foo(/*@typeArgs=String*/ const []) T> {}
 
-@Foo.named(/*@typeArgs=String*/ const [])
-class Baz {}
+typedef void F<@Foo(/*@typeArgs=String*/ const []) T>();
+
+void f<@Foo(/*@typeArgs=String*/ const []) T>() {}
+
+class D {
+  void m<@Foo(/*@typeArgs=String*/ const []) T>() {}
+}
 
 main() {}

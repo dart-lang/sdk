@@ -7,13 +7,17 @@ library test;
 
 class Foo {
   const Foo(List<String> l);
-  const Foo.named(List<String> l);
 }
 
-@Foo(/*@typeArgs=String*/ const [])
-class Bar {}
+abstract class Bar {
+  @Foo(/*@typeArgs=String*/ const [])
+  Bar();
 
-@Foo.named(/*@typeArgs=String*/ const [])
-class Baz {}
+  @Foo(/*@typeArgs=String*/ const [])
+  var /*@topType=dynamic*/ x;
+
+  @Foo(/*@typeArgs=String*/ const [])
+  void f();
+}
 
 main() {}

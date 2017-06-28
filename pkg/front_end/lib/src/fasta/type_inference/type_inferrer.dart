@@ -217,6 +217,9 @@ abstract class TypeInferrer {
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(Initializer initializer);
 
+  /// Performs type inference on the given metadata annotations.
+  void inferMetadata(List<Expression> annotations);
+
   /// Performs type inference on the given function parameter initializer
   /// expression.
   void inferParameterInitializer(Expression initializer, DartType declaredType);
@@ -772,6 +775,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     this.closureContext = oldClosureContext;
     return typeNeeded ? function.functionType : null;
+  }
+
+  @override
+  void inferMetadata(List<Expression> annotations) {
+    if (annotations != null) {
+      for (var annotation in annotations) {
+        inferExpression(annotation, null, false);
+      }
+    }
   }
 
   /// Performs the core type inference algorithm for method invocations (this
