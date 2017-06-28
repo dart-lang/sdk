@@ -31,6 +31,8 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
+import 'dart:html';
+
 foo({named}) => 1;
 bar(a) => !a;
 class Class {
@@ -42,12 +44,15 @@ class Class {
 
   method() {}
 }
-
+ 
 class SubClass extends Class {
   method() {
     super.method();
   }  
 }
+
+var toplevel;
+
 main() {
   foo();
   bar(true);
@@ -80,6 +85,7 @@ main() {
     x = v;
     if (v == 5) break;
   }
+  x = toplevel;
   print(x);
   return x;
 }

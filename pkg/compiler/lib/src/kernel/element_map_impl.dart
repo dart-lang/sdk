@@ -162,7 +162,8 @@ class KernelToElementMapImpl extends KernelToElementMapBase
   @override
   ConstantValue getFieldConstantValue(ir.Field field) {
     // TODO(johnniwinther): Cache the result in [_FieldData].
-    return getConstantValue(field.initializer, requireConstant: field.isConst);
+    return getConstantValue(field.initializer,
+        requireConstant: field.isConst, implicitNull: !field.isConst);
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
