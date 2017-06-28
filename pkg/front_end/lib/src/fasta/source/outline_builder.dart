@@ -616,8 +616,8 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("FunctionType");
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset
-    List<TypeVariableBuilder> typeVariables = pop();
     TypeBuilder returnType = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     push(library.addFunctionType(
         returnType, typeVariables, formals, functionToken.charOffset));
   }

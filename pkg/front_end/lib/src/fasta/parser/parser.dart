@@ -1283,7 +1283,13 @@ class Parser {
     /// function will call the appropriate event methods on [listener] to
     /// handle the type.
     Token commitType() {
-      assert(typeVariableStarters.length == functionTypes);
+      int count = 0;
+      for (Token typeVariableStart in typeVariableStarters) {
+        count++;
+        parseTypeVariablesOpt(typeVariableStart);
+        listener.beginFunctionType(begin);
+      }
+      assert(count == functionTypes);
 
       if (functionTypes > 0 && !hasReturnType) {
         // A function type without return type.
@@ -1312,11 +1318,17 @@ class Parser {
         }
       }
 
-      // While we see a `Function(` treat the pushed type as return type.
-      // For example: `int Function() Function(int) Function(String x)`.
       for (int i = 0; i < functionTypes; i++) {
-        assert(isGeneralizedFunctionType(token));
-        token = parseFunctionType(token);
+        assert(optional('Function', token));
+        Token functionToken = token;
+        token = token.next;
+        if (optional("<", token)) {
+          // Skip type parameters, they were parsed above.
+          token = getClose(token).next;
+        }
+        token =
+            parseFormalParameters(token, MemberKind.GeneralizedFunctionType);
+        listener.endFunctionType(functionToken, token);
       }
 
       return token;
@@ -1470,19 +1482,6 @@ class Parser {
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
-  }
-
-  /// Parses a generalized function type.
-  ///
-  /// The return type must already be pushed.
-  Token parseFunctionType(Token token) {
-    assert(optional('Function', token));
-    Token functionToken = token;
-    token = token.next;
-    token = parseTypeVariablesOpt(token);
-    token = parseFormalParameters(token, MemberKind.GeneralizedFunctionType);
-    listener.endFunctionType(functionToken, token);
-    return token;
   }
 
   Token parseTypeArgumentsOpt(Token token) {

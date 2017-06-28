@@ -179,8 +179,8 @@ class NodeListener extends ElementListener {
   @override
   void endFunctionType(Token functionToken, Token endToken) {
     NodeList formals = popNode();
-    NodeList typeParameters = popNode();
     TypeAnnotation returnType = popNode();
+    NodeList typeParameters = popNode();
     pushNode(new FunctionTypeAnnotation(
         returnType, functionToken, typeParameters, formals));
   }

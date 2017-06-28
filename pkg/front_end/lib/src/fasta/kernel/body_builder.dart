@@ -1725,8 +1725,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     FormalParameters formals = pop();
-    ignore(Unhandled.TypeVariables);
     DartType returnType = pop();
+    ignore(Unhandled.TypeVariables);
     push(formals.toFunctionType(returnType));
   }
 

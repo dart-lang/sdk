@@ -772,8 +772,8 @@ class AstBuilder extends ScopeListener {
   void endFunctionType(Token functionToken, Token semicolon) {
     debugEvent("FunctionType");
     FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
     TypeAnnotation returnType = pop();
+    TypeParameterList typeParameters = pop();
     push(ast.genericFunctionType(
         returnType, functionToken, typeParameters, parameters));
   }

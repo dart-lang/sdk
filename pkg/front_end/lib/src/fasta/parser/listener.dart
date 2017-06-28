@@ -742,8 +742,8 @@ class Listener {
   /// Handle the end of a generic function type declaration.
   ///
   /// Substructures:
-  /// - Return type
   /// - Type variables
+  /// - Return type
   /// - Formal parameters
   void endFunctionType(Token functionToken, Token endToken) {
     logEvent("FunctionType");
