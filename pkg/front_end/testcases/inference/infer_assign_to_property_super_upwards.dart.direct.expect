@@ -15,14 +15,14 @@ class Test1 extends self::Base {
     : super self::Base::•()
     ;
   method test() → void {
-    dynamic v1 = super.intProp = self::getInt();
-    dynamic v2 = super.intProp = self::getNum();
-    dynamic v4 = let final dynamic #t1 = super.intProp in #t1.==(null) ? super.intProp = self::getInt() : #t1;
-    dynamic v5 = let final dynamic #t2 = super.intProp in #t2.==(null) ? super.intProp = self::getNum() : #t2;
-    dynamic v7 = super.intProp = super.intProp.+(self::getInt());
-    dynamic v8 = super.intProp = super.intProp.+(self::getNum());
-    dynamic v10 = super.intProp = super.intProp.+(1);
-    dynamic v11 = let final dynamic #t3 = super.intProp in let final dynamic #t4 = super.intProp = #t3.+(1) in #t3;
+    dynamic v1 = super.{self::Base::intProp} = self::getInt();
+    dynamic v2 = super.{self::Base::intProp} = self::getNum();
+    dynamic v4 = let final dynamic #t1 = super.{self::Base::intProp} in #t1.==(null) ? super.{self::Base::intProp} = self::getInt() : #t1;
+    dynamic v5 = let final dynamic #t2 = super.{self::Base::intProp} in #t2.==(null) ? super.{self::Base::intProp} = self::getNum() : #t2;
+    dynamic v7 = super.{self::Base::intProp} = super.{self::Base::intProp}.+(self::getInt());
+    dynamic v8 = super.{self::Base::intProp} = super.{self::Base::intProp}.+(self::getNum());
+    dynamic v10 = super.{self::Base::intProp} = super.{self::Base::intProp}.+(1);
+    dynamic v11 = let final dynamic #t3 = super.{self::Base::intProp} in let final dynamic #t4 = super.{self::Base::intProp} = #t3.+(1) in #t3;
   }
 }
 class Test2 extends self::Base {
@@ -30,17 +30,17 @@ class Test2 extends self::Base {
     : super self::Base::•()
     ;
   method test() → void {
-    dynamic v1 = super.numProp = self::getInt();
-    dynamic v2 = super.numProp = self::getNum();
-    dynamic v3 = super.numProp = self::getDouble();
-    dynamic v4 = let final dynamic #t5 = super.numProp in #t5.==(null) ? super.numProp = self::getInt() : #t5;
-    dynamic v5 = let final dynamic #t6 = super.numProp in #t6.==(null) ? super.numProp = self::getNum() : #t6;
-    dynamic v6 = let final dynamic #t7 = super.numProp in #t7.==(null) ? super.numProp = self::getDouble() : #t7;
-    dynamic v7 = super.numProp = super.numProp.+(self::getInt());
-    dynamic v8 = super.numProp = super.numProp.+(self::getNum());
-    dynamic v9 = super.numProp = super.numProp.+(self::getDouble());
-    dynamic v10 = super.numProp = super.numProp.+(1);
-    dynamic v11 = let final dynamic #t8 = super.numProp in let final dynamic #t9 = super.numProp = #t8.+(1) in #t8;
+    dynamic v1 = super.{self::Base::numProp} = self::getInt();
+    dynamic v2 = super.{self::Base::numProp} = self::getNum();
+    dynamic v3 = super.{self::Base::numProp} = self::getDouble();
+    dynamic v4 = let final dynamic #t5 = super.{self::Base::numProp} in #t5.==(null) ? super.{self::Base::numProp} = self::getInt() : #t5;
+    dynamic v5 = let final dynamic #t6 = super.{self::Base::numProp} in #t6.==(null) ? super.{self::Base::numProp} = self::getNum() : #t6;
+    dynamic v6 = let final dynamic #t7 = super.{self::Base::numProp} in #t7.==(null) ? super.{self::Base::numProp} = self::getDouble() : #t7;
+    dynamic v7 = super.{self::Base::numProp} = super.{self::Base::numProp}.+(self::getInt());
+    dynamic v8 = super.{self::Base::numProp} = super.{self::Base::numProp}.+(self::getNum());
+    dynamic v9 = super.{self::Base::numProp} = super.{self::Base::numProp}.+(self::getDouble());
+    dynamic v10 = super.{self::Base::numProp} = super.{self::Base::numProp}.+(1);
+    dynamic v11 = let final dynamic #t8 = super.{self::Base::numProp} in let final dynamic #t9 = super.{self::Base::numProp} = #t8.+(1) in #t8;
   }
 }
 class Test3 extends self::Base {
@@ -48,15 +48,15 @@ class Test3 extends self::Base {
     : super self::Base::•()
     ;
   method test3() → void {
-    dynamic v2 = super.doubleProp = self::getNum();
-    dynamic v3 = super.doubleProp = self::getDouble();
-    dynamic v5 = let final dynamic #t10 = super.doubleProp in #t10.==(null) ? super.doubleProp = self::getNum() : #t10;
-    dynamic v6 = let final dynamic #t11 = super.doubleProp in #t11.==(null) ? super.doubleProp = self::getDouble() : #t11;
-    dynamic v7 = super.doubleProp = super.doubleProp.+(self::getInt());
-    dynamic v8 = super.doubleProp = super.doubleProp.+(self::getNum());
-    dynamic v9 = super.doubleProp = super.doubleProp.+(self::getDouble());
-    dynamic v10 = super.doubleProp = super.doubleProp.+(1);
-    dynamic v11 = let final dynamic #t12 = super.doubleProp in let final dynamic #t13 = super.doubleProp = #t12.+(1) in #t12;
+    dynamic v2 = super.{self::Base::doubleProp} = self::getNum();
+    dynamic v3 = super.{self::Base::doubleProp} = self::getDouble();
+    dynamic v5 = let final dynamic #t10 = super.{self::Base::doubleProp} in #t10.==(null) ? super.{self::Base::doubleProp} = self::getNum() : #t10;
+    dynamic v6 = let final dynamic #t11 = super.{self::Base::doubleProp} in #t11.==(null) ? super.{self::Base::doubleProp} = self::getDouble() : #t11;
+    dynamic v7 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.+(self::getInt());
+    dynamic v8 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.+(self::getNum());
+    dynamic v9 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.+(self::getDouble());
+    dynamic v10 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.+(1);
+    dynamic v11 = let final dynamic #t12 = super.{self::Base::doubleProp} in let final dynamic #t13 = super.{self::Base::doubleProp} = #t12.+(1) in #t12;
   }
 }
 static method getInt() → core::int

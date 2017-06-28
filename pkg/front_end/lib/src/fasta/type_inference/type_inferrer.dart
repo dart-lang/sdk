@@ -354,13 +354,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
-      propertyGet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertyGet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else if (propertyGet is SuperPropertyGet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
-      propertyGet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertyGet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else {
       throw internalError(
@@ -376,13 +380,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
-      propertySet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertySet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else if (propertySet is SuperPropertySet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
-      propertySet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertySet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else {
       throw internalError(
