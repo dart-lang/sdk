@@ -35,7 +35,7 @@ abstract class FixContributorMixin implements FixContributor {
    * [args] to populate the message.
    */
   void addFix(AnalysisError error, FixKind kind, ChangeBuilder builder,
-      {List<Object> args: null}) {
+      {List<Object> args}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;

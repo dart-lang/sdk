@@ -5,6 +5,7 @@
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
 /**
  * The implementation of [AssistContext].

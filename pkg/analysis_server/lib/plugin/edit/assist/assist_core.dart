@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
 /**
  * A description of a single proposed assist.
@@ -26,7 +27,7 @@ class Assist {
    */
   static final Comparator<Assist> SORT_BY_RELEVANCE =
       (Assist firstAssist, Assist secondAssist) =>
-          firstAssist.kind.relevance - secondAssist.kind.relevance;
+          firstAssist.kind.priority - secondAssist.kind.priority;
 
   /**
    * A description of the assist being proposed.
@@ -86,38 +87,4 @@ abstract class AssistContributor {
    * Completes with a list of assists for the given [context].
    */
   Future<List<Assist>> computeAssists(AssistContext context);
-}
-
-/**
- * A description of a class of assists. Instances are intended to hold the
- * information that is common across a number of assists and to be shared by
- * those assists.
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class AssistKind {
-  /**
-   * The name of this kind of assist, used for debugging.
-   */
-  final String name;
-
-  /**
-   * The relevance of this kind of assist for the kind of error being addressed.
-   */
-  final int relevance;
-
-  /**
-   * A human-readable description of the changes that will be applied by this
-   * kind of assist.
-   */
-  final String message;
-
-  /**
-   * Initialize a newly created kind of assist to have the given [name],
-   * [relevance] and [message].
-   */
-  const AssistKind(this.name, this.relevance, this.message);
-
-  @override
-  String toString() => name;
 }
