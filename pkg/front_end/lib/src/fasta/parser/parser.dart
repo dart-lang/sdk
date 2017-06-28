@@ -1158,82 +1158,86 @@ class Parser {
   /// after the type. Otherwise, it returns null.
   Token parseType(Token token,
       [TypeContinuation continuation = TypeContinuation.Required]) {
-    switch (continuation) {
-      case TypeContinuation.Typedef:
-        if (optional('=', peekAfterNominalType(token))) {
-          return null; // This isn't a type, it's a new-style typedef.
+    Token begin = token;
+
+    /// Call this function when it's known that [begin] is a type. This
+    /// function will call the appropriate event methods on [listener] to
+    /// handle the type.
+    Token commitType() {
+      if (isGeneralizedFunctionType(token)) {
+        // A function type without return type.
+        // Push the non-existing return type first. The loop below will
+        // generate the full type.
+        listener.handleNoType(token);
+      } else if (optional("void", token) &&
+          isGeneralizedFunctionType(token.next)) {
+        listener.handleVoidKeyword(token);
+        token = token.next;
+      } else {
+        IdentifierContext context = IdentifierContext.typeReference;
+        if (token.isIdentifier && optional(".", token.next)) {
+          context = IdentifierContext.prefixedTypeReference;
         }
-        continue optional;
+        token = parseIdentifier(token, context);
+        token = parseQualifiedRestOpt(
+            token, IdentifierContext.typeReferenceContinuation);
+        token = parseTypeArgumentsOpt(token);
+        listener.handleType(begin, token);
+      }
+
+      {
+        Token newBegin =
+            listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
+        if (!identical(newBegin, begin)) {
+          listener.discardTypeReplacedWithCommentTypeAssign();
+          return parseType(newBegin);
+        }
+      }
+
+      // While we see a `Function(` treat the pushed type as return type.
+      // For example: `int Function() Function(int) Function(String x)`.
+      while (isGeneralizedFunctionType(token)) {
+        token = parseFunctionType(token);
+      }
+      return token;
+    }
+
+    switch (continuation) {
+      case TypeContinuation.Required:
+        return commitType();
 
       optional:
       case TypeContinuation.Optional:
         if (optional("void", token)) {
           if (isGeneralizedFunctionType(token.next)) {
-            // This is a type, parse it.
-            break;
+            return commitType(); // This is a type, parse it.
           } else {
             listener.handleVoidKeyword(token);
             return token.next;
           }
         } else {
           if (isGeneralizedFunctionType(token)) {
-            // Function type without return type, parse it.
-            break;
+            return commitType(); // Function type without return type, parse it.
           }
           token = listener.injectGenericCommentTypeAssign(token);
           Token peek = peekAfterIfType(token);
           if (peek != null && (peek.isIdentifier || optional('this', peek))) {
             // This is a type followed by an identifier, parse it.
-            break;
+            return commitType();
           }
           listener.handleNoType(token);
           return token;
         }
         break;
 
-      case TypeContinuation.Required:
-        break;
-
-      default:
-        throw "Internal error: Unhandled continuation '$continuation'.";
-    }
-    Token begin = token;
-    if (isGeneralizedFunctionType(token)) {
-      // A function type without return type.
-      // Push the non-existing return type first. The loop below will
-      // generate the full type.
-      listener.handleNoType(token);
-    } else if (optional("void", token) &&
-        isGeneralizedFunctionType(token.next)) {
-      listener.handleVoidKeyword(token);
-      token = token.next;
-    } else {
-      IdentifierContext context = IdentifierContext.typeReference;
-      if (token.isIdentifier && optional(".", token.next)) {
-        context = IdentifierContext.prefixedTypeReference;
-      }
-      token = parseIdentifier(token, context);
-      token = parseQualifiedRestOpt(
-          token, IdentifierContext.typeReferenceContinuation);
-      token = parseTypeArgumentsOpt(token);
-      listener.handleType(begin, token);
+      case TypeContinuation.Typedef:
+        if (optional('=', peekAfterNominalType(token))) {
+          return null; // This isn't a type, it's a new-style typedef.
+        }
+        continue optional;
     }
 
-    {
-      Token newBegin =
-          listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
-      if (!identical(newBegin, begin)) {
-        listener.discardTypeReplacedWithCommentTypeAssign();
-        return parseType(newBegin);
-      }
-    }
-
-    // While we see a `Function(` treat the pushed type as return type.
-    // For example: `int Function() Function(int) Function(String x)`.
-    while (isGeneralizedFunctionType(token)) {
-      token = parseFunctionType(token);
-    }
-    return token;
+    throw "Internal error: Unhandled continuation '$continuation'.";
   }
 
   /// Parses a generalized function type.
