@@ -108,3 +108,42 @@ class FixGenerator {
     return new GeneratorResult(result, notifications);
   }
 }
+
+/**
+ * A description of a class of fixes. Instances are intended to hold the
+ * information that is common across a number of fixes and to be shared by those
+ * fixes. For example, if an unnecessary cast is found then one of the suggested
+ * fixes will be to remove the cast. If there are multiple unnecessary casts in
+ * a single file, then there will be multiple fixes, one per occurrence, but
+ * they will all share the same kind.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FixKind {
+  /**
+   * The name of this kind of fix, used for debugging.
+   */
+  final String name;
+
+  /**
+   * The priority of this kind of fix for the kind of error being addressed.
+   */
+  final int priority;
+
+  /**
+   * A human-readable description of the changes that will be applied by this
+   * kind of fix. The message can contain parameters, where each parameter is
+   * represented by a zero-based index inside curly braces. For example, the
+   * message `"Create a component named '{0}' in '{1}'"` contains two parameters.
+   */
+  final String message;
+
+  /**
+   * Initialize a newly created kind of fix to have the given [name],
+   * [priority] and [message].
+   */
+  const FixKind(this.name, this.priority, this.message);
+
+  @override
+  String toString() => name;
+}

@@ -44,6 +44,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
 
