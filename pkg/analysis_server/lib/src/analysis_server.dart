@@ -31,7 +31,6 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -128,11 +127,6 @@ class AnalysisServer {
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
-
-  /**
-   * The [Index] for this server, may be `null` if indexing is disabled.
-   */
-  final Index index;
 
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -344,7 +338,6 @@ class AnalysisServer {
       this.channel,
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
-      this.index,
       this.serverPlugin,
       this.options,
       this.sdkManager,
@@ -419,7 +412,6 @@ class AnalysisServer {
         _performance = performanceAfterStartup;
       });
     });
-    _setupIndexInvalidation();
     searchEngine = new SearchEngineImpl(driverMap.values);
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
@@ -507,7 +499,6 @@ class AnalysisServer {
    * The socket from which requests are being read has been closed.
    */
   void done() {
-    index?.stop();
     running = false;
   }
 
@@ -907,9 +898,6 @@ class AnalysisServer {
 
   void shutdown() {
     running = false;
-    if (index != null) {
-      index.stop();
-    }
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
     new Future(() {
@@ -1044,47 +1032,6 @@ class AnalysisServer {
     if (files != null) {
       scheduleImplementedNotification(this, files);
     }
-  }
-
-  /**
-   * Listen for context events and invalidate index.
-   *
-   * It is possible that this method will do more in the future, e.g. listening
-   * for summary information and linking pre-indexed packages into the index,
-   * but for now we only invalidate project specific index information.
-   */
-  void _setupIndexInvalidation() {
-    if (index == null) {
-      return;
-    }
-    // TODO(brianwilkerson) onContextsChanged never has anything written to it.
-    // Figure out whether we need something like this under the new analysis
-    // driver, and remove this method if not.
-//    onContextsChanged.listen((ContextsChangedEvent event) {
-//      for (AnalysisContext context in event.added) {
-//        context
-//            .onResultChanged(RESOLVED_UNIT3)
-//            .listen((ResultChangedEvent event) {
-//          if (event.wasComputed) {
-//            Object value = event.value;
-//            if (value is CompilationUnit) {
-//              index.indexDeclarations(value);
-//            }
-//          }
-//        });
-//        context
-//            .onResultChanged(RESOLVED_UNIT)
-//            .listen((ResultChangedEvent event) {
-//          if (event.wasInvalidated) {
-//            LibrarySpecificUnit target = event.target;
-//            index.removeUnit(event.context, target.library, target.unit);
-//          }
-//        });
-//      }
-//      for (AnalysisContext context in event.removed) {
-//        index.removeContext(context);
-//      }
-//    });
   }
 }
 

@@ -8,8 +8,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
-import 'package:analysis_server/src/services/index/index.dart'
-    show Index, createMemoryIndex;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
@@ -35,11 +33,6 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
       length = findIdentifierLength(search);
     }
     findResult(kind, testFile, offset, length, false);
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   void findResult(SearchResultKind kind, String file, int offset, int length,

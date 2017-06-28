@@ -10,7 +10,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
@@ -76,11 +75,6 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   void assertValidId(String id) {
     expect(id, isNotNull);
     expect(id.isNotEmpty, isTrue);
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   Future getSuggestions() async {

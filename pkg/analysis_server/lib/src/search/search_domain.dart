@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -22,11 +21,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
    * The analysis server that is using this handler to process requests.
    */
   final AnalysisServer server;
-
-  /**
-   * The [Index] for this server.
-   */
-  final Index index;
 
   /**
    * The [SearchEngine] for this server.
@@ -43,7 +37,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
    */
   SearchDomainHandler(AnalysisServer server)
       : server = server,
-        index = server.index,
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {

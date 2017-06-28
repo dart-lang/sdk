@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -91,11 +90,6 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
             ' in $implementedMembers');
       }
     }
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   /**

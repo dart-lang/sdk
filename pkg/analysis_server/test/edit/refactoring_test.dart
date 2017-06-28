@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
@@ -741,11 +740,6 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    */
   Future assertHasRenameRefactoring(String code, String search) async {
     return assertHasKind(code, search, RefactoringKind.RENAME, true);
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   /**
@@ -1995,11 +1989,6 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       }
     }
     fail('No SourceFileEdit for $testFile in $change');
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   Future<EditGetRefactoringResult> getRefactoringResult(

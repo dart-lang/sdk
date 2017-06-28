@@ -107,7 +107,6 @@ class AnalysisServerTest {
         channel,
         resourceProvider,
         packageMapProvider,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('/', false),

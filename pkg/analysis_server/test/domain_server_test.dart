@@ -31,7 +31,6 @@ main() {
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('', false),

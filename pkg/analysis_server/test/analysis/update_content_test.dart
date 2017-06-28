@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -34,10 +33,6 @@ class UpdateContentTest extends AbstractAnalysisTest {
   Map<String, List<String>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
-
-  Index createIndex() {
-    return new _MockIndex();
-  }
 
   @override
   void processNotification(Notification notification) {
@@ -315,5 +310,3 @@ class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
             file;
   }
 }
-
-class _MockIndex extends TypedMock implements Index {}
