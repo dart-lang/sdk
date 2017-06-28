@@ -1076,7 +1076,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 }
 
 
-void Process::ClearSignalHandler(intptr_t signal) {
+void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
+  // Either the port is illegal or there is no current isolate, but not both.
+  ASSERT((port != ILLEGAL_PORT) || (Dart_CurrentIsolate() == NULL));
+  ASSERT((port == ILLEGAL_PORT) || (Dart_CurrentIsolate() != NULL));
   signal = SignalMap(signal);
   if (signal == -1) {
     return;
@@ -1088,7 +1091,7 @@ void Process::ClearSignalHandler(intptr_t signal) {
   while (handler != NULL) {
     bool remove = false;
     if (handler->signal() == signal) {
-      if (handler->port() == Dart_GetMainPortId()) {
+      if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
         if (signal_handlers == handler) {
           signal_handlers = handler->next();
         }

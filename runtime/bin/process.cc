@@ -75,7 +75,7 @@ static char** ExtractCStringList(Dart_Handle strings,
 
 void Process::ClearAllSignalHandlers() {
   for (intptr_t i = 1; i <= kLastSignal; i++) {
-    ClearSignalHandler(i);
+    ClearSignalHandler(i, ILLEGAL_PORT);
   }
 }
 
@@ -301,7 +301,7 @@ void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Process_ClearSignalHandler)(Dart_NativeArguments args) {
   intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
-  Process::ClearSignalHandler(signal);
+  Process::ClearSignalHandler(signal, Dart_GetMainPortId());
 }
 
 
