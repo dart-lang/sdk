@@ -1245,7 +1245,7 @@ class Parser {
     token = token.next;
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token, MemberKind.GeneralizedFunctionType);
-    listener.handleFunctionType(functionToken, token);
+    listener.endFunctionType(functionToken, token);
     return token;
   }
 

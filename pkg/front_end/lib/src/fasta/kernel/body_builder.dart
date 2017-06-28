@@ -1722,7 +1722,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     FormalParameters formals = pop();
     ignore(Unhandled.TypeVariables);

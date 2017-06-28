@@ -612,7 +612,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset

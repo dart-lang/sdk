@@ -81,7 +81,7 @@ abstract class UnhandledListener extends StackListener {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     pop(); // Formals.
     pop(); // Type variables.
     pop(); // Return type.
