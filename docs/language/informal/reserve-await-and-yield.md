@@ -88,8 +88,8 @@ only a keyword when right inside an import directive. `of` is only a keyword if
 it immediately follows `part` at the top level.
 
 But `await` is a keyword if the surrounding method is declared `async`. That
-modifier may be very far away from the use of `await`. `yield` is similar for
-`sync` methods.
+modifier may be very far away from the use of `await`. The `yield` identifier is
+similar for generator methods.
 
 What makes this worse is that it is a very common error to forget the `async`
 modifier when intending to write an asynchronous method. So the error message
@@ -109,6 +109,7 @@ latest versions of all packages on Pub, I found:
 * 14 uses of `await` as an identifier.
 * 878 uses of `yield` as a keyword.
 * 48 uses of `yield` as an identifier.
+* 2,212 uses of `sync` as an identifier.
 * 13,418,913 uses of any identifier.
 
 In other words, 0.0001% of identifiers are `await` and 0.0003% are `yield`. A
@@ -137,7 +138,7 @@ those while we're at it? The tools folks who requested we reserve `await` and
 [import]: https://github.com/dart-lang/sdk/issues/10018
 
 We could consider reserving some of the other contextual keywords, but so far we
-have had any user or tool author requests to do so, so they don't seem to be
+have not had any user or tool author requests to do so, so they don't seem to be
 problematic.
 
 ## Suggested Spec Changes
@@ -174,7 +175,7 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:path/path.dart' as p;
 
-final sourceDir = // Path to corpus...
+final sourceDir = "/Users/rnystrom/dev/corpus/out";
 
 var awaitExprs = 0;
 var yieldStmts = 0;
@@ -182,13 +183,14 @@ var ids = 0;
 var awaitIds = 0;
 var yieldIds = 0;
 var asyncIds = 0;
+var syncIds = 0;
 
 void main() {
   var readFiles = 0;
 
   for (var entry in new Directory(sourceDir).listSync(recursive: true)) {
     if (entry is File && entry.path.endsWith(".dart")) {
-      // Skip Dart tests since they skew towards grammar corner cases.
+      // Skip tests since they bias towards weird uses.
       if (entry.path.contains("sdk/tests")) continue;
 
       readFiles++;
@@ -202,32 +204,35 @@ void main() {
   }
 
   print("read $readFiles files");
-  print("${awaitExprs.toString().padLeft(6)} await expressions");
-  print("${yieldStmts.toString().padLeft(6)} yield statements");
-  print("${ids.toString().padLeft(6)} identifiers");
-  print("${awaitIds.toString().padLeft(6)} await identifiers");
-  print("${yieldIds.toString().padLeft(6)} yield identifiers");
-  print("${asyncIds.toString().padLeft(6)} async identifiers");
+  print("${awaitExprs.toString().padLeft(9)} await expressions");
+  print("${yieldStmts.toString().padLeft(9)} yield statements");
+  print("${ids.toString().padLeft(9)} identifiers");
+  print("${awaitIds.toString().padLeft(9)} await identifiers");
+  print("${yieldIds.toString().padLeft(9)} yield identifiers");
+  print("${asyncIds.toString().padLeft(9)} async identifiers");
+  print("${syncIds.toString().padLeft(9)} sync identifiers");
 }
 
-void parse(String source, String path) {
+bool parse(String source, String path) {
+  // Tokenize the source.
   var errorListener = new ErrorListener();
-
   var reader = new CharSequenceReader(source);
   var stringSource = new StringSource(source, path);
   var scanner = new Scanner(stringSource, reader, errorListener);
   var startToken = scanner.tokenize();
 
+  // Parse it.
   var parser = new Parser(stringSource, errorListener);
   parser.enableAssertInitializer = true;
-
   var node = parser.parseCompilationUnit(startToken);
-  if (errorListener.errors.isNotEmpty) return;
+  if (errorListener.errors.isNotEmpty) return false;
 
   var visitor = new SourceVisitor();
   node.accept(visitor);
+  return true;
 }
 
+/// A simple [AnalysisErrorListener] that just collects the reported errors.
 class ErrorListener implements AnalysisErrorListener {
   final errors = <AnalysisError>[];
 
@@ -252,6 +257,8 @@ class SourceVisitor extends RecursiveAstVisitor<Null> {
       yieldIds++;
     } else if (node.token.lexeme == "async") {
       asyncIds++;
+    } else if (node.token.lexeme == "sync") {
+      syncIds++;
     }
   }
 
