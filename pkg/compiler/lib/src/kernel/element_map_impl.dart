@@ -41,6 +41,7 @@ import '../universe/world_builder.dart';
 import '../world.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'element_map.dart';
+import 'element_map_mixins.dart';
 import 'elements.dart';
 
 part 'native_basic_data.dart';
@@ -61,10 +62,13 @@ abstract class KernelToWorldBuilder implements KernelToElementMapForBuilding {
       void f(DartType type, String name, ConstantValue defaultValue));
 }
 
+abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {}
+
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
-class KernelToElementMapImpl extends KernelToElementMapMixin
-    implements KernelToWorldBuilder, KernelToElementMapForImpact {
+class KernelToElementMapImpl extends KernelToElementMapBase
+    with KernelToElementMapForBuildingMixin, KernelToElementMapForImpactMixin
+    implements KernelToWorldBuilder {
   final Environment _environment;
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
@@ -1781,7 +1785,8 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 }
 
-class JsKernelToElementMap extends KernelToElementMapMixin
+class JsKernelToElementMap extends KernelToElementMapBase
+    with KernelToElementMapForBuildingMixin
     implements KernelToWorldBuilder {
   final JsToFrontendMap _map;
   final ElementEnvironment _elementEnvironment;
@@ -1884,11 +1889,6 @@ class JsKernelToElementMap extends KernelToElementMapMixin
   ConstantValue computeConstantValue(ConstantExpression constant,
       {bool requireConstant: true}) {
     throw new UnsupportedError("JsKernelToElementMap.computeConstantValue");
-  }
-
-  @override
-  native.BehaviorBuilder get nativeBehaviorBuilder {
-    throw new UnsupportedError("JsKernelToElementMap.nativeBehaviorBuilder");
   }
 
   @override
