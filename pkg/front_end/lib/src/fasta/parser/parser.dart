@@ -201,6 +201,22 @@ enum TypeContinuation {
   /// Indicates that the keyword `typedef` has just been seen, and the parser
   /// should parse the following as a type unless it is followed by `=`.
   Typedef,
+
+  /// Indicates that what follows is either a local declaration or an
+  /// expression.
+  ExpressionStatementOrDeclaration,
+
+  /// Indicates that the keyword `const` has just been seen, and what follows
+  /// may be a local variable declaration or an expression.
+  ExpressionStatementOrConstDeclaration,
+
+  /// Indicates that the parser is parsing an expression and has just seen an
+  /// identifier.
+  SendOrFunctionLiteral,
+
+  /// Indicates that the parser has just parsed `for '('` and is looking to
+  /// parse a variable declaration or expression.
+  VariablesDeclarationOrExpression,
 }
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -1157,30 +1173,132 @@ class Parser {
   /// If this method can parse a type, it will return the next (non-null) token
   /// after the type. Otherwise, it returns null.
   Token parseType(Token token,
-      [TypeContinuation continuation = TypeContinuation.Required]) {
-    Token begin = token;
+      [TypeContinuation continuation = TypeContinuation.Required,
+      IdentifierContext continuationContext]) {
+    /// Returns the close brace, bracket, or parenthesis of [left]. For '<', it
+    /// may return null.
+    Token getClose(BeginToken left) => left.endToken;
+
+    /// Where the type begins.
+    Token begin;
+
+    /// Non-null if 'void' is the first token.
+    Token voidToken;
+
+    /// True if the tokens at [begin] looks like a type.
+    bool looksLikeType = false;
+
+    /// True if a type that could be a return type for a generalized function
+    /// type was seen during analysis.
+    bool hasReturnType = false;
+
+    /// The identifier context to use for parsing the type.
+    IdentifierContext context = IdentifierContext.typeReference;
+
+    /// Non-null if type arguments were seen during analysis.
+    BeginToken typeArguments;
+
+    /// The number of function types seen during analysis.
+    int functionTypes = 0;
+
+    /// The start of type variables of function types seen during
+    /// analysis. Notice that the tokens in this list might be either `'<'` or
+    /// `'('` as not all function types have type parameters. Also, it is safe
+    /// to assume that [getClose] will return non-null for all these tokens.
+    Link<Token> typeVariableStarters = const Link<Token>();
+
+    {
+      // Analyse the next tokens to see if they could be a type.
+
+      if (continuation ==
+          TypeContinuation.ExpressionStatementOrConstDeclaration) {
+        // This is a special case. The first token is `const` and we need to
+        // analyze the tokens following the const keyword.
+        assert(optional("const", token));
+        begin = token;
+        token = token.next;
+        token = listener.injectGenericCommentTypeAssign(token);
+        assert(begin.next == token);
+      } else {
+        // Modify [begin] in case generic type are injected from a comment.
+        begin = token = listener.injectGenericCommentTypeAssign(token);
+      }
+
+      if (optional("void", token)) {
+        // `void` is a type.
+        looksLikeType = true;
+        voidToken = token;
+        token = token.next;
+      } else if (isValidTypeReference(token) &&
+          !isGeneralizedFunctionType(token)) {
+        // We're looking at an identifier that could be a type (or `dynamic`).
+        looksLikeType = true;
+        token = token.next;
+        if (optional(".", token) && isValidTypeReference(token.next)) {
+          // We're looking at `prefix '.' identifier`.
+          context = IdentifierContext.prefixedTypeReference;
+          token = token.next.next;
+        }
+        if (optional("<", token)) {
+          Token close = getClose(token);
+          if (close != null &&
+              (optional(">", close) || optional(">>", close))) {
+            // We found some type arguments.
+            typeArguments = token;
+            token = close.next;
+          }
+        }
+      }
+
+      // If what we have seen so far looks like a type, that could be a return
+      // type for a generalized function type.
+      hasReturnType = looksLikeType;
+
+      while (optional("Function", token)) {
+        Token typeVariableStart = token.next;
+        if (optional("<", token.next)) {
+          Token close = getClose(token.next);
+          if (close != null && optional(">", close)) {
+            token = close;
+          } else {
+            break; // Not a function type.
+          }
+        }
+        if (optional("(", token.next)) {
+          // This is a function type.
+          Token close = getClose(token.next);
+          assert(optional(")", close));
+          looksLikeType = true;
+          functionTypes++;
+          typeVariableStarters =
+              typeVariableStarters.prepend(typeVariableStart);
+          token = close.next;
+        } else {
+          break; // Not a funtion type.
+        }
+      }
+    }
 
     /// Call this function when it's known that [begin] is a type. This
     /// function will call the appropriate event methods on [listener] to
     /// handle the type.
     Token commitType() {
-      if (isGeneralizedFunctionType(token)) {
+      assert(typeVariableStarters.length == functionTypes);
+
+      if (functionTypes > 0 && !hasReturnType) {
         // A function type without return type.
         // Push the non-existing return type first. The loop below will
         // generate the full type.
-        listener.handleNoType(token);
-      } else if (optional("void", token) &&
-          isGeneralizedFunctionType(token.next)) {
-        listener.handleVoidKeyword(token);
-        token = token.next;
+        listener.handleNoType(begin);
+        token = begin;
+      } else if (functionTypes > 0 && voidToken != null) {
+        listener.handleVoidKeyword(voidToken);
+        token = voidToken.next;
       } else {
-        IdentifierContext context = IdentifierContext.typeReference;
-        if (token.isIdentifier && optional(".", token.next)) {
-          context = IdentifierContext.prefixedTypeReference;
-        }
-        token = parseIdentifier(token, context);
+        token = parseIdentifier(begin, context);
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
+        assert(typeArguments == null || typeArguments == token);
         token = parseTypeArgumentsOpt(token);
         listener.handleType(begin, token);
       }
@@ -1196,10 +1314,26 @@ class Parser {
 
       // While we see a `Function(` treat the pushed type as return type.
       // For example: `int Function() Function(int) Function(String x)`.
-      while (isGeneralizedFunctionType(token)) {
+      for (int i = 0; i < functionTypes; i++) {
+        assert(isGeneralizedFunctionType(token));
         token = parseFunctionType(token);
       }
+
       return token;
+    }
+
+    /// Returns true if [kind] is '=', ';', or ',', that is, if [kind] could be
+    /// the end of a variable declaration.
+    bool looksLikeVariableDeclarationEnd(int kind) {
+      return EQ_TOKEN == kind || SEMICOLON_TOKEN == kind || COMMA_TOKEN == kind;
+    }
+
+    /// Returns true if [token] could be the start of a function body.
+    bool looksLikeFunctionBody(Token token) {
+      return optional('{', token) ||
+          optional('=>', token) ||
+          optional('async', token) ||
+          optional('sync', token);
     }
 
     switch (continuation) {
@@ -1208,33 +1342,131 @@ class Parser {
 
       optional:
       case TypeContinuation.Optional:
-        if (optional("void", token)) {
-          if (isGeneralizedFunctionType(token.next)) {
-            return commitType(); // This is a type, parse it.
-          } else {
-            listener.handleVoidKeyword(token);
-            return token.next;
+        if (looksLikeType) {
+          if (functionTypes > 0) {
+            return commitType(); // Parse function type.
           }
-        } else {
-          if (isGeneralizedFunctionType(token)) {
-            return commitType(); // Function type without return type, parse it.
+          if (voidToken != null) {
+            listener.handleVoidKeyword(voidToken);
+            return voidToken.next;
           }
-          token = listener.injectGenericCommentTypeAssign(token);
-          Token peek = peekAfterIfType(token);
-          if (peek != null && (peek.isIdentifier || optional('this', peek))) {
-            // This is a type followed by an identifier, parse it.
-            return commitType();
+          if (token.isIdentifier || optional('this', token)) {
+            return commitType(); // Parse type.
           }
-          listener.handleNoType(token);
-          return token;
         }
-        break;
+        listener.handleNoType(begin);
+        return begin;
 
       case TypeContinuation.Typedef:
-        if (optional('=', peekAfterNominalType(token))) {
+        if (optional('=', token)) {
           return null; // This isn't a type, it's a new-style typedef.
         }
         continue optional;
+
+      case TypeContinuation.ExpressionStatementOrDeclaration:
+        assert(begin.isIdentifier || identical(begin.stringValue, 'void'));
+        if (!inPlainSync && optional("await", begin)) {
+          return parseExpressionStatement(begin);
+        }
+
+        if (looksLikeType && token.isIdentifier) {
+          // If the identifier token has a type substitution comment /*=T*/,
+          // then the set of tokens type tokens should be replaced with the
+          // tokens parsed from the comment.
+          Token afterId = token.next;
+
+          begin =
+              listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
+
+          int afterIdKind = afterId.kind;
+          if (looksLikeVariableDeclarationEnd(afterIdKind)) {
+            // We are looking at `type identifier` followed by
+            // `(',' | '=' | ';')`.
+
+            // TODO(ahe): Generate type events and call
+            // parseVariablesDeclarationRest instead.
+            return parseVariablesDeclaration(begin);
+          } else if (OPEN_PAREN_TOKEN == afterIdKind) {
+            // We are looking at `type identifier '('`.
+            if (looksLikeFunctionBody(getClose(afterId).next)) {
+              // We are looking at `type identifier '(' ... ')'` followed
+              // `( '{' | '=>' | 'async' | 'sync' )`.
+              return parseFunctionDeclaration(begin);
+            }
+          } else if (identical(afterIdKind, LT_TOKEN)) {
+            // We are looking at `type identifier '<'`.
+            Token afterTypeVariables = getClose(afterId)?.next;
+            if (afterTypeVariables != null &&
+                optional("(", afterTypeVariables)) {
+              if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
+                // We are looking at "type identifier '<' ... '>' '(' ... ')'"
+                // followed by '{', '=>', 'async', or 'sync'.
+                return parseFunctionDeclaration(begin);
+              }
+            }
+          }
+          // Fall-through to expression statement.
+        } else {
+          token = begin;
+          if (optional(':', token.next)) {
+            return parseLabeledStatement(token);
+          } else if (optional('(', token.next)) {
+            if (looksLikeFunctionBody(getClose(token.next).next)) {
+              return parseFunctionDeclaration(token);
+            }
+          } else if (optional('<', token.next)) {
+            Token afterTypeVariables = getClose(token.next)?.next;
+            if (afterTypeVariables != null &&
+                optional("(", afterTypeVariables)) {
+              if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
+                return parseFunctionDeclaration(token);
+              }
+            }
+            // Fall through to expression statement.
+          }
+        }
+        return parseExpressionStatement(begin);
+
+      case TypeContinuation.ExpressionStatementOrConstDeclaration:
+        Token identifier;
+        if (looksLikeType && token.isIdentifier) {
+          identifier = token;
+        } else if (begin.next.isIdentifier) {
+          identifier = begin.next;
+        }
+        if (identifier != null) {
+          if (looksLikeVariableDeclarationEnd(identifier.next.kind)) {
+            // We are looking at "const type identifier" followed by '=', ';',
+            // or ','.
+
+            // TODO(ahe): Generate type events and call
+            // parseVariablesDeclarationRest instead.
+            return parseVariablesDeclaration(begin);
+          }
+          // Fall-through to expression statement.
+        }
+
+        return parseExpressionStatement(begin);
+
+      case TypeContinuation.SendOrFunctionLiteral:
+        if (looksLikeType &&
+            token.isIdentifier &&
+            isFunctionDeclaration(token.next)) {
+          return parseFunctionExpression(begin);
+        } else if (isFunctionDeclaration(begin.next)) {
+          return parseFunctionExpression(begin);
+        }
+        return parseSend(begin, continuationContext);
+
+      case TypeContinuation.VariablesDeclarationOrExpression:
+        if (looksLikeType &&
+            token.isIdentifier &&
+            isOneOf4(token.next, '=', ';', ',', 'in')) {
+          // TODO(ahe): Generate type events and call
+          // parseVariablesDeclarationNoSemicolonRest instead.
+          return parseVariablesDeclarationNoSemicolon(begin);
+        }
+        return parseExpression(begin);
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
@@ -1846,103 +2078,6 @@ class Parser {
       reportRecoverableErrorCode(beforeType, codeTypeAfterVar);
     }
     return token;
-  }
-
-  /// Returns the first token after the type starting at [token].
-  ///
-  /// This method assumes that [token] is an identifier (or void).  Use
-  /// [peekAfterIfType] if [token] isn't known to be an identifier.
-  Token peekAfterType(Token token) {
-    // We are looking at "identifier ...".
-    Token peek = token;
-    if (!isGeneralizedFunctionType(token)) {
-      peek = peekAfterNominalType(token);
-    }
-
-    // We might have just skipped over the return value of the function type.
-    // Check again, if we are now at a function type position.
-    while (isGeneralizedFunctionType(peek)) {
-      peek = peekAfterFunctionType(peek.next);
-    }
-    return peek;
-  }
-
-  /// Returns the first token after the nominal type starting at [token].
-  ///
-  /// This method assumes that [token] is an identifier (or void).
-  Token peekAfterNominalType(Token token) {
-    Token peek = token.next;
-    if (identical(peek.kind, PERIOD_TOKEN)) {
-      if (peek.next.isIdentifier) {
-        // Look past a library prefix.
-        peek = peek.next.next;
-      }
-    }
-    // We are looking at "qualified ...".
-    if (identical(peek.kind, LT_TOKEN)) {
-      // Possibly generic type.
-      // We are looking at "qualified '<'".
-      BeginToken beginGroupToken = peek;
-      Token gtToken = beginGroupToken.endGroup;
-      if (gtToken != null) {
-        // We are looking at "qualified '<' ... '>' ...".
-        peek = gtToken.next;
-      }
-    }
-    return peek;
-  }
-
-  /// Returns the first token after the function type starting at [token].
-  ///
-  /// The token must be at the token *after* the `Function` token
-  /// position. That is, the return type and the `Function` token must have
-  /// already been skipped.
-  ///
-  /// This function only skips over one function type syntax.  If necessary,
-  /// this function must be called multiple times.
-  ///
-  /// Example:
-  ///
-  ///     int Function() Function<T>(int)
-  ///                 ^          ^
-  ///
-  /// A call to this function must be either at `(` or at `<`.  If `token`
-  /// pointed to the first `(`, then the returned token points to the second
-  /// `Function` token.
-  Token peekAfterFunctionType(Token token) {
-    // Possible inputs are:
-    //    ( ... )
-    //    < ... >( ... )
-
-    Token peek = token;
-    // If there is a generic argument to the function, skip over that one first.
-    if (identical(peek.kind, LT_TOKEN)) {
-      BeginToken beginGroupToken = peek;
-      Token closeToken = beginGroupToken.endGroup;
-      if (closeToken != null) {
-        peek = closeToken.next;
-      }
-    }
-
-    // Now we just need to skip over the formals.
-    expect('(', peek);
-
-    BeginToken beginGroupToken = peek;
-    Token closeToken = beginGroupToken.endGroup;
-    if (closeToken != null) {
-      peek = closeToken.next;
-    }
-
-    return peek;
-  }
-
-  /// If [token] is the start of a type, returns the token after that type.
-  /// If [token] is not the start of a type, null is returned.
-  Token peekAfterIfType(Token token) {
-    if (!optional('void', token) && !token.isIdentifier) {
-      return null;
-    }
-    return peekAfterType(token);
   }
 
   Token skipClassBody(Token token) {
@@ -2568,145 +2703,18 @@ class Parser {
     return expectSemicolon(token);
   }
 
-  Token peekIdentifierAfterType(Token token) {
-    Token peek = peekAfterType(token);
-    if (peek != null && peek.isIdentifier) {
-      // We are looking at "type identifier".
-      return peek;
-    } else {
-      return null;
-    }
-  }
-
-  Token peekIdentifierAfterOptionalType(Token token) {
-    Token peek = peekAfterIfType(token);
-    if (peek != null && peek.isIdentifier) {
-      // We are looking at "type identifier".
-      return peek;
-    } else if (token.isIdentifier) {
-      // We are looking at "identifier".
-      return token;
-    } else {
-      return null;
-    }
-  }
-
   Token parseExpressionStatementOrDeclaration(Token token) {
-    if (!inPlainSync && optional("await", token)) {
-      return parseExpressionStatement(token);
-    }
-    assert(token.isIdentifier || identical(token.stringValue, 'void'));
-    Token identifier = peekIdentifierAfterType(token);
-    if (identifier != null) {
-      assert(identifier.isIdentifier);
-
-      // If the identifier token has a type substitution comment /*=T*/,
-      // then the set of tokens type tokens should be replaced with the
-      // tokens parsed from the comment.
-      token =
-          listener.replaceTokenWithGenericCommentTypeAssign(token, identifier);
-
-      Token afterId = identifier.next;
-      int afterIdKind = afterId.kind;
-      if (identical(afterIdKind, EQ_TOKEN) ||
-          identical(afterIdKind, SEMICOLON_TOKEN) ||
-          identical(afterIdKind, COMMA_TOKEN)) {
-        // We are looking at "type identifier" followed by '=', ';', ','.
-        return parseVariablesDeclaration(token);
-      } else if (identical(afterIdKind, OPEN_PAREN_TOKEN)) {
-        // We are looking at "type identifier '('".
-        BeginToken beginParen = afterId;
-        Token endParen = beginParen.endGroup;
-        // TODO(eernst): Check for NPE as described in issue 26252.
-        Token afterParens = endParen.next;
-        if (optional('{', afterParens) ||
-            optional('=>', afterParens) ||
-            optional('async', afterParens) ||
-            optional('sync', afterParens)) {
-          // We are looking at "type identifier '(' ... ')'" followed
-          // by '{', '=>', 'async', or 'sync'.
-          return parseFunctionDeclaration(token);
-        }
-      } else if (identical(afterIdKind, LT_TOKEN)) {
-        // We are looking at "type identifier '<'".
-        BeginToken beginAngle = afterId;
-        Token endAngle = beginAngle.endGroup;
-        if (endAngle != null &&
-            identical(endAngle.next.kind, OPEN_PAREN_TOKEN)) {
-          BeginToken beginParen = endAngle.next;
-          Token endParen = beginParen.endGroup;
-          if (endParen != null) {
-            Token afterParens = endParen.next;
-            if (optional('{', afterParens) ||
-                optional('=>', afterParens) ||
-                optional('async', afterParens) ||
-                optional('sync', afterParens)) {
-              // We are looking at "type identifier '<' ... '>' '(' ... ')'"
-              // followed by '{', '=>', 'async', or 'sync'.
-              return parseFunctionDeclaration(token);
-            }
-          }
-        }
-      }
-      // Fall-through to expression statement.
-    } else {
-      if (optional(':', token.next)) {
-        return parseLabeledStatement(token);
-      } else if (optional('(', token.next)) {
-        BeginToken begin = token.next;
-        // TODO(eernst): Check for NPE as described in issue 26252.
-        String afterParens = begin.endGroup.next.stringValue;
-        if (identical(afterParens, '{') ||
-            identical(afterParens, '=>') ||
-            identical(afterParens, 'async') ||
-            identical(afterParens, 'sync')) {
-          return parseFunctionDeclaration(token);
-        }
-      } else if (optional('<', token.next)) {
-        BeginToken beginAngle = token.next;
-        Token endAngle = beginAngle.endGroup;
-        if (endAngle != null &&
-            identical(endAngle.next.kind, OPEN_PAREN_TOKEN)) {
-          BeginToken beginParen = endAngle.next;
-          Token endParen = beginParen.endGroup;
-          if (endParen != null) {
-            String afterParens = endParen.next.stringValue;
-            if (identical(afterParens, '{') ||
-                identical(afterParens, '=>') ||
-                identical(afterParens, 'async') ||
-                identical(afterParens, 'sync')) {
-              return parseFunctionDeclaration(token);
-            }
-          }
-        }
-        // Fall through to expression statement.
-      }
-    }
-    return parseExpressionStatement(token);
+    return parseType(token, TypeContinuation.ExpressionStatementOrDeclaration);
   }
 
   Token parseExpressionStatementOrConstDeclaration(Token token) {
-    assert(identical(token.stringValue, 'const'));
+    assert(optional('const', token));
     if (isModifier(token.next)) {
       return parseVariablesDeclaration(token);
+    } else {
+      return parseType(
+          token, TypeContinuation.ExpressionStatementOrConstDeclaration);
     }
-    listener.injectGenericCommentTypeAssign(token.next);
-    Token identifier = peekIdentifierAfterOptionalType(token.next);
-    if (identifier != null) {
-      assert(identifier.isIdentifier);
-      Token afterId = identifier.next;
-      int afterIdKind = afterId.kind;
-      if (identical(afterIdKind, EQ_TOKEN) ||
-          identical(afterIdKind, SEMICOLON_TOKEN) ||
-          identical(afterIdKind, COMMA_TOKEN)) {
-        // We are looking at "const type identifier" followed by '=', ';', or
-        // ','.
-        return parseVariablesDeclaration(token);
-      }
-      // Fall-through to expression statement.
-    }
-
-    return parseExpressionStatement(token);
   }
 
   Token parseLabel(Token token) {
@@ -3062,7 +3070,6 @@ class Parser {
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
     BeginToken beginGroup = token;
-    // TODO(eernst): Check for NPE as described in issue 26252.
     Token nextToken = beginGroup.endGroup.next;
     int kind = nextToken.kind;
     if (mayParseFunctionExpressions &&
@@ -3241,16 +3248,8 @@ class Parser {
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     if (!mayParseFunctionExpressions) {
       return parseSend(token, context);
-    }
-    Token peek = peekAfterIfType(token);
-    if (peek != null &&
-        identical(peek.kind, IDENTIFIER_TOKEN) &&
-        isFunctionDeclaration(peek.next)) {
-      return parseFunctionExpression(token);
-    } else if (isFunctionDeclaration(token.next)) {
-      return parseFunctionExpression(token);
     } else {
-      return parseSend(token, context);
+      return parseType(token, TypeContinuation.SendOrFunctionLiteral, context);
     }
   }
 
@@ -3262,7 +3261,6 @@ class Parser {
     }
     if (optional('(', token)) {
       BeginToken begin = token;
-      // TODO(eernst): Check for NPE as described in issue 26252.
       String afterParens = begin.endGroup.next.stringValue;
       if (identical(afterParens, '{') ||
           identical(afterParens, '=>') ||
@@ -3517,14 +3515,22 @@ class Parser {
     return parseVariablesDeclarationMaybeSemicolon(token, true);
   }
 
+  Token parseVariablesDeclarationRest(Token token) {
+    return parseVariablesDeclarationMaybeSemicolonRest(token, true);
+  }
+
   Token parseVariablesDeclarationNoSemicolon(Token token) {
     // Only called when parsing a for loop, so this is for parsing locals.
     return parseVariablesDeclarationMaybeSemicolon(token, false);
   }
 
+  Token parseVariablesDeclarationNoSemicolonRest(Token token) {
+    // Only called when parsing a for loop, so this is for parsing locals.
+    return parseVariablesDeclarationMaybeSemicolonRest(token, false);
+  }
+
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
-    int count = 1;
     token = parseMetadataStar(token);
 
     // If the next token has a type substitution comment /*=T*/, then
@@ -3535,6 +3541,12 @@ class Parser {
     }
 
     token = parseModifiers(token, MemberKind.Local, isVariable: true);
+    return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
+  }
+
+  Token parseVariablesDeclarationMaybeSemicolonRest(
+      Token token, bool endWithSemicolon) {
+    int count = 1;
     listener.beginVariablesDeclaration(token);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token)) {
@@ -3605,14 +3617,7 @@ class Parser {
     } else if (isOneOf4(token, '@', 'var', 'final', 'const')) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
-    Token identifier = peekIdentifierAfterType(token);
-    if (identifier != null) {
-      assert(identifier.isIdentifier);
-      if (isOneOf4(identifier.next, '=', ';', ',', 'in')) {
-        return parseVariablesDeclarationNoSemicolon(token);
-      }
-    }
-    return parseExpression(token);
+    return parseType(token, TypeContinuation.VariablesDeclarationOrExpression);
   }
 
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
