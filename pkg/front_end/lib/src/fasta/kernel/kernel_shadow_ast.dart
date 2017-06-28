@@ -1829,8 +1829,10 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-        'target', new InstrumentationValueForMember(interfaceTarget));
+    if (interfaceTarget != null) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'target', new InstrumentationValueForMember(interfaceTarget));
+    }
     return inferrer.inferMethodInvocation(this, new KernelThisExpression(),
         fileOffset, false, typeContext, typeNeeded,
         interfaceMember: interfaceTarget,

@@ -808,10 +808,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       receiverVariable?.type = receiverType;
     }
     bool isOverloadedArithmeticOperator = false;
-    interfaceMember ??=
-        findMethodInvocationMember(receiverType, desugaredInvocation);
-    methodName ??= desugaredInvocation.name;
-    arguments ??= desugaredInvocation.arguments;
+    if (desugaredInvocation != null) {
+      interfaceMember =
+          findMethodInvocationMember(receiverType, desugaredInvocation);
+      methodName = desugaredInvocation.name;
+      arguments = desugaredInvocation.arguments;
+    }
     if (interfaceMember is Procedure) {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
