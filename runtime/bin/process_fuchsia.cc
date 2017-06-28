@@ -867,7 +867,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   return -1;
 }
 
-void Process::ClearSignalHandler(intptr_t signal) {}
+void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 
 }  // namespace bin
 }  // namespace dart
