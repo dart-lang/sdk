@@ -41,6 +41,10 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       _addSubtypedName(declaration.extendsClause?.superclass);
       _addSubtypedNames(declaration.withClause?.mixinTypes);
       _addSubtypedNames(declaration.implementsClause?.interfaces);
+    } else if (declaration is ClassTypeAlias) {
+      _addSubtypedName(declaration.superclass);
+      _addSubtypedNames(declaration.withClause?.mixinTypes);
+      _addSubtypedNames(declaration.implementsClause?.interfaces);
     }
   }
 

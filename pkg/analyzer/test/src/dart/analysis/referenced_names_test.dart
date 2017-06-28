@@ -413,6 +413,24 @@ main() {
 
 @reflectiveTest
 class ComputeSubtypedNamesTest extends ParserTestCase {
+  void test_classDeclaration() {
+    Set<String> names = _computeSubtypedNames('''
+import 'lib.dart';
+class X extends A {}
+class Y extends A with B {}
+class Z implements A, B, C {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C']));
+  }
+
+  void test_classTypeAlias() {
+    Set<String> names = _computeSubtypedNames('''
+import 'lib.dart';
+class X = A with B implements C, D, E;
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'D', 'E']));
+  }
+
   void test_prefixed() {
     Set<String> names = _computeSubtypedNames('''
 import 'lib.dart' as p;
@@ -427,16 +445,6 @@ import 'lib.dart';
 class X extends A<B> {}
 ''');
     expect(names, unorderedEquals(['A']));
-  }
-
-  void test_unprefixed() {
-    Set<String> names = _computeSubtypedNames('''
-import 'lib.dart';
-class X extends A {}
-class Y extends A with B {}
-class Z implements A, B, C {}
-''');
-    expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
   Set<String> _computeSubtypedNames(String code) {
