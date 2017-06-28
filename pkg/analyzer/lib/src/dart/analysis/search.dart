@@ -559,6 +559,9 @@ class SubtypeResult {
   final List<String> members;
 
   SubtypeResult(this.id, this.name, this.members);
+
+  @override
+  String toString() => id;
 }
 
 /**

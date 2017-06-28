@@ -20,6 +20,37 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
+  Future<Set<String>> membersOfSubtypes(ClassElement type) async {
+    List<AnalysisDriver> drivers = _drivers.toList();
+
+    bool hasSubtypes = false;
+    Set<String> visitedIds = new Set<String>();
+    Set<String> members = new Set<String>();
+
+    Future<Null> addMembers(ClassElement type, SubtypeResult subtype) async {
+      if (subtype != null && !visitedIds.add(subtype.id)) {
+        return;
+      }
+      for (AnalysisDriver driver in drivers) {
+        List<SubtypeResult> subtypes =
+            await driver.search.subtypes(type: type, subtype: subtype);
+        for (var subtype in subtypes) {
+          hasSubtypes = true;
+          members.addAll(subtype.members);
+          await addMembers(null, subtype);
+        }
+      }
+    }
+
+    await addMembers(type, null);
+
+    if (!hasSubtypes) {
+      return null;
+    }
+    return members;
+  }
+
+  @override
   Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
     Set<ClassElement> allSubtypes = new Set<ClassElement>();
 
