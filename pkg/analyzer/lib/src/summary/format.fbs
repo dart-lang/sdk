@@ -986,7 +986,7 @@ table AnalysisDriverResolvedUnit {
  */
 table AnalysisDriverSubtype {
   /**
-   * The names of defined class members.
+   * The names of defined instance members.
    * The list is sorted in ascending order.
    */
   members:[string] (id: 2);

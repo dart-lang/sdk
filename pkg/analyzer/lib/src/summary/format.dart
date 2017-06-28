@@ -680,7 +680,7 @@ class AnalysisDriverSubtypeBuilder extends Object
   List<String> get members => _members ??= <String>[];
 
   /**
-   * The names of defined class members.
+   * The names of defined instance members.
    * The list is sorted in ascending order.
    */
   void set members(List<String> value) {

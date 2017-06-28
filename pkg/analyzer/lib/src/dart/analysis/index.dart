@@ -762,9 +762,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     for (ClassMember member in node.members) {
-      if (member is MethodDeclaration) {
+      if (member is MethodDeclaration && !member.isStatic) {
         addMemberName(member.name);
-      } else if (member is FieldDeclaration) {
+      } else if (member is FieldDeclaration && !member.isStatic) {
         for (var field in member.fields.variables) {
           addMemberName(field.name);
         }

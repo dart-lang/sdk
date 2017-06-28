@@ -931,10 +931,16 @@ class E {}
 import 'lib.dart';
 
 class X extends A {
+  X();
+  X.namedConstructor();
+
   int field1, field2;
   int get getter1 => null;
   void set setter1(_) {}
   void method1() {}
+  
+  static int staticField;
+  static void staticMethod() {}
 }
 
 class Y extends Object with B, C {

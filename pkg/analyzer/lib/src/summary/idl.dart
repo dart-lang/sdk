@@ -133,7 +133,7 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
  */
 abstract class AnalysisDriverSubtype extends base.SummaryClass {
   /**
-   * The names of defined class members.
+   * The names of defined instance members.
    * The list is sorted in ascending order.
    */
   @Id(2)
