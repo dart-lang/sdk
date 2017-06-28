@@ -86,8 +86,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     if (isEligibleForInference) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
-      // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
-      // should it be the part URI?
       var typeInferenceEngine = library.loader.typeInferenceEngine;
       var listener = new TypeInferenceListener();
       var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
@@ -102,7 +100,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
             typeInferenceEngine.coreTypes,
             currentClass,
             isInstanceMember,
-            library.uri,
+            fileUri,
             typeInferrer);
         Parser parser = new Parser(bodyBuilder);
         Token token = parser.parseExpression(initializerTokenForInference);
