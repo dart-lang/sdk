@@ -17,7 +17,6 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeE
 [ $compiler == dartk || $compiler == dartkp ]
 assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 method_override_test: RuntimeError # Not triaged.
-runtime_type_function_test: RuntimeError # Not triaged.
 
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.

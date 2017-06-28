@@ -660,7 +660,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   DartType inferLocalFunction(FunctionNode function, DartType typeContext,
-      bool typeNeeded, int fileOffset, DartType returnContext, bool isNamed) {
+      bool typeNeeded, int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = returnContext == null;
     if (!isTopLevel) {
       for (var parameter in function.positionalParameters) {
@@ -758,8 +758,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
     bool isExpressionFunction = function.body is ReturnStatement;
-    bool needToSetReturnType = hasImplicitReturnType &&
-        ((isExpressionFunction && !isNamed) || strongMode);
+    bool needToSetReturnType = hasImplicitReturnType && strongMode;
     ClosureContext oldClosureContext = this.closureContext;
     ClosureContext closureContext =
         new ClosureContext(this, function.asyncMarker, returnContext);

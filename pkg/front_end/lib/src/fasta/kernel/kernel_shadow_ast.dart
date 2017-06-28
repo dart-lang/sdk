@@ -807,7 +807,7 @@ class KernelFunctionDeclaration extends FunctionDeclaration
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
     inferrer.inferLocalFunction(function, null, false, fileOffset,
-        _hasImplicitReturnType ? null : function.returnType, true);
+        _hasImplicitReturnType ? null : function.returnType);
     variable.type = function.functionType;
     inferrer.listener.functionDeclarationExit(this);
   }
@@ -851,7 +851,7 @@ class KernelFunctionExpression extends FunctionExpression
     typeNeeded = inferrer.listener.functionExpressionEnter(this, typeContext) ||
         typeNeeded;
     var inferredType = inferrer.inferLocalFunction(
-        function, typeContext, typeNeeded, fileOffset, null, false);
+        function, typeContext, typeNeeded, fileOffset, null);
     inferrer.listener.functionExpressionExit(this, inferredType);
     return inferredType;
   }
