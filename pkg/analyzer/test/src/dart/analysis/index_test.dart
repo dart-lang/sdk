@@ -916,7 +916,7 @@ class A {
       ..isWrittenAt('field = 5', true);
   }
 
-  test_subtypes() async {
+  test_subtypes_classDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
     provider.newFile(
         _p('$testProject/lib.dart'),
@@ -972,6 +972,38 @@ class Z implements E, D {
           index.subtypes.singleWhere((t) => t.name == 'Z');
       expect(Z.supertypes, ['$libP;D', '$libP;E']);
       expect(Z.members, ['methodZ']);
+    }
+  }
+
+  test_subtypes_classTypeAlias() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    provider.newFile(
+        _p('$testProject/lib.dart'),
+        '''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+class X = A with B, C;
+class Y = A with B implements C, D;
+''');
+
+    {
+      AnalysisDriverSubtype X =
+          index.subtypes.singleWhere((t) => t.name == 'X');
+      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
+      expect(X.members, isEmpty);
+    }
+
+    {
+      AnalysisDriverSubtype Y =
+          index.subtypes.singleWhere((t) => t.name == 'Y');
+      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C', '$libP;D']);
+      expect(Y.members, isEmpty);
     }
   }
 

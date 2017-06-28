@@ -510,7 +510,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node);
+    _addSubtypeForClassDeclaration(node);
     if (node.extendsClause == null) {
       ClassElement objectElement = resolutionMap
           .elementDeclaredByClassDeclaration(node)
@@ -525,6 +525,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
+    _addSubtypeForClassTypeAlis(node);
     recordIsAncestorOf(node.element);
     super.visitClassTypeAlias(node);
   }
@@ -728,7 +729,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /**
    * Record the given class as a subclass of its direct superclasses.
    */
-  void _addSubtype(ClassDeclaration node) {
+  void _addSubtype(String name, TypeName superclass, WithClause withClause,
+      ImplementsClause implementsClause, List<ClassMember> memberNodes) {
     List<String> supertypes = [];
     List<String> members = [];
 
@@ -748,9 +750,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
 
-    addSupertype(node.extendsClause?.superclass);
-    node.withClause?.mixinTypes?.forEach(addSupertype);
-    node.implementsClause?.interfaces?.forEach(addSupertype);
+    addSupertype(superclass);
+    withClause?.mixinTypes?.forEach(addSupertype);
+    implementsClause?.interfaces?.forEach(addSupertype);
 
     void addMemberName(SimpleIdentifier identifier) {
       if (identifier != null) {
@@ -761,7 +763,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
 
-    for (ClassMember member in node.members) {
+    for (ClassMember member in memberNodes) {
       if (member is MethodDeclaration && !member.isStatic) {
         addMemberName(member.name);
       } else if (member is FieldDeclaration && !member.isStatic) {
@@ -775,7 +777,23 @@ class _IndexContributor extends GeneralizingAstVisitor {
     members.sort();
 
     assembler.subtypes.add(new AnalysisDriverSubtypeBuilder(
-        name: node.name.name, supertypes: supertypes, members: members));
+        name: name, supertypes: supertypes, members: members));
+  }
+
+  /**
+   * Record the given class as a subclass of its direct superclasses.
+   */
+  void _addSubtypeForClassDeclaration(ClassDeclaration node) {
+    _addSubtype(node.name.name, node.extendsClause?.superclass, node.withClause,
+        node.implementsClause, node.members);
+  }
+
+  /**
+   * Record the given class as a subclass of its direct superclasses.
+   */
+  void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
+    _addSubtype(node.name.name, node.superclass, node.withClause,
+        node.implementsClause, const []);
   }
 
   /**
