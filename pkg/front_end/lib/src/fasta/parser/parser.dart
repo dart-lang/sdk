@@ -879,73 +879,77 @@ class Parser {
   /// arguments in generic method invocations can be recognized, and as few as
   /// possible other constructs will pass (e.g., 'a < C, D > 3').
   bool isValidMethodTypeArguments(Token token) {
+    Token Function(Token token) tryParseType;
+
+    /// Returns token after match if [token] matches '<' type (',' type)* '>'
+    /// '(', and otherwise returns null. Does not produce listener events. With
+    /// respect to the final '(', please see the description of
+    /// [isValidMethodTypeArguments].
+    Token tryParseMethodTypeArguments(Token token) {
+      if (!identical(token.kind, LT_TOKEN)) return null;
+      BeginToken beginToken = token;
+      Token endToken = beginToken.endGroup;
+      if (endToken == null ||
+          !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
+        return null;
+      }
+      token = tryParseType(token.next);
+      while (token != null && identical(token.kind, COMMA_TOKEN)) {
+        token = tryParseType(token.next);
+      }
+      if (token == null || !identical(token.kind, GT_TOKEN)) return null;
+      return token.next;
+    }
+
+    /// Returns token after match if [token] matches identifier ('.'
+    /// identifier)?, and otherwise returns null. Does not produce listener
+    /// events.
+    Token tryParseQualified(Token token) {
+      if (!isValidTypeReference(token)) return null;
+      token = token.next;
+      if (!identical(token.kind, PERIOD_TOKEN)) return token;
+      token = token.next;
+      if (!identical(token.kind, IDENTIFIER_TOKEN)) return null;
+      return token.next;
+    }
+
+    /// Returns token after match if [token] matches '<' type (',' type)* '>',
+    /// and otherwise returns null. Does not produce listener events. The final
+    /// '>' may be the first character in a '>>' token, in which case a
+    /// synthetic '>' token is created and returned, representing the second
+    /// '>' in the '>>' token.
+    Token tryParseNestedTypeArguments(Token token) {
+      if (!identical(token.kind, LT_TOKEN)) return null;
+      // If the initial '<' matches the first '>' in a '>>' token, we will have
+      // `token.endGroup == null`, so we cannot rely on `token.endGroup == null`
+      // to imply that the match must fail. Hence no `token.endGroup == null`
+      // test here.
+      token = tryParseType(token.next);
+      while (token != null && identical(token.kind, COMMA_TOKEN)) {
+        token = tryParseType(token.next);
+      }
+      if (token == null) return null;
+      if (identical(token.kind, GT_TOKEN)) return token.next;
+      if (!identical(token.kind, GT_GT_TOKEN)) return null;
+      // [token] is '>>' of which the final '>' that we are parsing is the first
+      // character. In order to keep the parsing process on track we must return
+      // a synthetic '>' corresponding to the second character of that '>>'.
+      Token syntheticToken = new Token(TokenType.GT, token.charOffset + 1);
+      syntheticToken.next = token.next;
+      return syntheticToken;
+    }
+
+    /// Returns token after match if [token] matches typeName typeArguments?,
+    /// and otherwise returns null. Does not produce listener events.
+    tryParseType = (Token token) {
+      token = tryParseQualified(token);
+      if (token == null) return null;
+      Token tokenAfterQualified = token;
+      token = tryParseNestedTypeArguments(token);
+      return token == null ? tokenAfterQualified : token;
+    };
+
     return tryParseMethodTypeArguments(token) != null;
-  }
-
-  /// Returns token after match if [token] matches '<' type (',' type)* '>' '(',
-  /// and otherwise returns null. Does not produce listener events. With respect
-  /// to the final '(', please see the description of
-  /// [isValidMethodTypeArguments].
-  Token tryParseMethodTypeArguments(Token token) {
-    if (!identical(token.kind, LT_TOKEN)) return null;
-    BeginToken beginToken = token;
-    Token endToken = beginToken.endGroup;
-    if (endToken == null || !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
-      return null;
-    }
-    token = tryParseType(token.next);
-    while (token != null && identical(token.kind, COMMA_TOKEN)) {
-      token = tryParseType(token.next);
-    }
-    if (token == null || !identical(token.kind, GT_TOKEN)) return null;
-    return token.next;
-  }
-
-  /// Returns token after match if [token] matches typeName typeArguments?, and
-  /// otherwise returns null. Does not produce listener events.
-  Token tryParseType(Token token) {
-    token = tryParseQualified(token);
-    if (token == null) return null;
-    Token tokenAfterQualified = token;
-    token = tryParseNestedTypeArguments(token);
-    return token == null ? tokenAfterQualified : token;
-  }
-
-  /// Returns token after match if [token] matches identifier ('.' identifier)?,
-  /// and otherwise returns null. Does not produce listener events.
-  Token tryParseQualified(Token token) {
-    if (!isValidTypeReference(token)) return null;
-    token = token.next;
-    if (!identical(token.kind, PERIOD_TOKEN)) return token;
-    token = token.next;
-    if (!identical(token.kind, IDENTIFIER_TOKEN)) return null;
-    return token.next;
-  }
-
-  /// Returns token after match if [token] matches '<' type (',' type)* '>',
-  /// and otherwise returns null. Does not produce listener events. The final
-  /// '>' may be the first character in a '>>' token, in which case a synthetic
-  /// '>' token is created and returned, representing the second '>' in the
-  /// '>>' token.
-  Token tryParseNestedTypeArguments(Token token) {
-    if (!identical(token.kind, LT_TOKEN)) return null;
-    // If the initial '<' matches the first '>' in a '>>' token, we will have
-    // `token.endGroup == null`, so we cannot rely on `token.endGroup == null`
-    // to imply that the match must fail. Hence no `token.endGroup == null`
-    // test here.
-    token = tryParseType(token.next);
-    while (token != null && identical(token.kind, COMMA_TOKEN)) {
-      token = tryParseType(token.next);
-    }
-    if (token == null) return null;
-    if (identical(token.kind, GT_TOKEN)) return token.next;
-    if (!identical(token.kind, GT_GT_TOKEN)) return null;
-    // [token] is '>>' of which the final '>' that we are parsing is the first
-    // character. In order to keep the parsing process on track we must return
-    // a synthetic '>' corresponding to the second character of that '>>'.
-    Token syntheticToken = new Token(TokenType.GT, token.charOffset + 1);
-    syntheticToken.next = token.next;
-    return syntheticToken;
   }
 
   Token parseQualified(Token token, IdentifierContext context,

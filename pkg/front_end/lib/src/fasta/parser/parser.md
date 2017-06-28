@@ -15,3 +15,5 @@ BSD-style license that can be found in the LICENSE file.
   * The parser uses isGeneralizedFunctionType in parseType, and findMemberName.
 
   * The parser uses findMemberName in parseTopLevelMember, and parseMember.
+
+  * The parser uses isValidMethodTypeArguments in parseSend.
