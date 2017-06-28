@@ -129,6 +129,31 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
 }
 
 /**
+ * Information about a subtype of one or more classes.
+ */
+abstract class AnalysisDriverSubtype extends base.SummaryClass {
+  /**
+   * The names of defined class members.
+   * The list is sorted in ascending order.
+   */
+  @Id(2)
+  List<String> get members;
+
+  /**
+   * The name of the class.
+   */
+  @Id(0)
+  String get name;
+
+  /**
+   * The identifiers of the direct supertypes.
+   * The list is sorted in ascending order.
+   */
+  @Id(1)
+  List<String> get supertypes;
+}
+
+/**
  * Information about an error in a resolved unit.
  */
 abstract class AnalysisDriverUnitError extends base.SummaryClass {
@@ -226,6 +251,12 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
    */
   @Id(0)
   List<String> get strings;
+
+  /**
+   * The list of classes declared in the unit.
+   */
+  @Id(18)
+  List<AnalysisDriverSubtype> get subtypes;
 
   /**
    * Each item of this list corresponds to the library URI of a unique library

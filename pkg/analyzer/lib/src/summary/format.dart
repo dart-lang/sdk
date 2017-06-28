@@ -669,6 +669,172 @@ abstract class _AnalysisDriverResolvedUnitMixin
   String toString() => convert.JSON.encode(toJson());
 }
 
+class AnalysisDriverSubtypeBuilder extends Object
+    with _AnalysisDriverSubtypeMixin
+    implements idl.AnalysisDriverSubtype {
+  List<String> _members;
+  String _name;
+  List<String> _supertypes;
+
+  @override
+  List<String> get members => _members ??= <String>[];
+
+  /**
+   * The names of defined class members.
+   * The list is sorted in ascending order.
+   */
+  void set members(List<String> value) {
+    this._members = value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  /**
+   * The name of the class.
+   */
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  List<String> get supertypes => _supertypes ??= <String>[];
+
+  /**
+   * The identifiers of the direct supertypes.
+   * The list is sorted in ascending order.
+   */
+  void set supertypes(List<String> value) {
+    this._supertypes = value;
+  }
+
+  AnalysisDriverSubtypeBuilder(
+      {List<String> members, String name, List<String> supertypes})
+      : _members = members,
+        _name = name,
+        _supertypes = supertypes;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    if (this._supertypes == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._supertypes.length);
+      for (var x in this._supertypes) {
+        signature.addString(x);
+      }
+    }
+    if (this._members == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._members.length);
+      for (var x in this._members) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_members;
+    fb.Offset offset_name;
+    fb.Offset offset_supertypes;
+    if (!(_members == null || _members.isEmpty)) {
+      offset_members = fbBuilder
+          .writeList(_members.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (!(_supertypes == null || _supertypes.isEmpty)) {
+      offset_supertypes = fbBuilder
+          .writeList(_supertypes.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_members != null) {
+      fbBuilder.addOffset(2, offset_members);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (offset_supertypes != null) {
+      fbBuilder.addOffset(1, offset_supertypes);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AnalysisDriverSubtypeReader
+    extends fb.TableReader<_AnalysisDriverSubtypeImpl> {
+  const _AnalysisDriverSubtypeReader();
+
+  @override
+  _AnalysisDriverSubtypeImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverSubtypeImpl(bc, offset);
+}
+
+class _AnalysisDriverSubtypeImpl extends Object
+    with _AnalysisDriverSubtypeMixin
+    implements idl.AnalysisDriverSubtype {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverSubtypeImpl(this._bc, this._bcOffset);
+
+  List<String> _members;
+  String _name;
+  List<String> _supertypes;
+
+  @override
+  List<String> get members {
+    _members ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _members;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _name;
+  }
+
+  @override
+  List<String> get supertypes {
+    _supertypes ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _supertypes;
+  }
+}
+
+abstract class _AnalysisDriverSubtypeMixin
+    implements idl.AnalysisDriverSubtype {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (members.isNotEmpty) _result["members"] = members;
+    if (name != '') _result["name"] = name;
+    if (supertypes.isNotEmpty) _result["supertypes"] = supertypes;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "members": members,
+        "name": name,
+        "supertypes": supertypes,
+      };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class AnalysisDriverUnitErrorBuilder extends Object
     with _AnalysisDriverUnitErrorMixin
     implements idl.AnalysisDriverUnitError {
@@ -881,6 +1047,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<int> _elementUnits;
   int _nullStringId;
   List<String> _strings;
+  List<AnalysisDriverSubtypeBuilder> _subtypes;
   List<int> _unitLibraryUris;
   List<int> _unitUnitUris;
   List<bool> _usedElementIsQualifiedFlags;
@@ -983,6 +1150,17 @@ class AnalysisDriverUnitIndexBuilder extends Object
    */
   void set strings(List<String> value) {
     this._strings = value;
+  }
+
+  @override
+  List<AnalysisDriverSubtypeBuilder> get subtypes =>
+      _subtypes ??= <AnalysisDriverSubtypeBuilder>[];
+
+  /**
+   * The list of classes declared in the unit.
+   */
+  void set subtypes(List<AnalysisDriverSubtypeBuilder> value) {
+    this._subtypes = value;
   }
 
   @override
@@ -1125,6 +1303,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
       List<int> elementUnits,
       int nullStringId,
       List<String> strings,
+      List<AnalysisDriverSubtypeBuilder> subtypes,
       List<int> unitLibraryUris,
       List<int> unitUnitUris,
       List<bool> usedElementIsQualifiedFlags,
@@ -1143,6 +1322,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
         _elementUnits = elementUnits,
         _nullStringId = nullStringId,
         _strings = strings,
+        _subtypes = subtypes,
         _unitLibraryUris = unitLibraryUris,
         _unitUnitUris = unitUnitUris,
         _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
@@ -1158,7 +1338,9 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {}
+  void flushInformative() {
+    _subtypes?.forEach((b) => b.flushInformative());
+  }
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -1301,6 +1483,14 @@ class AnalysisDriverUnitIndexBuilder extends Object
         signature.addBool(x);
       }
     }
+    if (this._subtypes == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._subtypes.length);
+      for (var x in this._subtypes) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -1315,6 +1505,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
     fb.Offset offset_elementNameUnitMemberIds;
     fb.Offset offset_elementUnits;
     fb.Offset offset_strings;
+    fb.Offset offset_subtypes;
     fb.Offset offset_unitLibraryUris;
     fb.Offset offset_unitUnitUris;
     fb.Offset offset_usedElementIsQualifiedFlags;
@@ -1351,6 +1542,10 @@ class AnalysisDriverUnitIndexBuilder extends Object
     if (!(_strings == null || _strings.isEmpty)) {
       offset_strings = fbBuilder
           .writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_subtypes == null || _subtypes.isEmpty)) {
+      offset_subtypes = fbBuilder
+          .writeList(_subtypes.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_unitLibraryUris == null || _unitLibraryUris.isEmpty)) {
       offset_unitLibraryUris = fbBuilder.writeListUint32(_unitLibraryUris);
@@ -1414,6 +1609,9 @@ class AnalysisDriverUnitIndexBuilder extends Object
     }
     if (offset_strings != null) {
       fbBuilder.addOffset(0, offset_strings);
+    }
+    if (offset_subtypes != null) {
+      fbBuilder.addOffset(18, offset_subtypes);
     }
     if (offset_unitLibraryUris != null) {
       fbBuilder.addOffset(2, offset_unitLibraryUris);
@@ -1481,6 +1679,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
   List<int> _elementUnits;
   int _nullStringId;
   List<String> _strings;
+  List<idl.AnalysisDriverSubtype> _subtypes;
   List<int> _unitLibraryUris;
   List<int> _unitUnitUris;
   List<bool> _usedElementIsQualifiedFlags;
@@ -1540,6 +1739,14 @@ class _AnalysisDriverUnitIndexImpl extends Object
     _strings ??= const fb.ListReader<String>(const fb.StringReader())
         .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _strings;
+  }
+
+  @override
+  List<idl.AnalysisDriverSubtype> get subtypes {
+    _subtypes ??= const fb.ListReader<idl.AnalysisDriverSubtype>(
+            const _AnalysisDriverSubtypeReader())
+        .vTableGet(_bc, _bcOffset, 18, const <idl.AnalysisDriverSubtype>[]);
+    return _subtypes;
   }
 
   @override
@@ -1640,6 +1847,8 @@ abstract class _AnalysisDriverUnitIndexMixin
     if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
     if (nullStringId != 0) _result["nullStringId"] = nullStringId;
     if (strings.isNotEmpty) _result["strings"] = strings;
+    if (subtypes.isNotEmpty)
+      _result["subtypes"] = subtypes.map((_value) => _value.toJson()).toList();
     if (unitLibraryUris.isNotEmpty)
       _result["unitLibraryUris"] = unitLibraryUris;
     if (unitUnitUris.isNotEmpty) _result["unitUnitUris"] = unitUnitUris;
@@ -1675,6 +1884,7 @@ abstract class _AnalysisDriverUnitIndexMixin
         "elementUnits": elementUnits,
         "nullStringId": nullStringId,
         "strings": strings,
+        "subtypes": subtypes,
         "unitLibraryUris": unitLibraryUris,
         "unitUnitUris": unitUnitUris,
         "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,

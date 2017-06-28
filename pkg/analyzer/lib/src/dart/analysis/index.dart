@@ -10,8 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart'
-    show AnalysisDriverUnitIndexBuilder;
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
@@ -212,6 +211,11 @@ class _IndexAssembler {
   final List<_NameRelationInfo> nameRelations = [];
 
   /**
+   * All subtypes declared in the unit.
+   */
+  final List<AnalysisDriverSubtypeBuilder> subtypes = [];
+
+  /**
    * The [_StringInfo] to use for `null` strings.
    */
   _StringInfo nullString;
@@ -293,7 +297,8 @@ class _IndexAssembler {
         usedNameKinds: nameRelations.map((r) => r.kind).toList(),
         usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
         usedNameIsQualifiedFlags:
-            nameRelations.map((r) => r.isQualified).toList());
+            nameRelations.map((r) => r.isQualified).toList(),
+        subtypes: subtypes);
   }
 
   /**
@@ -505,6 +510,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
+    _addSubtype(node);
     if (node.extendsClause == null) {
       ClassElement objectElement = resolutionMap
           .elementDeclaredByClassDeclaration(node)
@@ -717,6 +723,59 @@ class _IndexContributor extends GeneralizingAstVisitor {
     for (TypeName typeName in node.mixinTypes) {
       recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
     }
+  }
+
+  /**
+   * Record the given class as a subclass of its direct superclasses.
+   */
+  void _addSubtype(ClassDeclaration node) {
+    List<String> supertypes = [];
+    List<String> members = [];
+
+    String getClassElementId(ClassElement element) {
+      return element.library.source.uri.toString() +
+          ';' +
+          element.source.uri.toString() +
+          ';' +
+          element.name;
+    }
+
+    void addSupertype(TypeName type) {
+      Element element = type?.name?.staticElement;
+      if (element is ClassElement) {
+        String id = getClassElementId(element);
+        supertypes.add(id);
+      }
+    }
+
+    addSupertype(node.extendsClause?.superclass);
+    node.withClause?.mixinTypes?.forEach(addSupertype);
+    node.implementsClause?.interfaces?.forEach(addSupertype);
+
+    void addMemberName(SimpleIdentifier identifier) {
+      if (identifier != null) {
+        String name = identifier.name;
+        if (name != null && name.isNotEmpty) {
+          members.add(name);
+        }
+      }
+    }
+
+    for (ClassMember member in node.members) {
+      if (member is MethodDeclaration) {
+        addMemberName(member.name);
+      } else if (member is FieldDeclaration) {
+        for (var field in member.fields.variables) {
+          addMemberName(field.name);
+        }
+      }
+    }
+
+    supertypes.sort();
+    members.sort();
+
+    assembler.subtypes.add(new AnalysisDriverSubtypeBuilder(
+        name: node.name.name, supertypes: supertypes, members: members));
   }
 
   /**
