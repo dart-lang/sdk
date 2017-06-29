@@ -716,6 +716,36 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
 }
 
 
+static bool WriteDependencies(const char* target,
+                              File* file,
+                              MallocGrowableArray<char*>* dependencies) {
+  bool success = true;
+  success &= file->Print("%s: ", target);
+
+  if (snapshot_kind == kScript) {
+    if (vm_snapshot_data_filename != NULL) {
+      success &= file->Print("%s ", vm_snapshot_data_filename);
+    }
+    if (vm_snapshot_instructions_filename != NULL) {
+      success &= file->Print("%s ", vm_snapshot_instructions_filename);
+    }
+    if (isolate_snapshot_data_filename != NULL) {
+      success &= file->Print("%s ", isolate_snapshot_data_filename);
+    }
+    if (isolate_snapshot_instructions_filename != NULL) {
+      success &= file->Print("%s ", isolate_snapshot_instructions_filename);
+    }
+  }
+
+  for (intptr_t i = 0; i < dependencies->length(); i++) {
+    success &= file->Print("%s ", dependencies->At(i));
+  }
+
+  success &= file->Print("\n");
+  return success;
+}
+
+
 static void CreateAndWriteDependenciesFile() {
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
@@ -727,64 +757,44 @@ static void CreateAndWriteDependenciesFile() {
   Loader::ResolveDependenciesAsFilePaths();
 
   ASSERT((dependencies_filename != NULL) || print_dependencies);
-  bool success = true;
-  File* file = NULL;
   if (dependencies_filename != NULL) {
-    file = File::Open(dependencies_filename, File::kWriteTruncate);
+    bool success = true;
+    File* file = File::Open(dependencies_filename, File::kWriteTruncate);
     if (file == NULL) {
       Log::PrintErr("Error: Unable to open dependencies file: %s\n\n",
                     dependencies_filename);
       exit(kErrorExitCode);
     }
 
-    // Targets:
+    // Write dependencies for one of the output files.
+    // TODO(https://github.com/ninja-build/ninja/issues/1184): Do this for all
+    // output files.
     switch (snapshot_kind) {
       case kCore:
-        success &= file->Print("%s ", vm_snapshot_data_filename);
-        success &= file->Print("%s ", isolate_snapshot_data_filename);
+        success &=
+            WriteDependencies(vm_snapshot_data_filename, file, dependencies);
+        // success &= WriteDependencies(isolate_snapshot_data_filename, file,
+        //                              dependencies);
         break;
       case kScript:
-        success &= file->Print("%s ", script_snapshot_filename);
+        success &=
+            WriteDependencies(script_snapshot_filename, file, dependencies);
         break;
       case kAppAOTAssembly:
-        success &= file->Print("%s ", assembly_filename);
+        success &= WriteDependencies(assembly_filename, file, dependencies);
         break;
       case kCoreJIT:
       case kAppAOTBlobs:
-        success &= file->Print("%s ", vm_snapshot_data_filename);
-        success &= file->Print("%s ", vm_snapshot_instructions_filename);
-        success &= file->Print("%s ", isolate_snapshot_data_filename);
-        success &= file->Print("%s ", isolate_snapshot_instructions_filename);
+        success &=
+            WriteDependencies(vm_snapshot_data_filename, file, dependencies);
+        // success &= WriteDependencies(vm_snapshot_instructions_filename, file,
+        //                              dependencies);
+        // success &= WriteDependencies(isolate_snapshot_data_filename, file,
+        //                              dependencies);
+        // success &= WriteDependencies(isolate_snapshot_instructions_filename,
+        //                              file, dependencies);
         break;
     }
-
-    success &= file->Print(": ");
-  }
-
-  // Sources:
-  if (snapshot_kind == kScript) {
-    if (dependencies_filename != NULL) {
-      success &= file->Print("%s ", vm_snapshot_data_filename);
-      success &= file->Print("%s ", isolate_snapshot_data_filename);
-    }
-    if (print_dependencies) {
-      Log::Print("%s\n", vm_snapshot_data_filename);
-      Log::Print("%s\n", isolate_snapshot_data_filename);
-    }
-  }
-  for (intptr_t i = 0; i < dependencies->length(); i++) {
-    char* dep = dependencies->At(i);
-    if (dependencies_filename != NULL) {
-      success &= file->Print("%s ", dep);
-    }
-    if (print_dependencies) {
-      Log::Print("%s\n", dep);
-    }
-    free(dep);
-  }
-
-  if (dependencies_filename != NULL) {
-    success &= file->Print("\n");
 
     if (!success) {
       Log::PrintErr("Error: Unable to write dependencies file: %s\n\n",
@@ -792,6 +802,31 @@ static void CreateAndWriteDependenciesFile() {
       exit(kErrorExitCode);
     }
     file->Release();
+  }
+
+  if (print_dependencies) {
+    Log::Print("%s\n", vm_snapshot_data_filename);
+    if (snapshot_kind == kScript) {
+      if (vm_snapshot_data_filename != NULL) {
+        Log::Print("%s\n", vm_snapshot_data_filename);
+      }
+      if (vm_snapshot_instructions_filename != NULL) {
+        Log::Print("%s\n", vm_snapshot_instructions_filename);
+      }
+      if (isolate_snapshot_data_filename != NULL) {
+        Log::Print("%s\n", isolate_snapshot_data_filename);
+      }
+      if (isolate_snapshot_instructions_filename != NULL) {
+        Log::Print("%s\n", isolate_snapshot_instructions_filename);
+      }
+    }
+    for (intptr_t i = 0; i < dependencies->length(); i++) {
+      Log::Print("%s\n", dependencies->At(i));
+    }
+  }
+
+  for (intptr_t i = 0; i < dependencies->length(); i++) {
+    free(dependencies->At(i));
   }
   delete dependencies;
   isolate_data->set_dependencies(NULL);
