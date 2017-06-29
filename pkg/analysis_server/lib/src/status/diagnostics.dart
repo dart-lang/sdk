@@ -372,9 +372,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(
         writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
-    b.write(writeOption('Incremental resolution', options.incremental));
-    b.write(writeOption(
-        'Incremental resolution with API changes', options.incrementalApi));
     b.write(writeOption('Preserve comments', options.preserveComments));
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Strong mode hints', options.strongModeHints));

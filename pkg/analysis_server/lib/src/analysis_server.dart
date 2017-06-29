@@ -358,11 +358,6 @@ class AnalysisServer {
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
-    defaultContextOptions.incremental = true;
-    defaultContextOptions.incrementalApi =
-        options.enableIncrementalResolutionApi;
-    defaultContextOptions.incrementalValidation =
-        options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
 
     {
@@ -1049,8 +1044,6 @@ class AnalysisServer {
 }
 
 class AnalysisServerOptions {
-  bool enableIncrementalResolutionApi = false;
-  bool enableIncrementalResolutionValidation = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;

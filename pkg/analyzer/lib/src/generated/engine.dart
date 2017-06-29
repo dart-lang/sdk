@@ -1260,23 +1260,6 @@ abstract class AnalysisOptions {
   bool get hint;
 
   /**
-   * Return `true` if incremental analysis should be used.
-   */
-  bool get incremental;
-
-  /**
-   * A flag indicating whether incremental analysis should be used for API
-   * changes.
-   */
-  bool get incrementalApi;
-
-  /**
-   * A flag indicating whether validation should be performed after incremental
-   * analysis.
-   */
-  bool get incrementalValidation;
-
-  /**
    * Return `true` if analysis is to generate lint warnings.
    */
   bool get lint;
@@ -1424,15 +1407,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool hint = true;
 
   @override
-  bool incremental = false;
-
-  @override
-  bool incrementalApi = false;
-
-  @override
-  bool incrementalValidation = false;
-
-  @override
   bool lint = false;
 
   /**
@@ -1512,9 +1486,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
-    incremental = options.incremental;
-    incrementalApi = options.incrementalApi;
-    incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     lintRules = options.lintRules;
     preserveComments = options.preserveComments;
@@ -1682,9 +1653,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     hint = true;
     implicitCasts = true;
     implicitDynamic = true;
-    incremental = false;
-    incrementalApi = false;
-    incrementalValidation = false;
     lint = false;
     _lintRules = null;
     nonnullableTypes = NONNULLABLE_TYPES;

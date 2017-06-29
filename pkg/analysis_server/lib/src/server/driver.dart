@@ -20,38 +20,11 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-
-/**
- * Initializes incremental logger.
- *
- * Supports following formats of [spec]:
- *
- *     "console" - log to the console;
- *     "file:/some/file/name" - log to the file, overwritten on start.
- */
-void _initIncrementalLogger(String spec) {
-  logger = NULL_LOGGER;
-  if (spec == null) {
-    return;
-  }
-  // create logger
-  if (spec == 'console') {
-    logger = new StringSinkLogger(stdout);
-  } else if (spec == 'stderr') {
-    logger = new StringSinkLogger(stderr);
-  } else if (spec.startsWith('file:')) {
-    String fileName = spec.substring('file:'.length);
-    File file = new File(fileName);
-    IOSink sink = file.openWrite();
-    logger = new StringSinkLogger(sink);
-  }
-}
 
 /// Commandline argument parser. (Copied from analyzer/lib/options.dart)
 /// TODO(pquitslund): replaces with a simple [ArgParser] instance
@@ -207,13 +180,6 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
-   * The name of the option used to enable incremental resolution of API
-   * changes.
-   */
-  static const String ENABLE_INCREMENTAL_RESOLUTION_API =
-      "enable-incremental-resolution-api";
-
-  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -227,18 +193,6 @@ class Driver implements ServerStarter {
    * The name of the option used to print usage information.
    */
   static const String HELP_OPTION = "help";
-
-  /**
-   * The name of the option used to describe the incremental resolution logger.
-   */
-  static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
-
-  /**
-   * The name of the option used to enable validation of incremental resolution
-   * results.
-   */
-  static const String INCREMENTAL_RESOLUTION_VALIDATION =
-      "incremental-resolution-validation";
 
   /**
    * The name of the option used to cause instrumentation to also be written to
@@ -351,10 +305,6 @@ class Driver implements ServerStarter {
     }
 
     AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
-    analysisServerOptions.enableIncrementalResolutionApi =
-        results[ENABLE_INCREMENTAL_RESOLUTION_API];
-    analysisServerOptions.enableIncrementalResolutionValidation =
-        results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
@@ -366,8 +316,6 @@ class Driver implements ServerStarter {
 
     analysisServerOptions.enableVerboseFlutterCompletions =
         results[VERBOSE_FLUTTER_COMPLETIONS];
-
-    _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
     //
     // Process all of the plugins so that extensions are registered.
@@ -494,10 +442,6 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
-    parser.addFlag(ENABLE_INCREMENTAL_RESOLUTION_API,
-        help: "enable using incremental resolution for API changes",
-        defaultsTo: false,
-        negatable: false);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
@@ -505,12 +449,6 @@ class Driver implements ServerStarter {
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",
         abbr: 'h',
-        defaultsTo: false,
-        negatable: false);
-    parser.addOption(INCREMENTAL_RESOLUTION_LOG,
-        help: "set a destination for the incremental resolver's log");
-    parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
-        help: "enable validation of incremental resolution results (slow)",
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,

@@ -52,9 +52,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.generateImplicitErrors = false;
     modifiedOptions.generateSdkErrors = true;
     modifiedOptions.hint = false;
-    modifiedOptions.incremental = true;
-    modifiedOptions.incrementalApi = true;
-    modifiedOptions.incrementalValidation = true;
     modifiedOptions.lint = true;
     modifiedOptions.lintRules = [null];
     modifiedOptions.patchPaths = {
@@ -84,10 +81,6 @@ class AnalysisOptionsImplTest {
         defaultOptions.generateImplicitErrors);
     expect(modifiedOptions.generateSdkErrors, defaultOptions.generateSdkErrors);
     expect(modifiedOptions.hint, defaultOptions.hint);
-    expect(modifiedOptions.incremental, defaultOptions.incremental);
-    expect(modifiedOptions.incrementalApi, defaultOptions.incrementalApi);
-    expect(modifiedOptions.incrementalValidation,
-        defaultOptions.incrementalValidation);
     expect(modifiedOptions.lint, defaultOptions.lint);
     expect(modifiedOptions.lintRules, defaultOptions.lintRules);
     expect(modifiedOptions.patchPaths, defaultOptions.patchPaths);
