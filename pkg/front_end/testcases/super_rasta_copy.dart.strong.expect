@@ -13,10 +13,10 @@ class A extends core::Object {
     ;
   get e() → dynamic
     return null;
-  set g(dynamic _) → dynamic {}
+  set g(dynamic _) → void {}
   get h() → dynamic
     return null;
-  set h(dynamic _) → dynamic {}
+  set h(dynamic _) → void {}
   get i() → dynamic
     return null;
   operator [](dynamic _) → dynamic
@@ -26,7 +26,7 @@ class A extends core::Object {
     return 117;
   operator unary-() → dynamic
     return 117;
-  operator ==(dynamic other) → dynamic
+  operator ==(dynamic other) → core::bool
     return true;
   method m() → void {}
 }
@@ -37,8 +37,8 @@ class B extends self::A {
     ;
   get b() → dynamic
     return null;
-  set c(dynamic x) → dynamic {}
-  set i(dynamic x) → dynamic {}
+  set c(dynamic x) → void {}
+  set i(dynamic x) → void {}
 }
 class C extends self::B {
   constructor •() → void
@@ -234,12 +234,12 @@ class C extends self::B {
   }
 }
 static method use(dynamic x) → dynamic {
-  if(x.==(new core::DateTime::now().millisecondsSinceEpoch))
+  if(x.==(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
     throw "Shouldn't happen";
 }
 static method main() → dynamic {
   try {
-    new self::C::•().test();
+    new self::C::•().{self::C::test}();
   }
   on core::NoSuchMethodError catch(no-exception-var) {
     return;

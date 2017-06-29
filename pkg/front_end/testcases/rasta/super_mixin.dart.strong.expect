@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./mixin_library.dart" as mix;
+
+class Super<S extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return 40;
+  method f() → dynamic
+    return 3;
+}
+abstract class Super&Mixin^#T0^#T0<#T0 extends core::Object> = self::Super<self::Super&Mixin^#T0^#T0::#T0> with mix::Mixin<self::Super&Mixin^#T0^#T0::#T0> {
+}
+class C<V extends core::Object> extends self::Super&Mixin^#T0^#T0<self::C::V> {
+  constructor •() → void
+    : super self::Super::•()
+    ;
+}
+abstract class Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
+}
+class D extends self::Super&Mixin {
+  constructor •() → void
+    : super self::Super::•()
+    ;
+}
+class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
+  constructor •() → void
+    : super self::Super::•()
+    ;
+}
+class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
+  constructor •() → void
+    : super self::Super::•()
+    ;
+}
+static method main() → dynamic {
+  core::print(new self::C::•<dynamic>().{mix::Mixin::foo}());
+  core::print(new self::C2::•<dynamic>().{mix::Mixin::foo}());
+}

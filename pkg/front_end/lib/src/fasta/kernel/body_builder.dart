@@ -901,35 +901,35 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression toSuperMethodInvocation(MethodInvocation node) {
     Member target = lookupSuperMember(node.name);
-    bool isNoSuchMethod = target == null;
-    if (target is Procedure) {
-      if (!target.isAccessor) {
-        if (areArgumentsCompatible(target.function, node.arguments)) {
-          Expression result = new KernelDirectMethodInvocation(
-              new KernelThisExpression()..fileOffset = node.fileOffset,
-              target,
-              node.arguments)
-            ..fileOffset = node.fileOffset;
-          // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
-          // remove the next line:
-          result =
-              new KernelSuperMethodInvocation(node.name, node.arguments, target)
-                ..fileOffset = node.fileOffset;
-          return result;
-        } else {
-          isNoSuchMethod = true;
-        }
+    if (target == null || (target is Procedure && !target.isAccessor)) {
+      if (target == null) {
+        warnUnresolvedSuperMethod(node.name, node.fileOffset);
+      } else if (!areArgumentsCompatible(target.function, node.arguments)) {
+        target = null;
+        warning(
+            "Super class doesn't have a method named '${node.name.name}' "
+            "with matching arguments.",
+            node.fileOffset);
       }
+      Expression result;
+      if (target != null) {
+        result = new KernelDirectMethodInvocation(
+            new KernelThisExpression()..fileOffset = node.fileOffset,
+            target,
+            node.arguments);
+      }
+      // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
+      // make the next line conditional:
+      result =
+          new KernelSuperMethodInvocation(node.name, node.arguments, target);
+      return result..fileOffset = node.fileOffset;
     }
-    if (isNoSuchMethod) {
-      return invokeSuperNoSuchMethod(
-          node.name.name, node.arguments, node.fileOffset);
-    }
+
     Expression receiver = new KernelDirectPropertyGet(
         new KernelThisExpression()..fileOffset = node.fileOffset, target)
       ..fileOffset = node.fileOffset;
-    // TODO(ahe): Use [DirectPropertyGet] when possible, that is, remove the
-    // next line:
+    // TODO(ahe): Use [DirectPropertyGet] when possible, that is, make the next
+    // line conditional:
     receiver = new KernelSuperPropertyGet(node.name, target)
       ..fileOffset = node.fileOffset;
     return buildMethodInvocation(
@@ -977,51 +977,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression invokeSuperNoSuchMethod(
-      String name, Arguments arguments, int charOffset,
-      {bool isGetter: false, bool isSetter: false}) {
-    String errorName = "super.$name";
-    String message;
-    if (isGetter) {
-      message = "Getter not found: '$errorName'.";
-      name = "get:$name";
-    } else if (isSetter) {
-      message = "Setter not found: '$errorName'.";
-      name = "set:$name";
-    } else {
-      message = "Method not found: '$errorName'.";
-    }
-    warning(message, charOffset);
-    VariableDeclaration value;
-    if (isSetter) {
-      value = new VariableDeclaration.forValue(arguments.positional.single,
-          isFinal: true)
-        ..fileOffset = charOffset;
-      arguments = new Arguments(<Expression>[
-        new VariableGet(value)..fileOffset = arguments.fileOffset
-      ]);
-    }
-    Expression result = new SuperMethodInvocation(
-        noSuchMethodName,
-        new Arguments(<Expression>[
-          library.loader.instantiateInvocation(
-              new KernelThisExpression()..fileOffset = charOffset,
-              name,
-              arguments,
-              charOffset,
-              true)
-        ])
-          ..fileOffset = arguments.fileOffset);
-    if (isSetter) {
-      result = new Let(
-          value,
-          new Let(
-              new VariableDeclaration.forValue(result, isFinal: true)
-                ..fileOffset = charOffset,
-              new VariableGet(value)..fileOffset = value.fileOffset))
-        ..fileOffset = charOffset;
-    }
-    return result;
+  void warnUnresolvedSuperGet(Name name, int charOffset) {
+    warning("Super class has no getter named '${name.name}'.", charOffset);
+  }
+
+  @override
+  void warnUnresolvedSuperSet(Name name, int charOffset) {
+    warning("Super class has no setter named '${name.name}'.", charOffset);
+  }
+
+  @override
+  void warnUnresolvedSuperMethod(Name name, int charOffset) {
+    warning("Super class has no method named '${name.name}'.", charOffset);
   }
 
   @override

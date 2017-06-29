@@ -102,10 +102,6 @@ abstract class BuilderHelper {
       Expression receiver, String name, Arguments arguments, int offset,
       {bool isSuper, bool isGetter, bool isSetter, bool isStatic});
 
-  Expression invokeSuperNoSuchMethod(
-      String name, Arguments arguments, int charOffset,
-      {bool isGetter, bool isSetter});
-
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
 
@@ -123,6 +119,12 @@ abstract class BuilderHelper {
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
   void warning(String message, [int charOffset]);
+
+  void warnUnresolvedSuperGet(Name name, int charOffset);
+
+  void warnUnresolvedSuperSet(Name name, int charOffset);
+
+  void warnUnresolvedSuperMethod(Name name, int charOffset);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -761,25 +763,11 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
-      return new DirectMethodInvocation(
-          new KernelThisExpression(), getter, arguments)
-        ..fileOffset = offset;
+      // TODO(ahe): This could be something like "super.property(...)" where
+      // property is a setter.
+      return internalError("Unhandled invocation ${getter.runtimeType}.",
+          helper.uri, offsetForToken(token));
     }
-  }
-
-  Expression makeInvalidRead() {
-    int offset = offsetForToken(token);
-    return helper.invokeSuperNoSuchMethod(
-        plainNameForRead, new Arguments.empty()..fileOffset = offset, offset,
-        isGetter: true);
-  }
-
-  Expression makeInvalidWrite(Expression value) {
-    return helper.invokeSuperNoSuchMethod(
-        plainNameForRead,
-        new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
-        offsetForToken(token),
-        isSetter: true);
   }
 
   toString() => "SuperPropertyAccessor()";

@@ -4,13 +4,6 @@
 
 unsorted/invocation_errors_test: RuntimeError
 
-[ $compiler == dartk || $compiler == dartkp ]
-unsorted/super_mixin_test: RuntimeError
-
-[ $compiler == dartk && $runtime == vm ]
-
-[ $compiler == dartkp && $runtime == dart_precompiled ]
-
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError

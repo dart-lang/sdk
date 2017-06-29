@@ -373,7 +373,9 @@ class SuperPropertyAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
-    if (getter == null) return makeInvalidRead();
+    if (getter == null) {
+      helper.warnUnresolvedSuperGet(name, offsetForToken(token));
+    }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
     var read = new KernelSuperPropertyGet(name, getter)
       ..fileOffset = offsetForToken(token);
@@ -383,7 +385,9 @@ class SuperPropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    if (setter == null) return makeInvalidWrite(value);
+    if (setter == null) {
+      helper.warnUnresolvedSuperSet(name, offsetForToken(token));
+    }
     // TODO(ahe): Use [DirectPropertySet] when possible.
     var write = new SuperPropertySet(name, value, setter)
       ..fileOffset = offsetForToken(token);
@@ -595,12 +599,21 @@ class SuperIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  Expression _makeSimpleRead() => new SuperMethodInvocation(
-      indexGetName, new KernelArguments(<Expression>[index]), getter);
+  Expression _makeSimpleRead() {
+    if (getter == null) {
+      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+    }
+    // TODO(ahe): Use [DirectMethodInvocation] when possible.
+    return new SuperMethodInvocation(
+        indexGetName, new KernelArguments(<Expression>[index]), getter);
+  }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    if (setter == null) {
+      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+    }
     var write = new SuperMethodInvocation(
         indexSetName, new KernelArguments(<Expression>[index, value]), setter)
       ..fileOffset = offsetForToken(token);
@@ -609,6 +622,9 @@ class SuperIndexAccessor extends Accessor {
   }
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
+    if (getter == null) {
+      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+    }
     var read = new SuperMethodInvocation(
         indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter)
       ..fileOffset = offsetForToken(token);
@@ -619,6 +635,9 @@ class SuperIndexAccessor extends Accessor {
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    if (setter == null) {
+      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+    }
     var write = new SuperMethodInvocation(indexSetName,
         new KernelArguments(<Expression>[indexAccess(), value]), setter)
       ..fileOffset = offsetForToken(token);
@@ -629,6 +648,9 @@ class SuperIndexAccessor extends Accessor {
   _makeWriteAndReturn(
       Expression value, KernelComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
+    if (setter == null) {
+      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+    }
     var write = new SuperMethodInvocation(
         indexSetName,
         new KernelArguments(

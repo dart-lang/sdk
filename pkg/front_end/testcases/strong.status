@@ -44,7 +44,6 @@ redirecting_constructor: Fail
 redirecting_factory: Fail
 statements: Fail
 stringliteral: Fail
-super_rasta_copy: Fail
 top_level_accessors: Fail
 type_variable_as_super: Fail
 typedef: Fail
@@ -135,14 +134,13 @@ rasta/malformed_const_constructor: Fail
 rasta/malformed_function: Fail
 rasta/malformed_function_type: Fail
 rasta/mandatory_parameter_initializer: Fail
-rasta/mixin_library: Fail
+rasta/mixin_library: RuntimeError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
 rasta/previsit_deferred: Fail
 rasta/static: Fail
-rasta/super: Fail
+rasta/super: RuntimeError
 rasta/super_initializer: Fail
-rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
 rasta/switch_execution_case_t02: Fail
