@@ -2407,7 +2407,7 @@ const TypeArguments* StreamingConstantEvaluator::TranslateTypeArguments(
 
 bool StreamingConstantEvaluator::EvaluateBooleanExpressionHere() {
   EvaluateExpression(builder_->ReaderOffset(), false);
-  AssertBoolInCheckedMode();
+  AssertBool();
   return result_.raw() == Bool::True().raw();
 }
 

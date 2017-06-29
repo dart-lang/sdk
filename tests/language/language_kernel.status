@@ -4,12 +4,6 @@
 
 [ !$checked && ($compiler == dartk || $compiler == dartkp) ]
 
-multiline_newline_test/04: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/04r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/05r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/06: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/06r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -406,6 +400,3 @@ regress_26133_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
-
-[ ! $checked && ($compiler == dartk || $compiler == dartkp) ]
-const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

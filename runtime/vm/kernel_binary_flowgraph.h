@@ -276,8 +276,8 @@ class StreamingConstantEvaluator {
   const TypeArguments* TranslateTypeArguments(const Function& target,
                                               dart::Class* target_klass);
 
-  void AssertBoolInCheckedMode() {
-    if (isolate_->type_checks() && !result_.IsBool()) {
+  void AssertBool() {
+    if (!result_.IsBool()) {
       translation_helper_.ReportError("Expected boolean expression.");
     }
   }
