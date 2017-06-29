@@ -6005,9 +6005,9 @@ void Function::set_native_name(const String& value) const {
 void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->result_type_, value.raw());
-  if (value.IsFunctionType() && !value.IsResolved()) {
-    // The unresolved function result type may refer to this
-    // function's type parameters. Change its parent function.
+  if (value.IsFunctionType()) {
+    // The function result type may refer to this function's type parameters.
+    // Change its parent function.
     const Function& result_signature_function =
         Function::Handle(Type::Cast(value).signature());
     result_signature_function.set_parent_function(*this);

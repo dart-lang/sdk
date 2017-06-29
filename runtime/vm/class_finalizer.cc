@@ -2510,6 +2510,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     Function& signature = Function::Handle(cls.signature_function());
     Type& type = Type::Handle(signature.SignatureType());
     ASSERT(type.signature() == signature.raw());
+    ASSERT(type.type_class() == cls.raw());
 
     // Check for illegal self references.
     GrowableArray<intptr_t> visited_aliases;
@@ -2527,6 +2528,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 
     // Resolve and finalize the signature type of this typedef.
     type ^= FinalizeType(cls, type);
+    ASSERT(type.type_class() == cls.raw());
 
     // If a different canonical signature type is returned, update the signature
     // function of the typedef.
