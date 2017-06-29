@@ -18,25 +18,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
- * Returns `true` if two given [Element]s are [LocalElement]s and have
- * intersecting with visibility ranges.
- */
-bool haveIntersectingRanges(LocalElement localElement, Element element) {
-  if (element is! LocalElement) {
-    return false;
-  }
-  LocalElement localElement2 = element as LocalElement;
-  Source localSource = localElement.source;
-  Source localSource2 = localElement2.source;
-  SourceRange localRange = localElement.visibleRange;
-  SourceRange localRange2 = localElement2.visibleRange;
-  return localSource2 == localSource &&
-      localRange != null &&
-      localRange2 != null &&
-      localRange2.intersects(localRange);
-}
-
-/**
  * Checks if [element] is defined in the library containing [source].
  */
 bool isDefinedInLibrary(
