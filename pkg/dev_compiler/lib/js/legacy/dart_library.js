@@ -67,11 +67,7 @@ dart_library =
     loadImports() {
       let results = [];
       for (let name of this._imports) {
-        let lib = libraries.get(name);
-        if (!lib) {
-          throwLibraryError('Library not available: ' + name);
-        }
-        results.push(lib.load());
+        results.push(import_(name));
       }
       return results;
     }
@@ -152,12 +148,27 @@ dart_library =
   }
   dart_library.library = library;
 
-  function import_(libraryName) {
-    let loader = libraries.get(libraryName);
-    // TODO(vsm): A user might call this directly from JS (as we do in tests).
-    // We may want a different error type.
-    if (!loader) throwLibraryError('Library not found: ' + libraryName);
-    return loader.load();
+  // Maintain a stack of active imports.  If a requested library/module is not
+  // available, print the stack to show where/how it was requested.
+  let _stack = [];
+  function import_(name) {
+    let lib = libraries.get(name);
+    if (!lib) {
+      let message = 'Module ' + name + ' not loaded in the browser.';
+      if (_stack != []) {
+        message += '\nDependency via:';
+        let indent = '';
+        for (let last = _stack.length - 1; last >= 0; last--) {
+          indent += ' ';
+          message += '\n' + indent + '- ' + _stack[last];
+        }
+      }
+      throwLibraryError(message);
+    }
+    _stack.push(name);
+    let result = lib.load();
+    _stack.pop();
+    return result;
   }
   dart_library.import = import_;
 
