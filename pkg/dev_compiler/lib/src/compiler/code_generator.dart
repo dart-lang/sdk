@@ -2398,15 +2398,16 @@ class CodeGenerator extends Object
   ///
   /// This is useful for indexed set methods, which otherwise would not have
   /// the right return value in JS.
-  JS.Node _alwaysReturnLastParameter(JS.Node body, JS.Parameter lastParam) {
+  JS.Block _alwaysReturnLastParameter(JS.Block body, JS.Parameter lastParam) {
+    JS.Statement blockBody = body;
     if (JS.Return.foundIn(body)) {
       // If a return is inside body, transform `(params) { body }` to
       // `(params) { (() => { body })(); return value; }`.
       // TODO(jmesserly): we could instead generate the return differently,
       // and avoid the immediately invoked function.
-      body = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
+      blockBody = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
     }
-    return new JS.Block([body, new JS.Return(lastParam)]);
+    return new JS.Block([blockBody, new JS.Return(lastParam)]);
   }
 
   @override
@@ -2609,23 +2610,33 @@ class CodeGenerator extends Object
     // normal function (sync), vs (sync*, async, async*)
     var stdFn = !(element.isAsynchronous || element.isGenerator);
     var formals = _emitFormalParameterList(parameters, destructure: stdFn);
-    var code = (stdFn)
+    JS.Block code = stdFn
         ? _visit(body)
         : new JS.Block(
             [_emitGeneratorFunctionBody(element, parameters, body).toReturn()]);
     var typeFormals = _emitTypeFormals(type.typeFormals);
     var returnType = emitTypeRef(type.returnType);
     if (type.typeFormals.isNotEmpty) {
-      code = new JS.Block(<JS.Statement>[
-        new JS.Block(_typeTable.discharge(type.typeFormals)),
-        code
-      ]);
+      code = new JS.Block(
+          [new JS.Block(_typeTable.discharge(type.typeFormals)), code]);
     }
 
     if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
       // []= methods need to return the value. We could also address this at
       // call sites, but it's cleaner to instead transform the operator method.
       code = _alwaysReturnLastParameter(code, formals.last);
+    }
+
+    if (body is BlockFunctionBody) {
+      var params = element.parameters.map((e) => e.name).toSet();
+      bool shadowsParam = body.block.statements.any((s) =>
+          s is VariableDeclarationStatement &&
+          s.variables.variables.any((v) => params.contains(v.name.name)));
+      if (shadowsParam) {
+        code = new JS.Block([
+          new JS.Block([code], isScope: true)
+        ]);
+      }
     }
 
     return _makeGenericFunction(new JS.Fun(formals, code,
@@ -3358,7 +3369,7 @@ class CodeGenerator extends Object
     var savedFunction = _currentFunction;
     _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
-    var stmts = _visitList(node.block.statements) as List<JS.Statement>;
+    var stmts = _visitList<JS.Statement>(node.block.statements);
     if (initArgs != null) stmts.insert(0, initArgs);
     _currentFunction = savedFunction;
     return new JS.Block(stmts);
@@ -3366,8 +3377,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Block visitBlock(Block node) =>
-      new JS.Block(_visitList(node.statements) as List<JS.Statement>,
-          isScope: true);
+      new JS.Block(_visitList(node.statements), isScope: true);
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -3879,8 +3889,7 @@ class CodeGenerator extends Object
 
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
-    return new JS.VariableDeclarationList(
-        'let', _visitList(node.variables) as List<JS.VariableInitialization>);
+    return new JS.VariableDeclarationList('let', _visitList(node.variables));
   }
 
   @override
@@ -4631,7 +4640,7 @@ class CodeGenerator extends Object
 
     var vars = <JS.MetaLetVariable, JS.Expression>{};
     _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
-    var sections = _visitList(node.cascadeSections) as List<JS.Expression>;
+    var sections = _visitList<JS.Expression>(node.cascadeSections);
     sections.add(_visit(_cascadeTarget));
     var result = new JS.MetaLet(vars, sections, statelessResult: true);
     _cascadeTarget = savedCascadeTemp;
@@ -5091,8 +5100,7 @@ class CodeGenerator extends Object
       }
     }
 
-    body.add(
-        new JS.Block(_visitList(node.body.statements) as List<JS.Statement>));
+    body.add(new JS.Block(_visitList(node.body.statements)));
     _catchParameter = savedCatch;
     return _statement(body);
   }
@@ -5100,7 +5108,7 @@ class CodeGenerator extends Object
   @override
   JS.Case visitSwitchCase(SwitchCase node) {
     var expr = _visit(node.expression);
-    var body = _visitList(node.statements) as List<JS.Statement>;
+    var body = _visitList<JS.Statement>(node.statements);
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
     }
@@ -5110,7 +5118,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Default visitSwitchDefault(SwitchDefault node) {
-    var body = _visitList(node.statements) as List<JS.Statement>;
+    var body = _visitList<JS.Statement>(node.statements);
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
     }
@@ -5119,9 +5127,8 @@ class CodeGenerator extends Object
   }
 
   @override
-  JS.Switch visitSwitchStatement(SwitchStatement node) => new JS.Switch(
-      _visit(node.expression),
-      _visitList(node.members) as List<JS.SwitchClause>);
+  JS.Switch visitSwitchStatement(SwitchStatement node) =>
+      new JS.Switch(_visit(node.expression), _visitList(node.members));
 
   @override
   JS.Statement visitLabeledStatement(LabeledStatement node) {
@@ -5167,8 +5174,7 @@ class CodeGenerator extends Object
   visitListLiteral(ListLiteral node) {
     var isConst = node.constKeyword != null;
     JS.Expression emitList() {
-      JS.Expression list = new JS.ArrayInitializer(
-          _visitList(node.elements) as List<JS.Expression>);
+      JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
       ParameterizedType type = node.staticType;
       var elementType = type.typeArguments.single;
       // TODO(jmesserly): analyzer will usually infer `List<Object>` because
@@ -5274,23 +5280,18 @@ class CodeGenerator extends Object
 
   T _visit<T extends JS.Node>(AstNode node) {
     if (node == null) return null;
-    var result = node.accept(this);
+    var result = node.accept(this) as T;
     return result != null ? annotate(result, node) : null;
   }
 
-  // TODO(jmesserly): we should make sure this only returns JS AST nodes.
-  List/*<R>*/ _visitList/*<T extends AstNode, R>*/(Iterable/*<T>*/ nodes) {
-    if (nodes == null) return null;
-    var result = /*<R>*/ [];
-    for (var node in nodes) result.add(_visit(node) as dynamic/*=R*/);
-    return result;
+  List<R> _visitList<R extends JS.Node>(Iterable<AstNode> nodes) {
+    return nodes?.map<R>(_visit)?.toList();
   }
 
   /// Visits a list of expressions, creating a comma expression if needed in JS.
   JS.Expression _visitListToBinary(List<Expression> nodes, String operator) {
     if (nodes == null || nodes.isEmpty) return null;
-    return new JS.Expression.binary(
-        _visitList(nodes) as List<JS.Expression>, operator);
+    return new JS.Expression.binary(_visitList(nodes), operator);
   }
 
   /// Generates an expression for a boolean conversion context (if, while, &&,
@@ -5514,12 +5515,10 @@ class CodeGenerator extends Object
             () => new JS.TemporaryId(jsLibraryName(_libraryRoot, library)));
   }
 
-  JS.Node/*=T*/ annotate/*<T extends JS.Node>*/(
-      JS.Node/*=T*/ node, AstNode original,
-      [Element element]) {
+  T annotate<T extends JS.Node>(T node, AstNode original, [Element element]) {
     if (options.closure && element != null) {
-      node = node.withClosureAnnotation(closureAnnotationFor(
-          node, original, element, namedArgumentTemp.name)) as dynamic/*=T*/;
+      node.closureAnnotation =
+          closureAnnotationFor(node, original, element, namedArgumentTemp.name);
     }
     return node..sourceInformation = original;
   }
