@@ -6,41 +6,10 @@ import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
 import("../../build/dart_host_toolchain.gni")
 
-# Currently paths here are hard coded for convenience in building Mojo/Flutter.
-declare_args() {
-  # Specify the path to a host compatible version of the Dart SDK.
-  # This SDK is used to compile the Observatory frontend sources.
-  dart_host_sdk = rebase_path("//third_party/dart-sdk/dart-sdk")
-
-  # Specify the path to a host compatible version of pub.
-  # This is used to compile the Observatory frontend sources.
-  #
-  # The observatory build tool searches for pub first using this GN arg, then
-  # for the checked-in SDK, and if that doesn't work, it uses the dart_bootstrap
-  # built as part of the build to invoke pub. If this arg is set to a non-empty
-  # string, we assume that there is no need for dart_bootstrap. If it is set to
-  # "", then we assume that there may be a need for dart_bootstrap.
-  if (defined(is_win) && is_win) {
-    dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub.bat")
-  } else {
-    dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub")
-  }
-}
-
-# We set this to "" in the Fuchsia build to force building with dart_bootstrap.
-if (is_fuchsia || is_fuchsia_host) {
-  dart_host_pub_exe = ""
-}
-
 # Construct arguments to the observatory tool for finding pub.
 pub_build_deps = []
 pub_build_args = []
-if (dart_host_pub_exe != "") {
-  pub_build_args = [
-    "--pub-executable",
-    dart_host_pub_exe,
-  ]
-} else if (!prebuilt_dart_exe_works) {
+if (!prebuilt_dart_exe_works) {
   pub_build_deps += [ "../bin:dart_bootstrap($dart_host_toolchain)" ]
 
   dart_out_dir = get_label_info("../bin:dart_bootstrap($dart_host_toolchain)",

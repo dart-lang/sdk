@@ -147,11 +147,6 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['host_cpu'] = HostCpuForArch(arch)
   crossbuild = gn_args['target_cpu'] != gn_args['host_cpu']
 
-  # See: runtime/observatory/BUILD.gn.
-  # This allows the standalone build of the observatory to fall back on
-  # dart_bootstrap if the prebuilt SDK doesn't work.
-  gn_args['dart_host_pub_exe'] = ""
-
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
     # snapshots instead.
