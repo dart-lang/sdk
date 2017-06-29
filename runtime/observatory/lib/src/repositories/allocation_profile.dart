@@ -14,10 +14,10 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     var params = {};
-    if (gc == true) {
+    if (gc) {
       params['gc'] = 'full';
     }
-    if (reset == true) {
+    if (reset) {
       params['reset'] = true;
     }
     final response = await isolate.invokeRpc(_api, params);

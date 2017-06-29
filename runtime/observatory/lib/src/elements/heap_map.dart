@@ -108,6 +108,8 @@ class HeapMapElement extends HtmlElement implements Renderable {
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('heap map'),
+        new NavRefreshElement(label: 'GC', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: true)),
         new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((_) => _refresh()),
         new NavNotifyElement(_notifications, queue: _r.queue)
@@ -277,9 +279,15 @@ class HeapMapElement extends HtmlElement implements Renderable {
     });
   }
 
-  Future _refresh() {
+  Future _refresh({gc: false}) {
     final isolate = _isolate as S.Isolate;
-    return isolate.invokeRpc('_getHeapMap', {}).then((S.ServiceMap response) {
+    var params = {};
+    if (gc) {
+      params['gc'] = 'full';
+    }
+    return isolate
+        .invokeRpc('_getHeapMap', params)
+        .then((S.ServiceMap response) {
       assert(response['type'] == 'HeapMap');
       _fragmentation = response;
       _updateFragmentationData();

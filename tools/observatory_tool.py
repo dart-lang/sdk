@@ -59,7 +59,7 @@ def DisplayFailureMessage():
 ERROR: Observatory failed to build. What should you do?
 
 1. Revert to a working revision of the Dart VM
-2. Contact zra@, johnmccutchan@, dart-vm-team@
+2. Contact zra@, rmacnak@, dart-vm-team@
 3. File a bug: https://github.com/dart-lang/sdk/issues/new
 
 """
