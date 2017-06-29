@@ -29,7 +29,7 @@ void main() {
 
         checkType(String name, type) {
           var element = findElement(compiler, name);
-          ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+          ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
           Expect.equals(type, simplify(mask.elementType, closedWorld), name);
         }
 

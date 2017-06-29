@@ -25,9 +25,9 @@ import 'type_system.dart';
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final Compiler compiler;
-  final AstElement originalElement;
+  final MemberElement originalElement;
   // TODO(efortuna): Remove this.
-  final Element outermostElement;
+  final MemberElement outermostElement;
   final ir.Node analyzedNode;
   final ResolvedAst resolvedAst;
   final TypeSystem types;
@@ -64,7 +64,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
   }
 
-  factory KernelTypeGraphBuilder(Element element, ResolvedAst resolvedAst,
+  factory KernelTypeGraphBuilder(MemberElement element, ResolvedAst resolvedAst,
       Compiler compiler, InferrerEngine inferrer,
       [LocalsHandler handler]) {
     var adapter = _createKernelAdapter(compiler, resolvedAst);

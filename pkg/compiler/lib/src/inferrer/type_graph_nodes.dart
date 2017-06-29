@@ -349,14 +349,18 @@ abstract class ElementTypeInformation extends TypeInformation {
   bool disableInferenceForClosures = true;
 
   factory ElementTypeInformation(Element element, TypeSystem types) {
-    if (element.isRegularParameter || element.isInitializingFormal) {
+    if (element.isParameter) {
       ParameterElement parameter = element;
-      if (parameter.functionDeclaration.isInstanceMember) {
+      if (parameter.functionDeclaration.isLocal) {
+        return new ParameterTypeInformation._localFunction(element, types);
+      } else if (parameter.functionDeclaration.isInstanceMember) {
         return new ParameterTypeInformation._instanceMember(element, types);
       }
-      return new ParameterTypeInformation._internal(element, types);
+      return new ParameterTypeInformation._static(element, types);
+    } else if (element.isLocal) {
+      return new MemberTypeInformation._localFunction(element);
     }
-    return new MemberTypeInformation._internal(element);
+    return new MemberTypeInformation._member(element);
   }
 
   ElementTypeInformation._internal(MemberTypeInformation context, this.element)
@@ -405,6 +409,12 @@ class MemberTypeInformation extends ElementTypeInformation
 
   MemberTypeInformation._internal(Element element)
       : super._internal(null, element);
+
+  MemberTypeInformation._member(MemberElement element)
+      : this._internal(element);
+
+  MemberTypeInformation._localFunction(LocalFunctionElement element)
+      : this._internal(element);
 
   void addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is Element);
@@ -587,16 +597,30 @@ class ParameterTypeInformation extends ElementTypeInformation {
   ParameterElement get element => super.element;
   FunctionElement get declaration => element.functionDeclaration;
 
-  ParameterTypeInformation._internal(ParameterElement element, TypeSystem types)
-      : super._internal(
-            types.getInferredTypeOf(element.functionDeclaration), element) {
+  ParameterTypeInformation._internal(
+      MemberTypeInformation context, ParameterElement parameter)
+      : super._internal(context, parameter);
+
+  factory ParameterTypeInformation._static(
+      ParameterElement element, TypeSystem types) {
     assert(!element.functionDeclaration.isInstanceMember);
+    MethodElement method = element.functionDeclaration;
+    return new ParameterTypeInformation._internal(
+        types.getInferredTypeOfMember(method), element);
+  }
+
+  factory ParameterTypeInformation._localFunction(
+      ParameterElement element, TypeSystem types) {
+    LocalFunctionElement localFunction = element.functionDeclaration;
+    return new ParameterTypeInformation._internal(
+        types.getInferredTypeOfLocalFunction(localFunction), element);
   }
 
   ParameterTypeInformation._instanceMember(
       ParameterElement element, TypeSystem types)
       : super._withAssignments(
-            types.getInferredTypeOf(element.functionDeclaration),
+            types.getInferredTypeOfMember(
+                element.functionDeclaration as MethodElement),
             element,
             new ParameterAssignments()) {
     assert(element.functionDeclaration.isInstanceMember);
@@ -750,8 +774,12 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       : super(context, call, enclosing, selector, mask, arguments, inLoop);
 
   void addToGraph(InferrerEngine inferrer) {
-    MemberTypeInformation callee =
-        inferrer.types.getInferredTypeOf(calledElement);
+    MemberTypeInformation callee;
+    if (calledElement.isLocal) {
+      callee = inferrer.types.getInferredTypeOfLocalFunction(calledElement);
+    } else {
+      callee = inferrer.types.getInferredTypeOfMember(calledElement);
+    }
     callee.addCall(caller, call);
     callee.addUser(this);
     if (arguments != null) {
@@ -773,9 +801,21 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeMask computeType(InferrerEngine inferrer) {
     if (isSynthesized) {
       assert(arguments != null);
-      return inferrer.types.getInferredTypeOf(calledElement).type;
+      if (calledElement.isLocal) {
+        return inferrer.types
+            .getInferredTypeOfLocalFunction(calledElement)
+            .type;
+      } else {
+        return inferrer.types.getInferredTypeOfMember(calledElement).type;
+      }
     } else {
-      return inferrer.typeOfElementWithSelector(calledElement, selector).type;
+      if (calledElement.isLocal) {
+        return inferrer
+            .typeOfLocalFunctionWithSelector(calledElement, selector)
+            .type;
+      } else {
+        return inferrer.typeOfMemberWithSelector(calledElement, selector).type;
+      }
     }
   }
 
@@ -786,14 +826,25 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   bool hasStableType(InferrerEngine inferrer) {
-    return inferrer.types.getInferredTypeOf(calledElement).isStable &&
+    bool isStable;
+    if (calledElement.isLocal) {
+      isStable =
+          inferrer.types.getInferredTypeOfLocalFunction(calledElement).isStable;
+    } else {
+      isStable = inferrer.types.getInferredTypeOfMember(calledElement).isStable;
+    }
+    return isStable &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
 
   void removeAndClearReferences(InferrerEngine inferrer) {
-    ElementTypeInformation callee =
-        inferrer.types.getInferredTypeOf(calledElement);
+    ElementTypeInformation callee;
+    if (calledElement.isLocal) {
+      callee = inferrer.types.getInferredTypeOfLocalFunction(calledElement);
+    } else {
+      callee = inferrer.types.getInferredTypeOfMember(calledElement);
+    }
     callee.removeUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.removeUser(this));
@@ -828,7 +879,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       arguments.forEach((info) => info.addUser(this));
     }
     for (MemberElement element in targets) {
-      MemberTypeInformation callee = inferrer.types.getInferredTypeOf(element);
+      MemberTypeInformation callee =
+          inferrer.types.getInferredTypeOfMember(element);
       callee.addCall(caller, call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
@@ -1000,7 +1052,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           .forEach((MemberEntity _element) {
         MemberElement element = _element;
         MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOf(element);
+            inferrer.types.getInferredTypeOfMember(element);
         callee.addCall(caller, call);
         callee.addUser(this);
         inferrer.updateParameterAssignments(
@@ -1014,7 +1066,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           .forEach((MemberEntity _element) {
         MemberElement element = _element;
         MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOf(element);
+            inferrer.types.getInferredTypeOfMember(element);
         callee.removeCall(caller, call);
         callee.removeUser(this);
         inferrer.updateParameterAssignments(
@@ -1069,7 +1121,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         TypeInformation info =
             handleIntrisifiedSelector(selector, typeMask, inferrer);
         if (info != null) return info.type;
-        return inferrer.typeOfElementWithSelector(element, selector).type;
+        return inferrer.typeOfMemberWithSelector(element, selector).type;
       }
     }));
 
@@ -1091,7 +1143,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       for (MemberElement element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
-              inferrer.types.getInferredTypeOf(element);
+              inferrer.types.getInferredTypeOfMember(element);
           callee.addCall(caller, call);
           inferrer.updateParameterAssignments(
               this, element, arguments, selector, mask,
@@ -1104,7 +1156,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void removeAndClearReferences(InferrerEngine inferrer) {
     for (MemberElement element in targets) {
-      ElementTypeInformation callee = inferrer.types.getInferredTypeOf(element);
+      ElementTypeInformation callee =
+          inferrer.types.getInferredTypeOfMember(element);
       callee.removeUser(this);
     }
     if (arguments != null) {
@@ -1123,7 +1176,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     return receiver.isStable &&
         targets.every((_element) {
           MemberElement element = _element;
-          return inferrer.types.getInferredTypeOf(element).isStable;
+          return inferrer.types.getInferredTypeOfMember(element).isStable;
         }) &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);

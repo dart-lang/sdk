@@ -38,7 +38,7 @@ void main() {
           var element = signature.requiredParameters.first;
           Expect.equals(
               type,
-              simplify(typesInferrer.getTypeOfElement(element), closedWorld),
+              simplify(typesInferrer.getTypeOfParameter(element), closedWorld),
               functionName);
         }
 

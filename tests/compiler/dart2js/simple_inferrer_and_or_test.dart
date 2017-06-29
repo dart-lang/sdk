@@ -104,7 +104,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld));
         }
 
         var subclassOfInterceptor = closedWorld.commonMasks.interceptorType;

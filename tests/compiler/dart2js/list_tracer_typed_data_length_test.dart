@@ -35,7 +35,7 @@ void main() {
 
     checkType(String name, type, length) {
       var element = findElement(compiler, name);
-      TypeMask mask = typesInferrer.getTypeOfElement(element);
+      TypeMask mask = typesInferrer.getTypeOfMember(element);
       Expect.isTrue(mask.isContainer);
       ContainerTypeMask container = mask;
       Expect.equals(type, simplify(container.elementType, closedWorld), name);

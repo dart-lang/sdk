@@ -210,7 +210,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     Element called = info.calledElement;
-    if (inferrer.types.getInferredTypeOf(called) == currentUser) {
+    TypeInformation inferred = called.isLocal
+        ? inferrer.types.getInferredTypeOfLocalFunction(called)
+        : inferrer.types.getInferredTypeOfMember(called);
+    if (inferred == currentUser) {
       addNewEscapeInformation(info);
     }
   }
@@ -297,7 +300,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return isIndexSetArgument(info, 1);
   }
 
-  void bailoutIfReaches(bool predicate(Element e)) {
+  void bailoutIfReaches(bool predicate(ParameterElement e)) {
     for (var user in currentUser.users) {
       if (user is ParameterTypeInformation) {
         if (predicate(user.element)) {
@@ -393,8 +396,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     Iterable<TypeInformation> inferredTargetTypes =
         info.targets.map((MemberEntity entity) {
-      MemberElement element = entity;
-      return inferrer.types.getInferredTypeOf(element);
+      return inferrer.types.getInferredTypeOfMember(entity);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {
       addNewEscapeInformation(info);
@@ -406,7 +408,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [mightAddToContainer].
    */
-  bool isParameterOfListAddingMethod(Element element) {
+  bool isParameterOfListAddingMethod(ParameterElement element) {
     if (!element.isRegularParameter) return false;
     if (element.enclosingClass !=
         inferrer.closedWorld.commonElements.jsArrayClass) {
@@ -421,7 +423,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [isIndexSetKey] and [isIndexSetValue].
    */
-  bool isParameterOfMapAddingMethod(Element element) {
+  bool isParameterOfMapAddingMethod(ParameterElement element) {
     if (!element.isRegularParameter) return false;
     if (element.enclosingClass !=
         inferrer.closedWorld.commonElements.mapLiteralClass) {
@@ -462,17 +464,16 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    ParameterElement element = info.element;
-    if (inferrer.isNativeMember(element.functionDeclaration)) {
+    if (inferrer.isNativeMember(info.declaration)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend
         .canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration, inferrer.closedWorld)) {
+            info.declaration, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
-    if (isParameterOfListAddingMethod(element) ||
-        isParameterOfMapAddingMethod(element)) {
+    if (isParameterOfListAddingMethod(info.element) ||
+        isParameterOfMapAddingMethod(info.element)) {
       // These elements are being handled in
       // [visitDynamicCallSiteTypeInformation].
       return;

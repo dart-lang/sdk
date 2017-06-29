@@ -597,6 +597,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
         super(name, other.kind, Modifiers.EMPTY, enclosing) {
     asyncMarker = other.asyncMarker;
     functionSignature = other.functionSignature;
+    expression.callMethod = this;
   }
 
   /// Use [closureClass] instead.

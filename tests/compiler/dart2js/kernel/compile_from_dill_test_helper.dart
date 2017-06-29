@@ -94,6 +94,12 @@ main() {
 
 enum ResultKind { crashes, errors, warnings, success, failure }
 
+const List<String> commonOptions = const <String>[
+  Flags.disableTypeInference,
+  Flags.disableInlining,
+  Flags.enableAssertMessage
+];
+
 Future<ResultKind> runTest(
     Uri entryPoint, Map<String, String> memorySourceFiles,
     {bool skipWarnings: false,
@@ -118,11 +124,7 @@ Future<ResultKind> runTest(
       entryPoint: entryPoint,
       diagnosticHandler: collector,
       outputProvider: collector1,
-      options: [
-        Flags.disableTypeInference,
-        Flags.disableInlining,
-        Flags.enableAssertMessage
-      ]..addAll(options));
+      options: <String>[]..addAll(commonOptions)..addAll(options));
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
@@ -144,15 +146,8 @@ Future<ResultKind> runTest(
 
   OutputCollector collector2 = new OutputCollector();
   Compiler compiler2 = await compileWithDill(
-      entryPoint,
-      const {},
-      [
-        Flags.disableTypeInference,
-        Flags.disableInlining,
-        Flags.enableAssertMessage
-      ]..addAll(options),
-      printSteps: true,
-      compilerOutput: collector2);
+      entryPoint, const {}, <String>[]..addAll(commonOptions)..addAll(options),
+      printSteps: true, compilerOutput: collector2);
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
   KernelToElementMap elementMap = frontendStrategy.elementMap;

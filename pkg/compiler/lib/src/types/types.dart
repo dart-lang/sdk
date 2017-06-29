@@ -72,7 +72,7 @@ abstract class GlobalTypeInferenceElementResult {
   TypeMask typeOfIteratorCurrent(ForIn node);
 }
 
-class GlobalTypeInferenceElementResultImpl
+abstract class GlobalTypeInferenceElementResultImpl
     implements GlobalTypeInferenceElementResult {
   // TODO(sigmund): delete, store data directly here.
   final Element _owner;
@@ -85,16 +85,26 @@ class GlobalTypeInferenceElementResultImpl
   final bool _isJsInterop;
   final TypeMask _dynamic;
 
-  GlobalTypeInferenceElementResultImpl(this._owner, this._data, this._inferrer,
-      this._isJsInterop, this._dynamic);
+  factory GlobalTypeInferenceElementResultImpl(
+      Element owner,
+      GlobalTypeInferenceElementData data,
+      TypesInferrer inferrer,
+      bool isJsInterop,
+      TypeMask _dynamic) {
+    if (owner.isParameter) {
+      return new GlobalTypeInferenceParameterResult(
+          owner, data, inferrer, isJsInterop, _dynamic);
+    } else if (owner.isLocal) {
+      return new GlobalTypeInferenceLocalFunctionResult(
+          owner, data, inferrer, isJsInterop, _dynamic);
+    } else {
+      return new GlobalTypeInferenceMemberResult(
+          owner, data, inferrer, isJsInterop, _dynamic);
+    }
+  }
 
-  bool get isCalledOnce => _inferrer.isCalledOnce(_owner);
-
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfElement(_owner);
-
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfElement(_owner);
+  GlobalTypeInferenceElementResultImpl.internal(this._owner, this._data,
+      this._inferrer, this._isJsInterop, this._dynamic);
 
   bool get throwsAlways {
     TypeMask mask = this.returnType;
@@ -116,6 +126,83 @@ class GlobalTypeInferenceElementResultImpl
       _data?.typeOfIteratorMoveNext(node);
   TypeMask typeOfIteratorCurrent(ForIn node) =>
       _data?.typeOfIteratorCurrent(node);
+}
+
+class GlobalTypeInferenceMemberResult
+    extends GlobalTypeInferenceElementResultImpl {
+  GlobalTypeInferenceMemberResult(
+      MemberElement owner,
+      GlobalTypeInferenceElementData data,
+      TypesInferrer inferrer,
+      bool isJsInterop,
+      TypeMask _dynamic)
+      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
+
+  bool get isCalledOnce => _inferrer.isMemberCalledOnce(_owner);
+
+  TypeMask get returnType =>
+      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfMember(_owner);
+
+  TypeMask get type =>
+      _isJsInterop ? _dynamic : _inferrer.getTypeOfMember(_owner);
+}
+
+class GlobalTypeInferenceParameterResult
+    extends GlobalTypeInferenceElementResultImpl {
+  GlobalTypeInferenceParameterResult(
+      ParameterElement owner,
+      GlobalTypeInferenceElementData data,
+      TypesInferrer inferrer,
+      bool isJsInterop,
+      TypeMask _dynamic)
+      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
+
+  bool get isCalledOnce => _inferrer.isParameterCalledOnce(_owner);
+
+  TypeMask get returnType =>
+      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfParameter(_owner);
+
+  TypeMask get type =>
+      _isJsInterop ? _dynamic : _inferrer.getTypeOfParameter(_owner);
+}
+
+@deprecated
+class GlobalTypeInferenceLocalFunctionResult
+    extends GlobalTypeInferenceElementResultImpl {
+  GlobalTypeInferenceLocalFunctionResult(
+      LocalFunctionElement owner,
+      GlobalTypeInferenceElementData data,
+      TypesInferrer inferrer,
+      bool isJsInterop,
+      TypeMask _dynamic)
+      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
+
+  bool get isCalledOnce => _inferrer.isLocalFunctionCalledOnce(_owner);
+
+  TypeMask get returnType =>
+      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfLocalFunction(_owner);
+
+  TypeMask get type =>
+      _isJsInterop ? _dynamic : _inferrer.getTypeOfLocalFunction(_owner);
+}
+
+class GlobalTypeInferenceLocalFunctionResultImpl
+    extends GlobalTypeInferenceElementResultImpl {
+  GlobalTypeInferenceLocalFunctionResultImpl(
+      LocalFunctionElement owner,
+      GlobalTypeInferenceElementData data,
+      TypesInferrer inferrer,
+      bool isJsInterop,
+      TypeMask _dynamic)
+      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
+
+  bool get isCalledOnce => _inferrer.isLocalFunctionCalledOnce(_owner);
+
+  TypeMask get returnType =>
+      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfLocalFunction(_owner);
+
+  TypeMask get type =>
+      _isJsInterop ? _dynamic : _inferrer.getTypeOfLocalFunction(_owner);
 }
 
 /// Internal data used during type-inference to store intermediate results about
@@ -173,12 +260,36 @@ class GlobalTypeInferenceElementData {
 /// API to interact with the global type-inference engine.
 abstract class TypesInferrer {
   void analyzeMain(FunctionEntity element);
-  TypeMask getReturnTypeOfElement(Element element);
-  TypeMask getTypeOfElement(Element element);
+
+  // We are moving away from using LocalFunctionElement to represent closures,
+  // but plan to use the <closure-class>.callMethod instead as the
+  // representation. At that point, we should be able to use
+  // getReturnTypeOfMember(callMethod).
+  @deprecated
+  TypeMask getReturnTypeOfLocalFunction(LocalFunctionElement element);
+  TypeMask getReturnTypeOfMember(MemberElement element);
+  TypeMask getReturnTypeOfParameter(ParameterElement element);
+
+  // We are moving away from using LocalFunctionElement to represent closures,
+  // but plan to use the <closure-class>.callMethod instead as the
+  // representation. At that point, we should be able to use
+  // getTypeOfMember(callMethod).
+  @deprecated
+  TypeMask getTypeOfLocalFunction(LocalFunctionElement element);
+  TypeMask getTypeOfMember(MemberElement element);
+  TypeMask getTypeOfParameter(ParameterElement element);
   TypeMask getTypeForNewList(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
   void clear();
-  bool isCalledOnce(Element element);
+
+  // We are moving away from using LocalFunctionElement to represent closures,
+  // but plan to use the <closure-class>.callMethod instead as the
+  // representation. At that point, we should be able to use
+  // isMemberCalledOnce(callMethod).
+  @deprecated
+  bool isLocalFunctionCalledOnce(LocalFunctionElement element);
+  bool isMemberCalledOnce(MemberElement element);
+  bool isParameterCalledOnce(ParameterElement element);
   bool isFixedArrayCheckedForGrowable(Node node);
 }
 

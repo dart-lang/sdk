@@ -300,7 +300,8 @@ class LocalsHandler {
 
   TypeInformation use(Local local) {
     if (capturedAndBoxed.containsKey(local)) {
-      return inferrer.typeOfElement(capturedAndBoxed[local]);
+      FieldElement field = capturedAndBoxed[local];
+      return inferrer.typeOfMember(field);
     } else {
       if (captured.containsKey(local)) {
         inferrer.recordCapturedLocalRead(local);
@@ -334,7 +335,7 @@ class LocalsHandler {
     }
 
     if (capturedAndBoxed.containsKey(local)) {
-      inferrer.recordTypeOfNonFinalField(node, capturedAndBoxed[local], type);
+      inferrer.recordTypeOfNonFinalField(capturedAndBoxed[local], type);
     } else if (inTryBlock) {
       // We don'TypeInformation know if an assignment in a try block
       // will be executed, so all assignments in that block are

@@ -43,11 +43,11 @@ import 'type_system.dart';
  * then does the inferencing on the graph.
  */
 class InferrerEngine {
-  final Map<Element, TypeInformation> defaultTypeOfParameter =
-      new Map<Element, TypeInformation>();
+  final Map<ParameterElement, TypeInformation> defaultTypeOfParameter =
+      new Map<ParameterElement, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
   final FunctionEntity mainElement;
-  final Set<Element> analyzedElements = new Set<Element>();
+  final Set<MemberElement> analyzedElements = new Set<MemberElement>();
 
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
@@ -72,7 +72,8 @@ class InferrerEngine {
   // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
   final Map<ir.Node, TypeInformation> concreteKernelTypes =
       new Map<ir.Node, TypeInformation>();
-  final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
+  final Set<ConstructorElement> generativeConstructorsExposingThis =
+      new Set<ConstructorElement>();
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
@@ -224,12 +225,12 @@ class InferrerEngine {
         closedWorld.nativeData.isNativeMember(element);
   }
 
-  bool checkIfExposesThis(Element element) {
+  bool checkIfExposesThis(ConstructorElement element) {
     element = element.implementation;
     return generativeConstructorsExposingThis.contains(element);
   }
 
-  void recordExposesThis(Element element, bool exposesThis) {
+  void recordExposesThis(ConstructorElement element, bool exposesThis) {
     element = element.implementation;
     if (exposesThis) {
       generativeConstructorsExposingThis.add(element);
@@ -359,7 +360,7 @@ class InferrerEngine {
             if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
             e.functionSignature.forEachParameter((parameter) {
               types
-                  .getInferredTypeOf(parameter)
+                  .getInferredTypeOfParameter(parameter)
                   .giveUp(this, clearAssignments: false);
             });
           });
@@ -370,7 +371,7 @@ class InferrerEngine {
             .where((e) => !bailedOutOn.contains(e))
             .forEach((FunctionElement e) {
           e.functionSignature.forEachParameter((parameter) {
-            var info = types.getInferredTypeOf(parameter);
+            var info = types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
             workQueue.add(info);
           });
@@ -460,7 +461,8 @@ class InferrerEngine {
             if (target is MethodElement) {
               print('${types.getInferredSignatureOf(target)} for ${target}');
             } else {
-              print('${types.getInferredTypeOf(target).type} for ${target}');
+              print(
+                  '${types.getInferredTypeOfMember(target).type} for ${target}');
             }
           }
         } else if (info is StaticCallSiteTypeInformation) {
@@ -471,8 +473,8 @@ class InferrerEngine {
           print('${info.type} for some unknown kind of closure');
         }
       });
-      analyzedElements.forEach((Element elem) {
-        TypeInformation type = types.getInferredTypeOf(elem);
+      analyzedElements.forEach((MemberElement elem) {
+        TypeInformation type = types.getInferredTypeOfMember(elem);
         print('${elem} :: ${type} from ${type.assignments} ');
       });
     }
@@ -484,7 +486,7 @@ class InferrerEngine {
   }
 
   void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments) {
-    AstElement element = resolvedAst.element.implementation;
+    MemberElement element = resolvedAst.element.implementation;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
@@ -499,7 +501,7 @@ class InferrerEngine {
     addedInGraph++;
 
     if (element.isField) {
-      VariableElement fieldElement = element;
+      FieldElement fieldElement = element;
       ast.Node node = resolvedAst.node;
       ast.Node initializer = resolvedAst.body;
       if (element.isFinal || element.isConst) {
@@ -539,18 +541,18 @@ class InferrerEngine {
               }
             }
           }
-          recordType(element, type);
+          recordTypeOfField(element, type);
         } else if (!element.isInstanceMember) {
-          recordType(element, types.nullType);
+          recordTypeOfField(element, types.nullType);
         }
       } else if (initializer == null) {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
-          recordTypeOfNonFinalField(node, element, type);
+          recordTypeOfNonFinalField(element, type);
         }
       } else {
-        recordTypeOfNonFinalField(node, element, type);
+        recordTypeOfNonFinalField(element, type);
       }
       if (Elements.isStaticOrTopLevelField(element) &&
           resolvedAst.body != null &&
@@ -560,7 +562,7 @@ class InferrerEngine {
         // constant handler to figure out if it's a lazy field or not.
         if (argument.asSend() != null ||
             (argument.asNewExpression() != null && !argument.isConst)) {
-          recordType(element, types.nullType);
+          recordTypeOfField(element, types.nullType);
         }
       }
     } else {
@@ -635,7 +637,7 @@ class InferrerEngine {
     if (callee.name == Identifiers.noSuchMethod_) return;
     if (callee.isField) {
       if (selector.isSetter) {
-        ElementTypeInformation info = types.getInferredTypeOf(callee);
+        ElementTypeInformation info = types.getInferredTypeOfMember(callee);
         if (remove) {
           info.removeAssignment(arguments.positional[0]);
         } else {
@@ -648,7 +650,7 @@ class InferrerEngine {
     } else if (selector != null && selector.isGetter) {
       // We are tearing a function off and thus create a closure.
       assert(callee.isFunction);
-      MemberTypeInformation info = types.getInferredTypeOf(callee);
+      MemberTypeInformation info = types.getInferredTypeOfMember(callee);
       if (remove) {
         info.closurizedCount--;
       } else {
@@ -663,7 +665,8 @@ class InferrerEngine {
         FunctionElement function = callee.implementation;
         FunctionSignature signature = function.functionSignature;
         signature.forEachParameter((Element parameter) {
-          ParameterTypeInformation info = types.getInferredTypeOf(parameter);
+          ParameterTypeInformation info =
+              types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
           if (addToQueue) workQueue.add(info);
         });
@@ -686,7 +689,7 @@ class InferrerEngine {
                     ? arguments.positional[parameterIndex]
                     : null;
         if (type == null) type = getDefaultTypeOfParameter(parameter);
-        TypeInformation info = types.getInferredTypeOf(parameter);
+        TypeInformation info = types.getInferredTypeOfParameter(parameter);
         if (remove) {
           info.removeAssignment(type);
         } else {
@@ -709,7 +712,7 @@ class InferrerEngine {
     assert(parameter.functionDeclaration.isImplementation);
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
-    TypeInformation info = types.getInferredTypeOf(parameter);
+    TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
       if (parameter.functionDeclaration.isInstanceMember) {
@@ -740,7 +743,7 @@ class InferrerEngine {
    *            should be present and a default type for each parameter should
    *            exist.
    */
-  TypeInformation getDefaultTypeOfParameter(Element parameter) {
+  TypeInformation getDefaultTypeOfParameter(ParameterElement parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(types.currentMember);
     });
@@ -754,7 +757,7 @@ class InferrerEngine {
    * TODO(johnniwinther): Remove once default values of synthetic parameters
    * are fixed.
    */
-  bool hasAlreadyComputedTypeOfParameterDefault(Element parameter) {
+  bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement parameter) {
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }
@@ -762,17 +765,32 @@ class InferrerEngine {
   /**
    * Returns the type of [element].
    */
-  TypeInformation typeOfElement(Entity element) {
-    if (element is FunctionElement) return types.functionType;
-    return types.getInferredTypeOf(element);
+  TypeInformation typeOfParameter(ParameterElement element) {
+    return types.getInferredTypeOfParameter(element);
+  }
+
+  /**
+   * Returns the type of [element].
+   */
+  TypeInformation typeOfMember(MemberElement element) {
+    if (element is MethodElement) return types.functionType;
+    return types.getInferredTypeOfMember(element);
   }
 
   /**
    * Returns the return type of [element].
    */
-  TypeInformation returnTypeOfElement(Entity element) {
-    if (element is! FunctionElement) return types.dynamicType;
-    return types.getInferredTypeOf(element);
+  @deprecated
+  TypeInformation returnTypeOfLocalFunction(LocalFunctionElement element) {
+    return types.getInferredTypeOfLocalFunction(element);
+  }
+
+  /**
+   * Returns the return type of [element].
+   */
+  TypeInformation returnTypeOfMember(MemberElement element) {
+    if (element is! MethodElement) return types.dynamicType;
+    return types.getInferredTypeOfMember(element);
   }
 
   /**
@@ -780,32 +798,49 @@ class InferrerEngine {
    *
    * [nodeHolder] is the element holder of [node].
    */
-  void recordTypeOfFinalField(
-      Spannable node, Entity analyzed, Entity element, TypeInformation type) {
-    types.getInferredTypeOf(element).addAssignment(type);
+  void recordTypeOfFinalField(FieldElement element, TypeInformation type) {
+    types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
   /**
    * Records that [node] sets non-final field [element] to be of type
    * [type].
    */
-  void recordTypeOfNonFinalField(
-      Spannable node, Entity element, TypeInformation type) {
-    types.getInferredTypeOf(element).addAssignment(type);
+  void recordTypeOfNonFinalField(FieldElement element, TypeInformation type) {
+    types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
   /**
    * Records that [element] is of type [type].
    */
-  void recordType(Entity element, TypeInformation type) {
-    types.getInferredTypeOf(element).addAssignment(type);
+  // TODO(johnniwinther): Merge [recordTypeOfFinalField] and
+  // [recordTypeOfNonFinalField] with this?
+  void recordTypeOfField(FieldElement element, TypeInformation type) {
+    types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
   /**
    * Records that the return type [element] is of type [type].
    */
-  void recordReturnType(Element element, TypeInformation type) {
-    TypeInformation info = types.getInferredTypeOf(element);
+  @deprecated
+  void recordReturnTypeOfLocalFunction(
+      LocalFunctionElement element, TypeInformation type) {
+    TypeInformation info = types.getInferredTypeOfLocalFunction(element);
+    if (element.name == '==') {
+      // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
+      info.addAssignment(types.boolType);
+    }
+    // TODO(ngeoffray): Clean up. We do these checks because
+    // [SimpleTypesInferrer] deals with two different inferrers.
+    if (type == null) return;
+    if (info.assignments.isEmpty) info.addAssignment(type);
+  }
+
+  /**
+   * Records that the return type [element] is of type [type].
+   */
+  void recordReturnType(MethodElement element, TypeInformation type) {
+    TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
       // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
       info.addAssignment(types.boolType);
@@ -823,9 +858,27 @@ class InferrerEngine {
    *
    * Returns the new type for [analyzedElement].
    */
-  TypeInformation addReturnTypeFor(
-      Element element, TypeInformation unused, TypeInformation newType) {
-    TypeInformation type = types.getInferredTypeOf(element);
+  @deprecated
+  TypeInformation addReturnTypeForLocalFunction(LocalFunctionElement element,
+      TypeInformation unused, TypeInformation newType) {
+    TypeInformation type = types.getInferredTypeOfLocalFunction(element);
+    // TODO(ngeoffray): Clean up. We do this check because
+    // [SimpleTypesInferrer] deals with two different inferrers.
+    if (element.isGenerativeConstructor) return type;
+    type.addAssignment(newType);
+    return type;
+  }
+
+  /**
+   * Notifies to the inferrer that [analyzedElement] can have return
+   * type [newType]. [currentType] is the type the [ElementGraphBuilder]
+   * currently found.
+   *
+   * Returns the new type for [analyzedElement].
+   */
+  TypeInformation addReturnTypeForMethod(
+      MethodElement element, TypeInformation unused, TypeInformation newType) {
+    TypeInformation type = types.getInferredTypeOfMember(element);
     // TODO(ngeoffray): Clean up. We do this check because
     // [SimpleTypesInferrer] deals with two different inferrers.
     if (element.isGenerativeConstructor) return type;
@@ -843,7 +896,54 @@ class InferrerEngine {
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  TypeInformation registerCalledElement(
+  @deprecated
+  TypeInformation registerCalledLocalFunction(
+      Spannable node,
+      Selector selector,
+      TypeMask mask,
+      Element caller,
+      LocalFunctionElement callee,
+      ArgumentsTypes arguments,
+      SideEffects sideEffects,
+      bool inLoop) {
+    return _registerCalledElement(
+        node, selector, mask, caller, callee, arguments, sideEffects, inLoop);
+  }
+
+  /**
+   * Registers that [caller] calls [callee] at location [node], with
+   * [selector], and [arguments]. Note that [selector] is null for
+   * forwarding constructors.
+   *
+   * [sideEffects] will be updated to incorporate [callee]'s side
+   * effects.
+   *
+   * [inLoop] tells whether the call happens in a loop.
+   */
+  TypeInformation registerCalledMember(
+      Spannable node,
+      Selector selector,
+      TypeMask mask,
+      Element caller,
+      MemberElement callee,
+      ArgumentsTypes arguments,
+      SideEffects sideEffects,
+      bool inLoop) {
+    return _registerCalledElement(
+        node, selector, mask, caller, callee, arguments, sideEffects, inLoop);
+  }
+
+  /**
+   * Registers that [caller] calls [callee] at location [node], with
+   * [selector], and [arguments]. Note that [selector] is null for
+   * forwarding constructors.
+   *
+   * [sideEffects] will be updated to incorporate [callee]'s side
+   * effects.
+   *
+   * [inLoop] tells whether the call happens in a loop.
+   */
+  TypeInformation _registerCalledElement(
       Spannable node,
       Selector selector,
       TypeMask mask,
@@ -1043,25 +1143,45 @@ class InferrerEngine {
     types.allocatedLists.values.forEach(cleanup);
   }
 
-  Iterable<Element> getCallersOf(Element element) {
+  Iterable<Element> getCallersOf(MemberElement element) {
     if (compiler.disableTypeInference) {
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");
     }
-    MemberTypeInformation info = types.getInferredTypeOf(element);
+    MemberTypeInformation info = types.getInferredTypeOfMember(element);
     return info.callers;
   }
 
   /**
    * Returns the type of [element] when being called with [selector].
    */
-  TypeInformation typeOfElementWithSelector(
+  TypeInformation typeOfLocalFunctionWithSelector(
+      LocalFunctionElement element, Selector selector) {
+    return _typeOfElementWithSelector(element, selector);
+  }
+
+  /**
+   * Returns the type of [element] when being called with [selector].
+   */
+  TypeInformation typeOfMemberWithSelector(
+      MemberElement element, Selector selector) {
+    return _typeOfElementWithSelector(element, selector);
+  }
+
+  /**
+   * Returns the type of [element] when being called with [selector].
+   */
+  TypeInformation _typeOfElementWithSelector(
       Element element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
         selector.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case
       // we get the return type of [noSuchMethod].
-      return returnTypeOfElement(element);
+      if (element.isLocal) {
+        return returnTypeOfLocalFunction(element);
+      } else {
+        return returnTypeOfMember(element);
+      }
     } else if (selector.isGetter) {
       if (element.isFunction) {
         // [functionType] is null if the inferrer did not run.
@@ -1069,18 +1189,26 @@ class InferrerEngine {
             ? types.dynamicType
             : types.functionType;
       } else if (element.isField) {
-        return typeOfElement(element);
+        return typeOfMember(element);
       } else if (Elements.isUnresolved(element)) {
         return types.dynamicType;
       } else {
         assert(element.isGetter);
-        return returnTypeOfElement(element);
+        if (element.isLocal) {
+          return returnTypeOfLocalFunction(element);
+        } else {
+          return returnTypeOfMember(element);
+        }
       }
     } else if (element.isGetter || element.isField) {
       assert(selector.isCall || selector.isSetter);
       return types.dynamicType;
     } else {
-      return returnTypeOfElement(element);
+      if (element.isLocal) {
+        return returnTypeOfLocalFunction(element);
+      } else {
+        return returnTypeOfMember(element);
+      }
     }
   }
 

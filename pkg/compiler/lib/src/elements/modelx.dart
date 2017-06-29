@@ -2230,6 +2230,8 @@ class LocalFunctionElementX extends BaseFunctionElementX
     implements LocalFunctionElement {
   final FunctionExpression node;
 
+  MethodElement callMethod;
+
   LocalFunctionElementX(String name, FunctionExpression this.node,
       ElementKind kind, Modifiers modifiers, ExecutableElement enclosing)
       : super(name, kind, modifiers, enclosing);

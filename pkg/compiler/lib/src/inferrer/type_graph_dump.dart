@@ -153,7 +153,14 @@ class _GraphGenerator extends TypeInformationVisitor {
   TypeInformation returnValue;
 
   _GraphGenerator(this.global, this.element, this.output) {
-    returnValue = global.inferrer.types.getInferredTypeOf(element);
+    if (element.isParameter) {
+      returnValue = global.inferrer.types.getInferredTypeOfParameter(element);
+    } else if (element.isLocal) {
+      returnValue =
+          global.inferrer.types.getInferredTypeOfLocalFunction(element);
+    } else {
+      returnValue = global.inferrer.types.getInferredTypeOfMember(element);
+    }
     getNode(returnValue); // Ensure return value is part of graph.
     append('digraph {');
   }

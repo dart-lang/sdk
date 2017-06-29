@@ -32,7 +32,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     for (FunctionElement e in tracedElements) {
       e.functionSignature.forEachParameter((Element parameter) {
         ElementTypeInformation info =
-            inferrer.types.getInferredTypeOf(parameter);
+            inferrer.types.getInferredTypeOfParameter(parameter);
         info.disableInferenceForClosures = false;
       });
     }
@@ -87,7 +87,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     if (called.isGetter &&
         info.selector != null &&
         info.selector.isCall &&
-        inferrer.types.getInferredTypeOf(called) == currentUser) {
+        inferrer.types.getInferredTypeOfMember(called) == currentUser) {
       // This node can be a closure call as well. For example, `foo()`
       // where `foo` is a getter.
       _registerCallForLaterAnalysis(info);
@@ -100,8 +100,8 @@ class ClosureTracerVisitor extends TracerVisitor {
     }
   }
 
-  bool _checkIfCurrentUser(element) =>
-      inferrer.types.getInferredTypeOf(element) == currentUser;
+  bool _checkIfCurrentUser(MemberElement element) =>
+      inferrer.types.getInferredTypeOfMember(element) == currentUser;
 
   bool _checkIfFunctionApply(MemberElement element) {
     return inferrer.closedWorld.commonElements.isFunctionApplyMethod(element);

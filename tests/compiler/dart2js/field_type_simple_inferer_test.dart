@@ -537,7 +537,7 @@ void doTest(
       var closedWorld = inferrer.closedWorld;
       TypeMask type = f(closedWorld);
       TypeMask inferredType =
-          simplify(inferrer.getTypeOfElement(field), closedWorld);
+          simplify(inferrer.getTypeOfMember(field), closedWorld);
       Expect.equals(type, inferredType, '$name of:\n$test');
     });
   });

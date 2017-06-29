@@ -219,7 +219,7 @@ void doTest(String test, bool enableInlining, TestCallback f) {
     int index = 0;
     signature.forEachParameter((Element element) {
       Expect.equals(expectedTypes[index++],
-          simplify(inferrer.getTypeOfElement(element), closedWorld), test);
+          simplify(inferrer.getTypeOfParameter(element), closedWorld), test);
     });
     Expect.equals(index, expectedTypes.length);
   });

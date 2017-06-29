@@ -1296,7 +1296,11 @@ abstract class MethodElement extends FunctionElement
 
 /// A local function or closure (anonymous local function).
 abstract class LocalFunctionElement extends FunctionElement
-    implements LocalElement {}
+    implements LocalElement {
+  /// The synthesized 'call' method created for this local function during
+  /// closure conversion.
+  MethodElement callMethod;
+}
 
 /// A constructor.
 abstract class ConstructorElement extends MethodElement

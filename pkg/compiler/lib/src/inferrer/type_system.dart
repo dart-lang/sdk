@@ -70,7 +70,7 @@ class TypeSystem {
   void withMember(MemberElement element, action) {
     assert(_currentMember == null,
         failedAt(element, "Already constructing graph for $_currentMember."));
-    _currentMember = getInferredTypeOf(element);
+    _currentMember = getInferredTypeOfMember(element);
     action();
     _currentMember = null;
   }
@@ -322,7 +322,22 @@ class TypeSystem {
     return newType;
   }
 
-  ElementTypeInformation getInferredTypeOf(Element element) {
+  ElementTypeInformation getInferredTypeOfParameter(ParameterElement element) {
+    return _getInferredTypeOf(element);
+  }
+
+  ElementTypeInformation getInferredTypeOfMember(MemberElement element) {
+    return _getInferredTypeOf(element);
+  }
+
+  @deprecated
+  ElementTypeInformation getInferredTypeOfLocalFunction(
+      LocalFunctionElement element) {
+    return _getInferredTypeOf(element);
+  }
+
+  @deprecated
+  ElementTypeInformation _getInferredTypeOf(Element element) {
     element = element.implementation;
     return typeInformations[element] ??=
         new ElementTypeInformation(element, this);
@@ -339,12 +354,17 @@ class TypeSystem {
   }
 
   String getInferredSignatureOf(FunctionElement function) {
-    ElementTypeInformation info = getInferredTypeOf(function);
+    ElementTypeInformation info;
+    if (function.isLocal) {
+      info = getInferredTypeOfLocalFunction(function);
+    } else {
+      info = getInferredTypeOfMember(function as MethodElement);
+    }
     FunctionElement impl = function.implementation;
     FunctionSignature signature = impl.functionSignature;
     var res = "";
     signature.forEachParameter((Element parameter) {
-      TypeInformation type = getInferredTypeOf(parameter);
+      TypeInformation type = getInferredTypeOfParameter(parameter);
       res += "${res.isEmpty ? '(' : ', '}${type.type} ${parameter.name}";
     });
     res += ") -> ${info.type}";
