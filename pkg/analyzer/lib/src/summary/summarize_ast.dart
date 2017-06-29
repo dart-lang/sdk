@@ -1437,7 +1437,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    isCoreLibrary = node.libraryName?.name == 'dart.core';
+    isCoreLibrary = node.libraryName?.name == 'dart.core' ||
+        node.uri?.stringValue == 'core.dart';
     isPartOf = true;
   }
 

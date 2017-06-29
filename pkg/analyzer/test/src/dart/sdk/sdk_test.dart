@@ -250,6 +250,17 @@ class FolderBasedDartSdkTest {
     expect(version.length > 0, isTrue);
   }
 
+  /**
+   * The "part" format should result in the same source as the non-part format
+   * when the file is the library file.
+   */
+  void test_mapDartUri_partFormatForLibrary() {
+    FolderBasedDartSdk sdk = _createDartSdk();
+    Source normalSource = sdk.mapDartUri('dart:core');
+    Source partSource = sdk.mapDartUri('dart:core/core.dart');
+    expect(partSource, normalSource);
+  }
+
   void test_useSummary_afterContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
     sdk.context;
