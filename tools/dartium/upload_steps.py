@@ -6,7 +6,7 @@
 
 """Steps to archive dartium, content_shell, and chromedriver from buildbots.
 
-Imported by buildbot_annotated_steps.py and multivm_archive.py
+Imported by buildbot_annotated_steps.py
 """
 
 import imp
