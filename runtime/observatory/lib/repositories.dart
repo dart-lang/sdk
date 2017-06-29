@@ -18,6 +18,7 @@ part 'src/repositories/allocation_profile.dart';
 part 'src/repositories/breakpoint.dart';
 part 'src/repositories/class.dart';
 part 'src/repositories/context.dart';
+part 'src/repositories/editor.dart';
 part 'src/repositories/eval.dart';
 part 'src/repositories/event.dart';
 part 'src/repositories/field.dart';

@@ -2125,6 +2125,7 @@ class ServiceEvent extends ServiceObject {
   static const kConnectionClosed = 'ConnectionClosed';
   static const kLogging = '_Logging';
   static const kExtension = 'Extension';
+  static const kEditor = '_Editor';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2154,6 +2155,8 @@ class ServiceEvent extends ServiceObject {
   List timelineEvents;
   String spawnToken;
   String spawnError;
+  String editor;
+  ServiceObject object;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -2243,6 +2246,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['spawnError'] != null) {
       spawnError = map['spawnError'];
+    }
+    if (map['editor'] != null) {
+      editor = map['editor'];
+    }
+    if (map['object'] != null) {
+      object = map['object'];
     }
   }
 

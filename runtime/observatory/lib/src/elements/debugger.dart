@@ -16,7 +16,6 @@ import 'package:observatory/debugger.dart';
 import 'package:observatory/event.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
-import 'package:observatory/service_common.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
