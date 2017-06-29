@@ -7,9 +7,9 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common/tasks.dart';
 import '../elements/entities.dart';
+import '../kernel/element_map.dart';
 import '../world.dart';
-import 'element_map.dart';
-import 'kernel_backend_strategy.dart';
+import 'locals.dart';
 
 class KernelClosureDataBuilder extends ir.Visitor {
   final KernelToLocalsMap _localsMap;
