@@ -272,11 +272,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
 ///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
 /// assignment", document it here.
-abstract class KernelComplexAssignment extends Expression
-    implements KernelExpression {
-  /// The full desugared assignment expression
-  Expression desugared;
-
+abstract class KernelComplexAssignment extends KernelSyntheticExpression {
   /// In a compound assignment, the expression that reads the old value, or
   /// `null` if this is not a compound assignment.
   Expression read;
@@ -311,33 +307,12 @@ abstract class KernelComplexAssignment extends Expression
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  KernelComplexAssignment(this.rhs);
-
-  void set parent(TreeNode node) {
-    super.parent = node;
-    desugared?.parent = node;
-  }
-
-  @override
-  accept(ExpressionVisitor v) => desugared.accept(v);
-
-  @override
-  accept1(ExpressionVisitor1 v, arg) => desugared.accept1(v, arg);
-
-  @override
-  DartType getStaticType(TypeEnvironment types) =>
-      desugared.getStaticType(types);
+  KernelComplexAssignment(this.rhs) : super(null);
 
   String toString() {
     var parts = _getToStringParts();
     return '${runtimeType}(${parts.join(', ')})';
   }
-
-  @override
-  transformChildren(Transformer v) => desugared.transformChildren(v);
-
-  @override
-  visitChildren(Visitor v) => desugared.visitChildren(v);
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -1903,6 +1878,90 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
   }
 }
 
+/// Shadow object for expressions that are introduced by the front end as part
+/// of desugaring or the handling of error conditions.
+///
+/// By default, type inference skips these expressions entirely.  Some derived
+/// classes have type inference behaviors.
+///
+/// Visitors skip over objects of this type, so it is not included in serialized
+/// output.
+class KernelSyntheticExpression extends Expression implements KernelExpression {
+  /// The desugared kernel representation of this synthetic expression.
+  Expression desugared;
+
+  KernelSyntheticExpression(this.desugared);
+
+  @override
+  void set parent(TreeNode node) {
+    super.parent = node;
+    desugared?.parent = node;
+  }
+
+  @override
+  accept(ExpressionVisitor v) => desugared.accept(v);
+
+  @override
+  accept1(ExpressionVisitor1 v, arg) => desugared.accept1(v, arg);
+
+  @override
+  DartType getStaticType(TypeEnvironment types) =>
+      desugared.getStaticType(types);
+
+  @override
+  transformChildren(Transformer v) => desugared.transformChildren(v);
+
+  @override
+  visitChildren(Visitor v) => desugared.visitChildren(v);
+
+  @override
+  _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Shadow object for statements that are introduced by the front end as part
+/// of desugaring or the handling of error conditions.
+///
+/// By default, type inference skips these statements entirely.  Some derived
+/// classes may have type inference behaviors.
+///
+/// Visitors skip over objects of this type, so it is not included in serialized
+/// output.
+class KernelSyntheticStatement extends Statement implements KernelStatement {
+  /// The desugared kernel representation of this synthetic statement.
+  Statement desugared;
+
+  KernelSyntheticStatement(this.desugared);
+
+  @override
+  void set parent(TreeNode node) {
+    super.parent = node;
+    desugared?.parent = node;
+  }
+
+  @override
+  accept(StatementVisitor v) => desugared.accept(v);
+
+  @override
+  accept1(StatementVisitor1 v, arg) => desugared.accept1(v, arg);
+
+  @override
+  transformChildren(Transformer v) => desugared.transformChildren(v);
+
+  @override
+  visitChildren(Visitor v) => desugared.visitChildren(v);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {}
+}
+
 /// Shadow object for [ThisExpression].
 class KernelThisExpression extends ThisExpression implements KernelExpression {
   @override
@@ -2060,6 +2119,7 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   @override
   DartType inferFieldTopLevel(
       KernelField field, DartType type, bool typeNeeded) {
+    if (field.initializer == null) return const DynamicType();
     return inferExpression(field.initializer, type, typeNeeded);
   }
 

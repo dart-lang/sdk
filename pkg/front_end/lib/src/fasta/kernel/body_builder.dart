@@ -972,7 +972,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
       warning(message, charOffset);
-      return new Throw(error);
+      return new KernelSyntheticExpression(new Throw(error));
     }
   }
 
@@ -2530,8 +2530,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new KernelExpressionStatement(lvalue
-              .buildAssignment(new VariableGet(variable), voidContext: true)),
+          new KernelSyntheticStatement(new ExpressionStatement(lvalue
+              .buildAssignment(new VariableGet(variable), voidContext: true))),
           body);
     } else {
       variable = new VariableDeclaration.forValue(buildCompileTimeError(
@@ -2973,9 +2973,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
     addCompileTimeError(charOffset, error, wasHandled: true);
-    return library.loader.throwCompileConstantError(library.loader
-        .buildCompileTimeError(
-            formatUnexpected(uri, charOffset, error), charOffset));
+    return new KernelSyntheticExpression(library.loader
+        .throwCompileConstantError(library.loader.buildCompileTimeError(
+            formatUnexpected(uri, charOffset, error), charOffset)));
   }
 
   Expression wrapInCompileTimeError(Expression expression, String message) {
@@ -3005,8 +3005,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     warning("The class '$className' is abstract and can't be instantiated.",
         charOffset);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
-    return new Throw(buildStaticInvocation(constructor.target,
-        new KernelArguments(<Expression>[new StringLiteral(className)])));
+    return new KernelSyntheticExpression(new Throw(buildStaticInvocation(
+        constructor.target,
+        new KernelArguments(<Expression>[new StringLiteral(className)]))));
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {
