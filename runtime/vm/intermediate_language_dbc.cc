@@ -1499,7 +1499,7 @@ EMIT_NATIVE_CODE(CheckClassId, 1) {
   } else {
     __ CheckClassIdRange(locs()->in(0).reg(),
                          compiler->ToEmbeddableCid(cids_.cid_start, this));
-    __ Nop(__ AddConstant(Smi::Handle(Smi::New(cids_.Extent()))));
+    __ Nop(compiler->ToEmbeddableCid(cids_.Extent(), this));
   }
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
 }
