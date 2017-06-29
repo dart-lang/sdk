@@ -34,7 +34,7 @@
 
 * Pub
 
-  * Git dependencies may not include a `path` parameter, indicating that the
+  * Git dependencies may now include a `path` parameter, indicating that the
     package exists in a subdirectory of the Git repository. For example:
 
     ```yaml
