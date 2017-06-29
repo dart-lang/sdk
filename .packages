@@ -91,6 +91,7 @@ source_span:third_party/pkg/source_span/lib
 stack_trace:third_party/pkg/stack_trace/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
+telemetry:pkg/telemetry/lib
 test:third_party/pkg/test/lib
 test_dart:tools/testing/dart
 testing:pkg/testing/lib

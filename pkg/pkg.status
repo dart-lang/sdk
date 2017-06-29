@@ -123,6 +123,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
+telemetry/test/*: SkipByDesign # Only meant to run on vm
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
