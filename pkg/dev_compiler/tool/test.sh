@@ -27,7 +27,7 @@ if [ -d gen/codegen_output ]; then
   rm -r gen/codegen_output || fail
 fi
 
-./tool/build_pkgs.dart test
+./tool/build_test_pkgs.sh
 
 # Make sure we don't run tests in code coverage mode.
 # this will cause us to generate files that are not part of the baseline

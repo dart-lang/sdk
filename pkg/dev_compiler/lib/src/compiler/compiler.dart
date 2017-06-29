@@ -254,7 +254,7 @@ class CompilerOptions {
   /// The file extension for summaries.
   final String summaryExtension;
 
-  /// Whether to preserve metdata only accessible via mirrors
+  /// Whether to preserve metdata only accessible via mirrors.
   final bool emitMetadata;
 
   /// Whether to force compilation of code with static errors.
@@ -267,16 +267,16 @@ class CompilerOptions {
   /// Whether to emit Closure Compiler-friendly code.
   final bool closure;
 
-  /// Hoist the types at instance creation sites
+  /// Hoist the types at instance creation sites.
   final bool hoistInstanceCreation;
 
-  /// Hoist types from class signatures
+  /// Hoist types from class signatures.
   final bool hoistSignatureTypes;
 
-  /// Name types in type tests
+  /// Name types in type tests.
   final bool nameTypeTests;
 
-  /// Hoist types in type tests
+  /// Hoist types in type tests.
   final bool hoistTypeTests;
 
   /// Enable ES6 destructuring of named parameters. Off by default.

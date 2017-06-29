@@ -1,20 +1,31 @@
 #!/usr/bin/env dart
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:dev_compiler/src/compiler/command.dart';
 
-/// Compiles the packages that the DDC tests use to JS into:
-///
-/// gen/codegen_output/pkg/...
-///
-/// Assumes the working directory is pkg/dev_compiler.
-///
-/// If no arguments are passed, builds the all of the modules tested on Travis.
-/// If "test" is passed, only builds the modules needed by the tests.
-void main(List<String> arguments) {
-  var test = arguments.length == 1 && arguments[0] == 'test';
+final String scriptDirectory = p.dirname(p.fromUri(Platform.script));
+String outputDirectory;
 
-  new Directory("gen/codegen_output/pkg").createSync(recursive: true);
+/// Compiles the packages that the DDC tests use to JS into the given output
+/// directory. Usage:
+///
+///     dart build_pkgs.dart <output_dir> [travis]
+///
+/// If "travis" is passed, builds the all of the modules tested on Travis.
+/// Otherwise, only builds the modules needed by the tests.
+void main(List<String> arguments) {
+  var isTravis = arguments.isNotEmpty && arguments.last == "travis";
+  if (isTravis) arguments.removeLast();
+
+  if (arguments.length != 1) {
+    print("Usage: dart build_pkgs.dart <output_dir> [travis]");
+    exit(1);
+  }
+
+  outputDirectory = arguments[0];
+  new Directory(outputDirectory).createSync(recursive: true);
 
   // Build leaf packages. These have no other package dependencies.
 
@@ -23,7 +34,7 @@ void main(List<String> arguments) {
   compileModule('expect', libs: ['minitest']);
   compileModule('js', libs: ['js_util']);
   compileModule('meta');
-  if (!test) {
+  if (isTravis) {
     compileModule('lookup_map');
     compileModule('microlytics', libs: ['html_channels']);
     compileModule('typed_mock');
@@ -33,7 +44,7 @@ void main(List<String> arguments) {
   compileModule('collection');
   compileModule('matcher');
   compileModule('path');
-  if (!test) {
+  if (isTravis) {
     compileModule('args', libs: ['command_runner']);
     compileModule('charcode');
     compileModule('fixnum');
@@ -49,11 +60,11 @@ void main(List<String> arguments) {
 
   // Composite packages with dependencies.
   compileModule('stack_trace', deps: ['path']);
-  if (!test) {
+  if (isTravis) {
     compileModule('async', deps: ['collection']);
   }
 
-  if (test) {
+  if (!isTravis) {
     compileModule('unittest',
         deps: ['matcher', 'path', 'stack_trace'],
         libs: ['html_config', 'html_individual_config', 'html_enhanced_config'],
@@ -65,9 +76,10 @@ void main(List<String> arguments) {
 /// [libs] and [deps] on other modules.
 void compileModule(String module,
     {List<String> libs, List<String> deps, bool unsafeForceCompile: false}) {
+  var sdkSummary = p.join(scriptDirectory, "../lib/sdk/ddc_sdk.sum");
   var args = [
-    '--dart-sdk-summary=lib/sdk/ddc_sdk.sum',
-    '-ogen/codegen_output/pkg/$module.js'
+    '--dart-sdk-summary=$sdkSummary',
+    '-o${outputDirectory}/$module.js'
   ];
 
   // There is always a library that matches the module.
@@ -83,7 +95,7 @@ void compileModule(String module,
   // Add summaries for any modules this depends on.
   if (deps != null) {
     for (var dep in deps) {
-      args.add('-sgen/codegen_output/pkg/$dep.sum');
+      args.add('-s${outputDirectory}/$dep.sum');
     }
   }
 
@@ -96,9 +108,10 @@ void compileModule(String module,
   // but I'm not sure how they'll affect the other non-DDC tests. For now, just
   // use ours.
   if (module == 'async_helper') {
-    args.add('--url-mapping=package:async_helper/async_helper.dart,'
-        'test/codegen/async_helper.dart');
+    args.add('--url-mapping=package:async_helper/async_helper.dart,' +
+        p.join(scriptDirectory, "../test/codegen/async_helper.dart"));
   }
 
-  compile(args);
+  var exitCode = compile(args);
+  if (exitCode != 0) exit(exitCode);
 }

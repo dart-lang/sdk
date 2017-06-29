@@ -19,6 +19,19 @@ String MAX_STDIO_DELAY_PASSED_MESSAGE =
  ($MAX_STDIO_DELAY passed). Please note that this could be an indicator
  that there is a hanging process which we were unable to kill.""";
 
+/// The names of the packages that are available for use in tests.
+const testPackages = const [
+  "async_helper",
+  "collection",
+  "expect",
+  "js",
+  "matcher",
+  "meta",
+  "path",
+  "stack_trace",
+  "unittest"
+];
+
 class DebugLogger {
   static IOSink _sink;
 
