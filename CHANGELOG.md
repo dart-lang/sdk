@@ -34,9 +34,22 @@
 
 * Pub
 
+  * Git dependencies may not include a `path` parameter, indicating that the
+    package exists in a subdirectory of the Git repository. For example:
+
+    ```yaml
+    dependencies:
+      foobar:
+        git:
+          url: git://github.com/dart-lang/multi_package_repo
+          path: pkg/foobar
+    ```
+
   * `pub get` and `pub upgrade` properly produce an error message and exit code
     when no network is present.
+
   * Bug fixes for dartdevc support in `pub serve`.
+
     * Fixed module config invalidation logic so modules are properly
       recalculated when package layout changes.
     * Fixed exception when handling require.js errors that aren't script load
