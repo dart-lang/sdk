@@ -17,15 +17,11 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_type_checks);
 
-// Helper function in stacktrace.cc.
-void _printCurrentStackTrace();
-
 DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
   // The dart:async library code entered an unrecoverable state.
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:async: %s\n", msg);
-  _printCurrentStackTrace();
   FATAL(msg);
   return Object::null();
 }

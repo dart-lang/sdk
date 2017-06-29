@@ -259,7 +259,11 @@ libdart_library("libdart_with_precompiler") {
 
 action("generate_version_cc_file") {
   deps = [
-    ":libdart_dependency_helper",
+    "third_party/double-conversion/src:libdouble_conversion",
+    "vm:libdart_lib_jit",
+    "vm:libdart_lib_nosnapshot_with_precompiler",
+    "vm:libdart_vm_jit",
+    "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
   inputs = [
     "../tools/utils.py",
@@ -279,25 +283,5 @@ action("generate_version_cc_file") {
     rebase_path(output, root_build_dir),
     "--input",
     rebase_path("vm/version_in.cc", root_build_dir),
-  ]
-}
-
-executable("libdart_dependency_helper") {
-  configs += [
-    ":dart_config",
-    ":dart_maybe_product_config",
-  ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-  }
-  deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib_jit",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_jit",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-  sources = [
-    "vm/libdart_dependency_helper.cc",
   ]
 }

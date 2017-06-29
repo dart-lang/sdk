@@ -181,28 +181,4 @@ const StackTrace& GetCurrentStackTrace(int skip_frames) {
   return stacktrace;
 }
 
-
-// An utility method for convenient printing of dart stack traces when
-// inside 'gdb'. Note: This function will only work when there is a
-// valid exit frame information. It will not work when a breakpoint is
-// set in dart code and control is got inside 'gdb' without going through
-// the runtime or native transition stub.
-void _printCurrentStackTrace() {
-  const StackTrace& stacktrace = GetCurrentStackTrace(0);
-  OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
-}
-
-
-// Like _printCurrentStackTrace, but works in a NoSafepointScope.
-void _printCurrentStackTraceNoSafepoint() {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
-                            Thread::Current(),
-                            StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  while (frame != NULL) {
-    OS::PrintErr("%s\n", frame->ToCString());
-    frame = frames.NextFrame();
-  }
-}
-
 }  // namespace dart
