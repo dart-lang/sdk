@@ -759,8 +759,10 @@ class KernelForStatement extends ForStatement implements KernelStatement {
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.forStatementEnter(this);
     variables.forEach(inferrer.inferStatement);
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    if (condition != null) {
+      inferrer.inferExpression(
+          condition, inferrer.coreTypes.boolClass.rawType, false);
+    }
     for (var update in updates) {
       inferrer.inferExpression(update, null, false);
     }

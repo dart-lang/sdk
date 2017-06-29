@@ -1494,7 +1494,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result =
         new KernelForStatement(variables, condition, updates, body);
     if (begin != null) {
-      result = new Block(<Statement>[begin, result]);
+      result = new KernelBlock(<Statement>[begin, result]);
     }
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
