@@ -1085,17 +1085,17 @@ class Constructor extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     name?.accept(v);
-    function?.accept(v);
     visitList(initializers, v);
+    function?.accept(v);
   }
 
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
+    transformList(initializers, v, this);
     if (function != null) {
       function = function.accept(v);
       function?.parent = this;
     }
-    transformList(initializers, v, this);
   }
 
   DartType get getterType => const BottomType();
