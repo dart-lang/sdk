@@ -25,6 +25,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
   M.InstanceRef _instance;
   M.ObjectRepository _objects;
   M.Instance _loadedInstance;
+  bool _expandable;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -32,7 +33,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
 
   factory InstanceRefElement(
       M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue queue, bool expandable: true}) {
     assert(isolate != null);
     assert(instance != null);
     assert(objects != null);
@@ -41,6 +42,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._instance = instance;
     e._objects = objects;
+    e._expandable = expandable;
     return e;
   }
 
@@ -62,7 +64,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
   void render() {
     final content = _createLink();
 
-    if (_hasValue()) {
+    if (_expandable && _hasValue()) {
       content.addAll([
         new SpanElement()..text = ' ',
         new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
