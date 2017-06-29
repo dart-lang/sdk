@@ -58,6 +58,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<List> implementationBuilders = <List<List>>[];
 
+  /// Indicates whether type inference (and type promotion) should be disabled
+  /// for this library.
+  final bool disableTypeInference;
+
   String name;
 
   String partOfName;
@@ -80,7 +84,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
-      : currentDeclaration = libraryDeclaration,
+      : disableTypeInference = loader.target.disableTypeInference,
+        currentDeclaration = libraryDeclaration,
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 

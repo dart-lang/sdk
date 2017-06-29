@@ -72,6 +72,44 @@ abstract class TypePromoter {
   void mutateVariable(VariableDeclaration variable, int functionNestingLevel);
 }
 
+/// Implementation of [TypePromoter] which doesn't do any type promotion.
+///
+/// This is intended for profiling, to ensure that type inference and type
+/// promotion do not slow down compilation too much.
+class TypePromoterDisabled extends TypePromoter {
+  @override
+  TypePromotionScope get currentScope => null;
+
+  @override
+  DartType computePromotedType(TypePromotionFact fact, TypePromotionScope scope,
+          bool mutatedInClosure) =>
+      null;
+
+  @override
+  void enterElse() {}
+
+  @override
+  void enterThen(Expression condition) {}
+
+  @override
+  void exitConditional() {}
+
+  @override
+  void finished() {}
+
+  @override
+  TypePromotionFact getFactForAccess(
+          VariableDeclaration variable, int functionNestingLevel) =>
+      null;
+
+  @override
+  void handleIsCheck(Expression isExpression, bool isInverted,
+      VariableDeclaration variable, DartType type, int functionNestingLevel) {}
+
+  @override
+  void mutateVariable(VariableDeclaration variable, int functionNestingLevel) {}
+}
+
 /// Derived class containing generic implementations of [TypePromoter].
 ///
 /// This class contains as much of the implementation of type promotion as

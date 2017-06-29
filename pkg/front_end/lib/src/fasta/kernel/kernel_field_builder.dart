@@ -72,7 +72,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (isEligibleForInference) {
+    if (!library.disableTypeInference && isEligibleForInference) {
       library.loader.typeInferenceEngine.recordMember(field);
     }
     return field;
@@ -83,7 +83,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareInitializerInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (isEligibleForInference) {
+    if (!library.disableTypeInference && isEligibleForInference) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
       var typeInferenceEngine = library.loader.typeInferenceEngine;
