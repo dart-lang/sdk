@@ -25,8 +25,8 @@ abstract class DartChangeBuilder implements ChangeBuilder {
   factory DartChangeBuilder(AnalysisDriver driver) = DartChangeBuilderImpl;
 
   @override
-  Future<Null> addFileEdit(String path, int fileStamp,
-      void buildFileEdit(DartFileEditBuilder builder));
+  Future<Null> addFileEdit(
+      String path, void buildFileEdit(DartFileEditBuilder builder));
 }
 
 /**

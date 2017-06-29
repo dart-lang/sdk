@@ -280,7 +280,6 @@ class PostfixCompletionProcessor {
   final PostfixCompletionContext completionContext;
   final AnalysisContext analysisContext;
   final CorrectionUtils utils;
-  int fileStamp;
   AstNode node;
   PostfixCompletion completion;
   SourceChange change = new SourceChange('postfix-completion');
@@ -291,9 +290,7 @@ class PostfixCompletionProcessor {
 
   PostfixCompletionProcessor(this.completionContext)
       : analysisContext = completionContext.unitElement.context,
-        utils = new CorrectionUtils(completionContext.unit) {
-    fileStamp = _modificationStamp(file);
-  }
+        utils = new CorrectionUtils(completionContext.unit);
 
   AnalysisDriver get driver => completionContext.driver;
 
@@ -320,11 +317,6 @@ class PostfixCompletionProcessor {
   CompilationUnitElement get unitElement => completionContext.unitElement;
 
   Future<PostfixCompletion> compute() async {
-    // If the source was changed between the constructor and running
-    // this asynchronous method, it is not safe to use the unit.
-    if (_modificationStamp(file) != fileStamp) {
-      return NO_COMPLETION;
-    }
     node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;
@@ -342,8 +334,7 @@ class PostfixCompletionProcessor {
     }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(expr), (DartEditBuilder builder) {
         String newSrc = sourcer(expr);
         if (newSrc == null) {
@@ -377,8 +368,7 @@ class PostfixCompletionProcessor {
       return null;
     }
     DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    await changeBuilder.addFileEdit(file, fileStamp,
-        (DartFileEditBuilder builder) {
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
       var endLine = lineInfo.getLocation(stmt.end).lineNumber - 1;
@@ -477,9 +467,6 @@ class PostfixCompletionProcessor {
   }
 
   Future<bool> isApplicable() async {
-    if (_modificationStamp(file) != fileStamp) {
-      return false;
-    }
     node = _selectedNode();
     if (node == null) {
       return false;
@@ -558,12 +545,6 @@ class PostfixCompletionProcessor {
       expr = expr.parent;
     }
     return expr;
-  }
-
-  int _modificationStamp(String filePath) {
-    // TODO(brianwilkerson) We have lost the ability for clients to know whether
-    // it is safe to apply an edit.
-    return driver.fsState.getFileForPath(filePath).exists ? 0 : -1;
   }
 
   AstNode _selectedNode({int at: null}) =>

@@ -40,15 +40,15 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   DartChangeBuilderImpl(this.driver);
 
   @override
-  Future<Null> addFileEdit(String path, int fileStamp,
-          void buildFileEdit(DartFileEditBuilder builder)) =>
-      super.addFileEdit(path, fileStamp, buildFileEdit);
+  Future<Null> addFileEdit(
+          String path, void buildFileEdit(DartFileEditBuilder builder)) =>
+      super.addFileEdit(path, buildFileEdit);
 
   @override
-  Future<DartFileEditBuilderImpl> createFileEditBuilder(
-      String path, int fileStamp) async {
+  Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
     AnalysisResult result = await driver.getResult(path);
-    return new DartFileEditBuilderImpl(this, path, fileStamp, result.unit);
+    int timeStamp = driver.fsState.getFileForPath(path).exists ? 0 : -1;
+    return new DartFileEditBuilderImpl(this, path, timeStamp, result.unit);
   }
 }
 

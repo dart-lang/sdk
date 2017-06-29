@@ -28,12 +28,10 @@ abstract class ChangeBuilder {
   /**
    * Use the [buildFileEdit] function to create a collection of edits to the
    * file with the given [path]. The edits will be added to the source change
-   * that is being built. The [timeStamp] is the time at which the file was last
-   * modified and is used by clients to ensure that it is safe to apply the
-   * edits.
+   * that is being built.
    */
   Future<Null> addFileEdit(
-      String path, int timeStamp, void buildFileEdit(FileEditBuilder builder));
+      String path, void buildFileEdit(FileEditBuilder builder));
 
   /**
    * Set the selection for the change being built to the given [position].

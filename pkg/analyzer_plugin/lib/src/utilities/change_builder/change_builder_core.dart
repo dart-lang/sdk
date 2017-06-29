@@ -44,9 +44,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  Future<Null> addFileEdit(String path, int fileStamp,
-      void buildFileEdit(FileEditBuilder builder)) async {
-    FileEditBuilderImpl builder = await createFileEditBuilder(path, fileStamp);
+  Future<Null> addFileEdit(
+      String path, void buildFileEdit(FileEditBuilder builder)) async {
+    FileEditBuilderImpl builder = await createFileEditBuilder(path);
     buildFileEdit(builder);
     _change.addFileEdit(builder.fileEdit);
     builder.finalize();
@@ -56,9 +56,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * Create and return a [FileEditBuilder] that can be used to build edits to
    * the file with the given [path] and [timeStamp].
    */
-  Future<FileEditBuilderImpl> createFileEditBuilder(
-      String path, int timeStamp) async {
-    return new FileEditBuilderImpl(this, path, timeStamp);
+  Future<FileEditBuilderImpl> createFileEditBuilder(String path) async {
+    return new FileEditBuilderImpl(this, path, 0);
   }
 
   /**
