@@ -706,7 +706,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
-  // No generetional barrier needed, since we store into a new object.
+  // No generational barrier needed, since we store into a new object.
   __ StoreIntoObjectNoBarrier(
       RAX, FieldAddress(RAX, Array::type_arguments_offset()), RBX);
 
@@ -1034,23 +1034,21 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // RDX: Address being stored
   Label reload;
   __ Bind(&reload);
-  __ movl(RAX, FieldAddress(RDX, Object::tags_offset()));
-  __ testl(RAX, Immediate(1 << RawObject::kRememberedBit));
+  __ movq(RAX, FieldAddress(RDX, Object::tags_offset()));
+  __ testq(RAX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popq(RCX);
   __ popq(RAX);
   __ ret();
 
   // Update the tags that this object has been remembered.
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   // RDX: Address being stored
   // RAX: Current tag value
   __ Bind(&add_to_buffer);
-  __ movl(RCX, RAX);
-  __ orl(RCX, Immediate(1 << RawObject::kRememberedBit));
+  __ movq(RCX, RAX);
+  __ orq(RCX, Immediate(1 << RawObject::kRememberedBit));
   // Compare the tag word with RAX, update to RCX if unchanged.
-  __ LockCmpxchgl(FieldAddress(RDX, Object::tags_offset()), RCX);
+  __ LockCmpxchgq(FieldAddress(RDX, Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &reload);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
@@ -1134,11 +1132,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // RBX: next object start.
     // RDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
-    uint32_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    // 64 bit store also zeros the identity hash field.
     __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
     __ addq(RAX, Immediate(kHeapObjectTag));
 
@@ -2145,7 +2142,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ cmpq(FieldAddress(RDI, RCX, TIMES_8, base), Immediate(kIllegalCid));
   __ j(ZERO, &load_target, Assembler::kNearJump);
 
-  // Try next extry in the table.
+  // Try next entry in the table.
   __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
   __ jmp(&loop);
 

@@ -99,7 +99,7 @@ abstract class GraphBuilder {
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 
-  DartTypes get types => compiler.types;
+  DartTypes get types => closedWorld.dartTypes;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;

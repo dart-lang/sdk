@@ -4456,7 +4456,7 @@ class ServiceMetric extends ServiceObject implements M.Metric {
 
   String description;
   double value = 0.0;
-  // Only a guage has a non-null min and max.
+  // Only a gauge has a non-null min and max.
   double min;
   double max;
 

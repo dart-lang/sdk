@@ -353,7 +353,7 @@ void testDifferenceIntersection(create([equals, hashCode, validKey, compare])) {
   Expect.identical(ce1a, difference.lookup(ce1a));
   Expect.identical(ce2, difference.lookup(ce2));
 
-  // Intesection always takes elements from receiver set.
+  // Intersection always takes elements from receiver set.
   var intersection = set1.intersection(set2);
   testLength(1, intersection);
   Expect.identical(ce1a, intersection.lookup(ce1a));

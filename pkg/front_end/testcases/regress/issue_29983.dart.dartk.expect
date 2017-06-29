@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29983.dart:6:10: Error: 'sync*' and 'async*' can't return a value.\n  return missing;\n         ^"]/* from null */;
+static method f() → dynamic {
+  return throw new core::NoSuchMethodError::•(null, #missing, <dynamic>[], <dynamic, dynamic>{}, null);
+}
+static method main() → dynamic {}

@@ -12,8 +12,8 @@ class A extends core::Object {
     return 0;
 }
 static field self::A a = new self::A::•();
-static field () → dynamic b = () → () → dynamic => self::a.{self::A::f}<() → dynamic>(self::c);
-static field () → dynamic c = () → () → dynamic => self::a.{self::A::f}<() → dynamic>(self::b);
-static field () → dynamic d = () → () → core::int => self::a.{self::A::f}<() → core::int>(self::e);
+static field dynamic b = () → dynamic => self::a.{self::A::f}<dynamic>(self::c);
+static field dynamic c = () → dynamic => self::a.{self::A::f}<dynamic>(self::b);
+static field () → () → core::int d = () → () → core::int => self::a.{self::A::f}<() → core::int>(self::e);
 static field () → core::int e = () → core::int => self::a.{self::A::g}(self::d);
 static method main() → dynamic {}

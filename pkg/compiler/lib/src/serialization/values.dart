@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Class hiarchy for semantic wrapping of serializable values.
+/// Class hierarchy for semantic wrapping of serializable values.
 
 library dart2js.serialization.values;
 
@@ -32,7 +32,7 @@ import 'keys.dart';
 /// The distinction between map and object values is chosen to provide a more
 /// robust and checkable implementation of the latter; since the keys are drawn
 /// from a fixed typed set of values, consistency between serialization and
-/// deserialization is easierly maintained.
+/// deserialization is more easily maintained.
 abstract class Value {
   accept(ValueVisitor visitor, arg);
 }

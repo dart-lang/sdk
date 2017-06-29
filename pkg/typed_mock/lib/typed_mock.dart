@@ -240,7 +240,7 @@ class Verifier {
     times(0);
   }
 
-  /// Verifies that there was excatly one martching interaction.
+  /// Verifies that there was exactly one matching interaction.
   void once() {
     times(1);
   }

@@ -56,7 +56,7 @@ class SemiSpace {
   explicit SemiSpace(VirtualMemory* reserved);
   ~SemiSpace();
 
-  VirtualMemory* reserved_;  // NULL for an emtpy space.
+  VirtualMemory* reserved_;  // NULL for an empty space.
   MemoryRegion region_;
 
   static SemiSpace* cache_;

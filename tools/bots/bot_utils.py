@@ -276,7 +276,7 @@ class GSUtil(object):
                shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and
                       sys.platform == 'win32'))
 
-  def upload(self, local_path, remote_path, recursive=False, 
+  def upload(self, local_path, remote_path, recursive=False,
              public=False, multithread=False):
     assert remote_path.startswith('gs://')
 
@@ -376,3 +376,10 @@ def GetChannelFromName(name):
   if channel_name in Channel.ALL_CHANNELS:
     return channel_name
   return Channel.BLEEDING_EDGE
+
+def GetSystemFromName(name):
+  """Get the system from the name."""
+  for part in string.split(name, '-'):
+    if part in SYSTEM_RENAMES: return SYSTEM_RENAMES[part]
+
+  raise ValueError("Bot name '{}' not have a system name in it.".format(name))

@@ -14,6 +14,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelNullAwarePropertyGet,
         KernelPropertyAssign,
         KernelPropertyGet,
+        KernelSuperPropertyGet,
         KernelThisExpression,
         KernelVariableDeclaration,
         KernelVariableGet;
@@ -374,7 +375,7 @@ class SuperPropertyAccessor extends Accessor {
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
     if (getter == null) return makeInvalidRead();
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    var read = new SuperPropertyGet(name, getter)
+    var read = new KernelSuperPropertyGet(name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -511,7 +512,7 @@ class ThisIndexAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeSimpleRead() {
-    return new KernelMethodInvocation(new ThisExpression(), indexGetName,
+    return new KernelMethodInvocation(new KernelThisExpression(), indexGetName,
         new KernelArguments(<Expression>[index]),
         interfaceTarget: getter);
   }
@@ -519,8 +520,8 @@ class ThisIndexAccessor extends Accessor {
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new KernelMethodInvocation(new ThisExpression(), indexSetName,
-        new KernelArguments(<Expression>[index, value]),
+    var write = new KernelMethodInvocation(new KernelThisExpression(),
+        indexSetName, new KernelArguments(<Expression>[index, value]),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -533,8 +534,8 @@ class ThisIndexAccessor extends Accessor {
   }
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
-    var read = new KernelMethodInvocation(new ThisExpression(), indexGetName,
-        new KernelArguments(<Expression>[indexAccess()]),
+    var read = new KernelMethodInvocation(new KernelThisExpression(),
+        indexGetName, new KernelArguments(<Expression>[indexAccess()]),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -544,8 +545,8 @@ class ThisIndexAccessor extends Accessor {
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new KernelMethodInvocation(new ThisExpression(), indexSetName,
-        new KernelArguments(<Expression>[indexAccess(), value]),
+    var write = new KernelMethodInvocation(new KernelThisExpression(),
+        indexSetName, new KernelArguments(<Expression>[indexAccess(), value]),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -556,7 +557,7 @@ class ThisIndexAccessor extends Accessor {
       Expression value, KernelComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
     var write = new KernelMethodInvocation(
-        new ThisExpression(),
+        new KernelThisExpression(),
         indexSetName,
         new KernelArguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),

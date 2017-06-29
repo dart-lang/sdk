@@ -139,7 +139,7 @@ namespace dart {
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
-#define CORE_LIB_NON_HASH_INTRINSIC_LIST(V)                                    \
+#define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, Smi, 0x6574c6b0)                                   \
   V(_Smi, get:bitLength, Smi_bitLength, Smi, 0x25b356ab)                       \
   V(_Smi, _bitAndFromSmi, Smi_bitAndFromSmi, Smi, 0x490a4da1)                  \
@@ -189,19 +189,6 @@ namespace dart {
   V(_OneByteString, ==, OneByteString_equality, Bool, 0x4719e83f)              \
   V(_TwoByteString, ==, TwoByteString_equality, Bool, 0x4719e83f)              \
 
-
-#define CORE_LIB_IN_HEADER_HASH_INTRINSIC_LIST(V)                              \
-  V(::, _getHash, Object_getHash, Smi, 0x2827856d)                             \
-  V(::, _setHash, Object_setHash, Object, 0x302d1fe8)                          \
-
-#if defined(HASH_IN_OBJECT_HEADER)
-#define CORE_LIB_INTRINSIC_LIST(V)                                             \
-  CORE_LIB_NON_HASH_INTRINSIC_LIST(V)                                          \
-  CORE_LIB_IN_HEADER_HASH_INTRINSIC_LIST(V)
-#else
-#define CORE_LIB_INTRINSIC_LIST(V)                                             \
-  CORE_LIB_NON_HASH_INTRINSIC_LIST(V)
-#endif
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \

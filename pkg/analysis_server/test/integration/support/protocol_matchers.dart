@@ -849,6 +849,19 @@ final Matcher isPosition = new LazyMatcher(() =>
     new MatchesJsonObject("Position", {"file": isFilePath, "offset": isInt}));
 
 /**
+ * PostfixTemplateDescriptor
+ *
+ * {
+ *   "name": String
+ *   "key": String
+ *   "example": String
+ * }
+ */
+final Matcher isPostfixTemplateDescriptor = new LazyMatcher(() =>
+    new MatchesJsonObject("PostfixTemplateDescriptor",
+        {"name": isString, "key": isString, "example": isString}));
+
+/**
  * PubStatus
  *
  * {
@@ -1820,6 +1833,30 @@ final Matcher isEditGetFixesResult = new LazyMatcher(() =>
         "edit.getFixes result", {"fixes": isListOf(isAnalysisErrorFixes)}));
 
 /**
+ * edit.getPostfixCompletion params
+ *
+ * {
+ *   "file": FilePath
+ *   "key": String
+ *   "offset": int
+ * }
+ */
+final Matcher isEditGetPostfixCompletionParams = new LazyMatcher(() =>
+    new MatchesJsonObject("edit.getPostfixCompletion params",
+        {"file": isFilePath, "key": isString, "offset": isInt}));
+
+/**
+ * edit.getPostfixCompletion result
+ *
+ * {
+ *   "change": SourceChange
+ * }
+ */
+final Matcher isEditGetPostfixCompletionResult = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "edit.getPostfixCompletion result", {"change": isSourceChange}));
+
+/**
  * edit.getRefactoring params
  *
  * {
@@ -1888,6 +1925,46 @@ final Matcher isEditGetStatementCompletionParams = new LazyMatcher(() =>
 final Matcher isEditGetStatementCompletionResult = new LazyMatcher(() =>
     new MatchesJsonObject("edit.getStatementCompletion result",
         {"change": isSourceChange, "whitespaceOnly": isBool}));
+
+/**
+ * edit.isPostfixCompletionApplicable params
+ *
+ * {
+ *   "file": FilePath
+ *   "key": String
+ *   "offset": int
+ * }
+ */
+final Matcher isEditIsPostfixCompletionApplicableParams = new LazyMatcher(() =>
+    new MatchesJsonObject("edit.isPostfixCompletionApplicable params",
+        {"file": isFilePath, "key": isString, "offset": isInt}));
+
+/**
+ * edit.isPostfixCompletionApplicable result
+ *
+ * {
+ *   "value": bool
+ * }
+ */
+final Matcher isEditIsPostfixCompletionApplicableResult = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "edit.isPostfixCompletionApplicable result", {"value": isBool}));
+
+/**
+ * edit.listPostfixCompletionTemplates params
+ */
+final Matcher isEditListPostfixCompletionTemplatesParams = isNull;
+
+/**
+ * edit.listPostfixCompletionTemplates result
+ *
+ * {
+ *   "templates": List<PostfixTemplateDescriptor>
+ * }
+ */
+final Matcher isEditListPostfixCompletionTemplatesResult = new LazyMatcher(() =>
+    new MatchesJsonObject("edit.listPostfixCompletionTemplates result",
+        {"templates": isListOf(isPostfixTemplateDescriptor)}));
 
 /**
  * edit.organizeDirectives params

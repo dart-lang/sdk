@@ -724,7 +724,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * Use the given [visitor] to visit this element. Return the value returned by
    * the visitor as a result of visiting this element.
    */
-  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor);
+  T accept<T>(ElementVisitor<T> visitor);
 
   /**
    * Return the documentation comment for this element as it appears in the
@@ -758,8 +758,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * [predicate] returns `true`, or `null` if there is no such ancestor. Note
    * that this element will never be returned.
    */
-  Element/*=E*/ getAncestor/*<E extends Element >*/(
-      Predicate<Element> predicate);
+  E getAncestor<E extends Element>(Predicate<Element> predicate);
 
   /**
    * Return a display name for the given element that includes the path to the

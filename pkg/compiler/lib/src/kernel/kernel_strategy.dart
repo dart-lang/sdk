@@ -129,7 +129,7 @@ class KernelFrontEndStrategy implements FrontendStrategy {
 
   @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
-    // TODO(johnniwinther): Compute source spans from kernel elements.
+    // TODO(redemption): Compute source spans from kernel elements.
     return new SourceSpan(null, null, null);
   }
 }
@@ -179,7 +179,7 @@ class MirrorsDataBuilderImpl extends MirrorsDataImpl {
   @override
   void computeMembersNeededForReflection(
       ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
-    // TODO(johnniwinther): Support dart:mirrors.
+    // TODO(redemption): Support dart:mirrors.
     createImmutableSets();
   }
 
@@ -204,7 +204,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
 
   @override
   MirrorsCodegenAnalysis close() {
-    // TODO(johnniwinther): Implement this.
+    // TODO(redemption): Implement this.
     return new MirrorsCodegenAnalysisImpl();
   }
 
@@ -215,12 +215,12 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
 class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
   @override
   int get preMirrorsMethodCount {
-    // TODO(johnniwinther): Implement this.
+    // TODO(redemption): Implement this.
     return null;
   }
 
   @override
   void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    // TODO(johnniwinther): Implement this.
+    // TODO(redemption): Implement this.
   }
 }

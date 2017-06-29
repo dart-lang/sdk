@@ -37,7 +37,7 @@ class BenchmarkBase {
     run();
   }
 
-  /** Exercices the benchmark. By default invokes [run] 10 times. */
+  /** Exercises the benchmark. By default invokes [run] 10 times. */
   void exercise() {
     for (int i = 0; i < 10; i++) {
       run();

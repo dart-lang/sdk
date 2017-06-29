@@ -184,7 +184,7 @@ class Utils {
   }
 
 
-  // Utility functions for converting values from host endianess to
+  // Utility functions for converting values from host endianness to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);
   static uint32_t HostToBigEndian32(uint32_t host_value);

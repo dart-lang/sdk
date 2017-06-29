@@ -24,6 +24,7 @@ class Subclass extends Super {
 
 main() {
   var objects = [new Super(), new Subclass()];
+  reflect(objects[0]); // Trigger mirror usage.
 }
 """,
   'lib.dart': """

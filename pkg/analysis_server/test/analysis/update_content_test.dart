@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -35,45 +34,20 @@ class UpdateContentTest extends AbstractAnalysisTest {
   int serverErrorCount = 0;
   int navigationCount = 0;
 
-  Index createIndex() {
-    return new _MockIndex();
-  }
-
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ERRORS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
       String _format(AnalysisError e) =>
           "${e.location.startLine}: ${e.message}";
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
-    if (notification.event == ANALYSIS_NAVIGATION) {
+    if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       navigationCount++;
     }
-    if (notification.event == SERVER_ERROR) {
+    if (notification.event == SERVER_NOTIFICATION_ERROR) {
       serverErrorCount++;
     }
-  }
-
-  test_discardNotifications_onSourceChange() async {
-    createProject();
-    addTestFile('');
-    await server.onAnalysisComplete;
-    server.setAnalysisSubscriptions({
-      AnalysisService.NAVIGATION: [testFile].toSet()
-    });
-    // update file, analyze, but don't sent notifications
-    navigationCount = 0;
-    server.updateContent('1', {testFile: new AddContentOverlay('foo() {}')});
-    server.test_performAllAnalysisOperations();
-    expect(serverErrorCount, 0);
-    expect(navigationCount, 0);
-    // replace the file contents,
-    // should discard any pending notification operations
-    server.updateContent('2', {testFile: new AddContentOverlay('bar() {}')});
-    await server.onAnalysisComplete;
-    expect(serverErrorCount, 0);
-    expect(navigationCount, 1);
   }
 
   test_illegal_ChangeContentOverlay() {
@@ -316,5 +290,3 @@ class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
             file;
   }
 }
-
-class _MockIndex extends TypedMock implements Index {}

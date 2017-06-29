@@ -279,7 +279,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         } else {
           ResolutionDartType constantType = value.getType(commonElements);
           if (!constantSystem.isSubtype(
-              compiler.types, constantType, elementType)) {
+              compiler.resolution.types, constantType, elementType)) {
             if (isConst) {
               reporter.reportErrorMessage(node, MessageKind.NOT_ASSIGNABLE,
                   {'fromType': constantType, 'toType': elementType});
@@ -1215,7 +1215,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           element.type.substByContext(constructedType);
       ResolutionDartType constantType = constant.value.getType(commonElements);
       if (!constantSystem.isSubtype(
-          compiler.types, constantType, elementType)) {
+          compiler.resolution.types, constantType, elementType)) {
         reporter.withCurrentElement(constant.element, () {
           reporter.reportErrorMessage(constant.node, MessageKind.NOT_ASSIGNABLE,
               {'fromType': constantType, 'toType': elementType});

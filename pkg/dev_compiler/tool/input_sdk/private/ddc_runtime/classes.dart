@@ -334,7 +334,7 @@ _setStaticTypes(f, names) => JS(
 ///  methods: A function returning an object mapping method names
 ///   to method types.  The function is evaluated lazily and cached.
 ///  statics: A function returning an object mapping static method
-///   names to types.  The function is evalutated lazily and cached.
+///   names to types.  The function is evaluated lazily and cached.
 ///  names: An array of the names of the static methods.  Used to
 ///   permit eagerly setting the runtimeType field on the methods
 ///   while still lazily computing the type descriptor object.

@@ -245,9 +245,9 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
-  uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
-    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
-                                                  old_tags, new_tags);
+  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
+    return AtomicOperations::CompareAndSwapWord(&raw()->ptr()->tags_, old_tags,
+                                                new_tags);
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -434,11 +434,13 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
-    return obj->ptr()->hash_;
+    uword tags = obj->ptr()->tags_;
+    return tags >> 32;
   }
 
-  static void SetCachedHash(RawObject* obj, uint32_t hash) {
-    obj->ptr()->hash_ = hash;
+  static void SetCachedHash(RawObject* obj, uintptr_t hash) {
+    ASSERT(hash >> 32 == 0);
+    obj->ptr()->tags_ |= hash << 32;
   }
 #endif
 
@@ -2217,6 +2219,9 @@ class Function : public Object {
   // its type argument vector.
   RawType* SignatureType() const;
   RawType* ExistingSignatureType() const;
+
+  // Allocate and return a signature function equivalent to this function.
+  RawFunction* CanonicalSignatureFunction(TrailPtr trail) const;
 
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
@@ -4895,7 +4900,7 @@ class Code : public Object {
       intptr_t pc_offset,
       GrowableArray<const Function*>* functions,
       GrowableArray<TokenPosition>* token_positions) const;
-  // Same as above, expect the pc is intepreted as a return address (as needed
+  // Same as above, expect the pc is interpreted as a return address (as needed
   // for a stack trace or the bottom frames of a profiler sample).
   void GetInlinedFunctionsAtReturnAddress(
       intptr_t pc_offset,
@@ -5649,7 +5654,7 @@ class Instance : public Object {
 
   static intptr_t NextFieldOffset() { return sizeof(RawInstance); }
 
-  // The follwoing raw methods are used for morphing.
+  // The following raw methods are used for morphing.
   // They are needed due to the extraction of the class in IsValidFieldOffset.
   RawObject** RawFieldAddrAtOffset(intptr_t offset) const {
     return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
@@ -6826,14 +6831,16 @@ class String : public Instance {
     return result;
   }
 
-  static intptr_t Hash(RawString* raw);
-
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return GetCachedHash(raw()) != 0;
   }
 
+#if defined(HASH_IN_OBJECT_HEADER)
+  static intptr_t hash_offset() { return kInt32Size; }  // Wrong for big-endian?
+#else
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
+#endif
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);

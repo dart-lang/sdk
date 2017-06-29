@@ -217,6 +217,9 @@ abstract class TypeInferrer {
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(Initializer initializer);
 
+  /// Performs type inference on the given metadata annotations.
+  void inferMetadata(List<Expression> annotations);
+
   /// Performs type inference on the given function parameter initializer
   /// expression.
   void inferParameterInitializer(Expression initializer, DartType declaredType);
@@ -298,6 +301,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // to fail.  TODO(paulberry): fix this.
     if (!strongMode) return null;
 
+    receiverType = resolveTypeParameter(receiverType);
+
     if (receiverType is InterfaceType) {
       var interfaceMember = classHierarchy
           .getInterfaceMember(receiverType.classNode, name, setter: setter);
@@ -321,13 +326,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
-      methodInvocation.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        methodInvocation.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else if (methodInvocation is SuperMethodInvocation) {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
-      methodInvocation.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        methodInvocation.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else {
       throw internalError(
@@ -345,13 +354,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
-      propertyGet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertyGet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else if (propertyGet is SuperPropertyGet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
-      propertyGet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertyGet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else {
       throw internalError(
@@ -367,13 +380,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
-      propertySet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertySet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else if (propertySet is SuperPropertySet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
-      propertySet.interfaceTarget = interfaceMember;
+      if (strongMode) {
+        propertySet.interfaceTarget = interfaceMember;
+      }
       return interfaceMember;
     } else {
       throw internalError(
@@ -591,7 +608,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
-    if (!isTopLevel || isOverloadedArithmeticOperator) {
+    if (!isTopLevel ||
+        isOverloadedArithmeticOperator ||
+        TypeInferenceEngineImpl.expandedTopLevelInference) {
       int i = 0;
       _forEachArgument(arguments, (name, expression) {
         DartType formalType = name != null
@@ -641,7 +660,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   DartType inferLocalFunction(FunctionNode function, DartType typeContext,
-      bool typeNeeded, int fileOffset, DartType returnContext, bool isNamed) {
+      bool typeNeeded, int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = returnContext == null;
     if (!isTopLevel) {
       for (var parameter in function.positionalParameters) {
@@ -739,8 +758,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
     bool isExpressionFunction = function.body is ReturnStatement;
-    bool needToSetReturnType = hasImplicitReturnType &&
-        ((isExpressionFunction && !isNamed) || strongMode);
+    bool needToSetReturnType = hasImplicitReturnType && strongMode;
     ClosureContext oldClosureContext = this.closureContext;
     ClosureContext closureContext =
         new ClosureContext(this, function.asyncMarker, returnContext);
@@ -770,17 +788,29 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return typeNeeded ? function.functionType : null;
   }
 
+  @override
+  void inferMetadata(List<Expression> annotations) {
+    if (annotations != null) {
+      for (var annotation in annotations) {
+        inferExpression(annotation, null, false);
+      }
+    }
+  }
+
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
   DartType inferMethodInvocation(
       Expression expression,
       Expression receiver,
       int fileOffset,
-      MethodInvocation desugaredInvocation,
       bool isImplicitCall,
       DartType typeContext,
       bool typeNeeded,
-      {VariableDeclaration receiverVariable}) {
+      {VariableDeclaration receiverVariable,
+      MethodInvocation desugaredInvocation,
+      Member interfaceMember,
+      Name methodName,
+      Arguments arguments}) {
     typeNeeded =
         listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
@@ -789,31 +819,34 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       receiverVariable?.type = receiverType;
     }
     bool isOverloadedArithmeticOperator = false;
-    Member interfaceMember =
-        findMethodInvocationMember(receiverType, desugaredInvocation);
+    if (desugaredInvocation != null) {
+      interfaceMember =
+          findMethodInvocationMember(receiverType, desugaredInvocation);
+      methodName = desugaredInvocation.name;
+      arguments = desugaredInvocation.arguments;
+    }
     if (interfaceMember is Procedure) {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
     }
-    var calleeType = getCalleeFunctionType(interfaceMember, receiverType,
-        desugaredInvocation.name, !isImplicitCall);
+    var calleeType = getCalleeFunctionType(
+        interfaceMember, receiverType, methodName, !isImplicitCall);
     bool forceArgumentInference = false;
     if (isDryRun) {
-      if (_isUserDefinableOperator(desugaredInvocation.name.name)) {
+      if (_isUserDefinableOperator(methodName.name)) {
         // If this is an overloadable arithmetic operator, then type inference
         // might depend on the RHS, so conservatively assume it does.
         forceArgumentInference =
-            isOverloadableArithmeticOperator(desugaredInvocation.name.name);
+            isOverloadableArithmeticOperator(methodName.name);
       } else {
         // If no type arguments were given, then type inference might depend on
         // the arguments (because the called method might be generic), so
         // conservatively assume it does.
-        forceArgumentInference =
-            getExplicitTypeArguments(desugaredInvocation.arguments) == null;
+        forceArgumentInference = getExplicitTypeArguments(arguments) == null;
       }
     }
     var inferredType = inferInvocation(typeContext, typeNeeded, fileOffset,
-        calleeType, calleeType.returnType, desugaredInvocation.arguments,
+        calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         forceArgumentInference: forceArgumentInference);
@@ -830,14 +863,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  DartType inferPropertyGet(
-      Expression expression,
-      Expression receiver,
-      int fileOffset,
+  DartType inferPropertyGet(Expression expression, Expression receiver,
+      int fileOffset, DartType typeContext, bool typeNeeded,
+      {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
-      DartType typeContext,
-      bool typeNeeded,
-      {VariableDeclaration receiverVariable}) {
+      Name propertyName}) {
     typeNeeded =
         listener.propertyGetEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the getter that was invoked.
@@ -845,8 +875,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
+    propertyName ??= desugaredGet.name;
     Member interfaceMember =
-        findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
+        findInterfaceMember(receiverType, propertyName, fileOffset);
     if (isTopLevel &&
         ((interfaceMember is Procedure &&
                 interfaceMember.kind == ProcedureKind.Getter) ||
@@ -864,9 +895,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         recordNotImmediatelyEvident(fileOffset);
       }
     }
-    desugaredGet.interfaceTarget = interfaceMember;
+    desugaredGet?.interfaceTarget = interfaceMember;
     var inferredType =
-        getCalleeType(interfaceMember, receiverType, desugaredGet.name);
+        getCalleeType(interfaceMember, receiverType, propertyName);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
     listener.propertyGetExit(expression, inferredType);
     return typeNeeded ? inferredType : null;
@@ -908,6 +939,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(isTopLevel);
     isImmediatelyEvident = false;
     // TODO(paulberry): report an error.
+  }
+
+  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
+  DartType resolveTypeParameter(DartType type) {
+    DartType resolveOneStep(DartType type) {
+      if (type is TypeParameterType) {
+        return type.bound;
+      } else {
+        return null;
+      }
+    }
+
+    var resolved = resolveOneStep(type);
+    if (resolved == null) return type;
+
+    // Detect circularities using the tortoise-and-hare algorithm.
+    type = resolved;
+    DartType hare = resolveOneStep(type);
+    if (hare == null) return type;
+    while (true) {
+      if (identical(type, hare)) {
+        // We found a circularity.  Give up and return `dynamic`.
+        return const DynamicType();
+      }
+
+      // Hare takes two steps
+      var step1 = resolveOneStep(hare);
+      if (step1 == null) return hare;
+      var step2 = resolveOneStep(step1);
+      if (step2 == null) return hare;
+      hare = step2;
+
+      // Tortoise takes one step
+      type = resolveOneStep(type);
+    }
   }
 
   /// Begins a dry run of type inference, in which the goal is to collect the

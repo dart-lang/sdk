@@ -23,6 +23,7 @@ import '../elements/modelx.dart'
         ErroneousElementX,
         FunctionElementX,
         JumpTargetX,
+        LabelDefinitionX,
         LocalFunctionElementX,
         LocalParameterElementX,
         ParameterElementX,
@@ -4253,7 +4254,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitBreakStatement(BreakStatement node) {
-    JumpTarget target;
+    JumpTargetX target;
     if (node.target == null) {
       target = statementScope.currentBreakTarget();
       if (target == null) {
@@ -4263,7 +4264,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       target.isBreakTarget = true;
     } else {
       String labelName = node.target.source;
-      LabelDefinition label = statementScope.lookupLabel(labelName);
+      LabelDefinitionX label = statementScope.lookupLabel(labelName);
       if (label == null) {
         reporter.reportErrorMessage(
             node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
@@ -4282,7 +4283,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitContinueStatement(ContinueStatement node) {
-    JumpTarget target;
+    JumpTargetX target;
     if (node.target == null) {
       target = statementScope.currentContinueTarget();
       if (target == null) {
@@ -4292,7 +4293,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       target.isContinueTarget = true;
     } else {
       String labelName = node.target.source;
-      LabelDefinition label = statementScope.lookupLabel(labelName);
+      LabelDefinitionX label = statementScope.lookupLabel(labelName);
       if (label == null) {
         reporter.reportErrorMessage(
             node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});

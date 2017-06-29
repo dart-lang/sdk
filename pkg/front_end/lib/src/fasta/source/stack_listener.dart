@@ -14,7 +14,7 @@ import '../scanner.dart' show Token;
 
 import '../../scanner/token.dart' show BeginToken;
 
-import 'package:kernel/ast.dart' show AsyncMarker;
+import 'package:kernel/ast.dart' show AsyncMarker, Expression;
 
 import '../errors.dart' show inputError, internalError;
 
@@ -64,6 +64,12 @@ abstract class StackListener extends Listener {
   // and ast_builder.dart.
   void finishFunction(List annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
+    return internalError("Unsupported operation");
+  }
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
+  // and ast_builder.dart.
+  List<Expression> finishMetadata() {
     return internalError("Unsupported operation");
   }
 

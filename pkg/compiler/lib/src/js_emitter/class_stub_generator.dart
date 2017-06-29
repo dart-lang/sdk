@@ -87,7 +87,7 @@ class ClassStubGenerator {
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
-    // receiver explicitely and we need to pass it to the getter call.
+    // receiver explicitly and we need to pass it to the getter call.
     bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
     bool isInterceptedClass =
         _interceptorData.isInterceptedClass(member.enclosingClass);

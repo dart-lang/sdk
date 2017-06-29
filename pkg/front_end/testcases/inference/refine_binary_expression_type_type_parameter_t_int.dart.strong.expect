@@ -8,14 +8,14 @@ class C<T extends core::num> extends core::Object {
     : super core::Object::•()
     ;
   method op(core::int b) → void {
-    self::C::T r1 = this.a.+(b);
-    self::C::T r2 = this.a.-(b);
-    self::C::T r3 = this.a.*(b);
+    self::C::T r1 = this.{self::C::a}.{core::num::+}(b);
+    self::C::T r2 = this.{self::C::a}.{core::num::-}(b);
+    self::C::T r3 = this.{self::C::a}.{core::num::*}(b);
   }
   method opEq(core::int b) → void {
-    this.a = this.a.+(b);
-    this.a = this.a.-(b);
-    this.a = this.a.*(b);
+    this.{self::C::a} = this.{self::C::a}.{core::num::+}(b);
+    this.{self::C::a} = this.{self::C::a}.{core::num::-}(b);
+    this.{self::C::a} = this.{self::C::a}.{core::num::*}(b);
   }
 }
 static method main() → dynamic {}

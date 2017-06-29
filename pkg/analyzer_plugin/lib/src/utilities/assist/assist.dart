@@ -23,9 +23,9 @@ class AssistCollectorImpl implements AssistCollector {
 }
 
 /**
- * A concrete implementation of [AssistRequest].
+ * A concrete implementation of [DartAssistRequest].
  */
-class AssistRequestImpl implements AssistRequest {
+class DartAssistRequestImpl implements DartAssistRequest {
   @override
   final ResourceProvider resourceProvider;
 
@@ -41,6 +41,6 @@ class AssistRequestImpl implements AssistRequest {
   /**
    * Initialize a newly create request with the given data.
    */
-  AssistRequestImpl(
+  DartAssistRequestImpl(
       this.resourceProvider, this.offset, this.length, this.result);
 }

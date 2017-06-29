@@ -180,15 +180,15 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     throw 'Unimplemented InstantiatorGeneratorVisitor for $node';
   }
 
-  static RegExp identiferRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
+  static RegExp identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
   static Expression convertStringToVariableUse(String value) {
-    assert(identiferRE.hasMatch(value));
+    assert(identifierRE.hasMatch(value));
     return new VariableUse(value);
   }
 
   static Expression convertStringToVariableDeclaration(String value) {
-    assert(identiferRE.hasMatch(value));
+    assert(identifierRE.hasMatch(value));
     return new VariableDeclaration(value);
   }
 

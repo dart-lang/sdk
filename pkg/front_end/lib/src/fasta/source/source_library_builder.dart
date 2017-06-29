@@ -519,7 +519,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   final List<T> types = <T>[];
 
-  final String name;
+  String name;
 
   final Map<ProcedureBuilder, DeclarationBuilder<T>> factoryDeclarations;
 

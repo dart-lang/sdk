@@ -31,7 +31,8 @@ abstract class AssistContributor {
    * Contribute assists for the location in the file specified by the given
    * [request] into the given [collector].
    */
-  void computeAssists(AssistRequest request, AssistCollector collector);
+  void computeAssists(
+      covariant AssistRequest request, AssistCollector collector);
 }
 
 /**
@@ -74,6 +75,42 @@ class AssistGenerator {
 }
 
 /**
+ * A description of a class of assists. Instances are intended to hold the
+ * information that is common across a number of assists and to be shared by
+ * those assists.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AssistKind {
+  /**
+   * The name of this kind of assist, used for debugging.
+   */
+  final String name;
+
+  /**
+   * The priority of this kind of assist for the kind of error being addressed.
+   */
+  final int priority;
+
+  /**
+   * A human-readable description of the changes that will be applied by this
+   * kind of assist. The message can contain parameters, where each parameter is
+   * represented by a zero-based index inside curly braces. For example, the
+   * message `"Create a component named '{0}' in '{1}'"` contains two parameters.
+   */
+  final String message;
+
+  /**
+   * Initialize a newly created kind of assist to have the given [name],
+   * [relevance] and [message].
+   */
+  const AssistKind(this.name, this.priority, this.message);
+
+  @override
+  String toString() => name;
+}
+
+/**
  * The information about a requested set of assists.
  *
  * Clients may not extend, implement or mix-in this class.
@@ -95,7 +132,15 @@ abstract class AssistRequest {
    * Return the resource provider associated with this request.
    */
   ResourceProvider get resourceProvider;
+}
 
+/**
+ * The information about a requested set of assists when computing assists in a
+ * `.dart` file.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DartAssistRequest implements AssistRequest {
   /**
    * The analysis result for the file in which the assists are being requested.
    */

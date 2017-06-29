@@ -15,4 +15,5 @@ Future<FastaContext> createContext(
   return FastaContext.create(suite, environment);
 }
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+main(List<String> arguments) =>
+    runMe(arguments, createContext, "../../testing.json");

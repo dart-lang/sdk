@@ -122,7 +122,7 @@ class CompilerOptions {
   /// are covered by summary files.
   ///
   /// When this option is true, these APIs will treat any dependency that is
-  /// not described in a summary as if it was explictly listed as an input.
+  /// not described in a summary as if it was explicitly listed as an input.
   bool chaseDependencies = false;
 
   /// Whether to interpret Dart sources in strong-mode.

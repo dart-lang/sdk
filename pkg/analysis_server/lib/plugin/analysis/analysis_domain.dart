@@ -25,11 +25,7 @@
  *       ...
  *     }
  */
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    show AnalysisService;
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:plugin/plugin.dart';
 
 /**
@@ -53,11 +49,4 @@ typedef void SetAnalysisDomain(AnalysisDomain domain);
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AnalysisDomain {
-  /**
-   * Schedule sending the given [service] notifications for the given [source]
-   * in the given [context].
-   */
-  void scheduleNotification(
-      AnalysisContext context, Source source, AnalysisService service);
-}
+abstract class AnalysisDomain {}

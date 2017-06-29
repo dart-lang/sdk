@@ -6,8 +6,8 @@ typedef FunctionReturningNum = () → core::num;
 static method main() → dynamic {
   core::int i = 1;
   core::Object o = 1;
-  () → core::num a = () → core::int => i;
-  () → core::num b = () → core::Object => o;
+  () → core::num a = () → dynamic => i;
+  () → core::num b = () → dynamic => o;
   () → core::num c = () → dynamic {
     return i;
   };

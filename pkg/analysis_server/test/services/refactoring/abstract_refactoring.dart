@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -44,7 +43,6 @@ int findIdentifierLength(String search) {
  * The base class for all [Refactoring] tests.
  */
 abstract class RefactoringTest extends AbstractSingleUnitTest {
-  Index index;
   SearchEngine searchEngine;
   AstProvider astProvider;
 

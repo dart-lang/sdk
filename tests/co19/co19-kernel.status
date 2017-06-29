@@ -98,7 +98,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
 Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
-Language/Expressions/Type_Cast/syntax_t01: RuntimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError

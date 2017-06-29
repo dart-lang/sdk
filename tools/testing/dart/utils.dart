@@ -448,10 +448,6 @@ class TestUtils {
 
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {
-      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
-      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
-      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
-      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
       "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
           "co19_fn_invoke_",
       "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":

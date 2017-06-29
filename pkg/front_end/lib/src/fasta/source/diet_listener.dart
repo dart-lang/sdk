@@ -175,7 +175,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     discard(1);
   }
@@ -466,7 +466,7 @@ class DietListener extends StackListener {
       StackListener listener = createListener(classBuilder, memberScope, false);
       Parser parser = new Parser(listener);
       parser.parseMetadataStar(metadata);
-      List metadataConstants = listener.pop();
+      List metadataConstants = listener.finishMetadata();
       Class cls = classBuilder.target;
       metadataConstants.forEach(cls.addAnnotation);
     }

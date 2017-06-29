@@ -139,7 +139,11 @@ class Process {
   static intptr_t CurrentProcessId();
 
   static intptr_t SetSignalHandler(intptr_t signal);
-  static void ClearSignalHandler(intptr_t signal);
+  // When there is a current Isolate and the 'port' argument is
+  // Dart_GetMainPortId(), this clears the signal handler for the current
+  // isolate. When 'port' is ILLEGAL_PORT, this clears all signal handlers for
+  // 'signal' for all Isolates.
+  static void ClearSignalHandler(intptr_t signal, Dart_Port port);
   static void ClearAllSignalHandlers();
 
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,

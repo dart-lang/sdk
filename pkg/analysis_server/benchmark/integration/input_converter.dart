@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
@@ -79,7 +79,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    */
   Operation convertNotification(Map<String, dynamic> json) {
     String event = json['event'];
-    if (event == SERVER_STATUS) {
+    if (event == SERVER_NOTIFICATION_STATUS) {
       // {"event":"server.status","params":{"analysis":{"isAnalyzing":false}}}
       Map<String, dynamic> params = asMap(json['params']);
       if (params != null) {
@@ -89,7 +89,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
         }
       }
     }
-    if (event == SERVER_CONNECTED) {
+    if (event == SERVER_NOTIFICATION_CONNECTED) {
       // {"event":"server.connected","params":{"version":"1.7.0"}}
       return new StartServerOperation();
     }
@@ -108,7 +108,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     String method = json['method'];
     // Sanity check operations that modify source
     // to ensure that the operation is on source in temp space
-    if (method == ANALYSIS_UPDATE_CONTENT) {
+    if (method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
       // Track overlays in parallel with the analysis server
       // so that when an overlay is removed, the file can be updated on disk
       Request request = new Request.fromJson(json);
@@ -142,29 +142,29 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
       return new RequestOperation(this, json);
     }
     // Track performance for completion notifications
-    if (method == COMPLETION_GET_SUGGESTIONS) {
+    if (method == COMPLETION_REQUEST_GET_SUGGESTIONS) {
       return new CompletionRequestOperation(this, json);
     }
     // TODO(danrubel) replace this with code
     // that just forwards the translated request
-    if (method == ANALYSIS_GET_HOVER ||
-        method == ANALYSIS_SET_ANALYSIS_ROOTS ||
-        method == ANALYSIS_SET_PRIORITY_FILES ||
-        method == ANALYSIS_SET_SUBSCRIPTIONS ||
-        method == ANALYSIS_UPDATE_OPTIONS ||
-        method == EDIT_GET_ASSISTS ||
-        method == EDIT_GET_AVAILABLE_REFACTORINGS ||
-        method == EDIT_GET_FIXES ||
-        method == EDIT_GET_REFACTORING ||
-        method == EDIT_SORT_MEMBERS ||
-        method == EXECUTION_CREATE_CONTEXT ||
-        method == EXECUTION_DELETE_CONTEXT ||
-        method == EXECUTION_MAP_URI ||
-        method == EXECUTION_SET_SUBSCRIPTIONS ||
-        method == SEARCH_FIND_ELEMENT_REFERENCES ||
-        method == SEARCH_FIND_MEMBER_DECLARATIONS ||
-        method == SERVER_GET_VERSION ||
-        method == SERVER_SET_SUBSCRIPTIONS) {
+    if (method == ANALYSIS_REQUEST_GET_HOVER ||
+        method == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS ||
+        method == ANALYSIS_REQUEST_SET_PRIORITY_FILES ||
+        method == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS ||
+        method == ANALYSIS_REQUEST_UPDATE_OPTIONS ||
+        method == EDIT_REQUEST_GET_ASSISTS ||
+        method == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS ||
+        method == EDIT_REQUEST_GET_FIXES ||
+        method == EDIT_REQUEST_GET_REFACTORING ||
+        method == EDIT_REQUEST_SORT_MEMBERS ||
+        method == EXECUTION_REQUEST_CREATE_CONTEXT ||
+        method == EXECUTION_REQUEST_DELETE_CONTEXT ||
+        method == EXECUTION_REQUEST_MAP_URI ||
+        method == EXECUTION_REQUEST_SET_SUBSCRIPTIONS ||
+        method == SEARCH_REQUEST_FIND_ELEMENT_REFERENCES ||
+        method == SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS ||
+        method == SERVER_REQUEST_GET_VERSION ||
+        method == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
       return new RequestOperation(this, json);
     }
     throw 'unknown request: $method\n  $json';
@@ -269,7 +269,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 /**
  * [InputConverter] converts an input stream
  * into a series of operations to be sent to the analysis server.
- * The input stream can be either an instrumenation or log file.
+ * The input stream can be either an instrumentation or log file.
  */
 class InputConverter extends Converter<String, Operation> {
   final Logger logger = new Logger('InputConverter');

@@ -40,6 +40,9 @@ abstract class BackendUsage {
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
 
+  /// `true` if 'dart:mirrors' features are used.
+  bool get isMirrorsUsed;
+
   /// `true` if `noSuchMethod` is used.
   bool get isNoSuchMethodUsed;
 }
@@ -115,6 +118,9 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
 
+  /// `true` if 'dart:mirrors' features are used.
+  bool isMirrorsUsed = false;
+
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
 
@@ -154,7 +160,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         return false;
       }
     }
-    // TODO(johnniwinther): Support remaining checks on [Entity]s.
+    // TODO(redemption): Support remaining checks on [Entity]s.
     return true;
   }
 
@@ -241,6 +247,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
       isInvokeOnUsed = true;
     } else if (_commonElements.isFunctionApplyMethod(member)) {
       isFunctionApplyUsed = true;
+    } else if (member.library == _commonElements.mirrorsLibrary) {
+      isMirrorsUsed = true;
     }
   }
 
@@ -273,6 +281,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         isRuntimeTypeUsed: isRuntimeTypeUsed,
         isIsolateInUse: isIsolateInUse,
         isFunctionApplyUsed: isFunctionApplyUsed,
+        isMirrorsUsed: isMirrorsUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed);
   }
 }
@@ -306,6 +315,9 @@ class BackendUsageImpl implements BackendUsage {
   /// `true` if `Function.apply` is used.
   final bool isFunctionApplyUsed;
 
+  /// `true` if 'dart:mirrors' features are used.
+  final bool isMirrorsUsed;
+
   /// `true` if `noSuchMethod` is used.
   final bool isNoSuchMethodUsed;
 
@@ -321,6 +333,7 @@ class BackendUsageImpl implements BackendUsage {
       this.isRuntimeTypeUsed,
       this.isIsolateInUse,
       this.isFunctionApplyUsed,
+      this.isMirrorsUsed,
       this.isNoSuchMethodUsed})
       : this._globalFunctionDependencies = globalFunctionDependencies,
         this._globalClassDependencies = globalClassDependencies,

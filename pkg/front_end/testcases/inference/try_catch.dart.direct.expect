@@ -1,0 +1,40 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method test(() → void f) → void {
+  try {
+    dynamic x = 0;
+    f.call();
+  }
+  on self::C catch(no-exception-var) {
+    dynamic x = 0;
+  }
+  on self::D catch(final self::D x) {
+    dynamic x2 = x;
+  }
+  on self::E catch(final self::E x, final core::StackTrace y) {
+    dynamic x2 = x;
+    dynamic y2 = y;
+  }
+  on dynamic catch(final dynamic x, final core::StackTrace y) {
+    dynamic x2 = x;
+    dynamic y2 = y;
+  }
+}
+static method main() → dynamic {}

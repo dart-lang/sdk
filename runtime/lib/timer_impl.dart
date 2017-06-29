@@ -244,7 +244,7 @@ class _Timer implements Timer {
     }
   }
 
-  // Enqeue one message for each zero timer. To be able to distinguish from
+  // Enqueue one message for each zero timer. To be able to distinguish from
   // EventHandler messages we send a _ZERO_EVENT instead of a _TIMEOUT_EVENT.
   static void _notifyZeroHandler() {
     if (_sendPort == null) {

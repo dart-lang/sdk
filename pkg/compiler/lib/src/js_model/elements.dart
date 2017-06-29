@@ -103,7 +103,7 @@ class JsToFrontendMapImpl implements JsToFrontendMap {
       } else if (member.isConstructor) {
         ConstructorEntity constructor = member;
         if (constructor.isFactoryConstructor) {
-          // TODO(johnniwinther): This should be a JFunction.
+          // TODO(redemption): This should be a JFunction.
           newMember = new JFactoryConstructor(_toBackendMember.length, cls,
               memberName, constructor.parameterStructure,
               isExternal: constructor.isExternal,
@@ -465,6 +465,7 @@ class JTypeVariable implements TypeVariableEntity {
 class JsClosedWorld extends ClosedWorldBase {
   JsClosedWorld(
       {ElementEnvironment elementEnvironment,
+      DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
@@ -480,6 +481,7 @@ class JsClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, ClassSet> classSets})
       : super(
             elementEnvironment: elementEnvironment,
+            dartTypes: dartTypes,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,
@@ -713,6 +715,9 @@ class JsBackendUsage implements BackendUsage {
 
   @override
   bool get isFunctionApplyUsed => _backendUsage.isFunctionApplyUsed;
+
+  @override
+  bool get isMirrorsUsed => _backendUsage.isMirrorsUsed;
 
   @override
   bool get isNoSuchMethodUsed => _backendUsage.isNoSuchMethodUsed;

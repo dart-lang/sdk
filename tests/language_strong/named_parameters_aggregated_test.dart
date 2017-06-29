@@ -41,7 +41,7 @@ main() {
     , 25 // //# 02: continued
       );
 
-  // Expect compile-time erorr due to duplicate named argument.
+  // Expect compile-time error due to duplicate named argument.
   NamedParametersAggregatedTests.F31(10, b: 25
     , b:35 //  //# 04: compile-time error
       );

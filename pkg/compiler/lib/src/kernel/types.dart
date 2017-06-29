@@ -46,6 +46,11 @@ class _KernelDartTypes extends DartTypes {
   }
 
   @override
+  Iterable<InterfaceType> getInterfaces(ClassEntity cls) {
+    return elementMap._getInterfaces(cls);
+  }
+
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     return elementMap._asInstanceOf(type, cls);
   }
@@ -57,7 +62,7 @@ class _KernelDartTypes extends DartTypes {
 
   @override
   FunctionType getCallType(InterfaceType type) {
-    // TODO(johnniwinther): Compute the call type.
+    // TODO(redemption): Compute the call type.
     return null;
   }
 
@@ -107,13 +112,13 @@ abstract class _AbstractTypeRelationMixin
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity element) {
-    // TODO(johnniwinther): Compute the bound.
+    // TODO(redemption): Compute the bound.
     return commonElements.objectType;
   }
 
   @override
   FunctionType getCallType(InterfaceType type) {
-    // TODO(johnniwinther): Compute the call type.
+    // TODO(redemption): Compute the call type.
     return null;
   }
 

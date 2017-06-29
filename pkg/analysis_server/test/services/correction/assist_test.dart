@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -335,6 +336,7 @@ main() {
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
 import 'dart:async';
+
 import 'my_lib.dart';
 main() {
   for (Future<int> future in getFutures()) {
@@ -484,6 +486,7 @@ main() {
         DartAssistKind.ADD_TYPE_ANNOTATION,
         '''
 import 'dart:async';
+
 import 'my_lib.dart';
 main() {
   Future<int> v = getFutureInt();
@@ -529,6 +532,7 @@ main() {
           '''
 library my_app;
 import 'dart:async';
+
 import 'my_lib.dart';
 part 'test.dart';
 ''');

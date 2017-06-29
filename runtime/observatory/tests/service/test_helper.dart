@@ -389,7 +389,7 @@ class _ServiceTesterRunner {
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
+/// to run tests or testee in this invocation of the script.
 Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
     {testeeBefore(),
     testeeConcurrent(),
@@ -424,7 +424,7 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
+/// to run tests or testee in this invocation of the script.
 ///
 /// This is a special version of this test harness specifically for the
 /// pause_on_unhandled_exceptions_test, which cannot properly function
@@ -460,7 +460,7 @@ void runIsolateTestsSynchronous(List<String> mainArgs, List<IsolateTest> tests,
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
+/// to run tests or testee in this invocation of the script.
 Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     {testeeBefore(),
     testeeConcurrent(),

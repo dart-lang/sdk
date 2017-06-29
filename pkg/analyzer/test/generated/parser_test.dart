@@ -2896,6 +2896,16 @@ class Foo {
         "void f(var x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
 
+  void test_genericFunctionType_extraLessThan() {
+    createParser('''
+class Wrong<T> {
+  T Function(<List<int> foo) bar;
+}''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+  }
+
   void test_getterInFunction_block_noReturnType() {
     FunctionDeclarationStatement statement =
         parseStatement("get x { return _x; }");
@@ -4155,7 +4165,7 @@ main() {
     parseExpression("f()++", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
-  void test_unexpectedToken_returnInExpressionFuntionBody() {
+  void test_unexpectedToken_returnInExpressionFunctionBody() {
     parseCompilationUnit(
         "f() => return null;", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
@@ -12252,6 +12262,30 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(statement.condition, isNotNull);
     expect(statement.comma, isNotNull);
     expect(statement.message, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_trailingComma_message() {
+    var statement = parseStatement('assert (x, "m",);') as AssertStatement;
+    assertNoErrors();
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_trailingComma_noMessage() {
+    var statement = parseStatement('assert (x,);') as AssertStatement;
+    assertNoErrors();
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNull);
+    expect(statement.message, isNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.semicolon, isNotNull);
   }

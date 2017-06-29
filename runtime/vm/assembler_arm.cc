@@ -3471,7 +3471,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
 
-    uint32_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
@@ -3520,7 +3520,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
-    uint32_t tags = 0;
+    uword tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
     LoadImmediate(temp1, tags);

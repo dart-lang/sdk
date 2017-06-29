@@ -673,6 +673,19 @@ class C {
     expect(file.apiSignature, signature);
   }
 
+  test_subtypedNames() {
+    String path = _p('/test.dart');
+    provider.newFile(
+        path,
+        r'''
+class X extends A {}
+class Y extends A with B {}
+class Z implements C, D {}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(file.referencedNames, unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   test_topLevelDeclarations() {
     String path = _p('/aaa/lib/a.dart');
     provider.newFile(

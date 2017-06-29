@@ -2312,7 +2312,7 @@ END_LEAF_RUNTIME_ENTRY
 double DartModulo(double left, double right) {
   double remainder = fmod_ieee(left, right);
   if (remainder == 0.0) {
-    // We explicitely switch to the positive 0.0 (just in case it was negative).
+    // We explicitly switch to the positive 0.0 (just in case it was negative).
     remainder = +0.0;
   } else if (remainder < 0.0) {
     if (right < 0) {

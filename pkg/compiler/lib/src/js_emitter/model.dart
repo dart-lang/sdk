@@ -8,6 +8,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
+import '../js/js_debug.dart' as js show nodeToString;
 import 'js_emitter.dart' show MetadataCollector;
 
 class Program {
@@ -483,6 +484,10 @@ class InstanceMethod extends DartMethod {
 class StubMethod extends Method {
   StubMethod(js.Name name, js.Expression code, {MemberEntity element})
       : super(element, name, code);
+
+  String toString() {
+    return 'stub[name=${name},element=${element},code=${js.nodeToString(code)}]';
+  }
 }
 
 /// A stub that adapts and redirects to the main method (the one containing)
@@ -537,6 +542,10 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
             functionType: functionType);
 
   bool get isStatic => true;
+
+  String toString() {
+    return 'static_method[name=${name},element=${element}}]';
+  }
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {

@@ -23,9 +23,33 @@ import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
  */
 class TypeMemberContributor implements CompletionContributor {
   /**
+   * Plugin contributors should primarily overload this function.
+   * Should more parameters be needed for autocompletion needs, the
+   * overloaded function should define those parameters and
+   * call on `computeSuggestionsWithEntryPoint`.
+   */
+  @override
+  Future<Null> computeSuggestions(
+      DartCompletionRequest request, CompletionCollector collector) async {
+    LibraryElement containingLibrary = request.result.libraryElement;
+    // Gracefully degrade if the library element is not resolved
+    // e.g. detached part file or source change
+    if (containingLibrary == null) {
+      return;
+    }
+
+    // Recompute the target since resolution may have changed it
+    Expression expression = _computeDotTarget(request, null);
+    if (expression == null || expression.isSynthetic) {
+      return;
+    }
+    _computeSuggestions(request, collector, containingLibrary, expression);
+  }
+
+  /**
    * Clients should not overload this function.
    */
-  Future<Null> computeSuggestionsWithEntryPoint(CompletionRequest request,
+  Future<Null> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
       CompletionCollector collector, AstNode entryPoint) async {
     LibraryElement containingLibrary = request.result.libraryElement;
     // Gracefully degrade if the library element is not resolved
@@ -43,31 +67,38 @@ class TypeMemberContributor implements CompletionContributor {
   }
 
   /**
-   * Plugin contributors should primarily overload this function.
-   * Should more parameters be needed for autocompletion needs, the
-   * overloaded function should define those parameters and
-   * call on `computeSuggestionsWithEntryPoint`.
+   * Update the completion [target] and [dotTarget] based on the given [unit].
    */
-  @override
-  Future<Null> computeSuggestions(
-      CompletionRequest request, CompletionCollector collector) async {
-    LibraryElement containingLibrary = request.result.libraryElement;
-    // Gracefully degrade if the library element is not resolved
-    // e.g. detached part file or source change
-    if (containingLibrary == null) {
-      return;
+  Expression _computeDotTarget(
+      DartCompletionRequest request, AstNode entryPoint) {
+    CompletionTarget target = new CompletionTarget.forOffset(
+        request.result.unit, request.offset,
+        entryPoint: entryPoint);
+    AstNode node = target.containingNode;
+    if (node is MethodInvocation) {
+      if (identical(node.methodName, target.entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
+        return node.realTarget;
+      }
     }
-
-    // Recompute the target since resolution may have changed it
-    Expression expression = _computeDotTarget(request, null);
-    if (expression == null || expression.isSynthetic) {
-      return;
+    if (node is PropertyAccess) {
+      if (identical(node.propertyName, target.entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
+        return node.realTarget;
+      }
     }
-    _computeSuggestions(request, collector, containingLibrary, expression);
+    if (node is PrefixedIdentifier) {
+      if (identical(node.identifier, target.entity)) {
+        return node.prefix;
+      }
+    }
+    return null;
   }
 
   void _computeSuggestions(
-      CompletionRequest request,
+      DartCompletionRequest request,
       CompletionCollector collector,
       LibraryElement containingLibrary,
       Expression expression) {
@@ -135,36 +166,6 @@ class TypeMemberContributor implements CompletionContributor {
           request.resourceProvider, collector, containingLibrary);
       builder.buildSuggestions(type, containingMethodName);
     }
-  }
-
-  /**
-   * Update the completion [target] and [dotTarget] based on the given [unit].
-   */
-  Expression _computeDotTarget(CompletionRequest request, AstNode entryPoint) {
-    CompletionTarget target = new CompletionTarget.forOffset(
-        request.result.unit, request.offset,
-        entryPoint: entryPoint);
-    AstNode node = target.containingNode;
-    if (node is MethodInvocation) {
-      if (identical(node.methodName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
-        return node.realTarget;
-      }
-    }
-    if (node is PropertyAccess) {
-      if (identical(node.propertyName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
-        return node.realTarget;
-      }
-    }
-    if (node is PrefixedIdentifier) {
-      if (identical(node.identifier, target.entity)) {
-        return node.prefix;
-      }
-    }
-    return null;
   }
 }
 

@@ -39,7 +39,8 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 import 'testing/suite.dart';
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+main(List<String> arguments) =>
+    runMe(arguments, createContext, "../../testing.json");
 
 Future<TreeShakerContext> createContext(
     Chain suite, Map<String, String> environment) {

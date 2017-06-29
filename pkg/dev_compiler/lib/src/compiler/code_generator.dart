@@ -9,8 +9,8 @@ import 'dart:math' show min, max;
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
@@ -4703,12 +4703,6 @@ class CodeGenerator extends Object
       js.call('# == null ? null : #',
           [_visit(t), _visit(_stripNullAwareOp(node, t))])
     ]);
-  }
-
-  static Token _getOperator(Expression node) {
-    if (node is PropertyAccess) return node.operator;
-    if (node is MethodInvocation) return node.operator;
-    return null;
   }
 
   // TODO(jmesserly): this is dropping source location.

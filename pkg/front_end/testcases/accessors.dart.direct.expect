@@ -14,7 +14,7 @@ class C extends core::Object {
       core::print(this.onlySetter);
       throw "No error thrown";
     }
-    on core::NoSuchMethodError catch(final dynamic e) {
+    on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
       core::print("Expected error: ${e}");
     }
     this.onlySetter = "hest";
@@ -42,7 +42,7 @@ static method main() → dynamic {
     core::print(throw new core::NoSuchMethodError::_withType(null, #onlySetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null));
     throw "No error thrown";
   }
-  on core::NoSuchMethodError catch(final dynamic e) {
+  on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
     core::print("Expected error: ${e}");
   }
   self::onlySetter = "fisk";

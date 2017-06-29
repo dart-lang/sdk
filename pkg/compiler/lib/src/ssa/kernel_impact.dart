@@ -63,7 +63,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 }
 
 ResolutionImpact buildKernelImpact(
-    ir.Member member, KernelToElementMap elementAdapter) {
+    ir.Member member, KernelToElementMapForImpact elementAdapter) {
   KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
@@ -77,7 +77,7 @@ ResolutionImpact buildKernelImpact(
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
-  final KernelToElementMap elementAdapter;
+  final KernelToElementMapForImpact elementAdapter;
   final ir.Member currentMember;
 
   KernelImpactBuilder(this.elementAdapter, this.currentMember)
@@ -124,7 +124,7 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      // TODO(redemption): Provide the correct value for [isJsInterop].
       impactBuilder.registerNativeData(elementAdapter
           .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
       impactBuilder.registerNativeData(
@@ -165,7 +165,7 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      // TODO(redemption): Provide the correct value for [isJsInterop].
       impactBuilder.registerNativeData(elementAdapter
           .getNativeBehaviorForMethod(procedure, isJsInterop: false));
     }

@@ -87,6 +87,12 @@ class TypeInferenceListener
   void asExpressionExit(AsExpression expression, DartType inferredType) =>
       debugExpressionExit("asExpression", expression, inferredType);
 
+  void assertStatementEnter(AssertStatement statement) =>
+      debugStatementEnter('assertStatement', statement);
+
+  void assertStatementExit(AssertStatement statement) =>
+      debugStatementExit('assertStatement', statement);
+
   bool awaitExpressionEnter(AwaitExpression expression, DartType typeContext) =>
       debugExpressionEnter("awaitExpression", expression, typeContext);
 
@@ -102,6 +108,12 @@ class TypeInferenceListener
 
   void boolLiteralExit(BoolLiteral expression, DartType inferredType) =>
       debugExpressionExit("boolLiteral", expression, inferredType);
+
+  void breakStatementEnter(BreakStatement statement) =>
+      debugStatementEnter('breakStatement', statement);
+
+  void breakStatementExit(BreakStatement statement) =>
+      debugStatementExit('breakStatement', statement);
 
   bool cascadeExpressionEnter(Let expression, DartType typeContext) =>
       debugExpressionEnter("cascade", expression, typeContext);
@@ -124,6 +136,18 @@ class TypeInferenceListener
   void constructorInvocationExit(
           InvocationExpression expression, DartType inferredType) =>
       debugExpressionExit("constructorInvocation", expression, inferredType);
+
+  void continueSwitchStatementEnter(ContinueSwitchStatement statement) =>
+      debugStatementEnter('continueSwitchStatement', statement);
+
+  void continueSwitchStatementExit(ContinueSwitchStatement statement) =>
+      debugStatementExit('continueSwitchStatement', statement);
+
+  void doStatementEnter(DoStatement statement) =>
+      debugStatementEnter("doStatement", statement);
+
+  void doStatementExit(DoStatement statement) =>
+      debugStatementExit("doStatement", statement);
 
   bool doubleLiteralEnter(DoubleLiteral expression, DartType typeContext) =>
       debugExpressionEnter("doubleLiteral", expression, typeContext);
@@ -148,6 +172,12 @@ class TypeInferenceListener
 
   void forInStatementExit(ForInStatement statement) =>
       debugStatementExit('forInStatement', statement);
+
+  void forStatementEnter(ForStatement statement) =>
+      debugStatementEnter('forStatement', statement);
+
+  void forStatementExit(ForStatement statement) =>
+      debugStatementExit('forStatement', statement);
 
   void functionDeclarationEnter(FunctionDeclaration statement) =>
       debugStatementEnter('functionDeclaration', statement);
@@ -199,11 +229,25 @@ class TypeInferenceListener
   void isNotExpressionExit(Not expression, DartType inferredType) =>
       debugExpressionExit("isNotExpression", expression, inferredType);
 
+  void labeledStatementEnter(LabeledStatement statement) =>
+      debugStatementEnter('labeledStatement', statement);
+
+  void labeledStatementExit(LabeledStatement statement) =>
+      debugStatementExit('labeledStatement', statement);
+
   bool listLiteralEnter(ListLiteral expression, DartType typeContext) =>
       debugExpressionEnter("listLiteral", expression, typeContext);
 
   void listLiteralExit(ListLiteral expression, DartType inferredType) =>
       debugExpressionExit("listLiteral", expression, inferredType);
+
+  bool logicalExpressionEnter(
+          LogicalExpression expression, DartType typeContext) =>
+      debugExpressionEnter("logicalExpression", expression, typeContext);
+
+  void logicalExpressionExit(
+          LogicalExpression expression, DartType inferredType) =>
+      debugExpressionExit("logicalExpression", expression, inferredType);
 
   bool mapLiteralEnter(MapLiteral expression, DartType typeContext) =>
       debugExpressionEnter("mapLiteral", expression, typeContext);
@@ -256,6 +300,12 @@ class TypeInferenceListener
   void redirectingInitializerExit(RedirectingInitializer initializer) =>
       debugInitializerExit("redirectingInitializer", initializer);
 
+  bool rethrowEnter(Rethrow expression, DartType typeContext) =>
+      debugExpressionEnter('rethrow', expression, typeContext);
+
+  void rethrowExit(Rethrow expression, DartType inferredType) =>
+      debugExpressionExit('rethrow', expression, inferredType);
+
   void returnStatementEnter(ReturnStatement statement) =>
       debugStatementEnter('returnStatement', statement);
 
@@ -296,6 +346,48 @@ class TypeInferenceListener
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
       debugExpressionExit("StringLiteral", expression, inferredType);
 
+  void switchStatementEnter(SwitchStatement statement) =>
+      debugStatementEnter('switchStatement', statement);
+
+  void switchStatementExit(SwitchStatement statement) =>
+      debugStatementExit('switchStatement', statement);
+
+  bool symbolLiteralEnter(SymbolLiteral expression, DartType typeContext) =>
+      debugExpressionEnter("symbolLiteral", expression, typeContext);
+
+  void symbolLiteralExit(SymbolLiteral expression, DartType inferredType) =>
+      debugExpressionExit("symbolLiteral", expression, inferredType);
+
+  bool thisExpressionEnter(ThisExpression expression, DartType typeContext) =>
+      debugExpressionEnter("thisExpression", expression, typeContext);
+
+  void thisExpressionExit(ThisExpression expression, DartType inferredType) =>
+      debugExpressionExit("thisExpression", expression, inferredType);
+
+  bool throwEnter(Throw expression, DartType typeContext) =>
+      debugExpressionEnter('throw', expression, typeContext);
+
+  void throwExit(Throw expression, DartType inferredType) =>
+      debugExpressionExit('throw', expression, inferredType);
+
+  void tryCatchEnter(TryCatch statement) =>
+      debugStatementEnter('tryCatch', statement);
+
+  void tryCatchExit(TryCatch statement) =>
+      debugStatementExit('tryCatch', statement);
+
+  void tryFinallyEnter(TryFinally statement) =>
+      debugStatementEnter('tryFinally', statement);
+
+  void tryFinallyExit(TryFinally statement) =>
+      debugStatementExit('tryFinally', statement);
+
+  bool typeLiteralEnter(TypeLiteral expression, DartType typeContext) =>
+      debugExpressionEnter("typeLiteral", expression, typeContext);
+
+  void typeLiteralExit(TypeLiteral expression, DartType inferredType) =>
+      debugExpressionExit("typeLiteral", expression, inferredType);
+
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("variableAssign", expression, typeContext);
 
@@ -319,6 +411,12 @@ class TypeInferenceListener
 
   void variableSetExit(VariableSet expression, DartType inferredType) =>
       debugExpressionExit("variableSet", expression, inferredType);
+
+  void whileStatementEnter(WhileStatement statement) =>
+      debugStatementEnter("whileStatement", statement);
+
+  void whileStatementExit(WhileStatement statement) =>
+      debugStatementExit("whileStatement", statement);
 
   void yieldStatementEnter(YieldStatement statement) =>
       debugStatementEnter('yieldStatement', statement);

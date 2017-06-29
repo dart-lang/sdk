@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/native_data.dart' show NativeData;
@@ -280,28 +278,29 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     }
   }
 
-  void _addSubtypes(ClassElement cls, NativeEmitter emitter) {
+  void _addSubtypes(ClassEntity cls, NativeEmitter emitter) {
     if (!_nativeData.isNativeClass(cls)) return;
     if (_doneAddSubtypes.contains(cls)) return;
     _doneAddSubtypes.add(cls);
 
     // Walk the superclass chain since classes on the superclass chain might not
     // be instantiated (abstract or simply unused).
-    _addSubtypes(cls.superclass, emitter);
+    _addSubtypes(_elementEnvironment.getSuperClass(cls), emitter);
 
-    for (ResolutionInterfaceType type in cls.allSupertypes) {
+    _elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
       List<ClassEntity> subtypes =
           emitter.subtypes.putIfAbsent(type.element, () => <ClassEntity>[]);
       subtypes.add(cls);
-    }
+    });
 
     // Skip through all the mixin applications in the super class
     // chain. That way, the direct subtypes set only contain the
     // natives classes.
-    ClassElement superclass = cls.superclass;
-    while (superclass != null && superclass.isMixinApplication) {
+    ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
+    while (superclass != null &&
+        _elementEnvironment.isMixinApplication(superclass)) {
       assert(!_nativeData.isNativeClass(superclass));
-      superclass = superclass.superclass;
+      superclass = _elementEnvironment.getSuperClass(superclass);
     }
 
     List<ClassEntity> directSubtypes =

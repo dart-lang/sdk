@@ -60,6 +60,7 @@ namespace dart {
 #define Z (T->zone())
 
 
+DECLARE_FLAG(bool, use_dart_frontend);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -1301,7 +1302,7 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
       // We exit the API scope entered above.
       Dart_ExitScope();
       // A Thread structure has been associated to the thread, we do the
-      // safepoint transition explicity here instead of using the
+      // safepoint transition explicitly here instead of using the
       // TransitionXXX scope objects as the reverse transition happens
       // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
       T->set_execution_state(Thread::kThreadInNative);
@@ -1352,7 +1353,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
     // The Thread structure is disassociated from the isolate, we do the
-    // safepoint transition explicity here instead of using the TransitionXXX
+    // safepoint transition explicitly here instead of using the TransitionXXX
     // scope objects as the original transition happened outside this scope in
     // Dart_EnterIsolate/Dart_CreateIsolate.
     T->ExitSafepoint();
@@ -1404,7 +1405,7 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
         "Dart VM is shutting down");
   }
   // A Thread structure has been associated to the thread, we do the
-  // safepoint transition explicity here instead of using the
+  // safepoint transition explicitly here instead of using the
   // TransitionXXX scope objects as the reverse transition happens
   // outside this scope in Dart_ExitIsolate/Dart_ShutdownIsolate.
   Thread* T = Thread::Current();
@@ -1546,7 +1547,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
   // The Thread structure is disassociated from the isolate, we do the
-  // safepoint transition explicity here instead of using the TransitionXXX
+  // safepoint transition explicitly here instead of using the TransitionXXX
   // scope objects as the original transition happened outside this scope in
   // Dart_EnterIsolate/Dart_CreateIsolate.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
@@ -5642,6 +5643,22 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static Dart_Handle LoadKernelProgram(Dart_Handle url, Thread* T, void* kernel) {
+  kernel::KernelReader reader(reinterpret_cast<kernel::Program*>(kernel));
+  const Object& tmp = reader.ReadProgram();
+  if (tmp.IsError()) {
+    return Api::NewHandle(T, tmp.raw());
+  }
+
+  const String& url_str = Api::UnwrapStringHandle(Z, url);
+  Library& library =
+      Library::Handle(T->zone(), Library::LookupLibrary(T, url_str));
+  return Api::NewHandle(T, library.raw());
+}
+#endif
+
+
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle resolved_url,
                                          Dart_Handle source,
@@ -5650,6 +5667,16 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Kernel isolate is loaded from script in case of dart_bootstrap
+  // even when FLAG_use_dart_frontend is true. Hence, do not interpret
+  // |source| as a kernel if the current isolate is the kernel isolate.
+  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+    return LoadKernelProgram(url, T, reinterpret_cast<void*>(source));
+  }
+#endif
+
   const String& url_str = Api::UnwrapStringHandle(Z, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
@@ -5883,7 +5910,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   I->DoneLoading();
 
   // TODO(hausner): move the remaining code below (finalization and
-  // invoing of _completeDeferredLoads) into Isolate::DoneLoading().
+  // invoking of _completeDeferredLoads) into Isolate::DoneLoading().
 
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);

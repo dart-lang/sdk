@@ -12,7 +12,7 @@ import 'package:yaml/yaml.dart';
 /// Validates options as defined in an analysis options file.
 ///
 /// The options file format is intentionally very open-ended, giving clients
-/// utmost flexibility in defining their own options.  The only hardfast
+/// utmost flexibility in defining their own options.  The only hard and fast
 /// expectation is that options files will contain a mapping from Strings
 /// (identifying 'scopes') to associated options.  For example, the given
 /// content

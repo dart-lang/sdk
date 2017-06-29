@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic y = self::run<dynamic>(self::printRunning);
+static method run<T extends core::Object>(() → self::run::T f) → self::run::T {
+  core::print("running");
+  dynamic t = f.call();
+  core::print("done running");
+  return t;
+}
+static method printRunning() → void {
+  core::print("running");
+}
+static method main() → dynamic {}

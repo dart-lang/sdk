@@ -1085,17 +1085,17 @@ class Constructor extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     name?.accept(v);
-    function?.accept(v);
     visitList(initializers, v);
+    function?.accept(v);
   }
 
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
+    transformList(initializers, v, this);
     if (function != null) {
       function = function.accept(v);
       function?.parent = this;
     }
-    transformList(initializers, v, this);
   }
 
   DartType get getterType => const BottomType();
@@ -1551,7 +1551,7 @@ abstract class Expression extends TreeNode {
   /// Should only be used on code compiled in strong mode, as this method
   /// assumes the IR is strongly typed.
   ///
-  /// This method futhermore assumes that the type of the expression actually
+  /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].
   /// If this is not the case, either an exception is thrown or the raw type of
   /// [superclass] is returned.
@@ -4244,9 +4244,9 @@ class TypeParameterType extends DartType {
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
   /// is therefore the same as the bound of [parameter].
-  DartType bound;
+  DartType promotedBound;
 
-  TypeParameterType(this.parameter, [this.bound]);
+  TypeParameterType(this.parameter, [this.promotedBound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
 
@@ -4257,6 +4257,9 @@ class TypeParameterType extends DartType {
   }
 
   int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+
+  /// Returns the bound of the type parameter, accounting for promotions.
+  DartType get bound => promotedBound ?? parameter.bound;
 }
 
 /// Declaration of a type variable.

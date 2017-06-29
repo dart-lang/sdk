@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
@@ -32,7 +32,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   int replacementOffset;
   int replacementLength;
   CompletionContributor contributor;
-  CompletionRequest request;
+  DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
 
   /**
@@ -455,10 +455,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions() async {
-    AnalysisResult analysisResult = await driver.getResult(testFile);
-    testSource = analysisResult.unit.element.source;
-    request =
-        new CompletionRequestImpl(provider, analysisResult, completionOffset);
+    ResolveResult result = await driver.getResult(testFile);
+    testSource = result.unit.element.source;
+    request = new DartCompletionRequestImpl(provider, completionOffset, result);
 
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);

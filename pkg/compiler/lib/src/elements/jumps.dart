@@ -12,29 +12,27 @@ abstract class LabelDefinition<T> extends Entity {
   String get labelName;
   JumpTarget<T> get target;
 
-  bool get isTarget;
+  bool get isTarget => isBreakTarget || isContinueTarget;
+
   bool get isBreakTarget;
   bool get isContinueTarget;
-
-  void setBreakTarget();
-  void setContinueTarget();
 }
 
 /// A jump target is the reference point of a statement or switch-case,
 /// either by label or as the default target of a break or continue.
 abstract class JumpTarget<T> extends Local {
+  String get name => 'target';
+
+  bool get isTarget => isBreakTarget || isContinueTarget;
+
   T get statement;
   int get nestingLevel;
   List<LabelDefinition<T>> get labels;
 
-  bool get isTarget;
   bool get isBreakTarget;
   bool get isContinueTarget;
   bool get isSwitch;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set isBreakTarget(bool value);
-  void set isContinueTarget(bool value);
-
-  LabelDefinition<T> addLabel(covariant T label, String labelName);
+  LabelDefinition<T> addLabel(covariant T label, String labelName,
+      {bool isBreakTarget: false});
 }

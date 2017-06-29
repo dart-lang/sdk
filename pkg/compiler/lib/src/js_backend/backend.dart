@@ -744,7 +744,9 @@ class JavaScriptBackend {
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
-        compiler.enqueuer.resolution.worldBuilder, closedWorld, compiler.types,
+        compiler.enqueuer.resolution.worldBuilder,
+        closedWorld,
+        compiler.frontendStrategy.dartTypes,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
@@ -965,7 +967,7 @@ class JavaScriptBackend {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
-    // TODO(johnniwinther): Support `preMirrorsMethodCount` for entities.
+    // TODO(redemption): Support `preMirrorsMethodCount` for entities.
     if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
         totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
       int mirrorCount =

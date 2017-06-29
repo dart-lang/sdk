@@ -115,11 +115,11 @@ abstract class num implements Comparable<num> {
   /**
    * Euclidean modulo operator.
    *
-   * Returns the remainder of the euclidean division. The euclidean division of
+   * Returns the remainder of the Euclidean division. The Euclidean division of
    * two integers `a` and `b` yields two integers `q` and `r` such that
    * `a == b * q + r` and `0 <= r < b.abs()`.
    *
-   * The euclidean division is only defined for integers, but can be easily
+   * The Euclidean division is only defined for integers, but can be easily
    * extended to work with doubles. In that case `r` may have a non-integer
    * value, but it still verifies `0 <= r < |b|`.
    *

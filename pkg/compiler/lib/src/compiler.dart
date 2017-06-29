@@ -32,7 +32,6 @@ import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart' show ResolutionDartType, Types;
-import 'elements/types.dart' show DartTypes;
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
@@ -84,7 +83,6 @@ abstract class Compiler {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  DartTypes types;
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
@@ -197,7 +195,6 @@ abstract class Compiler {
         ? new KernelBackendStrategyImpl(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
-    types = new Types(_resolution);
 
     if (options.verbose) {
       progress = new Stopwatch()..start();
@@ -1294,8 +1291,11 @@ class CompilerResolution implements Resolution {
       <Element, ResolutionImpact>{};
   final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
   bool retainCachesForTesting = false;
+  Types _types;
 
-  CompilerResolution(this._compiler);
+  CompilerResolution(this._compiler) {
+    _types = new Types(this);
+  }
 
   @override
   DiagnosticReporter get reporter => _compiler.reporter;
@@ -1312,7 +1312,7 @@ class CompilerResolution implements Resolution {
       _compiler.frontendStrategy.commonElements;
 
   @override
-  Types get types => _compiler.types;
+  Types get types => _types;
 
   @override
   Target get target => _compiler.backend.target;

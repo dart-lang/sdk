@@ -9,9 +9,6 @@ main() {
   // prematurely.
   // Note: if you change this file, also change
   // tests/compiler/dart2js/fasta_analyze_test.dart.
-  return testing.main(<String>[
-    "--config=pkg/front_end/test/fasta/testing.json",
-    "--verbose",
-    "analyze"
-  ]);
+  return testing.main(
+      <String>["--config=pkg/front_end/testing.json", "--verbose", "analyze"]);
 }

@@ -752,24 +752,6 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
-  static Path _findPubspecYamlFile(Path filePath) {
-    var root = TestUtils.dartDir;
-    assert("$filePath".startsWith("$root"));
-
-    // We start with the parent directory of [filePath] and go up until
-    // the root directory (excluding the root).
-    List<String> segments = filePath.directoryPath.relativeTo(root).segments();
-    while (segments.length > 0) {
-      var pubspecYamlPath = new Path(segments.join('/')).append('pubspec.yaml');
-      if (TestUtils.existsCache.doesFileExist(pubspecYamlPath.toNativePath())) {
-        return root.join(pubspecYamlPath);
-      }
-      segments.removeLast();
-    }
-
-    return null;
-  }
-
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
         multitestName: info.optionsFromFile['isMultitest'] as bool
@@ -777,7 +759,7 @@ class StandardTestSuite extends TestSuite {
             : "");
     Set<Expectation> expectations = testExpectations.expectations(testName);
     if (info is HtmlTestInformation) {
-      enqueueHtmlTest(info, testName, expectations);
+      _enqueueHtmlTest(info, testName, expectations);
       return;
     }
 
@@ -810,7 +792,8 @@ class StandardTestSuite extends TestSuite {
 
       if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
         // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expecations for one entire test file.
+        // Find all the different sub-test expectations for one entire test
+        // file.
         var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
         expectationsMap = <String, Set<Expectation>>{};
         for (var name in subtestNames) {
@@ -822,7 +805,7 @@ class StandardTestSuite extends TestSuite {
         expectationsMap = {testName: expectations};
       }
 
-      enqueueBrowserTest(
+      _enqueueBrowserTest(
           packageRoot, packages, info, testName, expectationsMap);
     } else {
       enqueueStandardTest(info, testName, expectations);
@@ -1022,8 +1005,12 @@ class StandardTestSuite extends TestSuite {
    * subTestName, Set<String>> if we are running a browser multi-test (one
    * compilation and many browser runs).
    */
-  void enqueueBrowserTest(Path packageRoot, Path packages, TestInformation info,
-      String testName, Map<String, Set<Expectation>> expectations) {
+  void _enqueueBrowserTest(
+      Path packageRoot,
+      Path packages,
+      TestInformation info,
+      String testName,
+      Map<String, Set<Expectation>> expectations) {
     var badChars = new RegExp('[-=/]');
     var vmOptionsList = getVmOptions(info.optionsFromFile);
     var multipleOptions = vmOptionsList.length > 1;
@@ -1031,12 +1018,12 @@ class StandardTestSuite extends TestSuite {
       var optionsName =
           multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
       var tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(packageRoot, packages, info, testName,
+      _enqueueBrowserTestWithOptions(packageRoot, packages, info, testName,
           expectations, vmOptions, tempDir);
     }
   }
 
-  void enqueueBrowserTestWithOptions(
+  void _enqueueBrowserTestWithOptions(
       Path packageRoot,
       Path packages,
       TestInformation info,
@@ -1058,54 +1045,28 @@ class StandardTestSuite extends TestSuite {
     var customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
     var customHtml = new File(customHtmlPath);
 
-    // Construct the command(s) that compile all the inputs needed by the
-    // browser test. For running Dart in DRT, this will be noop commands.
-    var commands = <Command>[];
-
     // Use existing HTML document if available.
     String htmlPath;
     String content;
     if (customHtml.existsSync()) {
-      // If necessary, run the Polymer deploy steps.
-      // TODO(jmesserly): this should be generalized for any tests that
-      // require Pub deploy, not just polymer.
-      // TODO(rnystrom): This does not appear to be used any more. Remove.
-      if (customHtml.readAsStringSync().contains('<!--polymer-test')) {
-        if (configuration.compiler != Compiler.none) {
-          commands.add(
-              _polymerDeployCommand(customHtmlPath, tempDir, optionsFromFile));
+      htmlPath = '$tempDir/test.html';
+      dartWrapperFilename = filePath.toNativePath();
 
-          Path pubspecYamlFile = _findPubspecYamlFile(filePath);
-          Path homeDir =
-              (pubspecYamlFile == null) ? dir : pubspecYamlFile.directoryPath;
-          htmlPath = '$tempDir/${dir.relativeTo(homeDir)}/$nameNoExt.html';
-          dartWrapperFilename = '${htmlPath}_bootstrap.dart';
-          compiledDartWrapperFilename = '$dartWrapperFilename.js';
-        } else {
-          htmlPath = customHtmlPath;
-        }
+      var htmlContents = customHtml.readAsStringSync();
+      if (configuration.compiler == Compiler.none) {
+        var dartUrl = _createUrlPathFromFile(filePath);
+        var dartScript =
+            '<script type="application/dart" src="$dartUrl"></script>';
+        var jsUrl = '/packages/browser/dart.js';
+        var jsScript = '<script type="text/javascript" src="$jsUrl"></script>';
+        htmlContents =
+            htmlContents.replaceAll('%TEST_SCRIPTS%', '$dartScript\n$jsScript');
       } else {
-        htmlPath = '$tempDir/test.html';
-        dartWrapperFilename = filePath.toNativePath();
-
-        var htmlContents = customHtml.readAsStringSync();
-        if (configuration.compiler == Compiler.none) {
-          var dartUrl = _createUrlPathFromFile(filePath);
-          var dartScript =
-              '<script type="application/dart" src="$dartUrl"></script>';
-          var jsUrl = '/packages/browser/dart.js';
-          var jsScript =
-              '<script type="text/javascript" src="$jsUrl"></script>';
-          htmlContents = htmlContents.replaceAll(
-              '%TEST_SCRIPTS%', '$dartScript\n$jsScript');
-        } else {
-          compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
-          var jsUrl = '$nameNoExt.js';
-          htmlContents = htmlContents.replaceAll(
-              '%TEST_SCRIPTS%', '<script src="$jsUrl"></script>');
-        }
-        new File(htmlPath).writeAsStringSync(htmlContents);
+        compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
+        htmlContents = htmlContents.replaceAll(
+            '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
       }
+      new File(htmlPath).writeAsStringSync(htmlContents);
     } else {
       htmlPath = '$tempDir/test.html';
       if (configuration.compiler != Compiler.dart2js &&
@@ -1117,8 +1078,6 @@ class StandardTestSuite extends TestSuite {
       }
 
       // Create the HTML file for the test.
-      var htmlTest = new File(htmlPath).openSync(mode: FileMode.WRITE);
-
       var scriptPath = dartWrapperFilename;
       if (configuration.compiler != Compiler.none) {
         scriptPath = compiledDartWrapperFilename;
@@ -1134,9 +1093,12 @@ class StandardTestSuite extends TestSuite {
         content = dartdevcHtml(nameNoExt, jsDir);
       }
 
-      htmlTest.writeStringSync(content);
-      htmlTest.closeSync();
+      new File(htmlPath).writeAsStringSync(content);
     }
+
+    // Construct the command(s) that compile all the inputs needed by the
+    // browser test. For running Dart in DRT, this will be noop commands.
+    var commands = <Command>[];
 
     switch (configuration.compiler) {
       case Compiler.dart2js:
@@ -1157,8 +1119,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     // Some tests require compiling multiple input scripts.
-    var otherScripts = optionsFromFile['otherScripts'] as List<String>;
-    for (var name in otherScripts) {
+    for (var name in optionsFromFile['otherScripts'] as List<String>) {
       var namePath = new Path(name);
       var fromPath = filePath.directoryPath.join(namePath);
 
@@ -1170,7 +1131,7 @@ class StandardTestSuite extends TestSuite {
 
         case Compiler.dartdevc:
           commands.add(_dartdevcCompileCommand(fromPath.toNativePath(),
-              '$tempDir/$nameNoExt.js', optionsFromFile));
+              '$tempDir/${namePath.filename}.js', optionsFromFile));
           break;
 
         default:
@@ -1181,66 +1142,80 @@ class StandardTestSuite extends TestSuite {
         // For the tests that require multiple input scripts but are not
         // compiled, move the input scripts over with the script so they can
         // be accessed.
-        var result = new File(fromPath.toNativePath()).readAsStringSync();
-        new File('$tempDir/${namePath.filename}').writeAsStringSync(result);
+        new File(fromPath.toNativePath())
+            .copySync('$tempDir/${namePath.filename}');
       }
     }
 
-    // Variables for browser multi-tests.
-    var isMultitest = info.optionsFromFile['isMultiHtmlTest'] as bool;
-    var subtestNames = isMultitest
-        ? (info.optionsFromFile['subtestNames'] as List<String>)
-        : <String>[null];
-    for (var subtestName in subtestNames) {
-      // Construct the command that executes the browser test
-      var commandSet = commands.toList();
-
-      var htmlPath_subtest = _createUrlPathFromFile(new Path(htmlPath));
-      var fullHtmlPath =
-          _getUriForBrowserTest(htmlPath_subtest, subtestName).toString();
-
-      if (configuration.runtime == Runtime.drt) {
-        var dartFlags = <String>[];
-        var contentShellOptions = ['--no-timeout', '--run-layout-test'];
-
-        // Disable the GPU under Linux and Dartium. If the GPU is enabled,
-        // Chrome may send a termination signal to a test.  The test will be
-        // terminated if a machine (bot) doesn't have a GPU or if a test is
-        // still running after a certain period of time.
-        if (configuration.system == System.linux &&
-            configuration.runtime == Runtime.drt) {
-          contentShellOptions.add('--disable-gpu');
-          // TODO(terry): Roll 50 need this in conjection with disable-gpu.
-          contentShellOptions.add('--disable-gpu-early-init');
-        }
-
-        if (configuration.compiler == Compiler.none) {
-          dartFlags.add('--ignore-unrecognized-flags');
-          if (configuration.isChecked) {
-            dartFlags.add('--enable_asserts');
-            dartFlags.add("--enable_type_checks");
-          }
-          dartFlags.addAll(vmOptions);
-        }
-
-        commandSet.add(Command.contentShell(contentShellFilename, fullHtmlPath,
-            contentShellOptions, dartFlags, environmentOverrides));
-      } else {
-        commandSet.add(Command.browserTest(fullHtmlPath, configuration,
-            retry: !isNegative(info)));
+    if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
+      // Variables for browser multi-tests.
+      var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
+      for (var subtestName in subtestNames) {
+        _enqueueSingleBrowserTest(commands, info, '$testName/$subtestName',
+            subtestName, expectations, vmOptions, htmlPath);
       }
-
-      // Create BrowserTestCase and queue it.
-      var fullTestName = isMultitest ? '$testName/$subtestName' : testName;
-      var expectation = expectations[fullTestName];
-      var testCase = new BrowserTestCase('$suiteName/$fullTestName', commandSet,
-          configuration, expectation, info, isNegative(info), fullHtmlPath);
-
-      enqueueNewTestCase(testCase);
+    } else {
+      _enqueueSingleBrowserTest(
+          commands, info, testName, null, expectations, vmOptions, htmlPath);
     }
   }
 
-  void enqueueHtmlTest(HtmlTestInformation info, String testName,
+  /// Enqueues a single browser test, or a single subtest of an HTML multitest.
+  void _enqueueSingleBrowserTest(
+      List<Command> commands,
+      TestInformation info,
+      String testName,
+      String subtestName,
+      Map<String, Set<Expectation>> expectations,
+      List<String> vmOptions,
+      String htmlPath) {
+    // Construct the command that executes the browser test.
+    commands = commands.toList();
+
+    var htmlPathSubtest = _createUrlPathFromFile(new Path(htmlPath));
+    var fullHtmlPath =
+        _getUriForBrowserTest(htmlPathSubtest, subtestName).toString();
+
+    if (configuration.runtime == Runtime.drt) {
+      var dartFlags = <String>[];
+      var contentShellOptions = ['--no-timeout', '--run-layout-test'];
+
+      // Disable the GPU under Linux and Dartium. If the GPU is enabled,
+      // Chrome may send a termination signal to a test.  The test will be
+      // terminated if a machine (bot) doesn't have a GPU or if a test is
+      // still running after a certain period of time.
+      if (configuration.system == System.linux &&
+          configuration.runtime == Runtime.drt) {
+        contentShellOptions.add('--disable-gpu');
+        // TODO(terry): Roll 50 need this in conjection with disable-gpu.
+        contentShellOptions.add('--disable-gpu-early-init');
+      }
+
+      if (configuration.compiler == Compiler.none) {
+        dartFlags.add('--ignore-unrecognized-flags');
+        if (configuration.isChecked) {
+          dartFlags.add('--enable_asserts');
+          dartFlags.add("--enable_type_checks");
+        }
+        dartFlags.addAll(vmOptions);
+      }
+
+      commands.add(Command.contentShell(contentShellFilename, fullHtmlPath,
+          contentShellOptions, dartFlags, environmentOverrides));
+    } else {
+      commands.add(Command.browserTest(fullHtmlPath, configuration,
+          retry: !isNegative(info)));
+    }
+
+    // Create BrowserTestCase and queue it.
+    var expectation = expectations[testName];
+    var testCase = new BrowserTestCase('$suiteName/$testName', commands,
+        configuration, expectation, info, isNegative(info), fullHtmlPath);
+
+    enqueueNewTestCase(testCase);
+  }
+
+  void _enqueueHtmlTest(HtmlTestInformation info, String testName,
       Set<Expectation> expectations) {
     var compiler = configuration.compiler;
     var runtime = configuration.runtime;
@@ -1373,27 +1348,6 @@ class StandardTestSuite extends TestSuite {
         compilerPath,
         args,
         environmentOverrides);
-  }
-
-  /** Helper to create a Polymer deploy command for a single HTML file. */
-  Command _polymerDeployCommand(String inputFile, String outputDir,
-      Map<String, dynamic> optionsFromFile) {
-    var args = <String>[];
-    var packages = packagesArgument(optionsFromFile['packageRoot'] as String,
-        optionsFromFile['packages'] as String);
-    if (packages != null) args.add(packages);
-    args
-      ..add('package:polymer/deploy.dart')
-      ..add('--test')
-      ..add(inputFile)
-      ..add('--out')
-      ..add(outputDir)
-      ..add('--file-filter')
-      ..add('.svn');
-    if (configuration.isCsp) args.add('--csp');
-
-    return Command.process(
-        'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);
   }
 
   String get scriptType {
@@ -1757,7 +1711,7 @@ class PKGTestSuite extends StandardTestSuite {
             isTestFilePredicate: (f) => f.endsWith('_test.dart'),
             recursive: true);
 
-  void enqueueBrowserTest(Path packageRoot, packages, TestInformation info,
+  void _enqueueBrowserTest(Path packageRoot, packages, TestInformation info,
       String testName, Map<String, Set<Expectation>> expectations) {
     var filePath = info.filePath;
     var dir = filePath.directoryPath;
@@ -1765,7 +1719,7 @@ class PKGTestSuite extends StandardTestSuite {
     var customHtmlPath = dir.append('$nameNoExt.html');
     var customHtml = new File(customHtmlPath.toNativePath());
     if (!customHtml.existsSync()) {
-      super.enqueueBrowserTest(
+      super._enqueueBrowserTest(
           packageRoot, packages, info, testName, expectations);
     } else {
       var relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);

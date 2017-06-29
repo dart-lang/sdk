@@ -1352,6 +1352,40 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Get the changes required to convert the postfix template at the given
+   * location into the template's expanded form.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the postfix template to be expanded.
+   *
+   * key: String
+   *
+   *   The unique name that identifies the template in use.
+   *
+   * offset: int
+   *
+   *   The offset used to identify the code to which the template will be
+   *   applied.
+   *
+   * Returns
+   *
+   * change: SourceChange
+   *
+   *   The change to be applied in order to complete the statement.
+   */
+  Future<EditGetPostfixCompletionResult> sendEditGetPostfixCompletion(
+      String file, String key, int offset) async {
+    var params = new EditGetPostfixCompletionParams(file, key, offset).toJson();
+    var result = await server.send("edit.getPostfixCompletion", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetPostfixCompletionResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Get the changes required to perform a refactoring.
    *
    * If another refactoring request is received during the processing of this
@@ -1480,6 +1514,60 @@ abstract class IntegrationTestMixin {
     var result = await server.send("edit.getStatementCompletion", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditGetStatementCompletionResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
+   * Determine if the request postfix completion template is applicable at the
+   * given location in the given file.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the postfix template to be expanded.
+   *
+   * key: String
+   *
+   *   The unique name that identifies the template in use.
+   *
+   * offset: int
+   *
+   *   The offset used to identify the code to which the template will be
+   *   applied.
+   *
+   * Returns
+   *
+   * value: bool
+   *
+   *   True if the template can be expanded at the given location.
+   */
+  Future<EditIsPostfixCompletionApplicableResult>
+      sendEditIsPostfixCompletionApplicable(
+          String file, String key, int offset) async {
+    var params =
+        new EditIsPostfixCompletionApplicableParams(file, key, offset).toJson();
+    var result =
+        await server.send("edit.isPostfixCompletionApplicable", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditIsPostfixCompletionApplicableResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
+   * Return a list of all postfix templates currently available.
+   *
+   * Returns
+   *
+   * templates: List<PostfixTemplateDescriptor>
+   *
+   *   The list of available templates.
+   */
+  Future<EditListPostfixCompletionTemplatesResult>
+      sendEditListPostfixCompletionTemplates() async {
+    var result = await server.send("edit.listPostfixCompletionTemplates", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditListPostfixCompletionTemplatesResult.fromJson(
         decoder, 'result', result);
   }
 

@@ -77,6 +77,9 @@ class Listener {
     logEvent("ClassBody");
   }
 
+  /// Called before parsing a class or named mixin application.
+  void beginClassOrNamedMixinApplication(Token token) {}
+
   void beginClassDeclaration(Token beginToken, Token name) {}
 
   /// Handle the end of a class declaration.  Substructures:
@@ -734,13 +737,15 @@ class Listener {
     logEvent("NoName");
   }
 
+  void beginFunctionType(Token beginToken) {}
+
   /// Handle the end of a generic function type declaration.
   ///
   /// Substructures:
-  /// - Return type
   /// - Type variables
+  /// - Return type
   /// - Formal parameters
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     logEvent("FunctionType");
   }
 

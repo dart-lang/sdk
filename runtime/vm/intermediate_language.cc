@@ -2970,10 +2970,13 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
   intptr_t length = targets.length();
 
   // Spread class-ids to preceding classes where a lookup yields the same
-  // method.
+  // method.  A polymorphic target is not really the same method since its
+  // behaviour depends on the receiver class-id, so we don't spread the
+  // class-ids in that case.
   for (int idx = 0; idx < length; idx++) {
     int lower_limit_cid = (idx == 0) ? -1 : targets[idx - 1].cid_end;
     const Function& target = *targets.TargetAt(idx)->target;
+    if (MethodRecognizer::PolymorphicTarget(target)) continue;
     for (int i = targets[idx].cid_start - 1; i > lower_limit_cid; i--) {
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
           fn.raw() == target.raw()) {
@@ -2989,6 +2992,7 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
     int upper_limit_cid =
         (idx == length - 1) ? 1000000000 : targets[idx + 1].cid_start;
     const Function& target = *targets.TargetAt(idx)->target;
+    if (MethodRecognizer::PolymorphicTarget(target)) continue;
     for (int i = targets[idx].cid_end + 1; i < upper_limit_cid; i++) {
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
           fn.raw() == target.raw()) {
@@ -3006,9 +3010,14 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
 void CallTargets::MergeIntoRanges() {
   // Merge adjacent class id ranges.
   int dest = 0;
+  // We merge entries that dispatch to the same target, but polymorphic targets
+  // are not really the same target since they depend on the class-id, so we
+  // don't merge them.
   for (int src = 1; src < length(); src++) {
+    const Function& target = *TargetAt(dest)->target;
     if (TargetAt(dest)->cid_end + 1 >= TargetAt(src)->cid_start &&
-        TargetAt(dest)->target->raw() == TargetAt(src)->target->raw()) {
+        target.raw() == TargetAt(src)->target->raw() &&
+        !MethodRecognizer::PolymorphicTarget(target)) {
       TargetAt(dest)->cid_end = TargetAt(src)->cid_end;
       TargetAt(dest)->count += TargetAt(src)->count;
     } else {

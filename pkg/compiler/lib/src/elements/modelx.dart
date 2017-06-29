@@ -3337,10 +3337,10 @@ class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
   bool get isAbstract => true;
 }
 
-class LabelDefinitionX implements LabelDefinition<Node> {
+class LabelDefinitionX extends LabelDefinition<Node> {
   final Label label;
   final String labelName;
-  final JumpTarget<Node> target;
+  final JumpTargetX target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
@@ -3362,12 +3362,10 @@ class LabelDefinitionX implements LabelDefinition<Node> {
     target.isContinueTarget = true;
   }
 
-  bool get isTarget => isBreakTarget || isContinueTarget;
-
   String toString() => 'Label:${name}';
 }
 
-class JumpTargetX implements JumpTarget<Node> {
+class JumpTargetX extends JumpTarget<Node> {
   final ExecutableElement executableContext;
   final Node statement;
   final int nestingLevel;
@@ -3382,13 +3380,13 @@ class JumpTargetX implements JumpTarget<Node> {
   @override
   MemberElement get memberContext => executableContext.memberContext;
 
-  String get name => "target";
-
-  bool get isTarget => isBreakTarget || isContinueTarget;
-
-  LabelDefinition<Node> addLabel(Label label, String labelName) {
-    LabelDefinition<Node> result = new LabelDefinitionX(label, labelName, this);
+  LabelDefinition<Node> addLabel(Label label, String labelName,
+      {bool isBreakTarget: false}) {
+    LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
+    if (isBreakTarget) {
+      result.setBreakTarget();
+    }
     return result;
   }
 

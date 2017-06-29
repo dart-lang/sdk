@@ -3103,7 +3103,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures);
  */
 
 /**
- * The peer field is a lazily allocated field intendend for storage of
+ * The peer field is a lazily allocated field intended for storage of
  * an uncommonly used values.  Most instances types can have a peer
  * field allocated.  The exceptions are subtypes of Null, num, and
  * bool.

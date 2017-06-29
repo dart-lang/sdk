@@ -15,7 +15,6 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
@@ -759,7 +758,7 @@ main(List<String> args) {
   });
 }
 
-void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
+void checkLibrary(Compiler compiler, KernelToElementMapImpl elementMap,
     LibraryElement library,
     {bool fullTest: false}) {
   library.forEachLocalMember((_element) {
@@ -779,7 +778,7 @@ void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
 }
 
 void checkElement(
-    Compiler compiler, KernelToElementMapMixin elementMap, AstElement element,
+    Compiler compiler, KernelToElementMapImpl elementMap, AstElement element,
     {bool fullTest: false}) {
   if (!fullTest && element.library.isPlatformLibrary) {
     return;

@@ -266,8 +266,8 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// they originated, so we can issue an error message tracing back to the
   /// argument values, type parameter "extends" clause, or the return type
   /// context.
-  /*=T*/ inferGenericFunctionOrType/*<T extends ParameterizedType>*/(
-      /*=T*/ genericType,
+  T inferGenericFunctionOrType<T extends ParameterizedType>(
+      T genericType,
       List<ParameterElement> parameters,
       List<DartType> argumentTypes,
       DartType returnContextType,
@@ -1078,9 +1078,8 @@ class StrongTypeSystemImpl extends TypeSystem {
     return getLeastUpperBound(type1, type2);
   }
 
-  static List/*<T>*/ _transformList/*<T>*/(
-      List/*<T>*/ list, /*=T*/ f(/*=T*/ t)) {
-    List/*<T>*/ newList = null;
+  static List<T> _transformList<T>(List<T> list, T f(T t)) {
+    List<T> newList = null;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var newItem = f(item);
@@ -1647,7 +1646,7 @@ class UnknownInferredTypeElement extends ElementImpl
   UnknownInferredType get type => UnknownInferredType.instance;
 
   @override
-  /*=T*/ accept/*<T>*/(ElementVisitor visitor) => null;
+  T accept<T>(ElementVisitor visitor) => null;
 }
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -1735,9 +1734,8 @@ class _GenericInferrer {
   /// `?` to precisely represent an unknown type. If [downwardsInferPhase] is
   /// false, we are on our final inference pass, have all available information
   /// including argument types, and must not conclude `?` for any type formal.
-  /*=T*/ infer/*<T extends ParameterizedType>*/(
-      /*=T*/ genericType,
-      List<TypeParameterElement> typeFormals,
+  T infer<T extends ParameterizedType>(
+      T genericType, List<TypeParameterElement> typeFormals,
       {ErrorReporter errorReporter,
       AstNode errorNode,
       bool downwardsInferPhase: false}) {
@@ -1770,7 +1768,7 @@ class _GenericInferrer {
     // If the downwards infer phase has failed, we'll catch this in the upwards
     // phase later on.
     if (downwardsInferPhase) {
-      return genericType.instantiate(inferredTypes) as dynamic/*=T*/;
+      return genericType.instantiate(inferredTypes) as T;
     }
 
     // Check the inferred types against all of the constraints.
@@ -1814,7 +1812,7 @@ class _GenericInferrer {
     // Use instantiate to bounds to finish things off.
     var hasError = new List<bool>.filled(fnTypeParams.length, false);
     var result = _typeSystem.instantiateToBounds(genericType,
-        hasError: hasError, knownTypes: knownTypes) as dynamic/*=T*/;
+        hasError: hasError, knownTypes: knownTypes) as T;
 
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {

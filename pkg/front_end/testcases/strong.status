@@ -1,0 +1,179 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the strong_test.dart test suite. This is testing generating
+# Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
+# strong-mode enabled.
+
+DeltaBlue: Fail
+accessors: Fail
+async_function: Fail
+await: Fail
+call: Fail
+cascade: Fail
+casts: Fail
+classes: Fail
+closure: Fail
+covariant_generic: Fail
+cycles: Fail
+default_values: Fail
+escape: Fail
+expressions: Fail
+external: Fail
+fallthrough: Fail
+fibonacci: Fail
+for_in_scope: Fail
+function_in_field: Fail
+function_type_recovery: Fail
+functions: Fail
+hello: Fail
+implicit_this: Fail
+invocations: Fail
+literals: Fail
+map: Fail
+micro: Fail
+mixin: Fail
+named_parameters: Fail
+null_aware: Fail
+operators: Fail
+optional: Fail
+platform: Fail
+prefer_baseclass: Fail
+redirecting_constructor: Fail
+redirecting_factory: Fail
+statements: Fail
+stringliteral: Fail
+super_rasta_copy: Fail
+top_level_accessors: Fail
+type_variable_as_super: Fail
+typedef: Fail
+uninitialized_fields: Fail
+unused_methods: Fail
+void-methods: Fail
+
+inference/constructors_too_many_positional_arguments: Fail # Issue #30040
+inference/downwards_inference_annotations_for_loop_variable: Fail # Issue #30035
+inference/downwards_inference_annotations_locals: Fail # Issue #30031 and Issue #30035
+inference/downwards_inference_annotations_locals_referring_to_locals: Fail # Issue #30035
+inference/downwards_inference_annotations_parameter: Fail # Issue #30035
+inference/downwards_inference_annotations_parameter_local: Fail # Issue #30035
+inference/downwards_inference_annotations_type_variable: Fail # Issue #30035
+inference/downwards_inference_annotations_type_variable_local: Fail # Issue #30035
+inference/downwards_inference_annotations_typedef: Fail # Issue #30034
+inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
+inference/future_then_explicit_future: Fail # Issue #30040
+inference/generic_functions_return_typedef: Fail # Issue #29798
+inference/generic_methods_infer_js_builtin: Fail # Issue #30029
+inference/unresolved_super: Fail # Issue #30000
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail # Issue #25824
+
+rasta/abstract_constructor: Fail
+rasta/bad_constructor_redirection: Fail
+rasta/bad_continue: Fail
+rasta/bad_default_constructor: Fail
+rasta/bad_explicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: Fail
+rasta/bad_interpolation: Fail
+rasta/bad_redirection: Fail
+rasta/bad_setter_initializer: Fail
+rasta/bad_unicode: Fail
+rasta/breaking_bad: Fail
+rasta/cascades: Fail
+rasta/class_hierarchy: Fail
+rasta/class_member: Fail
+rasta/constant_get_and_invoke: Fail
+rasta/deferred_lib: Fail
+rasta/deferred_load: Fail
+rasta/duplicated_mixin: Fail
+rasta/enum: Fail
+rasta/export: Fail
+rasta/external_factory_redirection: Fail
+rasta/foo: Fail
+rasta/for_loop: Fail
+rasta/generic_factory: Fail
+rasta/hello: Fail
+rasta/import_export: Fail
+rasta/issue_000001: Fail
+rasta/issue_000002: Fail
+rasta/issue_000004: Fail
+rasta/issue_000006: Fail
+rasta/issue_000007: Fail
+rasta/issue_000008: Fail
+rasta/issue_000011: Fail
+rasta/issue_000012: Fail
+rasta/issue_000025: Fail
+rasta/issue_000026: Fail
+rasta/issue_000031: Fail
+rasta/issue_000032: Fail
+rasta/issue_000033: Fail
+rasta/issue_000034: Fail
+rasta/issue_000035: Fail
+rasta/issue_000035a: Fail
+rasta/issue_000036: Fail
+rasta/issue_000039: Fail
+rasta/issue_000041: Fail
+rasta/issue_000042: Fail
+rasta/issue_000043: Fail
+rasta/issue_000044: Fail
+rasta/issue_000045: Fail
+rasta/issue_000046: Fail
+rasta/issue_000047: Fail
+rasta/issue_000048: Fail
+rasta/issue_000052: Fail
+rasta/issue_000053: Fail
+rasta/issue_000067: Fail
+rasta/issue_000068: Fail
+rasta/issue_000069: Fail
+rasta/issue_000070: Fail
+rasta/issue_000080: Fail
+rasta/issue_000081: Fail
+rasta/malformed_const_constructor: Fail
+rasta/malformed_function: Fail
+rasta/malformed_function_type: Fail
+rasta/mandatory_parameter_initializer: Fail
+rasta/mixin_library: Fail
+rasta/native_is_illegal: Fail
+rasta/parser_error: Fail
+rasta/previsit_deferred: Fail
+rasta/static: Fail
+rasta/super: Fail
+rasta/super_initializer: Fail
+rasta/super_mixin: Fail
+rasta/super_operator: Fail
+rasta/supports_reflection: VerificationError
+rasta/switch_execution_case_t02: Fail
+rasta/switch_fall_through: Fail
+rasta/this_invoke: Fail
+rasta/try_label: Fail
+rasta/type_literals: Fail
+rasta/type_with_parse_error: Fail
+rasta/typedef: Fail
+rasta/unresolved: Fail
+rasta/unresolved_constructor: Fail
+rasta/unresolved_for_in: Fail
+rasta/unresolved_recovery: Fail
+rasta/unsupported_platform_library: Fail
+
+regress/issue_29937: Crash # Issue 29937.
+regress/issue_29940: Crash # Issue 29940.
+regress/issue_29941: Crash # Issue 29941.
+regress/issue_29942: Crash # Issue 29942.
+regress/issue_29943: Crash # Issue 29943.
+regress/issue_29944: Crash # Issue 29944.
+regress/issue_29945: Crash # Issue 29945.
+regress/issue_29975: Fail # Issue 29975.
+regress/issue_29976: Crash # Issue 29976.
+regress/issue_29977: Crash # Issue 29977.
+regress/issue_29978: Crash # Issue 29978.
+regress/issue_29979: Crash # Issue 29979.
+regress/issue_29980: Crash # Issue 29980.
+regress/issue_29981: Crash # Issue 29981.
+regress/issue_29982: Crash # Issue 29982.
+regress/issue_29983: Crash # Issue 29983.
+regress/issue_29984: Crash # Issue 29984.
+regress/issue_29985: Crash # Issue 29985.
+regress/issue_29987: Crash # Issue 29987.

@@ -42,4 +42,4 @@ class Parse extends Step<ScannerResult, Null, ChainContext> {
 }
 
 main(List<String> arguments) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, "../../../testing.json");

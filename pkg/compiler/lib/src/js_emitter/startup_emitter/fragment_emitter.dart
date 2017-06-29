@@ -782,7 +782,7 @@ class FragmentEmitter {
         .map((Class cls) {
       var proto = js.js.statement(
           '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
-      ClassElement element = cls.element;
+      ClassEntity element = cls.element;
       compiler.dumpInfoTask.registerElementAst(element, proto);
       compiler.dumpInfoTask.registerElementAst(element.library, proto);
       return proto;

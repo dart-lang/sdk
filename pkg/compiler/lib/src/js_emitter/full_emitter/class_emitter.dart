@@ -197,7 +197,7 @@ class ClassEmitter extends CodeEmitterHelper {
           if (fieldElement.isTopLevel ||
               backend.mirrorsData
                   .isClassAccessibleByReflection(fieldElement.enclosingClass)) {
-            // TODO(johnniwinther): Support field entities.
+            // TODO(redemption): Support field entities.
             FieldElement element = fieldElement;
             ResolutionDartType type = element.type;
             fieldNameParts.add(task.metadataCollector.reifyType(type));
@@ -320,7 +320,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (backend.mirrorsData.isClassAccessibleByReflection(classEntity)) {
-      // TODO(johnniwinther): Handle class entities.
+      // TODO(redemption): Handle class entities.
       ClassElement classElement = classEntity;
       List<ResolutionDartType> typeVars = classElement.typeVariables;
       Iterable typeVariableProperties =
@@ -374,7 +374,7 @@ class ClassEmitter extends CodeEmitterHelper {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {
-        // TODO(johnniwinther): Handle class entities.
+        // TODO(redemption): Handle class entities.
         ClassElement classElement = classEntity;
         List<jsAst.Expression> types = <jsAst.Expression>[];
         if (classElement.supertype != null) {

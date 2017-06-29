@@ -1,0 +1,5 @@
+library;
+import self as self;
+
+static method main() → dynamic
+  throw "pkg/front_end/testcases/inference/downwards_inference_annotations_locals.dart:17:9: Error: Expected ';' before this.\n  void f() {}\n        ^";

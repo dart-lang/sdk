@@ -11,7 +11,7 @@
  * modified date of the output of a dart2js compilation is newer than
  *   - the dart application to compile (including it's dependencies)
  *   - the dart2js snapshot
- * Furtheremore it ensure that a compilations is not skipped if any of the
+ * Furthermore it ensures that a compilation is not skipped if any of the
  * necessary files could not be found (dart2js snapshots, previous dart2js
  * output (+deps file), dart application)
  */
@@ -132,10 +132,10 @@ class CommandCompletedHandler {
   CommandCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
 
   void processCompletedTest(CommandOutput output) {
-    Expect.isTrue(output.exitCode == 0);
-    Expect.isTrue(output.stderr.length == 0);
+    Expect.equals(0, output.exitCode);
+    Expect.equals(0, output.stderr.length);
     if (_shouldHaveRun) {
-      Expect.isTrue(output.stdout.length == 0);
+      Expect.equals(0, output.stdout.length);
       Expect.isTrue(
           new File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
     } else {
@@ -220,7 +220,7 @@ void main() {
       });
     }
 
-    // We run the tests in sequence, so that if one of them failes we clean up
+    // We run the tests in sequence, so that if one of them fails we clean up
     // everything and throw.
     runTest("fs_noTestJs", fs_noTestJs, true).then((_) {
       return runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);

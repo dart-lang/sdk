@@ -34,7 +34,7 @@ class TypeTestRegistry {
   Set<ClassEntity> checkedClasses;
 
   /**
-   * The set of function types that checked, both explicity through tests of
+   * The set of function types that checked, both explicitly through tests of
    * typedefs and implicitly through type annotations in checked mode.
    */
   Set<FunctionType> checkedFunctionTypes;

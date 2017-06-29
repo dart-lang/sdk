@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /**
  * Return true if this [errorCode] is likely to have a fix associated with it.

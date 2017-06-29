@@ -224,38 +224,18 @@ big_integer_huge_mul_vm_test: Pass, Slow # Slow
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
 symbol_reserved_word_test/03: Pass # Issue 27394
-data_uri_test: RuntimeError # Issue 27394
-date_time7_test: RuntimeError # Issue 27394
-date_time_test: RuntimeError # Issue 27394
 growable_list_test: RuntimeError # Issue 27394
 iterable_empty_test: RuntimeError # Issue 27394
 iterable_return_type_test/none: RuntimeError # Issue 27394
 iterable_to_list_test/none: RuntimeError # Issue 27394
-iterable_to_set_test: RuntimeError # Issue 27394
-linked_hash_map_from_iterable_test: RuntimeError # Issue 27394
-linked_hash_map_from_iterables_test: RuntimeError # Issue 27394
 list_filled_type_argument_test: RuntimeError # Issue 27394
-map_from_iterable_test: RuntimeError # Issue 27394
-map_from_iterables_test: RuntimeError # Issue 27394
 map_test: Crash # Issue 27394
-reg_exp1_test: RuntimeError # Issue 27394
-regexp/compile_test: RuntimeError # Issue 27394
-regexp/default_arguments_test: RuntimeError # Issue 27394
-regexp/multiline_test: RuntimeError # Issue 27394
-regexp/parentheses_test: RuntimeError # Issue 27394
-regexp/pcre-test-4_test: RuntimeError # Issue 27394
 regexp/pcre_test: RuntimeError # Issue 27394
-set_test: RuntimeError # Issue 27394
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_reserved_word_test/06: RuntimeError # Issue 27394
 symbol_reserved_word_test/09: RuntimeError # Issue 27394
 symbol_reserved_word_test/12: RuntimeError # Issue 27394
 symbol_test/none: RuntimeError # Issue 27394
-uri_example_test: RuntimeError # Issue 27394
-uri_http_test: RuntimeError # Issue 27394
-uri_parameters_all_test: RuntimeError # Issue 27394
-uri_query_test: RuntimeError # Issue 27394
-uri_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 regress/4562_test/01: Crash # Issue 27394

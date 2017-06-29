@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -4712,6 +4713,7 @@ main() {
         DartFixKind.CREATE_FUNCTION,
         '''
 import 'dart:async';
+
 import 'lib.dart';
 main() {
   test(getFuture());

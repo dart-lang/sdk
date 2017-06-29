@@ -61,8 +61,7 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   NodeList<StringLiteral> get strings => _strings;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAdjacentStrings(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -312,8 +311,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAnnotation(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAnnotation(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -423,8 +421,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   Token get endToken => rightParenthesis;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitArgumentList(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitArgumentList(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -547,8 +544,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAsExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -634,8 +630,7 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAssertInitializer(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAssertInitializer(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -725,8 +720,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAssertStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAssertStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -909,8 +903,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAssignmentExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAssignmentExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -975,22 +968,21 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
-  AstNode/*=E*/ getAncestor/*<E extends AstNode>*/(
-      Predicate<AstNode> predicate) {
+  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) {
     // TODO(brianwilkerson) It is a bug that this method can return `this`.
     AstNode node = this;
     while (node != null && !predicate(node)) {
       node = node.parent;
     }
-    return node as AstNode/*=E*/;
+    return node as E;
   }
 
   @override
-  Object/*=E*/ getProperty/*<E>*/(String name) {
+  E getProperty<E>(String name) {
     if (_propertyMap == null) {
       return null;
     }
-    return _propertyMap[name] as Object/*=E*/;
+    return _propertyMap[name] as E;
   }
 
   @override
@@ -1083,8 +1075,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   int get precedence => 0;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitAwaitExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1214,8 +1205,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitBinaryExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1294,8 +1284,7 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword == null || keyword.lexeme != Parser.ASYNC;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitBlockFunctionBody(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1350,8 +1339,7 @@ class BlockImpl extends StatementImpl implements Block {
   NodeList<Statement> get statements => _statements;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitBlock(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitBlock(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1397,8 +1385,7 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   bool get isSynthetic => literal.isSynthetic;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitBooleanLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1470,8 +1457,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitBreakStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitBreakStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1543,8 +1529,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitCascadeExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1698,8 +1683,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitCatchClause(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCatchClause(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1919,8 +1903,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitClassDeclaration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
 
   @override
   ConstructorDeclaration getConstructor(String name) {
@@ -2136,8 +2119,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitClassTypeAlias(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitClassTypeAlias(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2244,8 +2226,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   NodeList<CommentReference> get references => _references;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitComment(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2326,8 +2307,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitCommentReference(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCommentReference(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2512,8 +2492,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitCompilationUnit(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2646,7 +2625,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConditionalExpression(this);
 
   @override
@@ -2755,8 +2734,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitConfiguration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitConfiguration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2985,7 +2963,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorDeclaration(this);
 
   @override
@@ -3084,7 +3062,7 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorFieldInitializer(this);
 
   @override
@@ -3180,8 +3158,7 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitConstructorName(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3252,8 +3229,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitContinueStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitContinueStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3363,8 +3339,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitDeclaredIdentifier(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitDeclaredIdentifier(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3486,7 +3461,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDefaultFormalParameter(this);
 
   @override
@@ -3626,8 +3601,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   Token get endToken => semicolon;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitDoStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitDoStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3670,8 +3644,7 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
   Token get endToken => _components.endToken;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitDottedName(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitDottedName(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3718,8 +3691,7 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   Token get endToken => literal;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitDoubleLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3759,8 +3731,7 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
   Token get endToken => semicolon;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitEmptyFunctionBody(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3796,8 +3767,7 @@ class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   Token get endToken => semicolon;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitEmptyStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3849,7 +3819,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitEnumConstantDeclaration(this);
 
   @override
@@ -3930,8 +3900,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => enumKeyword;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitEnumDeclaration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -3995,8 +3964,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitExportDirective(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitExportDirective(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4086,7 +4054,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword == null;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
 
   @override
@@ -4253,8 +4221,7 @@ class ExpressionStatementImpl extends StatementImpl
   bool get isSynthetic => _expression.isSynthetic && semicolon.isSynthetic;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitExpressionStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4306,8 +4273,7 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitExtendsClause(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitExtendsClause(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4395,8 +4361,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   bool get isStatic => staticKeyword != null;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitFieldDeclaration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitFieldDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4540,8 +4505,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitFieldFormalParameter(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitFieldFormalParameter(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4702,8 +4666,7 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitForEachStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForEachStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4845,8 +4808,7 @@ class FormalParameterListImpl extends AstNodeImpl
   NodeList<FormalParameter> get parameters => _parameters;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitFormalParameterList(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitFormalParameterList(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5007,8 +4969,7 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitForStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5193,8 +5154,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitFunctionDeclaration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5242,7 +5202,7 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionDeclarationStatement(this);
 
   @override
@@ -5350,8 +5310,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitFunctionExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5433,7 +5392,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   int get precedence => 15;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
 
   @override
@@ -5531,8 +5490,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitFunctionTypeAlias(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5644,7 +5602,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionTypedFormalParameter(this);
 
   @override
@@ -5770,7 +5728,7 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   // TODO: implement type
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) {
+  E accept<E>(AstVisitor<E> visitor) {
     return visitor.visitGenericFunctionType(this);
   }
 
@@ -5852,7 +5810,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) {
+  E accept<E>(AstVisitor<E> visitor) {
     return visitor.visitGenericTypeAlias(this);
   }
 
@@ -5898,8 +5856,7 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   NodeList<SimpleIdentifier> get hiddenNames => _hiddenNames;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitHideCombinator(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitHideCombinator(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6039,8 +5996,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitIfStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitIfStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6091,8 +6047,7 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   NodeList<TypeName> get interfaces => _interfaces;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitImplementsClause(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6182,8 +6137,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitImportDirective(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitImportDirective(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6375,8 +6329,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitIndexExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
 
   @override
   bool inGetterContext() {
@@ -6490,7 +6443,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   int get precedence => 16;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
 
   @override
@@ -6543,8 +6496,7 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   Token get endToken => literal;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitIntegerLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6625,7 +6577,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInterpolationExpression(this);
 
   @override
@@ -6684,8 +6636,7 @@ class InterpolationStringImpl extends InterpolationElementImpl
   Token get endToken => contents;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitInterpolationString(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
 
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -6810,8 +6761,7 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitIsExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6876,8 +6826,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   Statement get unlabeled => _statement.unlabeled;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitLabeledStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitLabeledStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6930,8 +6879,7 @@ class LabelImpl extends AstNodeImpl implements Label {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitLabel(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitLabel(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6996,8 +6944,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitLibraryDirective(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryDirective(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7070,8 +7017,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
   Element get staticElement => null;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitLibraryIdentifier(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryIdentifier(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7141,8 +7087,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   Token get endToken => rightBracket;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitListLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7247,8 +7192,7 @@ class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitMapLiteralEntry(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7319,8 +7263,7 @@ class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
   NodeList<MapLiteralEntry> get entries => _entries;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitMapLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7531,8 +7474,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitMethodDeclaration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMethodDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7653,8 +7595,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitMethodInvocation(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7760,8 +7701,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   int get precedence => 0;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitNamedExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7897,8 +7837,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitNativeClause(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitNativeClause(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7963,8 +7902,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitNativeFunctionBody(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8267,8 +8205,7 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   Token get endToken => literal;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitNullLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8342,7 +8279,7 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
 
   @override
@@ -8396,8 +8333,7 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   CompilationUnitElement get uriElement => element as CompilationUnitElement;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitPartDirective(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
 }
 
 /**
@@ -8488,8 +8424,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitPartOfDirective(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitPartOfDirective(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8607,8 +8542,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitPostfixExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8727,8 +8661,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitPrefixedIdentifier(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8840,8 +8773,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitPrefixExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8941,8 +8873,7 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitPropertyAccess(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9030,7 +8961,7 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   Token get endToken => _argumentList.endToken;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
 
   @override
@@ -9072,8 +9003,7 @@ class RethrowExpressionImpl extends ExpressionImpl
   int get precedence => 0;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitRethrowExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9132,8 +9062,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitReturnStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitReturnStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9169,8 +9098,7 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   Token get endToken => scriptTag;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitScriptTag(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitScriptTag(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9211,8 +9139,7 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   NodeList<SimpleIdentifier> get shownNames => _shownNames;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitShowCombinator(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitShowCombinator(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9297,7 +9224,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSimpleFormalParameter(this);
 
   @override
@@ -9410,8 +9337,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSimpleIdentifier(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);
 
   @override
   bool inDeclarationContext() => false;
@@ -9591,8 +9517,7 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSimpleStringLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9703,8 +9628,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitStringInterpolation(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9920,7 +9844,7 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   Token get endToken => _argumentList.endToken;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSuperConstructorInvocation(this);
 
   @override
@@ -9961,8 +9885,7 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   int get precedence => 16;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSuperExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10009,8 +9932,7 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSwitchCase(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchCase(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10043,8 +9965,7 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
     ..addAll(statements);
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSwitchDefault(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchDefault(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10201,8 +10122,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   NodeList<SwitchMember> get members => _members;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSwitchStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10246,8 +10166,7 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   Token get endToken => components[components.length - 1];
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitSymbolLiteral(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10286,8 +10205,7 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   int get precedence => 16;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitThisExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10346,8 +10264,7 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   int get precedence => 0;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitThrowExpression(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10410,7 +10327,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitTopLevelVariableDeclaration(this);
 
   @override
@@ -10516,8 +10433,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitTryStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitTryStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10622,8 +10538,7 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   Token get endToken => rightBracket;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitTypeArgumentList(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitTypeArgumentList(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10757,8 +10672,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitTypeName(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitTypeName(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10840,8 +10754,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitTypeParameter(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameter(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10897,8 +10810,7 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   NodeList<TypeParameter> get typeParameters => _typeParameters;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitTypeParameterList(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameterList(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11133,8 +11045,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitVariableDeclaration(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitVariableDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11229,7 +11140,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   NodeList<VariableDeclaration> get variables => _variables;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitVariableDeclarationList(this);
 
   @override
@@ -11286,7 +11197,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
+  E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitVariableDeclarationStatement(this);
 
   @override
@@ -11367,8 +11278,7 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
   Token get endToken => _body.endToken;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitWhileStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitWhileStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11417,8 +11327,7 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   NodeList<TypeName> get mixinTypes => _mixinTypes;
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitWithClause(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11494,8 +11403,7 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @override
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>
-      visitor.visitYieldStatement(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitYieldStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {

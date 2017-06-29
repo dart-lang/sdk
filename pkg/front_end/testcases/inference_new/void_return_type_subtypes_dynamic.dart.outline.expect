@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic y;
+static method run<T extends core::Object>(() → self::run::T f) → self::run::T
+  ;
+static method printRunning() → void
+  ;
+static method main() → dynamic
+  ;

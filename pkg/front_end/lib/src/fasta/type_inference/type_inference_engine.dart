@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionType,
         InterfaceType,
+        Location,
         Member,
         Procedure,
         TypeParameter,
@@ -24,6 +25,10 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
+
+import '../errors.dart' show Crash;
+
+import '../messages.dart' show getLocationFromNode;
 
 /// Data structure for tracking dependencies among fields, getters, and setters
 /// that require type inference.
@@ -120,7 +125,7 @@ class MethodNode {
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
-/// of method bodies and initalizers.
+/// of method bodies and initializers.
 ///
 /// This class describes the interface for use by clients of type inference
 /// (e.g. DietListener).  Derived classes should derive from
@@ -279,8 +284,17 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         new _AccessorWalker().walk(accessorNode);
       }
     }
-    for (var formal in initializingFormals) {
-      formal.type = _inferInitializingFormalType(formal);
+    for (KernelVariableDeclaration formal in initializingFormals) {
+      try {
+        formal.type = _inferInitializingFormalType(formal);
+      } catch (e, s) {
+        Location location = getLocationFromNode(formal);
+        if (location == null) {
+          rethrow;
+        } else {
+          throw new Crash(Uri.parse(location.file), formal.fileOffset, e, s);
+        }
+      }
     }
   }
 
@@ -514,13 +528,17 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
     assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
-    Class enclosingClass = formal.parent.parent.parent;
-    for (var field in enclosingClass.fields) {
-      if (field.name.name == formal.name) {
-        return field.type;
+    var enclosingClass = formal.parent?.parent?.parent;
+    if (enclosingClass is Class) {
+      for (var field in enclosingClass.fields) {
+        if (field.name.name == formal.name) {
+          return field.type;
+        }
       }
     }
-    // No matching field.  The error should be reported elsewhere.
+    // No matching field, or something else has gone wrong (e.g. initializing
+    // formal outside of a class declaration).  The error should be reported
+    // elsewhere, so just infer `dynamic`.
     return const DynamicType();
   }
 

@@ -23,7 +23,7 @@ switcher(val) {
   return x;
 }
 
-// Check unambiguated grammar allowing multiple lables per case/default.
+// Check unambiguated grammar allowing multiple labels per case/default.
 switcher2(val) {
   var x = 0;
   switch (val) {

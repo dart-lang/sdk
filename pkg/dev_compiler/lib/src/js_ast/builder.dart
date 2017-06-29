@@ -421,7 +421,7 @@ class MiniJsParserError {
 /// * brackets.
 /// * var declarations.
 /// * operator precedence.
-/// * anonymous funtions and named function expressions and declarations.
+/// * anonymous functions and named function expressions and declarations.
 /// Notable things it can't do yet include:
 /// * some statements are still missing (do-while, while, switch).
 ///

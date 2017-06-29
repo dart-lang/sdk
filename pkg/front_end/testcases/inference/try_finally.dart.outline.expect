@@ -1,0 +1,7 @@
+library test;
+import self as self;
+
+static method test(() → void f) → void
+  ;
+static method main() → dynamic
+  ;

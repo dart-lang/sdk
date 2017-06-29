@@ -6,14 +6,12 @@ import 'dart:async';
 import 'dart:core';
 
 import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart'
-    show NavigationOperation, OccurrencesOperation;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
@@ -212,32 +210,32 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == ANALYSIS_GET_ERRORS) {
+      if (requestName == ANALYSIS_REQUEST_GET_ERRORS) {
         getErrors(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_HOVER) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_HOVER) {
         getHover(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
-      } else if (requestName == ANALYSIS_GET_NAVIGATION) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_NAVIGATION) {
         getNavigation(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_REACHABLE_SOURCES) {
         return getReachableSources(request);
-      } else if (requestName == ANALYSIS_REANALYZE) {
+      } else if (requestName == ANALYSIS_REQUEST_REANALYZE) {
         return reanalyze(request);
-      } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
-      } else if (requestName == ANALYSIS_SET_GENERAL_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS) {
         return setGeneralSubscriptions(request);
-      } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
-      } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
-      } else if (requestName == ANALYSIS_UPDATE_CONTENT) {
+      } else if (requestName == ANALYSIS_REQUEST_UPDATE_CONTENT) {
         return updateContent(request);
-      } else if (requestName == ANALYSIS_UPDATE_OPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_UPDATE_OPTIONS) {
         return updateOptions(request);
       }
     } on RequestFailure catch (exception) {
@@ -437,19 +435,5 @@ class AnalysisDomainImpl implements AnalysisDomain {
 //    server.onContextsChanged.listen((ContextsChangedEvent event) {
 //      event.added.forEach(_subscribeForContext);
 //    });
-  }
-
-  @override
-  void scheduleNotification(
-      engine.AnalysisContext context, Source source, AnalysisService service) {
-    String file = source.fullName;
-    if (server.hasAnalysisSubscription(service, file)) {
-      if (service == AnalysisService.NAVIGATION) {
-        server.scheduleOperation(new NavigationOperation(context, source));
-      }
-      if (service == AnalysisService.OCCURRENCES) {
-        server.scheduleOperation(new OccurrencesOperation(context, source));
-      }
-    }
   }
 }

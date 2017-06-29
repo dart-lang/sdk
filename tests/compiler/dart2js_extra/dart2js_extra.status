@@ -87,9 +87,6 @@ timer_test: Fail # Issue 7728.
 timer_negative_test: Fail, OK # A negative runtime test.
 bailout8_test: Fail, OK # Mismatch in thrown exception.
 
-[ $compiler == dart2js && $runtime == d8 && $system == windows ]
-deferred/*: Pass,RuntimeError # Issue 17458
-
 [ $compiler == dart2js && $csp ]
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
@@ -123,7 +120,6 @@ big_allocation_expression_test: Pass # Issue 27394
 bailout_on_continue_test: RuntimeError # Issue 27394
 closure_type_reflection2_test: Crash # Issue 27394
 closure_type_reflection_test: Crash # Issue 27394
-deferred/deferred_constant3_test: RuntimeError # Issue 27394
 deferred/deferred_mirrors2_test: Crash # Issue 27394
 inference_super_set_call_test: RuntimeError # Issue 27394
 invalid_annotation2_test/01: Crash # Issue 27394
@@ -152,7 +148,6 @@ mirrors_used_closure_test: Crash # Issue 27394
 mirrors_used_metatargets_test: Crash # Issue 27394
 mirrors_used_native_test: Crash # Issue 27394
 reflect_native_types_test: Crash # Issue 27394
-type_argument_factory_nocrash_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 js_dispatch_property_test: Crash # Issue 27394

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-int _getHash(obj) native "Object_getHash";
-int _setHash(obj, hash) native "Object_setHash";
-
 @patch
 class Object {
   // The VM has its own implementation of equals.
@@ -12,18 +9,22 @@ class Object {
   bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
-  // in a weak table in the VM (32 bit) or in the header of the object (64
-  // bit). A new hashCode value is calculated using a random number generator.
+  // in a weak table in the VM. A new hashCode value is calculated using a
+  // number generator.
   static final _hashCodeRnd = new Random();
 
-  // Shared static implentation for hashCode and _identityHashCode.
+  // Shared static implementation for hashCode and _identityHashCode.
+  static _getHash(obj) native "Object_getHash";
+  static _setHash(obj, hash) native "Object_setHash";
+
   static int _objectHashCode(obj) {
     var result = _getHash(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
-      do {
+      result = _hashCodeRnd.nextInt(0x40000000);
+      while (result == 0) {
         result = _hashCodeRnd.nextInt(0x40000000);
-      } while (result == 0);
+      }
       _setHash(obj, result);
     }
     return result;

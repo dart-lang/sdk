@@ -18,6 +18,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart';
 import '../kernel/element_map.dart';
+import '../kernel/element_map_mixins.dart';
 import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
@@ -34,7 +35,8 @@ import 'types.dart';
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter extends KernelToElementMapMixin
+class KernelAstAdapter extends KernelToElementMapBaseMixin
+    with KernelToElementMapForBuildingMixin, KernelToElementMapForImpactMixin
     implements KernelToLocalsMap {
   final Kernel kernel;
   final JavaScriptBackend _backend;
@@ -229,6 +231,54 @@ class KernelAstAdapter extends KernelToElementMapMixin
     return getElement(variable) as LocalElement;
   }
 
+  @override
+  JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
+    return getJumpTarget(node.target);
+  }
+
+  @override
+  bool generateContinueForBreak(ir.BreakStatement node) => false;
+
+  @override
+  JumpTarget getJumpTargetForLabel(ir.LabeledStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForSwitch(ir.SwitchStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForContinueSwitch(ir.ContinueSwitchStatement node) {
+    return getJumpTarget(node.target);
+  }
+
+  @override
+  JumpTarget getJumpTargetForSwitchCase(ir.SwitchCase node) {
+    return getJumpTarget(node, isContinueTarget: true);
+  }
+
+  @override
+  JumpTarget getJumpTargetForDo(ir.DoStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForFor(ir.ForStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForForIn(ir.ForInStatement node) {
+    return getJumpTarget(node);
+  }
+
+  @override
+  JumpTarget getJumpTargetForWhile(ir.WhileStatement node) {
+    return getJumpTarget(node);
+  }
+
   KernelJumpTarget getJumpTarget(ir.TreeNode node,
       {bool isContinueTarget: false}) {
     return _jumpTargets.putIfAbsent(node, () {
@@ -296,9 +346,9 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+  LoopClosureScope getLoopClosureScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getClosureRepresentationInfoForLoop(getNode(node));
+    return closureLookup.getLoopClosureScope(getNode(node));
   }
 }
 
@@ -386,7 +436,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   }
 }
 
-class KernelJumpTarget extends JumpTarget<ast.Node> {
+class KernelJumpTarget implements JumpTargetX {
   static int index = 0;
 
   /// Pointer to the actual executable statements that a jump target refers to.
@@ -450,9 +500,13 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   }
 
   @override
-  LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName) {
-    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
+  LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName,
+      {bool isBreakTarget: false}) {
+    LabelDefinitionX result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
+    if (isBreakTarget) {
+      result.setBreakTarget();
+    }
     return result;
   }
 
@@ -494,7 +548,7 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
     int switchIndex = 1;
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       JumpTarget continueTarget =
-          localsMap.getJumpTarget(switchCase, isContinueTarget: true);
+          localsMap.getJumpTargetForSwitchCase(switchCase);
       assert(continueTarget is KernelJumpTarget);
       targetIndexMap[continueTarget] = switchIndex;
       assert(builder.jumpTargets[continueTarget] == null);
@@ -531,7 +585,12 @@ class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
     if (send.name.name == '[]=') {
       return closedWorld.commonMasks.dynamicType;
     }
-    return _resultOf(_target).typeOfSend(_astAdapter.getNode(send));
+    ast.Node node = _astAdapter.getNodeOrNull(send);
+    if (node == null) {
+      assert(send.name.name == '==');
+      return closedWorld.commonMasks.dynamicType;
+    }
+    return _resultOf(_target).typeOfSend(node);
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {

@@ -6,7 +6,8 @@
 library test;
 
 List<T> f<T>(T g()) => <T>[g()];
-var /*@topType=dynamic*/ v = (f) /*@typeArgs=int*/ (/*@returnType=int*/ () {
+var /*@topType=dynamic*/ v =
+    (f)<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/ /*@returnType=int*/ () {
   return 1;
 });
 

@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test() → void {
+  do {
+    core::int x = 0;
+  }
+  while (self::f<core::bool>())
+}
+static method main() → dynamic {}

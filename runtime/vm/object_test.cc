@@ -1142,7 +1142,7 @@ ISOLATE_UNIT_TEST_CASE(StringConcat) {
     EXPECT(str6.Equals(two_one_two, two_one_two_len));
   }
 
-  // Concatenated emtpy and non-empty strings built from 4-byte elements.
+  // Concatenated empty and non-empty strings built from 4-byte elements.
   {
     const String& str1 = String::Handle(String::New(""));
     EXPECT(str1.IsOneByteString());

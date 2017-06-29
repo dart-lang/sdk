@@ -836,8 +836,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, function.memberContext,
         function.contextClass, instanceType, nativeData, interceptorData);
-    localsHandler.closureData =
-        closureDataLookup.getClosureRepresentationInfo(function);
+    localsHandler.scopeInfo = closureDataLookup.getScopeInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
@@ -846,7 +845,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     int argumentIndex = 0;
     if (function.isInstanceMember) {
-      localsHandler.updateLocal(localsHandler.closureData.thisLocal,
+      localsHandler.updateLocal(localsHandler.scopeInfo.thisLocal,
           compiledArguments[argumentIndex++]);
     }
 
@@ -1005,17 +1004,16 @@ class SsaAstGraphBuilder extends ast.Visitor
       resolvedAst = callee.resolvedAst;
       final oldElementInferenceResults = elementInferenceResults;
       elementInferenceResults = globalInferenceResults.resultOfMember(callee);
-      ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
-      ClosureRepresentationInfo newClosureData =
-          closureDataLookup.getClosureRepresentationInfo(callee);
-      localsHandler.closureData = newClosureData;
+      ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
+      ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(callee);
+      localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
-            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
+            closureDataLookup.getClosureScope(resolvedAst.node),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
-      localsHandler.closureData = oldClosureData;
+      localsHandler.scopeInfo = oldScopeInfo;
       resolvedAst = oldResolvedAst;
       elementInferenceResults = oldElementInferenceResults;
     });
@@ -1367,8 +1365,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // If there are locals that escape (ie mutated in closures), we
       // pass the box to the constructor.
       // The box must be passed before any type variable.
-      ClosureAnalysisInfo scopeData =
-          closureDataLookup.getClosureAnalysisInfo(node);
+      ClosureScope scopeData = closureDataLookup.getClosureScope(node);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -1426,10 +1423,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       });
     }
 
-    ClosureRepresentationInfo closureData =
-        closureDataLookup.getClosureRepresentationInfo(element);
-    localsHandler.startFunction(element, closureData,
-        closureDataLookup.getClosureAnalysisInfo(node), parameters,
+    localsHandler.startFunction(
+        element,
+        closureDataLookup.getScopeInfo(element),
+        closureDataLookup.getClosureScope(node),
+        parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -1462,8 +1460,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
-              .getClosureAnalysisInfo(node)
-              .isCaptured(parameterElement)) {
+              .getClosureScope(node)
+              .isBoxed(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
             return;
@@ -1706,7 +1704,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getLoopClosureScope(node),
+        elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1720,12 +1719,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       return popBoolified();
     }
 
-    loopHandler.handleLoop(
-        node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
-        () {},
-        buildCondition,
-        () {}, () {
+    loopHandler.handleLoop(node, closureDataLookup.getLoopClosureScope(node),
+        elements.getTargetDefinition(node), () {}, buildCondition, () {}, () {
       visit(node.body);
     });
   }
@@ -1733,15 +1728,14 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    var loopClosureInfo =
-        closureDataLookup.getClosureRepresentationInfoForLoop(node);
+    var loopClosureInfo = closureDataLookup.getLoopClosureScope(node);
     localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
-    JumpHandler jumpHandler = loopHandler.beginLoopHeader(node);
+    JumpTarget target = elements.getTargetDefinition(node);
+    JumpHandler jumpHandler = loopHandler.beginLoopHeader(node, target);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target = elements.getTargetDefinition(node);
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -1854,8 +1848,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = elements.getTargetDefinition(node);
-        LabelDefinition label = target.addLabel(null, 'loop');
-        label.setBreakTarget();
+        LabelDefinition label =
+            target.addLabel(null, 'loop', isBreakTarget: true);
         HLabeledBlockInformation info = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
@@ -5378,18 +5372,18 @@ class SsaAstGraphBuilder extends ast.Visitor
    * to distinguish the synthesized loop created for a switch statement with
    * continue statements from simple switch statements.
    */
-  JumpHandler createJumpHandler(ast.Statement node, {bool isLoopJump}) {
-    JumpTarget element = elements.getTargetDefinition(node);
-    if (element == null || !identical(element.statement, node)) {
+  JumpHandler createJumpHandler(ast.Statement node, JumpTarget jumpTarget,
+      {bool isLoopJump}) {
+    if (jumpTarget == null || !identical(jumpTarget.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(reporter);
     }
     if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
       // with continue statements.
-      return new AstSwitchCaseJumpHandler(this, element, node);
+      return new AstSwitchCaseJumpHandler(this, jumpTarget, node);
     }
-    return new JumpHandler(this, element);
+    return new JumpHandler(this, jumpTarget);
   }
 
   visitAsyncForIn(ast.AsyncForIn node) {
@@ -5444,7 +5438,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     buildProtectedByFinally(() {
       loopHandler.handleLoop(
           node,
-          closureDataLookup.getClosureRepresentationInfoForLoop(node),
+          closureDataLookup.getLoopClosureScope(node),
+          elements.getTargetDefinition(node),
           buildInitializer,
           buildCondition,
           buildUpdate,
@@ -5516,7 +5511,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getLoopClosureScope(node),
+        elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
         () {},
@@ -5640,7 +5636,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureDataLookup.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getLoopClosureScope(node),
+        elements.getTargetDefinition(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -5840,7 +5837,9 @@ class SsaAstGraphBuilder extends ast.Visitor
    */
   void buildSimpleSwitchStatement(
       ast.SwitchStatement node, Map<ast.CaseMatch, ConstantValue> constants) {
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
+    JumpHandler jumpHandler = createJumpHandler(
+        node, elements.getTargetDefinition(node),
+        isLoopJump: false);
     HInstruction buildExpression() {
       visit(node.expression);
       return pop();
@@ -5910,7 +5909,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     HInstruction initialValue = graph.addConstantNull(closedWorld);
     localsHandler.updateLocal(switchTarget, initialValue);
 
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
+    JumpHandler jumpHandler =
+        createJumpHandler(node, switchTarget, isLoopJump: false);
     dynamic switchCases = node.cases;
     if (!hasDefault) {
       // Use [:null:] as the marker for a synthetic default clause.
@@ -5991,13 +5991,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void buildLoop() {
-      loopHandler.handleLoop(
-          node,
-          closureDataLookup.getClosureRepresentationInfoForLoop(node),
-          () {},
-          buildCondition,
-          () {},
-          buildSwitch);
+      loopHandler.handleLoop(node, closureDataLookup.getLoopClosureScope(node),
+          switchTarget, () {}, buildCondition, () {}, buildSwitch);
     }
 
     if (hasDefault) {
@@ -6230,7 +6225,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     endFinallyBlock.addSuccessor(exitBlock);
 
     // If a block inside try/catch aborts (eg with a return statement),
-    // we explicitely mark this block a predecessor of the catch
+    // we explicitly mark this block a predecessor of the catch
     // block and the finally block.
     addExitTrySuccessor(startFinallyBlock);
 
@@ -6438,7 +6433,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     // If a block inside try/catch aborts (eg with a return statement),
-    // we explicitely mark this block a predecessor of the catch
+    // we explicitly mark this block a predecessor of the catch
     // block and the finally block.
     addExitTrySuccessor(startCatchBlock);
     addExitTrySuccessor(startFinallyBlock);

@@ -479,9 +479,9 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
-    popNode(); // Type parameters.
+  void endFunctionType(Token functionToken, Token endToken) {
     popNode(); // Return type.
+    popNode(); // Type parameters.
     pushNode(null);
   }
 

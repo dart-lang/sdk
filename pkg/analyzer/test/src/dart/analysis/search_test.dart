@@ -1082,6 +1082,95 @@ class C implements T {} // C
     await _verifyReferences(element, expected);
   }
 
+  test_subtypes() async {
+    await _resolveTestUnit('''
+class A {}
+
+class B extends A {
+  void methodB() {}
+}
+
+class C extends Object with A {
+  void methodC() {}
+}
+
+class D implements A {
+  void methodD() {}
+}
+
+class E extends B {
+  void methodE() {}
+}
+
+class F {}
+''');
+    ClassElement a = _findElement('A');
+
+    // Search by 'type'.
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    expect(subtypes, hasLength(3));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    SubtypeResult c = subtypes.singleWhere((r) => r.name == 'C');
+    SubtypeResult d = subtypes.singleWhere((r) => r.name == 'D');
+
+    expect(b.libraryUri, testUri);
+    expect(b.id, '$testUri;$testUri;B');
+    expect(b.members, ['methodB']);
+
+    expect(c.libraryUri, testUri);
+    expect(c.id, '$testUri;$testUri;C');
+    expect(c.members, ['methodC']);
+
+    expect(d.libraryUri, testUri);
+    expect(d.id, '$testUri;$testUri;D');
+    expect(d.members, ['methodD']);
+
+    // Search by 'id'.
+    {
+      List<SubtypeResult> subtypes = await driver.search.subtypes(subtype: b);
+      expect(subtypes, hasLength(1));
+      SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
+      expect(e.members, ['methodE']);
+    }
+  }
+
+  test_subtypes_files() async {
+    String pathB = _p('$testProject/b.dart');
+    String pathC = _p('$testProject/c.dart');
+    provider.newFile(
+        pathB,
+        r'''
+import 'test.dart';
+class B extends A {}
+''');
+    provider.newFile(
+        pathC,
+        r'''
+import 'test.dart';
+class C extends A {}
+class D {}
+''');
+
+    await _resolveTestUnit('''
+class A {}
+''');
+    ClassElement a = _findElement('A');
+
+    driver.addFile(pathB);
+    driver.addFile(pathC);
+    await scheduler.waitForIdle();
+
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    expect(subtypes, hasLength(2));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    SubtypeResult c = subtypes.singleWhere((r) => r.name == 'C');
+
+    expect(b.id, endsWith('b.dart;B'));
+    expect(c.id, endsWith('c.dart;C'));
+  }
+
   test_topLevelElements() async {
     await _resolveTestUnit('''
 class A {} // A

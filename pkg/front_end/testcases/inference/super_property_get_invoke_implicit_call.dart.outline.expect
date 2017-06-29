@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class CallableClass extends core::Object {
+  constructor •() → void
+    ;
+  method call() → core::int
+    ;
+}
+class C extends core::Object {
+  field dynamic f;
+  constructor •() → void
+    ;
+}
+class D extends self::C {
+  constructor •() → void
+    ;
+  method g() → void
+    ;
+}
+static method main() → dynamic
+  ;

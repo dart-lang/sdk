@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 // Test inlining of assignments in parameter passing. If [StringScanner.charAt]
-// is inlined, the argument expresion [: ++byteOffset :] should not be
+// is inlined, the argument expression [: ++byteOffset :] should not be
 // duplicated.
 
 class StringScanner {

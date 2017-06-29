@@ -43,7 +43,7 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    // TODO(johnniwinther): Support malformed types in [types.dart].
+    // TODO(redemption): Support malformed types in [types.dart].
     MalformedType type = node.typeExpression;
     ErroneousElement element = type.element;
     arguments.add(js.escapedString(element.message));

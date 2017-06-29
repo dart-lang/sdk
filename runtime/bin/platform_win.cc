@@ -59,7 +59,7 @@ class PlatformWin {
     // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
     // Set up a signal handler that restores the console state on a
-    // CTRL_C_EVENT signal. This will only run when there is no signal hanlder
+    // CTRL_C_EVENT signal. This will only run when there is no signal handler
     // registered for the CTRL_C_EVENT from Dart code.
     SetConsoleCtrlHandler(SignalHandler, TRUE);
   }

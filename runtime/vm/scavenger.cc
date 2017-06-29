@@ -33,7 +33,7 @@ DEFINE_FLAG(int,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
 
-// Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
+// Scavenger uses RawObject::kMarkBit to distinguish forwarded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
 // object alignment.
 enum {

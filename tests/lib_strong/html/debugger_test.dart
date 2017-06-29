@@ -302,7 +302,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
   group('Class formatting', () {
     addNestedFormatterGoldens('TestClass', new TestClass(17));
     addNestedFormatterGoldens('MouseEvent', new MouseEvent("click"));
-    // This is a good class to test as it has statics and a deep inheritance heirarchy
+    // This is a good class to test as it has statics and a deep inheritance hierarchy
     addNestedFormatterGoldens('HttpRequest', new HttpRequest());
   });
 

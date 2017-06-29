@@ -103,13 +103,6 @@ class Command {
         sourceDirectory, destinationDirectory);
   }
 
-  static Command pub(String pubCommand, String pubExecutable,
-      String pubspecYamlDirectory, String pubCacheDirectory,
-      {List<String> arguments: const <String>[]}) {
-    return new PubCommand._(pubCommand, pubExecutable, pubspecYamlDirectory,
-        pubCacheDirectory, arguments);
-  }
-
   static Command makeSymlink(String link, String target) {
     return new MakeSymlinkCommand._(link, target);
   }
@@ -237,24 +230,17 @@ class CompilationCommand extends ProcessCommand {
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;
 
-    List<Uri> readDepsFile(String path) {
-      var file = new io.File(new Path(path).toNativePath());
-      if (!file.existsSync()) return null;
+    var file = new io.File(new Path("$_outputFile.deps").toNativePath());
+    if (!file.existsSync()) return false;
 
-      var lines = file.readAsLinesSync();
-      var dependencies = <Uri>[];
-      for (var line in lines) {
-        line = line.trim();
-        if (line.isNotEmpty) {
-          dependencies.add(Uri.parse(line));
-        }
+    var lines = file.readAsLinesSync();
+    var dependencies = <Uri>[];
+    for (var line in lines) {
+      line = line.trim();
+      if (line.isNotEmpty) {
+        dependencies.add(Uri.parse(line));
       }
-
-      return dependencies;
     }
-
-    var dependencies = readDepsFile("$_outputFile.deps");
-    if (dependencies == null) return false;
 
     dependencies.addAll(_bootstrapDependencies);
     var jsOutputLastModified = TestUtils.lastModifiedCache
@@ -486,33 +472,11 @@ class JSCommandlineCommand extends ProcessCommand {
       : super._(displayName, executable, arguments, environmentOverrides);
 }
 
-class PubCommand extends ProcessCommand {
-  final String command;
-
-  PubCommand._(String pubCommand, String pubExecutable,
-      String pubspecYamlDirectory, String pubCacheDirectory, List<String> args)
-      : command = pubCommand,
-        super._(
-            'pub_$pubCommand',
-            new io.File(pubExecutable).absolute.path,
-            [pubCommand]..addAll(args),
-            {'PUB_CACHE': pubCacheDirectory},
-            pubspecYamlDirectory);
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.addJson(command);
-  }
-
-  bool _equal(PubCommand other) =>
-      super._equal(other) && command == other.command;
-}
-
 /// [ScriptCommand]s are executed by dart code.
 abstract class ScriptCommand extends Command {
   ScriptCommand._(String displayName) : super._(displayName);
 
-  Future<ScriptCommandOutputImpl> run();
+  Future<ScriptCommandOutput> run();
 }
 
 class CleanDirectoryCopyCommand extends ScriptCommand {
@@ -525,7 +489,7 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
   String get reproductionCommand =>
       "Copying '$_sourceDirectory' to '$_destinationDirectory'.";
 
-  Future<ScriptCommandOutputImpl> run() {
+  Future<ScriptCommandOutput> run() {
     var watch = new Stopwatch()..start();
 
     var destination = new io.Directory(_destinationDirectory);
@@ -541,10 +505,9 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
         return TestUtils.copyDirectory(_sourceDirectory, _destinationDirectory);
       });
     }).then((_) {
-      return new ScriptCommandOutputImpl(
-          this, Expectation.pass, "", watch.elapsed);
+      return new ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
     }).catchError((error) {
-      return new ScriptCommandOutputImpl(
+      return new ScriptCommandOutput(
           this, Expectation.fail, "An error occured: $error.", watch.elapsed);
     });
   }
@@ -571,7 +534,7 @@ class MakeSymlinkCommand extends ScriptCommand {
   String get reproductionCommand =>
       "Make symbolic link '$_link' (target: $_target)'.";
 
-  Future<ScriptCommandOutputImpl> run() {
+  Future<ScriptCommandOutput> run() {
     var watch = new Stopwatch()..start();
     var targetFile = new io.Directory(_target);
     return targetFile.exists().then((bool targetExists) {
@@ -584,10 +547,9 @@ class MakeSymlinkCommand extends ScriptCommand {
         if (exists) return link.delete();
       }).then((_) => link.create(_target));
     }).then((_) {
-      return new ScriptCommandOutputImpl(
-          this, Expectation.pass, "", watch.elapsed);
+      return new ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
     }).catchError((error) {
-      return new ScriptCommandOutputImpl(
+      return new ScriptCommandOutput(
           this, Expectation.fail, "An error occured: $error.", watch.elapsed);
     });
   }

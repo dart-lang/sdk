@@ -934,7 +934,7 @@ main() {
     // There are two interesting things that are checked here from the viewpoint
     // of the dart2js implementation of a 'native' class:
     //
-    //   1. Some methods are implementated from by 'Object' or 'Interceptor';
+    //   1. Some methods are implemented from by 'Object' or 'Interceptor';
     //      some of these tests simply check that a method can be called.
     //   2. Some methods are implemented by mixins.
 

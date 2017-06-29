@@ -41,6 +41,7 @@ import '../universe/world_builder.dart';
 import '../world.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'element_map.dart';
+import 'element_map_mixins.dart';
 import 'elements.dart';
 
 part 'native_basic_data.dart';
@@ -48,7 +49,7 @@ part 'no_such_method_resolver.dart';
 part 'types.dart';
 
 /// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
-abstract class KernelToWorldBuilder implements KernelToElementMap {
+abstract class KernelToWorldBuilder implements KernelToElementMapForBuilding {
   /// Returns `true` if [field] has a constant initializer.
   bool hasConstantFieldInitializer(FieldEntity field);
 
@@ -61,9 +62,12 @@ abstract class KernelToWorldBuilder implements KernelToElementMap {
       void f(DartType type, String name, ConstantValue defaultValue));
 }
 
+abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {}
+
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
-class KernelToElementMapImpl extends KernelToElementMapMixin
+class KernelToElementMapImpl extends KernelToElementMapBase
+    with KernelToElementMapForBuildingMixin, KernelToElementMapForImpactMixin
     implements KernelToWorldBuilder {
   final Environment _environment;
   CommonElements _commonElements;
@@ -158,7 +162,8 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
   @override
   ConstantValue getFieldConstantValue(ir.Field field) {
     // TODO(johnniwinther): Cache the result in [_FieldData].
-    return getConstantValue(field.initializer, requireConstant: field.isConst);
+    return getConstantValue(field.initializer,
+        requireConstant: field.isConst, implicitNull: !field.isConst);
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
@@ -542,6 +547,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
       if (node.supertype == null) {
         env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
         env.isMixinApplication = false;
+        env.interfaces = const <InterfaceType>[];
       } else {
         InterfaceType processSupertype(ir.Supertype node) {
           InterfaceType type = _typeConverter.visitSupertype(node);
@@ -569,6 +575,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
             new _KernelOrderedTypeSetBuilder(this, cls);
         env.orderedTypeSet =
             setBuilder.createOrderedTypeSet(env.supertype, interfaces);
+        env.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
   }
@@ -612,6 +619,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.isUnnamedMixinApplication;
+  }
+
+  Iterable<InterfaceType> _getInterfaces(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.interfaces;
   }
 
   void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
@@ -924,6 +937,7 @@ class _KClassEnv {
   InterfaceType rawType;
   InterfaceType supertype;
   InterfaceType mixedInType;
+  List<InterfaceType> interfaces;
   OrderedTypeSet orderedTypeSet;
 
   Map<String, ir.Member> _constructorMap;
@@ -1103,7 +1117,7 @@ class _FunctionData extends _MemberData {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
-  void forEachParameter(KernelToElementMap elementMap,
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
       DartType type = elementMap.getDartType(node.type);
@@ -1362,7 +1376,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isDeferredLoadLibraryGetter(covariant KMember member) {
-    // TODO(johnniwinther): Support these.
+    // TODO(redemption): Support these.
     return false;
   }
 
@@ -1471,7 +1485,7 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
 /// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
 /// [_EvaluationEnvironment] for the evaluation.
 class KernelConstantEnvironment implements ConstantEnvironment {
-  KernelToElementMap _worldBuilder;
+  KernelToElementMapForBuilding _worldBuilder;
   Map<ConstantExpression, ConstantValue> _valueMap =
       <ConstantExpression, ConstantValue>{};
 
@@ -1548,6 +1562,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             elementMap.elementEnvironment,
+            elementMap.types,
             elementMap.commonElements,
             elementMap._constantEnvironment.constantSystem,
             nativeBasicData,
@@ -1568,7 +1583,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   bool implementsFunction(ClassEntity cls) {
-    // TODO(johnniwinther): Implement this.
+    // TODO(redemption): Implement this.
     return false;
   }
 
@@ -1594,6 +1609,7 @@ class KernelClosedWorld extends ClosedWorldBase {
 
   KernelClosedWorld(this._elementMap,
       {ElementEnvironment elementEnvironment,
+      DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
@@ -1609,6 +1625,7 @@ class KernelClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, ClassSet> classSets})
       : super(
             elementEnvironment: elementEnvironment,
+            dartTypes: dartTypes,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,
@@ -1764,12 +1781,13 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
   @override
   bool isJsInteropMember(MemberEntity element) {
-    // TODO(johnniwinther): Compute this.
+    // TODO(redemption): Compute this.
     return false;
   }
 }
 
-class JsKernelToElementMap extends KernelToElementMapMixin
+class JsKernelToElementMap extends KernelToElementMapBase
+    with KernelToElementMapForBuildingMixin
     implements KernelToWorldBuilder {
   final JsToFrontendMap _map;
   final ElementEnvironment _elementEnvironment;
@@ -1827,13 +1845,6 @@ class JsKernelToElementMap extends KernelToElementMapMixin
   }
 
   @override
-  ConstructorEntity getSuperConstructor(
-      ir.Constructor constructor, ir.Member target) {
-    return _map
-        .toBackendMember(_elementMap.getSuperConstructor(constructor, target));
-  }
-
-  @override
   ConstructorEntity getConstructor(ir.Member node) {
     return _map.toBackendMember(_elementMap.getConstructor(node));
   }
@@ -1879,11 +1890,6 @@ class JsKernelToElementMap extends KernelToElementMapMixin
   ConstantValue computeConstantValue(ConstantExpression constant,
       {bool requireConstant: true}) {
     throw new UnsupportedError("JsKernelToElementMap.computeConstantValue");
-  }
-
-  @override
-  native.BehaviorBuilder get nativeBehaviorBuilder {
-    throw new UnsupportedError("JsKernelToElementMap.nativeBehaviorBuilder");
   }
 
   @override

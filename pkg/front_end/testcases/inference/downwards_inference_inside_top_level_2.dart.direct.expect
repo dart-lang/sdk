@@ -8,5 +8,4 @@ class A<T extends core::Object> extends core::Object {
     ;
 }
 static field dynamic t1 = <self::A<core::int>>[new self::A::•<dynamic>(1)];
-static field dynamic t2 = <dynamic>[new self::A::•<dynamic>(2)];
 static method main() → dynamic {}

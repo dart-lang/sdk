@@ -55,7 +55,7 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programBuilder.buildProgram();
+    Program program = programForTesting = programBuilder.buildProgram();
     return _emitter.emitProgram(program);
   }
 

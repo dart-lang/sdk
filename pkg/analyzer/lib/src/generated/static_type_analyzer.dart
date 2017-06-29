@@ -189,7 +189,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           'element', listTypeParam, ParameterKind.POSITIONAL);
       parameters = new List.filled(elementTypes.length, syntheticParamElement);
     }
-    DartType inferred = ts.inferGenericFunctionOrType/*<InterfaceType>*/(
+    DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
         _typeProvider.listType, parameters, elementTypes, contextType,
         downwards: downwards,
         errorReporter: _resolver.errorReporter,

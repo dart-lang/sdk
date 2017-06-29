@@ -1053,7 +1053,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             "The network interface does not have an address "
             "of the same family as the multicast address");
       } else {
-        // Default to the ANY address if no iterface is specified.
+        // Default to the ANY address if no interface is specified.
         return InternetAddress.ANY_IP_V4;
       }
     } else {
@@ -1229,7 +1229,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
         write: () {
           // The write event handler is automatically disabled by the
           // event handler when it fires.
-          _writeEventsEnabled = false;
+          writeEventsEnabled = false;
           _controller.add(RawSocketEvent.WRITE);
         },
         closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
@@ -1726,7 +1726,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         write: () {
           // The write event handler is automatically disabled by the
           // event handler when it fires.
-          _writeEventsEnabled = false;
+          writeEventsEnabled = false;
           _controller.add(RawSocketEvent.WRITE);
         },
         closed: () => _controller.add(RawSocketEvent.READ_CLOSED),

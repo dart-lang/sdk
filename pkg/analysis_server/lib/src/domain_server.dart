@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -34,11 +34,11 @@ class ServerDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == SERVER_GET_VERSION) {
+      if (requestName == SERVER_REQUEST_GET_VERSION) {
         return getVersion(request);
-      } else if (requestName == SERVER_SET_SUBSCRIPTIONS) {
+      } else if (requestName == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
-      } else if (requestName == SERVER_SHUTDOWN) {
+      } else if (requestName == SERVER_REQUEST_SHUTDOWN) {
         return shutdown(request);
       }
     } on RequestFailure catch (exception) {

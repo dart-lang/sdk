@@ -22,6 +22,7 @@ import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 
 import 'metadata_collector.dart' show MetadataCollector;
+import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
 import 'sorter.dart';
@@ -41,6 +42,8 @@ class CodeEmitterTask extends CompilerTask {
   EmitterFactory _emitterFactory;
   Emitter _emitter;
   final Compiler compiler;
+
+  ProgramBuilder programForTesting;
 
   /// The [Sorter] use for ordering elements in the generated JavaScript.
   final Sorter sorter;
@@ -194,7 +197,7 @@ class CodeEmitterTask extends CompilerTask {
           compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
-          compiler.types,
+          closedWorld.dartTypes,
           compiler.deferredLoadTask,
           compiler.backendStrategy.closureDataLookup,
           compiler.codegenWorldBuilder,
@@ -237,6 +240,8 @@ abstract class EmitterFactory {
 }
 
 abstract class Emitter {
+  Program get programForTesting;
+
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder);
@@ -290,6 +295,7 @@ abstract class Emitter {
 }
 
 abstract class EmitterBase implements Emitter {
+  Program programForTesting;
   Namer get namer;
 
   jsAst.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {

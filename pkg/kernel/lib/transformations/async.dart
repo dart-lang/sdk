@@ -48,7 +48,7 @@ class ExpressionLifter extends Transformer {
   ///
   /// If an expression should be named it is named before visiting its children
   /// so the naming assignment appears in the list before all statements
-  /// implementating the translation of the children.
+  /// implementing the translation of the children.
   ///
   /// Children that are conditionally evaluated, such as some parts of logical
   /// and conditional expressions, must be delimited so that they do not emit

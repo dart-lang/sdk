@@ -7,6 +7,5 @@ class A<T extends core::Object> extends core::Object {
     ;
 }
 static field dynamic t1;
-static field dynamic t2;
 static method main() → dynamic
   ;

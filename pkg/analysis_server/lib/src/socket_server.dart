@@ -8,7 +8,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -88,15 +87,13 @@ class SocketServer {
         serverChannel,
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
-        createMemoryIndex(),
         serverPlugin,
         analysisServerOptions,
         sdkManager,
         instrumentationService,
         diagnosticServer: diagnosticServer,
         fileResolverProvider: fileResolverProvider,
-        packageResolverProvider: packageResolverProvider,
-        rethrowExceptions: false);
+        packageResolverProvider: packageResolverProvider);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }
 }

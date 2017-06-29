@@ -10,6 +10,32 @@ import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/pair.dart';
 
 /**
+ * A concrete implementation of [DartNavigationRequest].
+ */
+class DartNavigationRequestImpl implements DartNavigationRequest {
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final int length;
+
+  @override
+  final int offset;
+
+  @override
+  final ResolveResult result;
+
+  /**
+   * Initialize a newly create request with the given data.
+   */
+  DartNavigationRequestImpl(
+      this.resourceProvider, this.offset, this.length, this.result);
+
+  @override
+  String get path => result.path;
+}
+
+/**
  * A concrete implementation of [NavigationCollector].
  */
 class NavigationCollectorImpl implements NavigationCollector {
@@ -82,27 +108,4 @@ class NavigationCollectorImpl implements NavigationCollector {
     }
     return index;
   }
-}
-
-/**
- * A concrete implementation of [NavigationRequest].
- */
-class NavigationRequestImpl implements NavigationRequest {
-  @override
-  final ResourceProvider resourceProvider;
-
-  @override
-  final int length;
-
-  @override
-  final int offset;
-
-  @override
-  final ResolveResult result;
-
-  /**
-   * Initialize a newly create request with the given data.
-   */
-  NavigationRequestImpl(
-      this.resourceProvider, this.offset, this.length, this.result);
 }

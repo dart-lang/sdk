@@ -438,13 +438,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Unhandled: '${field.name}' has more than one declaration.");
         }
         field.initializer = initializer;
-        _typeInferrer.inferFieldInitializer(field.builtType, initializer);
+        _typeInferrer.inferFieldInitializer(
+            field.hasImplicitType ? null : field.builtType, initializer);
       }
     }
     pop(); // Type.
     pop(); // Modifiers.
     List annotations = pop();
     if (annotations != null) {
+      _typeInferrer.inferMetadata(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       annotations.forEach(field.addAnnotation);
@@ -588,6 +590,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     KernelFunctionBuilder builder = member;
     builder.body = body;
     Member target = builder.target;
+    _typeInferrer.inferMetadata(annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -612,6 +615,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       internalError("Unhandled: ${builder.runtimeType}");
     }
+  }
+
+  @override
+  List<Expression> finishMetadata() {
+    List<Expression> expressions = pop();
+    _typeInferrer.inferMetadata(expressions);
+    return expressions;
   }
 
   void finishConstructor(
@@ -896,13 +906,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (!target.isAccessor) {
         if (areArgumentsCompatible(target.function, node.arguments)) {
           Expression result = new KernelDirectMethodInvocation(
-              new ThisExpression()..fileOffset = node.fileOffset,
+              new KernelThisExpression()..fileOffset = node.fileOffset,
               target,
-              node.arguments);
+              node.arguments)
+            ..fileOffset = node.fileOffset;
           // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
           // remove the next line:
           result =
-              new KernelSuperMethodInvocation(node.name, node.arguments, null);
+              new KernelSuperMethodInvocation(node.name, node.arguments, target)
+                ..fileOffset = node.fileOffset;
           return result;
         } else {
           isNoSuchMethod = true;
@@ -914,12 +926,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           node.name.name, node.arguments, node.fileOffset);
     }
     Expression receiver = new KernelDirectPropertyGet(
-        new ThisExpression()..fileOffset = node.fileOffset, target);
+        new KernelThisExpression()..fileOffset = node.fileOffset, target)
+      ..fileOffset = node.fileOffset;
     // TODO(ahe): Use [DirectPropertyGet] when possible, that is, remove the
     // next line:
-    receiver = new KernelSuperPropertyGet(node.name, target);
+    receiver = new KernelSuperPropertyGet(node.name, target)
+      ..fileOffset = node.fileOffset;
     return buildMethodInvocation(
-        receiver, callName, node.arguments, node.fileOffset,
+        receiver, callName, node.arguments, node.arguments.fileOffset,
         isImplicitCall: true);
   }
 
@@ -991,7 +1005,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         noSuchMethodName,
         new Arguments(<Expression>[
           library.loader.instantiateInvocation(
-              new ThisExpression()..fileOffset = charOffset,
+              new KernelThisExpression()..fileOffset = charOffset,
               name,
               arguments,
               charOffset,
@@ -1507,15 +1521,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new ForStatement(variables, condition, updates, body);
+    Statement result =
+        new KernelForStatement(variables, condition, updates, body);
     if (begin != null) {
       result = new Block(<Statement>[begin, result]);
     }
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -1716,11 +1731,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     FormalParameters formals = pop();
-    ignore(Unhandled.TypeVariables);
     DartType returnType = pop();
+    ignore(Unhandled.TypeVariables);
     push(formals.toFunctionType(returnType));
   }
 
@@ -1938,9 +1953,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (catchParameters != null) {
       if (catchParameters.required.length > 0) {
         exception = catchParameters.required[0];
+        exception.type = type;
       }
       if (catchParameters.required.length > 1) {
         stackTrace = catchParameters.required[1];
+        stackTrace.type = coreTypes.stackTraceClass.rawType;
       }
       if (catchParameters.required.length > 2 ||
           catchParameters.optional != null) {
@@ -1960,10 +1977,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement tryBlock = popStatement();
     if (compileTimeErrorInTry == null) {
       if (catches != null) {
-        tryBlock = new TryCatch(tryBlock, catches);
+        tryBlock = new KernelTryCatch(tryBlock, catches);
       }
       if (finallyBlock != null) {
-        tryBlock = new TryFinally(tryBlock, finallyBlock);
+        tryBlock = new KernelTryFinally(tryBlock, finallyBlock);
       }
       push(tryBlock);
     } else {
@@ -2486,12 +2503,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new DoStatement(body, condition);
+    Statement result = new KernelDoStatement(body, condition);
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2521,7 +2538,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
     VariableDeclaration variable;
@@ -2558,7 +2575,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         isAsync: awaitToken != null)
       ..fileOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2592,13 +2609,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     if (target.breakTarget.hasUsers) {
       if (statement is! LabeledStatement) {
-        statement = new LabeledStatement(statement);
+        statement = new KernelLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(statement);
     }
     if (target.continueTarget.hasUsers) {
       if (statement is! LabeledStatement) {
-        statement = new LabeledStatement(statement);
+        statement = new KernelLabeledStatement(statement);
       }
       target.continueTarget.resolveContinues(statement);
     }
@@ -2632,12 +2649,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = new LabeledStatement(body);
+      body = new KernelLabeledStatement(body);
       continueTarget.resolveContinues(body);
     }
-    Statement result = new WhileStatement(condition, body);
+    Statement result = new KernelWhileStatement(condition, body);
     if (breakTarget.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       breakTarget.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2664,7 +2681,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
-    AssertStatement statement = new AssertStatement(condition,
+    AssertStatement statement = new KernelAssertStatement(condition,
         conditionStartOffset: leftParenthesis.offset + 1,
         conditionEndOffset: rightParenthesis.offset,
         message: message);
@@ -2832,9 +2849,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitSwitchScope();
     exitLocalScope();
     Expression expression = popForValue();
-    Statement result = new SwitchStatement(expression, cases);
+    Statement result = new KernelSwitchStatement(expression, cases);
     if (target.hasUsers) {
-      result = new LabeledStatement(result);
+      result = new KernelLabeledStatement(result);
       target.resolveBreaks(result);
     }
     exitLoopOrSwitch(result);
@@ -2870,7 +2887,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Can't break to '$name' in a different function.",
           breakKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new BreakStatement(null)
+      BreakStatement statement = new KernelBreakStatement(null)
         ..fileOffset = breakKeyword.charOffset;
       target.addBreak(statement);
       push(statement);
@@ -2903,7 +2920,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = new ContinueSwitchStatement(null);
+        ContinueSwitchStatement statement =
+            new KernelContinueSwitchStatement(null);
         target.addGoto(statement);
         push(statement);
         return;
@@ -2920,7 +2938,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Can't continue at '$name' in a different function.",
           continueKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new BreakStatement(null)
+      BreakStatement statement = new KernelBreakStatement(null)
         ..fileOffset = continueKeyword.charOffset;
       target.addContinue(statement);
       push(statement);

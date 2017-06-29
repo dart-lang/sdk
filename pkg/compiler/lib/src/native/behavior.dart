@@ -907,7 +907,7 @@ abstract class BehaviorBuilder {
     return types;
   }
 
-  /// Models the behavior of having intances of [type] escape from Dart code
+  /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
   void _escape(DartType type) {
     if (type is ResolutionDartType) {

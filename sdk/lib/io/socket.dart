@@ -354,7 +354,7 @@ class SocketOption {
   /**
    * Enable or disable no-delay on the socket. If TCP_NODELAY is enabled, the
    * socket will not buffer data internally, but instead write each data chunk
-   * as an invidual TCP packet.
+   * as an individual TCP packet.
    *
    * TCP_NODELAY is disabled by default.
    */

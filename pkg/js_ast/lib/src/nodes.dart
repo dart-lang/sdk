@@ -984,7 +984,7 @@ abstract class DeferredToken extends Expression {
   DeferredToken _clone() => this;
 }
 
-/// Interace for a deferred integer value. An implementation has to provide
+/// Interface for a deferred integer value. An implementation has to provide
 /// a value via the [value] getter the latest when the ast is printed.
 abstract class DeferredNumber extends DeferredToken implements Literal {
   accept(NodeVisitor visitor) => visitor.visitDeferredNumber(this);
@@ -994,7 +994,7 @@ abstract class DeferredNumber extends DeferredToken implements Literal {
   int get precedenceLevel => value.isNegative ? UNARY : PRIMARY;
 }
 
-/// Interace for a deferred string value. An implementation has to provide
+/// Interface for a deferred string value. An implementation has to provide
 /// a value via the [value] getter the latest when the ast is printed.
 abstract class DeferredString extends DeferredToken implements Literal {
   accept(NodeVisitor visitor) => visitor.visitDeferredString(this);
@@ -1004,7 +1004,7 @@ abstract class DeferredString extends DeferredToken implements Literal {
   int get precedenceLevel => PRIMARY;
 }
 
-/// Interace for a deferred [Expression] value. An implementation has to provide
+/// Interface for a deferred [Expression] value. An implementation has to provide
 /// a value via the [value] getter the latest when the ast is printed.
 /// Also, [precedenceLevel] has to return the same value that
 /// [value.precedenceLevel] returns once [value] is bound to an [Expression].

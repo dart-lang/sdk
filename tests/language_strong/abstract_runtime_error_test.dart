@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Test various conditions around instantiating an abstract class.
 
-// From The Dart Programming Langauge Specification, 11.11.1 "New":
+// From The Dart Programming Language Specification, 11.11.1 "New":
 //   If q is a constructor of an abstract class then an
 //   AbstractClassInstantiation- Error is thrown.
 

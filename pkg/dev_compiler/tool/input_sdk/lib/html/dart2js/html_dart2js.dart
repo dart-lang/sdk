@@ -44845,7 +44845,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // Opera reports the character code in the keyCode field.
       e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
-    // Now we guestimate about what the keycode is that was actually
+    // Now we guesstimate about what the keycode is that was actually
     // pressed, given previous keydown information.
     e._shadowKeyCode = _determineKeyCodeForKeypress(e);
 

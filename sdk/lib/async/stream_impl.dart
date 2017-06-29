@@ -79,7 +79,7 @@ class _BufferingStreamSubscription<T>
    *   * a done event is sent.
    *
    * If the subscription is canceled while _STATE_WAIT_FOR_CANCEL is set, the
-   * state is unset, and no furher events must be delivered.
+   * state is unset, and no further events must be delivered.
    */
   static const int _STATE_WAIT_FOR_CANCEL = 16;
   static const int _STATE_IN_CALLBACK = 32;

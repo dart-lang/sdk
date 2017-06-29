@@ -227,8 +227,6 @@ class AstBuilder extends ScopeListener {
           assert(element != null);
           identifier.staticElement = element;
         }
-      } else if (context == IdentifierContext.classDeclaration) {
-        className = identifier.name;
       }
       push(identifier);
     }
@@ -770,11 +768,12 @@ class AstBuilder extends ScopeListener {
     push(new _ParameterDefaultValue(equals, value));
   }
 
-  void handleFunctionType(Token functionToken, Token semicolon) {
+  @override
+  void endFunctionType(Token functionToken, Token semicolon) {
     debugEvent("FunctionType");
     FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
     TypeAnnotation returnType = pop();
+    TypeParameterList typeParameters = pop();
     push(ast.genericFunctionType(
         returnType, functionToken, typeParameters, parameters));
   }
@@ -1335,6 +1334,12 @@ class AstBuilder extends ScopeListener {
     debugEvent("ClassBody");
     push(new _ClassBody(
         beginToken, popList(memberCount) ?? <ClassMember>[], endToken));
+  }
+
+  @override
+  void beginClassDeclaration(Token beginToken, Token name) {
+    assert(className == null);
+    className = name.lexeme;
   }
 
   @override

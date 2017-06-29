@@ -1772,6 +1772,40 @@
       </field>
     </result>
   </request>
+  <request method="getPostfixCompletion" experimental="true">
+    <p>
+      Get the changes required to convert the postfix template at the given
+      location into the template's expanded form.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the postfix template to be expanded.
+        </p>
+      </field>
+      <field name="key">
+        <ref>String</ref>
+        <p>
+          The unique name that identifies the template in use.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset used to identify the code to which the template will be applied.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change to be applied in order to complete the statement.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getRefactoring">
     <p>
       Get the changes required to perform a refactoring.
@@ -1935,6 +1969,55 @@
         <p>
           Will be true if the change contains nothing but whitespace
           characters, or is empty.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="isPostfixCompletionApplicable" experimental="true">
+    <p>
+      Determine if the request postfix completion template is applicable at
+      the given location in the given file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the postfix template to be expanded.
+        </p>
+      </field>
+      <field name="key">
+        <ref>String</ref>
+        <p>
+          The unique name that identifies the template in use.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset used to identify the code to which the template will be applied.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="value">
+        <ref>bool</ref>
+        <p>
+          True if the template can be expanded at the given location.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="listPostfixCompletionTemplates" experimental="true">
+    <p>
+      Return a list of all postfix templates currently available.
+    </p>
+    <result>
+      <field name="templates">
+        <list>
+          <ref>PostfixTemplateDescriptor</ref>
+        </list>
+        <p>
+          The list of available templates.
         </p>
       </field>
     </result>
@@ -2773,6 +2856,31 @@
         <ref>String</ref>
         <p>
           The name of the class in which the member is defined.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="PostfixTemplateDescriptor">
+    <p>
+      The description of a postfix completion template.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The template name, shown in the UI.
+        </p>
+      </field>
+      <field name="key">
+        <ref>String</ref>
+        <p>
+          The unique template key, not shown in the UI.
+        </p>
+      </field>
+      <field name="example">
+        <ref>String</ref>
+        <p>
+          A short example of the transformation performed when the template is applied.
         </p>
       </field>
     </object>

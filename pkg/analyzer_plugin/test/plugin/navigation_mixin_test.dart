@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart' hide AnalysisResult;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/navigation_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:path/src/context.dart';
 import 'package:test/test.dart';
@@ -88,9 +88,12 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
   }
 
   @override
-  Future<ResolveResult> getResolveResultForNavigation(
-      AnalysisDriverGeneric driver, String path) async {
-    return new AnalysisResult(
+  Future<NavigationRequest> getNavigationRequest(
+      AnalysisGetNavigationParams parameters,
+      covariant AnalysisDriver driver) async {
+    AnalysisResult result = new AnalysisResult(
         null, null, null, null, null, null, null, null, null, null, null);
+    return new DartNavigationRequestImpl(
+        resourceProvider, parameters.offset, parameters.length, result);
   }
 }

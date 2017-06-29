@@ -370,7 +370,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     TypeMask receiverType = receiver.instructionType;
     instruction.mask = receiverType;
 
-    // Try to specialize the receiver after this call by instering a refinement
+    // Try to specialize the receiver after this call by inserting a refinement
     // node (HTypeKnown). There are two potentially expensive tests - are there
     // any uses of the receiver dominated by and following this call?, and what
     // is the refined type? The first is expensive if the receiver has many

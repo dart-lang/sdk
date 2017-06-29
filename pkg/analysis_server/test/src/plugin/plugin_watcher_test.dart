@@ -9,10 +9,12 @@ import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analyzer/context/context_root.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -97,6 +99,7 @@ class TestDriver implements AnalysisDriver {
 
   SourceFactory sourceFactory;
   FileSystemState fsState;
+  AnalysisSession currentSession;
 
   final _resultController = new StreamController<AnalysisResult>();
 
@@ -122,6 +125,7 @@ class TestDriver implements AnalysisDriver {
         sourceFactory,
         new AnalysisOptionsImpl(),
         new Uint32List(0));
+    currentSession = new AnalysisSessionImpl(this);
   }
 
   Stream<AnalysisResult> get results => _resultController.stream;

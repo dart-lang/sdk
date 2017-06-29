@@ -1152,7 +1152,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R1: next object start.
     // R9: allocation stats table.
     // Set the tags.
-    uint32_t tags = 0;
+    uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
@@ -2153,7 +2153,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ tst(R6, Operand(R6));
   __ b(&load_target, EQ);  // branch if miss.
 
-  // Try next extry in the table.
+  // Try next entry in the table.
   __ AddImmediate(R3, Smi::RawValue(1));
   __ b(&loop);
 }

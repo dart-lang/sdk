@@ -15,5 +15,4 @@ class B<T extends core::Object> extends core::Object {
 }
 static field self::A t1 = let final self::A #t1 = new self::A::•() in let final dynamic #t2 = #t1.{self::A::b} = new self::B::•<core::int>(1) in #t1;
 static field core::List<self::B<core::int>> t2 = <self::B<core::int>>[new self::B::•<core::int>(2)];
-static field core::List<self::B<dynamic>> t3 = <self::B<dynamic>>[new self::B::•<dynamic>(3)];
 static method main() → dynamic {}

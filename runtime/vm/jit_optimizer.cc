@@ -1259,6 +1259,21 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     function_type_args = call->ArgumentAt(2);
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
+
+  if (TypeCheckAsClassEquality(type)) {
+    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
+    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+    const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
+    ConstantInstr* cid =
+        flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
+
+    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+        call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
+        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
+    ReplaceCall(call, check_cid);
+    return;
+  }
+
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
@@ -1294,20 +1309,6 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       current_iterator()->RemoveCurrentFromGraph();
       return;
     }
-  }
-
-  if (TypeCheckAsClassEquality(type)) {
-    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
-    const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
-    ConstantInstr* cid =
-        flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
-
-    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
-        call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
-        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
-    ReplaceCall(call, check_cid);
-    return;
   }
 
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
@@ -1615,7 +1616,7 @@ void JitOptimizer::VisitStoreInstanceField(StoreInstanceFieldInstr* instr) {
 
 void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
   // Replace generic allocation with a sequence of inlined allocation and
-  // explicit initalizing stores.
+  // explicit initializing stores.
   AllocateUninitializedContextInstr* replacement =
       new AllocateUninitializedContextInstr(instr->token_pos(),
                                             instr->num_context_variables());

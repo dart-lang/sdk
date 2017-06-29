@@ -5,25 +5,21 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -111,12 +107,10 @@ class AnalysisServerTest {
         channel,
         resourceProvider,
         packageMapProvider,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('/', false),
-        InstrumentationService.NULL_SERVICE,
-        rethrowExceptions: true);
+        InstrumentationService.NULL_SERVICE);
   }
 
   Future test_echo() {
@@ -128,36 +122,12 @@ class AnalysisServerTest {
     });
   }
 
-  void test_rethrowExceptions() {
-    Exception exceptionToThrow = new Exception('test exception');
-    MockServerOperation operation =
-        new MockServerOperation(ServerOperationPriority.ANALYSIS, (_) {
-      throw exceptionToThrow;
-    });
-    server.operationQueue.add(operation);
-    server.performOperationPending = true;
-    try {
-      server.performOperation();
-      fail('exception not rethrown');
-    } on AnalysisException catch (exception) {
-      expect(exception.cause.exception, equals(exceptionToThrow));
-    }
-  }
-
   Future test_serverStatusNotifications() {
-    MockAnalysisContext context = new MockAnalysisContext('context');
-    MockSource source = new MockSource('source');
-    when(source.fullName).thenReturn('foo.dart');
-    when(source.isInSystemLibrary).thenReturn(false);
-    ChangeNoticeImpl notice = new ChangeNoticeImpl(source);
-    notice.setErrors([], new LineInfo([0]));
-    AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
-    AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
-    when(context.analysisOptions).thenReturn(new AnalysisOptionsImpl());
-    when(context.performAnalysisTask)
-        .thenReturnList([firstResult, firstResult, firstResult, lastResult]);
     server.serverServices.add(ServerService.STATUS);
-    server.schedulePerformAnalysisOperation(context);
+    resourceProvider.newFolder('/pkg');
+    resourceProvider.newFolder('/pkg/lib');
+    resourceProvider.newFile('/pkg/lib/test.dart', 'class C {}');
+    server.setAnalysisRoots('0', ['/pkg'], [], {});
     // Pump the event queue to make sure the server has finished any
     // analysis.
     return pumpEventQueue().then((_) {
@@ -165,9 +135,11 @@ class AnalysisServerTest {
       expect(notifications, isNotEmpty);
       // expect at least one notification indicating analysis is in progress
       expect(notifications.any((Notification notification) {
-        if (notification.event == SERVER_STATUS) {
+        if (notification.event == SERVER_NOTIFICATION_STATUS) {
           var params = new ServerStatusParams.fromNotification(notification);
-          return params.analysis.isAnalyzing;
+          if (params.analysis != null) {
+            return params.analysis.isAnalyzing;
+          }
         }
         return false;
       }), isTrue);
@@ -195,7 +167,7 @@ analyzer:
     // the file is excluded, so no navigation notification
     await server.onAnalysisComplete;
     expect(channel.notificationsReceived.any((notification) {
-      return notification.event == ANALYSIS_NAVIGATION;
+      return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isFalse);
   }
 
@@ -216,13 +188,13 @@ analyzer:
     // the file is excluded, so no navigation notification
     await server.onAnalysisComplete;
     expect(channel.notificationsReceived.any((notification) {
-      return notification.event == ANALYSIS_NAVIGATION;
+      return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
     }), isFalse);
   }
 
   Future test_shutdown() {
     server.handlers = [new ServerDomainHandler(server)];
-    var request = new Request('my28', SERVER_SHUTDOWN);
+    var request = new Request('my28', SERVER_REQUEST_SHUTDOWN);
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my28'));
       expect(response.error, isNull);

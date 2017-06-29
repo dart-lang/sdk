@@ -10,6 +10,29 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /**
+ * A concrete implementation of [DartFixesRequest].
+ */
+class DartFixesRequestImpl implements DartFixesRequest {
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final int offset;
+
+  @override
+  final List<AnalysisError> errorsToFix;
+
+  @override
+  final ResolveResult result;
+
+  /**
+   * Initialize a newly create request with the given data.
+   */
+  DartFixesRequestImpl(
+      this.resourceProvider, this.offset, this.errorsToFix, this.result);
+}
+
+/**
  * A concrete implementation of [FixCollector].
  */
 class FixCollectorImpl implements FixCollector {
@@ -36,26 +59,4 @@ class FixCollectorImpl implements FixCollector {
   void addFix(AnalysisError error, PrioritizedSourceChange change) {
     fixMap.putIfAbsent(error, () => <PrioritizedSourceChange>[]).add(change);
   }
-}
-
-/**
- * A concrete implementation of [FixesRequest].
- */
-class FixesRequestImpl implements FixesRequest {
-  @override
-  AnalysisError error;
-
-  @override
-  final ResourceProvider resourceProvider;
-
-  @override
-  final int offset;
-
-  @override
-  final ResolveResult result;
-
-  /**
-   * Initialize a newly create request with the given data.
-   */
-  FixesRequestImpl(this.resourceProvider, this.offset, this.result);
 }

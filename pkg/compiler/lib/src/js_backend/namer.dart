@@ -786,7 +786,7 @@ class Namer {
 
   /// Annotated name for [method] encoding arity and named parameters.
   jsAst.Name instanceMethodName(FunctionEntity method) {
-    // TODO(johnniwinther): Avoid the use of [ConstructorBodyElement]. The
+    // TODO(redemption): Avoid the use of [ConstructorBodyElement]. The
     // codegen model should be explicit about its constructor body elements.
     if (method is ConstructorBodyElement) {
       return constructorBodyName(method);
@@ -968,7 +968,7 @@ class Namer {
     if (cls is ClassElement) {
       return cls.hasFieldShadowedBy(element);
     }
-    // TODO(johnniwinther): Support class entities.
+    // TODO(redemption): Support class entities.
     return false;
   }
 
@@ -1919,7 +1919,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         if (name == 'index') {
           indexField = field;
         } else if (name == '_name') {
-          // Ingore _name field.
+          // Ignore _name field.
         } else {
           indexField = null;
           break;

@@ -982,6 +982,28 @@ table AnalysisDriverResolvedUnit {
 }
 
 /**
+ * Information about a subtype of one or more classes.
+ */
+table AnalysisDriverSubtype {
+  /**
+   * The names of defined instance members.
+   * The list is sorted in ascending order.
+   */
+  members:[string] (id: 2);
+
+  /**
+   * The name of the class.
+   */
+  name:string (id: 0);
+
+  /**
+   * The identifiers of the direct supertypes.
+   * The list is sorted in ascending order.
+   */
+  supertypes:[string] (id: 1);
+}
+
+/**
  * Information about an error in a resolved unit.
  */
 table AnalysisDriverUnitError {
@@ -1063,6 +1085,11 @@ table AnalysisDriverUnitIndex {
    * string in this index.
    */
   strings:[string] (id: 0);
+
+  /**
+   * The list of classes declared in the unit.
+   */
+  subtypes:[AnalysisDriverSubtype] (id: 18);
 
   /**
    * Each item of this list corresponds to the library URI of a unique library
@@ -1149,6 +1176,12 @@ table AnalysisDriverUnlinkedUnit {
    * List of external names referenced by the unit.
    */
   referencedNames:[string] (id: 0);
+
+  /**
+   * List of names which are used in `extends`, `with` or `implements` clauses
+   * in the file. Import prefixes and type arguments are not included.
+   */
+  subtypedNames:[string] (id: 4);
 
   /**
    * Unlinked information for the unit.

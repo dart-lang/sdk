@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -83,7 +83,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_OCCURRENCES) {
+    if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
       var params = new AnalysisOccurrencesParams.fromNotification(notification);
       if (params.file == testFile) {
         occurrencesList = params.occurrences;

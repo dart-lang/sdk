@@ -12,7 +12,7 @@
 
 namespace dart {
 
-// Froward declaration.
+// Forward declaration.
 class MemoryRegion;
 class JSONArray;
 

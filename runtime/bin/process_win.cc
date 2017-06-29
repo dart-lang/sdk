@@ -1043,7 +1043,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 }
 
 
-void Process::ClearSignalHandler(intptr_t signal) {
+void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   signal = GetWinSignal(signal);
   if (signal == -1) {
     return;
@@ -1051,24 +1051,27 @@ void Process::ClearSignalHandler(intptr_t signal) {
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
   while (handler != NULL) {
-    if ((handler->port() == Dart_GetMainPortId()) &&
-        (handler->signal() == signal)) {
-      handler->Unlink();
-      break;
+    bool remove = false;
+    if (handler->signal() == signal) {
+      if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
+        if (signal_handlers == handler) {
+          signal_handlers = handler->next();
+        }
+        handler->Unlink();
+        FileHandle* file_handle = reinterpret_cast<FileHandle*>(handler->fd());
+        file_handle->Release();
+        remove = true;
+      }
     }
-    handler = handler->next();
+    SignalInfo* next = handler->next();
+    if (remove) {
+      delete handler;
+    }
+    handler = next;
   }
-  if (handler != NULL) {
-    if (signal_handlers == handler) {
-      signal_handlers = handler->next();
-    }
-    if (signal_handlers == NULL) {
-      USE(SetConsoleCtrlHandler(SignalHandler, false));
-    }
-    FileHandle* file_handle = reinterpret_cast<FileHandle*>(handler->fd());
-    file_handle->Release();
+  if (signal_handlers == NULL) {
+    USE(SetConsoleCtrlHandler(SignalHandler, false));
   }
-  delete handler;
 }
 
 }  // namespace bin

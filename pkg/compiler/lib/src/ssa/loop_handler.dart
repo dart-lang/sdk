@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../closure.dart' show LoopClosureRepresentationInfo;
+import '../closure.dart' show LoopClosureScope;
 import '../elements/jumps.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
@@ -28,8 +28,14 @@ abstract class LoopHandler<T> {
   /// For while loops, [initialize] and [update] are null.
   /// The [condition] function must return a boolean result.
   /// None of the functions must leave anything on the stack.
-  void handleLoop(T loop, LoopClosureRepresentationInfo loopClosureInfo,
-      void initialize(), HInstruction condition(), void update(), void body()) {
+  void handleLoop(
+      T loop,
+      LoopClosureScope loopClosureInfo,
+      JumpTarget jumpTarget,
+      void initialize(),
+      HInstruction condition(),
+      void update(),
+      void body()) {
     // Generate:
     //  <initializer>
     //  loop-entry:
@@ -53,7 +59,7 @@ abstract class LoopHandler<T> {
     }
 
     builder.loopDepth++;
-    JumpHandler jumpHandler = beginLoopHeader(loop);
+    JumpHandler jumpHandler = beginLoopHeader(loop, jumpTarget);
     HLoopInformation loopInfo = builder.current.loopInformation;
     HBasicBlock conditionBlock = builder.current;
     if (startBlock == null) startBlock = conditionBlock;
@@ -108,17 +114,16 @@ abstract class LoopHandler<T> {
           continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
 
       List<LabelDefinition> labels = jumpHandler.labels;
-      JumpTarget target = getTargetDefinition(loop);
       if (labels.isNotEmpty) {
         beginBodyBlock.setBlockFlow(
             new HLabeledBlockInformation(
                 new HSubGraphBlockInformation(bodyGraph), jumpHandler.labels,
                 isContinue: true),
             updateBlock);
-      } else if (target != null && target.isContinueTarget) {
+      } else if (jumpTarget != null && jumpTarget.isContinueTarget) {
         beginBodyBlock.setBlockFlow(
             new HLabeledBlockInformation.implicit(
-                new HSubGraphBlockInformation(bodyGraph), target,
+                new HSubGraphBlockInformation(bodyGraph), jumpTarget,
                 isContinue: true),
             updateBlock);
       }
@@ -193,9 +198,8 @@ abstract class LoopHandler<T> {
       // If the body has any break, attach a synthesized label to the
       // if block.
       if (jumpHandler.hasAnyBreak()) {
-        JumpTarget target = getTargetDefinition(loop);
-        LabelDefinition label = target.addLabel(null, 'loop');
-        label.setBreakTarget();
+        LabelDefinition label =
+            jumpTarget.addLabel(null, 'loop', isBreakTarget: true);
         SubGraph labelGraph = new SubGraph(conditionBlock, builder.current);
         HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(labelGraph),
@@ -217,11 +221,12 @@ abstract class LoopHandler<T> {
   /// Creates a new loop-header block. The previous [current] block
   /// is closed with an [HGoto] and replaced by the newly created block.
   /// Also notifies the locals handler that we're entering a loop.
-  JumpHandler beginLoopHeader(T node) {
+  JumpHandler beginLoopHeader(T node, JumpTarget jumpTarget) {
     assert(!builder.isAborted());
     HBasicBlock previousBlock = builder.close(new HGoto());
 
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: true);
+    JumpHandler jumpHandler =
+        createJumpHandler(node, jumpTarget, isLoopJump: true);
     HBasicBlock loopEntry = builder.graph
         .addNewLoopHeaderBlock(jumpHandler.target, jumpHandler.labels);
     previousBlock.addSuccessor(loopEntry);
@@ -285,9 +290,6 @@ abstract class LoopHandler<T> {
     }
   }
 
-  /// Returns the jump target defined by [node].
-  JumpTarget getTargetDefinition(T node);
-
   /// Determine what kind of loop [node] represents.
   ///
   /// The result is one of the kinds defined in [HLoopBlockInformation].
@@ -303,7 +305,8 @@ abstract class LoopHandler<T> {
   /// [isLoopJump] is [:true:] when the jump handler is for a loop. This is used
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
-  JumpHandler createJumpHandler(T node, {bool isLoopJump});
+  JumpHandler createJumpHandler(T node, JumpTarget jumpTarget,
+      {bool isLoopJump});
 }
 
 /// A loop handler for the builder that just uses AST nodes directly.
@@ -315,11 +318,6 @@ class SsaLoopHandler extends LoopHandler<ast.Node> {
         super(builder);
 
   @override
-  JumpTarget getTargetDefinition(ast.Node node) {
-    return builder.elements.getTargetDefinition(node);
-  }
-
-  @override
   int loopKind(ast.Node node) => node.accept(const _SsaLoopTypeVisitor());
 
   @override
@@ -327,8 +325,9 @@ class SsaLoopHandler extends LoopHandler<ast.Node> {
       builder.sourceInformationBuilder.buildLoop(node);
 
   @override
-  JumpHandler createJumpHandler(ast.Node node, {bool isLoopJump}) =>
-      builder.createJumpHandler(node, isLoopJump: isLoopJump);
+  JumpHandler createJumpHandler(ast.Node node, JumpTarget jumpTarget,
+          {bool isLoopJump}) =>
+      builder.createJumpHandler(node, jumpTarget, isLoopJump: isLoopJump);
 }
 
 class _SsaLoopTypeVisitor extends ast.Visitor {
@@ -355,12 +354,9 @@ class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
         super(builder);
 
   @override
-  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump}) =>
-      builder.createJumpHandler(node, isLoopJump: isLoopJump);
-
-  @override
-  JumpTarget getTargetDefinition(ir.TreeNode node) =>
-      builder.localsMap.getJumpTarget(node);
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget jumpTarget,
+          {bool isLoopJump}) =>
+      builder.createJumpHandler(node, jumpTarget, isLoopJump: isLoopJump);
 
   @override
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());

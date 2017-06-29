@@ -6377,6 +6377,229 @@ class EditGetFixesResult implements ResponseResult {
 }
 
 /**
+ * edit.getPostfixCompletion params
+ *
+ * {
+ *   "file": FilePath
+ *   "key": String
+ *   "offset": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditGetPostfixCompletionParams implements RequestParams {
+  String _file;
+
+  String _key;
+
+  int _offset;
+
+  /**
+   * The file containing the postfix template to be expanded.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the postfix template to be expanded.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The unique name that identifies the template in use.
+   */
+  String get key => _key;
+
+  /**
+   * The unique name that identifies the template in use.
+   */
+  void set key(String value) {
+    assert(value != null);
+    this._key = value;
+  }
+
+  /**
+   * The offset used to identify the code to which the template will be
+   * applied.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset used to identify the code to which the template will be
+   * applied.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  EditGetPostfixCompletionParams(String file, String key, int offset) {
+    this.file = file;
+    this.key = key;
+    this.offset = offset;
+  }
+
+  factory EditGetPostfixCompletionParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      String key;
+      if (json.containsKey("key")) {
+        key = jsonDecoder.decodeString(jsonPath + ".key", json["key"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "key");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new EditGetPostfixCompletionParams(file, key, offset);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.getPostfixCompletion params", json);
+    }
+  }
+
+  factory EditGetPostfixCompletionParams.fromRequest(Request request) {
+    return new EditGetPostfixCompletionParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["key"] = key;
+    result["offset"] = offset;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.getPostfixCompletion", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditGetPostfixCompletionParams) {
+      return file == other.file && key == other.key && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, key.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.getPostfixCompletion result
+ *
+ * {
+ *   "change": SourceChange
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditGetPostfixCompletionResult implements ResponseResult {
+  SourceChange _change;
+
+  /**
+   * The change to be applied in order to complete the statement.
+   */
+  SourceChange get change => _change;
+
+  /**
+   * The change to be applied in order to complete the statement.
+   */
+  void set change(SourceChange value) {
+    assert(value != null);
+    this._change = value;
+  }
+
+  EditGetPostfixCompletionResult(SourceChange change) {
+    this.change = change;
+  }
+
+  factory EditGetPostfixCompletionResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceChange change;
+      if (json.containsKey("change")) {
+        change = new SourceChange.fromJson(
+            jsonDecoder, jsonPath + ".change", json["change"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "change");
+      }
+      return new EditGetPostfixCompletionResult(change);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.getPostfixCompletion result", json);
+    }
+  }
+
+  factory EditGetPostfixCompletionResult.fromResponse(Response response) {
+    return new EditGetPostfixCompletionResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["change"] = change.toJson();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditGetPostfixCompletionResult) {
+      return change == other.change;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * edit.getRefactoring params
  *
  * {
@@ -7106,6 +7329,353 @@ class EditGetStatementCompletionResult implements ResponseResult {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, change.hashCode);
     hash = JenkinsSmiHash.combine(hash, whitespaceOnly.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.isPostfixCompletionApplicable params
+ *
+ * {
+ *   "file": FilePath
+ *   "key": String
+ *   "offset": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditIsPostfixCompletionApplicableParams implements RequestParams {
+  String _file;
+
+  String _key;
+
+  int _offset;
+
+  /**
+   * The file containing the postfix template to be expanded.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the postfix template to be expanded.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The unique name that identifies the template in use.
+   */
+  String get key => _key;
+
+  /**
+   * The unique name that identifies the template in use.
+   */
+  void set key(String value) {
+    assert(value != null);
+    this._key = value;
+  }
+
+  /**
+   * The offset used to identify the code to which the template will be
+   * applied.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset used to identify the code to which the template will be
+   * applied.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  EditIsPostfixCompletionApplicableParams(String file, String key, int offset) {
+    this.file = file;
+    this.key = key;
+    this.offset = offset;
+  }
+
+  factory EditIsPostfixCompletionApplicableParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      String key;
+      if (json.containsKey("key")) {
+        key = jsonDecoder.decodeString(jsonPath + ".key", json["key"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "key");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new EditIsPostfixCompletionApplicableParams(file, key, offset);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.isPostfixCompletionApplicable params", json);
+    }
+  }
+
+  factory EditIsPostfixCompletionApplicableParams.fromRequest(Request request) {
+    return new EditIsPostfixCompletionApplicableParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["key"] = key;
+    result["offset"] = offset;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.isPostfixCompletionApplicable", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditIsPostfixCompletionApplicableParams) {
+      return file == other.file && key == other.key && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, key.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.isPostfixCompletionApplicable result
+ *
+ * {
+ *   "value": bool
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditIsPostfixCompletionApplicableResult implements ResponseResult {
+  bool _value;
+
+  /**
+   * True if the template can be expanded at the given location.
+   */
+  bool get value => _value;
+
+  /**
+   * True if the template can be expanded at the given location.
+   */
+  void set value(bool value) {
+    assert(value != null);
+    this._value = value;
+  }
+
+  EditIsPostfixCompletionApplicableResult(bool value) {
+    this.value = value;
+  }
+
+  factory EditIsPostfixCompletionApplicableResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      bool value;
+      if (json.containsKey("value")) {
+        value = jsonDecoder.decodeBool(jsonPath + ".value", json["value"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "value");
+      }
+      return new EditIsPostfixCompletionApplicableResult(value);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.isPostfixCompletionApplicable result", json);
+    }
+  }
+
+  factory EditIsPostfixCompletionApplicableResult.fromResponse(
+      Response response) {
+    return new EditIsPostfixCompletionApplicableResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["value"] = value;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditIsPostfixCompletionApplicableResult) {
+      return value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.listPostfixCompletionTemplates params
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditListPostfixCompletionTemplatesParams implements RequestParams {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.listPostfixCompletionTemplates", null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is EditListPostfixCompletionTemplatesParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 690713107;
+  }
+}
+
+/**
+ * edit.listPostfixCompletionTemplates result
+ *
+ * {
+ *   "templates": List<PostfixTemplateDescriptor>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditListPostfixCompletionTemplatesResult implements ResponseResult {
+  List<PostfixTemplateDescriptor> _templates;
+
+  /**
+   * The list of available templates.
+   */
+  List<PostfixTemplateDescriptor> get templates => _templates;
+
+  /**
+   * The list of available templates.
+   */
+  void set templates(List<PostfixTemplateDescriptor> value) {
+    assert(value != null);
+    this._templates = value;
+  }
+
+  EditListPostfixCompletionTemplatesResult(
+      List<PostfixTemplateDescriptor> templates) {
+    this.templates = templates;
+  }
+
+  factory EditListPostfixCompletionTemplatesResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<PostfixTemplateDescriptor> templates;
+      if (json.containsKey("templates")) {
+        templates = jsonDecoder.decodeList(
+            jsonPath + ".templates",
+            json["templates"],
+            (String jsonPath, Object json) =>
+                new PostfixTemplateDescriptor.fromJson(
+                    jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "templates");
+      }
+      return new EditListPostfixCompletionTemplatesResult(templates);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.listPostfixCompletionTemplates result", json);
+    }
+  }
+
+  factory EditListPostfixCompletionTemplatesResult.fromResponse(
+      Response response) {
+    return new EditListPostfixCompletionTemplatesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["templates"] = templates
+        .map((PostfixTemplateDescriptor value) => value.toJson())
+        .toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditListPostfixCompletionTemplatesResult) {
+      return listEqual(templates, other.templates,
+          (PostfixTemplateDescriptor a, PostfixTemplateDescriptor b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, templates.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -10742,6 +11312,132 @@ class Override implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
     hash = JenkinsSmiHash.combine(hash, superclassMember.hashCode);
     hash = JenkinsSmiHash.combine(hash, interfaceMembers.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * PostfixTemplateDescriptor
+ *
+ * {
+ *   "name": String
+ *   "key": String
+ *   "example": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class PostfixTemplateDescriptor implements HasToJson {
+  String _name;
+
+  String _key;
+
+  String _example;
+
+  /**
+   * The template name, shown in the UI.
+   */
+  String get name => _name;
+
+  /**
+   * The template name, shown in the UI.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The unique template key, not shown in the UI.
+   */
+  String get key => _key;
+
+  /**
+   * The unique template key, not shown in the UI.
+   */
+  void set key(String value) {
+    assert(value != null);
+    this._key = value;
+  }
+
+  /**
+   * A short example of the transformation performed when the template is
+   * applied.
+   */
+  String get example => _example;
+
+  /**
+   * A short example of the transformation performed when the template is
+   * applied.
+   */
+  void set example(String value) {
+    assert(value != null);
+    this._example = value;
+  }
+
+  PostfixTemplateDescriptor(String name, String key, String example) {
+    this.name = name;
+    this.key = key;
+    this.example = example;
+  }
+
+  factory PostfixTemplateDescriptor.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      String key;
+      if (json.containsKey("key")) {
+        key = jsonDecoder.decodeString(jsonPath + ".key", json["key"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "key");
+      }
+      String example;
+      if (json.containsKey("example")) {
+        example =
+            jsonDecoder.decodeString(jsonPath + ".example", json["example"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "example");
+      }
+      return new PostfixTemplateDescriptor(name, key, example);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "PostfixTemplateDescriptor", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["key"] = key;
+    result["example"] = example;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is PostfixTemplateDescriptor) {
+      return name == other.name && key == other.key && example == other.example;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, key.hashCode);
+    hash = JenkinsSmiHash.combine(hash, example.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

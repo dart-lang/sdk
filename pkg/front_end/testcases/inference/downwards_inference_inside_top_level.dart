@@ -16,9 +16,5 @@ class B<T> {
 var /*@topType=A*/ t1 = new A()
   .. /*@target=A::b*/ b = new /*@typeArgs=int*/ B(1);
 var /*@topType=List<B<int>>*/ t2 = <B<int>>[new /*@typeArgs=int*/ B(2)];
-var /*@topType=List<B<dynamic>>*/ t3 = /*@typeArgs=B<dynamic>*/ [
-  new
-      /*error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=dynamic*/ B(3)
-];
 
 main() {}

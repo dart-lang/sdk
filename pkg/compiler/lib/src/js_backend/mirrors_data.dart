@@ -340,7 +340,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
   /// annotations. The arguments corresponds to the unions of the corresponding
   /// fields of the annotations.
-  // TODO(johnniwinther): Change type of [metaTargets] to `Set<ClassEntity>`.
+  // TODO(redemption): Change type of [metaTargets] to `Set<ClassEntity>`.
   void registerMirrorUsage(
       Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {
     if (symbols == null && targets == null && metaTargets == null) {
@@ -543,7 +543,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   void computeMembersNeededForReflection(
       ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
     if (_membersNeededForReflection != null) return;
-    if (closedWorld.commonElements.mirrorsLibrary == null) {
+    if (!closedWorld.backendUsage.isMirrorsUsed) {
       createImmutableSets();
       return;
     }

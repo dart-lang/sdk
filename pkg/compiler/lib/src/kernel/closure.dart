@@ -70,7 +70,7 @@ class KernelClosureDataBuilder extends ir.Visitor {
 /// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
 /// http://matt.might.net/articles/closure-conversion/.
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   Map<Entity, ClosureRepresentationInfo> _infoMap =
       <Entity, ClosureRepresentationInfo>{};
@@ -93,15 +93,20 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// TODO(johnniwinther,efortuna): Implement this.
   @override
-  ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
-    return const ClosureAnalysisInfo();
+  ClosureScope getClosureScope(ir.Node node) {
+    return const ClosureScope();
+  }
+
+  @override
+  ScopeInfo getScopeInfo(Entity entity) {
+    // TODO(efortuna): Specialize this function from the one below.
+    return getClosureRepresentationInfo(entity);
   }
 
   /// TODO(johnniwinther,efortuna): Implement this.
   @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ir.Node loopNode) {
-    return const LoopClosureRepresentationInfo();
+  LoopClosureScope getLoopClosureScope(ir.Node loopNode) {
+    return const LoopClosureScope();
   }
 
   @override

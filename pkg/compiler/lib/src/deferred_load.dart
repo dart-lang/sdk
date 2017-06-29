@@ -720,7 +720,7 @@ class DeferredLoadTask extends CompilerTask {
 
               // Now check to see if we have to add more elements due to
               // mirrors.
-              if (compiler.resolution.commonElements.mirrorsLibrary != null) {
+              if (closedWorld.backendUsage.isMirrorsUsed) {
                 _addMirrorElements();
               }
 

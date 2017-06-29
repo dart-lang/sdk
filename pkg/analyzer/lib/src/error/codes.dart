@@ -2948,7 +2948,7 @@ class StaticTypeWarningCode extends ErrorCode {
           "The function '{0}' isn't defined.",
           "Try importing the library that defines '{0}', "
           "correcting the name to the name of an existing function, or "
-          "defining a funtion named '{0}'.");
+          "defining a function named '{0}'.");
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is

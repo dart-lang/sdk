@@ -96,7 +96,7 @@ abstract class ResolutionDartType implements DartType {
    */
   ResolutionDartType get userProvidedBadType => null;
 
-  /// Is [: true :] if this type has no explict type arguments.
+  /// Is [: true :] if this type has no explicit type arguments.
   bool get isRaw => true;
 
   /// Returns the raw version of this type.
@@ -1135,6 +1135,11 @@ class Types extends DartTypes {
     assert(cls.allSupertypes != null,
         failedAt(cls, 'Supertypes have not been computed for $cls.'));
     return cls.allSupertypes;
+  }
+
+  @override
+  Iterable<InterfaceType> getInterfaces(covariant ClassElement cls) {
+    return new List<InterfaceType>.from(cls.interfaces.toList());
   }
 
   @override

@@ -153,6 +153,7 @@ void VirtualMemory::InitOnce() {
 
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
+  ASSERT(Utils::IsAligned(size, page_size_));
   mx_handle_t vmar = MX_HANDLE_INVALID;
   uword addr = 0;
   const uint32_t flags = MX_VM_FLAG_COMPACT | MX_VM_FLAG_CAN_MAP_SPECIFIC |

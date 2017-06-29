@@ -30,6 +30,8 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
+import 'dart:html';
+import 'package:expect/expect.dart';
 
 class ClassWithSetter {
   void set setter(_) {}
@@ -55,7 +57,10 @@ class Class2 extends Object with Mixin {
     super.field = null;
   }
 }
+ 
+method1() {} // Deliberately the same name as the instance member in Mixin.
 
+@NoInline()
 main() {
   print('Hello World');
   ''.contains; // Trigger member closurization.
@@ -64,6 +69,11 @@ main() {
   new Class2().method2();
   new Class2().method3();
   new Class2().method5();
+  new Element.div();
+  null is List<int>; // Use generic test
+  method1(); // Both top level and instance method named 'method1' are live.
+  #main; // Use a const symbol.
+  const Symbol('foo'); // Use the const Symbol constructor directly
 }
 '''
 };
@@ -129,7 +139,7 @@ Future<ResultKind> mainInternal(List<String> args,
       printSteps: true);
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMap elementMap = frontendStrategy.elementMap;
+  KernelToElementMapForBuilding elementMap = frontendStrategy.elementMap;
 
   Expect.isFalse(compiler2.compilationFailed);
 

@@ -916,6 +916,109 @@ class A {
       ..isWrittenAt('field = 5', true);
   }
 
+  test_subtypes_classDeclaration() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    provider.newFile(
+        _p('$testProject/lib.dart'),
+        '''
+class A {}
+class B {}
+class C {}
+class D {}
+class E {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+class X extends A {
+  X();
+  X.namedConstructor();
+
+  int field1, field2;
+  int get getter1 => null;
+  void set setter1(_) {}
+  void method1() {}
+  
+  static int staticField;
+  static void staticMethod() {}
+}
+
+class Y extends Object with B, C {
+  void methodY() {}
+}
+
+class Z implements E, D {
+  void methodZ() {}
+}
+''');
+
+    {
+      AnalysisDriverSubtype X =
+          index.subtypes.singleWhere((t) => t.name == 'X');
+      expect(X.supertypes, ['$libP;A']);
+      expect(X.members, ['field1', 'field2', 'getter1', 'method1', 'setter1']);
+    }
+
+    {
+      AnalysisDriverSubtype Y =
+          index.subtypes.singleWhere((t) => t.name == 'Y');
+      expect(
+          Y.supertypes, ['dart:core;dart:core;Object', '$libP;B', '$libP;C']);
+      expect(Y.members, ['methodY']);
+    }
+
+    {
+      AnalysisDriverSubtype Z =
+          index.subtypes.singleWhere((t) => t.name == 'Z');
+      expect(Z.supertypes, ['$libP;D', '$libP;E']);
+      expect(Z.members, ['methodZ']);
+    }
+  }
+
+  test_subtypes_classTypeAlias() async {
+    String libP = 'package:test/lib.dart;package:test/lib.dart';
+    provider.newFile(
+        _p('$testProject/lib.dart'),
+        '''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    await _indexTestUnit('''
+import 'lib.dart';
+
+class X = A with B, C;
+class Y = A with B implements C, D;
+''');
+
+    {
+      AnalysisDriverSubtype X =
+          index.subtypes.singleWhere((t) => t.name == 'X');
+      expect(X.supertypes, ['$libP;A', '$libP;B', '$libP;C']);
+      expect(X.members, isEmpty);
+    }
+
+    {
+      AnalysisDriverSubtype Y =
+          index.subtypes.singleWhere((t) => t.name == 'Y');
+      expect(Y.supertypes, ['$libP;A', '$libP;B', '$libP;C', '$libP;D']);
+      expect(Y.members, isEmpty);
+    }
+  }
+
+  test_subtypes_dynamic() async {
+    await _indexTestUnit('''
+class X extends dynamic {
+  void foo() {}
+}
+''');
+
+    AnalysisDriverSubtype X = index.subtypes.singleWhere((t) => t.name == 'X');
+    expect(X.supertypes, isEmpty);
+    expect(X.members, ['foo']);
+  }
+
   test_usedName_inLibraryIdentifier() async {
     await _indexTestUnit('''
 library aaa.bbb.ccc;

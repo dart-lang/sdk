@@ -26201,6 +26201,10 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   void fillRange(int start, int end, [Node fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
   }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on Node list");
+  }
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
@@ -44845,7 +44849,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // Opera reports the character code in the keyCode field.
       e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
-    // Now we guestimate about what the keycode is that was actually
+    // Now we guesstimate about what the keycode is that was actually
     // pressed, given previous keydown information.
     e._shadowKeyCode = _determineKeyCodeForKeypress(e);
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--generic-method-syntax
+// VMOptions=--generic-method-syntax --no-reify-generic-functions
 
 /// Dart test on the usage of method type arguments in object creation. With
 /// '--generic-method-syntax', the type argument is available at runtime,

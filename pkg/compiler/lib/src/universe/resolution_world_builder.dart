@@ -337,7 +337,7 @@ abstract class ResolutionWorldBuilderBase
       new Set<FunctionEntity>();
 
   final ElementEnvironment _elementEnvironment;
-
+  final DartTypes _dartTypes;
   final CommonElements _commonElements;
   final ConstantSystem _constantSystem;
 
@@ -373,6 +373,7 @@ abstract class ResolutionWorldBuilderBase
 
   ResolutionWorldBuilderBase(
       this._elementEnvironment,
+      this._dartTypes,
       this._commonElements,
       this._constantSystem,
       this._nativeBasicData,
@@ -937,6 +938,7 @@ abstract class KernelResolutionWorldBuilderBase
 
   KernelResolutionWorldBuilderBase(
       ElementEnvironment elementEnvironment,
+      DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeBasicData nativeBasicData,
@@ -946,6 +948,7 @@ abstract class KernelResolutionWorldBuilderBase
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             elementEnvironment,
+            dartTypes,
             commonElements,
             constantSystem,
             nativeBasicData,
@@ -966,6 +969,7 @@ abstract class KernelResolutionWorldBuilderBase
         "$_classHierarchyNodes vs $_classSets");
     return _closedWorldCache = new KernelClosedWorld(elementMap,
         elementEnvironment: _elementEnvironment,
+        dartTypes: _dartTypes,
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),

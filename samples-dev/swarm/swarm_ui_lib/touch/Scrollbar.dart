@@ -131,7 +131,7 @@ class Scrollbar implements ScrollListener {
       _frame.onMouseOver.listen((Event e) {
         final activeElement = document.activeElement;
         // TODO(jacobr): don't steal focus from a child element or a truly
-        // focusable element. Only support stealing focus ffrom another
+        // focusable element. Only support stealing focus from another
         // element that was given fake focus.
         if (activeElement is BodyElement ||
             (!_frame.contains(activeElement) && activeElement is DivElement)) {
@@ -148,7 +148,7 @@ class Scrollbar implements ScrollListener {
         _hovering = false;
         // Start hiding immediately if we aren't
         // scrolling or already in the process of
-        // hidng the scrollbar
+        // hiding the scrollbar
         if (!_scrollInProgress && _timer == null) {
           _boundHideFn();
         }

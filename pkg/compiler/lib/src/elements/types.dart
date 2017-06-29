@@ -18,7 +18,7 @@ import 'entities.dart';
 ///
 /// Current only 'resolution_types.dart' implement this hierarchy but when the
 /// compiler moves to use [Entity] instead of [Element] this hierarchy can be
-/// implementated directly but other entity systems, for instance based directly
+/// implemented directly but other entity systems, for instance based directly
 /// on kernel ir without the need for [Element].
 
 abstract class DartType {
@@ -788,6 +788,9 @@ abstract class DartTypes {
 
   /// Returns all supertypes of [cls].
   Iterable<InterfaceType> getSupertypes(ClassEntity cls);
+
+  /// Returns all types directly implemented by [cls].
+  Iterable<InterfaceType> getInterfaces(ClassEntity cls);
 
   /// Returns the type of the `call` method on [type], or `null` if the class
   /// of [type] does not have a `call` method.

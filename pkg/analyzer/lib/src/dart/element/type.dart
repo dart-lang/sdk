@@ -2151,7 +2151,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
   /**
-   * Return the type from the [types] list that has the longest inheritence path
+   * Return the type from the [types] list that has the longest inheritance path
    * to Object of unique length.
    */
   static InterfaceType computeTypeAtMaxUniqueDepth(List<InterfaceType> types) {

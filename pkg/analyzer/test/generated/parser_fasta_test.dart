@@ -283,9 +283,6 @@ class FastaParserTestCase extends Object
   bool enableGenericMethodComments = false;
 
   @override
-  bool get usingFasta => true;
-
-  @override
   set enableAssertInitializer(bool value) {
     if (value == true) {
       // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
@@ -322,6 +319,9 @@ class FastaParserTestCase extends Object
 
   @override
   analyzer.Parser get parser => _parserProxy;
+
+  @override
+  bool get usingFasta => true;
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
@@ -904,6 +904,18 @@ class ScopeProxy implements Scope {
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
+  @override
+  @failingTest
+  void test_parseAssertStatement_trailingComma_message() {
+    super.test_parseAssertStatement_trailingComma_message();
+  }
+
+  @override
+  @failingTest
+  void test_parseAssertStatement_trailingComma_noMessage() {
+    super.test_parseAssertStatement_trailingComma_noMessage();
+  }
+
   @override
   @failingTest
   void test_parseBreakStatement_noLabel() {

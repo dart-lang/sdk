@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart' as results;
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -22,6 +23,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -83,7 +85,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 34;
+  static const int DATA_VERSION = 35;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -280,6 +282,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final Map<String, AnalysisResult> _allCachedResults = {};
 
   /**
+   * The current analysis session.
+   *
+   * TODO(brianwilkerson) Create a new session when the current session might
+   * produce inconsistent results.
+   */
+  AnalysisSession _currentSession;
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -301,6 +311,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle,
         _externalSummaries = externalSummaries {
+    _currentSession = new AnalysisSessionImpl(this);
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
@@ -317,6 +328,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Return the analysis options used to control analysis.
    */
   AnalysisOptions get analysisOptions => _analysisOptions;
+
+  /**
+   * Return the current analysis session.
+   */
+  AnalysisSession get currentSession => _currentSession;
 
   /**
    * Return the stream that produces [ExceptionResult]s.
@@ -464,6 +480,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     if (AnalysisEngine.isDartFileName(path)) {
       _fileTracker.addFile(path);
+      // If the file is known, it has already been read, even if it did not
+      // exist. Now we are notified that the file exists, so we need to
+      // re-read it and make sure that we invalidate signature of the files
+      // that reference it.
+      if (_fsState.knownFilePaths.contains(path)) {
+        _changeFile(path);
+      }
     }
   }
 
@@ -487,8 +510,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void changeFile(String path) {
     _throwIfChangesAreNotAllowed();
-    _fileTracker.changeFile(path);
-    _priorityResults.clear();
+    _changeFile(path);
   }
 
   /**
@@ -538,8 +560,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return new ErrorsResult(path, analysisResult.uri, analysisResult.lineInfo,
-        analysisResult.errors);
+    return new ErrorsResult(currentSession, path, analysisResult.uri,
+        analysisResult.lineInfo, analysisResult.errors);
   }
 
   /**
@@ -601,6 +623,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var file = fsState.getFileForPath(path);
     signature.addString(file.contentHash);
     return signature;
+  }
+
+  /**
+   * Return the cached [AnalysisDriverResolvedUnit] for the file with the given
+   * [file], or `null` if the cache does not contain this information.
+   */
+  AnalysisDriverResolvedUnit getResolvedUnitObject(FileState file) {
+    FileState library = file.isPart ? file.library : file;
+    if (library != null) {
+      String signature = _getResolvedUnitSignature(library, file);
+      String key = _getResolvedUnitKey(signature);
+      List<int> bytes = _byteStore.get(key);
+      if (bytes != null) {
+        return new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+      }
+    }
+    return null;
   }
 
   /**
@@ -733,8 +772,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParseResult(file.path, file.uri, file.content, unit.lineInfo,
-        unit, listener.errors);
+    return new ParseResult(currentSession, file.path, file.uri, file.content,
+        unit.lineInfo, unit, listener.errors);
   }
 
   @override
@@ -931,6 +970,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Implementation for [changeFile].
+   */
+  void _changeFile(String path) {
+    _fileTracker.changeFile(path);
+    _priorityResults.clear();
+  }
+
+  /**
    * Handles a notification from the [FileTracker] that there has been a change
    * of state.
    */
@@ -1067,7 +1114,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
       String signature = library.transitiveSignature;
-      return new UnitElementResult(path, file.uri, signature, element);
+      return new UnitElementResult(
+          currentSession, path, file.uri, signature, element);
     } finally {
       libraryContext.dispose();
     }
@@ -1599,7 +1647,8 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult implements results.ResolveResult {
+class AnalysisResult extends BaseAnalysisResult
+    implements results.ResolveResult {
   static final _UNCHANGED = new AnalysisResult(
       null, null, null, null, null, null, null, null, null, null, null);
 
@@ -1612,12 +1661,6 @@ class AnalysisResult implements results.ResolveResult {
    * The [SourceFactory] with which the file was analyzed.
    */
   final SourceFactory sourceFactory;
-
-  @override
-  final String path;
-
-  @override
-  final Uri uri;
 
   /**
    * Return `true` if the file exists.
@@ -1651,15 +1694,16 @@ class AnalysisResult implements results.ResolveResult {
   AnalysisResult(
       this.driver,
       this.sourceFactory,
-      this.path,
-      this.uri,
+      String path,
+      Uri uri,
       this.exists,
       this.content,
       this.lineInfo,
       this._signature,
       this.unit,
       this.errors,
-      this._index);
+      this._index)
+      : super(driver?.currentSession, path, uri);
 
   @override
   LibraryElement get libraryElement => unit.element.library;
@@ -1670,6 +1714,19 @@ class AnalysisResult implements results.ResolveResult {
 
   @override
   TypeProvider get typeProvider => unit.element.context.typeProvider;
+}
+
+abstract class BaseAnalysisResult implements results.AnalysisResult {
+  @override
+  final AnalysisSession session;
+
+  @override
+  final String path;
+
+  @override
+  final Uri uri;
+
+  BaseAnalysisResult(this.session, this.path, this.uri);
 }
 
 class DriverPerformance {
@@ -1704,20 +1761,16 @@ abstract class DriverWatcher {
  * correspond to each other. But none of the results is guaranteed to be
  * consistent with the state of the files.
  */
-class ErrorsResult implements results.ErrorsResult {
-  @override
-  final String path;
-
-  @override
-  final Uri uri;
-
+class ErrorsResult extends BaseAnalysisResult implements results.ErrorsResult {
   @override
   final LineInfo lineInfo;
 
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResult(this.path, this.uri, this.lineInfo, this.errors);
+  ErrorsResult(
+      AnalysisSession session, String path, Uri uri, this.lineInfo, this.errors)
+      : super(session, path, uri);
 
   @override
   results.ResultState get state => results.ResultState.VALID;
@@ -1757,13 +1810,7 @@ class ExceptionResult {
  * resolved [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
-class ParseResult implements results.ParseResult {
-  @override
-  final String path;
-
-  @override
-  final Uri uri;
-
+class ParseResult extends BaseAnalysisResult implements results.ParseResult {
   @override
   final String content;
 
@@ -1776,8 +1823,9 @@ class ParseResult implements results.ParseResult {
   @override
   final List<AnalysisError> errors;
 
-  ParseResult(
-      this.path, this.uri, this.content, this.lineInfo, this.unit, this.errors);
+  ParseResult(AnalysisSession session, String path, Uri uri, this.content,
+      this.lineInfo, this.unit, this.errors)
+      : super(session, path, uri);
 
   @override
   results.ResultState get state => results.ResultState.VALID;
@@ -1794,13 +1842,8 @@ class ParseResult implements results.ParseResult {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class UnitElementResult implements results.UnitElementResult {
-  @override
-  final String path;
-
-  @override
-  final Uri uri;
-
+class UnitElementResult extends BaseAnalysisResult
+    implements results.UnitElementResult {
   /**
    * The signature of the [element] is based the APIs of the files of the
    * library (including the file itself) of the requested file and the
@@ -1813,7 +1856,9 @@ class UnitElementResult implements results.UnitElementResult {
    */
   final CompilationUnitElement element;
 
-  UnitElementResult(this.path, this.uri, this.signature, this.element);
+  UnitElementResult(AnalysisSession session, String path, Uri uri,
+      this.signature, this.element)
+      : super(session, path, uri);
 
   @override
   results.ResultState get state => results.ResultState.VALID;

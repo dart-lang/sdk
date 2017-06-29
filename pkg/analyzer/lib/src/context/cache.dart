@@ -196,8 +196,7 @@ class AnalysisCache {
    * It does not update the cache, if the corresponding [CacheEntry] does not
    * exist, then the default value is returned.
    */
-  Object/*=V*/ getValue/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+  V getValue<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     CacheEntry entry = get(target);
     if (entry == null) {
       return result.defaultValue;
@@ -445,7 +444,7 @@ class CacheEntry {
    * Return the value of the result represented by the given [descriptor], or
    * the default value for the result if this entry does not have a valid value.
    */
-  dynamic/*=V*/ getValue/*<V>*/(ResultDescriptor/*<V>*/ descriptor) {
+  V getValue<V>(ResultDescriptor<V> descriptor) {
     ResultData data = _resultMap[descriptor];
     if (data == null) {
       return descriptor.defaultValue;
@@ -453,7 +452,7 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultAccessed(target, descriptor);
     }
-    return data.value as Object/*=V*/;
+    return data.value as V;
   }
 
   /**
@@ -548,7 +547,7 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value].
    */
-  void setValue/*<V>*/(ResultDescriptor/*<V>*/ descriptor, dynamic/*=V*/ value,
+  void setValue<V>(ResultDescriptor<V> descriptor, V value,
       List<TargetedResult> dependedOn) {
 //    {
 //      String valueStr = '$value';

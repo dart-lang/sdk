@@ -152,7 +152,7 @@ Token defaultRecoveryStrategy(
 
   recoverUnmatched() {
     // TODO(ahe): Try to use top-level keywords (such as `class`, `typedef`,
-    // and `enum`) and identation to recover.
+    // and `enum`) and indentation to recover.
     return errorTail.next;
   }
 

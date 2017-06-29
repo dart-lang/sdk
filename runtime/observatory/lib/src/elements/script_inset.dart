@@ -654,7 +654,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     for (int i = _startLine; i <= _endLine; i++) {
       var line = script.getLine(i);
       if (line.isBlank) {
-        // Try to introduce elipses if there are 4 or more contiguous
+        // Try to introduce ellipses if there are 4 or more contiguous
         // blank lines.
         blankLineCount++;
       } else {
@@ -662,12 +662,12 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           int firstBlank = i - blankLineCount;
           int lastBlank = i - 1;
           if (blankLineCount < 4) {
-            // Too few blank lines for an elipsis.
+            // Too few blank lines for an ellipsis.
             for (int j = firstBlank; j <= lastBlank; j++) {
               table.append(lineElement(script.getLine(j), lineNumPad));
             }
           } else {
-            // Add an elipsis for the skipped region.
+            // Add an ellipsis for the skipped region.
             table.append(lineElement(script.getLine(firstBlank), lineNumPad));
             table.append(lineElement(null, lineNumPad));
             table.append(lineElement(script.getLine(lastBlank), lineNumPad));
@@ -964,7 +964,7 @@ void addInfoBox(Element content, Function infoBoxGenerator) {
     infoBox.style.zIndex = '10';
     infoBox.style.backgroundColor = 'white';
     infoBox.style.cursor = 'auto';
-    // Don't inherit pre formating from the script lines.
+    // Don't inherit pre formatting from the script lines.
     infoBox.style.whiteSpace = 'normal';
     content.append(infoBox);
   }

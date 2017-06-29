@@ -3182,7 +3182,7 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
   // Note: worklist potentially will grow while we are iterating over it.
   // We are not removing allocations from the worklist not to waste space on
   // the side maintaining BitVector of already processed allocations: worklist
-  // is expected to be very small thus linear search in it is just as effecient
+  // is expected to be very small thus linear search in it is just as efficient
   // as a bitvector.
   for (intptr_t i = 0; i < worklist_.length(); i++) {
     Collect(worklist_[i]);

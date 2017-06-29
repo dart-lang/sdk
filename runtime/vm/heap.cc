@@ -525,9 +525,21 @@ void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
                                (heap->isolate()->debugger_name() == NULL);
   const char* isolate_name =
       no_isolate_name ? "<unknown>" : heap->isolate()->debugger_name();
-  const char* space_name = (space == kNew) ? "newspace" : "oldspace";
-  const char* type_name = (space == kCode) ? "code" : "data";
-  OS::SNPrint(name, name_size, "%s %s %s", isolate_name, space_name, type_name);
+  const char* space_name = NULL;
+  switch (space) {
+    case kNew:
+      space_name = "newspace";
+      break;
+    case kOld:
+      space_name = "oldspace";
+      break;
+    case kCode:
+      space_name = "codespace";
+      break;
+    default:
+      UNREACHABLE();
+  }
+  OS::SNPrint(name, name_size, "dart-%s %s", space_name, isolate_name);
 }
 
 
@@ -653,12 +665,11 @@ int64_t Heap::PeerCount() const {
   return new_weak_tables_[kPeers]->count() + old_weak_tables_[kPeers]->count();
 }
 
-#if !defined(HASH_IN_OBJECT_HEADER)
+
 int64_t Heap::HashCount() const {
   return new_weak_tables_[kHashes]->count() +
          old_weak_tables_[kHashes]->count();
 }
-#endif
 
 
 int64_t Heap::ObjectIdCount() const {
