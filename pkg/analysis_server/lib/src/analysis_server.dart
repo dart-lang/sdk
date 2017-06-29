@@ -587,6 +587,19 @@ class AnalysisServer {
   }
 
   /**
+   * Return the cached analysis result for the file with the given [path].
+   * If there is no cached result, return `null`.
+   */
+  nd.AnalysisResult getCachedAnalysisResult(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    return driver?.getCachedResult(path);
+  }
+
+  /**
    * Return the [nd.AnalysisDriver] for the "innermost" context whose associated
    * folder is or contains the given path.  ("innermost" refers to the nesting
    * of contexts, so if there is a context for path /foo and a context for

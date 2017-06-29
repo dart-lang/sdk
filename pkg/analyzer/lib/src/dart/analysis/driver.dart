@@ -539,6 +539,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return the cached [AnalysisResult] for the Dart file with the given [path].
+   * If there is no cached result, return `null`. Usually only results of
+   * priority files are cached.
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   */
+  AnalysisResult getCachedResult(String path) {
+    AnalysisResult result = _priorityResults[path];
+    if (disableChangesAndCacheAllResults) {
+      result ??= _allCachedResults[path];
+    }
+    return result;
+  }
+
+  /**
    * Return a [Future] that completes with the [ErrorsResult] for the Dart
    * file with the given [path]. If the file is not a Dart file or cannot
    * be analyzed, the [Future] completes with `null`.
@@ -666,10 +683,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Return the cached result.
     {
-      AnalysisResult result = _priorityResults[path];
-      if (disableChangesAndCacheAllResults) {
-        result ??= _allCachedResults[path];
-      }
+      AnalysisResult result = getCachedResult(path);
       if (result != null) {
         return new Future.value(result);
       }
