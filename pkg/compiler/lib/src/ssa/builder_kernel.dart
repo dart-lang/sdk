@@ -1887,9 +1887,38 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitLogicalExpression(ir.LogicalExpression logicalExpression) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this);
-    brancher.handleLogicalBinary(() => logicalExpression.left.accept(this),
-        () => logicalExpression.right.accept(this),
-        isAnd: logicalExpression.operator == '&&');
+    String operator = logicalExpression.operator;
+    // ir.LogicalExpression claims to allow '??' as an operator but currently
+    // that is expanded into a let-tree.
+    assert(operator == '&&' || operator == '||');
+    _handleLogicalExpression(logicalExpression.left,
+        () => logicalExpression.right.accept(this), brancher, operator);
+  }
+
+  /// Optimizes logical binary expression where the left has the same logical
+  /// binary operator.
+  ///
+  /// This method transforms the operator by optimizing the case where [left] is
+  /// a logical "and" or logical "or". Then it uses [branchBuilder] to build the
+  /// graph for the optimized expression.
+  ///
+  /// For example, `(x && y) && z` is transformed into `x && (y && z)`:
+  ///
+  void _handleLogicalExpression(ir.Expression left, void visitRight(),
+      SsaBranchBuilder brancher, String operator) {
+    if (left is ir.LogicalExpression && left.operator == operator) {
+      ir.Expression innerLeft = left.left;
+      ir.Expression middle = left.right;
+      _handleLogicalExpression(
+          innerLeft,
+          () =>
+              _handleLogicalExpression(middle, visitRight, brancher, operator),
+          brancher,
+          operator);
+    } else {
+      brancher.handleLogicalBinary(() => left.accept(this), visitRight,
+          isAnd: operator == '&&');
+    }
   }
 
   @override
