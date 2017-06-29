@@ -335,7 +335,7 @@ class FunctionType extends AbstractFunctionType {
     // identical function types that don't canonicalize
     // to the same object since we won't fall into this
     // fast path.
-    if (JS('bool', '# === void 0', extra) && JS('', '#.length < 3', args)) {
+    if (JS('bool', '# === void 0', extra) && JS('bool', '#.length < 3', args)) {
       return _createSmall(JS('', '#.length', args), definite, returnType, args);
     }
     args = _canonicalizeArray(definite, args, _fnTypeArrayArgMap);
@@ -405,7 +405,7 @@ class FunctionType extends AbstractFunctionType {
       buffer += '{';
       var names = getOwnPropertyNames(named);
       JS('', '#.sort()', names);
-      for (var i = 0; JS('', '# < #.length', i, names); ++i) {
+      for (var i = 0; JS('bool', '# < #.length', i, names); ++i) {
         if (i > 0) {
           buffer += ', ';
         }

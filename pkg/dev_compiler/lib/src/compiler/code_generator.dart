@@ -592,7 +592,6 @@ class CodeGenerator extends Object
     var library = unit.element.library;
     bool internalSdk = isSdkInternalRuntime(library);
     _currentElements.add(library);
-
     List<VariableDeclaration> fields;
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {

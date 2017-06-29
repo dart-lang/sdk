@@ -624,7 +624,7 @@ class UnknownJsTypeError extends Error {
 final _stackTrace = JS('', 'Symbol("_stackTrace")');
 StackTrace getTraceFromException(exception) {
   var error = JS('', 'dart.recordJsError(#)', exception);
-  var trace = JS('StackTrace', '#[#]', error, _stackTrace);
+  var trace = JS('StackTrace|Null', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
   trace = new _StackTrace(error);
   JS('', '#[#] = #', error, _stackTrace, trace);

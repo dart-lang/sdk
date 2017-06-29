@@ -376,18 +376,18 @@ setSignature(f, signature) => JS(
   $_setStaticTypes($f, names);
 })()''');
 
-_hasSigEntry(type, sigF, name) => JS(
-    '',
+bool _hasSigEntry(type, sigF, name) => JS(
+    'bool',
     '''(() => {
   let sigObj = $type[$sigF];
   if (sigObj === void 0) return false;
   return $name in sigObj;
 })()''');
 
-hasMethod(type, name) => _hasSigEntry(type, _methodSig, name);
-hasGetter(type, name) => _hasSigEntry(type, _getterSig, name);
-hasSetter(type, name) => _hasSigEntry(type, _setterSig, name);
-hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
+bool hasMethod(type, name) => _hasSigEntry(type, _methodSig, name);
+bool hasGetter(type, name) => _hasSigEntry(type, _getterSig, name);
+bool hasSetter(type, name) => _hasSigEntry(type, _setterSig, name);
+bool hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
