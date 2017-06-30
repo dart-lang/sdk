@@ -77,8 +77,8 @@ class InferrerEngine {
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
-  final Map<Element, GlobalTypeInferenceElementData> inTreeData =
-      new Map<Element, GlobalTypeInferenceElementData>();
+  final Map<MemberElement, GlobalTypeInferenceElementData> _memberData =
+      new Map<MemberElement, GlobalTypeInferenceElementData>();
 
   InferrerEngine(this.compiler, ClosedWorld closedWorld,
       this.closedWorldRefiner, this.mainElement)
@@ -110,16 +110,13 @@ class InferrerEngine {
     }
   }
 
-  GlobalTypeInferenceElementData dataOfLocalFunction(
-          LocalFunctionElement element) =>
-      _dataOf(element);
-
   // TODO(johnniwinther): Make this private again.
   GlobalTypeInferenceElementData dataOfMember(MemberElement element) =>
-      _dataOf(element);
+      _memberData.putIfAbsent(
+          element, () => new GlobalTypeInferenceElementData());
 
-  GlobalTypeInferenceElementData _dataOf(AstElement element) => inTreeData
-      .putIfAbsent(element, () => new GlobalTypeInferenceElementData());
+  GlobalTypeInferenceElementData lookupDataOfMember(MemberElement element) =>
+      _memberData[element];
 
   /**
    * Update [sideEffects] with the side effects of [callee] being
@@ -198,21 +195,9 @@ class InferrerEngine {
     return returnType;
   }
 
-  @deprecated
-  void updateSelectorInLocalFunction(LocalFunctionElement owner, Spannable node,
-      Selector selector, TypeMask mask) {
-    GlobalTypeInferenceElementData data = dataOfLocalFunction(owner);
-    _updateSelectorInTree(data, node, selector, mask);
-  }
-
   void updateSelectorInMember(
       MemberElement owner, Spannable node, Selector selector, TypeMask mask) {
     GlobalTypeInferenceElementData data = dataOfMember(owner);
-    _updateSelectorInTree(data, node, selector, mask);
-  }
-
-  void _updateSelectorInTree(GlobalTypeInferenceElementData data,
-      Spannable node, Selector selector, TypeMask mask) {
     ast.Node astNode = node;
     if (astNode.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
@@ -922,7 +907,7 @@ class InferrerEngine {
       Spannable node,
       Selector selector,
       TypeMask mask,
-      Element caller,
+      MemberElement caller,
       LocalFunctionElement callee,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
@@ -953,7 +938,7 @@ class InferrerEngine {
       Spannable node,
       Selector selector,
       TypeMask mask,
-      Element caller,
+      MemberElement caller,
       MemberElement callee,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
@@ -1013,7 +998,7 @@ class InferrerEngine {
       Selector selector,
       TypeMask mask,
       TypeInformation receiverType,
-      Element caller,
+      MemberElement caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {
@@ -1079,7 +1064,7 @@ class InferrerEngine {
       Selector selector,
       TypeMask mask,
       TypeInformation closure,
-      Element caller,
+      MemberElement caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {

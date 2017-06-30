@@ -409,7 +409,7 @@ class MemberTypeInformation extends ElementTypeInformation
    * The global information is summarized in [cleanup], after which [_callers]
    * is set to `null`.
    */
-  Map<Element, Setlet<Spannable>> _callers;
+  Map<MemberElement, Setlet<Spannable>> _callers;
 
   MemberTypeInformation._internal(Element element)
       : super._internal(null, element);
@@ -424,31 +424,13 @@ class MemberTypeInformation extends ElementTypeInformation
 
   String get debugName => '$member';
 
-  void addCallFromMember(MemberElement caller, Spannable node) {
-    _addCall(caller, node);
-  }
-
-  @deprecated
-  void addCallFromLocalFunction(LocalFunctionElement caller, Spannable node) {
-    _addCall(caller, node);
-  }
-
-  void _addCall(Element caller, Spannable node) {
+  void addCall(MemberElement caller, Spannable node) {
     assert(node is ast.Node || node is Element);
-    _callers ??= <Element, Setlet<Spannable>>{};
+    _callers ??= <MemberElement, Setlet<Spannable>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCallFromMember(MemberElement caller, node) {
-    _removeCall(caller, node);
-  }
-
-  @deprecated
-  void removeCallFromLocalFunction(LocalFunctionElement caller, node) {
-    _removeCall(caller, node);
-  }
-
-  void _removeCall(Element caller, node) {
+  void removeCall(MemberElement caller, node) {
     if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
@@ -458,7 +440,7 @@ class MemberTypeInformation extends ElementTypeInformation
     }
   }
 
-  Iterable<Element> get callers {
+  Iterable<MemberElement> get callers {
     // TODO(sra): This is called only from an unused API and a test. If it
     // becomes used, [cleanup] will need to copy `_caller.keys`.
 
@@ -796,8 +778,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final Spannable call;
-  // TODO(johnniwinther): [caller] should always be a [MemberElement].
-  final /*LocalFunctionElement|MemberElement*/ Element caller;
+  final MemberElement caller;
   final Selector selector;
   final TypeMask mask;
   final ArgumentsTypes arguments;
@@ -822,7 +803,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   StaticCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      Element enclosing,
+      MemberElement enclosing,
       MemberElement calledElement,
       Selector selector,
       TypeMask mask,
@@ -834,7 +815,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   StaticCallSiteTypeInformation.internal(
       MemberTypeInformation context,
       Spannable call,
-      Element enclosing,
+      MemberElement enclosing,
       this.calledElement,
       Selector selector,
       TypeMask mask,
@@ -848,11 +829,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    if (caller.isLocal) {
-      callee.addCallFromLocalFunction(caller, call);
-    } else {
-      callee.addCallFromMember(caller, call);
-    }
+    callee.addCall(caller, call);
     callee.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -912,7 +889,7 @@ class LocalFunctionCallSiteTypeInformation
   LocalFunctionCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      Element enclosing,
+      MemberElement enclosing,
       LocalFunctionElement calledElement,
       Selector selector,
       TypeMask mask,
@@ -939,7 +916,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   DynamicCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      Element enclosing,
+      MemberElement enclosing,
       Selector selector,
       TypeMask mask,
       this.receiver,
@@ -958,11 +935,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     for (MemberElement element in targets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
-      if (caller.isLocal) {
-        callee.addCallFromLocalFunction(caller, call);
-      } else {
-        callee.addCallFromMember(caller, call);
-      }
+      callee.addCall(caller, call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
           this, element, arguments, selector, typeMask,
@@ -1109,11 +1082,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeMask computeType(InferrerEngine inferrer) {
     Iterable<MemberEntity> oldTargets = targets;
     TypeMask typeMask = computeTypedSelector(inferrer);
-    if (caller.isLocal) {
-      inferrer.updateSelectorInLocalFunction(caller, call, selector, typeMask);
-    } else {
-      inferrer.updateSelectorInMember(caller, call, selector, typeMask);
-    }
+    inferrer.updateSelectorInMember(caller, call, selector, typeMask);
 
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
@@ -1138,11 +1107,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         MemberElement element = _element;
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        if (caller.isLocal) {
-          callee.addCallFromLocalFunction(caller, call);
-        } else {
-          callee.addCallFromMember(caller, call);
-        }
+        callee.addCall(caller, call);
         callee.addUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1156,11 +1121,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         MemberElement element = _element;
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        if (caller.isLocal) {
-          callee.removeCallFromLocalFunction(caller, call);
-        } else {
-          callee.removeCallFromMember(caller, call);
-        }
+        callee.removeCall(caller, call);
         callee.removeUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1230,22 +1191,14 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
-      if (caller.isLocal) {
-        inferrer.updateSelectorInLocalFunction(caller, call, selector, mask);
-      } else {
-        inferrer.updateSelectorInMember(caller, call, selector, mask);
-      }
+      inferrer.updateSelectorInMember(caller, call, selector, mask);
       Iterable<MemberEntity> oldTargets = targets;
       targets = inferrer.closedWorld.locateMembers(selector, mask);
       for (MemberElement element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
-          if (caller.isLocal) {
-            callee.addCallFromLocalFunction(caller, call);
-          } else {
-            callee.addCallFromMember(caller, call);
-          }
+          callee.addCall(caller, call);
           inferrer.updateParameterAssignments(
               this, element, arguments, selector, mask,
               remove: false, addToQueue: true);
@@ -1290,7 +1243,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   ClosureCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      Element enclosing,
+      MemberElement enclosing,
       Selector selector,
       TypeMask mask,
       this.closure,

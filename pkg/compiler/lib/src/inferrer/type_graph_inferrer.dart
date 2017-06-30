@@ -108,7 +108,7 @@ class TypeGraphInferrer implements TypesInferrer {
     return inferrer.types.getInferredTypeOfParameter(element).type;
   }
 
-  TypeMask getTypeForNewList(Element owner, ast.Node node) {
+  TypeMask getTypeForNewList(ast.Node node) {
     if (compiler.disableTypeInference) return _dynamicType;
     return inferrer.types.allocatedLists[node].type;
   }

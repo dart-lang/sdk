@@ -56,7 +56,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         SetBulkMixin<TypeInformation, dynamic>
     implements SemanticSendVisitor<TypeInformation, dynamic> {
   final Compiler compiler;
-  final AstElement analyzedElement;
+  final ExecutableElement analyzedElement;
   final ResolvedAst resolvedAst;
   final TypeSystem types;
   final Map<JumpTarget, List<LocalsHandler>> breaksFor =
@@ -72,13 +72,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   bool isConstructorRedirect = false;
   bool seenSuperConstructorCall = false;
   SideEffects sideEffects = new SideEffects.empty();
-  final Element outermostElement;
+  final MemberElement outermostElement;
   final InferrerEngine inferrer;
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
-  final GlobalTypeInferenceElementData inTreeData;
+  final GlobalTypeInferenceElementData memberData;
 
   ElementGraphBuilder.internal(
-      AstElement analyzedElement,
+      ExecutableElement analyzedElement,
       this.resolvedAst,
       this.outermostElement,
       InferrerEngine inferrer,
@@ -87,9 +87,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       : this.analyzedElement = analyzedElement,
         this.inferrer = inferrer,
         this.types = inferrer.types,
-        this.inTreeData = analyzedElement.isLocal
-            ? inferrer.dataOfLocalFunction(analyzedElement)
-            : inferrer.dataOfMember(analyzedElement) {
+        this.memberData = inferrer.dataOfMember(analyzedElement.memberContext) {
     assert(outermostElement != null);
     if (locals != null) return;
     ast.Node node;
@@ -104,15 +102,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
   }
 
-  ElementGraphBuilder(AstElement element, ResolvedAst resolvedAst,
+  ElementGraphBuilder(ExecutableElement element, ResolvedAst resolvedAst,
       Compiler compiler, InferrerEngine inferrer, [LocalsHandler handler])
-      : this.internal(
-            element,
-            resolvedAst,
-            element.outermostEnclosingMemberOrTopLevel.implementation,
-            inferrer,
-            compiler,
-            handler);
+      : this.internal(element, resolvedAst, element.memberContext, inferrer,
+            compiler, handler);
 
   TreeElements get elements => resolvedAst.elements;
 
@@ -1238,10 +1231,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
-    TypeMask getterMask = inTreeData.typeOfGetter(node);
-    TypeMask operatorMask = inTreeData.typeOfOperator(node);
+    TypeMask getterMask = memberData.typeOfGetter(node);
+    TypeMask operatorMask = memberData.typeOfOperator(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = inTreeData.typeOfSend(node);
+    TypeMask setterMask = memberData.typeOfSend(node);
 
     String op = node.assignmentOperator.source;
     bool isIncrementOrDecrement = op == '++' || op == '--';
@@ -1355,12 +1348,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       TypeInformation rhsType) {
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
 
-    TypeMask getterMask = inTreeData.typeOfGetter(node);
+    TypeMask getterMask = memberData.typeOfGetter(node);
     Selector operatorSelector =
         elements.getOperatorSelectorInComplexSendSet(node);
-    TypeMask operatorMask = inTreeData.typeOfOperator(node);
+    TypeMask operatorMask = memberData.typeOfOperator(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = inTreeData.typeOfSend(node);
+    TypeMask setterMask = memberData.typeOfSend(node);
 
     TypeInformation getterType = handleDynamicSend(node, getterSelector,
         getterMask, receiverType, new ArgumentsTypes([indexType], null));
@@ -1457,9 +1450,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       Element setter, TypeInformation indexType, TypeInformation rhsType) {
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
 
-    TypeMask getterMask = inTreeData.typeOfGetter(node);
+    TypeMask getterMask = memberData.typeOfGetter(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = inTreeData.typeOfSend(node);
+    TypeMask setterMask = memberData.typeOfSend(node);
 
     TypeInformation getterType = handleSuperSend(node, getterSelector,
         getterMask, getter, new ArgumentsTypes([indexType], null));
@@ -1470,7 +1463,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     } else {
       Selector operatorSelector =
           elements.getOperatorSelectorInComplexSendSet(node);
-      TypeMask operatorMask = inTreeData.typeOfOperator(node);
+      TypeMask operatorMask = memberData.typeOfOperator(node);
       returnType = handleDynamicSend(node, operatorSelector, operatorMask,
           getterType, new ArgumentsTypes([rhsType], null));
     }
@@ -1893,9 +1886,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation _handleSuperCompound(ast.SendSet node, Element getter,
       Element setter, TypeInformation rhsType) {
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
-    TypeMask getterMask = inTreeData.typeOfGetter(node);
+    TypeMask getterMask = memberData.typeOfGetter(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = inTreeData.typeOfSend(node);
+    TypeMask setterMask = memberData.typeOfSend(node);
 
     TypeInformation getterType =
         handleSuperSend(node, getterSelector, getterMask, getter, null);
@@ -1906,7 +1899,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     } else {
       Selector operatorSelector =
           elements.getOperatorSelectorInComplexSendSet(node);
-      TypeMask operatorMask = inTreeData.typeOfOperator(node);
+      TypeMask operatorMask = memberData.typeOfOperator(node);
       returnType = handleDynamicSend(node, operatorSelector, operatorMask,
           getterType, new ArgumentsTypes([rhsType], null));
     }
@@ -1920,7 +1913,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation handleIndexSet(ast.SendSet node, TypeInformation receiverType,
       TypeInformation indexType, TypeInformation rhsType) {
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = inTreeData.typeOfSend(node);
+    TypeMask setterMask = memberData.typeOfSend(node);
     handleDynamicSend(node, setterSelector, setterMask, receiverType,
         new ArgumentsTypes([indexType, rhsType], null));
     return rhsType;
@@ -1941,7 +1934,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeInformation indexType = visit(index);
     TypeInformation rhsType = visit(rhs);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = inTreeData.typeOfSend(node);
+    TypeMask setterMask = memberData.typeOfSend(node);
     handleStaticSend(node, setterSelector, setterMask, element,
         new ArgumentsTypes([indexType, rhsType], null));
     return rhsType;
@@ -2016,7 +2009,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ArgumentsTypes arguments =
         node.isPropertyAccess ? null : analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     // TODO(herhut): We could do better here if we knew what we
     // are calling does not expose this.
     // TODO(johnniwinther): Do we still need this when calling directly?
@@ -2043,7 +2036,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       ast.Send node, MemberElement element, ast.NodeList arguments) {
     ArgumentsTypes argumentTypes = analyzeArguments(arguments.nodes);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     // TODO(herhut): We could do better here if we knew what we
     // are calling does not expose this.
     isThisExposed = true;
@@ -2065,7 +2058,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // are calling does not expose this.
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, method, arguments);
   }
 
@@ -2075,7 +2068,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // are calling does not expose this.
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, element, null);
   }
 
@@ -2086,7 +2079,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // are calling does not expose this.
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     handleStaticSend(
         node, selector, mask, element, new ArgumentsTypes([rhsType], null));
     return rhsType;
@@ -2316,7 +2309,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
     Selector selector = elements.getSelector(node);
     CallStructure callStructure = selector.callStructure;
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn'TypeInformation break anything
@@ -2383,7 +2376,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       ast.Send node, MemberElement element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     handleStaticSend(node, selector, mask, element, arguments);
     return inferrer.registerCalledClosure(
         node,
@@ -2404,7 +2397,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, function, arguments);
   }
 
@@ -2500,7 +2493,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation handleForeignSend(ast.Send node, Element element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
     if (name == JavaScriptBackend.JS ||
@@ -2545,14 +2538,14 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   /// Read a static or top level field.
   TypeInformation handleStaticFieldGet(ast.Send node, FieldElement field) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, field, null);
   }
 
   /// Invoke a static or top level getter.
   TypeInformation handleStaticGetterGet(ast.Send node, GetterElement getter) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, getter, null);
   }
 
@@ -2560,7 +2553,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation handleStaticFunctionGet(
       ast.Send node, MethodElement function) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, function, null);
   }
 
@@ -2652,7 +2645,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation handleCallInvoke(ast.Send node, TypeInformation closure) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     return inferrer.registerCalledClosure(node, selector, mask, closure,
         outermostElement, arguments, sideEffects, inLoop);
   }
@@ -2698,7 +2691,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       _) {
     ArgumentsTypes argumentTypes = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     // This only works for function statements. We need a
     // more sophisticated type system with function types to support
     // more.
@@ -2737,12 +2730,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       mask = receiverType == types.dynamicType
           ? null
           : types.newTypedSelector(receiverType, mask);
-      if (analyzedElement.isLocal) {
-        inferrer.updateSelectorInLocalFunction(
-            analyzedElement, node, selector, mask);
-      } else {
-        inferrer.updateSelectorInMember(analyzedElement, node, selector, mask);
-      }
+      inferrer.updateSelectorInMember(outermostElement, node, selector, mask);
     }
 
     // If the receiver of the call is a local, we may know more about
@@ -2789,7 +2777,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inTreeData.typeOfSend(node);
+    TypeMask mask = memberData.typeOfSend(node);
     if (!isThisExposed && isCallOnThis) {
       checkIfExposesThis(selector, types.newTypedSelector(receiverType, mask));
     }
@@ -2901,7 +2889,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ast.Node identifier = node.declaredIdentifier;
     Element element = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
-    TypeMask mask = inTreeData.typeOfSend(identifier.asSend());
+    TypeMask mask = memberData.typeOfSend(identifier.asSend());
 
     TypeInformation receiverType;
     if (element != null && element.isInstanceMember) {
@@ -2921,9 +2909,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeInformation expressionType = visit(node.expression);
 
     Selector currentSelector = Selectors.current;
-    TypeMask currentMask = inTreeData.typeOfIteratorCurrent(node);
+    TypeMask currentMask = memberData.typeOfIteratorCurrent(node);
     Selector moveNextSelector = Selectors.moveNext;
-    TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
+    TypeMask moveNextMask = memberData.typeOfIteratorMoveNext(node);
 
     ConstructorElement ctor =
         closedWorld.commonElements.streamIteratorConstructor;
@@ -2939,11 +2927,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitSyncForIn(ast.SyncForIn node) {
     TypeInformation expressionType = visit(node.expression);
     Selector iteratorSelector = Selectors.iterator;
-    TypeMask iteratorMask = inTreeData.typeOfIterator(node);
+    TypeMask iteratorMask = memberData.typeOfIterator(node);
     Selector currentSelector = Selectors.current;
-    TypeMask currentMask = inTreeData.typeOfIteratorCurrent(node);
+    TypeMask currentMask = memberData.typeOfIteratorCurrent(node);
     Selector moveNextSelector = Selectors.moveNext;
-    TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
+    TypeMask moveNextMask = memberData.typeOfIteratorMoveNext(node);
 
     TypeInformation iteratorType = handleDynamicSend(node, iteratorSelector,
         iteratorMask, expressionType, new ArgumentsTypes.empty());

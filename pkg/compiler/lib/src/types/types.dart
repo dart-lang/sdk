@@ -85,24 +85,6 @@ abstract class GlobalTypeInferenceElementResultImpl
   final bool _isJsInterop;
   final TypeMask _dynamic;
 
-  factory GlobalTypeInferenceElementResultImpl(
-      Element owner,
-      GlobalTypeInferenceElementData data,
-      TypesInferrer inferrer,
-      bool isJsInterop,
-      TypeMask _dynamic) {
-    if (owner.isParameter) {
-      return new GlobalTypeInferenceParameterResult(
-          owner, data, inferrer, isJsInterop, _dynamic);
-    } else if (owner.isLocal) {
-      return new GlobalTypeInferenceLocalFunctionResult(
-          owner, data, inferrer, isJsInterop, _dynamic);
-    } else {
-      return new GlobalTypeInferenceMemberResult(
-          owner, data, inferrer, isJsInterop, _dynamic);
-    }
-  }
-
   GlobalTypeInferenceElementResultImpl.internal(this._owner, this._data,
       this._inferrer, this._isJsInterop, this._dynamic);
 
@@ -112,11 +94,10 @@ abstract class GlobalTypeInferenceElementResultImpl
     return mask != null && mask.isEmpty;
   }
 
-  TypeMask typeOfNewList(Send node) =>
-      _inferrer.getTypeForNewList(_owner, node);
+  TypeMask typeOfNewList(Send node) => _inferrer.getTypeForNewList(node);
 
   TypeMask typeOfListLiteral(LiteralList node) =>
-      _inferrer.getTypeForNewList(_owner, node);
+      _inferrer.getTypeForNewList(node);
 
   TypeMask typeOfSend(Send node) => _data?.typeOfSend(node);
   TypeMask typeOfGetter(SendSet node) => _data?.typeOfGetter(node);
@@ -150,12 +131,8 @@ class GlobalTypeInferenceMemberResult
 class GlobalTypeInferenceParameterResult
     extends GlobalTypeInferenceElementResultImpl {
   GlobalTypeInferenceParameterResult(
-      ParameterElement owner,
-      GlobalTypeInferenceElementData data,
-      TypesInferrer inferrer,
-      bool isJsInterop,
-      TypeMask _dynamic)
-      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
+      ParameterElement owner, TypesInferrer inferrer, TypeMask _dynamic)
+      : super.internal(owner, null, inferrer, false, _dynamic);
 
   bool get isCalledOnce => _inferrer.isParameterCalledOnce(_owner);
 
@@ -164,45 +141,6 @@ class GlobalTypeInferenceParameterResult
 
   TypeMask get type =>
       _isJsInterop ? _dynamic : _inferrer.getTypeOfParameter(_owner);
-}
-
-@deprecated
-class GlobalTypeInferenceLocalFunctionResult
-    extends GlobalTypeInferenceElementResultImpl {
-  GlobalTypeInferenceLocalFunctionResult(
-      LocalFunctionElement owner,
-      GlobalTypeInferenceElementData data,
-      TypesInferrer inferrer,
-      bool isJsInterop,
-      TypeMask _dynamic)
-      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
-
-  bool get isCalledOnce => _inferrer.isLocalFunctionCalledOnce(_owner);
-
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfLocalFunction(_owner);
-
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfLocalFunction(_owner);
-}
-
-class GlobalTypeInferenceLocalFunctionResultImpl
-    extends GlobalTypeInferenceElementResultImpl {
-  GlobalTypeInferenceLocalFunctionResultImpl(
-      LocalFunctionElement owner,
-      GlobalTypeInferenceElementData data,
-      TypesInferrer inferrer,
-      bool isJsInterop,
-      TypeMask _dynamic)
-      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
-
-  bool get isCalledOnce => _inferrer.isLocalFunctionCalledOnce(_owner);
-
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfLocalFunction(_owner);
-
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfLocalFunction(_owner);
 }
 
 /// Internal data used during type-inference to store intermediate results about
@@ -278,7 +216,7 @@ abstract class TypesInferrer {
   TypeMask getTypeOfLocalFunction(LocalFunctionElement element);
   TypeMask getTypeOfMember(MemberElement element);
   TypeMask getTypeOfParameter(ParameterElement element);
-  TypeMask getTypeForNewList(Element owner, Node node);
+  TypeMask getTypeForNewList(Node node);
   TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
   void clear();
 
@@ -303,51 +241,46 @@ class GlobalTypeInferenceResults {
   // TODO(sigmund): store relevant data & drop reference to inference engine.
   final TypeGraphInferrer _inferrer;
   final ClosedWorld closedWorld;
-  final Map<Element, GlobalTypeInferenceElementResult> _elementResults = {};
-
-  GlobalTypeInferenceElementResult resultOfMember(MemberElement element) {
-    return _resultOf(element);
-  }
-
-  GlobalTypeInferenceElementResult resultOfParameter(ParameterElement element) {
-    return _resultOf(element);
-  }
-
-  @deprecated
-  GlobalTypeInferenceElementResult resultOfElement(AstElement element) {
-    return _resultOf(element);
-  }
+  final Map<MemberElement, GlobalTypeInferenceMemberResult> _memberResults =
+      <MemberElement, GlobalTypeInferenceMemberResult>{};
+  final Map<ParameterElement, GlobalTypeInferenceParameterResult>
+      _parameterResults =
+      <ParameterElement, GlobalTypeInferenceParameterResult>{};
 
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
   // error to query for results that don't exist.
-  GlobalTypeInferenceElementResult _resultOf(AstElement element) {
+  GlobalTypeInferenceElementResult resultOfMember(MemberElement member) {
     assert(
-        !element.isGenerativeConstructorBody,
+        !member.isGenerativeConstructorBody,
         failedAt(
-            element,
+            member,
             "unexpected input: ConstructorBodyElements are created"
             " after global type inference, no data is avaiable for them."));
 
     // TODO(sigmund): store closure data directly in the closure element and
     // not in the context of the enclosing method?
-    var key = (element is SynthesizedCallMethodElementX)
-        ? element.memberContext
-        : element;
-    bool isJsInterop = false;
-    if (element is MemberElement) {
-      isJsInterop = closedWorld.nativeData.isJsInteropMember(element);
-    } else if (element is ClassElement) {
-      // TODO(johnniwinther): Can we meet classes here?
-      isJsInterop = closedWorld.nativeData.isJsInteropClass(element);
-    }
-    return _elementResults.putIfAbsent(
-        element,
-        () => new GlobalTypeInferenceElementResultImpl(
-            element,
-            _inferrer.inferrer.inTreeData[key],
+    MemberElement key = (member is SynthesizedCallMethodElementX)
+        ? member.memberContext
+        : member;
+    bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
+    return _memberResults.putIfAbsent(
+        member,
+        () => new GlobalTypeInferenceMemberResult(
+            member,
+            _inferrer.inferrer.lookupDataOfMember(key),
             _inferrer,
             isJsInterop,
             dynamicType));
+  }
+
+  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
+  // error to query for results that don't exist.
+  GlobalTypeInferenceElementResult resultOfParameter(
+      ParameterElement parameter) {
+    return _parameterResults.putIfAbsent(
+        parameter,
+        () => new GlobalTypeInferenceParameterResult(
+            parameter, _inferrer, dynamicType));
   }
 
   GlobalTypeInferenceResults(
