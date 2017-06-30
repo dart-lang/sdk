@@ -75,10 +75,13 @@ config("compiler") {
       # so we do so here. Normal function visibility is controlled by
       # //build/config/gcc:symbol_visibility_hidden.
       "-fvisibility-inlines-hidden",
-
-      # We need the frame pointer for CPU and heap profiling.
-      "-fno-omit-frame-pointer",
     ]
+    if (!is_product) {
+      common_flags += [
+        # We need the frame pointer for CPU and heap profiling.
+        "-fno-omit-frame-pointer",
+      ]
+    }
     cflags_cc += common_flags
     cflags_objcc += common_flags
 

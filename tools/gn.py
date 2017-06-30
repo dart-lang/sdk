@@ -189,7 +189,10 @@ def ToGnArgs(args, mode, arch, target_os):
   # This setting is only meaningful for Flutter. Standalone builds of the VM
   # should leave this set to 'develop', which causes the build to defer to
   # 'is_debug', 'is_release' and 'is_product'.
-  gn_args['dart_runtime_mode'] = 'develop'
+  if mode == 'product':
+    gn_args['dart_runtime_mode'] = 'release'
+  else:
+    gn_args['dart_runtime_mode'] = 'develop'
 
   dont_use_clang = DontUseClang(args, gn_args['target_os'],
                                       gn_args['host_cpu'],

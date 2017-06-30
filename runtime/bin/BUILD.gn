@@ -619,7 +619,7 @@ template("dart_executable") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
-    if (defined(is_fuchsia_host) && is_fuchsia_host) {
+    if (is_fuchsia_host) {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
       # host.
@@ -631,7 +631,6 @@ template("dart_executable") {
     }
 
     deps = [
-             ":gen_resources_cc",
              ":standalone_dart_io",
              ":libdart_builtin",
              "$dart_zlib_path",
@@ -651,7 +650,6 @@ template("dart_executable") {
                 "snapshot_utils.h",
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
-                "$target_gen_dir/resources_gen.cc",
               ] + extra_sources
 
     include_dirs = [
@@ -662,7 +660,9 @@ template("dart_executable") {
     if (is_win) {
       ldflags = [ "/EXPORT:Dart_True" ]
     } else {
-      ldflags = [ "-rdynamic" ]
+      if (dart_runtime_mode != "release") {
+        ldflags = [ "-rdynamic" ]
+      }
     }
 
     if (is_win) {
@@ -685,29 +685,39 @@ dart_executable("dart") {
   extra_deps = [
     "..:libdart_jit",
     ":dart_snapshot_cc",
-    "../observatory:standalone_observatory_archive",
+    ":gen_resources_cc",
   ]
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ "../observatory:standalone_observatory_archive" ]
+  }
   extra_sources = [
     "builtin_nolib.cc",
     "dfe.cc",
     "dfe.h",
     "loader.cc",
     "loader.h",
+    "$target_gen_dir/resources_gen.cc",
   ]
+  if (dart_runtime_mode == "release") {
+    extra_sources += [ "observatory_assets_empty.cc" ]
+  }
 }
 
 dart_executable("dart_precompiled_runtime") {
   extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [
-    "..:libdart_precompiled_runtime",
-    "../observatory:standalone_observatory_archive",
-  ]
+  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ "../observatory:standalone_observatory_archive" ]
+  }
   extra_sources = [
     "builtin_nolib.cc",
     "snapshot_empty.cc",
     "loader.cc",
     "loader.h",
   ]
+  if (dart_runtime_mode == "release") {
+    extra_sources += [ "observatory_assets_empty.cc" ]
+  }
 }
 
 dart_executable("dart_bootstrap") {
@@ -716,21 +726,22 @@ dart_executable("dart_bootstrap") {
     "..:dart_no_snapshot_config",
   ]
   extra_deps = [
+    ":gen_resources_cc",
+    ":generate_blink_cc_file",
     ":generate_builtin_cc_file",
-    ":generate_io_cc_file",
-    ":generate_io_patch_cc_file",
+    ":generate_cached_patches_cc_file",
     ":generate_html_cc_file",
     ":generate_html_common_cc_file",
+    ":generate_indexed_db_cc_file",
+    ":generate_io_cc_file",
+    ":generate_io_patch_cc_file",
     ":generate_js_cc_file",
     ":generate_js_util_cc_file",
-    ":generate_blink_cc_file",
-    ":generate_indexed_db_cc_file",
-    ":generate_cached_patches_cc_file",
-    ":generate_web_gl_cc_file",
     ":generate_metadata_cc_file",
-    ":generate_web_sql_cc_file",
     ":generate_svg_cc_file",
     ":generate_web_audio_cc_file",
+    ":generate_web_gl_cc_file",
+    ":generate_web_sql_cc_file",
     "..:libdart_nosnapshot_with_precompiler",
   ]
   extra_defines = [ "NO_OBSERVATORY" ]
@@ -745,21 +756,22 @@ dart_executable("dart_bootstrap") {
     "snapshot_empty.cc",
 
     # Include generated source files.
+    "$target_gen_dir/blink_gen.cc",
     "$target_gen_dir/builtin_gen.cc",
+    "$target_gen_dir/cached_patches_gen.cc",
+    "$target_gen_dir/html_common_gen.cc",
+    "$target_gen_dir/html_gen.cc",
+    "$target_gen_dir/indexed_db_gen.cc",
     "$target_gen_dir/io_gen.cc",
     "$target_gen_dir/io_patch_gen.cc",
-    "$target_gen_dir/html_gen.cc",
-    "$target_gen_dir/html_common_gen.cc",
     "$target_gen_dir/js_gen.cc",
     "$target_gen_dir/js_util_gen.cc",
-    "$target_gen_dir/blink_gen.cc",
-    "$target_gen_dir/indexed_db_gen.cc",
-    "$target_gen_dir/cached_patches_gen.cc",
-    "$target_gen_dir/web_gl_gen.cc",
     "$target_gen_dir/metadata_gen.cc",
-    "$target_gen_dir/web_sql_gen.cc",
+    "$target_gen_dir/resources_gen.cc",
     "$target_gen_dir/svg_gen.cc",
     "$target_gen_dir/web_audio_gen.cc",
+    "$target_gen_dir/web_gl_gen.cc",
+    "$target_gen_dir/web_sql_gen.cc",
   ]
 }
 

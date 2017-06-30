@@ -41,7 +41,11 @@ struct ResourcesEntry {
   int length_;
 };
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+ResourcesEntry __service_bin_resources_[] = {{NULL, NULL, 0}};
+#else
 extern ResourcesEntry __service_bin_resources_[];
+#endif
 
 class Resources {
  public:
