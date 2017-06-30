@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -339,14 +338,10 @@ abstract class ServerPlugin {
       AnalysisUpdateContentParams parameters) async {
     Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
-      // We don't need to get the correct URI because only the full path is
-      // used by the contentCache.
-      Source source = resourceProvider.getFile(filePath).createSource();
       if (overlay is AddContentOverlay) {
-        fileContentOverlay[source.fullName] = overlay.content;
+        fileContentOverlay[filePath] = overlay.content;
       } else if (overlay is ChangeContentOverlay) {
-        String fileName = source.fullName;
-        String oldContents = fileContentOverlay[fileName];
+        String oldContents = fileContentOverlay[filePath];
         String newContents;
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
@@ -360,9 +355,9 @@ abstract class ServerPlugin {
           throw new RequestFailure(
               RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
-        fileContentOverlay[fileName] = newContents;
+        fileContentOverlay[filePath] = newContents;
       } else if (overlay is RemoveContentOverlay) {
-        fileContentOverlay[source.fullName] = null;
+        fileContentOverlay[filePath] = null;
       }
       contentChanged(filePath);
     });
