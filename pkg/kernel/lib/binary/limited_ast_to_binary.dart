@@ -62,6 +62,12 @@ class LimitedBinaryPrinter extends BinaryPrinter {
     if (node is Library && !predicate(node)) return;
     node.accept(this);
   }
+
+  @override
+  void writeProgramIndex(Program program, List<Library> libraries) {
+    var librariesToWrite = libraries.where(predicate).toList();
+    super.writeProgramIndex(program, librariesToWrite);
+  }
 }
 
 /// Extension of [StringIndexer] that also indexes canonical names of
