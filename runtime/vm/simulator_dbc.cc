@@ -542,6 +542,8 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL) {
                          sizeof(uintptr_t)];
   last_setjmp_buffer_ = NULL;
   top_exit_frame_info_ = 0;
+
+  NOT_IN_PRODUCT(icount_ = 0;)
 }
 
 
@@ -573,6 +575,26 @@ uword Simulator::StackTop() const {
   return StackBase() +
          (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
+
+
+#if !defined(PRODUCT)
+// Returns true if tracing of executed instructions is enabled.
+DART_FORCE_INLINE bool Simulator::IsTracingExecution() const {
+  return icount_ > FLAG_trace_sim_after;
+}
+
+
+// Prints bytecode instruction at given pc for instruction tracing.
+DART_NOINLINE void Simulator::TraceInstruction(uint32_t* pc) const {
+  THR_Print("%" Pu64 " ", icount_);
+  if (FLAG_support_disassembler) {
+    Disassembler::Disassemble(reinterpret_cast<uword>(pc),
+                              reinterpret_cast<uword>(pc + 1));
+  } else {
+    THR_Print("Disassembler not supported in this mode.\n");
+  }
+}
+#endif  // !defined(PRODUCT)
 
 
 // Calls into the Dart runtime are based on this interface.
@@ -984,12 +1006,24 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
 
 // Note: all macro helpers are intended to be used only inside Simulator::Call.
 
+// Counts and prints executed bytecode instructions (in a non-PRODUCT mode).
+#if !defined(PRODUCT)
+#define TRACE_INSTRUCTION                                                      \
+  icount_++;                                                                   \
+  if (IsTracingExecution()) {                                                  \
+    TraceInstruction(pc - 1);                                                  \
+  }
+#else
+#define TRACE_INSTRUCTION
+#endif  // !defined(PRODUCT)
+
 // Decode opcode and A part of the given value and dispatch to the
 // corresponding bytecode handler.
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
     rA = ((op >> 8) & 0xFF);                                                   \
+    TRACE_INSTRUCTION                                                          \
     goto* dispatch[op & 0xFF];                                                 \
   } while (0)
 
