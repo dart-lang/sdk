@@ -818,11 +818,11 @@ void StreamingScopeBuilder::VisitStatement() {
     case kSwitchStatement: {
       AddSwitchVariable();
       VisitExpression();                           // read condition.
-      int num_cases = builder_->ReadListLength();  // read number of cases.
-      for (intptr_t i = 0; i < num_cases; ++i) {
-        int num_expressions =
+      int case_count = builder_->ReadListLength();  // read number of cases.
+      for (intptr_t i = 0; i < case_count; ++i) {
+        int expression_count =
             builder_->ReadListLength();  // read number of expressions.
-        for (intptr_t j = 0; j < num_expressions; ++j) {
+        for (intptr_t j = 0; j < expression_count; ++j) {
           builder_->ReadPosition();  // read jth position.
           VisitExpression();         // read jth expression.
         }
@@ -867,9 +867,9 @@ void StreamingScopeBuilder::VisitStatement() {
       AddCatchVariables();
 
       builder_->ReadBool();  // read any_catch_needs_stack_trace.
-      intptr_t num_catches =
+      intptr_t catch_count =
           builder_->ReadListLength();  // read number of catches.
-      for (intptr_t i = 0; i < num_catches; ++i) {
+      for (intptr_t i = 0; i < catch_count; ++i) {
         PositionScope scope(builder_->reader_);
         intptr_t offset = builder_->ReaderOffset();  // Catch has no tag.
 
@@ -944,7 +944,7 @@ void StreamingScopeBuilder::VisitStatement() {
 }
 
 void StreamingScopeBuilder::VisitArguments() {
-  builder_->ReadUInt();  // read num_arguments.
+  builder_->ReadUInt();  // read argument_count.
 
   // Types
   intptr_t list_length = builder_->ReadListLength();  // read list length.
@@ -2353,9 +2353,9 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
   const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   const int kNumExtraArgs = 1;
-  const int num_arguments = kNumArgs + kNumExtraArgs;
+  const int argument_count = kNumArgs + kNumExtraArgs;
   const Array& arg_values =
-      Array::Handle(Z, Array::New(num_arguments, Heap::kOld));
+      Array::Handle(Z, Array::New(argument_count, Heap::kOld));
   Instance& instance = Instance::Handle(Z);
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class, Heap::kOld);
@@ -2372,7 +2372,7 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
   }
   arg_values.SetAt((0 + kNumExtraArgs), argument);
   const Array& args_descriptor =
-      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, num_arguments,
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, argument_count,
                                                 Object::empty_array()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
@@ -2678,11 +2678,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
-  intptr_t num_optional_parameters =
+  intptr_t optional_parameter_count =
       parsed_function()->function().NumOptionalParameters();
-  if (num_optional_parameters > 0) {
+  if (optional_parameter_count > 0) {
     ZoneGrowableArray<const Instance*>* default_values =
-        new ZoneGrowableArray<const Instance*>(Z, num_optional_parameters);
+        new ZoneGrowableArray<const Instance*>(Z, optional_parameter_count);
 
     AlternativeReadingScope alt(reader_);
     FunctionNodeHelper function_node_helper(this);
@@ -2698,7 +2698,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 
       // List of named.
       list_length = ReadListLength();  // read list length.
-      ASSERT(num_optional_parameters == list_length);
+      ASSERT(optional_parameter_count == list_length);
       ASSERT(!parsed_function()->function().HasOptionalPositionalParameters());
       for (intptr_t i = 0; i < list_length; ++i) {
         Instance* default_value;
@@ -2722,13 +2722,13 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
       // List of positional.
       intptr_t list_length = ReadListLength();  // read list length.
       ASSERT(list_length == function_node_helper.required_parameter_count_ +
-                                num_optional_parameters);
+                                optional_parameter_count);
       ASSERT(parsed_function()->function().HasOptionalPositionalParameters());
       for (intptr_t i = 0; i < function_node_helper.required_parameter_count_;
            ++i) {
         SkipVariableDeclaration();  // read ith variable declaration.
       }
-      for (intptr_t i = 0; i < num_optional_parameters; ++i) {
+      for (intptr_t i = 0; i < optional_parameter_count; ++i) {
         Instance* default_value;
 
         // Read ith variable declaration
@@ -2994,17 +2994,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                 flow_graph_builder_->next_block_id_ - 1);
 }
 
-static bool IsGetMainClosure(const String& name) {
-  if (name.Length() < 16) return false;
-  const char* cstr = "_getMainClosure@";
-  for (intptr_t i = 0; i < 16; ++i) {
-    if (name.CharAt(i) != cstr[i]) return false;
-  }
-  return true;
-}
-
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
-    bool is_in_builtin_library_toplevel,
     intptr_t constructor_class_parent_offset) {
   const Function& dart_function = parsed_function()->function();
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
@@ -3166,12 +3156,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     body += flow_graph_builder_->NativeFunctionBody(first_parameter_offset,
                                                     dart_function);
   } else if (has_body) {
-    if (is_in_builtin_library_toplevel &&
-        IsGetMainClosure(dart::String::Handle(Z, dart_function.name()))) {
-      body += BuildGetMainClosure();
-    } else {
-      body += BuildStatement();  // read body.
-    }
+    body += BuildStatement();  // read body.
   }
   if (body.is_open()) {
     body += NullConstant();
@@ -3293,11 +3278,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     // assignments/calls/runtimecalls in the first basic block.
     // Place this check at the last parameter to ensure parameters
     // are in scope in the debugger at method entry.
-    const int num_params = dart_function.NumParameters();
+    const int parameter_count = dart_function.NumParameters();
     TokenPosition check_pos = TokenPosition::kNoSource;
-    if (num_params > 0) {
+    if (parameter_count > 0) {
       LocalScope* scope = parsed_function()->node_sequence()->scope();
-      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
+      const LocalVariable& parameter = *scope->VariableAt(parameter_count - 1);
       check_pos = parameter.token_pos();
     }
     if (!check_pos.IsDebugPause()) {
@@ -3325,34 +3310,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
                            flow_graph_builder_->next_block_id_ - 1);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildGetMainClosure() {
-  // _getMainClosure in dart:_builtin. Compile that one specially here.
-  const dart::Library& builtin =
-      dart::Library::Handle(Z, I->object_store()->builtin_library());
-  const Object& main =
-      Object::Handle(Z, builtin.LookupObjectAllowPrivate(dart::String::Handle(
-                            Z, dart::String::New("main"))));
-  if (main.IsField()) {
-    UNIMPLEMENTED();
-  } else if (main.IsFunction()) {
-    const Function& function = Function::Cast(main);
-    if (function.kind() == RawFunction::kRegularFunction) {
-      const Function& closure_function =
-          Function::Handle(Z, function.ImplicitClosureFunction());
-      const Instance& closure =
-          Instance::ZoneHandle(Z, closure_function.ImplicitStaticClosure());
-      Fragment instructions = Constant(closure);
-      instructions += Return(TokenPosition::kNoSource);
-      return instructions;
-    } else {
-      UNIMPLEMENTED();
-    }
-  } else {
-    UNIMPLEMENTED();
-  }
-  return Fragment();
-}
-
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   const Function& function = parsed_function()->function();
 
@@ -3360,9 +3317,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   // e.g. for type translation.
   const dart::Class& klass =
       dart::Class::Handle(zone_, parsed_function()->function().Owner());
-  bool is_in_builtin_library_toplevel =
-      klass.library() == I->object_store()->builtin_library() &&
-      klass.IsTopLevel();
 
   Function& outermost_function = Function::Handle(Z);
   intptr_t outermost_kernel_offset = -1;
@@ -3412,17 +3366,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
       ReadUntilFunctionNode();  // read until function node.
       return function.IsImplicitClosureFunction()
                  ? BuildGraphOfImplicitClosureFunction(function)
-                 : BuildGraphOfFunction(is_in_builtin_library_toplevel);
+                 : BuildGraphOfFunction();
     }
     case RawFunction::kConstructor: {
       bool is_factory = function.IsFactory();
       if (is_factory) {
         ReadUntilFunctionNode();  // read until function node.
-        return BuildGraphOfFunction(is_in_builtin_library_toplevel);
+        return BuildGraphOfFunction();
       } else {
         // Constructor: Pass offset to parent class.
         return BuildGraphOfFunction(
-            is_in_builtin_library_toplevel,
             ReadUntilFunctionNode());  // read until function node.
       }
     }
@@ -4046,10 +3999,10 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       return;
     case kSwitchStatement: {
       SkipExpression();                  // read condition.
-      int num_cases = ReadListLength();  // read number of cases.
-      for (intptr_t i = 0; i < num_cases; ++i) {
-        int num_expressions = ReadListLength();  // read number of expressions.
-        for (intptr_t j = 0; j < num_expressions; ++j) {
+      int case_count = ReadListLength();  // read number of cases.
+      for (intptr_t i = 0; i < case_count; ++i) {
+        int expression_count = ReadListLength();  // read number of expressions.
+        for (intptr_t j = 0; j < expression_count; ++j) {
           ReadPosition();    // read jth position.
           SkipExpression();  // read jth expression.
         }
@@ -4077,8 +4030,8 @@ void StreamingFlowGraphBuilder::SkipStatement() {
     case kTryCatch: {
       SkipStatement();  // read body.
       ReadBool();       // read any_catch_needs_stack_trace.
-      intptr_t num_catches = ReadListLength();  // read number of catches.
-      for (intptr_t i = 0; i < num_catches; ++i) {
+      intptr_t catch_count = ReadListLength();  // read number of catches.
+      for (intptr_t i = 0; i < catch_count; ++i) {
         SkipDartType();   // read guard.
         tag = ReadTag();  // read first part of exception.
         if (tag == kSomething) {
@@ -4096,11 +4049,13 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       SkipStatement();  // read body.
       SkipStatement();  // read finalizer.
       return;
-    case kYieldStatement:
-      ReadPosition();    // read position.
+    case kYieldStatement: {
+      TokenPosition position = ReadPosition();  // read position.
+      record_yield_position(position);
       ReadByte();        // read flags.
       SkipExpression();  // read expression.
       return;
+    }
     case kVariableDeclaration:
       SkipVariableDeclaration();  // read variable declaration.
       return;
@@ -4145,8 +4100,54 @@ void StreamingFlowGraphBuilder::SkipVariableDeclaration() {
   helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
 }
 
+void StreamingFlowGraphBuilder::SkipLibraryCombinator() {
+  ReadBool();                        // read is_show.
+  intptr_t name_count = ReadUInt();  // read list length.
+  for (intptr_t j = 0; j < name_count; ++j) {
+    ReadUInt();  // read ith entry of name_indices.
+  }
+}
+
+void StreamingFlowGraphBuilder::SkipLibraryDependency() {
+  ReadFlags();                                   // read flags.
+  SkipListOfExpressions();                       // Read annotations.
+  ReadCanonicalNameReference();                  // read target_reference.
+  ReadStringReference();                         // read name_index.
+  intptr_t combinator_count = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < combinator_count; ++i) {
+    SkipLibraryCombinator();
+  }
+}
+
+void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
+  SkipCanonicalNameReference();  // read canonical name.
+  ReadPosition();                // read position.
+  SkipStringReference();         // read name index.
+  ReadUInt();                    // read source_uri_index.
+  SkipListOfDartTypes();         // read type parameters.
+  SkipDartType();                // read type.
+}
+
 TokenPosition StreamingFlowGraphBuilder::ReadPosition(bool record) {
-  return reader_->ReadPosition(record);
+  TokenPosition position = reader_->ReadPosition();
+  if (record) {
+    record_token_position(position);
+  }
+  return position;
+}
+
+void StreamingFlowGraphBuilder::record_token_position(TokenPosition position) {
+  if (record_for_script_id_ == current_script_id_ &&
+      record_token_positions_into_ != NULL) {
+    record_token_positions_into_->Add(position.value());
+  }
+}
+
+void StreamingFlowGraphBuilder::record_yield_position(TokenPosition position) {
+  if (record_for_script_id_ == current_script_id_ &&
+      record_yield_positions_into_ != NULL) {
+    record_yield_positions_into_->Add(position.value());
+  }
 }
 
 Tag StreamingFlowGraphBuilder::ReadTag(uint8_t* payload) {
@@ -4387,13 +4388,14 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                          argument_names);
 }
 
-Fragment StreamingFlowGraphBuilder::InstanceCall(TokenPosition position,
-                                                 const dart::String& name,
-                                                 Token::Kind kind,
-                                                 intptr_t argument_count,
-                                                 intptr_t num_args_checked) {
+Fragment StreamingFlowGraphBuilder::InstanceCall(
+    TokenPosition position,
+    const dart::String& name,
+    Token::Kind kind,
+    intptr_t argument_count,
+    intptr_t checked_argument_count) {
   return flow_graph_builder_->InstanceCall(position, name, kind, argument_count,
-                                           num_args_checked);
+                                           checked_argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -4421,14 +4423,16 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
   return flow_graph_builder_->AllocateObject(position, klass, argument_count);
 }
 
-Fragment StreamingFlowGraphBuilder::InstanceCall(TokenPosition position,
-                                                 const dart::String& name,
-                                                 Token::Kind kind,
-                                                 intptr_t argument_count,
-                                                 const Array& argument_names,
-                                                 intptr_t num_args_checked) {
+Fragment StreamingFlowGraphBuilder::InstanceCall(
+    TokenPosition position,
+    const dart::String& name,
+    Token::Kind kind,
+    intptr_t argument_count,
+    const Array& argument_names,
+    intptr_t checked_argument_count) {
   return flow_graph_builder_->InstanceCall(position, name, kind, argument_count,
-                                           argument_names, num_args_checked);
+                                           argument_names,
+                                           checked_argument_count);
 }
 
 Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
@@ -4958,16 +4962,16 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       BuildArguments(&argument_names, &argument_count);  // read arguments.
   ++argument_count;
 
-  intptr_t num_args_checked = 1;
+  intptr_t checked_argument_count = 1;
   // If we have a special operation (e.g. +/-/==) we mark both arguments as
   // to be checked.
   if (token_kind != Token::kILLEGAL) {
     ASSERT(argument_count <= 2);
-    num_args_checked = argument_count;
+    checked_argument_count = argument_count;
   }
 
   instructions += InstanceCall(position, name, token_kind, argument_count,
-                               argument_names, num_args_checked);
+                               argument_names, checked_argument_count);
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not
@@ -6013,10 +6017,10 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
   // We need the number of cases. So start by getting that, then go back.
   intptr_t offset = ReaderOffset();
   SkipExpression();                  // temporarily skip condition
-  int num_cases = ReadListLength();  // read number of cases.
+  int case_count = ReadListLength();  // read number of cases.
   SetOffset(offset);
 
-  SwitchBlock block(flow_graph_builder_, num_cases);
+  SwitchBlock block(flow_graph_builder_, case_count);
 
   // Instead of using a variable we should reuse the expression on the stack,
   // since it won't be assigned again, we don't need phi nodes.
@@ -6025,20 +6029,20 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
   head_instructions += Drop();
 
-  num_cases = ReadListLength();  // read number of cases.
+  case_count = ReadListLength();  // read number of cases.
 
   // Phase 1: Generate bodies and try to find out whether a body will be target
   // of a jump due to:
   //   * `continue case_label`
   //   * `case e1: case e2: body`
-  Fragment* body_fragments = new Fragment[num_cases];
-  intptr_t* case_expression_offsets = new intptr_t[num_cases];
+  Fragment* body_fragments = new Fragment[case_count];
+  intptr_t* case_expression_offsets = new intptr_t[case_count];
   int default_case = -1;
 
-  for (intptr_t i = 0; i < num_cases; ++i) {
+  for (intptr_t i = 0; i < case_count; ++i) {
     case_expression_offsets[i] = ReaderOffset();
-    int num_expressions = ReadListLength();  // read number of expressions.
-    for (intptr_t j = 0; j < num_expressions; ++j) {
+    int expression_count = ReadListLength();  // read number of expressions.
+    for (intptr_t j = 0; j < expression_count; ++j) {
       ReadPosition();    // read jth position.
       SkipExpression();  // read jth expression.
     }
@@ -6055,7 +6059,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
 
     // The Dart language specification mandates fall-throughs in [SwitchCase]es
     // to be runtime errors.
-    if (!is_default && body_fragment.is_open() && (i < (num_cases - 1))) {
+    if (!is_default && body_fragment.is_open() && (i < (case_count - 1))) {
       const dart::Class& klass = dart::Class::ZoneHandle(
           Z, dart::Library::LookupCoreClass(Symbols::FallThroughError()));
       ASSERT(!klass.IsNull());
@@ -6102,7 +6106,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
     // This means that the <stmt-body> will have more than 1 incoming edge (one
     // from `a == expr` and one from `a != expr && b == expr`). The
     // `block.Destination()` records the additional jump.
-    if (num_expressions > 1) {
+    if (expression_count > 1) {
       block.DestinationDirect(i);
     }
   }
@@ -6113,17 +6117,17 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
   //   * jump directly to a body (if there is no jumper)
   //   * jump to a wrapper block which jumps to the body (if there is a jumper)
   Fragment current_instructions = head_instructions;
-  for (intptr_t i = 0; i < num_cases; ++i) {
+  for (intptr_t i = 0; i < case_count; ++i) {
     SetOffset(case_expression_offsets[i]);
-    int num_expressions = ReadListLength();  // read length of expressions.
+    int expression_count = ReadListLength();  // read length of expressions.
 
     if (i == default_case) {
-      ASSERT(i == (num_cases - 1));
+      ASSERT(i == (case_count - 1));
 
       // Evaluate the conditions for the default [SwitchCase] just for the
       // purpose of potentially triggering a compile-time error.
 
-      for (intptr_t j = 0; j < num_expressions; ++j) {
+      for (intptr_t j = 0; j < expression_count; ++j) {
         ReadPosition();  // read jth position.
         // this reads the expression, but doesn't skip past it.
         constant_evaluator_.EvaluateExpression(ReaderOffset());
@@ -6148,7 +6152,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
         body_fragments[i] = Fragment(body_join) + body_fragments[i];
       }
 
-      for (intptr_t j = 0; j < num_expressions; ++j) {
+      for (intptr_t j = 0; j < expression_count; ++j) {
         TargetEntryInstr* then;
         TargetEntryInstr* otherwise;
 
@@ -6162,7 +6166,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
         current_instructions +=
             InstanceCall(position, Symbols::EqualOperator(), Token::kEQ,
                          /*argument_count=*/2,
-                         /*num_args_checked=*/2);
+                         /*checked_argument_count=*/2);
         current_instructions += BranchIfTrue(&then, &otherwise, false);
 
         Fragment then_fragment(then);
@@ -6183,13 +6187,13 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
     }
   }
 
-  if (num_cases > 0 && default_case < 0) {
+  if (case_count > 0 && default_case < 0) {
     // There is no default, which means we have an open [current_instructions]
     // (which is a [TargetEntryInstruction] for the last "otherwise" branch).
     //
     // Furthermore the last [SwitchCase] can be open as well.  If so, we need
     // to join these two.
-    Fragment& last_body = body_fragments[num_cases - 1];
+    Fragment& last_body = body_fragments[case_count - 1];
     if (last_body.is_open()) {
       ASSERT(current_instructions.is_open());
       ASSERT(current_instructions.current->IsTargetEntry());
@@ -6313,13 +6317,13 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
   bool needs_stacktrace = ReadBool();  // read any_catch_needs_stack_trace
 
   catch_depth_inc();
-  intptr_t num_catches = ReadListLength();  // read number of catches.
+  intptr_t catch_count = ReadListLength();  // read number of catches.
   const Array& handler_types =
-      Array::ZoneHandle(Z, Array::New(num_catches, Heap::kOld));
+      Array::ZoneHandle(Z, Array::New(catch_count, Heap::kOld));
   Fragment catch_body =
       CatchBlockEntry(handler_types, try_handler_index, needs_stacktrace);
   // Fill in the body of the catch.
-  for (intptr_t i = 0; i < num_catches; ++i) {
+  for (intptr_t i = 0; i < catch_count; ++i) {
     intptr_t catch_offset = ReaderOffset();  // Catch has no tag.
     Tag tag = PeekTag();                     // peek guard type.
     AbstractType* type_guard = NULL;
@@ -6792,11 +6796,11 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
     function.SetNumOptionalParameters(
         positional_parameters_count - required_parameter_count, true);
   }
-  intptr_t num_parameters = extra_parameters + total_parameter_count;
+  intptr_t parameter_count = extra_parameters + total_parameter_count;
   function.set_parameter_types(
-      Array::Handle(Z, Array::New(num_parameters, Heap::kOld)));
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
   function.set_parameter_names(
-      Array::Handle(Z, Array::New(num_parameters, Heap::kOld)));
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
@@ -6936,6 +6940,133 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
   }
 
   return metadata_values.raw();
+}
+
+void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
+    intptr_t script_index,
+    GrowableArray<intptr_t>* record_token_positions_in,
+    GrowableArray<intptr_t>* record_yield_positions_in) {
+  record_token_positions_into_ = record_token_positions_in;
+  record_yield_positions_into_ = record_yield_positions_in;
+  record_for_script_id_ = script_index;
+
+  // Get offset for 1st library.
+  SetOffset(reader_->size() - 4);
+  intptr_t library_count = reader_->ReadUInt32();
+
+  SetOffset(reader_->size() - 4 - 4 * library_count);
+  intptr_t offset = reader_->ReadUInt32();
+
+  SetOffset(offset);
+  for (intptr_t i = 0; i < library_count; ++i) {
+    LibraryHelper library_helper(this);
+    library_helper.ReadUntilExcluding(LibraryHelper::kEnd);
+  }
+
+  record_token_positions_into_ = NULL;
+  record_yield_positions_into_ = NULL;
+  record_for_script_id_ = -1;
+}
+
+intptr_t StreamingFlowGraphBuilder::SourceTableSize() {
+  AlternativeReadingScope alt(reader_);
+  SetOffset(reader_->size() - 4);
+  intptr_t library_count = reader_->ReadUInt32();
+  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->ReadUInt32());  // read source table offset.
+  return ReadUInt();                 // read source table size.
+}
+
+String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
+  AlternativeReadingScope alt(reader_);
+  SetOffset(reader_->size() - 4);
+  intptr_t library_count = reader_->ReadUInt32();
+  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->ReadUInt32());  // read source table offset.
+  intptr_t size = ReadUInt();        // read source table size.
+  intptr_t start = 0;
+  intptr_t end = -1;
+  for (intptr_t i = 0; i < size; ++i) {
+    intptr_t offset = ReadUInt();
+    if (i == index - 1) {
+      start = offset;
+    } else if (i == index) {
+      end = offset;
+    }
+  }
+  intptr_t end_offset = ReaderOffset();
+  return H.DartString(reader_->buffer() + end_offset + start, end - start,
+                      Heap::kOld);
+}
+
+String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
+  AlternativeReadingScope alt(reader_);
+  SetOffset(reader_->size() - 4);
+  intptr_t library_count = reader_->ReadUInt32();
+  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->ReadUInt32());  // read source table offset.
+  intptr_t size = ReadUInt();        // read source table size.
+  intptr_t uris_size = 0;
+  for (intptr_t i = 0; i < size; ++i) {
+    uris_size = ReadUInt();
+  }
+  SkipBytes(uris_size);
+
+  // Read the source code strings and line starts.
+  for (intptr_t i = 0; i < size; ++i) {
+    intptr_t length = ReadUInt();
+    if (index == i) {
+      return H.DartString(reader_->buffer() + ReaderOffset(), length,
+                          Heap::kOld);
+    }
+    SkipBytes(length);
+    intptr_t line_count = ReadUInt();
+    for (intptr_t j = 0; j < line_count; ++j) {
+      ReadUInt();
+    }
+  }
+
+  return String::Handle(String::null());
+}
+
+Array& StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
+  AlternativeReadingScope alt(reader_);
+  SetOffset(reader_->size() - 4);
+  intptr_t library_count = reader_->ReadUInt32();
+  SetOffset(reader_->size() - 4 - 4 * library_count - 3 * 4);
+  SetOffset(reader_->ReadUInt32());  // read source table offset.
+  intptr_t size = ReadUInt();        // read source table size.
+  intptr_t uris_size = 0;
+  for (intptr_t i = 0; i < size; ++i) {
+    uris_size = ReadUInt();
+  }
+  SkipBytes(uris_size);
+
+  // Read the source code strings and line starts.
+  for (intptr_t i = 0; i < size; ++i) {
+    intptr_t length = ReadUInt();
+    SkipBytes(length);
+    intptr_t line_count = ReadUInt();
+    if (i == index) {
+      Array& array_object =
+          Array::Handle(Z, Array::New(line_count, Heap::kOld));
+      Smi& value = Smi::Handle(Z);
+      intptr_t previous_line_start = 0;
+      for (intptr_t j = 0; j < line_count; ++j) {
+        intptr_t line_start = ReadUInt() + previous_line_start;
+        value = Smi::New(line_start);
+        array_object.SetAt(j, value);
+        previous_line_start = line_start;
+      }
+      return array_object;
+    } else {
+      for (intptr_t j = 0; j < line_count; ++j) {
+        ReadUInt();
+      }
+    }
+  }
+
+  return Array::Handle(Array::null());
 }
 
 }  // namespace kernel

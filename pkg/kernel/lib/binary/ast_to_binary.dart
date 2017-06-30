@@ -26,6 +26,9 @@ class BinaryPrinter extends Visitor {
 
   final BufferedSink _sink;
 
+  int _binaryOffsetForSourceTable = -1;
+  int _binaryOffsetForLinkTable = -1;
+
   /// Create a printer that writes to the given [sink].
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
@@ -65,7 +68,7 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeMagicWord(int value) {
+  void writeUInt32(int value) {
     writeByte((value >> 24) & 0xFF);
     writeByte((value >> 16) & 0xFF);
     writeByte((value >> 8) & 0xFF);
@@ -131,6 +134,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeLinkTable(Program program) {
+    _binaryOffsetForLinkTable = _sink.flushedLength + _sink.length;
     List<CanonicalName> list = <CanonicalName>[];
     void visitCanonicalName(CanonicalName node) {
       node.index = list.length;
@@ -174,13 +178,15 @@ class BinaryPrinter extends Visitor {
 
   void writeProgramFile(Program program) {
     computeCanonicalNames(program);
-    writeMagicWord(Tag.ProgramFile);
+    writeUInt32(Tag.ProgramFile);
     buildStringIndex(program);
     writeStringTable(stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
     writeLibraries(program);
     writeMemberReference(program.mainMethod, allowNull: true);
+    writeProgramIndex(program, program.libraries);
+
     _flush();
   }
 
@@ -194,7 +200,25 @@ class BinaryPrinter extends Visitor {
     writeList(program.libraries, writeNode);
   }
 
+  void writeProgramIndex(Program program, List<Library> libraries) {
+    // Fixed-size ints at the end used as an index.
+    writeUInt32(_binaryOffsetForSourceTable);
+    writeUInt32(_binaryOffsetForLinkTable);
+
+    CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
+    if (main == null) {
+      writeUInt32(0);
+    } else {
+      writeUInt32(main.index + 1);
+    }
+    for (Library library in libraries) {
+      writeUInt32(library.binaryOffset);
+    }
+    writeUInt32(libraries.length);
+  }
+
   void writeUriToSource(Program program) {
+    _binaryOffsetForSourceTable = _sink.flushedLength + _sink.length;
     program.uriToSource.keys.forEach((uri) {
       _sourceUriIndexer.put(uri);
     });
@@ -280,6 +304,7 @@ class BinaryPrinter extends Visitor {
 
   visitLibrary(Library node) {
     insideExternalLibrary = node.isExternal;
+    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeByte(insideExternalLibrary ? 1 : 0);
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
@@ -1140,13 +1165,17 @@ class LibraryFilteringBinaryPrinter extends BinaryPrinter {
 
   void writeProgramFile(Program program) {
     program.computeCanonicalNames();
-    writeMagicWord(Tag.ProgramFile);
+    writeUInt32(Tag.ProgramFile);
     stringIndexer.scanProgram(program);
     writeStringTable(stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
-    writeList(program.libraries.where(predicate).toList(), writeNode);
+    final List<Library> filteredLibraries =
+        program.libraries.where(predicate).toList();
+    writeList(filteredLibraries, writeNode);
     writeMemberReference(program.mainMethod, allowNull: true);
+    writeProgramIndex(program, filteredLibraries);
+
     _flush();
   }
 }

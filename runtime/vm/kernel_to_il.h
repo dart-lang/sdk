@@ -199,7 +199,6 @@ class ActiveClass {
         class_type_parameters(0),
         class_type_parameters_offset_start(-1),
         klass(NULL),
-        member(NULL),
         member_is_procedure(false),
         member_is_factory_procedure(false),
         member_type_parameters(0),
@@ -214,9 +213,6 @@ class ActiveClass {
   // a library's top-level class, the kernel_class will be NULL.
   const dart::Class* klass;
 
-  // The enclosing member (e.g., Constructor, Procedure, or Field) if there
-  // is one.
-  Member* member;
   bool member_is_procedure;
   bool member_is_factory_procedure;
   intptr_t member_type_parameters;
@@ -236,7 +232,6 @@ class ActiveClassScope {
     active_class_->class_type_parameters_offset_start =
         class_type_parameters_offset_start;
     active_class_->klass = klass;
-    active_class_->member = NULL;
   }
 
   ~ActiveClassScope() { *active_class_ = saved_; }
@@ -256,7 +251,6 @@ class ActiveMemberScope {
                     intptr_t member_type_parameters_offset_start)
       : active_class_(active_class), saved_(*active_class) {
     // The class and kernel_class is inherited.
-    active_class_->member = NULL;
     active_class_->member_is_procedure = member_is_procedure;
     active_class_->member_is_factory_procedure = member_is_factory_procedure;
     active_class_->member_type_parameters = member_type_parameters;
@@ -351,25 +345,17 @@ class TranslationHelper {
   const dart::String& DartProcedureName(NameIndex procedure);
 
   const dart::String& DartSetterName(NameIndex setter);
-  const dart::String& DartSetterName(Name* setter_name);
   const dart::String& DartSetterName(NameIndex parent, StringIndex setter);
 
   const dart::String& DartGetterName(NameIndex getter);
-  const dart::String& DartGetterName(Name* getter_name);
   const dart::String& DartGetterName(NameIndex parent, StringIndex getter);
 
-  const dart::String& DartFieldName(Name* kernel_name);
   const dart::String& DartFieldName(NameIndex parent, StringIndex field);
 
-  const dart::String& DartInitializerName(Name* kernel_name);
-
   const dart::String& DartMethodName(NameIndex method);
-  const dart::String& DartMethodName(Name* method_name);
   const dart::String& DartMethodName(NameIndex parent, StringIndex method);
 
   const dart::String& DartFactoryName(NameIndex factory);
-
-  const Array& ArgumentNames(List<NamedExpression>* named);
 
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
@@ -558,13 +544,13 @@ class FlowGraphBuilder {
                         const dart::String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
-                        intptr_t num_args_checked = 1);
+                        intptr_t checked_argument_count = 1);
   Fragment InstanceCall(TokenPosition position,
                         const dart::String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
                         const Array& argument_names,
-                        intptr_t num_args_checked = 1);
+                        intptr_t checked_argument_count = 1);
   Fragment ClosureCall(intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names);
@@ -745,16 +731,16 @@ class FlowGraphBuilder {
 
 class SwitchBlock {
  public:
-  SwitchBlock(FlowGraphBuilder* builder, intptr_t num_cases)
+  SwitchBlock(FlowGraphBuilder* builder, intptr_t case_count)
       : builder_(builder),
         outer_(builder->switch_block_),
         outer_finally_(builder->try_finally_block_),
-        num_cases_(num_cases),
+        case_count_(case_count),
         context_depth_(builder->context_depth_),
         try_index_(builder->CurrentTryIndex()) {
     builder_->switch_block_ = this;
     if (outer_ != NULL) {
-      depth_ = outer_->depth_ + outer_->num_cases_;
+      depth_ = outer_->depth_ + outer_->case_count_;
     } else {
       depth_ = 0;
     }
@@ -818,7 +804,7 @@ class SwitchBlock {
   IntMap<JoinEntryInstr*> destinations_;
 
   TryFinallyBlock* outer_finally_;
-  intptr_t num_cases_;
+  intptr_t case_count_;
   intptr_t depth_;
   intptr_t context_depth_;
   intptr_t try_index_;
@@ -962,6 +948,9 @@ class CatchBlock {
 
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(const Function& function);
+void CollectTokenPositionsFor(const Script& script);
+String& GetSourceFor(const Script& script);
+Array& GetLineStartsFor(const Script& script);
 
 
 }  // namespace kernel

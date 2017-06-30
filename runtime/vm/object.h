@@ -3618,6 +3618,9 @@ class Script : public Object {
   intptr_t kernel_data_size() { return raw_ptr()->kernel_data_size_; }
   void set_kernel_data_size(const intptr_t kernel_data_size) const;
 
+  intptr_t kernel_script_index() { return raw_ptr()->kernel_script_index_; }
+  void set_kernel_script_index(const intptr_t kernel_script_index) const;
+
   RawTypedData* kernel_string_offsets() const {
     return raw_ptr()->kernel_string_offsets_;
   }
@@ -3644,7 +3647,7 @@ class Script : public Object {
 
   void set_yield_positions(const Array& value) const;
 
-  RawArray* yield_positions() const { return raw_ptr()->yield_positions_; }
+  RawArray* yield_positions() const;
 
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
@@ -3696,8 +3699,8 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
-  RawArray* debug_positions() const { return raw_ptr()->debug_positions_; }
+  RawArray* line_starts() const;
+  RawArray* debug_positions() const;
 
   static RawScript* New();
 

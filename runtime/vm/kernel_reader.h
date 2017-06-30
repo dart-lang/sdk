@@ -66,6 +66,32 @@ class KernelReader {
     return translation_helper_.DartSymbol(index);
   }
 
+  const dart::String& LibraryUri(intptr_t library_index) {
+    return translation_helper_.DartSymbol(
+        translation_helper_.CanonicalNameString(
+            library_canonical_name(library_index)));
+  }
+
+  intptr_t library_offset(intptr_t index) {
+    kernel::Reader reader(program_->kernel_data(),
+                          program_->kernel_data_size());
+    reader.set_offset(reader.size() - 4 -
+                      (program_->library_count() - index) * 4);
+    return reader.ReadUInt32();
+  }
+
+  NameIndex library_canonical_name(intptr_t index) {
+    kernel::Reader reader(program_->kernel_data(),
+                          program_->kernel_data_size());
+    reader.set_offset(reader.size() - 4 -
+                      (program_->library_count() - index) * 4);
+    reader.set_offset(reader.ReadUInt32());
+
+    // Start reading library.
+    reader.ReadFlags();  // read flags.
+    return reader.ReadCanonicalNameReference();
+  }
+
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
  private:

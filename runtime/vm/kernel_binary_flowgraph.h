@@ -309,7 +309,11 @@ class StreamingFlowGraphBuilder {
         zone_(flow_graph_builder->zone_),
         reader_(new Reader(buffer, buffer_length)),
         constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true) {}
+        type_translator_(this, /* finalize= */ true),
+        current_script_id_(-1),
+        record_for_script_id_(-1),
+        record_token_positions_into_(NULL),
+        record_yield_positions_into_(NULL) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             Zone* zone,
@@ -320,7 +324,11 @@ class StreamingFlowGraphBuilder {
         zone_(zone),
         reader_(new Reader(buffer, buffer_length)),
         constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true) {}
+        type_translator_(this, /* finalize= */ true),
+        current_script_id_(-1),
+        record_for_script_id_(-1),
+        record_token_positions_into_(NULL),
+        record_yield_positions_into_(NULL) {}
 
   ~StreamingFlowGraphBuilder() { delete reader_; }
 
@@ -329,6 +337,14 @@ class StreamingFlowGraphBuilder {
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
   RawObject* EvaluateMetadata(intptr_t kernel_offset);
+  void CollectTokenPositionsFor(
+      intptr_t script_index,
+      GrowableArray<intptr_t>* record_token_positions_in,
+      GrowableArray<intptr_t>* record_yield_positions_in);
+  intptr_t SourceTableSize();
+  String& SourceTableUriFor(intptr_t index);
+  String& GetSourceFor(intptr_t index);
+  Array& GetLineStartsFor(intptr_t index);
 
  private:
   void DiscoverEnclosingElements(Zone* zone,
@@ -361,9 +377,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildInitializers(intptr_t constructor_class_parent_offset);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(
-      bool is_in_builtin_library_toplevel,
       intptr_t constructor_class_parent_offset = -1);
-  Fragment BuildGetMainClosure();
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
@@ -399,7 +413,12 @@ class StreamingFlowGraphBuilder {
   void SkipName();
   void SkipArguments();
   void SkipVariableDeclaration();
+  void SkipLibraryCombinator();
+  void SkipLibraryDependency();
+  void SkipLibraryTypedef();
   TokenPosition ReadPosition(bool record = true);
+  void record_token_position(TokenPosition position);
+  void record_yield_position(TokenPosition position);
   Tag ReadTag(uint8_t* payload = NULL);
   Tag PeekTag(uint8_t* payload = NULL);
   word ReadFlags();
@@ -466,13 +485,13 @@ class StreamingFlowGraphBuilder {
                         const dart::String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
-                        intptr_t num_args_checked = 1);
+                        intptr_t checked_argument_count = 1);
   Fragment InstanceCall(TokenPosition position,
                         const dart::String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
                         const Array& argument_names,
-                        intptr_t num_args_checked);
+                        intptr_t checked_argument_count);
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
@@ -607,6 +626,10 @@ class StreamingFlowGraphBuilder {
   Reader* reader_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
+  intptr_t current_script_id_;
+  intptr_t record_for_script_id_;
+  GrowableArray<intptr_t>* record_token_positions_into_;
+  GrowableArray<intptr_t>* record_yield_positions_into_;
 
   friend class StreamingConstantEvaluator;
   friend class StreamingDartTypeTranslator;
@@ -616,6 +639,7 @@ class StreamingFlowGraphBuilder {
   friend class FieldHelper;
   friend class ProcedureHelper;
   friend class ClassHelper;
+  friend class LibraryHelper;
   friend class ConstructorHelper;
   friend class SimpleExpressionConverter;
   friend class KernelReader;
@@ -856,10 +880,10 @@ class FieldHelper {
             builder_->ReadCanonicalNameReference();  // read canonical_name.
         if (++next_read_ == field) return;
       case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
+        position_ = builder_->ReadPosition(false);  // read position.
         if (++next_read_ == field) return;
       case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
+        end_position_ = builder_->ReadPosition(false);  // read end position.
         if (++next_read_ == field) return;
       case kFlags:
         flags_ = builder_->ReadFlags();  // read flags.
@@ -873,6 +897,9 @@ class FieldHelper {
         if (++next_read_ == field) return;
       case kSourceUriIndex:
         source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+        builder_->current_script_id_ = source_uri_index_;
+        builder_->record_token_position(position_);
+        builder_->record_token_position(end_position_);
         if (++next_read_ == field) return;
       case kAnnotations:
         builder_->SkipListOfExpressions();  // read annotations.
@@ -962,10 +989,10 @@ class ProcedureHelper {
             builder_->ReadCanonicalNameReference();  // read canonical_name.
         if (++next_read_ == field) return;
       case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
+        position_ = builder_->ReadPosition(false);  // read position.
         if (++next_read_ == field) return;
       case kEndPosition:
-        end_position_ = builder_->ReadPosition();  // read end position.
+        end_position_ = builder_->ReadPosition(false);  // read end position.
         if (++next_read_ == field) return;
       case kKind:
         kind_ = static_cast<Procedure::ProcedureKind>(
@@ -983,6 +1010,9 @@ class ProcedureHelper {
         if (++next_read_ == field) return;
       case kSourceUriIndex:
         source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+        builder_->current_script_id_ = source_uri_index_;
+        builder_->record_token_position(position_);
+        builder_->record_token_position(end_position_);
         if (++next_read_ == field) return;
       case kAnnotations:
         builder_->SkipListOfExpressions();  // read annotations.
@@ -1205,7 +1235,7 @@ class ClassHelper {
             builder_->ReadCanonicalNameReference();  // read canonical_name.
         if (++next_read_ == field) return;
       case kPosition:
-        position_ = builder_->ReadPosition();  // read position.
+        position_ = builder_->ReadPosition(false);  // read position.
         if (++next_read_ == field) return;
       case kIsAbstract:
         is_abstract_ = builder_->ReadBool();  // read is_abstract.
@@ -1215,6 +1245,8 @@ class ClassHelper {
         if (++next_read_ == field) return;
       case kSourceUriIndex:
         source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+        builder_->current_script_id_ = source_uri_index_;
+        builder_->record_token_position(position_);
         if (++next_read_ == field) return;
       case kAnnotations:
         builder_->SkipListOfExpressions();  // read annotations.
@@ -1282,6 +1314,122 @@ class ClassHelper {
   NameIndex canonical_name_;
   TokenPosition position_;
   bool is_abstract_;
+  StringIndex name_index_;
+  intptr_t source_uri_index_;
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
+  intptr_t next_read_;
+};
+
+// Helper class that reads a kernel Library from binary.
+//
+// Use ReadUntilExcluding to read up to but not including a field.
+// One can then for instance read the field from the call-site (and remember to
+// call SetAt to inform this helper class), and then use this to read more.
+// "Dumb" fields are stored (e.g. integers) and can be fetched from this class.
+// If asked to read a "non-dumb" field (e.g. an expression) it will be skipped.
+class LibraryHelper {
+ public:
+  enum Fields {
+    kFlags,
+    kCanonicalName,
+    kName,
+    kSourceUriIndex,
+    kAnnotations,
+    kDependencies,
+    kTypedefs,
+    kClasses,
+    kToplevelField,
+    kToplevelProcedures,
+    kEnd
+  };
+
+  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
+    builder_ = builder;
+    next_read_ = kFlags;
+  }
+
+  void ReadUntilIncluding(Fields field) {
+    ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Fields field) {
+    if (field <= next_read_) return;
+
+    // Ordered with fall-through.
+    switch (next_read_) {
+      case kFlags: {
+        word flags = builder_->ReadFlags();  // read flags.
+        ASSERT(flags == 0);                  // external libraries not supported
+        if (++next_read_ == field) return;
+      }
+      case kCanonicalName:
+        canonical_name_ =
+            builder_->ReadCanonicalNameReference();  // read canonical_name.
+        if (++next_read_ == field) return;
+      case kName:
+        name_index_ = builder_->ReadStringReference();  // read name index.
+        if (++next_read_ == field) return;
+      case kSourceUriIndex:
+        source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+        builder_->current_script_id_ = source_uri_index_;
+        if (++next_read_ == field) return;
+      case kAnnotations:
+        builder_->SkipListOfExpressions();  // read annotations.
+        if (++next_read_ == field) return;
+      case kDependencies: {
+        intptr_t dependency_count = builder_->ReadUInt();  // read list length.
+        for (intptr_t i = 0; i < dependency_count; ++i) {
+          builder_->SkipLibraryDependency();
+        }
+        if (++next_read_ == field) return;
+      }
+      case kTypedefs: {
+        intptr_t typedef_count =
+            builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < typedef_count; i++) {
+          builder_->SkipLibraryTypedef();
+        }
+        if (++next_read_ == field) return;
+      }
+      case kClasses: {
+        int class_count = builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < class_count; ++i) {
+          ClassHelper class_helper(builder_);
+          class_helper.ReadUntilExcluding(ClassHelper::kEnd);
+        }
+        if (++next_read_ == field) return;
+      }
+      case kToplevelField: {
+        intptr_t field_count = builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < field_count; ++i) {
+          FieldHelper field_helper(builder_);
+          field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+        }
+        if (++next_read_ == field) return;
+      }
+      case kToplevelProcedures: {
+        intptr_t procedure_count =
+            builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < procedure_count; ++i) {
+          ProcedureHelper procedure_helper(builder_);
+          procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+        }
+        if (++next_read_ == field) return;
+      }
+      case kEnd:
+        return;
+    }
+  }
+
+  void SetNext(Fields field) { next_read_ = field; }
+  void SetJustRead(Fields field) {
+    next_read_ = field;
+    ++next_read_;
+  }
+
+  NameIndex canonical_name_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
 

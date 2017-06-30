@@ -138,188 +138,10 @@ enum Tag {
 static const int SpecializedIntLiteralBias = 3;
 
 
-template <typename T>
-class BlockStack {
- public:
-  BlockStack() : current_count_(0) {}
-
-  void EnterScope() {
-    variable_count_.Add(current_count_);
-    current_count_ = 0;
-  }
-
-  void LeaveScope() {
-    variables_.TruncateTo(variables_.length() - current_count_);
-    current_count_ = variable_count_[variable_count_.length() - 1];
-    variable_count_.RemoveLast();
-  }
-
-  T* Lookup(int index) {
-    ASSERT(index < variables_.length());
-    return variables_[index];
-  }
-
-  void Push(T* v) {
-    variables_.Add(v);
-    current_count_++;
-  }
-
-  void Push(List<T>* decl) {
-    for (intptr_t i = 0; i < decl->length(); i++) {
-      variables_.Add(decl[i]);
-      current_count_++;
-    }
-  }
-
-  void Pop(T* decl) {
-    variables_.RemoveLast();
-    current_count_--;
-  }
-
-  void Pop(List<T>* decl) {
-    variables_.TruncateTo(variables_.length() - decl->length());
-    current_count_ -= decl->length();
-  }
-
- private:
-  int current_count_;
-  MallocGrowableArray<T*> variables_;
-  MallocGrowableArray<int> variable_count_;
-};
-
-
-template <typename T>
-class BlockMap {
- public:
-  BlockMap() : current_count_(0), stack_height_(0) {}
-
-  void EnterScope() {
-    variable_count_.Add(current_count_);
-    current_count_ = 0;
-  }
-
-  void LeaveScope() {
-    stack_height_ -= current_count_;
-    current_count_ = variable_count_[variable_count_.length() - 1];
-    variable_count_.RemoveLast();
-  }
-
-  int Lookup(T* object) {
-    typename MallocMap<T, int>::Pair* result = variables_.LookupPair(object);
-    ASSERT(result != NULL);
-    if (result == NULL) FATAL("lookup failure");
-    return RawPointerKeyValueTrait<T, int>::ValueOf(*result);
-  }
-
-  void Push(T* v) {
-    ASSERT(variables_.LookupPair(v) == NULL);
-    int index = stack_height_++;
-    variables_.Insert(v, index);
-    current_count_++;
-  }
-
-  void Set(T* v, int index) {
-    typename MallocMap<T, int>::Pair* entry = variables_.LookupPair(v);
-    ASSERT(entry != NULL);
-    entry->value = index;
-  }
-
-  void Push(List<T>* decl) {
-    for (intptr_t i = 0; i < decl->length(); i++) {
-      Push(decl[i]);
-    }
-  }
-
-  void Pop(T* v) {
-    current_count_--;
-    stack_height_--;
-  }
-
- private:
-  int current_count_;
-  int stack_height_;
-  MallocMap<T, int> variables_;
-  MallocGrowableArray<int> variable_count_;
-};
-
-
-template <typename T>
-class VariableScope {
- public:
-  explicit VariableScope(T* builder) : builder_(builder) {
-    builder_->variables().EnterScope();
-  }
-  ~VariableScope() { builder_->variables().LeaveScope(); }
-
- private:
-  T* builder_;
-};
-
-
-template <typename T>
-class TypeParameterScope {
- public:
-  explicit TypeParameterScope(T* builder) : builder_(builder) {
-    builder_->type_parameters().EnterScope();
-  }
-  ~TypeParameterScope() { builder_->type_parameters().LeaveScope(); }
-
- private:
-  T* builder_;
-};
-
-
-// Unlike other scopes, labels from enclosing functions are not visible in
-// nested functions.  The LabelScope class is used to hide outer labels.
-template <typename Builder, typename Block>
-class LabelScope {
- public:
-  explicit LabelScope(Builder* builder) : builder_(builder) {
-    outer_block_ = builder_->labels();
-    builder_->set_labels(&block_);
-  }
-  ~LabelScope() { builder_->set_labels(outer_block_); }
-
- private:
-  Builder* builder_;
-  Block block_;
-  Block* outer_block_;
-};
-
-
-class ReaderHelper {
- public:
-  ReaderHelper() : program_(NULL), labels_(NULL) {}
-
-  Program* program() { return program_; }
-  void set_program(Program* program) { program_ = program; }
-
-  BlockStack<VariableDeclaration>& variables() { return scope_; }
-  BlockStack<TypeParameter>& type_parameters() { return type_parameters_; }
-
-  BlockStack<LabeledStatement>* labels() { return labels_; }
-  void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
-
- private:
-  Program* program_;
-  BlockStack<VariableDeclaration> scope_;
-  BlockStack<TypeParameter> type_parameters_;
-  BlockStack<LabeledStatement>* labels_;
-};
-
-
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : buffer_(buffer),
-        size_(size),
-        offset_(0),
-        string_data_offset_(-1),
-        string_offsets_(NULL),
-        canonical_name_parents_(NULL),
-        canonical_name_strings_(NULL) {}
-
-  ~Reader();
+      : buffer_(buffer), size_(size), offset_(0) {}
 
   uint32_t ReadUInt32() {
     ASSERT(offset_ + 4 <= size_);
@@ -355,30 +177,6 @@ class Reader {
     }
   }
 
-  void add_token_position(
-      MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list,
-      TokenPosition position) {
-    intptr_t size = list->length();
-    while (size <= current_script_id_) {
-      MallocGrowableArray<intptr_t>* tmp = new MallocGrowableArray<intptr_t>();
-      list->Add(tmp);
-      size = list->length();
-    }
-    list->At(current_script_id_)->Add(position.value());
-  }
-
-  void record_token_position(TokenPosition position) {
-    if (position.IsReal() && helper()->program() != NULL) {
-      add_token_position(&helper()->program()->valid_token_positions, position);
-    }
-  }
-
-  void record_yield_token_position(TokenPosition position) {
-    if (helper()->program() != NULL) {
-      add_token_position(&helper()->program()->yield_token_positions, position);
-    }
-  }
-
   /**
    * Read and return a TokenPosition from this reader.
    * @param record specifies whether or not the read position is saved as a
@@ -386,7 +184,7 @@ class Reader {
    * If not be sure to record it later by calling record_token_position (after
    * setting the correct current_script_id).
    */
-  TokenPosition ReadPosition(bool record = true) {
+  TokenPosition ReadPosition() {
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
     intptr_t value = ReadUInt() - 1;
@@ -398,9 +196,6 @@ class Reader {
       min_position_ = Utils::Minimum(min_position_, result);
     }
 
-    if (record) {
-      record_token_position(result);
-    }
     return result;
   }
 
@@ -456,10 +251,6 @@ class Reader {
     }
   }
 
-  void DumpOffset(const char* str) {
-    OS::PrintErr("@%" Pd " %s\n", offset_, str);
-  }
-
   // The largest position read yet (since last reset).
   // This is automatically updated when calling ReadPosition,
   // but can be overwritten (e.g. via the PositionScope class).
@@ -468,13 +259,6 @@ class Reader {
   // This is automatically updated when calling ReadPosition,
   // but can be overwritten (e.g. via the PositionScope class).
   TokenPosition min_position() { return min_position_; }
-  // The current script id for what we are currently processing.
-  // Note though that this is only a convenience helper and has to be set
-  // manually.
-  intptr_t current_script_id() { return current_script_id_; }
-  void set_current_script_id(intptr_t script_id) {
-    current_script_id_ = script_id;
-  }
 
   template <typename T, typename RT>
   T* ReadOptional() {
@@ -491,8 +275,6 @@ class Reader {
     return ReadOptional<T, T>();
   }
 
-  ReaderHelper* helper() { return &builder_; }
-
   // A canonical name reference of -1 indicates none (for optional names), not
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
@@ -503,52 +285,13 @@ class Reader {
 
   const uint8_t* buffer() { return buffer_; }
 
-  intptr_t string_data_offset() { return string_data_offset_; }
-  void MarkStringDataOffset() {
-    ASSERT(string_data_offset_ == -1);
-    string_data_offset_ = offset_;
-  }
-
-  intptr_t StringLength(StringIndex index) {
-    return string_offsets_[index + 1] - string_offsets_[index];
-  }
-
-  uint8_t CharacterAt(StringIndex string_index, intptr_t index) {
-    ASSERT(index < StringLength(string_index));
-    return buffer_[string_data_offset_ + string_offsets_[string_index] + index];
-  }
-
-  // The canonical name index of a canonical name's parent (-1 indicates that
-  // the parent is the root name).
-  NameIndex CanonicalNameParent(NameIndex index) {
-    return canonical_name_parents_[index];
-  }
-
-  // The string index of a canonical name's name string.
-  StringIndex CanonicalNameString(NameIndex index) {
-    return canonical_name_strings_[index];
-  }
-
  private:
   const uint8_t* buffer_;
   intptr_t size_;
   intptr_t offset_;
-  ReaderHelper builder_;
   TokenPosition max_position_;
   TokenPosition min_position_;
   intptr_t current_script_id_;
-
-  // The offset of the start of the string data is recorded to allow access to
-  // the strings during deserialization.
-  intptr_t string_data_offset_;
-
-  // The string offsets are decoded to support efficient access to string UTF-8
-  // encodings.
-  intptr_t* string_offsets_;
-
-  // The canonical names are decoded.
-  NameIndex* canonical_name_parents_;
-  StringIndex* canonical_name_strings_;
 
   friend class PositionScope;
   friend class Program;

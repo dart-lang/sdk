@@ -9140,7 +9140,12 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
 
 
 bool Script::HasSource() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  return kind() == RawScript::kKernelTag ||
+         raw_ptr()->source_ != String::null();
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->source_ != String::null();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
@@ -9154,10 +9159,16 @@ RawString* Script::Source() const {
 
 
 RawString* Script::GenerateSource() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (kind() == RawScript::kKernelTag) {
-    // In kernel it's embedded.
+    String& source = String::Handle(raw_ptr()->source_);
+    if (source.IsNull()) {
+      // This is created lazily. Now we need it.
+      set_source(kernel::GetSourceFor(*this));
+    }
     return raw_ptr()->source_;
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
@@ -9180,6 +9191,11 @@ void Script::set_kernel_data(const uint8_t* kernel_data) const {
 
 void Script::set_kernel_data_size(const intptr_t kernel_data_size) const {
   StoreNonPointer(&raw_ptr()->kernel_data_size_, kernel_data_size);
+}
+
+
+void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
+  StoreNonPointer(&raw_ptr()->kernel_script_index_, kernel_script_index);
 }
 
 
@@ -9375,6 +9391,41 @@ void Script::set_debug_positions(const Array& value) const {
 
 void Script::set_yield_positions(const Array& value) const {
   StorePointer(&raw_ptr()->yield_positions_, value.raw());
+}
+
+RawArray* Script::yield_positions() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Array& yields = Array::Handle(raw_ptr()->yield_positions_);
+  if (yields.IsNull() && kind() == RawScript::kKernelTag) {
+    // This is created lazily. Now we need it.
+    kernel::CollectTokenPositionsFor(*this);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return raw_ptr()->yield_positions_;
+}
+
+
+RawArray* Script::line_starts() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const Array& line_starts_array = Array::Handle(raw_ptr()->line_starts_);
+  if (line_starts_array.IsNull() && kind() == RawScript::kKernelTag) {
+    // This is created lazily. Now we need it.
+    set_line_starts(kernel::GetLineStartsFor(*this));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return raw_ptr()->line_starts_;
+}
+
+
+RawArray* Script::debug_positions() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Array& debug_positions_array = Array::Handle(raw_ptr()->debug_positions_);
+  if (debug_positions_array.IsNull() && kind() == RawScript::kKernelTag) {
+    // This is created lazily. Now we need it.
+    kernel::CollectTokenPositionsFor(*this);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return raw_ptr()->debug_positions_;
 }
 
 void Script::set_kind(RawScript::Kind value) const {

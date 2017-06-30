@@ -242,6 +242,9 @@ class Reference {
 // ------------------------------------------------------------------------
 
 class Library extends NamedNode implements Comparable<Library> {
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = -1;
+
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.

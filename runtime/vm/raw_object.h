@@ -1089,6 +1089,7 @@ class RawScript : public RawObject {
   int64_t load_timestamp_;
   const uint8_t* kernel_data_;
   intptr_t kernel_data_size_;
+  intptr_t kernel_script_index_;
 };
 
 
