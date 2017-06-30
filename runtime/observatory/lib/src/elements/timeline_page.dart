@@ -20,7 +20,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-enum _Profile { none, all, dart, vm }
+enum _Profile { none, dart, vm, all }
 
 class TimelinePageElement extends HtmlElement implements Renderable {
   static const tag =
@@ -182,7 +182,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   String _profileToString(_Profile profile) {
     switch (profile) {
       case _Profile.none:
-        return 'none';
+        return 'None';
       case _Profile.dart:
         return 'Dart Developer';
       case _Profile.vm:
