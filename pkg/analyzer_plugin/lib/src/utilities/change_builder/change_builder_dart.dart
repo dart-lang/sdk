@@ -357,7 +357,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // TO-DO
       write(prefix2);
       writeln('// TODO: implement ${member.displayName}');
-      // REVIEW: Added return statement.
       if (shouldReturn) {
         write(prefix2);
         writeln('return null;');
@@ -978,11 +977,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    */
   Set<Source> librariesToImport = new Set<Source>();
 
-//  /**
-//   * The content of the file being edited.
-//   */
-//  String _content;
-
   /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
@@ -1273,21 +1267,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         offset, insertEmptyLineBefore, insertEmptyLineAfter);
   }
 
-//  /**
-//   * Return the content of the file being edited.
-//   */
-//  String getContent() {
-//    if (_content == null) {
-//      CompilationUnitElement unitElement = unit.element;
-//      AnalysisContext context = unitElement.context;
-//      if (context == null) {
-//        throw new CancelCorrectionException();
-//      }
-//      _content = context.getContents(unitElement.source).data;
-//    }
-//    return _content;
-//  }
-
   /**
    * Computes the best URI to import [what] into [from].
    */
@@ -1311,20 +1290,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   String _getText(String content, int offset, int length) {
     return content.substring(offset, offset + length);
   }
-
-//  /**
-//   * Returns the text of the given [AstNode] in the unit.
-//   */
-//  String _getNodeText(AstNode node) {
-//    return _getText(node.offset, node.length);
-//  }
-//
-//  /**
-//   * Returns the text of the given range in the unit.
-//   */
-//  String _getText(int offset, int length) {
-//    return getContent().substring(offset, offset + length);
-//  }
 
   /**
    * Create an edit to replace the return type of the innermost function

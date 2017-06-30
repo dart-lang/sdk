@@ -121,7 +121,6 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
       {Function onError, void onDone()}) {
     void onData(data) {
       Map<String, Object> requestMap = data;
-//      print('[plugin] Received request: ${JSON.encode(requestMap)}');
       Request request = new Request.fromJson(requestMap);
       if (request != null) {
         onRequest(request);
@@ -138,14 +137,12 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   @override
   void sendNotification(Notification notification) {
     Map<String, Object> json = notification.toJson();
-//    print('[plugin] Send notification: ${JSON.encode(json)}');
     _sendPort.send(json);
   }
 
   @override
   void sendResponse(Response response) {
     Map<String, Object> json = response.toJson();
-//    print('[plugin] Send response: ${JSON.encode(json)}');
     _sendPort.send(json);
   }
 }
