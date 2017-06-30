@@ -10,7 +10,7 @@ import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
-import 'package:analyzer/dart/ast/token.dart' show TokenType;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
@@ -46,6 +46,7 @@ import 'js_interop.dart';
 import 'js_metalet.dart' as JS;
 import 'js_names.dart' as JS;
 import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
+import 'js_typerep.dart' show JSTypeRep;
 import 'module_builder.dart' show pathToJSIdentifier;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
@@ -57,11 +58,11 @@ import 'type_utilities.dart';
 ///
 /// Takes as input resolved Dart ASTs for every compilation unit in every
 /// library in the module. Produces a single JavaScript AST for the module as
-/// output, along with its source map.
+// output, along with its source map.
 ///
 /// This class attempts to preserve identifier names and structure of the input
 /// Dart code, whenever this is possible to do in the generated code.
-//
+///
 // TODO(jmesserly): we should use separate visitors for statements and
 // expressions. Declarations are handled directly, and many minor component
 // AST nodes aren't visited, so the visitor pattern isn't helping except for
@@ -75,6 +76,7 @@ class CodeGenerator extends Object
 
   final CompilerOptions options;
   final StrongTypeSystemImpl rules;
+  JSTypeRep typeRep;
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
@@ -131,6 +133,9 @@ class CodeGenerator extends Object
 
   /// The dart:async `StreamIterator<>` type.
   final InterfaceType _asyncStreamIterator;
+
+  /// The dart:core `identical` element.
+  final FunctionElement _coreIdentical;
 
   /// The dart:_interceptors JSArray element.
   final ClassElement _jsArray;
@@ -197,6 +202,8 @@ class CodeGenerator extends Object
         types = c.typeProvider,
         _asyncStreamIterator =
             _getLibrary(c, 'dart:async').getType('StreamIterator').type,
+        _coreIdentical =
+            _getLibrary(c, 'dart:core').publicNamespace.get('identical'),
         _jsArray = _getLibrary(c, 'dart:_interceptors').getType('JSArray'),
         interceptorClass =
             _getLibrary(c, 'dart:_interceptors').getType('Interceptor'),
@@ -210,7 +217,9 @@ class CodeGenerator extends Object
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
         privateSymbolClass =
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
-        dartJSLibrary = _getLibrary(c, 'dart:js');
+        dartJSLibrary = _getLibrary(c, 'dart:js') {
+    typeRep = new JSTypeRep(rules, types);
+  }
 
   Element get currentElement => _currentElements.last;
 
@@ -697,7 +706,7 @@ class CodeGenerator extends Object
     if (rules.isSubtypeOf(from, to)) return jsFrom;
 
     // All Dart number types map to a JS double.
-    if (_isNumberInJS(from) && _isNumberInJS(to)) {
+    if (typeRep.isNumber(from) && typeRep.isNumber(to)) {
       // Make sure to check when converting to int.
       if (from != types.intType && to == types.intType) {
         // TODO(jmesserly): fuse this with notNull check.
@@ -745,7 +754,7 @@ class CodeGenerator extends Object
   }
 
   String _jsTypeofName(DartType t) {
-    if (_isNumberInJS(t)) return 'number';
+    if (typeRep.isNumber(t)) return 'number';
     if (t == types.stringType) return 'string';
     if (t == types.boolType) return 'boolean';
     return null;
@@ -3528,6 +3537,57 @@ class CodeGenerator extends Object
     }
   }
 
+  bool _doubleEqIsIdentity(Expression left, Expression right) {
+    // If we statically know LHS or RHS is null we can use ==.
+    if (_isNull(left) || _isNull(right)) return true;
+    // If the representation of the  two types will not induce conversion in
+    // JS then we can use == .
+    return !typeRep.equalityMayConvert(left.staticType, right.staticType);
+  }
+
+  bool _tripleEqIsIdentity(Expression left, Expression right) {
+    // If either is non-nullable, then we don't need to worry about
+    // equating null and undefined, and so we can use triple equals.
+    return !isNullable(left) || !isNullable(right);
+  }
+
+  bool _isCoreIdentical(Expression node) {
+    return node is Identifier && node.staticElement == _coreIdentical;
+  }
+
+  JS.Expression _emitJSDoubleEq(List<JS.Expression> args,
+      {bool negated = false}) {
+    var op = negated ? '# != #' : '# == #';
+    return js.call(op, args);
+  }
+
+  JS.Expression _emitJSTripleEq(List<JS.Expression> args,
+      {bool negated = false}) {
+    var op = negated ? '# !== #' : '# === #';
+    return js.call(op, args);
+  }
+
+  JS.Expression _emitCoreIdenticalCall(List<Expression> arguments,
+      {bool negated = false}) {
+    if (arguments.length != 2) {
+      // Shouldn't happen in typechecked code
+      return _callHelper(
+          'throw(Error("compile error: calls to `identical` require 2 args")');
+    }
+    var left = arguments[0];
+    var right = arguments[1];
+    var args = [_visit(left), _visit(right)];
+    if (_tripleEqIsIdentity(left, right)) {
+      return _emitJSTripleEq(args, negated: negated);
+    }
+    if (_doubleEqIsIdentity(left, right)) {
+      return _emitJSDoubleEq(args, negated: negated);
+    }
+    var bang = negated ? '!' : '';
+    return js.call(
+        "${bang}#", new JS.Call(_emitTopLevelName(_coreIdentical), args));
+  }
+
   /// Emits a function call, to a top-level function, local function, or
   /// an expression.
   JS.Expression _emitFunctionCall(InvocationExpression node,
@@ -3535,13 +3595,15 @@ class CodeGenerator extends Object
     if (function == null) {
       function = node.function;
     }
+    if (_isCoreIdentical(function)) {
+      return _emitCoreIdenticalCall(node.argumentList.arguments);
+    }
     var fn = _visit(function);
     var args = _emitArgumentList(node.argumentList);
     if (isDynamicInvoke(function)) {
       return _emitDynamicInvoke(node, fn, args);
-    } else {
-      return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
     }
+    return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
   }
 
   JS.Expression _applyInvokeTypeArguments(
@@ -4087,26 +4149,69 @@ class CodeGenerator extends Object
         element, type, name, node.argumentList, node.isConst);
   }
 
-  /// True if this type is built-in to JS, and we use the values unwrapped.
-  /// For these types we generate a calling convention via static
-  /// "extension methods". This allows types to be extended without adding
-  /// extensions directly on the prototype.
-  bool isPrimitiveType(DartType t) =>
-      typeIsPrimitiveInJS(t) || t == types.stringType;
-
-  bool typeIsPrimitiveInJS(DartType t) =>
-      _isNumberInJS(t) || t == types.boolType;
-
-  bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) =>
-      typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
-
-  bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
+  bool isPrimitiveType(DartType t) => typeRep.isPrimitive(t);
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
     var jsExpr = _visit(expr);
     if (!isNullable(expr)) return jsExpr;
     return _callHelper('notNull(#)', jsExpr);
+  }
+
+  JS.Expression _emitEqualityOperator(BinaryExpression node, Token op) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var leftType = left.staticType;
+    var negated = op.type == TokenType.BANG_EQ;
+
+    if (left is SuperExpression) {
+      return _emitSend(left, op.lexeme, [right]);
+    }
+
+    // Equality on enums and primitives is identity.
+    // TODO(leafp): Walk the class hierarchy and check to see if == was
+    // overridden
+    var isEnum = leftType is InterfaceType && leftType.element.isEnum;
+    var usesIdentity = typeRep.isPrimitive(leftType) ||
+        isEnum ||
+        _isNull(left) ||
+        _isNull(right);
+
+    // If we know that the left type uses identity for equality, we can
+    // sometimes emit better code.
+    if (usesIdentity) {
+      return _emitCoreIdenticalCall([left, right], negated: negated);
+    }
+
+    var bang = op.type == TokenType.BANG_EQ ? '!' : '';
+    var leftElement = leftType.element;
+
+    // If either is null, we can use simple equality.
+    // We need to equate null and undefined, so if both are nullable
+    //  (but not known to be null), we cannot directly use JS ==
+    //  unless we know that conversion will not happen.
+    // Functions may or may not have an [dartx[`==`]] method attached.
+    //   - If they are tearoffs they will, otherwise they won't and equality is
+    // identity.
+    // TODO(leafp): consider fixing this.
+    //
+    // Native types may not have equality on the prototype.
+    // If left is not nullable, then we don't need to worry about
+    // null/undefined.
+    // TODO(leafp): consider using (left || dart.EQ)['=='](right))
+    // when left is nullable but not falsey
+    if ((leftElement is ClassElement && _isJSNative(leftElement)) ||
+        typeRep.isUnknown(leftType) ||
+        leftType is FunctionType ||
+        isNullable(left)) {
+      // Fall back to equality for now.
+      var code = '${bang}#.equals(#, #)';
+      return js.call(code, [_runtimeModule, _visit(left), _visit(right)]);
+    }
+
+    var name = _emitMemberName('==', type: leftType);
+    var code = '${bang}#[#](#)';
+    return js.call(code, [_visit(left), name, _visit(right)]);
   }
 
   @override
@@ -4120,27 +4225,10 @@ class CodeGenerator extends Object
       return _visitTest(node);
     }
 
+    if (op.type.isEqualityOperator) return _emitEqualityOperator(node, op);
+
     var left = node.leftOperand;
     var right = node.rightOperand;
-
-    var leftType = getStaticType(left);
-    var rightType = getStaticType(right);
-
-    var code;
-    if (op.type.isEqualityOperator) {
-      // If we statically know LHS or RHS is null we can generate a clean check.
-      // We can also do this if both sides are the same primitive type.
-      if (_canUsePrimitiveEquality(left, right)) {
-        code = op.type == TokenType.EQ_EQ ? '# == #' : '# != #';
-      } else if (left is SuperExpression) {
-        return _emitSend(left, op.lexeme, [right]);
-      } else {
-        var bang = op.type == TokenType.BANG_EQ ? '!' : '';
-        code = '${bang}#.equals(#, #)';
-        return js.call(code, [_runtimeModule, _visit(left), _visit(right)]);
-      }
-      return js.call(code, [_visit(left), _visit(right)]);
-    }
 
     if (op.type.lexeme == '??') {
       // TODO(jmesserly): leave RHS for debugging?
@@ -4155,7 +4243,10 @@ class CodeGenerator extends Object
       ]);
     }
 
-    if (binaryOperationIsPrimitive(leftType, rightType) ||
+    var leftType = getStaticType(left);
+    var rightType = getStaticType(right);
+
+    if (typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
         leftType == types.stringType && op.type == TokenType.PLUS) {
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
@@ -4390,24 +4481,8 @@ class CodeGenerator extends Object
     return bitWidth(expr, 0) < 32;
   }
 
-  /// If the type [t] is [int] or [double], or a type parameter
-  /// bounded by [int], [double] or [num] returns [num].
-  /// Otherwise returns [t].
-  DartType _canonicalizeNumTypes(DartType t) {
-    var numType = types.numType;
-    if (rules.isSubtypeOf(t, numType)) return numType;
-    return t;
-  }
-
-  bool _canUsePrimitiveEquality(Expression left, Expression right) {
-    if (_isNull(left) || _isNull(right)) return true;
-
-    var leftType = _canonicalizeNumTypes(getStaticType(left));
-    var rightType = _canonicalizeNumTypes(getStaticType(right));
-    return isPrimitiveType(leftType) && leftType == rightType;
-  }
-
-  bool _isNull(Expression expr) => expr is NullLiteral;
+  bool _isNull(Expression expr) =>
+      expr is NullLiteral || getStaticType(expr).isDartCoreNull;
 
   SimpleIdentifier _createTemporary(String name, DartType type,
       {bool nullable: true, JS.Expression variable, bool dynamicInvoke}) {
@@ -4552,7 +4627,7 @@ class CodeGenerator extends Object
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
-    if (unaryOperationIsPrimitive(dispatchType)) {
+    if (typeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (!isNullable(expr)) {
         return js.call('#$op', _visit(expr));
       }
@@ -4589,9 +4664,9 @@ class CodeGenerator extends Object
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
-    if (unaryOperationIsPrimitive(dispatchType)) {
+    if (typeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (op.lexeme == '~') {
-        if (_isNumberInJS(dispatchType)) {
+        if (typeRep.isNumber(dispatchType)) {
           JS.Expression jsExpr = js.call('~#', notNull(expr));
           return _coerceBitOperationResultToUnsigned(node, jsExpr);
         }
@@ -5304,6 +5379,8 @@ class CodeGenerator extends Object
     }
 
     if (node is PrefixExpression && node.operator.lexeme == '!') {
+      // TODO(leafp): consider a peephole opt for identical
+      // and == here.
       return finish(js.call('!#', _visitTest(node.operand)));
     }
     if (node is ParenthesizedExpression) {
@@ -5321,7 +5398,7 @@ class CodeGenerator extends Object
     }
     if (node is AsExpression && CoercionReifier.isImplicitCast(node)) {
       assert(node.staticType == types.boolType);
-      return _callHelper('test(#)', _visit(node.expression));
+      return _callHelper('dtest(#)', _visit(node.expression));
     }
     JS.Expression result = _visit(node);
     if (isNullable(node)) result = _callHelper('test(#)', result);
@@ -5521,16 +5598,6 @@ class CodeGenerator extends Object
     }
     return node..sourceInformation = original;
   }
-
-  /// Returns true if this is any kind of object represented by `Number` in JS.
-  ///
-  /// In practice, this is 4 types: num, int, double, and JSNumber.
-  ///
-  /// JSNumber is the type that actually "implements" all numbers, hence it's
-  /// a subtype of int and double (and num). It's in our "dart:_interceptors".
-  bool _isNumberInJS(DartType t) =>
-      rules.isSubtypeOf(t, types.numType) &&
-      !rules.isSubtypeOf(t, types.nullType);
 
   /// Return true if this is one of the methods/properties on all Dart Objects
   /// (toString, hashCode, noSuchMethod, runtimeType).

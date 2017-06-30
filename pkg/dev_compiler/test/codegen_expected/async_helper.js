@@ -43,7 +43,7 @@ define(['dart_sdk'], function(dart_sdk) {
     }
   });
   async_helper.asyncStart = function() {
-    if (dart.test(async_helper._initialized) && async_helper._asyncLevel == 0) {
+    if (dart.test(async_helper._initialized) && async_helper._asyncLevel === 0) {
       dart.throw(async_helper._buildException('asyncStart() was called even though we are done ' + 'with testing.'));
     }
     if (!dart.test(async_helper._initialized)) {
@@ -65,7 +65,7 @@ define(['dart_sdk'], function(dart_sdk) {
       }
     }
     async_helper._asyncLevel = dart.notNull(async_helper._asyncLevel) - 1;
-    if (async_helper._asyncLevel == 0) {
+    if (async_helper._asyncLevel === 0) {
       let callback = async_helper._onAsyncEnd;
       async_helper._onAsyncEnd = null;
       callback();

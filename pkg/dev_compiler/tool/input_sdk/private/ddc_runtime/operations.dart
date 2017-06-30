@@ -548,14 +548,22 @@ check(obj, type) {
   return obj;
 }
 
-bool test(obj) {
-  if (obj is bool) return obj;
-  return booleanConversionFailed(obj);
+bool test(bool obj) {
+  if (obj == null) _throwBooleanConversionError();
+  return obj;
 }
 
-bool booleanConversionFailed(obj) {
-  if (obj == null) {
+bool dtest(obj) {
+  if (obj is! bool) booleanConversionFailed(obj);
+  return obj;
+}
+
+void _throwBooleanConversionError() =>
     throw new BooleanConversionAssertionError();
+
+void booleanConversionFailed(obj) {
+  if (obj == null) {
+    _throwBooleanConversionError();
   }
   var actual = getReifiedType(obj);
   var expected = JS('', '#', bool);
