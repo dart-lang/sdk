@@ -92,7 +92,7 @@ Obviously, if the superclass is not abstract, this check won't be necessary.
 
 *   As a third alternative, we can add syntax to explicitly declare and expose the super constraints. Syntax could be like an abstract method that is marked as "super", perhaps one of:
 
-    ```
+```
 int super.foo(int bar);
 super int foo(int bar);
 super {
