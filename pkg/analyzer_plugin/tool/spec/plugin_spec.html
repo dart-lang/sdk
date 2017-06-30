@@ -259,20 +259,6 @@
       </field>
     </params>
   </request>
-  <request method="setContextBuilderOptions">
-    <p>
-      Used to set the options used to build analysis contexts. This request will
-      be sent exactly once before any context roots have been specified.
-    </p>
-    <params>
-      <field name="options">
-        <ref>ContextBuilderOptions</ref>
-        <p>
-          The options used to build the analysis contexts.
-        </p>
-      </field>
-    </params>
-  </request>
   <request method="setContextRoots">
     <p>
       Set the list of context roots that should be analyzed.
@@ -906,80 +892,6 @@
       <value><code>OCCURRENCES</code></value>
       <value><code>OUTLINE</code></value>
     </enum>
-  </type>
-  <type name="ContextBuilderOptions">
-    <p>
-      The options used to build an analysis context.
-    </p>
-    <object>
-      <field name="dartSdkSummaryPath" optional="true">
-        <ref>FilePath</ref>
-        <p>
-          The file path of the file containing the summary of the SDK that
-          should be used to "analyze" the SDK. The field will be omitted if the
-          summary should be found in the SDK.
-        </p>
-      </field>
-      <field name="defaultAnalysisOptionsFilePath" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          The file path of the analysis options file that should be used in
-          place of any file in the root directory or a parent of the root
-          directory. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-      <field name="declaredVariables" optional="true">
-        <map>
-          <key>
-            <ref>String</ref>
-          </key>
-          <value>
-            <ref>String</ref>
-          </value>
-        </map>
-        <p>
-          A table mapping variable names to values for the declared variables.
-          The field will be omitted if no additional variables need to be
-          declared.
-        </p>
-      </field>
-      <!--
-      TODO(brianwilkerson) Figure out how to handle analysis options.
-      <field name="defaultOptions" optional="true">
-        <ref>AnalysisOptions</ref>
-        <p>
-          The default analysis options that should be used unless some or all of
-          them are overridden in the analysis options file. The field will be
-          omitted if the default defaults should be used.
-        </p>
-      </field>
-      -->
-      <field name="defaultPackageFilePath" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          The file path of the .packages file that should be used in place of
-          any file found using the normal (Package Specification DEP) lookup
-          mechanism. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-      <field name="defaultPackagesDirectoryPath" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          The file path of the packages directory that should be used in place
-          of any file found using the normal (Package Specification DEP) lookup
-          mechanism. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-    </object>
   </type>
   <type name="ContextRoot">
     <p>

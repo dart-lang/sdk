@@ -100,14 +100,6 @@ class ServerPluginTest {
     expect(result, isNotNull);
   }
 
-  @failingTest
-  test_handleAnalysisSetContextBuilderOptions() async {
-    var result = await plugin.handleAnalysisSetContextBuilderOptions(
-        new AnalysisSetContextBuilderOptionsParams(
-            new ContextBuilderOptions()));
-    expect(result, isNotNull);
-  }
-
   test_handleAnalysisSetContextRoots() async {
     var result = await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
@@ -292,13 +284,6 @@ class ServerPluginTest {
         .sendRequest(new AnalysisSetContextRootsParams([contextRoot2]));
     var result = await channel
         .sendRequest(new AnalysisReanalyzeParams(roots: [packagePath2]));
-    expect(result, isNotNull);
-  }
-
-  test_onRequest_analysisSetContextBuilderOptions() async {
-    var result = await channel.sendRequest(
-        new AnalysisSetContextBuilderOptionsParams(
-            new ContextBuilderOptions()));
     expect(result, isNotNull);
   }
 

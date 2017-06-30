@@ -257,14 +257,6 @@ abstract class ServerPlugin {
   }
 
   /**
-   * Handle an 'analysis.setContextBuilderOptions' request.
-   */
-  Future<AnalysisSetContextBuilderOptionsResult>
-      handleAnalysisSetContextBuilderOptions(
-              AnalysisSetContextBuilderOptionsParams parameters) async =>
-          null;
-
-  /**
    * Handle an 'analysis.setContextRoots' request.
    */
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
@@ -507,11 +499,6 @@ abstract class ServerPlugin {
       case ANALYSIS_REQUEST_REANALYZE:
         var params = new AnalysisReanalyzeParams.fromRequest(request);
         result = await handleAnalysisReanalyze(params);
-        break;
-      case ANALYSIS_REQUEST_SET_CONTEXT_BUILDER_OPTIONS:
-        var params =
-            new AnalysisSetContextBuilderOptionsParams.fromRequest(request);
-        result = await handleAnalysisSetContextBuilderOptions(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params = new AnalysisSetContextRootsParams.fromRequest(request);

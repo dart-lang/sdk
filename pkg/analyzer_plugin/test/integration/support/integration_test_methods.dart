@@ -226,24 +226,6 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Used to set the options used to build analysis contexts. This request will
-   * be sent exactly once before any context roots have been specified.
-   *
-   * Parameters
-   *
-   * options: ContextBuilderOptions
-   *
-   *   The options used to build the analysis contexts.
-   */
-  Future sendAnalysisSetContextBuilderOptions(
-      ContextBuilderOptions options) async {
-    var params = new AnalysisSetContextBuilderOptionsParams(options).toJson();
-    var result = await server.send("analysis.setContextBuilderOptions", params);
-    outOfTestExpect(result, isNull);
-    return null;
-  }
-
-  /**
    * Set the list of context roots that should be analyzed.
    *
    * Parameters
