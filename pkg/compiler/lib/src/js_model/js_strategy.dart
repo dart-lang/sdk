@@ -48,7 +48,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
       KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
       KernelToElementMapForBuilding elementMap = strategy.elementMap;
       _elementMap = new JsKernelToElementMap(
-          _map, _elementEnvironment, _commonElements, elementMap);
+          _compiler.reporter,
+          _compiler.environment,
+          _map,
+          _elementEnvironment,
+          _commonElements,
+          elementMap);
     }
     return _elementMap;
   }
