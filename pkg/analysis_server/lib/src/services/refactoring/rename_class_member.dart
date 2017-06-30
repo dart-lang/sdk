@@ -14,17 +14,20 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/ast/ast.dart' show Identifier;
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 /**
  * Checks if creating a method with the given [name] in [classElement] will
  * cause any conflicts.
  */
-Future<RefactoringStatus> validateCreateMethod(
-    SearchEngine searchEngine, ClassElement classElement, String name) {
-  return new _ClassMemberValidator.forCreate(searchEngine, classElement, name)
+Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
+    AstProvider astProvider, ClassElement classElement, String name) {
+  return new _ClassMemberValidator.forCreate(
+          searchEngine, astProvider, classElement, name)
       .validate();
 }
 
@@ -32,9 +35,12 @@ Future<RefactoringStatus> validateCreateMethod(
  * A [Refactoring] for renaming class member [Element]s.
  */
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
+  final AstProvider astProvider;
+
   _ClassMemberValidator _validator;
 
-  RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element)
+  RenameClassMemberRefactoringImpl(
+      SearchEngine searchEngine, this.astProvider, Element element)
       : super(searchEngine, element);
 
   @override
@@ -50,8 +56,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    _validator =
-        new _ClassMemberValidator.forRename(searchEngine, element, newName);
+    _validator = new _ClassMemberValidator.forRename(
+        searchEngine, astProvider, element, newName);
     return _validator.validate();
   }
 
@@ -122,6 +128,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
  */
 class _ClassMemberValidator {
   final SearchEngine searchEngine;
+  final ResolvedUnitCache unitCache;
   final LibraryElement library;
   final Element element;
   final ClassElement elementClass;
@@ -134,14 +141,17 @@ class _ClassMemberValidator {
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
-      this.searchEngine, this.elementClass, this.name)
-      : isRename = false,
+      this.searchEngine, AstProvider astProvider, this.elementClass, this.name)
+      : unitCache = new ResolvedUnitCache(astProvider),
+        isRename = false,
         library = null,
         element = null,
         elementKind = ElementKind.METHOD;
 
-  _ClassMemberValidator.forRename(this.searchEngine, Element element, this.name)
-      : isRename = true,
+  _ClassMemberValidator.forRename(
+      this.searchEngine, AstProvider astProvider, Element element, this.name)
+      : unitCache = new ResolvedUnitCache(astProvider),
+        isRename = true,
         library = element.library,
         element = element,
         elementClass = element.enclosingElement,
@@ -188,7 +198,7 @@ class _ClassMemberValidator {
     }
     // usage of the renamed Element is shadowed by a local element
     {
-      _MatchShadowedByLocal conflict = _getShadowingLocalElement();
+      _MatchShadowedByLocal conflict = await _getShadowingLocalElement();
       if (conflict != null) {
         LocalElement localElement = conflict.localElement;
         result.addError(
@@ -237,25 +247,31 @@ class _ClassMemberValidator {
     return result;
   }
 
-  _MatchShadowedByLocal _getShadowingLocalElement() {
+  Future<_MatchShadowedByLocal> _getShadowingLocalElement() async {
+    var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
+    Future<List<LocalElement>> getLocalElements(Element element) async {
+      var unitElement = unitCache.getUnitElement(element);
+      var localElements = localElementMap[unitElement];
+      if (localElements == null) {
+        var unit = await unitCache.getUnit(unitElement);
+        var collector = new _LocalElementsCollector(name);
+        unit.accept(collector);
+        localElements = collector.elements;
+        localElementMap[unitElement] = localElements;
+      }
+      return localElements;
+    }
+
     for (SearchMatch match in references) {
-      // qualified reference cannot be shadowed by a local element
+      // Qualified reference cannot be shadowed by local elements.
       if (match.isQualified) {
         continue;
       }
-      // check local elements of the enclosing executable
-      Element containingElement = match.element;
-      if (containingElement is ExecutableElement) {
-        Iterable<LocalElement> localElements = <Iterable<LocalElement>>[
-          containingElement.functions,
-          containingElement.localVariables,
-          containingElement.parameters
-        ].expand((Iterable<LocalElement> x) => x);
-        for (LocalElement localElement in localElements) {
-          if (localElement.displayName == name &&
-              localElement.visibleRange.intersects(match.sourceRange)) {
-            return new _MatchShadowedByLocal(match, localElement);
-          }
+      // Check local elements that might shadow the reference.
+      var localElements = await getLocalElements(match.element);
+      for (LocalElement localElement in localElements) {
+        if (localElement.visibleRange.intersects(match.sourceRange)) {
+          return new _MatchShadowedByLocal(match, localElement);
         }
       }
     }
@@ -303,6 +319,20 @@ class _ClassMemberValidator {
             getElementKindName(element), getElementQualifiedName(refLibrary));
         result.addError(message, newLocation_fromMatch(reference));
       }
+    }
+  }
+}
+
+class _LocalElementsCollector extends GeneralizingAstVisitor<Null> {
+  final String name;
+  final List<LocalElement> elements = [];
+
+  _LocalElementsCollector(this.name);
+
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is LocalElement && element.name == name) {
+      elements.add(element);
     }
   }
 }

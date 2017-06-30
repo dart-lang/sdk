@@ -830,8 +830,8 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring =
-            new ExtractMethodRefactoring(searchEngine, unit, offset, length);
+        refactoring = new ExtractMethodRefactoring(
+            searchEngine, server.getAstProvider(file), unit, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }

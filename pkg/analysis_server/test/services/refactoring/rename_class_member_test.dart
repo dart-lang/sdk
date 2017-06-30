@@ -150,7 +150,6 @@ main(A a) {
         expectedMessage: "Renamed method will be invisible in 'my.lib'.");
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
     await indexTestUnit('''
 class A {
@@ -171,7 +170,6 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
     await indexTestUnit('''
 class A {
@@ -192,7 +190,6 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
     await indexTestUnit('''
 class A {
