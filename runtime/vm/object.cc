@@ -4861,6 +4861,7 @@ bool TypeArguments::IsResolved() const {
 bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
                                             intptr_t len,
                                             Genericity genericity,
+                                            intptr_t num_free_fun_type_params,
                                             TrailPtr trail) const {
   ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
@@ -4872,7 +4873,8 @@ bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
     // during finalization of V, which is also the instantiator. T depends
     // solely on the type parameters of A and will be replaced by a non-null
     // type before A is marked as finalized.
-    if (!type.IsNull() && !type.IsInstantiated(genericity, trail)) {
+    if (!type.IsNull() &&
+        !type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
       return false;
     }
   }
@@ -7255,15 +7257,24 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
 
 
 bool Function::HasInstantiatedSignature(Genericity genericity,
+                                        intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
+  if (genericity != kCurrentClass) {
+    // We only consider the function type parameters declared by the parents of
+    // this signature function.
+    const int num_parent_type_params = NumParentTypeParameters();
+    if (num_parent_type_params < num_free_fun_type_params) {
+      num_free_fun_type_params = num_parent_type_params;
+    }
+  }
   AbstractType& type = AbstractType::Handle(result_type());
-  if (!type.IsInstantiated(genericity, trail)) {
+  if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
     return false;
   }
   const intptr_t num_parameters = NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = ParameterTypeAt(i);
-    if (!type.IsInstantiated(genericity, trail)) {
+    if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
       return false;
     }
   }
@@ -16396,7 +16407,9 @@ TokenPosition AbstractType::token_pos() const {
 }
 
 
-bool AbstractType::IsInstantiated(Genericity genericity, TrailPtr trail) const {
+bool AbstractType::IsInstantiated(Genericity genericity,
+                                  intptr_t num_free_fun_type_params,
+                                  TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -17239,17 +17252,20 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
-bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
+bool Type::IsInstantiated(Genericity genericity,
+                          intptr_t num_free_fun_type_params,
+                          TrailPtr trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
-  if ((genericity == kAny) &&
+  if ((genericity == kAny) && (num_free_fun_type_params == kMaxInt32) &&
       (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated)) {
     return false;
   }
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(signature());
-    if (!sig_fun.HasInstantiatedSignature(genericity, trail)) {
+    if (!sig_fun.HasInstantiatedSignature(genericity, num_free_fun_type_params,
+                                          trail)) {
       return false;
     }
     // Because a generic typedef with an instantiated signature is considered
@@ -17280,7 +17296,7 @@ bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   }
   return (len == 0) ||
          args.IsSubvectorInstantiated(num_type_args - len, len, genericity,
-                                      trail);
+                                      num_free_fun_type_params, trail);
 }
 
 
@@ -17997,12 +18013,15 @@ const char* Type::ToCString() const {
 }
 
 
-bool TypeRef::IsInstantiated(Genericity genericity, TrailPtr trail) const {
+bool TypeRef::IsInstantiated(Genericity genericity,
+                             intptr_t num_free_fun_type_params,
+                             TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return true;
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
-  return !ref_type.IsNull() && ref_type.IsInstantiated(genericity, trail);
+  return !ref_type.IsNull() &&
+         ref_type.IsInstantiated(genericity, num_free_fun_type_params, trail);
 }
 
 
@@ -18169,18 +18188,14 @@ void TypeParameter::SetIsFinalized() const {
 
 
 bool TypeParameter::IsInstantiated(Genericity genericity,
+                                   intptr_t num_free_fun_type_params,
                                    TrailPtr trail) const {
-  switch (genericity) {
-    case kAny:
-      return false;
-    case kCurrentClass:
-      return IsFunctionTypeParameter();
-    case kFunctions:
-      return IsClassTypeParameter();
-    default:
-      UNREACHABLE();
+  if (IsClassTypeParameter()) {
+    return genericity == kFunctions;
   }
-  return false;
+  ASSERT(IsFunctionTypeParameter());
+  ASSERT(IsFinalized());
+  return (genericity == kCurrentClass) || (index() >= num_free_fun_type_params);
 }
 
 

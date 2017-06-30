@@ -1659,12 +1659,15 @@ class TypeArguments : public Object {
 
   // Check if the vector is instantiated (it must not be null).
   bool IsInstantiated(Genericity genericity = kAny,
+                      intptr_t num_free_fun_type_params = kMaxInt32,
                       TrailPtr trail = NULL) const {
-    return IsSubvectorInstantiated(0, Length(), genericity, trail);
+    return IsSubvectorInstantiated(0, Length(), genericity,
+                                   num_free_fun_type_params, trail);
   }
   bool IsSubvectorInstantiated(intptr_t from_index,
                                intptr_t len,
                                Genericity genericity = kAny,
+                               intptr_t num_free_fun_type_params = kMaxInt32,
                                TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
@@ -2248,6 +2251,7 @@ class Function : public Object {
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
+                                intptr_t num_free_fun_type_params = kMaxInt32,
                                 TrailPtr trail = NULL) const;
 
   // Build a string of the form 'T, {B b, C c}' representing the user
@@ -5771,6 +5775,7 @@ class AbstractType : public Instance {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
@@ -5992,6 +5997,7 @@ class Type : public AbstractType {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -6141,6 +6147,7 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
@@ -6226,6 +6233,7 @@ class TypeParameter : public AbstractType {
                   Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
@@ -6320,12 +6328,14 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
     // bound is instantiated. Moreover, doing so could lead into cycles, as in
     // class C<T extends C<C>> { }.
-    return AbstractType::Handle(type()).IsInstantiated(genericity, trail);
+    return AbstractType::Handle(type()).IsInstantiated(
+        genericity, num_free_fun_type_params, trail);
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
