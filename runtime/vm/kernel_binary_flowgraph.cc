@@ -4427,11 +4427,12 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     TokenPosition position,
     const dart::String& name,
     Token::Kind kind,
+    intptr_t type_args_len,
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t checked_argument_count) {
-  return flow_graph_builder_->InstanceCall(position, name, kind, argument_count,
-                                           argument_names,
+  return flow_graph_builder_->InstanceCall(position, name, kind, type_args_len,
+                                           argument_count, argument_names,
                                            checked_argument_count);
 }
 
@@ -4956,6 +4957,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   instructions += PushArgument();  // push receiver as argument.
 
   // TODO(28109) Support generic methods in the VM or reify them away.
+  const intptr_t kTypeArgsLen = 0;
   Array& argument_names = Array::ZoneHandle(Z);
   intptr_t argument_count;
   instructions +=
@@ -4970,8 +4972,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     checked_argument_count = argument_count;
   }
 
-  instructions += InstanceCall(position, name, token_kind, argument_count,
-                               argument_names, checked_argument_count);
+  instructions +=
+      InstanceCall(position, name, token_kind, kTypeArgsLen, argument_count,
+                   argument_names, checked_argument_count);
   // Later optimization passes assume that result of a x.[]=(...) call is not
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not

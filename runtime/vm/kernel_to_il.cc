@@ -1114,21 +1114,23 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         Token::Kind kind,
                                         intptr_t argument_count,
                                         intptr_t checked_argument_count) {
-  return InstanceCall(position, name, kind, argument_count, Array::null_array(),
-                      checked_argument_count);
+  const intptr_t kTypeArgsLen = 0;
+  return InstanceCall(position, name, kind, kTypeArgsLen, argument_count,
+                      Array::null_array(), checked_argument_count);
 }
 
 
 Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const dart::String& name,
                                         Token::Kind kind,
+                                        intptr_t type_args_len,
                                         intptr_t argument_count,
                                         const Array& argument_names,
                                         intptr_t checked_argument_count) {
-  ArgumentArray arguments = GetArguments(argument_count);
-  const intptr_t kTypeArgsLen = 0;  // Generic instance calls not yet supported.
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      position, name, kind, arguments, kTypeArgsLen, argument_names,
+      position, name, kind, arguments, type_args_len, argument_names,
       checked_argument_count, ic_data_array_, GetNextDeoptId());
   Push(call);
   return Fragment(call);
@@ -2299,11 +2301,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += ClosureCall(descriptor.TypeArgsLen(), descriptor.Count(),
                         argument_names);
   } else {
-    if (descriptor.TypeArgsLen() > 0) {
-      UNIMPLEMENTED();
-    }
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
-                         Token::kILLEGAL, descriptor.Count(), argument_names);
+                         Token::kILLEGAL, descriptor.TypeArgsLen(),
+                         descriptor.Count(), argument_names);
   }
 
   body += Return(TokenPosition::kNoSource);
