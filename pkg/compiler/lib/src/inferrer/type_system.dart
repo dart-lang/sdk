@@ -353,13 +353,17 @@ class TypeSystem {
     });
   }
 
-  String getInferredSignatureOf(FunctionElement function) {
-    ElementTypeInformation info;
-    if (function.isLocal) {
-      info = getInferredTypeOfLocalFunction(function);
-    } else {
-      info = getInferredTypeOfMember(function as MethodElement);
-    }
+  String getInferredSignatureOfLocalFunction(LocalFunctionElement function) {
+    return _getInferredSignatureOf(
+        getInferredTypeOfLocalFunction(function), function);
+  }
+
+  String getInferredSignatureOfMethod(MethodElement function) {
+    return _getInferredSignatureOf(getInferredTypeOfMember(function), function);
+  }
+
+  String _getInferredSignatureOf(
+      ElementTypeInformation info, FunctionElement function) {
     FunctionElement impl = function.implementation;
     FunctionSignature signature = impl.functionSignature;
     var res = "";
@@ -420,7 +424,20 @@ class TypeSystem {
         new ListTypeInformation(currentMember, mask, element, length);
   }
 
-  TypeInformation allocateClosure(ast.Node node, Element element) {
+  /// Creates a [TypeInformation] object for the local function [element] of
+  /// a function expression or local function declaration used as a closure.
+  TypeInformation allocateClosureForLocalFunction(
+      ast.Node node, LocalFunctionElement element) {
+    TypeInformation result =
+        new LocalFunctionClosureTypeInformation(currentMember, node, element);
+    allocatedClosures.add(result);
+    return result;
+  }
+
+  /// Creates a [TypeInformation] object for the closurization of a static or
+  /// top-level method [element] used a function constant.
+  TypeInformation allocateClosureForMethod(
+      ast.Node node, MethodElement element) {
     TypeInformation result =
         new ClosureTypeInformation(currentMember, node, element);
     allocatedClosures.add(result);

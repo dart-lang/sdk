@@ -87,7 +87,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       : this.analyzedElement = analyzedElement,
         this.inferrer = inferrer,
         this.types = inferrer.types,
-        this.inTreeData = inferrer.dataOf(analyzedElement) {
+        this.inTreeData = analyzedElement.isLocal
+            ? inferrer.dataOfLocalFunction(analyzedElement)
+            : inferrer.dataOfMember(analyzedElement) {
     assert(outermostElement != null);
     if (locals != null) return;
     ast.Node node;
@@ -1115,7 +1117,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     });
 
     return inferrer.concreteTypes.putIfAbsent(node, () {
-      return types.allocateClosure(node, element);
+      return types.allocateClosureForLocalFunction(node, element);
     });
   }
 
@@ -1124,7 +1126,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         elements.getFunctionDefinition(node.function);
     TypeInformation type =
         inferrer.concreteTypes.putIfAbsent(node.function, () {
-      return types.allocateClosure(node.function, element);
+      return types.allocateClosureForLocalFunction(node.function, element);
     });
     locals.update(element, type, node);
     visit(node.function);
@@ -2735,7 +2737,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       mask = receiverType == types.dynamicType
           ? null
           : types.newTypedSelector(receiverType, mask);
-      inferrer.updateSelectorInTree(analyzedElement, node, selector, mask);
+      if (analyzedElement.isLocal) {
+        inferrer.updateSelectorInLocalFunction(
+            analyzedElement, node, selector, mask);
+      } else {
+        inferrer.updateSelectorInMember(analyzedElement, node, selector, mask);
+      }
     }
 
     // If the receiver of the call is a local, we may know more about

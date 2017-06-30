@@ -303,7 +303,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   void bailoutIfReaches(bool predicate(ParameterElement e)) {
     for (var user in currentUser.users) {
       if (user is ParameterTypeInformation) {
-        if (predicate(user.element)) {
+        if (predicate(user.parameter)) {
           bailout('Reached suppressed parameter without precise receiver');
           break;
         }
@@ -452,28 +452,28 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (info.isClosurized) {
       bailout('Returned from a closurized method');
     }
-    if (isClosure(info.element)) {
+    if (isClosure(info.member)) {
       bailout('Returned from a closure');
     }
-    if (info.element.isField &&
+    if (info.member.isField &&
         !inferrer.compiler.backend.canFieldBeUsedForGlobalOptimizations(
-            info.element, inferrer.closedWorld)) {
+            info.member, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    if (inferrer.isNativeMember(info.declaration)) {
+    if (inferrer.isNativeMember(info.method)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend
         .canFunctionParametersBeUsedForGlobalOptimizations(
-            info.declaration, inferrer.closedWorld)) {
+            info.method, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
-    if (isParameterOfListAddingMethod(info.element) ||
-        isParameterOfMapAddingMethod(info.element)) {
+    if (isParameterOfListAddingMethod(info.parameter) ||
+        isParameterOfMapAddingMethod(info.parameter)) {
       // These elements are being handled in
       // [visitDynamicCallSiteTypeInformation].
       return;

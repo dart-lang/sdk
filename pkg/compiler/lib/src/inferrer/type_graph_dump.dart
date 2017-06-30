@@ -408,11 +408,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {
-    addNode(info, 'Member\n${info.element}');
+    addNode(info, 'Member\n${info.debugName}');
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    addNode(info, 'Parameter ${info.element?.name ?? ''}');
+    addNode(info, 'Parameter ${info.debugName}');
   }
 
   void visitClosureTypeInformation(ClosureTypeInformation info) {

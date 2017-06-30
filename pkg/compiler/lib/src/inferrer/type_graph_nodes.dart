@@ -63,7 +63,7 @@ abstract class TypeInformation {
   final MemberTypeInformation context;
 
   /// The element this [TypeInformation] node belongs to.
-  TypedElement get contextMember => context == null ? null : context.element;
+  TypedElement get contextMember => context == null ? null : context.member;
 
   Iterable<TypeInformation> get assignments => _assignments;
 
@@ -206,7 +206,7 @@ abstract class TypeInformation {
   /// The [Element] where this [TypeInformation] was created. May be `null`
   /// for some [TypeInformation] nodes, where we do not need to store
   /// the information.
-  Element get owner => (context != null) ? context.element : null;
+  TypedElement get owner => (context != null) ? context.member : null;
 
   /// Returns whether the type cannot change after it has been
   /// inferred.
@@ -343,7 +343,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  *
  */
 abstract class ElementTypeInformation extends TypeInformation {
-  final Element element;
+  final Element _element;
 
   /// Marker to disable inference for closures in [handleSpecialCases].
   bool disableInferenceForClosures = true;
@@ -360,14 +360,18 @@ abstract class ElementTypeInformation extends TypeInformation {
     } else if (element.isLocal) {
       return new MemberTypeInformation._localFunction(element);
     }
-    return new MemberTypeInformation._member(element);
+    return new MemberTypeInformation._forMember(element);
   }
 
-  ElementTypeInformation._internal(MemberTypeInformation context, this.element)
+  ElementTypeInformation._internal(MemberTypeInformation context, this._element)
       : super(context);
   ElementTypeInformation._withAssignments(
-      MemberTypeInformation context, this.element, assignments)
+      MemberTypeInformation context, this._element, assignments)
       : super.withAssignments(context, assignments);
+
+  String getInferredSignature(TypeSystem types);
+
+  String get debugName;
 }
 
 /**
@@ -383,7 +387,7 @@ abstract class ElementTypeInformation extends TypeInformation {
  */
 class MemberTypeInformation extends ElementTypeInformation
     with ApplyableTypeInformation {
-  TypedElement get element => super.element;
+  TypedElement get _member => super._element;
 
   /**
    * If [element] is a function, [closurizedCount] is the number of
@@ -410,19 +414,41 @@ class MemberTypeInformation extends ElementTypeInformation
   MemberTypeInformation._internal(Element element)
       : super._internal(null, element);
 
-  MemberTypeInformation._member(MemberElement element)
+  MemberTypeInformation._forMember(MemberElement element)
       : this._internal(element);
 
   MemberTypeInformation._localFunction(LocalFunctionElement element)
       : this._internal(element);
 
-  void addCall(Element caller, Spannable node) {
+  TypedElement get member => _element;
+
+  String get debugName => '$member';
+
+  void addCallFromMember(MemberElement caller, Spannable node) {
+    _addCall(caller, node);
+  }
+
+  @deprecated
+  void addCallFromLocalFunction(LocalFunctionElement caller, Spannable node) {
+    _addCall(caller, node);
+  }
+
+  void _addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is Element);
     _callers ??= <Element, Setlet<Spannable>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCall(Element caller, node) {
+  void removeCallFromMember(MemberElement caller, node) {
+    _removeCall(caller, node);
+  }
+
+  @deprecated
+  void removeCallFromLocalFunction(LocalFunctionElement caller, node) {
+    _removeCall(caller, node);
+  }
+
+  void _removeCall(Element caller, node) {
     if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
@@ -470,33 +496,33 @@ class MemberTypeInformation extends ElementTypeInformation
   bool get isStable => super.isStable && !isClosurized;
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (element.isField &&
+    if (_member.isField &&
         (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
-                element, inferrer.closedWorld) ||
-            inferrer.assumeDynamic(element))) {
+                _member, inferrer.closedWorld) ||
+            inferrer.assumeDynamic(_member))) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
 
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.isNativeMember(element)) {
+    if (inferrer.isNativeMember(_member)) {
       // Use the type annotation as the type for native elements. We
       // also give up on inferring to make sure this element never
       // goes in the work queue.
       giveUp(inferrer);
-      if (element.isField) {
-        FieldElement field = element;
+      if (_member.isField) {
+        FieldElement field = _member;
         return inferrer
             .typeOfNativeBehavior(inferrer.closedWorld.nativeData
                 .getNativeFieldLoadBehavior(field))
             .type;
       } else {
-        assert(element.isFunction ||
-            element.isGetter ||
-            element.isSetter ||
-            element.isConstructor);
-        MethodElement methodElement = element;
+        assert(_member.isFunction ||
+            _member.isGetter ||
+            _member.isSetter ||
+            _member.isConstructor);
+        MethodElement methodElement = _member;
         var elementType = methodElement.type;
         if (elementType.kind != ResolutionTypeKind.FUNCTION) {
           return safeType(inferrer);
@@ -510,8 +536,8 @@ class MemberTypeInformation extends ElementTypeInformation
     }
 
     CommonMasks commonMasks = inferrer.commonMasks;
-    if (element.isConstructor) {
-      ConstructorElement constructor = element;
+    if (_member.isConstructor) {
+      ConstructorElement constructor = _member;
       if (constructor.isIntFromEnvironmentConstructor) {
         giveUp(inferrer);
         return commonMasks.intType.nullable();
@@ -530,19 +556,19 @@ class MemberTypeInformation extends ElementTypeInformation
     Compiler compiler = inferrer.compiler;
     if (!compiler.options.trustTypeAnnotations &&
         !compiler.options.enableTypeAssertions &&
-        !inferrer.trustTypeAnnotations(element)) {
+        !inferrer.trustTypeAnnotations(_member)) {
       return mask;
     }
-    if (element.isGenerativeConstructor || element.isSetter) {
+    if (_member.isGenerativeConstructor || _member.isSetter) {
       return mask;
     }
-    if (element.isField) {
-      return _narrowType(inferrer.closedWorld, mask, element.type);
+    if (_member.isField) {
+      return _narrowType(inferrer.closedWorld, mask, _member.type);
     }
     assert(
-        element.isFunction || element.isGetter || element.isFactoryConstructor);
+        _member.isFunction || _member.isGetter || _member.isFactoryConstructor);
 
-    ResolutionFunctionType type = element.type;
+    ResolutionFunctionType type = _member.type;
     return _narrowType(inferrer.closedWorld, mask, type.returnType);
   }
 
@@ -557,7 +583,7 @@ class MemberTypeInformation extends ElementTypeInformation
     return potentiallyNarrowType(super.safeType(inferrer), inferrer);
   }
 
-  String toString() => 'MemberElement $element $type';
+  String toString() => 'MemberElement $_member $type';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitMemberTypeInformation(this);
@@ -566,11 +592,11 @@ class MemberTypeInformation extends ElementTypeInformation
   bool hasStableType(InferrerEngine inferrer) {
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
-    if (element.isField && !(element.isConst || element.isFinal)) {
+    if (_member.isField && !(_member.isConst || _member.isFinal)) {
       return false;
     }
 
-    if (element.isFunction) return false;
+    if (_member.isFunction) return false;
 
     return super.hasStableType(inferrer);
   }
@@ -581,6 +607,15 @@ class MemberTypeInformation extends ElementTypeInformation
     _isCalledOnce = _computeIsCalledOnce();
     _callers = null;
     super.cleanup();
+  }
+
+  @override
+  String getInferredSignature(TypeSystem types) {
+    if (_member.isLocal) {
+      return types.getInferredSignatureOfLocalFunction(_member);
+    } else {
+      return types.getInferredSignatureOfMethod(_member);
+    }
   }
 }
 
@@ -594,31 +629,39 @@ class MemberTypeInformation extends ElementTypeInformation
  * the [ElementTypeInformation] factory.
  */
 class ParameterTypeInformation extends ElementTypeInformation {
-  ParameterElement get element => super.element;
-  FunctionElement get declaration => element.functionDeclaration;
+  ParameterElement get _parameter => super._element;
+  final FunctionElement _declaration;
+  // TODO(johnniwinther): This should be a [MethodElement].
+  final FunctionElement _method;
 
-  ParameterTypeInformation._internal(
-      MemberTypeInformation context, ParameterElement parameter)
+  ParameterTypeInformation._internal(MemberTypeInformation context,
+      ParameterElement parameter, this._declaration, this._method)
       : super._internal(context, parameter);
 
   factory ParameterTypeInformation._static(
       ParameterElement element, TypeSystem types) {
-    assert(!element.functionDeclaration.isInstanceMember);
     MethodElement method = element.functionDeclaration;
+    assert(!method.isInstanceMember);
     return new ParameterTypeInformation._internal(
-        types.getInferredTypeOfMember(method), element);
+        types.getInferredTypeOfMember(method), element, method, method);
   }
 
   factory ParameterTypeInformation._localFunction(
       ParameterElement element, TypeSystem types) {
     LocalFunctionElement localFunction = element.functionDeclaration;
     return new ParameterTypeInformation._internal(
-        types.getInferredTypeOfLocalFunction(localFunction), element);
+        types.getInferredTypeOfLocalFunction(localFunction),
+        element,
+        localFunction,
+        // TODO(johnniwinther): This should be `localFunction.callMethod`.
+        localFunction);
   }
 
   ParameterTypeInformation._instanceMember(
       ParameterElement element, TypeSystem types)
-      : super._withAssignments(
+      : _declaration = element.functionDeclaration,
+        _method = element.functionDeclaration,
+        super._withAssignments(
             types.getInferredTypeOfMember(
                 element.functionDeclaration as MethodElement),
             element,
@@ -626,22 +669,30 @@ class ParameterTypeInformation extends ElementTypeInformation {
     assert(element.functionDeclaration.isInstanceMember);
   }
 
+  // TODO(johnniwinther): This should be a [MethodElement].
+  FunctionElement get method => _method;
+
+  Local get parameter => _parameter;
+
+  String get debugName => '$parameter';
+
   bool isTearOffClosureParameter = false;
 
   void tagAsTearOffClosureParameter(InferrerEngine inferrer) {
-    assert(element.isRegularParameter);
+    assert(_parameter.isRegularParameter);
     isTearOffClosureParameter = true;
     // We have to add a flow-edge for the default value (if it exists), as we
     // might not see all call-sites and thus miss the use of it.
-    TypeInformation defaultType = inferrer.getDefaultTypeOfParameter(element);
+    TypeInformation defaultType =
+        inferrer.getDefaultTypeOfParameter(_parameter);
     if (defaultType != null) defaultType.addUser(this);
   }
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration, inferrer.closedWorld) ||
-        inferrer.assumeDynamic(declaration)) {
+            _method, inferrer.closedWorld) ||
+        inferrer.assumeDynamic(_method)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
       giveUp(inferrer);
@@ -650,9 +701,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
     // The below do not apply to parameters of constructors, so skip
     // initializing formals.
-    if (element.isInitializingFormal) return null;
+    if (_parameter.isInitializingFormal) return null;
 
-    if ((isTearOffClosureParameter || declaration.isLocal) &&
+    if ((isTearOffClosureParameter || _declaration.isLocal) &&
         disableInferenceForClosures) {
       // Do not infer types for parameters of closures. We do not
       // clear the assignments in case the closure is successfully
@@ -660,9 +711,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer, clearAssignments: false);
       return safeType(inferrer);
     }
-    if (declaration.isInstanceMember &&
-        (declaration.name == Identifiers.noSuchMethod_ ||
-            (declaration.name == Identifiers.call &&
+    if (_declaration.isInstanceMember &&
+        (_declaration.name == Identifiers.noSuchMethod_ ||
+            (_declaration.name == Identifiers.call &&
                 disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
@@ -670,11 +721,11 @@ class ParameterTypeInformation extends ElementTypeInformation {
       return safeType(inferrer);
     }
     if (inferrer.closedWorldRefiner
-        .getCurrentlyKnownMightBePassedToApply(declaration)) {
+        .getCurrentlyKnownMightBePassedToApply(_method)) {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (declaration == inferrer.mainElement) {
+    if (_method == inferrer.mainElement) {
       // The implicit call to main is not seen by the inferrer,
       // therefore we explicitly set the type of its parameters as
       // dynamic.
@@ -690,14 +741,14 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
     if (!compiler.options.trustTypeAnnotations &&
-        !inferrer.trustTypeAnnotations(declaration)) {
+        !inferrer.trustTypeAnnotations(_method)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
     assert(!compiler.options.enableTypeAssertions);
-    return _narrowType(inferrer.closedWorld, mask, element.type);
+    return _narrowType(inferrer.closedWorld, mask, _parameter.type);
   }
 
   TypeMask computeType(InferrerEngine inferrer) {
@@ -714,7 +765,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool hasStableType(InferrerEngine inferrer) {
     // The number of assignments of parameters of instance methods is
     // not stable. Therefore such a parameter cannot be stable.
-    if (element.functionDeclaration.isInstanceMember) {
+    if (_declaration.isInstanceMember) {
       return false;
     }
     return super.hasStableType(inferrer);
@@ -724,7 +775,12 @@ class ParameterTypeInformation extends ElementTypeInformation {
     return visitor.visitParameterTypeInformation(this);
   }
 
-  String toString() => 'ParameterElement $element $type';
+  String toString() => 'ParameterElement $_parameter $type';
+
+  @override
+  String getInferredSignature(TypeSystem types) {
+    throw new UnsupportedError('ParameterTypeInformation.getInferredSignature');
+  }
 }
 
 /**
@@ -740,7 +796,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final Spannable call;
-  final Element caller;
+  // TODO(johnniwinther): [caller] should always be a [MemberElement].
+  final /*LocalFunctionElement|MemberElement*/ Element caller;
   final Selector selector;
   final TypeMask mask;
   final ArgumentsTypes arguments;
@@ -766,6 +823,18 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       MemberTypeInformation context,
       Spannable call,
       Element enclosing,
+      MemberElement calledElement,
+      Selector selector,
+      TypeMask mask,
+      ArgumentsTypes arguments,
+      bool inLoop)
+      : this.internal(context, call, enclosing, calledElement, selector, mask,
+            arguments, inLoop);
+
+  StaticCallSiteTypeInformation.internal(
+      MemberTypeInformation context,
+      Spannable call,
+      Element enclosing,
       this.calledElement,
       Selector selector,
       TypeMask mask,
@@ -773,14 +842,17 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       bool inLoop)
       : super(context, call, enclosing, selector, mask, arguments, inLoop);
 
+  MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
+    return inferrer.types.getInferredTypeOfMember(calledElement);
+  }
+
   void addToGraph(InferrerEngine inferrer) {
-    MemberTypeInformation callee;
-    if (calledElement.isLocal) {
-      callee = inferrer.types.getInferredTypeOfLocalFunction(calledElement);
+    MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
+    if (caller.isLocal) {
+      callee.addCallFromLocalFunction(caller, call);
     } else {
-      callee = inferrer.types.getInferredTypeOfMember(calledElement);
+      callee.addCallFromMember(caller, call);
     }
-    callee.addCall(caller, call);
     callee.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -798,24 +870,16 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     return selector == null;
   }
 
+  TypeInformation _getCalledTypeInfoWithSelector(InferrerEngine inferrer) {
+    return inferrer.typeOfMemberWithSelector(calledElement, selector);
+  }
+
   TypeMask computeType(InferrerEngine inferrer) {
     if (isSynthesized) {
       assert(arguments != null);
-      if (calledElement.isLocal) {
-        return inferrer.types
-            .getInferredTypeOfLocalFunction(calledElement)
-            .type;
-      } else {
-        return inferrer.types.getInferredTypeOfMember(calledElement).type;
-      }
+      return _getCalledTypeInfo(inferrer).type;
     } else {
-      if (calledElement.isLocal) {
-        return inferrer
-            .typeOfLocalFunctionWithSelector(calledElement, selector)
-            .type;
-      } else {
-        return inferrer.typeOfMemberWithSelector(calledElement, selector).type;
-      }
+      return _getCalledTypeInfoWithSelector(inferrer).type;
     }
   }
 
@@ -826,30 +890,43 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   bool hasStableType(InferrerEngine inferrer) {
-    bool isStable;
-    if (calledElement.isLocal) {
-      isStable =
-          inferrer.types.getInferredTypeOfLocalFunction(calledElement).isStable;
-    } else {
-      isStable = inferrer.types.getInferredTypeOfMember(calledElement).isStable;
-    }
+    bool isStable = _getCalledTypeInfo(inferrer).isStable;
     return isStable &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
         super.hasStableType(inferrer);
   }
 
   void removeAndClearReferences(InferrerEngine inferrer) {
-    ElementTypeInformation callee;
-    if (calledElement.isLocal) {
-      callee = inferrer.types.getInferredTypeOfLocalFunction(calledElement);
-    } else {
-      callee = inferrer.types.getInferredTypeOfMember(calledElement);
-    }
+    ElementTypeInformation callee = _getCalledTypeInfo(inferrer);
     callee.removeUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.removeUser(this));
     }
     super.removeAndClearReferences(inferrer);
+  }
+}
+
+@deprecated
+class LocalFunctionCallSiteTypeInformation
+    extends StaticCallSiteTypeInformation {
+  LocalFunctionCallSiteTypeInformation(
+      MemberTypeInformation context,
+      Spannable call,
+      Element enclosing,
+      LocalFunctionElement calledElement,
+      Selector selector,
+      TypeMask mask,
+      ArgumentsTypes arguments,
+      bool inLoop)
+      : super.internal(context, call, enclosing, calledElement, selector, mask,
+            arguments, inLoop);
+
+  MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
+    return inferrer.types.getInferredTypeOfLocalFunction(calledElement);
+  }
+
+  TypeInformation _getCalledTypeInfoWithSelector(InferrerEngine inferrer) {
+    return inferrer.typeOfLocalFunctionWithSelector(calledElement, selector);
   }
 }
 
@@ -881,7 +958,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     for (MemberElement element in targets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
-      callee.addCall(caller, call);
+      if (caller.isLocal) {
+        callee.addCallFromLocalFunction(caller, call);
+      } else {
+        callee.addCallFromMember(caller, call);
+      }
       callee.addUser(this);
       inferrer.updateParameterAssignments(
           this, element, arguments, selector, typeMask,
@@ -1028,7 +1109,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeMask computeType(InferrerEngine inferrer) {
     Iterable<MemberEntity> oldTargets = targets;
     TypeMask typeMask = computeTypedSelector(inferrer);
-    inferrer.updateSelectorInTree(caller, call, selector, typeMask);
+    if (caller.isLocal) {
+      inferrer.updateSelectorInLocalFunction(caller, call, selector, typeMask);
+    } else {
+      inferrer.updateSelectorInMember(caller, call, selector, typeMask);
+    }
 
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
@@ -1053,7 +1138,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         MemberElement element = _element;
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        callee.addCall(caller, call);
+        if (caller.isLocal) {
+          callee.addCallFromLocalFunction(caller, call);
+        } else {
+          callee.addCallFromMember(caller, call);
+        }
         callee.addUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1067,7 +1156,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         MemberElement element = _element;
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        callee.removeCall(caller, call);
+        if (caller.isLocal) {
+          callee.removeCallFromLocalFunction(caller, call);
+        } else {
+          callee.removeCallFromMember(caller, call);
+        }
         callee.removeUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1137,14 +1230,22 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
-      inferrer.updateSelectorInTree(caller, call, selector, mask);
+      if (caller.isLocal) {
+        inferrer.updateSelectorInLocalFunction(caller, call, selector, mask);
+      } else {
+        inferrer.updateSelectorInMember(caller, call, selector, mask);
+      }
       Iterable<MemberEntity> oldTargets = targets;
       targets = inferrer.closedWorld.locateMembers(selector, mask);
       for (MemberElement element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
-          callee.addCall(caller, call);
+          if (caller.isLocal) {
+            callee.addCallFromLocalFunction(caller, call);
+          } else {
+            callee.addCallFromMember(caller, call);
+          }
           inferrer.updateParameterAssignments(
               this, element, arguments, selector, mask,
               remove: false, addToQueue: true);
@@ -1694,10 +1795,19 @@ class PhiElementTypeInformation extends TypeInformation {
 class ClosureTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final ast.Node node;
-  final Element element;
+  final Element _element;
 
-  ClosureTypeInformation(MemberTypeInformation context, this.node, this.element)
+  ClosureTypeInformation(
+      MemberTypeInformation context, ast.Node node, MethodElement element)
+      : this._internal(context, node, element);
+
+  ClosureTypeInformation._internal(
+      MemberTypeInformation context, this.node, this._element)
       : super(context);
+
+  // TODO(johnniwinther): Type this as `FunctionEntity` when
+  // 'LocalFunctionElement.callMethod' is used as key for
+  Entity get closure => _element;
 
   TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
 
@@ -1705,7 +1815,9 @@ class ClosureTypeInformation extends TypeInformation
     return inferrer.types.functionType.type;
   }
 
-  String toString() => 'Closure $element';
+  String get debugName => '$closure';
+
+  String toString() => 'Closure $_element';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitClosureTypeInformation(this);
@@ -1713,6 +1825,21 @@ class ClosureTypeInformation extends TypeInformation
 
   bool hasStableType(InferrerEngine inferrer) {
     return false;
+  }
+
+  String getInferredSignature(TypeSystem types) {
+    return types.getInferredSignatureOfMethod(_element);
+  }
+}
+
+@deprecated
+class LocalFunctionClosureTypeInformation extends ClosureTypeInformation {
+  LocalFunctionClosureTypeInformation(MemberTypeInformation context,
+      ast.Node node, LocalFunctionElement element)
+      : super._internal(context, node, element);
+
+  String getInferredSignature(TypeSystem types) {
+    return types.getInferredSignatureOfLocalFunction(_element);
   }
 }
 

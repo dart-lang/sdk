@@ -110,8 +110,15 @@ class InferrerEngine {
     }
   }
 
+  GlobalTypeInferenceElementData dataOfLocalFunction(
+          LocalFunctionElement element) =>
+      _dataOf(element);
+
   // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOf(AstElement element) => inTreeData
+  GlobalTypeInferenceElementData dataOfMember(MemberElement element) =>
+      _dataOf(element);
+
+  GlobalTypeInferenceElementData _dataOf(AstElement element) => inTreeData
       .putIfAbsent(element, () => new GlobalTypeInferenceElementData());
 
   /**
@@ -191,11 +198,22 @@ class InferrerEngine {
     return returnType;
   }
 
-  // TODO(johnniwinther): Pass the [ResolvedAst] instead of [owner].
-  void updateSelectorInTree(
-      AstElement owner, Spannable node, Selector selector, TypeMask mask) {
+  @deprecated
+  void updateSelectorInLocalFunction(LocalFunctionElement owner, Spannable node,
+      Selector selector, TypeMask mask) {
+    GlobalTypeInferenceElementData data = dataOfLocalFunction(owner);
+    _updateSelectorInTree(data, node, selector, mask);
+  }
+
+  void updateSelectorInMember(
+      MemberElement owner, Spannable node, Selector selector, TypeMask mask) {
+    GlobalTypeInferenceElementData data = dataOfMember(owner);
+    _updateSelectorInTree(data, node, selector, mask);
+  }
+
+  void _updateSelectorInTree(GlobalTypeInferenceElementData data,
+      Spannable node, Selector selector, TypeMask mask) {
     ast.Node astNode = node;
-    GlobalTypeInferenceElementData data = dataOf(owner);
     if (astNode.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
         data.setTypeMask(node, mask);
@@ -387,7 +405,7 @@ class InferrerEngine {
       }
 
       if (info is ClosureTypeInformation) {
-        Iterable<FunctionElement> elements = [info.element];
+        Iterable<FunctionElement> elements = [info.closure];
         trace(elements, new ClosureTracerVisitor(elements, info, this));
       } else if (info is CallSiteTypeInformation) {
         if (info is StaticCallSiteTypeInformation &&
@@ -409,10 +427,12 @@ class InferrerEngine {
               info.callees.where((e) => e.isFunction));
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         }
-      } else {
-        assert(info is ElementTypeInformation);
-        trace([info.element],
-            new StaticTearOffClosureTracerVisitor(info.element, info, this));
+      } else if (info is MemberTypeInformation) {
+        trace([info.member],
+            new StaticTearOffClosureTracerVisitor(info.member, info, this));
+      } else if (info is ParameterTypeInformation) {
+        throw new SpannableAssertionFailure(
+            NO_LOCATION_SPANNABLE, 'Unexpected closure allocation info $info');
       }
     });
 
@@ -451,15 +471,16 @@ class InferrerEngine {
       });
       types.allocatedClosures.forEach((TypeInformation info) {
         if (info is ElementTypeInformation) {
-          print('${types.getInferredSignatureOf(info.element)} for '
-              '${info.element}');
+          print('${info.getInferredSignature(types)} for '
+              '${info.debugName}');
         } else if (info is ClosureTypeInformation) {
-          print('${types.getInferredSignatureOf(info.element)} for '
-              '${info.element}');
+          print('${info.getInferredSignature(types)} for '
+              '${info.debugName}');
         } else if (info is DynamicCallSiteTypeInformation) {
           for (MemberElement target in info.targets) {
             if (target is MethodElement) {
-              print('${types.getInferredSignatureOf(target)} for ${target}');
+              print(
+                  '${types.getInferredSignatureOfMethod(target)} for ${target}');
             } else {
               print(
                   '${types.getInferredTypeOfMember(target).type} for ${target}');
@@ -468,7 +489,7 @@ class InferrerEngine {
         } else if (info is StaticCallSiteTypeInformation) {
           ClassElement cls = info.calledElement.enclosingClass;
           FunctionElement callMethod = cls.lookupMember(Identifiers.call);
-          print('${types.getInferredSignatureOf(callMethod)} for ${cls}');
+          print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
         }
@@ -519,7 +540,7 @@ class InferrerEngine {
                 if (value.isFunction) {
                   FunctionConstantValue functionConstant = value;
                   MethodElement function = functionConstant.element;
-                  type = types.allocateClosure(node, function);
+                  type = types.allocateClosureForMethod(node, function);
                 } else {
                   // Although we might find a better type, we have to keep
                   // the old type around to ensure that we get a complete view
@@ -906,8 +927,16 @@ class InferrerEngine {
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {
-    return _registerCalledElement(
-        node, selector, mask, caller, callee, arguments, sideEffects, inLoop);
+    CallSiteTypeInformation info = new LocalFunctionCallSiteTypeInformation(
+        types.currentMember,
+        node,
+        caller,
+        callee,
+        selector,
+        mask,
+        arguments,
+        inLoop);
+    return _registerCalledElement(info, selector, callee, sideEffects);
   }
 
   /**
@@ -929,8 +958,16 @@ class InferrerEngine {
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {
-    return _registerCalledElement(
-        node, selector, mask, caller, callee, arguments, sideEffects, inLoop);
+    CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
+        types.currentMember,
+        node,
+        caller,
+        callee,
+        selector,
+        mask,
+        arguments,
+        inLoop);
+    return _registerCalledElement(info, selector, callee, sideEffects);
   }
 
   /**
@@ -943,24 +980,8 @@ class InferrerEngine {
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  TypeInformation _registerCalledElement(
-      Spannable node,
-      Selector selector,
-      TypeMask mask,
-      Element caller,
-      Element callee,
-      ArgumentsTypes arguments,
-      SideEffects sideEffects,
-      bool inLoop) {
-    CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
-        types.currentMember,
-        node,
-        caller,
-        callee,
-        selector,
-        mask,
-        arguments,
-        inLoop);
+  TypeInformation _registerCalledElement(CallSiteTypeInformation info,
+      Selector selector, Element callee, SideEffects sideEffects) {
     // If this class has a 'call' method then we have essentially created a
     // closure here. Register it as such so that it is traced.
     // Note: we exclude factory constructors because they don't always create an
