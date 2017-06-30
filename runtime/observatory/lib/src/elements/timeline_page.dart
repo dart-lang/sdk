@@ -20,7 +20,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-enum _Profile { none, dart, vm, all, custom }
+enum _Profile { none, all, dart, vm }
 
 class TimelinePageElement extends HtmlElement implements Renderable {
   static const tag =
@@ -39,7 +39,6 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   M.EventRepository _events;
   M.NotificationRepository _notifications;
   String _recorderName = '';
-  _Profile _profile = _Profile.none;
   final Set<String> _availableStreams = new Set<String>();
   final Set<String> _recordedStreams = new Set<String>();
 
@@ -164,22 +163,19 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createProfileSelect() {
-    var s;
     return [
-      s = new SelectElement()
-        ..classes = ['direction-select']
-        ..value = _profileToString(_profile)
-        ..children = _Profile.values.map((direction) {
-          return new OptionElement(
-              value: _profileToString(direction),
-              selected: _profile == direction)
-            ..text = _profileToString(direction);
-        }).toList(growable: false)
-        ..onChange.listen((_) {
-          _profile = _Profile.values[s.selectedIndex];
-          _applyPreset();
-          _r.dirty();
-        })
+      new SpanElement()
+        ..children = (_Profile.values.expand((profile) {
+          return [
+            new ButtonElement()
+              ..text = _profileToString(profile)
+              ..onClick.listen((_) {
+                _applyPreset(profile);
+              }),
+            new SpanElement()..text = ' - '
+          ];
+        }).toList()
+          ..removeLast())
     ];
   }
 
@@ -193,8 +189,6 @@ class TimelinePageElement extends HtmlElement implements Renderable {
         return 'VM Developer';
       case _Profile.all:
         return 'All';
-      case _Profile.custom:
-        return 'Custom';
     }
     throw new Exception('Unknown Profile ${profile}');
   }
@@ -257,8 +251,8 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     'VM'
   ];
 
-  void _applyPreset() {
-    switch (_profile) {
+  void _applyPreset(_Profile profile) {
+    switch (profile) {
       case _Profile.none:
         _recordedStreams.clear();
         break;
@@ -274,8 +268,6 @@ class TimelinePageElement extends HtmlElement implements Renderable {
         _recordedStreams.clear();
         _recordedStreams.addAll(_dartPreset);
         break;
-      case _Profile.custom:
-        return;
     }
     _applyStreamChanges();
     _updateRecorderUI();
