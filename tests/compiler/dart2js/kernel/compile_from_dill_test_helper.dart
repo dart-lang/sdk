@@ -78,12 +78,32 @@ main() {
   while (i < 10) {
     if (i == 5) continue;
     x = i;
-    if (i == 5) break;
+    if (i == 7) break;
+    i++;
   }
   for (var v in [3, 5]) {
     if (v == 5) continue;
     x = v;
-    if (v == 5) break;
+    if (v == 7) break;
+  }
+  do {
+    // TODO(johnniwinther): Support js ast equivalence to handle label name
+    // mismatches. Enable the continue test:
+    //if (i == 5) continue;
+    x = i;
+    if (i == 7) break;
+    i++;
+  } while (i < 10);
+  switch (x) {
+  case 0:
+    x = 7;
+    break;
+  case 1:
+    x = 9;
+    break;
+  default:
+    x = 11;
+    break;
   }
   x = toplevel;
   print(x);

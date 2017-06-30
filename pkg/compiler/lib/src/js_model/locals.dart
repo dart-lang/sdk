@@ -91,7 +91,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForDo(ir.DoStatement node) {
     _ensureJumpMap(node);
-    return _jumpTargetMap[node.parent];
+    return _jumpTargetMap[node];
   }
 
   @override
@@ -103,8 +103,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   @override
   JumpTarget getJumpTargetForSwitch(ir.SwitchStatement node) {
     _ensureJumpMap(node);
-    throw new UnimplementedError(
-        'KernelToLocalsMapImpl.getJumpTargetForSwitch');
+    return _jumpTargetMap[node];
   }
 
   @override
@@ -158,17 +157,19 @@ class JumpVisitor extends ir.Visitor {
   defaultNode(ir.Node node) => node.visitChildren(this);
 
   bool _canBeBreakTarget(ir.TreeNode node) {
-    // TODO(johnniwinther): Add more.
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
-        node is ir.WhileStatement;
+        node is ir.WhileStatement ||
+        node is ir.DoStatement ||
+        node is ir.SwitchStatement;
   }
 
   bool _canBeContinueTarget(ir.TreeNode node) {
     // TODO(johnniwinther): Add more.
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
-        node is ir.WhileStatement;
+        node is ir.WhileStatement ||
+        node is ir.DoStatement;
   }
 
   @override
