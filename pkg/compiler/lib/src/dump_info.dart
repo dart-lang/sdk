@@ -278,7 +278,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     }
 
     String inferredReturnType = '${_resultOfMember(method).returnType}';
-    String sideEffects = '${closedWorld.getSideEffectsOfElement(element)}';
+    String sideEffects = '${closedWorld.getSideEffectsOfElement(method)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
     if (inlinedCount == null) inlinedCount = 0;

@@ -4,7 +4,6 @@
 
 library types;
 
-import '../closure.dart' show SynthesizedCallMethodElementX;
 import '../common.dart' show failedAt;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -198,34 +197,13 @@ class GlobalTypeInferenceElementData {
 /// API to interact with the global type-inference engine.
 abstract class TypesInferrer {
   void analyzeMain(FunctionEntity element);
-
-  // We are moving away from using LocalFunctionElement to represent closures,
-  // but plan to use the <closure-class>.callMethod instead as the
-  // representation. At that point, we should be able to use
-  // getReturnTypeOfMember(callMethod).
-  @deprecated
-  TypeMask getReturnTypeOfLocalFunction(LocalFunctionElement element);
   TypeMask getReturnTypeOfMember(MemberElement element);
   TypeMask getReturnTypeOfParameter(ParameterElement element);
-
-  // We are moving away from using LocalFunctionElement to represent closures,
-  // but plan to use the <closure-class>.callMethod instead as the
-  // representation. At that point, we should be able to use
-  // getTypeOfMember(callMethod).
-  @deprecated
-  TypeMask getTypeOfLocalFunction(LocalFunctionElement element);
   TypeMask getTypeOfMember(MemberElement element);
   TypeMask getTypeOfParameter(ParameterElement element);
   TypeMask getTypeForNewList(Node node);
   TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
   void clear();
-
-  // We are moving away from using LocalFunctionElement to represent closures,
-  // but plan to use the <closure-class>.callMethod instead as the
-  // representation. At that point, we should be able to use
-  // isMemberCalledOnce(callMethod).
-  @deprecated
-  bool isLocalFunctionCalledOnce(LocalFunctionElement element);
   bool isMemberCalledOnce(MemberElement element);
   bool isParameterCalledOnce(ParameterElement element);
   bool isFixedArrayCheckedForGrowable(Node node);
@@ -257,17 +235,14 @@ class GlobalTypeInferenceResults {
             "unexpected input: ConstructorBodyElements are created"
             " after global type inference, no data is avaiable for them."));
 
-    // TODO(sigmund): store closure data directly in the closure element and
-    // not in the context of the enclosing method?
-    MemberElement key = (member is SynthesizedCallMethodElementX)
-        ? member.memberContext
-        : member;
     bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
     return _memberResults.putIfAbsent(
         member,
         () => new GlobalTypeInferenceMemberResult(
             member,
-            _inferrer.inferrer.lookupDataOfMember(key),
+            // We store data in the context of the enclosing method, even
+            // for closure elements.
+            _inferrer.inferrer.lookupDataOfMember(member.memberContext),
             _inferrer,
             isJsInterop,
             dynamicType));

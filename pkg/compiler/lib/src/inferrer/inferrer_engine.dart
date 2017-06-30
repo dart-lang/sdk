@@ -123,7 +123,7 @@ class InferrerEngine {
    * called with [selector].
    */
   void updateSideEffects(
-      SideEffects sideEffects, Selector selector, Element callee) {
+      SideEffects sideEffects, Selector selector, MemberElement callee) {
     if (callee.isField) {
       if (callee.isInstanceMember) {
         if (selector.isSetter) {
@@ -148,8 +148,8 @@ class InferrerEngine {
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      sideEffects.add(
-          closedWorldRefiner.getCurrentlyKnownSideEffects(callee.declaration));
+      MethodElement method = callee.declaration;
+      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(method));
     }
   }
 
@@ -221,11 +221,6 @@ class InferrerEngine {
         data.setMoveNextTypeMask(node, mask);
       }
     }
-  }
-
-  bool isNativeMember(Element element) {
-    return element is MemberElement &&
-        closedWorld.nativeData.isNativeMember(element);
   }
 
   bool checkIfExposesThis(ConstructorElement element) {
@@ -350,15 +345,15 @@ class InferrerEngine {
       analyzeMapAndEnqueue(info);
     });
 
-    Set<FunctionElement> bailedOutOn = new Set<FunctionElement>();
+    Set<MethodElement> bailedOutOn = new Set<MethodElement>();
 
     // Trace closures to potentially infer argument types.
     types.allocatedClosures.forEach((dynamic info) {
       void trace(
-          Iterable<FunctionElement> elements, ClosureTracerVisitor tracer) {
+          Iterable<MethodElement> elements, ClosureTracerVisitor tracer) {
         tracer.run();
         if (!tracer.continueAnalyzing) {
-          elements.forEach((FunctionElement e) {
+          elements.forEach((MethodElement e) {
             closedWorldRefiner.registerMightBePassedToApply(e);
             if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
             e.functionSignature.forEachParameter((parameter) {
@@ -372,7 +367,7 @@ class InferrerEngine {
         }
         elements
             .where((e) => !bailedOutOn.contains(e))
-            .forEach((FunctionElement e) {
+            .forEach((MethodElement e) {
           e.functionSignature.forEachParameter((parameter) {
             var info = types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
@@ -390,7 +385,7 @@ class InferrerEngine {
       }
 
       if (info is ClosureTypeInformation) {
-        Iterable<FunctionElement> elements = [info.closure];
+        Iterable<MethodElement> elements = [info.closure];
         trace(elements, new ClosureTracerVisitor(elements, info, this));
       } else if (info is CallSiteTypeInformation) {
         if (info is StaticCallSiteTypeInformation &&
@@ -400,15 +395,15 @@ class InferrerEngine {
           // need to trace the call method here.
           assert(info.calledElement.isGenerativeConstructor);
           ClassElement cls = info.calledElement.enclosingClass;
-          FunctionElement callMethod = cls.lookupMember(Identifiers.call);
+          MethodElement callMethod = cls.lookupMember(Identifiers.call);
           assert(callMethod != null, failedAt(cls));
-          Iterable<FunctionElement> elements = [callMethod];
+          Iterable<MethodElement> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         } else {
           // We only are interested in functions here, as other targets
           // of this closure call are not a root to trace but an intermediate
           // for some other function.
-          Iterable<FunctionElement> elements = new List<FunctionElement>.from(
+          Iterable<MethodElement> elements = new List<MethodElement>.from(
               info.callees.where((e) => e.isFunction));
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         }
@@ -525,7 +520,7 @@ class InferrerEngine {
                 if (value.isFunction) {
                   FunctionConstantValue functionConstant = value;
                   MethodElement function = functionConstant.element;
-                  type = types.allocateClosureForMethod(node, function);
+                  type = types.allocateClosure(node, function);
                 } else {
                   // Although we might find a better type, we have to keep
                   // the old type around to ensure that we get a complete view
@@ -580,8 +575,8 @@ class InferrerEngine {
     types.allocatedCalls.forEach((dynamic info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        closedWorldRefiner
-            .addFunctionCalledInLoop(info.calledElement.declaration);
+        MemberElement member = info.calledElement.declaration;
+        closedWorldRefiner.addFunctionCalledInLoop(member);
       } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
@@ -786,14 +781,6 @@ class InferrerEngine {
   /**
    * Returns the return type of [element].
    */
-  @deprecated
-  TypeInformation returnTypeOfLocalFunction(LocalFunctionElement element) {
-    return types.getInferredTypeOfLocalFunction(element);
-  }
-
-  /**
-   * Returns the return type of [element].
-   */
   TypeInformation returnTypeOfMember(MemberElement element) {
     if (element is! MethodElement) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
@@ -828,23 +815,6 @@ class InferrerEngine {
   /**
    * Records that the return type [element] is of type [type].
    */
-  @deprecated
-  void recordReturnTypeOfLocalFunction(
-      LocalFunctionElement element, TypeInformation type) {
-    TypeInformation info = types.getInferredTypeOfLocalFunction(element);
-    if (element.name == '==') {
-      // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
-      info.addAssignment(types.boolType);
-    }
-    // TODO(ngeoffray): Clean up. We do these checks because
-    // [SimpleTypesInferrer] deals with two different inferrers.
-    if (type == null) return;
-    if (info.assignments.isEmpty) info.addAssignment(type);
-  }
-
-  /**
-   * Records that the return type [element] is of type [type].
-   */
   void recordReturnType(MethodElement element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
@@ -864,24 +834,6 @@ class InferrerEngine {
    *
    * Returns the new type for [analyzedElement].
    */
-  @deprecated
-  TypeInformation addReturnTypeForLocalFunction(LocalFunctionElement element,
-      TypeInformation unused, TypeInformation newType) {
-    TypeInformation type = types.getInferredTypeOfLocalFunction(element);
-    // TODO(ngeoffray): Clean up. We do this check because
-    // [SimpleTypesInferrer] deals with two different inferrers.
-    if (element.isGenerativeConstructor) return type;
-    type.addAssignment(newType);
-    return type;
-  }
-
-  /**
-   * Notifies to the inferrer that [analyzedElement] can have return
-   * type [newType]. [currentType] is the type the [ElementGraphBuilder]
-   * currently found.
-   *
-   * Returns the new type for [analyzedElement].
-   */
   TypeInformation addReturnTypeForMethod(
       MethodElement element, TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
@@ -890,38 +842,6 @@ class InferrerEngine {
     if (element.isGenerativeConstructor) return type;
     type.addAssignment(newType);
     return type;
-  }
-
-  /**
-   * Registers that [caller] calls [callee] at location [node], with
-   * [selector], and [arguments]. Note that [selector] is null for
-   * forwarding constructors.
-   *
-   * [sideEffects] will be updated to incorporate [callee]'s side
-   * effects.
-   *
-   * [inLoop] tells whether the call happens in a loop.
-   */
-  @deprecated
-  TypeInformation registerCalledLocalFunction(
-      Spannable node,
-      Selector selector,
-      TypeMask mask,
-      MemberElement caller,
-      LocalFunctionElement callee,
-      ArgumentsTypes arguments,
-      SideEffects sideEffects,
-      bool inLoop) {
-    CallSiteTypeInformation info = new LocalFunctionCallSiteTypeInformation(
-        types.currentMember,
-        node,
-        caller,
-        callee,
-        selector,
-        mask,
-        arguments,
-        inLoop);
-    return _registerCalledElement(info, selector, callee, sideEffects);
   }
 
   /**
@@ -952,21 +872,6 @@ class InferrerEngine {
         mask,
         arguments,
         inLoop);
-    return _registerCalledElement(info, selector, callee, sideEffects);
-  }
-
-  /**
-   * Registers that [caller] calls [callee] at location [node], with
-   * [selector], and [arguments]. Note that [selector] is null for
-   * forwarding constructors.
-   *
-   * [sideEffects] will be updated to incorporate [callee]'s side
-   * effects.
-   *
-   * [inLoop] tells whether the call happens in a loop.
-   */
-  TypeInformation _registerCalledElement(CallSiteTypeInformation info,
-      Selector selector, Element callee, SideEffects sideEffects) {
     // If this class has a 'call' method then we have essentially created a
     // closure here. Register it as such so that it is traced.
     // Note: we exclude factory constructors because they don't always create an
@@ -1161,14 +1066,6 @@ class InferrerEngine {
   /**
    * Returns the type of [element] when being called with [selector].
    */
-  TypeInformation typeOfLocalFunctionWithSelector(
-      LocalFunctionElement element, Selector selector) {
-    return _typeOfElementWithSelector(element, selector);
-  }
-
-  /**
-   * Returns the type of [element] when being called with [selector].
-   */
   TypeInformation typeOfMemberWithSelector(
       MemberElement element, Selector selector) {
     return _typeOfElementWithSelector(element, selector);
@@ -1178,16 +1075,12 @@ class InferrerEngine {
    * Returns the type of [element] when being called with [selector].
    */
   TypeInformation _typeOfElementWithSelector(
-      Element element, Selector selector) {
+      MemberElement element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
         selector.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case
       // we get the return type of [noSuchMethod].
-      if (element.isLocal) {
-        return returnTypeOfLocalFunction(element);
-      } else {
-        return returnTypeOfMember(element);
-      }
+      return returnTypeOfMember(element);
     } else if (selector.isGetter) {
       if (element.isFunction) {
         // [functionType] is null if the inferrer did not run.
@@ -1200,21 +1093,13 @@ class InferrerEngine {
         return types.dynamicType;
       } else {
         assert(element.isGetter);
-        if (element.isLocal) {
-          return returnTypeOfLocalFunction(element);
-        } else {
-          return returnTypeOfMember(element);
-        }
+        return returnTypeOfMember(element);
       }
     } else if (element.isGetter || element.isField) {
       assert(selector.isCall || selector.isSetter);
       return types.dynamicType;
     } else {
-      if (element.isLocal) {
-        return returnTypeOfLocalFunction(element);
-      } else {
-        return returnTypeOfMember(element);
-      }
+      return returnTypeOfMember(element);
     }
   }
 

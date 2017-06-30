@@ -209,10 +209,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       ClosureCallSiteTypeInformation info) {}
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    Element called = info.calledElement;
-    TypeInformation inferred = called.isLocal
-        ? inferrer.types.getInferredTypeOfLocalFunction(called)
-        : inferrer.types.getInferredTypeOfMember(called);
+    MemberElement called = info.calledElement;
+    TypeInformation inferred = inferrer.types.getInferredTypeOfMember(called);
     if (inferred == currentUser) {
       addNewEscapeInformation(info);
     }
@@ -464,7 +462,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    if (inferrer.isNativeMember(info.method)) {
+    if (inferrer.closedWorld.nativeData.isNativeMember(info.method)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend

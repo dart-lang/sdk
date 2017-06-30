@@ -63,7 +63,7 @@ abstract class TypeInformation {
   final MemberTypeInformation context;
 
   /// The element this [TypeInformation] node belongs to.
-  TypedElement get contextMember => context == null ? null : context.member;
+  MemberElement get contextMember => context == null ? null : context.member;
 
   Iterable<TypeInformation> get assignments => _assignments;
 
@@ -357,10 +357,8 @@ abstract class ElementTypeInformation extends TypeInformation {
         return new ParameterTypeInformation._instanceMember(element, types);
       }
       return new ParameterTypeInformation._static(element, types);
-    } else if (element.isLocal) {
-      return new MemberTypeInformation._localFunction(element);
     }
-    return new MemberTypeInformation._forMember(element);
+    return new MemberTypeInformation(element);
   }
 
   ElementTypeInformation._internal(MemberTypeInformation context, this._element)
@@ -387,7 +385,7 @@ abstract class ElementTypeInformation extends TypeInformation {
  */
 class MemberTypeInformation extends ElementTypeInformation
     with ApplyableTypeInformation {
-  TypedElement get _member => super._element;
+  MemberElement get _member => super._element;
 
   /**
    * If [element] is a function, [closurizedCount] is the number of
@@ -411,16 +409,9 @@ class MemberTypeInformation extends ElementTypeInformation
    */
   Map<MemberElement, Setlet<Spannable>> _callers;
 
-  MemberTypeInformation._internal(Element element)
-      : super._internal(null, element);
+  MemberTypeInformation(MemberElement element) : super._internal(null, element);
 
-  MemberTypeInformation._forMember(MemberElement element)
-      : this._internal(element);
-
-  MemberTypeInformation._localFunction(LocalFunctionElement element)
-      : this._internal(element);
-
-  TypedElement get member => _element;
+  MemberElement get member => _element;
 
   String get debugName => '$member';
 
@@ -488,7 +479,7 @@ class MemberTypeInformation extends ElementTypeInformation
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.isNativeMember(_member)) {
+    if (inferrer.closedWorld.nativeData.isNativeMember(_member)) {
       // Use the type annotation as the type for native elements. We
       // also give up on inferring to make sure this element never
       // goes in the work queue.
@@ -593,11 +584,7 @@ class MemberTypeInformation extends ElementTypeInformation
 
   @override
   String getInferredSignature(TypeSystem types) {
-    if (_member.isLocal) {
-      return types.getInferredSignatureOfLocalFunction(_member);
-    } else {
-      return types.getInferredSignatureOfMethod(_member);
-    }
+    return types.getInferredSignatureOfMethod(_member);
   }
 }
 
@@ -613,8 +600,7 @@ class MemberTypeInformation extends ElementTypeInformation
 class ParameterTypeInformation extends ElementTypeInformation {
   ParameterElement get _parameter => super._element;
   final FunctionElement _declaration;
-  // TODO(johnniwinther): This should be a [MethodElement].
-  final FunctionElement _method;
+  final MethodElement _method;
 
   ParameterTypeInformation._internal(MemberTypeInformation context,
       ParameterElement parameter, this._declaration, this._method)
@@ -631,12 +617,12 @@ class ParameterTypeInformation extends ElementTypeInformation {
   factory ParameterTypeInformation._localFunction(
       ParameterElement element, TypeSystem types) {
     LocalFunctionElement localFunction = element.functionDeclaration;
+    MethodElement callMethod = localFunction.callMethod;
     return new ParameterTypeInformation._internal(
-        types.getInferredTypeOfLocalFunction(localFunction),
+        types.getInferredTypeOfMember(callMethod),
         element,
         localFunction,
-        // TODO(johnniwinther): This should be `localFunction.callMethod`.
-        localFunction);
+        callMethod);
   }
 
   ParameterTypeInformation._instanceMember(
@@ -651,8 +637,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     assert(element.functionDeclaration.isInstanceMember);
   }
 
-  // TODO(johnniwinther): This should be a [MethodElement].
-  FunctionElement get method => _method;
+  MethodElement get method => _method;
 
   Local get parameter => _parameter;
 
@@ -798,21 +783,9 @@ abstract class CallSiteTypeInformation extends TypeInformation
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
-  final Element calledElement;
+  final MemberElement calledElement;
 
   StaticCallSiteTypeInformation(
-      MemberTypeInformation context,
-      Spannable call,
-      MemberElement enclosing,
-      MemberElement calledElement,
-      Selector selector,
-      TypeMask mask,
-      ArgumentsTypes arguments,
-      bool inLoop)
-      : this.internal(context, call, enclosing, calledElement, selector, mask,
-            arguments, inLoop);
-
-  StaticCallSiteTypeInformation.internal(
       MemberTypeInformation context,
       Spannable call,
       MemberElement enclosing,
@@ -880,30 +853,6 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       arguments.forEach((info) => info.removeUser(this));
     }
     super.removeAndClearReferences(inferrer);
-  }
-}
-
-@deprecated
-class LocalFunctionCallSiteTypeInformation
-    extends StaticCallSiteTypeInformation {
-  LocalFunctionCallSiteTypeInformation(
-      MemberTypeInformation context,
-      Spannable call,
-      MemberElement enclosing,
-      LocalFunctionElement calledElement,
-      Selector selector,
-      TypeMask mask,
-      ArgumentsTypes arguments,
-      bool inLoop)
-      : super.internal(context, call, enclosing, calledElement, selector, mask,
-            arguments, inLoop);
-
-  MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
-    return inferrer.types.getInferredTypeOfLocalFunction(calledElement);
-  }
-
-  TypeInformation _getCalledTypeInfoWithSelector(InferrerEngine inferrer) {
-    return inferrer.typeOfLocalFunctionWithSelector(calledElement, selector);
   }
 }
 
@@ -1748,19 +1697,13 @@ class PhiElementTypeInformation extends TypeInformation {
 class ClosureTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final ast.Node node;
-  final Element _element;
+  final MethodElement _element;
 
   ClosureTypeInformation(
-      MemberTypeInformation context, ast.Node node, MethodElement element)
-      : this._internal(context, node, element);
-
-  ClosureTypeInformation._internal(
       MemberTypeInformation context, this.node, this._element)
       : super(context);
 
-  // TODO(johnniwinther): Type this as `FunctionEntity` when
-  // 'LocalFunctionElement.callMethod' is used as key for
-  Entity get closure => _element;
+  FunctionEntity get closure => _element;
 
   TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
 
@@ -1782,17 +1725,6 @@ class ClosureTypeInformation extends TypeInformation
 
   String getInferredSignature(TypeSystem types) {
     return types.getInferredSignatureOfMethod(_element);
-  }
-}
-
-@deprecated
-class LocalFunctionClosureTypeInformation extends ClosureTypeInformation {
-  LocalFunctionClosureTypeInformation(MemberTypeInformation context,
-      ast.Node node, LocalFunctionElement element)
-      : super._internal(context, node, element);
-
-  String getInferredSignature(TypeSystem types) {
-    return types.getInferredSignatureOfLocalFunction(_element);
   }
 }
 

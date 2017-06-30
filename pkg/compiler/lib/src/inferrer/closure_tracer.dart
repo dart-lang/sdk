@@ -15,7 +15,7 @@ import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
 class ClosureTracerVisitor extends TracerVisitor {
-  final Iterable<FunctionElement> tracedElements;
+  final Iterable<MethodElement> tracedElements;
   final List<CallSiteTypeInformation> _callsToAnalyze =
       new List<CallSiteTypeInformation>();
 
@@ -29,7 +29,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     analyze();
     if (!continueAnalyzing) return;
     _callsToAnalyze.forEach(_analyzeCall);
-    for (FunctionElement e in tracedElements) {
+    for (MethodElement e in tracedElements) {
       e.functionSignature.forEachParameter((Element parameter) {
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOfParameter(parameter);
@@ -52,7 +52,7 @@ class ClosureTracerVisitor extends TracerVisitor {
   void _analyzeCall(CallSiteTypeInformation info) {
     Selector selector = info.selector;
     TypeMask mask = info.mask;
-    tracedElements.forEach((FunctionElement functionElement) {
+    tracedElements.forEach((MethodElement functionElement) {
       if (!selector.callStructure
           .signatureApplies(functionElement.parameterStructure)) {
         return;
@@ -130,7 +130,8 @@ class ClosureTracerVisitor extends TracerVisitor {
 }
 
 class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
-  StaticTearOffClosureTracerVisitor(tracedElement, tracedType, inferrer)
+  StaticTearOffClosureTracerVisitor(
+      MethodElement tracedElement, tracedType, inferrer)
       : super([tracedElement], tracedType, inferrer);
 
   @override

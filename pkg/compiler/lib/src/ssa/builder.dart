@@ -706,8 +706,8 @@ class SsaAstGraphBuilder extends ast.Visitor
    */
   HGraph buildMethod(MethodElement functionElement) {
     assert(functionElement.isImplementation, failedAt(functionElement));
-    graph.calledInLoop =
-        closedWorld.isCalledInLoop(functionElement.declaration);
+    MethodElement declaration = functionElement.declaration;
+    graph.calledInLoop = closedWorld.isCalledInLoop(declaration);
     ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);

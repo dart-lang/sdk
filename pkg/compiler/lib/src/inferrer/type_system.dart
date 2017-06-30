@@ -331,14 +331,9 @@ class TypeSystem {
   }
 
   @deprecated
-  ElementTypeInformation getInferredTypeOfLocalFunction(
-      LocalFunctionElement element) {
-    return _getInferredTypeOf(element);
-  }
-
-  @deprecated
   ElementTypeInformation _getInferredTypeOf(Element element) {
     element = element.implementation;
+    assert(element.isParameter || element is MemberElement);
     return typeInformations[element] ??=
         new ElementTypeInformation(element, this);
   }
@@ -353,18 +348,9 @@ class TypeSystem {
     });
   }
 
-  String getInferredSignatureOfLocalFunction(LocalFunctionElement function) {
-    return _getInferredSignatureOf(
-        getInferredTypeOfLocalFunction(function), function);
-  }
-
   String getInferredSignatureOfMethod(MethodElement function) {
-    return _getInferredSignatureOf(getInferredTypeOfMember(function), function);
-  }
-
-  String _getInferredSignatureOf(
-      ElementTypeInformation info, FunctionElement function) {
-    FunctionElement impl = function.implementation;
+    ElementTypeInformation info = getInferredTypeOfMember(function);
+    MethodElement impl = function.implementation;
     FunctionSignature signature = impl.functionSignature;
     var res = "";
     signature.forEachParameter((Element parameter) {
@@ -424,20 +410,10 @@ class TypeSystem {
         new ListTypeInformation(currentMember, mask, element, length);
   }
 
-  /// Creates a [TypeInformation] object for the local function [element] of
-  /// a function expression or local function declaration used as a closure.
-  TypeInformation allocateClosureForLocalFunction(
-      ast.Node node, LocalFunctionElement element) {
-    TypeInformation result =
-        new LocalFunctionClosureTypeInformation(currentMember, node, element);
-    allocatedClosures.add(result);
-    return result;
-  }
-
-  /// Creates a [TypeInformation] object for the closurization of a static or
-  /// top-level method [element] used a function constant.
-  TypeInformation allocateClosureForMethod(
-      ast.Node node, MethodElement element) {
+  /// Creates a [TypeInformation] object either for the closurization of a
+  /// static or top-level method [element] used as a function constant or for
+  /// the synthesized 'call' method [element] created for a local function.
+  TypeInformation allocateClosure(ast.Node node, MethodElement element) {
     TypeInformation result =
         new ClosureTypeInformation(currentMember, node, element);
     allocatedClosures.add(result);

@@ -56,7 +56,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         SetBulkMixin<TypeInformation, dynamic>
     implements SemanticSendVisitor<TypeInformation, dynamic> {
   final Compiler compiler;
-  final ExecutableElement analyzedElement;
+  final MemberElement analyzedElement;
   final ResolvedAst resolvedAst;
   final TypeSystem types;
   final Map<JumpTarget, List<LocalsHandler>> breaksFor =
@@ -78,7 +78,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   final GlobalTypeInferenceElementData memberData;
 
   ElementGraphBuilder.internal(
-      ExecutableElement analyzedElement,
+      MemberElement analyzedElement,
       this.resolvedAst,
       this.outermostElement,
       InferrerEngine inferrer,
@@ -102,7 +102,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         new LocalsHandler(inferrer, types, compiler.options, node, fieldScope);
   }
 
-  ElementGraphBuilder(ExecutableElement element, ResolvedAst resolvedAst,
+  ElementGraphBuilder(MemberElement element, ResolvedAst resolvedAst,
       Compiler compiler, InferrerEngine inferrer, [LocalsHandler handler])
       : this.internal(element, resolvedAst, element.memberContext, inferrer,
             compiler, handler);
@@ -923,7 +923,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       return visit(initializer);
     }
 
-    FunctionElement function = analyzedElement;
+    MethodElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((FormalElement _element) {
       ParameterElement element = _element;
@@ -938,9 +938,20 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       // TODO(johnniwinther): Remove once function signatures are fixed.
       ElementGraphBuilder visitor = this;
       if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
-      if (element.functionDeclaration != analyzedElement) {
-        ConstructorElement constructor = element.functionDeclaration;
-        visitor = new ElementGraphBuilder(constructor,
+
+      FunctionElement declaration = element.functionDeclaration;
+      MethodElement declarationMethod = declaration is LocalFunctionElement
+          ? declaration.callMethod
+          : declaration;
+      bool needNewContext = declarationMethod != analyzedElement;
+      if (needNewContext) {
+        assert(
+            declarationMethod is ConstructorElement,
+            failedAt(
+                element,
+                "Unexpected function declaration "
+                "${declarationMethod}, expected ${analyzedElement}."));
+        visitor = new ElementGraphBuilder(declarationMethod,
             element.functionDeclaration.resolvedAst, compiler, inferrer);
       }
       TypeInformation type =
@@ -948,7 +959,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (inferrer.isNativeMember(analyzedElement)) {
+    if (closedWorld.nativeData.isNativeMember(analyzedElement)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;
@@ -1067,8 +1078,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       }
     }
 
-    inferrer.closedWorldRefiner
-        .registerSideEffects(analyzedElement.declaration, sideEffects);
+    MethodElement declaration = analyzedElement.declaration;
+    inferrer.closedWorldRefiner.registerSideEffects(declaration, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
@@ -1086,10 +1097,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // method, like for example the types of local variables.
     LocalsHandler closureLocals =
         new LocalsHandler.from(locals, node, useOtherTryBlock: false);
-    ElementGraphBuilder visitor = new ElementGraphBuilder(
-        element, element.resolvedAst, compiler, inferrer, closureLocals);
+    ElementGraphBuilder visitor = new ElementGraphBuilder(element.callMethod,
+        element.resolvedAst, compiler, inferrer, closureLocals);
     visitor.run();
-    inferrer.recordReturnTypeOfLocalFunction(element, visitor.returnType);
+    inferrer.recordReturnType(element.callMethod, visitor.returnType);
 
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
@@ -1110,7 +1121,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     });
 
     return inferrer.concreteTypes.putIfAbsent(node, () {
-      return types.allocateClosureForLocalFunction(node, element);
+      return types.allocateClosure(node, element.callMethod);
     });
   }
 
@@ -1119,7 +1130,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         elements.getFunctionDefinition(node.function);
     TypeInformation type =
         inferrer.concreteTypes.putIfAbsent(node.function, () {
-      return types.allocateClosureForLocalFunction(node.function, element);
+      return types.allocateClosure(node.function, element.callMethod);
     });
     locals.update(element, type, node);
     visit(node.function);
@@ -2695,8 +2706,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // This only works for function statements. We need a
     // more sophisticated type system with function types to support
     // more.
-    return inferrer.registerCalledLocalFunction(node, selector, mask,
-        outermostElement, function, argumentTypes, sideEffects, inLoop);
+    return inferrer.registerCalledMember(node, selector, mask, outermostElement,
+        function.callMethod, argumentTypes, sideEffects, inLoop);
   }
 
   @override
@@ -2797,19 +2808,14 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   void recordReturnType(TypeInformation type) {
-    if (analyzedElement.isLocal) {
-      returnType = inferrer.addReturnTypeForLocalFunction(
-          analyzedElement, returnType, type);
-    } else {
-      returnType =
-          inferrer.addReturnTypeForMethod(analyzedElement, returnType, type);
-    }
+    returnType =
+        inferrer.addReturnTypeForMethod(analyzedElement, returnType, type);
   }
 
   TypeInformation synthesizeForwardingCall(
       Spannable node, ConstructorElement element) {
     element = element.implementation;
-    FunctionElement function = analyzedElement;
+    MethodElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
     FunctionSignature calleeSignature = element.functionSignature;
     if (!calleeSignature.isCompatibleWith(signature)) {

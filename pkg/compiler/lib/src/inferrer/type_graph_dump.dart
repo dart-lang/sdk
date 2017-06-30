@@ -62,8 +62,8 @@ class TypeGraphDump {
   /// Dumps the entire graph.
   void afterAnalysis() {
     // Group all the type nodes by their context member.
-    Map<Element, List<TypeInformation>> nodes =
-        <Element, List<TypeInformation>>{};
+    Map<MemberElement, List<TypeInformation>> nodes =
+        <MemberElement, List<TypeInformation>>{};
     for (TypeInformation node in inferrer.types.allTypes) {
       if (node.contextMember != null) {
         nodes
@@ -72,7 +72,7 @@ class TypeGraphDump {
       }
     }
     // Print every group separately.
-    for (Element element in nodes.keys) {
+    for (MemberElement element in nodes.keys) {
       OutputSink output;
       try {
         String name = filenameFromElement(element);
@@ -149,18 +149,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   int usedIds = 0;
   final OutputSink output;
-  final Element element;
+  final MemberElement element;
   TypeInformation returnValue;
 
   _GraphGenerator(this.global, this.element, this.output) {
-    if (element.isParameter) {
-      returnValue = global.inferrer.types.getInferredTypeOfParameter(element);
-    } else if (element.isLocal) {
-      returnValue =
-          global.inferrer.types.getInferredTypeOfLocalFunction(element);
-    } else {
-      returnValue = global.inferrer.types.getInferredTypeOfMember(element);
-    }
+    returnValue = global.inferrer.types.getInferredTypeOfMember(element);
     getNode(returnValue); // Ensure return value is part of graph.
     append('digraph {');
   }

@@ -69,12 +69,6 @@ class TypeGraphInferrer implements TypesInferrer {
     inferrer.runOverAllElements();
   }
 
-  @deprecated
-  TypeMask getReturnTypeOfLocalFunction(LocalFunctionElement element) {
-    if (compiler.disableTypeInference) return _dynamicType;
-    return inferrer.types.getInferredTypeOfLocalFunction(element).type;
-  }
-
   TypeMask getReturnTypeOfMember(MemberElement element) {
     if (compiler.disableTypeInference) return _dynamicType;
     // Currently, closure calls return dynamic.
@@ -85,12 +79,6 @@ class TypeGraphInferrer implements TypesInferrer {
   TypeMask getReturnTypeOfParameter(ParameterElement element) {
     if (compiler.disableTypeInference) return _dynamicType;
     return _dynamicType;
-  }
-
-  @deprecated
-  TypeMask getTypeOfLocalFunction(LocalFunctionElement element) {
-    if (compiler.disableTypeInference) return _dynamicType;
-    return commonMasks.functionType;
   }
 
   TypeMask getTypeOfMember(MemberElement element) {
@@ -154,14 +142,6 @@ class TypeGraphInferrer implements TypesInferrer {
           "Cannot query the type inferrer when type inference is disabled.");
     }
     return inferrer.getCallersOf(element);
-  }
-
-  @deprecated
-  bool isLocalFunctionCalledOnce(LocalFunctionElement element) {
-    if (compiler.disableTypeInference) return false;
-    MemberTypeInformation info =
-        inferrer.types.getInferredTypeOfLocalFunction(element);
-    return info.isCalledOnce();
   }
 
   bool isMemberCalledOnce(MemberElement element) {
