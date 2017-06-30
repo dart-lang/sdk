@@ -306,6 +306,7 @@ class Heap {
   // ensure thread-safety.
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
 
+
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread,
                               ApiCallbacks api_callbacks,
@@ -313,6 +314,7 @@ class Heap {
   void CollectOldSpaceGarbage(Thread* thread,
                               ApiCallbacks api_callbacks,
                               GCReason reason);
+  void EvacuateNewSpace(Thread* thread, GCReason reason);
 
   // GC stats collection.
   void RecordBeforeGC(Space space, GCReason reason);

@@ -365,6 +365,23 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 #endif
 
 
+void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
+  ASSERT(reason == kFull);
+  if (BeginNewSpaceGC(thread)) {
+    RecordBeforeGC(kNew, kFull);
+    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
+    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
+    new_space_.Evacuate();
+    NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
+    RecordAfterGC(kNew);
+    PrintStats();
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+    EndNewSpaceGC();
+  }
+}
+
+
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
@@ -373,7 +390,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
+    TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
     NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
     new_space_.Scavenge(invoke_api_callbacks);
     NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
@@ -444,7 +461,10 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
-  CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
+
+  // New space is evacuated so this GC will collect all dead objects
+  // kept alive by a cross-generational pointer.
+  EvacuateNewSpace(thread, kFull);
   CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
 }
 
