@@ -290,7 +290,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         PostfixCompletionProcessor processor =
             new PostfixCompletionProcessor(context);
         PostfixCompletion completion = await processor.compute();
-        change = completion.change;
+        change = completion?.change;
       }
     }
     if (change == null) {
