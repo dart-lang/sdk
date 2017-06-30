@@ -660,9 +660,9 @@ template("dart_executable") {
     if (is_win) {
       ldflags = [ "/EXPORT:Dart_True" ]
     } else {
-      if (dart_runtime_mode != "release") {
-        ldflags = [ "-rdynamic" ]
-      }
+      # Adds all symbols to the dynamic symbol table, not just used ones.
+      # This is needed to make native extensions work.
+      ldflags = [ "-rdynamic" ]
     }
 
     if (is_win) {
