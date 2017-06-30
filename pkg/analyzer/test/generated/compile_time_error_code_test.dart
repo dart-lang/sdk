@@ -6002,6 +6002,23 @@ f() sync* {
     verify([source]);
   }
 
+  test_deferredImportWithInvalidUri() async {
+    Source source = addSource(r'''
+import '[invalid uri]' deferred as p;
+main() {
+  p.loadLibrary();
+}''');
+    await computeAnalysisResult(source);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        StaticWarningCode.UNDEFINED_IDENTIFIER
+      ]);
+    }
+  }
+
   test_sharedDeferredPrefix() async {
     await resolveWithErrors(<String>[
       r'''
