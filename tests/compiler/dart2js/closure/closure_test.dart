@@ -129,7 +129,7 @@ class ClosureIrChecker extends AbstractIrComputer {
 /// Compute a string representation of the data stored for [local] in [info].
 String computeLocalValue(ClosureRepresentationInfo info, Local local) {
   StringBuffer sb = new StringBuffer();
-  if (info.variableIsUsedInTryOrSync(local)) {
+  if (info.localIsUsedInTryOrSync(local)) {
     sb.write('inTry');
   }
   // TODO(johnniwinther,efortuna): Add more info (captured, boxed etc.).

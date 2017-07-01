@@ -774,6 +774,9 @@ class KernelToElementMapImpl extends KernelToElementMapForImpactImpl
 
   ir.Class getKernelClass(KClass entity) => _classEnvs[entity.classIndex].cls;
 
+  ir.Member getKernelMember(KMember entity) =>
+      _memberList[entity.memberIndex].node;
+
   bool hasConstantFieldInitializer(covariant KField field) {
     _FieldData data = _memberList[field.memberIndex];
     return getFieldConstantValue(data.node) != null;
@@ -1830,7 +1833,10 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   @override
   Local getLocalFunction(ir.TreeNode node) {
-    throw new UnsupportedError("JsKernelToElementMap.getLocalFunction");
+    // TODO(efortuna, johnniwinther): This function should not be called once
+    // the K + J element situation has been properly sorted out. Ultimately this
+    // should throw.
+    return _elementMap.getLocalFunction(node);
   }
 
   @override
