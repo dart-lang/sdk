@@ -431,49 +431,57 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getImportedElements" experimental="true">
     <p>
-      Return the transitive closure of reachable sources for a given file.
+      Return a description of all of the elements referenced in a given region
+      of a given file that come from imported libraries.
     </p>
     <p>
-      If a request is made for a file which does not exist, or
-      which is not currently subject to analysis (e.g. because it
-      is not associated with any analysis root specified to
-      analysis.setAnalysisRoots), an error of type
-      <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+      If a request is made for a file that does not exist, or that is not
+      currently subject to analysis (e.g. because it is not associated with any
+      analysis root specified via analysis.setAnalysisRoots), an error of type
+      <tt>GET_IMPORTED_ELEMENTS_INVALID_FILE</tt> will be generated.
     </p>
     <params>
       <field name="file">
         <ref>FilePath</ref>
         <p>
-          The file for which reachable source information is being requested.
+          The file in which import information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region for which import information is being
+          requested.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region for which import information is being
+          requested.
         </p>
       </field>
     </params>
     <result>
-      <field name="sources">
-        <map>
-          <key>
-            <ref>String</ref>
-          </key>
-          <value>
-            <list>
-              <ref>String</ref>
-            </list>
-          </value>
-        </map>
+      <field name="elements">
+        <list>
+          <ref>ImportedElements</ref>
+        </list>
         <p>
-          A mapping from source URIs to directly reachable source URIs. For
-          example,
-          a file "foo.dart" that imports "bar.dart" would have the corresponding
-          mapping
-          { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
-          further imports
-          (or exports) there will be a mapping from the URI "file:///bar.dart"
-          to them.
-          To check if a specific URI is reachable from a given file, clients can
-          check
-          for its presence in the resulting key set.
+          The information about the elements that are referenced in the
+          specified region of the specified file that come from imported
+          libraries.
+        </p>
+      </field>
+      <field name="complete">
+        <ref>bool</ref>
+        <p>
+          True if all of the elements that are referenced in the specified
+          region are included in the list of elements. The list of elements will
+          be incomplete if there is an error in the specified region that
+          prevents an identifier from being resolved to a single element.
         </p>
       </field>
     </result>
@@ -597,6 +605,53 @@
         <p>
           A list of the navigation regions within the requested region of
           the file.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getReachableSources">
+    <p>
+      Return the transitive closure of reachable sources for a given file.
+    </p>
+    <p>
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file for which reachable source information is being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="sources">
+        <map>
+          <key>
+            <ref>String</ref>
+          </key>
+          <value>
+            <list>
+              <ref>String</ref>
+            </list>
+          </value>
+        </map>
+        <p>
+          A mapping from source URIs to directly reachable source URIs. For
+          example,
+          a file "foo.dart" that imports "bar.dart" would have the corresponding
+          mapping
+          { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
+          further imports
+          (or exports) there will be a mapping from the URI "file:///bar.dart"
+          to them.
+          To check if a specific URI is reachable from a given file, clients can
+          check
+          for its presence in the resulting key set.
         </p>
       </field>
     </result>
@@ -2022,6 +2077,50 @@
       </field>
     </result>
   </request>
+  <request method="importElements" experimental="true">
+    <p>
+      Return a list of edits that would need to be applied in order to ensure
+      that all of the elements in the specified list of imported elements are
+      accessible within the library.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which the specified elements are to be made accessible.
+        </p>
+      </field>
+      <field name="elements">
+        <list>
+          <ref>ImportedElements</ref>
+        </list>
+        <p>
+          The elements to be made accessible in the specified file.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="edits">
+        <list>
+          <ref>SourceEdit</ref>
+        </list>
+        <p>
+          The edit(s) to be applied in order to make the specified elements
+          accessible.
+        </p>
+      </field>
+      <field name="complete">
+        <ref>bool</ref>
+        <p>
+          True if all of the elements that are to be made accessible would be
+          accessible if the edits were applied. The edits will not be complete,
+          for example, if one of the libraries cannot be referenced in the
+          target library or if one of the element names is already imported from
+          a different library.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="sortMembers">
     <p>
       Sort all of the directives, unit and class members
@@ -2802,6 +2901,42 @@
       </field>
     </object>
   </type>
+  <type name="ImportedElements">
+    <p>
+      A description of the elements that are referenced in a region of a file
+      that come from a single imported library.
+    </p>
+    <object>
+      <field name="path">
+        <ref>FilePath</ref>
+        <p>
+          The absolute and normalized path of the file containing the library.
+        </p>
+      </field>
+      <field name="uri">
+        <ref>String</ref>
+        <p>
+          The URI that was used when importing the library into the original
+          source.
+        </p>
+      </field>
+      <field name="prefix">
+        <ref>String</ref>
+        <p>
+          The prefix that was used when importing the library into the original
+          source.
+        </p>
+      </field>
+      <field name="elements">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The names of the elements imported from the library.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="Override">
     <p>
       A description of a member that overrides an inherited member.
@@ -2988,6 +3123,13 @@
           An "analysis.getErrors" request specified a FilePath
           which does not match a file currently subject to
           analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_IMPORTED_ELEMENTS_INVALID_FILE</code>
+        <p>
+          An "analysis.getImportedElements" request specified a FilePath that
+          does not match a file currently subject to analysis.
         </p>
       </value>
       <value>
