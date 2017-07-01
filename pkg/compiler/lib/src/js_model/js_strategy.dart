@@ -139,7 +139,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   @override
   ClosureConversionTask get closureDataLookup =>
       _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, elementMap, _map, _globalLocalsMap);
+          _compiler.measurer, elementMap, _globalLocalsMap);
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>

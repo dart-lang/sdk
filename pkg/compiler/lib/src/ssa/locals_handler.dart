@@ -178,20 +178,21 @@ class LocalsHandler {
 
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
-  void updateCaptureBox(Local currentBox, List<Local> toBeCopiedElements) {
+  void updateCaptureBox(LoopClosureScope loopInfo) {
+    Local boxElement = loopInfo.context;
     // Create a new box and copy over the values from the old box into the
     // new one.
-    HInstruction oldBox = readLocal(currentBox);
+    HInstruction oldBox = readLocal(boxElement);
     HInstruction newBox = createBox();
-    for (Local boxedVariable in toBeCopiedElements) {
-      // [readLocal] uses the [currentBox] to find its box. By replacing it
+    loopInfo.forEachBoxedVariable((Local boxedVariable, _) {
+      // [readLocal] uses the [boxElement] to find its box. By replacing it
       // behind its back we can still get to the old values.
-      updateLocal(currentBox, oldBox);
+      updateLocal(boxElement, oldBox);
       HInstruction oldValue = readLocal(boxedVariable);
-      updateLocal(currentBox, newBox);
+      updateLocal(boxElement, newBox);
       updateLocal(boxedVariable, oldValue);
-    }
-    updateLocal(currentBox, newBox);
+    });
+    updateLocal(boxElement, newBox);
   }
 
   /// Documentation wanted -- johnniwinther
@@ -294,7 +295,7 @@ class LocalsHandler {
   bool isAccessedDirectly(Local local) {
     assert(local != null);
     return !redirectionMapping.containsKey(local) &&
-        !scopeInfo.localIsUsedInTryOrSync(local);
+        !scopeInfo.variableIsUsedInTryOrSync(local);
   }
 
   bool isStoredInClosureField(Local local) {
@@ -313,7 +314,7 @@ class LocalsHandler {
   }
 
   bool _isUsedInTryOrGenerator(Local local) {
-    return scopeInfo.localIsUsedInTryOrSync(local);
+    return scopeInfo.variableIsUsedInTryOrSync(local);
   }
 
   /// Returns an [HInstruction] for the given element. If the element is
@@ -477,7 +478,7 @@ class LocalsHandler {
   ///    goto loop-entry;
   ///  loop-exit:
   void startLoop(LoopClosureScope loopInfo) {
-    if (loopInfo.hasBoxedLoopVariables) {
+    if (loopInfo.hasBoxedVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
       // values into the box.
@@ -512,7 +513,7 @@ class LocalsHandler {
   void enterLoopBody(LoopClosureScope loopInfo) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
-    if (!loopInfo.hasBoxedLoopVariables) {
+    if (!loopInfo.hasBoxedVariables) {
       enterScope(loopInfo);
     }
   }
@@ -523,8 +524,8 @@ class LocalsHandler {
     // updates.
     // In all other cases a new box will be created when entering the body of
     // the next iteration.
-    if (loopInfo.hasBoxedLoopVariables) {
-      updateCaptureBox(loopInfo.context, loopInfo.boxedLoopVariables);
+    if (loopInfo.hasBoxedVariables) {
+      updateCaptureBox(loopInfo);
     }
   }
 
