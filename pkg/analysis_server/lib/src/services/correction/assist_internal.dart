@@ -221,26 +221,26 @@ class AssistProcessor {
       return;
     }
     _configureTargetLocation(node);
-    Set<Source> librariesToImport = new Set<Source>();
-    String typeSource = utils.getTypeSource(type, librariesToImport);
-    if (typeSource == null) {
-      // The type source might be null if the type is private.
-      _coverageMarker();
-      return;
-    }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
+    bool validChange = true;
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       Token keyword = declaredIdentifier.keyword;
       if (keyword.keyword == Keyword.VAR) {
-        builder.addSimpleReplacement(range.token(keyword), typeSource);
+        builder.addReplacement(range.token(keyword), (DartEditBuilder builder) {
+          validChange = builder.writeType(type);
+        });
       } else {
-        builder.addSimpleInsertion(
-            declaredIdentifier.identifier.offset, '$typeSource ');
+        builder.addInsertion(declaredIdentifier.identifier.offset,
+            (DartEditBuilder builder) {
+          validChange = builder.writeType(type);
+          builder.write(' ');
+        });
       }
-      builder.importLibraries(librariesToImport);
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
+    if (validChange) {
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
+    }
   }
 
   Future<Null> _addProposal_addTypeAnnotation_SimpleFormalParameter() async {
@@ -269,20 +269,18 @@ class AssistProcessor {
     }
     // prepare type source
     _configureTargetLocation(node);
-    Set<Source> librariesToImport = new Set<Source>();
-    String typeSource = utils.getTypeSource(type, librariesToImport);
-    // type source might be null, if the type is private
-    if (typeSource == null) {
-      _coverageMarker();
-      return;
-    }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
+    bool validChange = true;
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(name.offset, '$typeSource ');
-      builder.importLibraries(librariesToImport);
+      builder.addInsertion(name.offset, (DartEditBuilder builder) {
+        validChange = builder.writeType(type);
+        builder.write(' ');
+      });
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
+    if (validChange) {
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
+    }
   }
 
   Future<Null> _addProposal_addTypeAnnotation_VariableDeclaration() async {
@@ -325,42 +323,25 @@ class AssistProcessor {
       return;
     }
     _configureTargetLocation(node);
-    Set<Source> librariesToImport = new Set<Source>();
-    String typeSource = utils.getTypeSource(type, librariesToImport);
-    // type source might be null, if the type is private
-    if (typeSource == null) {
-      _coverageMarker();
-      return;
-    }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-    if (unitLibraryFile == file) {
-      // TODO(brianwilkerson) Make ChangeBuilder merge multiple edits to the
-      // same file so that only the else block is necessary.
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        Token keyword = declarationList.keyword;
-        if (keyword?.keyword == Keyword.VAR) {
-          builder.addSimpleReplacement(range.token(keyword), typeSource);
-        } else {
-          builder.addSimpleInsertion(variable.offset, '$typeSource ');
-        }
-        builder.importLibraries(librariesToImport);
-      });
-    } else {
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        Token keyword = declarationList.keyword;
-        if (keyword?.keyword == Keyword.VAR) {
-          builder.addSimpleReplacement(range.token(keyword), typeSource);
-        } else {
-          builder.addSimpleInsertion(variable.offset, '$typeSource ');
-        }
-      });
-      await changeBuilder.addFileEdit(unitLibraryFile,
-          (DartFileEditBuilder builder) {
-        builder.importLibraries(librariesToImport);
-      });
+    bool validChange = true;
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      Token keyword = declarationList.keyword;
+      if (keyword?.keyword == Keyword.VAR) {
+        builder.addReplacement(range.token(keyword), (DartEditBuilder builder) {
+          validChange = builder.writeType(type);
+        });
+      } else {
+        builder.addInsertion(variable.offset, (DartEditBuilder builder) {
+          validChange = builder.writeType(type);
+          builder.write(' ');
+        });
+      }
+    });
+    if (validChange) {
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
     }
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
   Future<Null> _addProposal_assignToLocalVariable() async {
@@ -1091,8 +1072,6 @@ class AssistProcessor {
       String name = (node as SimpleIdentifier).name;
       // prepare type
       DartType type = parameterElement.type;
-      Set<Source> librariesToImport = new Set<Source>();
-      String typeCode = utils.getTypeSource(type, librariesToImport);
 
       DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1100,8 +1079,12 @@ class AssistProcessor {
         if (type.isDynamic) {
           builder.addSimpleReplacement(range.node(parameter), name);
         } else {
-          builder.addSimpleReplacement(
-              range.node(parameter), '$typeCode $name');
+          builder.addReplacement(range.node(parameter),
+              (DartEditBuilder builder) {
+            builder.writeType(type);
+            builder.write(' ');
+            builder.write(name);
+          });
         }
         // add field initializer
         List<ConstructorInitializer> initializers = constructor.initializers;

@@ -226,6 +226,8 @@ abstract class DartEditBuilder implements EditBuilder {
    * If a [methodBeingCopied] is provided, then type parameters defined by that
    * method are assumed to be part of what is being written and hence valid
    * types.
+   *
+   * Return `true` if some text was written.
    */
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,

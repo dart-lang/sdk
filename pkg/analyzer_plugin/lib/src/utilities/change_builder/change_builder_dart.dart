@@ -486,7 +486,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String typeSource = _getTypeSource(
           type, finder.enclosingClass, finder.enclosingExecutable,
           methodBeingCopied: methodBeingCopied);
-      if (typeSource != 'dynamic') {
+      if (typeSource.isNotEmpty && typeSource != 'dynamic') {
         if (groupName != null) {
           addLinkedEdit(groupName, (LinkedEditBuilder builder) {
             write(typeSource);
@@ -957,6 +957,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           parameterParent == enclosingClass ||
           parameterParent == methodBeingCopied;
     }
+    Element element = type.element;
+    if (element == null) {
+      return true;
+    }
+    LibraryElement definingLibrary = element.library;
+    LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
+    if (definingLibrary != null && definingLibrary != importingLibrary) {
+      if (element.isPrivate) {
+        return false;
+      }
+    }
     return true;
   }
 }
@@ -1015,8 +1026,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    _addLibraryImports(
-        changeBuilder.sourceChange, unit.element.library, librariesToImport);
+    CompilationUnitElement unitElement = unit.element;
+    LibraryElement libraryElement = unitElement.library;
+    CompilationUnitElement definingUnitElement =
+        libraryElement.definingCompilationUnit;
+    if (definingUnitElement == unitElement) {
+      _addLibraryImports(libraryElement, librariesToImport);
+    } else {
+      (changeBuilder as DartChangeBuilder).addFileEdit(
+          definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
+        (builder as DartFileEditBuilderImpl)
+            ._addLibraryImports(libraryElement, librariesToImport);
+      });
+    }
   }
 
   @override
@@ -1051,11 +1073,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Adds edits to the given [change] that ensure that all the [libraries] are
-   * imported into the given [targetLibrary].
+   * Adds edits ensure that all the [libraries] are imported into the given
+   * [targetLibrary].
    */
-  void _addLibraryImports(SourceChange change, LibraryElement targetLibrary,
-      Set<Source> libraries) {
+  void _addLibraryImports(LibraryElement targetLibrary, Set<Source> libraries) {
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];

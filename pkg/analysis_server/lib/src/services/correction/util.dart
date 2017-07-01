@@ -710,17 +710,6 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns an [Edit] that changes indentation of the source of the given
-   * [SourceRange] from [oldIndent] to [newIndent], keeping indentation of lines
-   * relative to each other.
-   */
-  SourceEdit createIndentEdit(
-      SourceRange range, String oldIndent, String newIndent) {
-    String newSource = replaceSourceRangeIndent(range, oldIndent, newIndent);
-    return new SourceEdit(range.offset, range.length, newSource);
-  }
-
-  /**
    * Returns the [AstNode] that encloses the given offset.
    */
   AstNode findNode(int offset) => new NodeLocator(offset).searchWithin(unit);
@@ -743,80 +732,9 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns the actual type source of the given [Expression], may be `null`
-   * if can not be resolved, should be treated as the `dynamic` type.
-   */
-  String getExpressionTypeSource(
-      Expression expression, Set<Source> librariesToImport) {
-    if (expression == null) {
-      return null;
-    }
-    DartType type = expression.bestType;
-    if (type.isDynamic) {
-      return null;
-    }
-    return getTypeSource(type, librariesToImport);
-  }
-
-  /**
    * Returns the indentation with the given level.
    */
   String getIndent(int level) => repeat('  ', level);
-
-  /**
-   * Returns a [InsertDesc] describing where to insert a new library-related
-   * directive.
-   */
-  CorrectionUtils_InsertDesc getInsertDescImport() {
-    // analyze directives
-    Directive prevDirective = null;
-    for (Directive directive in unit.directives) {
-      if (directive is LibraryDirective ||
-          directive is ImportDirective ||
-          directive is ExportDirective) {
-        prevDirective = directive;
-      }
-    }
-    // insert after last library-related directive
-    if (prevDirective != null) {
-      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
-      result.offset = prevDirective.end;
-      String eol = endOfLine;
-      if (prevDirective is LibraryDirective) {
-        result.prefix = "$eol$eol";
-      } else {
-        result.prefix = eol;
-      }
-      return result;
-    }
-    // no directives, use "top" location
-    return getInsertDescTop();
-  }
-
-  /**
-   * Returns a [InsertDesc] describing where to insert a new 'part' directive.
-   */
-  CorrectionUtils_InsertDesc getInsertDescPart() {
-    // analyze directives
-    Directive prevDirective = null;
-    for (Directive directive in unit.directives) {
-      prevDirective = directive;
-    }
-    // insert after last directive
-    if (prevDirective != null) {
-      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
-      result.offset = prevDirective.end;
-      String eol = endOfLine;
-      if (prevDirective is PartDirective) {
-        result.prefix = eol;
-      } else {
-        result.prefix = "$eol$eol";
-      }
-      return result;
-    }
-    // no directives, use "top" location
-    return getInsertDescTop();
-  }
 
   /**
    * Returns a [InsertDesc] describing where to insert a new directive or a
@@ -1029,48 +947,6 @@ class CorrectionUtils {
    */
   String getNodeText(AstNode node) {
     return getText(node.offset, node.length);
-  }
-
-  /**
-   * @return the source for the parameter with the given type and name.
-   */
-  String getParameterSource(
-      DartType type, String name, Set<Source> librariesToImport) {
-    // no type
-    if (type == null || type.isDynamic) {
-      return name;
-    }
-    // function type
-    if (type is FunctionType && type.element.isSynthetic) {
-      FunctionType functionType = type;
-      StringBuffer sb = new StringBuffer();
-      // return type
-      DartType returnType = functionType.returnType;
-      if (returnType != null && !returnType.isDynamic) {
-        String returnTypeSource = getTypeSource(returnType, librariesToImport);
-        sb.write(returnTypeSource);
-        sb.write(' ');
-      }
-      // parameter name
-      sb.write(name);
-      // parameters
-      sb.write('(');
-      List<ParameterElement> fParameters = functionType.parameters;
-      for (int i = 0; i < fParameters.length; i++) {
-        ParameterElement fParameter = fParameters[i];
-        if (i != 0) {
-          sb.write(", ");
-        }
-        sb.write(getParameterSource(
-            fParameter.type, fParameter.name, librariesToImport));
-      }
-      sb.write(')');
-      // done
-      return sb.toString();
-    }
-    // simple type
-    String typeSource = getTypeSource(type, librariesToImport);
-    return '$typeSource $name';
   }
 
   /**
