@@ -82,6 +82,23 @@ public interface AnalysisServer {
   public void analysis_getHover(String file, int offset, GetHoverConsumer consumer);
 
   /**
+   * {@code analysis.getImportedElements}
+   *
+   * Return a description of all of the elements referenced in a given region of a given file that
+   * come from imported libraries.
+   *
+   * If a request is made for a file that does not exist, or that is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified via
+   * analysis.setAnalysisRoots), an error of type GET_IMPORTED_ELEMENTS_INVALID_FILE will be
+   * generated.
+   *
+   * @param file The file in which import information is being requested.
+   * @param offset The offset of the region for which import information is being requested.
+   * @param length The length of the region for which import information is being requested.
+   */
+  public void analysis_getImportedElements(String file, int offset, int length, GetImportedElementsConsumer consumer);
+
+  /**
    * {@code analysis.getLibraryDependencies}
    *
    * Return library dependency information for use in client-side indexing and package URI
@@ -478,6 +495,17 @@ public interface AnalysisServer {
    * @param offset The offset used to identify the statement to be completed.
    */
   public void edit_getStatementCompletion(String file, int offset, GetStatementCompletionConsumer consumer);
+
+  /**
+   * {@code edit.importElements}
+   *
+   * Return a list of edits that would need to be applied in order to ensure that all of the elements
+   * in the specified list of imported elements are accessible within the library.
+   *
+   * @param file The file in which the specified elements are to be made accessible.
+   * @param elements The elements to be made accessible in the specified file.
+   */
+  public void edit_importElements(String file, List<ImportedElements> elements, ImportElementsConsumer consumer);
 
   /**
    * {@code edit.isPostfixCompletionApplicable}
