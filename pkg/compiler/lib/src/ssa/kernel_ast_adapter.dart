@@ -87,6 +87,10 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     _typeConverter = new DartTypeConverter(this);
   }
 
+  void addProgram(ir.Program node) {
+    throw new UnsupportedError('KernelAstAdapter.addProgram');
+  }
+
   @override
   ConstantValue computeConstantValue(ConstantExpression constant,
       {bool requireConstant: true}) {
@@ -137,6 +141,10 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     }
     assert(target != null);
     return target;
+  }
+
+  ir.Node getClassNode(ClassElement cls) {
+    throw new UnsupportedError('KernelAstAdapter.getClassNode');
   }
 
   @override

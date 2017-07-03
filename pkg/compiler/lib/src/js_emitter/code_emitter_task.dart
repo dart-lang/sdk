@@ -43,8 +43,6 @@ class CodeEmitterTask extends CompilerTask {
   Emitter _emitter;
   final Compiler compiler;
 
-  ProgramBuilder programForTesting;
-
   /// The [Sorter] use for ordering elements in the generated JavaScript.
   final Sorter sorter;
 

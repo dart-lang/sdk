@@ -6,7 +6,7 @@
 part of dart2js.kernel.element_map;
 
 class KernelAnnotationProcessor implements AnnotationProcessor {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMapForImpactImpl2 elementMap;
 
   KernelAnnotationProcessor(this.elementMap);
 

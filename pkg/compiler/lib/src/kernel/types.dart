@@ -6,7 +6,7 @@ part of dart2js.kernel.element_map;
 
 /// Support for subtype checks of kernel based [DartType]s.
 class _KernelDartTypes extends DartTypes {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMapBase elementMap;
   final SubtypeVisitor<DartType> subtypeVisitor;
   final PotentialSubtypeVisitor<DartType> potentialSubtypeVisitor;
 
@@ -79,7 +79,7 @@ class _KernelDartTypes extends DartTypes {
 }
 
 class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMapBase elementMap;
 
   _KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls)
       : super(cls,
@@ -105,7 +105,7 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
 
 abstract class _AbstractTypeRelationMixin
     implements AbstractTypeRelation<DartType> {
-  KernelToElementMapImpl get elementMap;
+  KernelToElementMapBase get elementMap;
 
   @override
   CommonElements get commonElements => elementMap.commonElements;
@@ -130,14 +130,14 @@ abstract class _AbstractTypeRelationMixin
 
 class _KernelSubtypeVisitor extends SubtypeVisitor<DartType>
     with _AbstractTypeRelationMixin {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMapBase elementMap;
 
   _KernelSubtypeVisitor(this.elementMap);
 }
 
 class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor<DartType>
     with _AbstractTypeRelationMixin {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMapBase elementMap;
 
   _KernelPotentialSubtypeVisitor(this.elementMap);
 }

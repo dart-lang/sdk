@@ -192,7 +192,7 @@ abstract class Compiler {
         ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
-        ? new KernelBackendStrategyImpl(this)
+        ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
 

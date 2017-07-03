@@ -108,6 +108,12 @@ abstract class KernelToElementMap {
 /// Interface that translates between Kernel IR nodes and entities used for
 /// computing the [WorldImpact] for members.
 abstract class KernelToElementMapForImpact extends KernelToElementMap {
+  /// Adds libraries in [program] to the set of libraries.
+  ///
+  /// The main method of the first program is used as the main method for the
+  /// compilation.
+  void addProgram(ir.Program program);
+
   /// Returns the [ConstructorEntity] corresponding to a super initializer in
   /// [constructor].
   ///
@@ -160,6 +166,9 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Returns the kernel IR node that defines the [member].
   ir.Node getMemberNode(covariant MemberEntity member);
+
+  /// Returns the kernel IR node that defines the [cls].
+  ir.Class getClassNode(covariant ClassEntity cls);
 
   /// Returns the [LibraryEntity] corresponding to the library [node].
   LibraryEntity getLibrary(ir.Library node);

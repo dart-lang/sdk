@@ -7,6 +7,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
 import '../kernel/compiler_helper.dart';
@@ -19,6 +20,7 @@ main() {}
 };
 
 main(List<String> args) {
+  useJsStrategyForTesting = true;
   asyncTest(() async {
     await mainInternal(args);
   });

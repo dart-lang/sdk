@@ -20,6 +20,7 @@ import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/closure.dart';
+import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
@@ -37,10 +38,19 @@ import '../world.dart';
 import 'element_map_impl.dart';
 import 'kernel_strategy.dart';
 
+/// If `true` the [JsStrategy] is used as the backend strategy.
+bool useJsStrategyForTesting = false;
+
 /// A backend strategy based on Kernel IR nodes.
 abstract class KernelBackendStrategy implements BackendStrategy {
   KernelToElementMapForBuilding get elementMap;
   GlobalLocalsMap get globalLocalsMapForTesting;
+
+  factory KernelBackendStrategy(Compiler compiler) {
+    return useJsStrategyForTesting
+        ? new JsBackendStrategy(compiler)
+        : new KernelBackendStrategyImpl(compiler);
+  }
 }
 
 /// Backend strategy that uses the kernel elements as the backend model.
@@ -56,7 +66,8 @@ class KernelBackendStrategyImpl implements KernelBackendStrategy {
 
   KernelToElementMapForBuilding get elementMap {
     KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-    return frontendStrategy.elementMap;
+    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    return elementMap;
   }
 
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
@@ -267,7 +278,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 }
 
 class KernelSorter implements Sorter {
-  final KernelToElementMapImpl elementMap;
+  final KernelToElementMapForBuilding elementMap;
 
   KernelSorter(this.elementMap);
 

@@ -934,7 +934,7 @@ abstract class ResolutionWorldBuilderBase
 
 abstract class KernelResolutionWorldBuilderBase
     extends ResolutionWorldBuilderBase {
-  KernelToElementMapImpl get elementMap;
+  KernelToElementMapForImpactImpl get elementMap;
 
   KernelResolutionWorldBuilderBase(
       ElementEnvironment elementEnvironment,

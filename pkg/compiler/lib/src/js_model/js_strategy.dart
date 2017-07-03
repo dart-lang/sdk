@@ -40,13 +40,14 @@ class JsBackendStrategy implements KernelBackendStrategy {
   KernelToElementMapForBuilding _elementMap;
   ClosureConversionTask _closureDataLookup;
   final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
+  Sorter _sorter;
 
   JsBackendStrategy(this._compiler);
 
   KernelToElementMapForBuilding get elementMap {
     if (_elementMap == null) {
       KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
-      KernelToElementMapForBuilding elementMap = strategy.elementMap;
+      KernelToElementMapForImpact elementMap = strategy.elementMap;
       _elementMap = new JsKernelToElementMap(
           _compiler.reporter,
           _compiler.environment,
@@ -133,7 +134,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
 
   @override
   Sorter get sorter {
-    throw new UnimplementedError('JsBackendStrategy.sorter');
+    return _sorter ??= new KernelSorter(elementMap);
   }
 
   @override

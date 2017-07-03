@@ -33,18 +33,22 @@ import '../resolved_uri_translator.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
+import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'kernel_backend_strategy.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
 class KernelFrontEndStrategy implements FrontendStrategy {
-  KernelToElementMapImpl elementMap;
+  KernelToElementMapForImpactImpl _elementMap;
 
   KernelAnnotationProcessor _annotationProcesser;
 
   KernelFrontEndStrategy(
       DiagnosticReporter reporter, env.Environment environment)
-      : elementMap = new KernelToElementMapImpl(reporter, environment);
+      : _elementMap = useJsStrategyForTesting
+            ? new KernelToElementMapForImpactImpl2(reporter, environment)
+            : new KernelToElementMapImpl(reporter, environment);
 
   @override
   LibraryLoaderTask createLibraryLoader(
@@ -58,16 +62,18 @@ class KernelFrontEndStrategy implements FrontendStrategy {
       DiagnosticReporter reporter,
       Measurer measurer) {
     return new DillLibraryLoaderTask(
-        elementMap, uriTranslator, scriptLoader, reporter, measurer);
+        _elementMap, uriTranslator, scriptLoader, reporter, measurer);
   }
 
   @override
-  ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
+  ElementEnvironment get elementEnvironment => _elementMap.elementEnvironment;
 
   @override
-  CommonElements get commonElements => elementMap.commonElements;
+  CommonElements get commonElements => _elementMap.commonElements;
 
-  DartTypes get dartTypes => elementMap.types;
+  DartTypes get dartTypes => _elementMap.types;
+
+  KernelToElementMapForImpact get elementMap => _elementMap;
 
   @override
   AnnotationProcessor get annotationProcesser =>
@@ -75,7 +81,7 @@ class KernelFrontEndStrategy implements FrontendStrategy {
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
-    return new BaseNativeClassFinder(elementMap.elementEnvironment,
+    return new BaseNativeClassFinder(_elementMap.elementEnvironment,
         elementMap.commonElements, nativeBasicData);
   }
 
@@ -101,7 +107,7 @@ class KernelFrontEndStrategy implements FrontendStrategy {
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
     return new RuntimeTypesNeedBuilderImpl(
-        elementEnvironment, elementMap.types);
+        elementEnvironment, _elementMap.types);
   }
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
@@ -135,7 +141,7 @@ class KernelFrontEndStrategy implements FrontendStrategy {
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMapForImpactImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
 
@@ -152,7 +158,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
 }
 
 class KernelWorkItem implements ResolutionWorkItem {
-  final KernelToElementMapImpl _elementMap;
+  final KernelToElementMapForImpactImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
