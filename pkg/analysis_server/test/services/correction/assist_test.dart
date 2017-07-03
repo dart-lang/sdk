@@ -166,7 +166,6 @@ class A<T> {
     await assertNoAssistAt('var item', DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
-  @failingTest
   test_addTypeAnnotation_BAD_privateType_list() async {
     // This is now failing because we're suggesting "List" rather than nothing.
     // Is it really better to produce nothing?
@@ -184,7 +183,15 @@ main() {
   var v = getValues();
 }
 ''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+    await assertHasAssistAt(
+        'var ',
+        DartAssistKind.ADD_TYPE_ANNOTATION,
+        '''
+import 'my_lib.dart';
+main() {
+  List v = getValues();
+}
+''');
   }
 
   test_addTypeAnnotation_BAD_privateType_variable() async {
