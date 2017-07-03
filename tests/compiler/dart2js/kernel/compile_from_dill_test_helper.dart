@@ -25,12 +25,29 @@ import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../equivalence/check_functions.dart';
 import '../equivalence/check_helpers.dart';
+import '../serialization/helper.dart';
 import 'test_helpers.dart';
 
 import 'compiler_helper.dart';
 
-const SOURCE = const {
-  'main.dart': '''
+class Test {
+  final Uri uri;
+  final Map<String, String> sources;
+  final bool expectIdenticalOutput;
+
+  const Test(this.sources, {this.expectIdenticalOutput: true}) : uri = null;
+
+  Test.fromUri(this.uri, {this.expectIdenticalOutput: true})
+      : sources = const {};
+
+  Uri get entryPoint => uri ?? Uri.parse('memory:main.dart');
+
+  String toString() => uri != null ? '$uri' : sources.values.first;
+}
+
+const List<Test> TESTS = const <Test>[
+  const Test(const {
+    'main.dart': '''
 import 'dart:html';
 
 foo({named}) => 1;
@@ -87,9 +104,6 @@ main() {
     if (v == 7) break;
   }
   do {
-    // TODO(johnniwinther): Support js ast equivalence to handle label name
-    // mismatches. Enable the continue test:
-    //if (i == 5) continue;
     x = i;
     if (i == 7) break;
     i++;
@@ -110,7 +124,24 @@ main() {
   return x;
 }
 '''
-};
+  }),
+  const Test(const {
+    'main.dart': ''' 
+
+main() {
+  var x;
+  int i = 0;
+  do {
+    if (i == 5) continue;
+    x = i;
+    if (i == 7) break;
+    i++;
+  } while (i < 10);
+  print(x);
+} 
+'''
+  }, expectIdenticalOutput: false),
+];
 
 enum ResultKind { crashes, errors, warnings, success, failure }
 
@@ -120,12 +151,42 @@ const List<String> commonOptions = const <String>[
   Flags.enableAssertMessage
 ];
 
+Future runTests(List<String> args,
+    {bool skipWarnings: false,
+    bool skipErrors: false,
+    List<String> options: const <String>[]}) async {
+  Arguments arguments = new Arguments.from(args);
+  List<Test> tests;
+  if (arguments.uri != null) {
+    tests = <Test>[new Test.fromUri(arguments.uri)];
+  } else {
+    tests = TESTS;
+  }
+  for (Test test in tests) {
+    if (test.uri != null) {
+      print('--- running test uri ${test.uri} -------------------------------');
+    } else {
+      print(
+          '--- running test code -------------------------------------------');
+      print(test.sources.values.first);
+      print('----------------------------------------------------------------');
+    }
+    await runTest(test.entryPoint, test.sources,
+        verbose: arguments.verbose,
+        skipWarnings: skipWarnings,
+        skipErrors: skipErrors,
+        options: options,
+        expectIdenticalOutput: test.expectIdenticalOutput);
+  }
+}
+
 Future<ResultKind> runTest(
     Uri entryPoint, Map<String, String> memorySourceFiles,
     {bool skipWarnings: false,
     bool skipErrors: false,
     bool verbose: false,
-    List<String> options: const <String>[]}) async {
+    List<String> options: const <String>[],
+    bool expectIdenticalOutput: true}) async {
   enableDebugMode();
   EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
@@ -220,19 +281,24 @@ Future<ResultKind> runTest(
       },
       verbose: verbose);
 
-  print('--- checking output------- -----------------------------------------');
-  collector1.outputMap
-      .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
-    if (outputType == OutputType.sourceMap) {
-      // TODO(johnniwinther): Support source map from .dill.
-      return;
-    }
-    Map<String, BufferedOutputSink> map2 = collector2.outputMap[outputType];
-    checkSets(map1.keys, map2.keys, 'output', equality);
-    map1.forEach((String name, BufferedOutputSink output1) {
-      BufferedOutputSink output2 = map2[name];
-      Expect.stringEquals(output1.text, output2.text);
+  checkGeneratedCode(compiler1.backend, compiler2.backend,
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b));
+
+  if (expectIdenticalOutput) {
+    print('--- checking output------- ---------------------------------------');
+    collector1.outputMap
+        .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
+      if (outputType == OutputType.sourceMap) {
+        // TODO(johnniwinther): Support source map from .dill.
+        return;
+      }
+      Map<String, BufferedOutputSink> map2 = collector2.outputMap[outputType];
+      checkSets(map1.keys, map2.keys, 'output', equality);
+      map1.forEach((String name, BufferedOutputSink output1) {
+        BufferedOutputSink output2 = map2[name];
+        Expect.stringEquals(output1.text, output2.text);
+      });
     });
-  });
+  }
   return ResultKind.success;
 }
