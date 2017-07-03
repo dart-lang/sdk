@@ -1890,6 +1890,16 @@ void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Object_getHash(Assembler* assembler) {
+  UNREACHABLE();
+}
+
+
+void Intrinsifier::Object_setHash(Assembler* assembler) {
+  UNREACHABLE();
+}
+
+
 void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
   __ movl(EBX, Address(ESP, +1 * kWordSize));  // Index.

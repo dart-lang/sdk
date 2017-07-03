@@ -53,8 +53,6 @@ library dart:core:
     - toString
     - noSuchMethod
     - runtimeType
-    - dart.core::_getHash
-    - dart.core::_setHash
     - dart.core::_objectHashCode
     - dart.core::_identityHashCode
     - dart.core::_toString

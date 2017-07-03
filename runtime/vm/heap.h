@@ -33,7 +33,14 @@ class Heap {
     kCode,
   };
 
-  enum WeakSelector { kPeers = 0, kHashes, kObjectIds, kNumWeakSelectors };
+  enum WeakSelector {
+    kPeers = 0,
+#if !defined(HASH_IN_OBJECT_HEADER)
+    kHashes,
+#endif
+    kObjectIds,
+    kNumWeakSelectors
+  };
 
   enum ApiCallbacks { kIgnoreApiCallbacks, kInvokeApiCallbacks };
 
@@ -173,6 +180,7 @@ class Heap {
   }
   int64_t PeerCount() const;
 
+#if !defined(HASH_IN_OBJECT_HEADER)
   // Associate an identity hashCode with an object. An non-existent hashCode
   // is equal to 0.
   void SetHash(RawObject* raw_obj, intptr_t hash) {
@@ -181,6 +189,7 @@ class Heap {
   intptr_t GetHash(RawObject* raw_obj) const {
     return GetWeakEntry(raw_obj, kHashes);
   }
+#endif
   int64_t HashCount() const;
 
   // Associate an id with an object (used when serializing an object).

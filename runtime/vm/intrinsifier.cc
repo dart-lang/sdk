@@ -228,6 +228,17 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }
 
+#if !defined(HASH_IN_OBJECT_HEADER)
+  // These two are more complicated on 32 bit platforms, where the
+  // identity hash is not stored in the header of the object.  We
+  // therefore don't intrinsify them, falling back on the native C++
+  // implementations.
+  if (function.recognized_kind() == MethodRecognizer::kObject_getHash ||
+      function.recognized_kind() == MethodRecognizer::kObject_setHash) {
+    return false;
+  }
+#endif
+
 #define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
   case MethodRecognizer::k##enum_name:                                         \
     compiler->assembler()->Comment("Intrinsic");                               \

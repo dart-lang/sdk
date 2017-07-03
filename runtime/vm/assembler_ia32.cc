@@ -2643,7 +2643,7 @@ void Assembler::TryAllocate(const Class& cls,
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), temp_reg, space));
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
@@ -2690,7 +2690,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
         UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space));
 
     // Initialize the tags.
-    uword tags = 0;
+    uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
     movl(FieldAddress(instance, Object::tags_offset()), Immediate(tags));

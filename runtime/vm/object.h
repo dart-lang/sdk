@@ -245,9 +245,9 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
-  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
-    return AtomicOperations::CompareAndSwapWord(&raw()->ptr()->tags_, old_tags,
-                                                new_tags);
+  uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
+    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
+                                                  old_tags, new_tags);
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -434,13 +434,11 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
-    uword tags = obj->ptr()->tags_;
-    return tags >> 32;
+    return obj->ptr()->hash_;
   }
 
-  static void SetCachedHash(RawObject* obj, uintptr_t hash) {
-    ASSERT(hash >> 32 == 0);
-    obj->ptr()->tags_ |= hash << 32;
+  static void SetCachedHash(RawObject* obj, uint32_t hash) {
+    obj->ptr()->hash_ = hash;
   }
 #endif
 
@@ -6844,16 +6842,14 @@ class String : public Instance {
     return result;
   }
 
+  static intptr_t Hash(RawString* raw);
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return GetCachedHash(raw()) != 0;
   }
 
-#if defined(HASH_IN_OBJECT_HEADER)
-  static intptr_t hash_offset() { return kInt32Size; }  // Wrong for big-endian?
-#else
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
-#endif
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);

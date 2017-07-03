@@ -1330,7 +1330,7 @@ class CodeLookupTableBuilder : public ObjectVisitor {
   ~CodeLookupTableBuilder() {}
 
   void VisitObject(RawObject* raw_obj) {
-    uword tags = raw_obj->ptr()->tags_;
+    uint32_t tags = raw_obj->ptr()->tags_;
     if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
       RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
       const Code& code = Code::Handle(raw_code);

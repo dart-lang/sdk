@@ -271,6 +271,10 @@ class RawObject {
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
+#if defined(HASH_IN_OBJECT_HEADER)
+    kHashTagPos = kClassIdTagPos + kClassIdTagSize,  // = 32
+    kHashTagSize = 16,
+#endif
   };
 
   COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
@@ -296,7 +300,7 @@ class RawObject {
    private:
     // The actual unscaled bit field used within the tag field.
     class SizeBits
-        : public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
+        : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
       ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -308,7 +312,7 @@ class RawObject {
   };
 
   class ClassIdTag
-      : public BitField<uword, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
+      : public BitField<uint32_t, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
 
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
@@ -352,7 +356,7 @@ class RawObject {
   }
   void SetMarkBitUnsynchronized() {
     ASSERT(!IsMarked());
-    uword tags = ptr()->tags_;
+    uint32_t tags = ptr()->tags_;
     ptr()->tags_ = MarkBit::update(true, tags);
   }
   void ClearMarkBit() {
@@ -378,12 +382,12 @@ class RawObject {
   }
   void SetRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
-    uword tags = ptr()->tags_;
+    uint32_t tags = ptr()->tags_;
     ptr()->tags_ = RememberedBit::update(true, tags);
   }
   void ClearRememberedBit() { UpdateTagBit<RememberedBit>(false); }
   void ClearRememberedBitUnsynchronized() {
-    uword tags = ptr()->tags_;
+    uint32_t tags = ptr()->tags_;
     ptr()->tags_ = RememberedBit::update(false, tags);
   }
   // Returns false if the bit was already set.
@@ -409,6 +413,7 @@ class RawObject {
 #undef DEFINE_IS_CID
 
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
+  bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
     return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
   }
@@ -423,7 +428,7 @@ class RawObject {
   }
 
   intptr_t Size() const {
-    uword tags = ptr()->tags_;
+    uint32_t tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
 #if defined(DEBUG)
@@ -533,18 +538,25 @@ class RawObject {
   static intptr_t NumberOfTypedDataClasses();
 
  private:
-  uword tags_;  // Various object tags (bits).
+  uint32_t tags_;  // Various object tags (bits).
+#if defined(HASH_IN_OBJECT_HEADER)
+  // On 64 bit there is a hash field in the header for the identity hash.
+  uint32_t hash_;
+#endif
 
-  class MarkBit : public BitField<uword, bool, kMarkBit, 1> {};
+  class MarkBit : public BitField<uint32_t, bool, kMarkBit, 1> {};
 
-  class RememberedBit : public BitField<uword, bool, kRememberedBit, 1> {};
+  class RememberedBit : public BitField<uint32_t, bool, kRememberedBit, 1> {};
 
-  class CanonicalObjectTag : public BitField<uword, bool, kCanonicalBit, 1> {};
+  class CanonicalObjectTag : public BitField<uint32_t, bool, kCanonicalBit, 1> {
+  };
 
-  class VMHeapObjectTag : public BitField<uword, bool, kVMHeapObjectBit, 1> {};
+  class VMHeapObjectTag : public BitField<uint32_t, bool, kVMHeapObjectBit, 1> {
+  };
 
   class ReservedBits
-      : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
+      : public BitField<uint32_t, intptr_t, kReservedTagPos, kReservedTagSize> {
+  };
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   RawObject* ptr() const {
@@ -559,37 +571,37 @@ class RawObject {
   intptr_t SizeFromClass() const;
 
   intptr_t GetClassId() const {
-    uword tags = ptr()->tags_;
+    uint32_t tags = ptr()->tags_;
     return ClassIdTag::decode(tags);
   }
 
   void SetClassId(intptr_t new_cid) {
-    uword tags = ptr()->tags_;
+    uint32_t tags = ptr()->tags_;
     ptr()->tags_ = ClassIdTag::update(new_cid, tags);
   }
 
   template <class TagBitField>
   void UpdateTagBit(bool value) {
-    uword tags = ptr()->tags_;
-    uword old_tags;
+    uint32_t tags = ptr()->tags_;
+    uint32_t old_tags;
     do {
       old_tags = tags;
-      uword new_tags = TagBitField::update(value, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(&ptr()->tags_, old_tags,
-                                                  new_tags);
+      uint32_t new_tags = TagBitField::update(value, old_tags);
+      tags = AtomicOperations::CompareAndSwapUint32(&ptr()->tags_, old_tags,
+                                                    new_tags);
     } while (tags != old_tags);
   }
 
   template <class TagBitField>
   bool TryAcquireTagBit() {
-    uword tags = ptr()->tags_;
-    uword old_tags;
+    uint32_t tags = ptr()->tags_;
+    uint32_t old_tags;
     do {
       old_tags = tags;
       if (TagBitField::decode(tags)) return false;
-      uword new_tags = TagBitField::update(true, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(&ptr()->tags_, old_tags,
-                                                  new_tags);
+      uint32_t new_tags = TagBitField::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapUint32(&ptr()->tags_, old_tags,
+                                                    new_tags);
     } while (tags != old_tags);
     return true;
   }
@@ -1319,7 +1331,10 @@ class RawPcDescriptors : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
-  int32_t length_;  // Number of descriptors.
+  // Number of descriptors.  This only needs to be an int32_t, but we make it a
+  // uword so that the variable length data is 64 bit aligned on 64 bit
+  // platforms.
+  uword length_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
@@ -1335,7 +1350,9 @@ class RawCodeSourceMap : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
 
-  int32_t length_;  // Length in bytes.
+  // Length in bytes.  This only needs to be an int32_t, but we make it a uword
+  // so that the variable length data is 64 bit aligned on 64 bit platforms.
+  uword length_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
@@ -1362,8 +1379,9 @@ class RawStackMap : public RawObject {
   int32_t slow_path_bit_count_;  // Slow path live values, included in length_.
 
   // Offset from code entry point corresponding to this stack map
-  // representation.
-  uint32_t pc_offset_;
+  // representation. This only needs to be an int32_t, but we make it a uword
+  // so that the variable length data is 64 bit aligned on 64 bit platforms.
+  uword pc_offset_;
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1417,7 +1435,10 @@ class RawLocalVarDescriptors : public RawObject {
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
-  int32_t num_entries_;  // Number of descriptors.
+  // Number of descriptors. This only needs to be an int32_t, but we make it a
+  // uword so that the variable length data is 64 bit aligned on 64 bit
+  // platforms.
+  uword num_entries_;
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->names()[0]);
@@ -1925,8 +1946,9 @@ class RawOneByteString : public RawString {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class ApiMessageReader;
-  friend class SnapshotReader;
   friend class RODataSerializationCluster;
+  friend class SnapshotReader;
+  friend class String;
 };
 
 
@@ -1937,8 +1959,9 @@ class RawTwoByteString : public RawString {
   uint16_t* data() { OPEN_ARRAY_START(uint16_t, uint16_t); }
   const uint16_t* data() const { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
-  friend class SnapshotReader;
   friend class RODataSerializationCluster;
+  friend class SnapshotReader;
+  friend class String;
 };
 
 
@@ -1974,6 +1997,7 @@ class RawExternalOneByteString : public RawString {
  private:
   ExternalData* external_data_;
   friend class Api;
+  friend class String;
 };
 
 
@@ -1986,6 +2010,7 @@ class RawExternalTwoByteString : public RawString {
  private:
   ExternalData* external_data_;
   friend class Api;
+  friend class String;
 };
 
 

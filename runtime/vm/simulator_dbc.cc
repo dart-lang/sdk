@@ -322,6 +322,7 @@ class SimulatorHelpers {
       uword tags = 0;
       tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
       tags = RawObject::SizeTag::update(instance_size, tags);
+      // Also writes zero in the hash_ field.
       *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
       *reinterpret_cast<double*>(start + Double::value_offset()) = value;
       return reinterpret_cast<RawObject*>(start + kHeapObjectTag);
@@ -2889,9 +2890,10 @@ RawObject* Simulator::Call(const Code& code,
     const intptr_t instance_size = Context::InstanceSize(num_context_variables);
     const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
     if (LIKELY(start != 0)) {
-      uword tags = 0;
+      uint32_t tags = 0;
       tags = RawObject::ClassIdTag::update(kContextCid, tags);
       tags = RawObject::SizeTag::update(instance_size, tags);
+      // Also writes 0 in the hash_ field of the header.
       *reinterpret_cast<uword*>(start + Array::tags_offset()) = tags;
       *reinterpret_cast<uword*>(start + Context::num_variables_offset()) =
           num_context_variables;
@@ -2932,6 +2934,7 @@ RawObject* Simulator::Call(const Code& code,
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
     const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
     if (LIKELY(start != 0)) {
+      // Writes both the tags and the initial identity hash on 64 bit platforms.
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size; current_offset += kWordSize) {
@@ -2963,6 +2966,7 @@ RawObject* Simulator::Call(const Code& code,
     if (LIKELY(start != 0)) {
       RawObject* type_args = SP[0];
       const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
+      // Writes both the tags and the initial identity hash on 64 bit platforms.
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size; current_offset += kWordSize) {
@@ -3006,6 +3010,8 @@ RawObject* Simulator::Call(const Code& code,
             tags = RawObject::SizeTag::update(instance_size, tags);
           }
           tags = RawObject::ClassIdTag::update(cid, tags);
+          // Writes both the tags and the initial identity hash on 64 bit
+          // platforms.
           *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
           *reinterpret_cast<RawObject**>(start + Array::length_offset()) =
               FP[rB];
