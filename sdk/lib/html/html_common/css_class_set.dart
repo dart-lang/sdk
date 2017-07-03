@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "html_common.dart";
+part of html_common;
 
 abstract class CssClassSetImpl implements CssClassSet {
   static final RegExp _validTokenRE = new RegExp(r'^\S+$');
