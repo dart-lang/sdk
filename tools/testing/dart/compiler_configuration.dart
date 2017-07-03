@@ -143,6 +143,11 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     if (useDfe) {
       args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
       args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      if (_isDebug) {
+        // Temporarily disable background compilation to avoid flaky crashes
+        // (see http://dartbug.com/30016 for details).
+        args.add('--no-background-compilation');
+      }
     }
     if (_isChecked) {
       args.add('--enable_asserts');
