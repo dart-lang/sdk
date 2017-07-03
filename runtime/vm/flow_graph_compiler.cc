@@ -1767,7 +1767,8 @@ const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
 bool FlowGraphCompiler::LookupMethodFor(int class_id,
                                         const String& name,
                                         const ArgumentsDescriptor& args_desc,
-                                        Function* fn_return) {
+                                        Function* fn_return,
+                                        bool* class_is_abstract_return) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -1781,6 +1782,9 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   if (!cls.is_finalized()) return false;
   if (Array::Handle(cls.functions()).IsNull()) return false;
 
+  if (class_is_abstract_return != NULL) {
+    *class_is_abstract_return = cls.is_abstract();
+  }
   const bool allow_add = false;
   Function& target_function =
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(

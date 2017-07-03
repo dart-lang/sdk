@@ -608,7 +608,8 @@ class FlowGraphCompiler : public ValueObject {
   static bool LookupMethodFor(int class_id,
                               const String& name,
                               const ArgumentsDescriptor& args_desc,
-                              Function* fn_return);
+                              Function* fn_return,
+                              bool* class_is_abstract_return = NULL);
 
 #if defined(TARGET_ARCH_DBC)
   enum CallResult {
