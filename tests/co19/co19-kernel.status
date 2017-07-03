@@ -178,6 +178,8 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 Language/Classes/Instance_Variables/constant_t01: Crash
+Language/Classes/Constructors/Factories/name_t01: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+Language/Statements/Continue/label_t04: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 
 # dartk: JIT failures
 [ $compiler == dartk ]
