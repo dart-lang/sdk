@@ -256,7 +256,7 @@ spawn_function_custom_class_test: Pass, Timeout
 spawn_uri_exported_main_test: RuntimeError
 spawn_uri_nested_vm_test: Pass, Timeout
 
-[ ($compiler == dartk || $compiler == dartkp) && $debug ]
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 
 [ $runtime == flutter ]
