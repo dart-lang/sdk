@@ -423,7 +423,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
         addWarning(
             -1,
-            "Using '${part.fileUri}' as part of '$myName' but it's 'part of'"
+            "Using '${part.fileUri}' as part of '$myName' but its 'part of'"
             " declaration says '$partName'.");
         // The part is still included.
       }

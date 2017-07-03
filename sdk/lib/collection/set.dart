@@ -5,7 +5,7 @@
 /**
  * Base implementations of [Set].
  */
-part of dart.collection;
+part of "collection.dart";
 
 /**
  * Mixin implementation of [Set].

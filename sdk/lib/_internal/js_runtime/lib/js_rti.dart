@@ -39,7 +39,7 @@
  *     to an array containing only null values.
  */
 
-part of _js_helper;
+part of "js_helper.dart";
 
 Type createRuntimeType(String name) {
   // Use a 'JS' cast to String.  Since this is registered as used by the
