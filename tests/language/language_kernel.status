@@ -207,7 +207,6 @@ const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
-disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 hello_dart_test: Crash
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
