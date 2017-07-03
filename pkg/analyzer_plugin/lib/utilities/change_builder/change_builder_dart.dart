@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
@@ -22,7 +22,7 @@ abstract class DartChangeBuilder implements ChangeBuilder {
   /**
    * Initialize a newly created change builder.
    */
-  factory DartChangeBuilder(AnalysisDriver driver) = DartChangeBuilderImpl;
+  factory DartChangeBuilder(AnalysisSession session) = DartChangeBuilderImpl;
 
   @override
   Future<Null> addFileEdit(

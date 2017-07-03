@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -60,6 +61,11 @@ class AbstractContextTest {
    * Return `true` if strong mode should be enabled for this test.
    */
   bool get enableStrongMode => false;
+
+  /**
+   * Return the analysis session associated with the driver.
+   */
+  AnalysisSession get session => driver.currentSession;
 
   Source addMetaPackageSource() => addPackageSource(
       'meta',

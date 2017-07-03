@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -30,14 +32,14 @@ import 'package:path/path.dart' as path;
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
   /**
-   * The analysis driver in which the files being edited were analyzed.
+   * The analysis session in which the files being edited were analyzed.
    */
-  final AnalysisDriver driver;
+  final AnalysisSession session;
 
   /**
    * Initialize a newly created change builder.
    */
-  DartChangeBuilderImpl(this.driver);
+  DartChangeBuilderImpl(this.session);
 
   @override
   Future<Null> addFileEdit(
@@ -46,8 +48,12 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
 
   @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
-    AnalysisResult result = await driver.getResult(path);
-    int timeStamp = driver.fsState.getFileForPath(path).exists ? 0 : -1;
+    ResolveResult result = await session.getResolvedAst(path);
+    ResultState state = result.state;
+    if (state == ResultState.INVALID_FILE_TYPE) {
+      throw new AnalysisException('Cannot analyze "$path"');
+    }
+    int timeStamp = state == ResultState.VALID ? 0 : -1;
     return new DartFileEditBuilderImpl(this, path, timeStamp, result.unit);
   }
 }

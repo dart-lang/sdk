@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -306,6 +307,11 @@ class PostfixCompletionProcessor {
 
   int get selectionOffset => completionContext.selectionOffset;
 
+  /**
+   * Return the analysis session to be used to create the change builder.
+   */
+  AnalysisSession get session => driver.currentSession;
+
   Source get source => completionContext.unitElement.source;
 
   TypeProvider get typeProvider {
@@ -333,7 +339,7 @@ class PostfixCompletionProcessor {
       return null;
     }
 
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(expr), (DartEditBuilder builder) {
         String newSrc = sourcer(expr);
@@ -367,7 +373,7 @@ class PostfixCompletionProcessor {
     if (stmt == null) {
       return null;
     }
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
