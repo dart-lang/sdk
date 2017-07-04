@@ -4,66 +4,9 @@
 
 library fasta.parser.parser;
 
-import '../fasta_codes.dart'
-    show
-        FastaCode,
-        FastaMessage,
-        codeAbstractNotSync,
-        codeAsciiControlCharacter,
-        codeAssertAsExpression,
-        codeAssertExtraneousArgument,
-        codeAsyncAsIdentifier,
-        codeAwaitAsIdentifier,
-        codeAwaitForNotAsync,
-        codeAwaitNotAsync,
-        codeBuiltInIdentifierAsType,
-        codeBuiltInIdentifierInDeclaration,
-        codeCatchSyntax,
-        codeConstFieldWithoutInitializer,
-        codeEmptyNamedParameterList,
-        codeEmptyOptionalParameterList,
-        codeEncoding,
-        codeExpectedBlockToSkip,
-        codeExpectedBody,
-        codeExpectedButGot,
-        codeExpectedClassBody,
-        codeExpectedClassBodyToSkip,
-        codeExpectedDeclaration,
-        codeExpectedExpression,
-        codeExpectedFunctionBody,
-        codeExpectedIdentifier,
-        codeExpectedOpenParens,
-        codeExpectedString,
-        codeExtraneousModifier,
-        codeFactoryNotSync,
-        codeFinalFieldWithoutInitializer,
-        codeFunctionTypeDefaultValue,
-        codeGeneratorReturnsValue,
-        codeGetterWithFormals,
-        codeInvalidAwaitFor,
-        codeInvalidInlineFunctionType,
-        codeInvalidSyncModifier,
-        codeInvalidVoid,
-        codeMetadataTypeArguments,
-        codeNoFormals,
-        codeNonAsciiIdentifier,
-        codeNonAsciiWhitespace,
-        codeOnlyTry,
-        codePositionalParameterWithEquals,
-        codePrivateNamedParameter,
-        codeRequiredParameterWithDefault,
-        codeSetterNotSync,
-        codeStackOverflow,
-        codeSuperNullAware,
-        codeTypeAfterVar,
-        codeTypeRequired,
-        codeUnexpectedToken,
-        codeUnmatchedToken,
-        codeUnspecified,
-        codeUnsupportedPrefixPlus,
-        codeUnterminatedString,
-        codeYieldAsIdentifier,
-        codeYieldNotGenerator;
+import '../fasta_codes.dart' show FastaCode, FastaMessage;
+
+import '../fasta_codes.dart' as fasta;
 
 import '../scanner.dart' show ErrorToken, Token;
 
@@ -298,8 +241,8 @@ enum TypeContinuation {
 ///
 /// When attempting to parse this function, the parser eventually calls
 /// [parseFunctionBody]. This method will report an unrecoverable error to the
-/// listener with the code [codeExpectedFunctionBody]. The listener can then
-/// look at the error code and the token and use the methods in
+/// listener with the code [fasta.codeExpectedFunctionBody]. The listener can
+/// then look at the error code and the token and use the methods in
 /// [dart_vm_native.dart](dart_vm_native.dart) to parse the native syntax.
 ///
 /// #### Implementation of Diet Parsing
@@ -631,7 +574,7 @@ class Parser {
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
     if (optional("<", token)) {
-      reportRecoverableErrorCode(token, codeMetadataTypeArguments);
+      reportRecoverableErrorCode(token, fasta.codeMetadataTypeArguments);
     }
     token = parseTypeArgumentsOpt(token);
     Token period = null;
@@ -696,11 +639,11 @@ class Parser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        reportRecoverableErrorCode(token, codeExpectedOpenParens);
+        reportRecoverableErrorCode(token, fasta.codeExpectedOpenParens);
         return token;
       }
       return reportUnrecoverableErrorCodeWithString(
-              token, codeExpectedButGot, "(")
+              token, fasta.codeExpectedButGot, "(")
           .next;
     }
     BeginToken beginGroupToken = token;
@@ -733,7 +676,7 @@ class Parser {
         break;
       } else if (identical(value, '[]')) {
         --parameterCount;
-        reportRecoverableErrorCode(token, codeEmptyOptionalParameterList);
+        reportRecoverableErrorCode(token, fasta.codeEmptyOptionalParameterList);
         token = token.next;
         break;
       }
@@ -775,7 +718,7 @@ class Parser {
       }
     }
     if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
-      reportRecoverableErrorCode(nameToken, codePrivateNamedParameter);
+      reportRecoverableErrorCode(nameToken, fasta.codePrivateNamedParameter);
     }
 
     token = listener.injectGenericCommentTypeList(token);
@@ -790,7 +733,7 @@ class Parser {
       //    int Function(int bar(String x)).
       if (memberKind == MemberKind.GeneralizedFunctionType) {
         reportRecoverableErrorCode(
-            inlineFunctionTypeStart, codeInvalidInlineFunctionType);
+            inlineFunctionTypeStart, fasta.codeInvalidInlineFunctionType);
       }
     } else if (optional('<', token)) {
       Token inlineFunctionTypeStart = token;
@@ -803,7 +746,7 @@ class Parser {
       //    int Function(int bar(String x)).
       if (memberKind == MemberKind.GeneralizedFunctionType) {
         reportRecoverableErrorCode(
-            inlineFunctionTypeStart, codeInvalidInlineFunctionType);
+            inlineFunctionTypeStart, fasta.codeInvalidInlineFunctionType);
       }
     }
     String value = token.stringValue;
@@ -812,13 +755,16 @@ class Parser {
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
       if (parameterKind.isRequired) {
-        reportRecoverableErrorCode(equal, codeRequiredParameterWithDefault);
+        reportRecoverableErrorCode(
+            equal, fasta.codeRequiredParameterWithDefault);
       } else if (parameterKind.isPositional && identical(':', value)) {
-        reportRecoverableErrorCode(equal, codePositionalParameterWithEquals);
+        reportRecoverableErrorCode(
+            equal, fasta.codePositionalParameterWithEquals);
       } else if (inFunctionType ||
           memberKind == MemberKind.FunctionTypeAlias ||
           memberKind == MemberKind.FunctionTypedParameter) {
-        reportRecoverableErrorCode(equal.next, codeFunctionTypeDefaultValue);
+        reportRecoverableErrorCode(
+            equal.next, fasta.codeFunctionTypeDefaultValue);
       }
     } else {
       listener.handleFormalParameterWithoutValue(token);
@@ -850,8 +796,8 @@ class Parser {
       reportRecoverableErrorCode(
           token,
           isNamed
-              ? codeEmptyNamedParameterList
-              : codeEmptyOptionalParameterList);
+              ? fasta.codeEmptyNamedParameterList
+              : fasta.codeEmptyOptionalParameterList);
     }
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     if (isNamed) {
@@ -980,7 +926,8 @@ class Parser {
 
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableErrorCode(token, codeExpectedBlockToSkip).next;
+      return reportUnrecoverableErrorCode(token, fasta.codeExpectedBlockToSkip)
+          .next;
     }
     BeginToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
@@ -1083,7 +1030,8 @@ class Parser {
   Token parseStringPart(Token token) {
     if (token.kind != STRING_TOKEN) {
       token =
-          reportUnrecoverableErrorCodeWithToken(token, codeExpectedString).next;
+          reportUnrecoverableErrorCodeWithToken(token, fasta.codeExpectedString)
+              .next;
     }
     listener.handleStringPart(token);
     return token.next;
@@ -1092,26 +1040,27 @@ class Parser {
   Token parseIdentifier(Token token, IdentifierContext context) {
     if (!token.isIdentifier) {
       if (optional("void", token)) {
-        reportRecoverableErrorCode(token, codeInvalidVoid);
+        reportRecoverableErrorCode(token, fasta.codeInvalidVoid);
       } else {
-        token =
-            reportUnrecoverableErrorCodeWithToken(token, codeExpectedIdentifier)
-                .next;
+        token = reportUnrecoverableErrorCodeWithToken(
+                token, fasta.codeExpectedIdentifier)
+            .next;
       }
     } else if (token.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
       if (context.inDeclaration) {
         reportRecoverableErrorCodeWithToken(
-            token, codeBuiltInIdentifierInDeclaration);
+            token, fasta.codeBuiltInIdentifierInDeclaration);
       } else if (!optional("dynamic", token)) {
-        reportRecoverableErrorCodeWithToken(token, codeBuiltInIdentifierAsType);
+        reportRecoverableErrorCodeWithToken(
+            token, fasta.codeBuiltInIdentifierAsType);
       }
     } else if (!inPlainSync && token.type.isPseudo) {
       if (optional('await', token)) {
-        reportRecoverableErrorCode(token, codeAwaitAsIdentifier);
+        reportRecoverableErrorCode(token, fasta.codeAwaitAsIdentifier);
       } else if (optional('yield', token)) {
-        reportRecoverableErrorCode(token, codeYieldAsIdentifier);
+        reportRecoverableErrorCode(token, fasta.codeYieldAsIdentifier);
       } else if (optional('async', token)) {
-        reportRecoverableErrorCode(token, codeAsyncAsIdentifier);
+        reportRecoverableErrorCode(token, fasta.codeAsyncAsIdentifier);
       }
     }
     listener.handleIdentifier(token, context);
@@ -1121,7 +1070,7 @@ class Parser {
   Token expect(String string, Token token) {
     if (!identical(string, token.stringValue)) {
       return reportUnrecoverableErrorCodeWithString(
-              token, codeExpectedButGot, string)
+              token, fasta.codeExpectedButGot, string)
           .next;
     }
     return token.next;
@@ -1538,7 +1487,7 @@ class Parser {
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorCodeWithToken(
-              start, codeExpectedDeclaration)
+              start, fasta.codeExpectedDeclaration)
           .next;
     }
     Token afterName = identifiers.head;
@@ -1546,7 +1495,7 @@ class Parser {
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorCodeWithToken(
-              start, codeExpectedDeclaration)
+              start, fasta.codeExpectedDeclaration)
           .next;
     }
     Token name = identifiers.head;
@@ -1618,7 +1567,7 @@ class Parser {
         isVariable: true);
 
     if (token != name) {
-      reportRecoverableErrorCodeWithToken(token, codeExtraneousModifier);
+      reportRecoverableErrorCodeWithToken(token, fasta.codeExtraneousModifier);
       token = name;
     }
 
@@ -1656,7 +1605,8 @@ class Parser {
       if (externalModifier == null && optional('external', modifier)) {
         externalModifier = modifier;
       } else {
-        reportRecoverableErrorCodeWithToken(modifier, codeExtraneousModifier);
+        reportRecoverableErrorCodeWithToken(
+            modifier, fasta.codeExtraneousModifier);
       }
     }
     if (externalModifier != null) {
@@ -1687,7 +1637,7 @@ class Parser {
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
-      reportRecoverableErrorCode(asyncToken, codeSetterNotSync);
+      reportRecoverableErrorCode(asyncToken, fasta.codeSetterNotSync);
     }
     token = parseFunctionBody(token, false, externalModifier != null);
     asyncState = savedAsyncModifier;
@@ -1700,10 +1650,10 @@ class Parser {
   void checkFormals(bool isGetter, Token name, Token token) {
     if (optional("(", token)) {
       if (isGetter) {
-        reportRecoverableErrorCode(token, codeGetterWithFormals);
+        reportRecoverableErrorCode(token, fasta.codeGetterWithFormals);
       }
     } else if (!isGetter) {
-      reportRecoverableErrorCodeWithToken(name, codeNoFormals);
+      reportRecoverableErrorCodeWithToken(name, fasta.codeNoFormals);
     }
   }
 
@@ -1828,7 +1778,7 @@ class Parser {
         }
         if (!optional('(', token)) {
           if (optional(';', token)) {
-            reportRecoverableErrorCode(token, codeExpectedOpenParens);
+            reportRecoverableErrorCode(token, fasta.codeExpectedOpenParens);
           }
           token = expect("(", token);
         }
@@ -1855,9 +1805,11 @@ class Parser {
     } else {
       if (varFinalOrConst != null) {
         if (optional("const", varFinalOrConst)) {
-          reportRecoverableErrorCode(name, codeConstFieldWithoutInitializer);
+          reportRecoverableErrorCode(
+              name, fasta.codeConstFieldWithoutInitializer);
         } else if (isTopLevel && optional("final", varFinalOrConst)) {
-          reportRecoverableErrorCode(name, codeFinalFieldWithoutInitializer);
+          reportRecoverableErrorCode(
+              name, fasta.codeFinalFieldWithoutInitializer);
         }
       }
       listener.handleNoFieldInitializer(token);
@@ -1917,9 +1869,9 @@ class Parser {
     if (identical(token.kind, STRING_TOKEN)) {
       return parseLiteralString(token);
     } else {
-      reportRecoverableErrorCodeWithToken(token, codeExpectedString);
+      reportRecoverableErrorCodeWithToken(token, fasta.codeExpectedString);
       return parseRecoverExpression(
-          token, codeExpectedString.format(uri, token.charOffset, token));
+          token, fasta.codeExpectedString.format(uri, token.charOffset, token));
     }
   }
 
@@ -1997,33 +1949,33 @@ class Parser {
           if (optional("var", token)) {
             if (!isVariable && parameterKind == null) {
               reportRecoverableErrorCodeWithToken(
-                  token, codeExtraneousModifier);
+                  token, fasta.codeExtraneousModifier);
             }
             hasVar = true;
             typeRequired = false;
           } else if (optional("final", token)) {
             if (!isVariable && parameterKind == null) {
               reportRecoverableErrorCodeWithToken(
-                  token, codeExtraneousModifier);
+                  token, fasta.codeExtraneousModifier);
             }
             typeRequired = false;
           } else if (optional("const", token)) {
             if (!isVariable) {
               reportRecoverableErrorCodeWithToken(
-                  token, codeExtraneousModifier);
+                  token, fasta.codeExtraneousModifier);
             }
             typeRequired = false;
           } else if (optional("static", token)) {
             if (parameterKind != null) {
               reportRecoverableErrorCodeWithToken(
-                  token, codeExtraneousModifier);
+                  token, fasta.codeExtraneousModifier);
             } else if (memberKind == MemberKind.NonStaticMethod) {
               memberKind = MemberKind.StaticMethod;
             } else if (memberKind == MemberKind.NonStaticField) {
               memberKind = MemberKind.StaticField;
             } else {
               reportRecoverableErrorCodeWithToken(
-                  token, codeExtraneousModifier);
+                  token, fasta.codeExtraneousModifier);
               token = token.next;
               continue;
             }
@@ -2034,7 +1986,7 @@ class Parser {
               case MemberKind.TopLevelField:
               case MemberKind.TopLevelMethod:
                 reportRecoverableErrorCodeWithToken(
-                    token, codeExtraneousModifier);
+                    token, fasta.codeExtraneousModifier);
                 token = token.next;
                 continue;
 
@@ -2051,7 +2003,7 @@ class Parser {
 
               default:
                 reportRecoverableErrorCodeWithToken(
-                    token, codeExtraneousModifier);
+                    token, fasta.codeExtraneousModifier);
                 token = token.next;
                 continue;
             }
@@ -2059,7 +2011,8 @@ class Parser {
           token = parseModifier(token);
           count++;
         } else {
-          reportRecoverableErrorCodeWithToken(token, codeExtraneousModifier);
+          reportRecoverableErrorCodeWithToken(
+              token, fasta.codeExtraneousModifier);
           token = token.next;
         }
       } else {
@@ -2075,10 +2028,10 @@ class Parser {
             ? TypeContinuation.Optional
             : TypeContinuation.Required);
     if (typeRequired && beforeType == token) {
-      reportRecoverableErrorCode(token, codeTypeRequired);
+      reportRecoverableErrorCode(token, fasta.codeTypeRequired);
     }
     if (hasVar && beforeType != token) {
-      reportRecoverableErrorCode(beforeType, codeTypeAfterVar);
+      reportRecoverableErrorCode(beforeType, fasta.codeTypeAfterVar);
     }
     return token;
   }
@@ -2086,7 +2039,7 @@ class Parser {
   Token skipClassBody(Token token) {
     if (!optional('{', token)) {
       return reportUnrecoverableErrorCodeWithToken(
-              token, codeExpectedClassBodyToSkip)
+              token, fasta.codeExpectedClassBodyToSkip)
           .next;
     }
     BeginToken beginGroupToken = token;
@@ -2101,9 +2054,9 @@ class Parser {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token =
-          reportUnrecoverableErrorCodeWithToken(token, codeExpectedClassBody)
-              .next;
+      token = reportUnrecoverableErrorCodeWithToken(
+              token, fasta.codeExpectedClassBody)
+          .next;
     }
     token = token.next;
     int count = 0;
@@ -2141,7 +2094,7 @@ class Parser {
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorCodeWithToken(
-              start, codeExpectedDeclaration)
+              start, fasta.codeExpectedDeclaration)
           .next;
     }
     Token afterName = identifiers.head;
@@ -2149,7 +2102,7 @@ class Parser {
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorCodeWithToken(
-              start, codeExpectedDeclaration)
+              start, fasta.codeExpectedDeclaration)
           .next;
     }
     Token name = identifiers.head;
@@ -2233,7 +2186,8 @@ class Parser {
       for (; !tokens.isEmpty; tokens = tokens.tail) {
         Token token = tokens.head;
         if (optional("abstract", token)) {
-          reportRecoverableErrorCodeWithToken(token, codeExtraneousModifier);
+          reportRecoverableErrorCodeWithToken(
+              token, fasta.codeExtraneousModifier);
           continue;
         }
         int order = modifierOrder(token);
@@ -2242,11 +2196,11 @@ class Parser {
             currentOrder = order;
             if (optional("var", token)) {
               reportRecoverableErrorCodeWithToken(
-                  token, codeExtraneousModifier);
+                  token, fasta.codeExtraneousModifier);
             } else if (optional("const", token)) {
               if (getOrSet != null) {
                 reportRecoverableErrorCodeWithToken(
-                    token, codeExtraneousModifier);
+                    token, fasta.codeExtraneousModifier);
                 continue;
               }
             } else if (optional("external", token)) {
@@ -2258,12 +2212,13 @@ class Parser {
                   getOrSet == null ||
                   optional("get", getOrSet)) {
                 reportRecoverableErrorCodeWithToken(
-                    token, codeExtraneousModifier);
+                    token, fasta.codeExtraneousModifier);
                 continue;
               }
             }
           } else {
-            reportRecoverableErrorCodeWithToken(token, codeExtraneousModifier);
+            reportRecoverableErrorCodeWithToken(
+                token, fasta.codeExtraneousModifier);
             continue;
           }
         } else {
@@ -2288,7 +2243,7 @@ class Parser {
       token = parseOperatorName(name);
       if (staticModifier != null) {
         reportRecoverableErrorCodeWithToken(
-            staticModifier, codeExtraneousModifier);
+            staticModifier, fasta.codeExtraneousModifier);
       }
     } else {
       token = parseIdentifier(name, IdentifierContext.methodDeclaration);
@@ -2314,7 +2269,7 @@ class Parser {
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
-      reportRecoverableErrorCode(asyncToken, codeSetterNotSync);
+      reportRecoverableErrorCode(asyncToken, fasta.codeSetterNotSync);
     }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -2348,7 +2303,7 @@ class Parser {
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (!inPlainSync) {
-      reportRecoverableErrorCode(asyncToken, codeFactoryNotSync);
+      reportRecoverableErrorCode(asyncToken, fasta.codeFactoryNotSync);
     }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -2468,7 +2423,7 @@ class Parser {
     String value = token.stringValue;
     if (identical(value, ';')) {
       if (!allowAbstract) {
-        reportRecoverableErrorCode(token, codeExpectedBody);
+        reportRecoverableErrorCode(token, fasta.codeExpectedBody);
       }
       listener.handleNoFunctionBody(token);
     } else {
@@ -2477,7 +2432,7 @@ class Parser {
         expectSemicolon(token);
         listener.handleFunctionBodySkipped(token, true);
       } else if (identical(value, '=')) {
-        reportRecoverableErrorCode(token, codeExpectedBody);
+        reportRecoverableErrorCode(token, fasta.codeExpectedBody);
         token = parseExpression(token.next);
         expectSemicolon(token);
         listener.handleFunctionBodySkipped(token, true);
@@ -2492,7 +2447,7 @@ class Parser {
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     if (optional(';', token)) {
       if (!allowAbstract) {
-        reportRecoverableErrorCode(token, codeExpectedBody);
+        reportRecoverableErrorCode(token, fasta.codeExpectedBody);
       }
       listener.handleEmptyFunctionBody(token);
       return token;
@@ -2509,7 +2464,7 @@ class Parser {
     } else if (optional('=', token)) {
       Token begin = token;
       // Recover from a bad factory method.
-      reportRecoverableErrorCode(token, codeExpectedBody);
+      reportRecoverableErrorCode(token, fasta.codeExpectedBody);
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
@@ -2522,9 +2477,9 @@ class Parser {
     Token begin = token;
     int statementCount = 0;
     if (!optional('{', token)) {
-      token =
-          reportUnrecoverableErrorCodeWithToken(token, codeExpectedFunctionBody)
-              .next;
+      token = reportUnrecoverableErrorCodeWithToken(
+              token, fasta.codeExpectedFunctionBody)
+          .next;
       listener.handleInvalidFunctionBody(token);
       return token;
     }
@@ -2582,14 +2537,14 @@ class Parser {
         star = token;
         token = token.next;
       } else {
-        reportRecoverableErrorCode(async, codeInvalidSyncModifier);
+        reportRecoverableErrorCode(async, fasta.codeInvalidSyncModifier);
       }
     }
     listener.handleAsyncModifier(async, star);
     if (inGenerator && optional('=>', token)) {
-      reportRecoverableErrorCode(token, codeGeneratorReturnsValue);
+      reportRecoverableErrorCode(token, fasta.codeGeneratorReturnsValue);
     } else if (!inPlainSync && optional(';', token)) {
-      reportRecoverableErrorCode(token, codeAbstractNotSync);
+      reportRecoverableErrorCode(token, fasta.codeAbstractNotSync);
     }
     return token;
   }
@@ -2600,7 +2555,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      return reportUnrecoverableErrorCode(token, codeStackOverflow).next;
+      return reportUnrecoverableErrorCode(token, fasta.codeStackOverflow).next;
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -2621,7 +2576,7 @@ class Parser {
       return parseIfStatement(token);
     } else if (identical(value, 'await') && optional('for', token.next)) {
       if (!inAsync) {
-        reportRecoverableErrorCode(token, codeAwaitForNotAsync);
+        reportRecoverableErrorCode(token, fasta.codeAwaitForNotAsync);
       }
       return parseForStatement(token, token.next);
     } else if (identical(value, 'for')) {
@@ -2659,7 +2614,7 @@ class Parser {
           return parseYieldStatement(token);
 
         case AsyncModifier.Async:
-          reportRecoverableErrorCode(token, codeYieldNotGenerator);
+          reportRecoverableErrorCode(token, fasta.codeYieldNotGenerator);
           return parseYieldStatement(token);
       }
       throw "Internal error: Unknown asyncState: '$asyncState'.";
@@ -2699,7 +2654,7 @@ class Parser {
     } else {
       token = parseExpression(token);
       if (inGenerator) {
-        reportRecoverableErrorCode(begin.next, codeGeneratorReturnsValue);
+        reportRecoverableErrorCode(begin.next, fasta.codeGeneratorReturnsValue);
       }
       listener.endReturnStatement(true, begin, token);
     }
@@ -2821,7 +2776,7 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for examaple, the language test
       // deep_nesting1_negative_test.
-      return reportUnrecoverableErrorCode(token, codeStackOverflow).next;
+      return reportUnrecoverableErrorCode(token, fasta.codeStackOverflow).next;
     }
     listener.beginExpression(token);
     Token result = optional('throw', token)
@@ -2962,7 +2917,7 @@ class Parser {
       }
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
-      reportRecoverableErrorCode(token, codeUnsupportedPrefixPlus);
+      reportRecoverableErrorCode(token, fasta.codeUnsupportedPrefixPlus);
       return parseUnaryExpression(token.next, allowCascades);
     } else if ((identical(value, '!')) ||
         (identical(value, '-')) ||
@@ -3065,7 +3020,8 @@ class Parser {
   }
 
   Token expressionExpected(Token token) {
-    token = reportUnrecoverableErrorCodeWithToken(token, codeExpectedExpression)
+    token = reportUnrecoverableErrorCodeWithToken(
+            token, fasta.codeExpectedExpression)
         .next;
     listener.handleInvalidExpression(token);
     return token;
@@ -3130,7 +3086,7 @@ class Parser {
       token = parseArguments(token);
       listener.endSend(beginToken, token);
     } else if (optional("?.", token)) {
-      reportRecoverableErrorCode(token, codeSuperNullAware);
+      reportRecoverableErrorCode(token, fasta.codeSuperNullAware);
     }
     return token;
   }
@@ -3606,7 +3562,7 @@ class Parser {
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else {
       if (awaitToken != null) {
-        reportRecoverableErrorCode(awaitToken, codeInvalidAwaitFor);
+        reportRecoverableErrorCode(awaitToken, fasta.codeInvalidAwaitFor);
       }
       return parseForRest(forKeyword, leftParenthesis, token);
     }
@@ -3712,7 +3668,7 @@ class Parser {
     listener.beginAwaitExpression(awaitToken);
     token = expect('await', token);
     if (!inAsync) {
-      reportRecoverableErrorCode(awaitToken, codeAwaitNotAsync);
+      reportRecoverableErrorCode(awaitToken, fasta.codeAwaitNotAsync);
     }
     token = parsePrecedenceExpression(token, POSTFIX_PRECEDENCE, allowCascades);
     listener.endAwaitExpression(awaitToken, token);
@@ -3771,15 +3727,15 @@ class Parser {
         if (!optional("(", openParens)) {
           // Handled below by parseFormalParameters.
         } else if (!exceptionName.isIdentifier) {
-          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+          reportRecoverableErrorCode(exceptionName, fasta.codeCatchSyntax);
         } else if (optional(")", commaOrCloseParens)) {
           // OK: `catch (identifier)`.
         } else if (!optional(",", commaOrCloseParens)) {
-          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+          reportRecoverableErrorCode(exceptionName, fasta.codeCatchSyntax);
         } else if (!traceName.isIdentifier) {
-          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+          reportRecoverableErrorCode(exceptionName, fasta.codeCatchSyntax);
         } else if (!optional(")", closeParens)) {
-          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+          reportRecoverableErrorCode(exceptionName, fasta.codeCatchSyntax);
         }
         token = parseFormalParameters(token.next, MemberKind.Catch);
       }
@@ -3797,7 +3753,7 @@ class Parser {
       listener.handleFinallyBlock(finallyKeyword);
     } else {
       if (catchCount == 0) {
-        reportRecoverableErrorCode(tryKeyword, codeOnlyTry);
+        reportRecoverableErrorCode(tryKeyword, fasta.codeOnlyTry);
       }
     }
     listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
@@ -3879,7 +3835,7 @@ class Parser {
         if (expressionCount == 0) {
           // TODO(ahe): This is probably easy to recover from.
           reportUnrecoverableErrorCodeWithString(
-              token, codeExpectedButGot, "case");
+              token, fasta.codeExpectedButGot, "case");
         }
         break;
       }
@@ -3939,10 +3895,11 @@ class Parser {
         token = token.next;
         Token begin = token;
         token = parseExpression(token);
-        listener.handleExtraneousExpression(
-            begin, codeAssertExtraneousArgument.format(uri, token.charOffset));
+        listener.handleExtraneousExpression(begin,
+            fasta.codeAssertExtraneousArgument.format(uri, token.charOffset));
       }
-      reportRecoverableErrorCode(firstExtra, codeAssertExtraneousArgument);
+      reportRecoverableErrorCode(
+          firstExtra, fasta.codeAssertExtraneousArgument);
     }
     Token rightParenthesis = token;
     token = expect(')', token);
@@ -3950,7 +3907,7 @@ class Parser {
     listener.endAssert(assertKeyword, kind, leftParenthesis, commaToken,
         rightParenthesis, token);
     if (kind == Assert.Expression) {
-      reportRecoverableErrorCode(assertKeyword, codeAssertAsExpression);
+      reportRecoverableErrorCode(assertKeyword, fasta.codeAssertAsExpression);
     }
     return token;
   }
@@ -4001,27 +3958,27 @@ class Parser {
   Token reportErrorToken(ErrorToken token, bool isRecoverable) {
     FastaCode code = token.errorCode;
     FastaMessage message;
-    if (code == codeAsciiControlCharacter) {
-      message = codeAsciiControlCharacter.format(
-          uri, token.charOffset, token.character);
-    } else if (code == codeNonAsciiWhitespace) {
-      message =
-          codeNonAsciiWhitespace.format(uri, token.charOffset, token.character);
-    } else if (code == codeEncoding) {
-      message = codeEncoding.format(uri, token.charOffset);
-    } else if (code == codeNonAsciiIdentifier) {
-      message = codeNonAsciiIdentifier.format(uri, token.charOffset,
+    if (code == fasta.codeAsciiControlCharacter) {
+      message = fasta.codeAsciiControlCharacter
+          .format(uri, token.charOffset, token.character);
+    } else if (code == fasta.codeNonAsciiWhitespace) {
+      message = fasta.codeNonAsciiWhitespace
+          .format(uri, token.charOffset, token.character);
+    } else if (code == fasta.codeEncoding) {
+      message = fasta.codeEncoding.format(uri, token.charOffset);
+    } else if (code == fasta.codeNonAsciiIdentifier) {
+      message = fasta.codeNonAsciiIdentifier.format(uri, token.charOffset,
           new String.fromCharCodes([token.character]), token.character);
-    } else if (code == codeUnterminatedString) {
-      message =
-          codeUnterminatedString.format(uri, token.charOffset, token.start);
-    } else if (code == codeUnmatchedToken) {
+    } else if (code == fasta.codeUnterminatedString) {
+      message = fasta.codeUnterminatedString
+          .format(uri, token.charOffset, token.start);
+    } else if (code == fasta.codeUnmatchedToken) {
       Token begin = token.begin;
-      message = codeUnmatchedToken.format(
-          uri, token.charOffset, closeBraceFor(begin.lexeme), begin);
-    } else if (code == codeUnspecified) {
-      message =
-          codeUnspecified.format(uri, token.charOffset, token.assertionMessage);
+      message = fasta.codeUnmatchedToken
+          .format(uri, token.charOffset, closeBraceFor(begin.lexeme), begin);
+    } else if (code == fasta.codeUnspecified) {
+      message = fasta.codeUnspecified
+          .format(uri, token.charOffset, token.assertionMessage);
     } else {
       message = code.format(uri, token.charOffset);
     }
@@ -4037,13 +3994,13 @@ class Parser {
   Token reportUnmatchedToken(BeginToken token) {
     return reportUnrecoverableError(
         token,
-        () => codeUnmatchedToken.format(
-            uri, token.charOffset, closeBraceFor(token.lexeme), token));
+        () => fasta.codeUnmatchedToken
+            .format(uri, token.charOffset, closeBraceFor(token.lexeme), token));
   }
 
   Token reportUnexpectedToken(Token token) {
-    return reportUnrecoverableError(
-        token, () => codeUnexpectedToken.format(uri, token.charOffset, token));
+    return reportUnrecoverableError(token,
+        () => fasta.codeUnexpectedToken.format(uri, token.charOffset, token));
   }
 
   void reportRecoverableErrorCode(Token token, FastaCode<NoArgument> code) {
