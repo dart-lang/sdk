@@ -8,7 +8,7 @@ Language/Classes/Classes/method_definition_t06: MissingStaticWarning # Please tr
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
 Language/Classes/Getters/static_t01: StaticWarning # Please triage this failure.
 Language/Classes/Instance_Variables/definition_t03: StaticWarning # Please triage this failure.
-Language/Classes/Static_Methods/same_name_method_and_setter_t01: MissingStaticWarning # Please triage this failure.
+Language/Classes/Static_Methods/same_name_method_and_setter_t01: MissingStaticWarning # Issue 23749
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: MissingStaticWarning # TBF: Static members should not be accessible via subclasses.
 Language/Classes/definition_t23: CompileTimeError # This seems correct, need to adjust test.
 Language/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.

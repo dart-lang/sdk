@@ -58,8 +58,8 @@ Language/Classes/declarations_t27: MissingCompileTimeError
 Language/Classes/declarations_t28: MissingCompileTimeError
 Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
-Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError
-Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError
+Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError # class A { var A; }
+Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError # class A { static int A; }
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
