@@ -19,4 +19,6 @@ class BuiltinTypeBuilder<T extends TypeBuilder, R>
   R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments) {
     return type;
   }
+
+  String get debugName => "BuiltinTypeBuilder";
 }

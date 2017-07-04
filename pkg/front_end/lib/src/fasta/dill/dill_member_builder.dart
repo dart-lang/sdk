@@ -28,6 +28,8 @@ class DillMemberBuilder extends MemberBuilder {
         member = member,
         super(parent, member.fileOffset);
 
+  String get debugName => "DillMemberBuilder";
+
   Member get target => member;
 
   String get name => member.name.name;

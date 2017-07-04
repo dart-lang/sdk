@@ -44,6 +44,8 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
       int charOffset)
       : super(compilationUnit, charOffset);
 
+  String get debugName => "ProcedureBuilder";
+
   AsyncMarker get asyncModifier;
 
   ProcedureKind get kind;

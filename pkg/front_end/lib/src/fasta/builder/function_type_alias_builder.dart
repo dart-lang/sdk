@@ -31,5 +31,7 @@ abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
       int charOffset)
       : super(metadata, null, name, parent, charOffset);
 
+  String get debugName => "FunctionTypeAliasBuilder";
+
   LibraryBuilder get parent => super.parent;
 }
