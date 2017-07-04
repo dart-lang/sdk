@@ -3706,6 +3706,7 @@ LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please tria
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
+LibTest/html/Element/mouseOverEvent_A01_t01: RuntimeError, Pass # Issue 30068
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onMouseEnter_A01_t01: RuntimeError, Pass # Please triage this failure
 LibTest/html/Element/onMouseOver_A01_t01: RuntimeError, Pass # Please triage this failure
