@@ -14,6 +14,12 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
+Language/Classes/Getters/type_object_t01: Fail # co19 issue 115
+Language/Classes/Getters/type_object_t02: Fail # co19 issue 115
+Language/Classes/Setters/type_object_t01: Fail # co19 issue 115
+Language/Classes/Setters/type_object_t02: Fail # co19 issue 115
+Language/Classes/Static_Methods/type_object_t01: Fail # co19 issue 115
+Language/Classes/Static_Methods/type_object_t02: Fail # co19 issue 115
 Language/Statements/Assert/syntax_t04: Pass, Fail # assert now has an optional second parameter.
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742

@@ -62,19 +62,13 @@ Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitia
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: fail # Issue 13363
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: fail # Issue 13363
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
-Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure
-Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure
 Language/Classes/Instance_Methods/same_name_setter_t01: fail # Issue 21201
 Language/Classes/Setters/name_t01: CompileTimeError # Issue 5023
 Language/Classes/Setters/name_t02: CompileTimeError # Issue 5023
 Language/Classes/Setters/name_t03: RuntimeError # Issue 5023
 Language/Classes/Setters/name_t07: CompileTimeError # Issue 5023
 Language/Classes/Setters/static_setter_t06: RuntimeError  # Please triage this failure
-Language/Classes/Setters/type_object_t01: RuntimeError # Please triage this failure
-Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this failure
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Please triage this failure
-Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure
-Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure
 Language/Classes/definition_t23: CompileTimeError # Please triage this failure
 Language/Classes/same_name_type_variable_t01: Fail # Missing CT error on class with same name a type parameter
 Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
@@ -4055,7 +4049,6 @@ Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t06: Pas
 Language/Classes/Constructors/Factories/return_type_t03: Pass, Slow # Issue 25940
 Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 25940
 Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
-Language/Classes/Getters/type_object_t02: RuntimeError, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure

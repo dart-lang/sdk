@@ -37,12 +37,6 @@ Language/Classes/declarations_t32: Skip # Times out. Please triage this failure.
 Language/Classes/declarations_t33: Skip # Times out. Please triage this failure.
 Language/Classes/declarations_t34: Skip # Times out. Please triage this failure.
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: RuntimeError
-Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure.
-Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure.
-Language/Classes/Setters/type_object_t01: RuntimeError # Please triage this failure.
-Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this failure.
-Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure.
-Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure.
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Times out. Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out. Issue 25967
