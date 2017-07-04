@@ -1698,12 +1698,37 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginFunctionType(Token beginToken) {
+    debugEvent("beginFunctionType");
+    List typeVariables = pop();
+    enterLocalScope(scope.createNestedScope(isModifiable: false));
+    push(typeVariables ?? NullValue.TypeVariables);
+    if (typeVariables != null) {
+      ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
+      for (KernelTypeVariableBuilder builder in typeVariables) {
+        String name = builder.name;
+        KernelTypeVariableBuilder existing = scopeBuilder[name];
+        if (existing == null) {
+          scopeBuilder.addMember(name, builder);
+        } else {
+          addCompileTimeError(
+              builder.charOffset, "'$name' already declared in this scope.");
+          addCompileTimeError(
+              existing.charOffset, "Previous definition of '$name'.");
+        }
+      }
+    }
+  }
+
+  @override
   void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     FormalParameters formals = pop();
     DartType returnType = pop();
-    ignore(Unhandled.TypeVariables);
-    push(formals.toFunctionType(returnType));
+    List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
+    FunctionType type = formals.toFunctionType(returnType, typeVariables);
+    exitLocalScope();
+    push(type);
   }
 
   @override
@@ -2403,7 +2428,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    List<TypeParameter> typeParameters = pop();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     push(formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = formals.charOffset
@@ -2447,7 +2472,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     FormalParameters formals = pop();
     exitFunction();
-    List<TypeParameter> typeParameters = pop();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
@@ -2915,17 +2940,36 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
-    // TODO(ahe): Do not discard these when enabling generic method syntax.
-    pop(); // Bound.
-    pop(); // Name.
+    DartType bound = pop();
+    if (bound != null) {
+      // TODO(ahe): To handle F-bounded types, this needs to be a TypeBuilder.
+      warningNotError("Type variable bounds not implemented yet.",
+          offsetForToken(extendsOrSuper.next));
+    }
+    Identifier name = pop();
+    // TODO(ahe): Do not discard metadata.
     pop(); // Metadata.
+    push(new KernelTypeVariableBuilder(
+        name.name, library, offsetForToken(name.token), null)
+      ..finish(library, library.loader.coreLibrary["Object"]));
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    // TODO(ahe): Implement this when enabling generic method syntax.
-    push(NullValue.TypeVariables);
+    push(popList(count) ?? NullValue.TypeVariables);
+  }
+
+  List<TypeParameter> typeVariableBuildersToKernel(List typeVariableBuilders) {
+    if (typeVariableBuilders == null) return null;
+    List<TypeParameter> typeParameters = new List<TypeParameter>.filled(
+        typeVariableBuilders.length, null,
+        growable: true);
+    int i = 0;
+    for (KernelTypeVariableBuilder builder in typeVariableBuilders) {
+      typeParameters[i++] = builder.target;
+    }
+    return typeParameters;
   }
 
   @override
@@ -3572,8 +3616,10 @@ class FormalParameters {
     return function;
   }
 
-  FunctionType toFunctionType(DartType returnType) {
+  FunctionType toFunctionType(DartType returnType,
+      [List<TypeParameter> typeParameters]) {
     returnType ??= const DynamicType();
+    typeParameters ??= const <TypeParameter>[];
     int requiredParameterCount = required.length;
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType> namedParameters = const <NamedType>[];
@@ -3595,7 +3641,8 @@ class FormalParameters {
     }
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount);
+        requiredParameterCount: requiredParameterCount,
+        typeParameters: typeParameters);
   }
 
   Scope computeFormalParameterScope(
