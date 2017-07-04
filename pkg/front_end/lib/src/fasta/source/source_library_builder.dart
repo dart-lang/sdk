@@ -120,7 +120,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     currentDeclaration = currentDeclaration.createNested(name, hasMembers);
   }
 
-  DeclarationBuilder<T> endNestedDeclaration() {
+  DeclarationBuilder<T> endNestedDeclaration(String name) {
+    assert(
+        (name?.startsWith(currentDeclaration.name) ??
+                (name == currentDeclaration.name)) ||
+            currentDeclaration.name == "operator",
+        "${name} != ${currentDeclaration.name}");
     DeclarationBuilder<T> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
     return previous;

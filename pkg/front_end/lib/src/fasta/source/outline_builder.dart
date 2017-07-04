@@ -607,7 +607,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginFunctionTypeAlias(Token token) {
-    library.beginNestedDeclaration(null, hasMembers: false);
+    library.beginNestedDeclaration("#typedef", hasMembers: false);
     silenceParserErrors = false;
   }
 
@@ -725,7 +725,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginFactoryMethod(Token token) {
-    library.beginNestedDeclaration(null, hasMembers: false);
+    library.beginNestedDeclaration("#factory_method", hasMembers: false);
   }
 
   @override

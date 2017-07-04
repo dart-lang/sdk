@@ -107,7 +107,8 @@ class KernelLibraryBuilder
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    var declaration = endNestedDeclaration()..resolveTypes(typeVariables, this);
+    var declaration = endNestedDeclaration(className)
+      ..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
     Map<String, MemberBuilder> constructors = declaration.constructors;
@@ -452,7 +453,7 @@ class KernelLibraryBuilder
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
         metadata: metadata,
         name: name,
@@ -518,7 +519,7 @@ class KernelLibraryBuilder
       {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    endNestedDeclaration(name).resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
@@ -572,7 +573,7 @@ class KernelLibraryBuilder
         currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
-        endNestedDeclaration();
+        endNestedDeclaration("#factory_method");
     String name = constructorNameReference.name;
     String constructorName =
         computeAndValidateConstructorName(name, charOffset);
@@ -621,7 +622,7 @@ class KernelLibraryBuilder
         metadata, returnType, name, typeVariables, formals, this, charOffset);
     checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    endNestedDeclaration("#typedef").resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
   }
 
