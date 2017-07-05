@@ -243,10 +243,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
-      T returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals,
+      FunctionTypeBuilder type,
       int charOffset);
 
   FunctionTypeBuilder addFunctionType(

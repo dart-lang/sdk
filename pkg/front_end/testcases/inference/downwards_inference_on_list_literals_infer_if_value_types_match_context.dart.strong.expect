@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef Asserter = <T extends core::Object>(T) → void;
-typedef AsserterBuilder = <S extends core::Object, T extends core::Object>(S) → (T) → void;
+typedef Asserter<T extends core::Object> = (T) → void;
+typedef AsserterBuilder<S extends core::Object, T extends core::Object> = (S) → (T) → void;
 class DartType extends core::Object {
   constructor •() → void
     : super core::Object::•()

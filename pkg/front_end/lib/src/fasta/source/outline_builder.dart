@@ -498,22 +498,6 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
-    debugEvent("FunctionTypedFormalParameter");
-    List<FormalParameterBuilder> formals = pop();
-    int formalsOffset = pop();
-    List<TypeVariableBuilder> typeVariables = pop();
-    int charOffset = pop();
-    String name = pop();
-    TypeBuilder returnType = pop();
-    push(library.addFunctionType(
-        returnType, typeVariables, formals, formalsOffset));
-    push(name);
-    push(charOffset);
-  }
-
-  @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
@@ -612,6 +596,18 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void beginFunctionType(Token beginToken) {
+    debugEvent("beginFunctionType");
+    library.beginNestedDeclaration("#function_type", hasMembers: false);
+  }
+
+  @override
+  void beginFunctionTypedFormalParameter(Token token) {
+    debugEvent("beginFunctionTypedFormalParameter");
+    library.beginNestedDeclaration("#function_type", hasMembers: false);
+  }
+
+  @override
   void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     List<FormalParameterBuilder> formals = pop();
@@ -623,21 +619,41 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void endFunctionTypedFormalParameter(
+      Token thisKeyword, FormalParameterType kind) {
+    debugEvent("FunctionTypedFormalParameter");
+    List<FormalParameterBuilder> formals = pop();
+    int formalsOffset = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
+    int charOffset = pop();
+    String name = pop();
+    TypeBuilder returnType = pop();
+    push(library.addFunctionType(
+        returnType, typeVariables, formals, formalsOffset));
+    push(name);
+    push(charOffset);
+  }
+
+  @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
-    List<FormalParameterBuilder> formals;
     List<TypeVariableBuilder> typeVariables;
     String name;
-    TypeBuilder returnType;
     int charOffset;
+    FunctionTypeBuilder functionType;
     if (equals == null) {
-      formals = pop();
+      List<FormalParameterBuilder> formals = pop();
       pop(); // formals offset
       typeVariables = pop();
       charOffset = pop();
       name = pop();
-      returnType = pop();
+      TypeBuilder returnType = pop();
+      // Create a nested declaration that is ended below by
+      // `library.addFunctionType`.
+      library.beginNestedDeclaration("#function_type", hasMembers: false);
+      functionType =
+          library.addFunctionType(returnType, null, formals, charOffset);
     } else {
       var type = pop();
       typeVariables = pop();
@@ -649,8 +665,7 @@ class OutlineBuilder extends UnhandledListener {
         // `type.typeVariables`. A typedef can have type variables, and a new
         // function type can also have type variables (representing the type of
         // a generic function).
-        formals = type.formals;
-        returnType = type.returnType;
+        functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
         library.addCompileTimeError(
@@ -659,7 +674,7 @@ class OutlineBuilder extends UnhandledListener {
     }
     List<MetadataBuilder> metadata = pop();
     library.addFunctionTypeAlias(
-        metadata, returnType, name, typeVariables, formals, charOffset);
+        metadata, name, typeVariables, functionType, charOffset);
     checkEmpty(typedefKeyword.charOffset);
     silenceParserErrors = true;
   }

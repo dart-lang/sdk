@@ -348,8 +348,10 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeUriReference(node.fileUri ?? '');
+    _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
+    _typeParameterIndexer.exit(node.typeParameters);
   }
 
   void writeAnnotation(Expression annotation) {

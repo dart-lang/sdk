@@ -32,7 +32,6 @@ import 'kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
-        FunctionTypeAliasBuilder,
         InvalidTypeBuilder,
         KernelConstructorBuilder,
         KernelEnumBuilder,
@@ -613,13 +612,12 @@ class KernelLibraryBuilder
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
-      KernelTypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals,
+      covariant KernelFunctionTypeBuilder type,
       int charOffset) {
-    FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
-        metadata, returnType, name, typeVariables, formals, this, charOffset);
+    KernelFunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
+        metadata, name, typeVariables, type, this, charOffset);
     checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration("#typedef").resolveTypes(typeVariables, this);
@@ -634,6 +632,9 @@ class KernelLibraryBuilder
     var builder = new KernelFunctionTypeBuilder(
         charOffset, fileUri, returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, builder);
+    // Nested declaration began in `OutlineBuilder.beginFunctionType` or
+    // `OutlineBuilder.beginFunctionTypedFormalParameter`.
+    endNestedDeclaration("#function_type").resolveTypes(typeVariables, this);
     return addType(builder);
   }
 
