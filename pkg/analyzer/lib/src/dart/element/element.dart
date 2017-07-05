@@ -6662,7 +6662,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     List<ParameterElement> covariantParameters = parameters.map((parameter) {
       DartType type = parameter.isCovariant ? objectType : parameter.type;
       return new ParameterElementImpl.synthetic(
-          parameter.name, objectType, parameter.parameterKind);
+          parameter.name, type, parameter.parameterKind);
     }).toList();
 
     return new FunctionElementImpl.synthetic(covariantParameters, returnType)
