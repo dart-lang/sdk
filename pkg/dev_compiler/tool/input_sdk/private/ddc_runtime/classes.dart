@@ -409,46 +409,32 @@ defineExtensionNames(names) =>
 
 /// Install properties in prototype-first order.  Properties / descriptors from
 /// more specific types should overwrite ones from less specific types.
-void _installProperties(jsProto, extProto) {
-  // This relies on the Dart type literal evaluating to the JavaScript
-  // constructor.
-  var coreObjProto = JS('', '#.prototype', Object);
-
-  var parentsExtension = JS('', '(#.__proto__)[#]', jsProto, _extensionType);
-  var installedParent =
-      JS('', '# && #.prototype', parentsExtension, parentsExtension);
-
-  _installProperties2(jsProto, extProto, coreObjProto, installedParent);
-}
-
-void _installProperties2(jsProto, extProto, coreObjProto, installedParent) {
-  if (JS('bool', '# === #', extProto, coreObjProto)) {
-    _installPropertiesForObject(jsProto, coreObjProto);
+void _installProperties(jsProto, dartType, installedParent) {
+  if (JS('bool', '# === #', dartType, Object)) {
+    _installPropertiesForObject(jsProto);
     return;
   }
-  if (JS('bool', '# !== #', jsProto, extProto)) {
-    var extParent = JS('', '#.__proto__', extProto);
-
-    // If the extension methods of the parent have been installed on the parent
-    // of [jsProto], the methods will be available via prototype inheritance.
-
-    if (JS('bool', '# !== #', installedParent, extParent)) {
-      _installProperties2(jsProto, extParent, coreObjProto, installedParent);
-    }
+  // If the extension methods of the parent have been installed on the parent
+  // of [jsProto], the methods will be available via prototype inheritance.
+  var dartSupertype = JS('', '#.__proto__', dartType);
+  if (JS('bool', '# !== #', dartSupertype, installedParent)) {
+    _installProperties(jsProto, dartSupertype, installedParent);
   }
-  copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
+
+  var dartProto = JS('', '#.prototype', dartType);
+  copyTheseProperties(jsProto, dartProto, getOwnPropertySymbols(dartProto));
 }
 
-void _installPropertiesForObject(jsProto, coreObjProto) {
+void _installPropertiesForObject(jsProto) {
   // core.Object members need to be copied from the non-symbol name to the
   // symbol name.
+  var coreObjProto = JS('', '#.prototype', Object);
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0; i < JS('int', '#.length', names); ++i) {
     var name = JS('', '#[#]', names, i);
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
     defineProperty(jsProto, getExtensionSymbol(name), desc);
   }
-  return;
 }
 
 /// Copy symbols from the prototype of the source to destination.
@@ -460,16 +446,17 @@ registerExtension(jsType, dartExtType) => JS(
   // TODO(vsm): Not all registered js types are real.
   if (!jsType) return;
 
-  let extProto = $dartExtType.prototype;
   let jsProto = $jsType.prototype;
 
   // TODO(vsm): This sometimes doesn't exist on FF.  These types will be
   // broken.
   if (!jsProto) return;
 
+  $_installProperties(jsProto, $dartExtType, jsProto[$_extensionType]);
+
   // Mark the JS type's instances so we can easily check for extensions.
   jsProto[$_extensionType] = $dartExtType;
-  $_installProperties(jsProto, extProto);
+
   function updateSig(sigF) {
     let originalDesc = $getOwnPropertyDescriptor($dartExtType, sigF);
     if (originalDesc === void 0) return;
@@ -546,7 +533,7 @@ setType(obj, type) {
 
 /// Sets the element type of a list literal.
 list(obj, elementType) =>
-    JS('', '$setType($obj, ${getGenericClass(JSArray)}($elementType))');
+    setType(obj, JS('', '#(#)', getGenericClass(JSArray), elementType));
 
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
@@ -555,17 +542,12 @@ setBaseClass(derived, base) {
   JS('', '#.__proto__ = #', derived, base);
 }
 
-/// Like [setBaseClass] but for generic extension types, e.g. `JSArray<E>`
-setExtensionBaseClass(derived, base) {
-  // Mark the generic type as an extension type and link the prototype objects
-  return JS(
-      '',
-      '''(() => {
-    if ($base) {
-      $derived.prototype[$_extensionType] = $derived;
-      $derived.prototype.__proto__ = $base.prototype
-    }
-})()''');
+/// Like [setBaseClass], but for generic extension types such as `JSArray<E>`.
+setExtensionBaseClass(dartType, jsType) {
+  // Mark the generic type as an extension type and link the prototype objects.
+  var dartProto = JS('', '#.prototype', dartType);
+  JS('', '#[#] = #', dartProto, _extensionType, dartType);
+  JS('', '#.__proto__ = #.prototype', dartProto, jsType);
 }
 
 defineEnumValues(enumClass, names) {

@@ -25,8 +25,10 @@ abstract class JsTypeRefCodegen {
   /// Finds the qualified path to the type.
   JS.TypeRef _emitTopLevelTypeRef(DartType type) {
     var e = type.element;
-    return new JS.TypeRef.qualified(
-        [emitLibraryName(e.library), new JS.Identifier(getJSExportName(e))]);
+    return new JS.TypeRef.qualified([
+      emitLibraryName(e.library),
+      new JS.Identifier(getJSExportName(e) ?? e.name)
+    ]);
   }
 
   JS.TypeRef emitTypeRef(DartType type) {

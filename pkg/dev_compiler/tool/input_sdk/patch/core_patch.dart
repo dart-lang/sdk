@@ -553,46 +553,38 @@ class NoSuchMethodError {
 
   @patch
   String toString() {
-    StringBuffer sb = new StringBuffer();
-    int i = 0;
+    StringBuffer sb = new StringBuffer('');
+    String comma = '';
     if (_arguments != null) {
-      for (; i < _arguments.length; i++) {
-        if (i > 0) {
-          sb.write(", ");
-        }
-        sb.write(Error.safeToString(_arguments[i]));
+      for (var argument in _arguments) {
+        sb.write(comma);
+        sb.write(Error.safeToString(argument));
+        comma = ', ';
       }
     }
     if (_namedArguments != null) {
       _namedArguments.forEach((Symbol key, var value) {
-        if (i > 0) {
-          sb.write(", ");
-        }
+        sb.write(comma);
         sb.write(_symbolToString(key));
         sb.write(": ");
         sb.write(Error.safeToString(value));
-        i++;
+        comma = ', ';
       });
     }
+    String memberName = _symbolToString(_memberName);
+    String receiverText = Error.safeToString(_receiver);
+    String actualParameters = '$sb';
     if (_existingArgumentNames == null) {
-      return "NoSuchMethodError : method not found: '$_memberName'\n"
-          "Receiver: ${Error.safeToString(_receiver)}\n"
-          "Arguments: [$sb]";
+      return "NoSuchMethodError: method not found: '$memberName'\n"
+          "Receiver: ${receiverText}\n"
+          "Arguments: [$actualParameters]";
     } else {
-      String actualParameters = sb.toString();
-      sb = new StringBuffer();
-      for (int i = 0; i < _existingArgumentNames.length; i++) {
-        if (i > 0) {
-          sb.write(", ");
-        }
-        sb.write(_existingArgumentNames[i]);
-      }
-      String formalParameters = sb.toString();
+      String formalParameters = _existingArgumentNames.join(', ');
       return "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$_memberName'\n"
-          "Receiver: ${Error.safeToString(_receiver)}\n"
-          "Tried calling: $_memberName($actualParameters)\n"
-          "Found: $_memberName($formalParameters)";
+          "method named '$memberName'\n"
+          "Receiver: ${receiverText}\n"
+          "Tried calling: $memberName($actualParameters)\n"
+          "Found: $memberName($formalParameters)";
     }
   }
 }

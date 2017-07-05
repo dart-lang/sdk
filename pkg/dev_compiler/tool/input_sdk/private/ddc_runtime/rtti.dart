@@ -151,36 +151,13 @@ _nonPrimitiveRuntimeType(obj) {
 
 /// Given an internal runtime type object, wraps it in a `WrappedType` object
 /// that implements the dart:core Type interface.
-wrapType(type) {
+Type wrapType(type) {
   // If we've already wrapped this type once, use the previous wrapper. This
   // way, multiple references to the same type return an identical Type.
   if (JS('bool', '#.hasOwnProperty(#)', type, _typeObject)) {
     return JS('', '#[#]', type, _typeObject);
   }
-  return JS('', '#[#] = #', type, _typeObject, new WrappedType(type));
-}
-
-var _lazyJSTypes = JS('', 'new Map()');
-
-lazyJSType(getJSTypeCallback, name) {
-  var key = JS('String', '#.toString()', getJSTypeCallback);
-  if (JS('bool', '#.has(#)', _lazyJSTypes, key)) {
-    return JS('', '#.get(#)', _lazyJSTypes, key);
-  }
-  var ret = new LazyJSType(getJSTypeCallback, name);
-  JS('', '#.set(#, #)', _lazyJSTypes, key, ret);
-  return ret;
-}
-
-// TODO(jacobr): do not use the same LazyJSType object for anonymous JS types
-// from different libraries.
-lazyAnonymousJSType(name) {
-  if (JS('bool', '#.has(#)', _lazyJSTypes, name)) {
-    return JS('', '#.get(#)', _lazyJSTypes, name);
-  }
-  var ret = new LazyJSType(null, name);
-  JS('', '#.set(#, #)', _lazyJSTypes, name, ret);
-  return ret;
+  return JS('Type', '#[#] = #', type, _typeObject, new WrappedType(type));
 }
 
 /// Given a WrappedType, return the internal runtime type object.
@@ -197,12 +174,11 @@ void tag(value, t) {
 }
 
 void tagComputed(value, compute) {
-  JS('', '#(#, #, { get: # })', defineProperty, value, _runtimeType, compute);
+  defineGetter(value, _runtimeType, compute);
 }
 
 void tagLazy(value, compute) {
-  JS('', '#(#, #, { get: # })', defineLazyProperty, value, _runtimeType,
-      compute);
+  defineMemoizedGetter(value, _runtimeType, compute);
 }
 
 var _loadedModules = JS('', 'new Map()');

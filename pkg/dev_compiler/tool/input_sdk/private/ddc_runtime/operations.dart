@@ -36,38 +36,52 @@ class InvocationImpl extends Invocation {
 /// If the optional `f` argument is passed in, it will be used as the method.
 /// This supports cases like `super.foo` where we need to tear off the method
 /// from the superclass, not from the `obj` directly.
-/// TODO(leafp): Consider caching the tearoff on the object?
+// TODO(leafp): Consider caching the tearoff on the object?
 bind(obj, name, f) {
-  if (f == null) f = JS('', '#[#]', obj, name);
-
-  // TODO(jmesserly): it would be nice to do this lazily, but JS interop seems
-  // to require us to be eager (the test below).
-  var sig = getMethodType(getType(obj), name);
-
-  // JS interop case: do not bind this for compatibility with the dart2js
-  // implementation where we cannot bind this reliably here until we trust
-  // types more.
-  if (sig == null) return f;
-
-  f = JS('', '#.bind(#)', f, obj);
+  // Handle Object members.
+  var method;
+  if (JS('bool', '# === "toString"', name)) {
+    method = _toString;
+    f = JS('', '() => #(#)', _toString, obj);
+  } else if (JS('bool', '# === "noSuchMethod"', name)) {
+    method = noSuchMethod;
+    f = JS('', '(i) => #(#, i)', noSuchMethod, obj);
+  } else {
+    // All other members
+    if (f == null) f = JS('', '#[#]', obj, name);
+    method = f;
+    f = JS('', '#.bind(#)', f, obj);
+  }
+  // TODO(jmesserly): should we canonicalize tearoffs so we don't need to
+  // define ==/hashCode? Then we'd only need the signature.
+  // Another idea here is to have a type that maps to Function.prototype,
+  // similar to all other JS types. That would give us a place to put function
+  // equality, hashCode, runtimeType, noSuchMethod, and toString, rather than
+  // it being a special case in every Object member helper.
   JS(
       '',
-      r'''#[dartx["=="]] = function boundMethodEquals(other) {
-    return other[#] === this[#] && other[#] === this[#];
-  }''',
+      '#[dartx["=="]] = '
+      '(f) => { let eq = f[#]; return eq != null && eq(#, #); }',
       f,
-      _boundMethodTarget,
-      _boundMethodTarget,
-      _boundMethodName,
-      _boundMethodName);
-  JS('', '#[#] = #', f, _boundMethodTarget, obj);
-  JS('', '#[#] = #', f, _boundMethodName, name);
-  tag(f, sig);
+      _tearoffEquals,
+      obj,
+      method);
+  JS('', '#[#] = (o, m) => o === # && m === #', f, _tearoffEquals, obj, method);
+  JS(
+      '',
+      '#[#] = function() {'
+      'let hash = (17 * 31 + #) & 0x1fffffff;'
+      'return (hash * 31 + #) & 0x1fffffff; }',
+      f,
+      _tearoffHashcode,
+      hashCode(obj),
+      hashCode(method));
+  tagLazy(f, JS('', '() => #', getMethodType(getType(obj), name)));
   return f;
 }
 
-final _boundMethodTarget = JS('', 'Symbol("_boundMethodTarget")');
-final _boundMethodName = JS('', 'Symbol("_boundMethodName")');
+final _tearoffEquals = JS('', 'Symbol("_tearoffEquals")');
+final _tearoffHashcode = JS('', 'Symbol("_tearoffHashcode")');
 
 /// Instantiate a generic method.
 ///
@@ -91,7 +105,7 @@ dload(obj, field) {
     var type = getType(obj);
 
     if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
-    if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
+    if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
@@ -503,7 +517,7 @@ instanceOfOrNull(obj, type) => JS(
 })()''');
 
 @JSExportName('is')
-instanceOf(obj, type) => JS(
+bool instanceOf(obj, type) => JS(
     '',
     '''(() => {
   if ($obj == null) {
@@ -892,7 +906,8 @@ hashCode(obj) {
       // From JSBool.hashCode, see comment there.
       return JS('', '# ? (2 * 3 * 23 * 3761) : (269 * 811)', obj);
     case "function":
-      // TODO(jmesserly): this doesn't work for method tear-offs.
+      var hashFn = JS('', '#[#]', obj, _tearoffHashcode);
+      if (hashFn != null) return JS('int', '#()', hashFn);
       return Primitives.objectHashCode(obj);
   }
 
@@ -1010,3 +1025,10 @@ _canonicalMember(obj, name) {
 /// Libraries are not actually deferred in DDC, so this just returns a future
 /// that completes immediately.
 Future loadLibrary() => new Future.value();
+
+/// Defines lazy statics.
+void defineLazy(to, from) {
+  for (var name in getOwnNamesAndSymbols(from)) {
+    defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
+  }
+}
