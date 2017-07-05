@@ -768,14 +768,36 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void handleIdentifier(Token token, IdentifierContext context) {
+    if (IdentifierContext.formalParameterDeclaration == context ||
+        IdentifierContext.fieldInitializer == context) {
+      var typeAnnotation = popNode();
+      if (typeAnnotation is FunctionExpression) {
+        pushNode(null); // Signal "no type" to endFormalParameter.
+        pushNode(new FunctionExpression(
+            new Identifier(token),
+            typeAnnotation.typeVariables,
+            typeAnnotation.parameters,
+            null,
+            typeAnnotation.returnType,
+            typeAnnotation.modifiers,
+            null,
+            null,
+            null));
+        return;
+      } else {
+        pushNode(typeAnnotation);
+      }
+    }
+    pushNode(new Identifier(token));
+  }
+
+  @override
+  void endFunctionTypedFormalParameter() {
     NodeList formals = popNode();
-    NodeList typeVariables = popNode();
-    Identifier name = popNode();
     TypeAnnotation returnType = popNode();
-    pushNode(null); // Signal "no type" to endFormalParameter.
-    pushNode(new FunctionExpression(name, typeVariables, formals, null,
+    NodeList typeVariables = popNode();
+    pushNode(new FunctionExpression(null, typeVariables, formals, null,
         returnType, Modifiers.EMPTY, null, null, null));
   }
 

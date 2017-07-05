@@ -168,7 +168,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 Language/Types/Static_Types/deferred_type_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.

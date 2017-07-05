@@ -1700,6 +1700,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void beginFunctionType(Token beginToken) {
     debugEvent("beginFunctionType");
+    enterFunctionTypeScope();
+  }
+
+  void enterFunctionTypeScope() {
     List typeVariables = pop();
     enterLocalScope(scope.createNestedScope(isModifiable: false));
     push(typeVariables ?? NullValue.TypeVariables);
@@ -1857,21 +1861,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     functionNestingLevel++;
+    enterFunctionTypeScope();
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter() {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    ignore(Unhandled.TypeVariables);
-    Identifier name = pop();
     DartType returnType = pop();
-    push(formals.toFunctionType(returnType));
-    push(name);
+    List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
+    FunctionType type = formals.toFunctionType(returnType, typeVariables);
+    exitLocalScope();
+    push(type);
     functionNestingLevel--;
   }
 

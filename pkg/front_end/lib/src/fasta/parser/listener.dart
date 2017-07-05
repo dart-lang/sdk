@@ -822,17 +822,15 @@ class Listener {
     logEvent("ConstExpression");
   }
 
+  /// Handle the start of a function typed formal parameter.  Substructures:
+  /// - type variables
   void beginFunctionTypedFormalParameter(Token token) {}
 
   /// Handle the end of a function typed formal parameter.  Substructures:
-  /// - metadata
-  /// - modifiers
+  /// - type variables
   /// - return type
-  /// - parameter name (simple identifier)
-  /// - type parameters
   /// - formal parameters
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter() {
     logEvent("FunctionTypedFormalParameter");
   }
 
@@ -1054,7 +1052,7 @@ class Listener {
     return token;
   }
 
-  /// Matches a generic comment type parameters or type arguments and injects
+  /// Matches a generic comment type variables or type arguments and injects
   /// them into the token stream before the given [token].
   Token injectGenericCommentTypeList(Token token) {
     return token;

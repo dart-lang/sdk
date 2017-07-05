@@ -63,15 +63,28 @@ bool optional(String value, Token token) {
   return identical(value, token.stringValue);
 }
 
+// TODO(ahe): Convert this to an enum.
 class FormalParameterType {
   final String type;
-  const FormalParameterType(this.type);
+
+  final TypeContinuation typeContinuation;
+
+  const FormalParameterType(this.type, this.typeContinuation);
+
   bool get isRequired => this == REQUIRED;
+
   bool get isPositional => this == POSITIONAL;
+
   bool get isNamed => this == NAMED;
-  static final REQUIRED = const FormalParameterType('required');
-  static final POSITIONAL = const FormalParameterType('positional');
-  static final NAMED = const FormalParameterType('named');
+
+  static final REQUIRED = const FormalParameterType(
+      'required', TypeContinuation.NormalFormalParameter);
+
+  static final POSITIONAL = const FormalParameterType(
+      'positional', TypeContinuation.OptionalPositionalFormalParameter);
+
+  static final NAMED =
+      const FormalParameterType('named', TypeContinuation.NamedFormalParameter);
 }
 
 enum MemberKind {
@@ -141,6 +154,9 @@ enum TypeContinuation {
   /// Otherwise, do nothing.
   Optional,
 
+  /// Same as [Optional], but we have seen `var`.
+  OptionalAfterVar,
+
   /// Indicates that the keyword `typedef` has just been seen, and the parser
   /// should parse the following as a type unless it is followed by `=`.
   Typedef,
@@ -160,6 +176,27 @@ enum TypeContinuation {
   /// Indicates that the parser has just parsed `for '('` and is looking to
   /// parse a variable declaration or expression.
   VariablesDeclarationOrExpression,
+
+  /// Indicates that an optional type followed by a normal formal parameter is
+  /// expected.
+  NormalFormalParameter,
+
+  /// Indicates that an optional type followed by an optional positional formal
+  /// parameter is expected.
+  OptionalPositionalFormalParameter,
+
+  /// Indicates that an optional type followed by a named formal parameter is
+  /// expected.
+  NamedFormalParameter,
+
+  /// Same as [NormalFormalParameter], but we have seen `var`.
+  NormalFormalParameterAfterVar,
+
+  /// Same as [OptionalPositionalFormalParameter], but we have seen `var`.
+  OptionalPositionalFormalParameterAfterVar,
+
+  /// Same as [NamedFormalParameter], but we have seen `var`.
+  NamedFormalParameterAfterVar,
 }
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -553,7 +590,9 @@ class Parser {
     return token;
   }
 
-  Token parseMetadataStar(Token token, {bool forParameter: false}) {
+  Token parseMetadataStar(Token token,
+      // TODO(ahe): Remove [forParameter].
+      {bool forParameter: false}) {
     token = listener.injectGenericCommentTypeAssign(token);
     listener.beginMetadataStar(token);
     int count = 0;
@@ -690,87 +729,7 @@ class Parser {
       Token token, FormalParameterType parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token, forParameter: true);
     listener.beginFormalParameter(token, memberKind);
-
-    bool inFunctionType = memberKind == MemberKind.GeneralizedFunctionType;
     token = parseModifiers(token, memberKind, parameterKind: parameterKind);
-    bool isNamedParameter = parameterKind == FormalParameterType.NAMED;
-
-    Token thisKeyword = null;
-    Token nameToken;
-    if (inFunctionType) {
-      if (isNamedParameter || token.isIdentifier) {
-        nameToken = token;
-        token = parseIdentifier(
-            token, IdentifierContext.formalParameterDeclaration);
-      } else {
-        listener.handleNoName(token);
-      }
-    } else {
-      if (optional('this', token)) {
-        thisKeyword = token;
-        token = expect('.', token.next);
-        nameToken = token;
-        token = parseIdentifier(token, IdentifierContext.fieldInitializer);
-      } else {
-        nameToken = token;
-        token = parseIdentifier(
-            token, IdentifierContext.formalParameterDeclaration);
-      }
-    }
-    if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
-      reportRecoverableErrorCode(nameToken, fasta.codePrivateNamedParameter);
-    }
-
-    token = listener.injectGenericCommentTypeList(token);
-    if (optional('(', token)) {
-      Token inlineFunctionTypeStart = token;
-      listener.beginFunctionTypedFormalParameter(token);
-      listener.handleNoTypeVariables(token);
-      token = parseFormalParameters(token, MemberKind.FunctionTypedParameter);
-      listener.endFunctionTypedFormalParameter(thisKeyword, parameterKind);
-      // Generalized function types don't allow inline function types.
-      // The following isn't allowed:
-      //    int Function(int bar(String x)).
-      if (memberKind == MemberKind.GeneralizedFunctionType) {
-        reportRecoverableErrorCode(
-            inlineFunctionTypeStart, fasta.codeInvalidInlineFunctionType);
-      }
-    } else if (optional('<', token)) {
-      Token inlineFunctionTypeStart = token;
-      listener.beginFunctionTypedFormalParameter(token);
-      token = parseTypeVariablesOpt(token);
-      token = parseFormalParameters(token, MemberKind.FunctionTypedParameter);
-      listener.endFunctionTypedFormalParameter(thisKeyword, parameterKind);
-      // Generalized function types don't allow inline function types.
-      // The following isn't allowed:
-      //    int Function(int bar(String x)).
-      if (memberKind == MemberKind.GeneralizedFunctionType) {
-        reportRecoverableErrorCode(
-            inlineFunctionTypeStart, fasta.codeInvalidInlineFunctionType);
-      }
-    }
-    String value = token.stringValue;
-    if ((identical('=', value)) || (identical(':', value))) {
-      Token equal = token;
-      token = parseExpression(token.next);
-      listener.handleValuedFormalParameter(equal, token);
-      if (parameterKind.isRequired) {
-        reportRecoverableErrorCode(
-            equal, fasta.codeRequiredParameterWithDefault);
-      } else if (parameterKind.isPositional && identical(':', value)) {
-        reportRecoverableErrorCode(
-            equal, fasta.codePositionalParameterWithEquals);
-      } else if (inFunctionType ||
-          memberKind == MemberKind.FunctionTypeAlias ||
-          memberKind == MemberKind.FunctionTypedParameter) {
-        reportRecoverableErrorCode(
-            equal.next, fasta.codeFunctionTypeDefaultValue);
-      }
-    } else {
-      listener.handleFormalParameterWithoutValue(token);
-    }
-    listener.endFormalParameter(
-        thisKeyword, nameToken, parameterKind, memberKind);
     return token;
   }
 
@@ -1127,10 +1086,14 @@ class Parser {
   /// after the type. Otherwise, it returns null.
   Token parseType(Token token,
       [TypeContinuation continuation = TypeContinuation.Required,
-      IdentifierContext continuationContext]) {
+      IdentifierContext continuationContext,
+      MemberKind memberKind]) {
     /// Returns the close brace, bracket, or parenthesis of [left]. For '<', it
     /// may return null.
     Token getClose(BeginToken left) => left.endToken;
+
+    /// True if we've seen the `var` keyword.
+    bool hasVar = false;
 
     /// Where the type begins.
     Token begin;
@@ -1284,6 +1247,10 @@ class Parser {
         listener.endFunctionType(functionToken, token);
       }
 
+      if (hasVar) {
+        reportRecoverableErrorCode(begin, fasta.codeTypeAfterVar);
+      }
+
       return token;
     }
 
@@ -1301,6 +1268,7 @@ class Parser {
           optional('sync', token);
     }
 
+    FormalParameterType parameterKind;
     switch (continuation) {
       case TypeContinuation.Required:
         return commitType();
@@ -1321,6 +1289,10 @@ class Parser {
         }
         listener.handleNoType(begin);
         return begin;
+
+      case TypeContinuation.OptionalAfterVar:
+        hasVar = true;
+        continue optional;
 
       case TypeContinuation.Typedef:
         if (optional('=', token)) {
@@ -1432,6 +1404,145 @@ class Parser {
           return parseVariablesDeclarationNoSemicolon(begin);
         }
         return parseExpression(begin);
+
+      case TypeContinuation.NormalFormalParameter:
+      case TypeContinuation.NormalFormalParameterAfterVar:
+        parameterKind = FormalParameterType.REQUIRED;
+        hasVar = continuation == TypeContinuation.NormalFormalParameterAfterVar;
+        continue handleParameters;
+
+      case TypeContinuation.OptionalPositionalFormalParameter:
+      case TypeContinuation.OptionalPositionalFormalParameterAfterVar:
+        parameterKind = FormalParameterType.POSITIONAL;
+        hasVar = continuation ==
+            TypeContinuation.OptionalPositionalFormalParameterAfterVar;
+        continue handleParameters;
+
+      case TypeContinuation.NamedFormalParameterAfterVar:
+        hasVar = true;
+        continue handleParameters;
+
+      handleParameters:
+      case TypeContinuation.NamedFormalParameter:
+        parameterKind ??= FormalParameterType.NAMED;
+        bool inFunctionType = memberKind == MemberKind.GeneralizedFunctionType;
+        bool isNamedParameter = parameterKind == FormalParameterType.NAMED;
+
+        bool untyped = false;
+        if (!looksLikeType || optional("this", begin)) {
+          untyped = true;
+          token = begin;
+        }
+
+        Token thisKeyword;
+        Token nameToken = token;
+        IdentifierContext nameContext =
+            IdentifierContext.formalParameterDeclaration;
+        token = token.next;
+        if (inFunctionType) {
+          if (isNamedParameter || nameToken.isIdentifier) {
+            nameContext = IdentifierContext.formalParameterDeclaration;
+          } else {
+            // No name required in a function type.
+            nameContext = null;
+            token = nameToken;
+          }
+        } else if (optional('this', nameToken)) {
+          thisKeyword = nameToken;
+          token = expect('.', token);
+          nameToken = token;
+          nameContext = IdentifierContext.fieldInitializer;
+          token = token.next;
+        } else if (!nameToken.isIdentifier) {
+          untyped = true;
+          nameToken = begin;
+          token = nameToken.next;
+        }
+        if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
+          // TODO(ahe): Move this to after commiting the type.
+          reportRecoverableErrorCode(
+              nameToken, fasta.codePrivateNamedParameter);
+        }
+
+        token = listener.injectGenericCommentTypeList(token);
+
+        Token inlineFunctionTypeStart;
+        if (optional("<", token)) {
+          Token closer = getClose(token);
+          if (closer != null) {
+            if (optional("(", closer.next)) {
+              inlineFunctionTypeStart = token;
+              token = token.next;
+            }
+          }
+        } else if (optional("(", token)) {
+          inlineFunctionTypeStart = token;
+          token = getClose(token).next;
+        }
+
+        if (inlineFunctionTypeStart != null) {
+          token = parseTypeVariablesOpt(inlineFunctionTypeStart);
+          listener.beginFunctionTypedFormalParameter(inlineFunctionTypeStart);
+          if (!untyped) {
+            if (voidToken != null) {
+              listener.handleVoidKeyword(voidToken);
+            } else {
+              Token saved = token;
+              commitType();
+              token = saved;
+            }
+          } else {
+            listener.handleNoType(begin);
+          }
+          token =
+              parseFormalParameters(token, MemberKind.FunctionTypedParameter);
+          listener.endFunctionTypedFormalParameter();
+
+          // Generalized function types don't allow inline function types.
+          // The following isn't allowed:
+          //    int Function(int bar(String x)).
+          if (memberKind == MemberKind.GeneralizedFunctionType) {
+            reportRecoverableErrorCode(
+                inlineFunctionTypeStart, fasta.codeInvalidInlineFunctionType);
+          }
+        } else if (untyped) {
+          listener.handleNoType(begin);
+        } else {
+          Token saved = token;
+          commitType();
+          token = saved;
+        }
+
+        if (nameContext != null) {
+          parseIdentifier(nameToken, nameContext);
+        } else {
+          listener.handleNoName(nameToken);
+        }
+
+        String value = token.stringValue;
+        if ((identical('=', value)) || (identical(':', value))) {
+          Token equal = token;
+          token = parseExpression(token.next);
+          listener.handleValuedFormalParameter(equal, token);
+          if (parameterKind.isRequired) {
+            reportRecoverableErrorCode(
+                equal, fasta.codeRequiredParameterWithDefault);
+          } else if (parameterKind.isPositional && identical(':', value)) {
+            reportRecoverableErrorCode(
+                equal, fasta.codePositionalParameterWithEquals);
+          } else if (inFunctionType ||
+              memberKind == MemberKind.FunctionTypeAlias ||
+              memberKind == MemberKind.FunctionTypedParameter) {
+            reportRecoverableErrorCode(
+                equal.next, fasta.codeFunctionTypeDefaultValue);
+          }
+        } else {
+          listener.handleFormalParameterWithoutValue(token);
+        }
+        listener.endFormalParameter(
+            thisKeyword, nameToken, parameterKind, memberKind);
+
+        return token;
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
@@ -1564,7 +1675,7 @@ class Parser {
     }
     Token token = parseModifiers(start,
         isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
-        isVariable: true);
+        isVarAllowed: true);
 
     if (token != name) {
       reportRecoverableErrorCodeWithToken(token, fasta.codeExtraneousModifier);
@@ -1919,15 +2030,12 @@ class Parser {
   /// When parsing the formal parameters of any function, [parameterKind] is
   /// non-null.
   Token parseModifiers(Token token, MemberKind memberKind,
-      {FormalParameterType parameterKind, bool isVariable: false}) {
-    bool returnTypeAllowed =
-        !isVariable && memberKind != MemberKind.GeneralizedFunctionType;
-    bool typeRequired =
-        isVariable || memberKind == MemberKind.GeneralizedFunctionType;
+      {FormalParameterType parameterKind, bool isVarAllowed: false}) {
     int count = 0;
 
     int currentOrder = -1;
-    bool hasVar = false;
+    TypeContinuation typeContinuation = parameterKind?.typeContinuation;
+
     while (token.kind == KEYWORD_TOKEN) {
       if (token.type.isPseudo) {
         // A pseudo keyword is never a modifier.
@@ -1947,24 +2055,42 @@ class Parser {
         if (order > currentOrder) {
           currentOrder = order;
           if (optional("var", token)) {
-            if (!isVariable && parameterKind == null) {
+            if (!isVarAllowed && parameterKind == null) {
               reportRecoverableErrorCodeWithToken(
                   token, fasta.codeExtraneousModifier);
             }
-            hasVar = true;
-            typeRequired = false;
+            switch (typeContinuation ?? TypeContinuation.Required) {
+              case TypeContinuation.NormalFormalParameter:
+                typeContinuation =
+                    TypeContinuation.NormalFormalParameterAfterVar;
+                break;
+
+              case TypeContinuation.OptionalPositionalFormalParameter:
+                typeContinuation =
+                    TypeContinuation.OptionalPositionalFormalParameterAfterVar;
+                break;
+
+              case TypeContinuation.NamedFormalParameter:
+                typeContinuation =
+                    TypeContinuation.NamedFormalParameterAfterVar;
+                break;
+
+              default:
+                typeContinuation = TypeContinuation.OptionalAfterVar;
+                break;
+            }
           } else if (optional("final", token)) {
-            if (!isVariable && parameterKind == null) {
+            if (!isVarAllowed && parameterKind == null) {
               reportRecoverableErrorCodeWithToken(
                   token, fasta.codeExtraneousModifier);
             }
-            typeRequired = false;
+            typeContinuation ??= TypeContinuation.Optional;
           } else if (optional("const", token)) {
-            if (!isVariable) {
+            if (!isVarAllowed) {
               reportRecoverableErrorCodeWithToken(
                   token, fasta.codeExtraneousModifier);
             }
-            typeRequired = false;
+            typeContinuation ??= TypeContinuation.Optional;
           } else if (optional("static", token)) {
             if (parameterKind != null) {
               reportRecoverableErrorCodeWithToken(
@@ -2021,18 +2147,12 @@ class Parser {
     }
     listener.handleModifiers(count);
 
-    Token beforeType = token;
-    token = parseType(
-        token,
-        returnTypeAllowed || !typeRequired
-            ? TypeContinuation.Optional
-            : TypeContinuation.Required);
-    if (typeRequired && beforeType == token) {
-      reportRecoverableErrorCode(token, fasta.codeTypeRequired);
-    }
-    if (hasVar && beforeType != token) {
-      reportRecoverableErrorCode(beforeType, fasta.codeTypeAfterVar);
-    }
+    typeContinuation ??=
+        (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
+            ? TypeContinuation.Required
+            : TypeContinuation.Optional;
+
+    token = parseType(token, typeContinuation, null, memberKind);
     return token;
   }
 
@@ -3499,7 +3619,7 @@ class Parser {
           listener.replaceTokenWithGenericCommentTypeAssign(token, token.next);
     }
 
-    token = parseModifiers(token, MemberKind.Local, isVariable: true);
+    token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
 

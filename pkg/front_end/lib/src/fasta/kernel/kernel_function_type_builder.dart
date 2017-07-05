@@ -25,8 +25,10 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     implements KernelTypeBuilder {
+  final int charOffset;
+
   KernelFunctionTypeBuilder(
-      int charOffset,
+      this.charOffset,
       Uri fileUri,
       KernelTypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,

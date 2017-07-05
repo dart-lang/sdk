@@ -1073,15 +1073,14 @@ class SummaryBuilder extends StackListener {
     _addNameIfPublic(name, ReferenceKind.typedef, typeVariables.length);
   }
 
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter() {
     debugEvent("FunctionTypedFormalParameter");
     List<UnlinkedParamBuilder> formals = pop();
     if (formals != null) formals.forEach((p) => p.inheritsCovariantSlot = null);
 
-    /* List typeVariables = */ pop();
     String name = pop();
     EntityRef returnType = pop();
+    /* List typeVariables = */ pop();
     /* int modifiers = */ pop();
     List metadata = pop();
 

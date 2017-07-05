@@ -619,19 +619,14 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter() {
     debugEvent("FunctionTypedFormalParameter");
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
-    List<TypeVariableBuilder> typeVariables = pop();
-    int charOffset = pop();
-    String name = pop();
     TypeBuilder returnType = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     push(library.addFunctionType(
         returnType, typeVariables, formals, formalsOffset));
-    push(name);
-    push(charOffset);
   }
 
   @override
