@@ -66,7 +66,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   String partOfName;
 
-  Uri partOfUri;
+  String partOfUri;
 
   List<MetadataBuilder> metadata;
 
@@ -177,7 +177,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
     partOfName = name;
-    partOfUri = uri == null ? null : this.uri.resolve(uri);
+    partOfUri = uri;
   }
 
   void addClass(
@@ -413,24 +413,44 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void includePart(SourceLibraryBuilder<T, R> part) {
-    if (name != null) {
-      if (!part.isPart) {
-        addCompileTimeError(
-            -1,
-            "Can't use ${part.fileUri} as a part, because it has no 'part of'"
-            " declaration.");
-        parts.remove(part);
-        return;
-      }
-      if (part.partOfName != name && part.partOfUri != uri) {
-        String partName = part.partOfName ?? "${part.partOfUri}";
-        String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
+    if (part.partOfUri != null) {
+      if (uri.resolve(part.partOfUri) != uri) {
+        // This is a warning, but the part is still included.
         addWarning(
             -1,
-            "Using '${part.fileUri}' as part of '$myName' but its 'part of'"
-            " declaration says '$partName'.");
-        // The part is still included.
+            "Using '${part.relativeFileUri}' as part of '$uri' but its "
+            "'part of' declaration says '${part.partOfUri}'.");
+        if (uri.scheme == "dart" && relativeFileUri.endsWith(part.partOfUri)) {
+          addWarning(-1, "See https://github.com/dart-lang/sdk/issues/30072.");
+        }
       }
+    } else if (part.partOfName != null) {
+      if (name != null) {
+        if (part.partOfName != name) {
+          // This is a warning, but the part is still included.
+          addWarning(
+              -1,
+              "Using '${part.relativeFileUri}' as part of '$name' but its "
+              "'part of' declaration says '${part.partOfName}'.");
+        }
+      } else {
+        // This is a warning, but the part is still included.
+        addWarning(
+            -1,
+            "Using '${part.relativeFileUri}' as part of '${relativeFileUri}' "
+            "but its 'part of' declaration says '${part.partOfName}'.\n"
+            "Try changing the 'part of' declaration to use a relative "
+            "file name.");
+      }
+    } else if (name != null) {
+      // This is an error, and the part isn't included.
+      assert(!part.isPart);
+      addCompileTimeError(
+          -1,
+          "Can't use ${part.fileUri} as a part, because it has no 'part of'"
+          " declaration.");
+      parts.remove(part);
+      return;
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
