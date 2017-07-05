@@ -18,8 +18,7 @@ String outputDirectory;
 void main(List<String> arguments) {
   var isTravis = arguments.isNotEmpty && arguments.last == "travis";
   if (isTravis) {
-    arguments = arguments.toList();
-    arguments.removeLast();
+    arguments = arguments.sublist(0, arguments.length - 1);
   }
 
   if (arguments.length != 1) {
