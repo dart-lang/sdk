@@ -473,11 +473,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   CompilationUnit computeNode();
 
   /**
-   * Return the element at the given [offset], maybe `null` if no such element.
-   */
-  Element getElementAt(int offset);
-
-  /**
    * Return the enum defined in this compilation unit that has the given [name],
    * or `null` if this compilation unit does not define an enum with the given
    * name.

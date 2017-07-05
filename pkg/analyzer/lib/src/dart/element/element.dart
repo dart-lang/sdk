@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -1336,11 +1335,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TopLevelVariableElement> _variables;
 
   /**
-   * A map from offsets to elements of this unit at these offsets.
-   */
-  final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
-
-  /**
    * Resynthesized explicit top-level property accessors.
    */
   UnitExplicitTopLevelAccessors _explicitTopLevelAccessors;
@@ -1614,13 +1608,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitCompilationUnitElement(this);
 
-  /**
-   * This method is invoked after this unit was incrementally resolved.
-   */
-  void afterIncrementalResolution() {
-    _offsetToElementMap.clear();
-  }
-
   @override
   void appendTo(StringBuffer buffer) {
     if (source == null) {
@@ -1689,14 +1676,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     return null;
-  }
-
-  @override
-  Element getElementAt(int offset) {
-    if (_offsetToElementMap.isEmpty) {
-      accept(new _BuildOffsetToElementMap(_offsetToElementMap));
-    }
-    return _offsetToElementMap[offset];
   }
 
   @override
@@ -9067,23 +9046,5 @@ abstract class VariableElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     _initializer?.accept(visitor);
-  }
-}
-
-/**
- * A visitor that visit all the elements recursively and fill the given [map].
- */
-class _BuildOffsetToElementMap extends GeneralizingElementVisitor {
-  final Map<int, Element> map;
-
-  _BuildOffsetToElementMap(this.map);
-
-  @override
-  void visitElement(Element element) {
-    int offset = element.nameOffset;
-    if (offset != -1) {
-      map[offset] = element;
-    }
-    super.visitElement(element);
   }
 }

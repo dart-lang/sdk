@@ -217,8 +217,6 @@ abstract class MockCompilationUnitElement extends MockElement
 
   List<ClassElement> get types => internalError("not supported.");
 
-  Element getElementAt(int offset) => internalError("not supported.");
-
   ClassElement getEnum(String name) => internalError("not supported.");
 
   ClassElement getType(String name) => internalError("not supported.");

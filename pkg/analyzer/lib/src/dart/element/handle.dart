@@ -234,11 +234,6 @@ class CompilationUnitElementHandle extends ElementHandle
   CompilationUnit computeNode() => actualElement.computeNode();
 
   @override
-  Element getElementAt(int offset) {
-    return actualElement.getElementAt(offset);
-  }
-
-  @override
   ClassElement getEnum(String enumName) => actualElement.getEnum(enumName);
 
   @override
