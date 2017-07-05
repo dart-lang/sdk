@@ -159,7 +159,7 @@ class FileByteStore implements ByteStore {
   void put(String key, List<int> bytes) {
     try {
       File tempFile = _getFileForKey(_tempName);
-      tempFile.writeAsBytesSync(bytes, flush: true);
+      tempFile.writeAsBytesSync(bytes);
       File file = _getFileForKey(key);
       tempFile.renameSync(file.path);
     } catch (_) {}
