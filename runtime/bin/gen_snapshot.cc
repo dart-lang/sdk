@@ -716,34 +716,105 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
 }
 
 
-static bool WriteDependencies(const char* target,
-                              File* file,
-                              MallocGrowableArray<char*>* dependencies) {
-  bool success = true;
-  success &= file->Print("%s: ", target);
+// Generates a depfile like gcc -M -MF. Must be consumable by Ninja.
+class DependenciesFileWriter : public ValueObject {
+ public:
+  DependenciesFileWriter() : dependencies_(NULL), file_(NULL), success_(true) {}
 
-  if (snapshot_kind == kScript) {
-    if (vm_snapshot_data_filename != NULL) {
-      success &= file->Print("%s ", vm_snapshot_data_filename);
+  void WriteDependencies(MallocGrowableArray<char*>* dependencies) {
+    dependencies_ = dependencies;
+
+    file_ = File::Open(dependencies_filename, File::kWriteTruncate);
+    if (file_ == NULL) {
+      Log::PrintErr("Error: Unable to open dependencies file: %s\n\n",
+                    dependencies_filename);
+      exit(kErrorExitCode);
     }
-    if (vm_snapshot_instructions_filename != NULL) {
-      success &= file->Print("%s ", vm_snapshot_instructions_filename);
+
+    // Write dependencies for one of the output files.
+    // TODO(https://github.com/ninja-build/ninja/issues/1184): Do this for all
+    // output files.
+    switch (snapshot_kind) {
+      case kCore:
+        WriteDependenciesWithTarget(vm_snapshot_data_filename);
+        // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
+        break;
+      case kScript:
+        WriteDependenciesWithTarget(script_snapshot_filename);
+        break;
+      case kAppAOTAssembly:
+        WriteDependenciesWithTarget(assembly_filename);
+        break;
+      case kCoreJIT:
+      case kAppAOTBlobs:
+        WriteDependenciesWithTarget(vm_snapshot_data_filename);
+        // WriteDependenciesWithTarget(vm_snapshot_instructions_filename);
+        // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
+        // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
+        break;
     }
-    if (isolate_snapshot_data_filename != NULL) {
-      success &= file->Print("%s ", isolate_snapshot_data_filename);
+
+    if (!success_) {
+      Log::PrintErr("Error: Unable to write dependencies file: %s\n\n",
+                    dependencies_filename);
+      exit(kErrorExitCode);
     }
-    if (isolate_snapshot_instructions_filename != NULL) {
-      success &= file->Print("%s ", isolate_snapshot_instructions_filename);
-    }
+    file_->Release();
   }
 
-  for (intptr_t i = 0; i < dependencies->length(); i++) {
-    success &= file->Print("%s ", dependencies->At(i));
+ private:
+  void WriteDependenciesWithTarget(const char* target) {
+    WritePath(target);
+    Write(": ");
+
+    if (snapshot_kind == kScript) {
+      if (vm_snapshot_data_filename != NULL) {
+        WritePath(vm_snapshot_data_filename);
+      }
+      if (vm_snapshot_instructions_filename != NULL) {
+        WritePath(vm_snapshot_instructions_filename);
+      }
+      if (isolate_snapshot_data_filename != NULL) {
+        WritePath(isolate_snapshot_data_filename);
+      }
+      if (isolate_snapshot_instructions_filename != NULL) {
+        WritePath(isolate_snapshot_instructions_filename);
+      }
+    }
+
+    for (intptr_t i = 0; i < dependencies_->length(); i++) {
+      WritePath(dependencies_->At(i));
+    }
+
+    Write("\n");
   }
 
-  success &= file->Print("\n");
-  return success;
-}
+  char* EscapePath(const char* path) {
+    char* escaped_path = reinterpret_cast<char*>(malloc(strlen(path) * 2 + 1));
+    const char* read_cursor = path;
+    char* write_cursor = escaped_path;
+    while (*read_cursor != '\0') {
+      if ((*read_cursor == ' ') || (*read_cursor == '\\')) {
+        *write_cursor++ = '\\';
+      }
+      *write_cursor++ = *read_cursor++;
+    }
+    *write_cursor = '\0';
+    return escaped_path;
+  }
+
+  void WritePath(const char* path) {
+    char* escaped_path = EscapePath(path);
+    success_ &= file_->Print("%s ", escaped_path);
+    free(escaped_path);
+  }
+
+  void Write(const char* string) { success_ &= file_->Print("%s", string); }
+
+  MallocGrowableArray<char*>* dependencies_;
+  File* file_;
+  bool success_;
+};
 
 
 static void CreateAndWriteDependenciesFile() {
@@ -758,50 +829,8 @@ static void CreateAndWriteDependenciesFile() {
 
   ASSERT((dependencies_filename != NULL) || print_dependencies);
   if (dependencies_filename != NULL) {
-    bool success = true;
-    File* file = File::Open(dependencies_filename, File::kWriteTruncate);
-    if (file == NULL) {
-      Log::PrintErr("Error: Unable to open dependencies file: %s\n\n",
-                    dependencies_filename);
-      exit(kErrorExitCode);
-    }
-
-    // Write dependencies for one of the output files.
-    // TODO(https://github.com/ninja-build/ninja/issues/1184): Do this for all
-    // output files.
-    switch (snapshot_kind) {
-      case kCore:
-        success &=
-            WriteDependencies(vm_snapshot_data_filename, file, dependencies);
-        // success &= WriteDependencies(isolate_snapshot_data_filename, file,
-        //                              dependencies);
-        break;
-      case kScript:
-        success &=
-            WriteDependencies(script_snapshot_filename, file, dependencies);
-        break;
-      case kAppAOTAssembly:
-        success &= WriteDependencies(assembly_filename, file, dependencies);
-        break;
-      case kCoreJIT:
-      case kAppAOTBlobs:
-        success &=
-            WriteDependencies(vm_snapshot_data_filename, file, dependencies);
-        // success &= WriteDependencies(vm_snapshot_instructions_filename, file,
-        //                              dependencies);
-        // success &= WriteDependencies(isolate_snapshot_data_filename, file,
-        //                              dependencies);
-        // success &= WriteDependencies(isolate_snapshot_instructions_filename,
-        //                              file, dependencies);
-        break;
-    }
-
-    if (!success) {
-      Log::PrintErr("Error: Unable to write dependencies file: %s\n\n",
-                    dependencies_filename);
-      exit(kErrorExitCode);
-    }
-    file->Release();
+    DependenciesFileWriter writer;
+    writer.WriteDependencies(dependencies);
   }
 
   if (print_dependencies) {
