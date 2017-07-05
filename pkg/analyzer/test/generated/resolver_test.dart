@@ -3133,7 +3133,6 @@ A v = new A();
     expect(constructor.name, 'c1');
     expect(constructor.functions, hasLength(0));
     expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, isEmpty);
   }
 
@@ -3164,7 +3163,6 @@ A v = new A();
     expect(constructor.name, '');
     expect(constructor.functions, hasLength(0));
     expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, hasLength(1));
     expect(constructor.parameters[0].type, equals(classT.type));
     expect(constructor.parameters[0].name,
@@ -3195,7 +3193,6 @@ A v = new A();
     expect(constructor.name, '');
     expect(constructor.functions, hasLength(0));
     expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, isEmpty);
   }
 

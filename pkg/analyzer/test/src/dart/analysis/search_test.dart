@@ -613,7 +613,7 @@ main() {
   v();
 }
 ''');
-    Element element = _findElement('v');
+    Element element = _findElementAtString('v;');
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),

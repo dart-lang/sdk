@@ -185,7 +185,7 @@ f() {
         <ConstantEvaluationTarget>[
       unitElement.accessors.firstWhere((e) => e.isGetter).variable,
       unitElement.types[0].fields[0],
-      unitElement.functions[0].localVariables[0],
+      findLocalVariable(unit, 'z'),
       unitElement.types[0].constructors[0],
       resolutionMap.elementAnnotationForAnnotation(annotation),
       unitElement.types[0].constructors[0].parameters[0]
@@ -4326,11 +4326,14 @@ main() {
     CompilationUnit unit = outputs[RESOLVED_UNIT6];
     FunctionDeclaration mainDeclaration = unit.declarations[0];
     FunctionBody body = mainDeclaration.functionExpression.body;
-    FunctionElement main = mainDeclaration.element;
-    expectMutated(body, main.localVariables[0], false, false);
-    expectMutated(body, main.localVariables[1], false, true);
-    expectMutated(body, main.localVariables[2], true, true);
-    expectMutated(body, main.localVariables[3], true, true);
+    LocalVariableElement v1 = findLocalVariable(unit, 'v1');
+    LocalVariableElement v2 = findLocalVariable(unit, 'v2');
+    LocalVariableElement v3 = findLocalVariable(unit, 'v3');
+    LocalVariableElement v4 = findLocalVariable(unit, 'v4');
+    expectMutated(body, v1, false, false);
+    expectMutated(body, v2, false, true);
+    expectMutated(body, v3, true, true);
+    expectMutated(body, v4, true, true);
   }
 
   test_perform_parameter() {

@@ -1129,11 +1129,7 @@ void test() {
     CompilationUnit unit = (await computeAnalysisResult(source)).unit;
     assertNoErrors(source);
     verify([source]);
-    DartType cType = AstFinder
-        .getTopLevelFunction(unit, "test")
-        .element
-        .localVariables[0]
-        .type;
+    DartType cType = findLocalVariable(unit, 'c').type;
     Element elementC = AstFinder.getClass(unit, "C").element;
 
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);

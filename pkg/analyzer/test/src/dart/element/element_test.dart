@@ -3836,43 +3836,7 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LocalVariableElementImplTest extends EngineTestCase {
-  void test_computeNode_declaredIdentifier() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  for (int v in <int>[1, 2, 3]) {}
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    DeclaredIdentifier node = element.computeNode() as DeclaredIdentifier;
-    expect(node, isNotNull);
-    expect(node.identifier.name, 'v');
-    expect(node.element, same(element));
-  }
-
-  void test_computeNode_variableDeclaration() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  int v = 0;
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    VariableDeclaration node = element.computeNode() as VariableDeclaration;
-    expect(node, isNotNull);
-    expect(node.name.name, 'v');
-    expect(node.element, same(element));
-  }
-}
+class LocalVariableElementImplTest extends EngineTestCase {}
 
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {
