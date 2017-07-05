@@ -34,15 +34,17 @@ const Map<String, List<String>> shardGroups = const {
   'vm-kernel': const <String>[
     'vm-kernel-linux-release-x64-be',
     'vm-kernel-linux-debug-x64-be',
+    'vm-kernel-mac-release-x64-be',
+    'vm-kernel-mac-debug-x64-be',
   ],
   'vm-misc': const <String>[
     'vm-win-debug-ia32-russian-be',
-    'cross-arm-vm-linux-release-be',
+    'cross-arm64-vm-linux-release-be',
     'vm-linux-release-ia32-asan-be',
     'vm-linux-release-x64-asan-be',
     'vm-linux-release-ia32-optcounter-threshold-be',
     'vm-linux-release-x64-optcounter-threshold-be',
-    'target-arm-vm-linux-release-be',
+    'target-arm64-vm-linux-release-be',
   ],
   'vm-precomp': const <String>[
     'vm-noopt-simarm64-mac-be',
@@ -180,15 +182,17 @@ const Map<String, List<String>> shardGroups = const {
   'vm-kernel-dev': const <String>[
     'vm-kernel-linux-release-x64-dev',
     'vm-kernel-linux-debug-x64-dev',
+    'vm-kernel-mac-release-x64-dev',
+    'vm-kernel-mac-debug-x64-dev',
   ],
   'vm-misc-dev': const <String>[
     'vm-win-debug-ia32-russian-dev',
-    'cross-arm-vm-linux-release-dev',
+    'cross-arm64-vm-linux-release-dev',
     'vm-linux-release-ia32-asan-dev',
     'vm-linux-release-x64-asan-dev',
     'vm-linux-release-ia32-optcounter-threshold-dev',
     'vm-linux-release-x64-optcounter-threshold-dev',
-    'target-arm-vm-linux-release-dev',
+    'target-arm64-vm-linux-release-dev',
   ],
   'vm-precomp-dev': const <String>[
     'vm-noopt-simarm64-mac-dev',
@@ -302,15 +306,17 @@ const Map<String, List<String>> shardGroups = const {
   'vm-kernel-stable': const <String>[
     'vm-kernel-linux-release-x64-stable',
     'vm-kernel-linux-debug-x64-stable',
+    'vm-kernel-mac-release-x64-stable',
+    'vm-kernel-mac-debug-x64-stable',
   ],
   'vm-misc-stable': const <String>[
     'vm-win-debug-ia32-russian-stable',
-    'cross-arm-vm-linux-release-stable',
+    'cross-arm64-vm-linux-release-stable',
     'vm-linux-release-ia32-asan-stable',
     'vm-linux-release-x64-asan-stable',
     'vm-linux-release-ia32-optcounter-threshold-stable',
     'vm-linux-release-x64-optcounter-threshold-stable',
-    'target-arm-vm-linux-release-stable',
+    'target-arm64-vm-linux-release-stable',
   ],
   'vm-precomp-stable': const <String>[
     'vm-noopt-simarm64-mac-stable',

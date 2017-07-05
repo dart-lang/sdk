@@ -17,6 +17,12 @@ main(List<String> args) async {
   ArgParser argParser = createArgParser();
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
+  if (argResults.rest.length == 0 || argResults['help']) {
+    help(argParser);
+    if (argResults['help']) return;
+    exit(1);
+  }
+
   var bot = new Bot(logdog: argResults['logdog']);
   var recentUris = bot.mostRecentUris;
   var results = await bot.readResults(recentUris);
