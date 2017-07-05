@@ -218,6 +218,15 @@ String getDefaultValueCode(DartType type) {
 }
 
 /**
+ * Return all [LocalElement]s defined in the given [node].
+ */
+List<LocalElement> getDefinedLocalElements(AstNode node) {
+  var collector = new _LocalElementsCollector();
+  node.accept(collector);
+  return collector.elements;
+}
+
+/**
  * Return the name of the [Element] kind.
  */
 String getElementKindName(Element element) {
@@ -1536,4 +1545,21 @@ class _InvertedCondition {
 
   static _InvertedCondition _simple(String source) =>
       new _InvertedCondition(2147483647, source);
+}
+
+/**
+ * Visitor that collects defined [LocalElement]s.
+ */
+class _LocalElementsCollector extends RecursiveAstVisitor {
+  final elements = <LocalElement>[];
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      Element element = node.staticElement;
+      if (element is LocalElement) {
+        elements.add(element);
+      }
+    }
+  }
 }

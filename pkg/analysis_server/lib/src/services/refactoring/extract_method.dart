@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -806,19 +805,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    */
   void _prepareExcludedNames() {
     _excludedNames.clear();
-    ExecutableElement enclosingExecutable =
-        getEnclosingExecutableElement(_parentMember);
-    if (enclosingExecutable != null) {
-      visitChildren(enclosingExecutable, (Element element) {
-        if (element is LocalElement) {
-          SourceRange elementRange = element.visibleRange;
-          if (elementRange != null) {
-            _excludedNames.add(element.displayName);
-          }
-        }
-        return true;
-      });
-    }
+    List<LocalElement> localElements = getDefinedLocalElements(_parentMember);
+    _excludedNames.addAll(localElements.map((e) => e.name));
   }
 
   void _prepareNames() {
