@@ -542,6 +542,7 @@ class Compiler {
         // (other browsers, d8) when tested and working.
         return const [
           Runtime.none,
+          Runtime.drt,
           Runtime.chrome,
         ];
 

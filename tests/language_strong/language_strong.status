@@ -720,18 +720,15 @@ bad_raw_string_test/03: MissingCompileTimeError # Issue 28664
 
 [ $compiler == dartdevc ]
 assertion_test: RuntimeError # DDC doesn't support function arguments to assert().
-async_await_test/02: CompileTimeError # Issue 28969
-async_await_test/03: CompileTimeError # Issue 28969
-async_await_test/none: CompileTimeError # Issue 28969
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
-async_star_test/01: CompileTimeError # Issue 28969
-async_star_test/02: CompileTimeError # Issue 28969
-async_star_test/03: CompileTimeError # Issue 28969
-async_star_test/04: CompileTimeError # Issue 28969
-async_star_test/05: CompileTimeError # Issue 28969
-async_star_test/none: CompileTimeError # Issue 28969
+async_star_test/01: RuntimeError # Issue 28969
+async_star_test/02: RuntimeError # Issue 28969
+async_star_test/03: RuntimeError # Issue 28969
+async_star_test/04: RuntimeError # Issue 28969
+async_star_test/05: RuntimeError # Issue 28969
+async_star_test/none: RuntimeError # Issue 28969
 asyncstar_throw_in_catch_test: Timeout # Issue 29920
-await_future_test: Timeout # Issue 29920
+await_future_test: Pass, Timeout # Issue 29920
 bad_raw_string_test/03: MissingCompileTimeError # Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.

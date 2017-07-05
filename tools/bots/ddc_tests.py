@@ -26,6 +26,6 @@ FLAGS = [
 if __name__ == '__main__':
   (bot_name, _) = bot.GetBotName()
   system = bot_utils.GetSystemFromName(bot_name)
-  info = bot.BuildInfo('dartdevc', 'chrome', 'release', system,
+  info = bot.BuildInfo('dartdevc', 'drt', 'release', system,
       arch='x64', checked=True)
   bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)
