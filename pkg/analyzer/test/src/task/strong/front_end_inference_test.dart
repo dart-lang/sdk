@@ -279,7 +279,7 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
   void _appendType(StringBuffer buffer, DartType type) {
     if (type is FunctionType) {
       if (type.typeFormals.isNotEmpty) {
-        _appendTypeArguments(buffer, type.typeArguments);
+        _appendTypeFormals(buffer, type.typeFormals);
       }
       _appendParameters(buffer, type.parameters);
       buffer.write(' -> ');
@@ -300,6 +300,20 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
   void _appendTypeArguments(StringBuffer buffer, List<DartType> typeArguments) {
     _appendList<DartType>(buffer, '<', '>', typeArguments, ', ',
         (type) => _appendType(buffer, type));
+  }
+
+  void _appendTypeFormals(
+      StringBuffer buffer, List<TypeParameterElement> typeFormals) {
+    _appendList<TypeParameterElement>(buffer, '<', '>', typeFormals, ', ',
+        (formal) {
+      buffer.write(formal.name);
+      buffer.write(' extends ');
+      if (formal.bound == null) {
+        buffer.write('Object');
+      } else {
+        _appendType(buffer, formal.bound);
+      }
+    });
   }
 }
 
