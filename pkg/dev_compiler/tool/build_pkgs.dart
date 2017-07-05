@@ -17,7 +17,10 @@ String outputDirectory;
 /// Otherwise, only builds the modules needed by the tests.
 void main(List<String> arguments) {
   var isTravis = arguments.isNotEmpty && arguments.last == "travis";
-  if (isTravis) arguments.removeLast();
+  if (isTravis) {
+    arguments = arguments.toList();
+    arguments.removeLast();
+  }
 
   if (arguments.length != 1) {
     print("Usage: dart build_pkgs.dart <output_dir> [travis]");
@@ -55,7 +58,6 @@ void main(List<String> arguments) {
     compileModule('typed_data');
     compileModule('usage');
     compileModule('utf');
-    compileModule('when');
   }
 
   // Composite packages with dependencies.
