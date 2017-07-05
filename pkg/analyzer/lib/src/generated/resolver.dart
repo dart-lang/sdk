@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -10308,11 +10307,11 @@ class TypeResolverVisitor extends ScopedVisitor {
 }
 
 /**
- * Instances of the class [UnusedLocalElementsVerifier] traverse an element
- * structure looking for cases of [HintCode.UNUSED_ELEMENT],
- * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
+ * Instances of the class [UnusedLocalElementsVerifier] traverse an AST
+ * looking for cases of [HintCode.UNUSED_ELEMENT], [HintCode.UNUSED_FIELD],
+ * [HintCode.UNUSED_LOCAL_VARIABLE], etc.
  */
-class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
+class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
   /**
    * The error listener to which errors will be reported.
    */
@@ -10328,73 +10327,25 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
    */
   UnusedLocalElementsVerifier(this._errorListener, this._usedElements);
 
-  @override
-  visitClassElement(ClassElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
-    }
-    super.visitClassElement(element);
-  }
-
-  @override
-  visitFieldElement(FieldElement element) {
-    if (!_isReadMember(element)) {
-      _reportErrorForElement(
-          HintCode.UNUSED_FIELD, element, [element.displayName]);
-    }
-    super.visitFieldElement(element);
-  }
-
-  @override
-  visitFunctionElement(FunctionElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
-    }
-    super.visitFunctionElement(element);
-  }
-
-  @override
-  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
-    }
-    super.visitFunctionTypeAliasElement(element);
-  }
-
-  @override
-  visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
-      HintCode errorCode;
-      if (_usedElements.isCatchException(element)) {
-        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
-      } else if (_usedElements.isCatchStackTrace(element)) {
-        errorCode = HintCode.UNUSED_CATCH_STACK;
-      } else {
-        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      var element = node.staticElement;
+      if (element is ClassElement) {
+        _visitClassElement(element);
+      } else if (element is FieldElement) {
+        _visitFieldElement(element);
+      } else if (element is FunctionElement) {
+        _visitFunctionElement(element);
+      } else if (element is FunctionTypeAliasElement) {
+        _visitFunctionTypeAliasElement(element);
+      } else if (element is LocalVariableElement) {
+        _visitLocalVariableElement(element);
+      } else if (element is MethodElement) {
+        _visitMethodElement(element);
+      } else if (element is PropertyAccessorElement) {
+        _visitPropertyAccessorElement(element);
       }
-      _reportErrorForElement(errorCode, element, [element.displayName]);
     }
-  }
-
-  @override
-  visitMethodElement(MethodElement element) {
-    if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
-    }
-    super.visitMethodElement(element);
-  }
-
-  @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
-    }
-    super.visitPropertyAccessorElement(element);
   }
 
   bool _isNamedUnderscore(LocalVariableElement element) {
@@ -10454,6 +10405,62 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
     if (element != null) {
       _errorListener.onError(new AnalysisError(element.source,
           element.nameOffset, element.nameLength, errorCode, arguments));
+    }
+  }
+
+  _visitClassElement(ClassElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
+    }
+  }
+
+  _visitFieldElement(FieldElement element) {
+    if (!_isReadMember(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_FIELD, element, [element.displayName]);
+    }
+  }
+
+  _visitFunctionElement(FunctionElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
+    }
+  }
+
+  _visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
+    }
+  }
+
+  _visitLocalVariableElement(LocalVariableElement element) {
+    if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
+      HintCode errorCode;
+      if (_usedElements.isCatchException(element)) {
+        errorCode = HintCode.UNUSED_CATCH_CLAUSE;
+      } else if (_usedElements.isCatchStackTrace(element)) {
+        errorCode = HintCode.UNUSED_CATCH_STACK;
+      } else {
+        errorCode = HintCode.UNUSED_LOCAL_VARIABLE;
+      }
+      _reportErrorForElement(errorCode, element, [element.displayName]);
+    }
+  }
+
+  _visitMethodElement(MethodElement element) {
+    if (!_isUsedMember(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
+    }
+  }
+
+  _visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (!_isUsedMember(element)) {
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
     }
   }
 }

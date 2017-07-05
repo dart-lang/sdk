@@ -220,7 +220,7 @@ class LibraryAnalyzer {
           new UsedLocalElements.merge(_usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unit.element.accept(visitor);
+      unit.accept(visitor);
     }
   }
 
