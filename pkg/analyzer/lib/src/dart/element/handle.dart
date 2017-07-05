@@ -508,9 +508,6 @@ abstract class ExecutableElementHandle extends ElementHandle
   List<LabelElement> get labels => actualElement.labels;
 
   @override
-  List<LocalVariableElement> get localVariables => actualElement.localVariables;
-
-  @override
   List<ParameterElement> get parameters => actualElement.parameters;
 
   @override

@@ -154,7 +154,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     }
     element.functions = holder.functions;
     element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.isConst = node.constKeyword != null;
     element.isCycleFree = element.isConst;
@@ -248,7 +248,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         }
         element.functions = holder.functions;
         element.labels = holder.labels;
-        element.localVariables = holder.localVariables;
+        element.encloseElements(holder.localVariables);
         element.parameters = holder.parameters;
         element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
@@ -289,7 +289,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
-          getter.localVariables = holder.localVariables;
+          getter.encloseElements(holder.localVariables);
           if (body.isAsynchronous) {
             getter.asynchronous = true;
           }
@@ -317,7 +317,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
-          setter.localVariables = holder.localVariables;
+          setter.encloseElements(holder.localVariables);
           setter.parameters = holder.parameters;
           if (body.isAsynchronous) {
             setter.asynchronous = true;
@@ -358,7 +358,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _setCodeRange(element, node);
     element.functions = holder.functions;
     element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     if (body.isAsynchronous) {
@@ -460,7 +460,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         }
         element.functions = holder.functions;
         element.labels = holder.labels;
-        element.localVariables = holder.localVariables;
+        element.encloseElements(holder.localVariables);
         element.parameters = holder.parameters;
         element.isStatic = isStatic;
         element.typeParameters = holder.typeParameters;
@@ -498,7 +498,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
-          getter.localVariables = holder.localVariables;
+          getter.encloseElements(holder.localVariables);
           if (body.isAsynchronous) {
             getter.asynchronous = true;
           }
@@ -526,7 +526,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
-          setter.localVariables = holder.localVariables;
+          setter.encloseElements(holder.localVariables);
           setter.parameters = holder.parameters;
           if (body.isAsynchronous) {
             setter.asynchronous = true;
@@ -1174,7 +1174,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     }
     element.functions = holder.functions;
     element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
 
@@ -1218,7 +1218,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     _setCodeRange(element, node);
     element.functions = holder.functions;
     element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
 
@@ -1341,7 +1341,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.hasImplicitReturnType = true;
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
-      initializer.localVariables = holder.localVariables;
+      initializer.encloseElements(holder.localVariables);
       initializer.parameters = holder.parameters;
       initializer.isSynthetic = true;
       initializer.type = new FunctionTypeImpl(initializer);
@@ -1365,7 +1365,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       initializerElement.hasImplicitReturnType = true;
       initializerElement.functions = holder.functions;
       initializerElement.labels = holder.labels;
-      initializerElement.localVariables = holder.localVariables;
+      initializerElement.encloseElements(holder.localVariables);
       initializerElement.isSynthetic = true;
       initializerElement.type = new FunctionTypeImpl(initializerElement);
       variable.initializer = initializerElement;

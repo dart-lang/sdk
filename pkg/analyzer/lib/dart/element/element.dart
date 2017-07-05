@@ -1160,12 +1160,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
    * element.
    */
   List<LabelElement> get labels;
-
-  /**
-   * Return a list containing all of the local variables defined within this
-   * executable element.
-   */
-  List<LocalVariableElement> get localVariables;
 }
 
 /**

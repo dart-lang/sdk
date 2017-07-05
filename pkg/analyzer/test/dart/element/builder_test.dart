@@ -1021,7 +1021,7 @@ main() {
     FunctionBody mainBody = mainAst.functionExpression.body;
     mainBody.accept(new LocalElementBuilder(holder, compilationUnitElement));
     main.functions = holder.functions;
-    main.localVariables = holder.localVariables;
+    main.encloseElements(holder.localVariables);
 
     var v1 = findLocalVariable(code, 'v1;');
     var v2 = findLocalVariable(code, 'v2;');

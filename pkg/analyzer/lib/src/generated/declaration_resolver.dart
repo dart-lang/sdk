@@ -805,7 +805,7 @@ class ElementWalker {
     if (element is ExecutableElementImpl) {
       element.functions = _elementHolder.functions;
       element.labels = _elementHolder.labels;
-      element.localVariables = _elementHolder.localVariables;
+      element.encloseElements(_elementHolder.localVariables);
     }
   }
 

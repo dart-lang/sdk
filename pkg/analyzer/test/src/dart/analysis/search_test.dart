@@ -826,12 +826,11 @@ main() {
 }
 ''');
     PrefixElement element = _findElementAtString('ppp;');
-    Element a = _findElement('a');
-    Element b = _findElement('b');
+    Element main = _findElement('main');
     Element c = findChildElement(testLibraryElement, 'c');
     var expected = [
-      _expectId(a, SearchResultKind.REFERENCE, 'ppp.Future'),
-      _expectId(b, SearchResultKind.REFERENCE, 'ppp.Stream'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
       new ExpectedResult(c, SearchResultKind.REFERENCE,
           partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];

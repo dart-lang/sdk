@@ -112,10 +112,6 @@ abstract class MockElement extends Builder implements Element, LocalElement {
 
   List<LabelElement> get labels => internalError("not supported.");
 
-  List<LocalVariableElement> get localVariables {
-    return internalError("not supported.");
-  }
-
   get visibleRange => internalError("not supported.");
 
   bool get hasImplicitType => internalError("not supported.");

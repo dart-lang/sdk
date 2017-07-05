@@ -826,38 +826,6 @@ class _DeferredLocalFunctionElement extends FunctionElementHandle {
 }
 
 /**
- * Local variable element that has been resynthesized from a summary.  The
- * actual element won't be constructed until it is requested.  But properties
- * [context] and [enclosingElement] can be used without creating the actual
- * element.
- */
-class _DeferredLocalVariableElement extends LocalVariableElementHandle {
-  /**
-   * The executable element containing this element.
-   */
-  @override
-  final ExecutableElement enclosingElement;
-
-  /**
-   * The index of this variable within [ExecutableElement.localVariables].
-   */
-  final int _localIndex;
-
-  _DeferredLocalVariableElement(this.enclosingElement, this._localIndex)
-      : super(null, null);
-
-  @override
-  LocalVariableElement get actualElement =>
-      enclosingElement.localVariables[_localIndex];
-
-  @override
-  AnalysisContext get context => enclosingElement.context;
-
-  @override
-  ElementLocation get location => actualElement.location;
-}
-
-/**
  * An instance of [_LibraryResynthesizer] is responsible for resynthesizing the
  * elements in a single library from that library's summary.
  */
@@ -1890,16 +1858,6 @@ class _UnitResynthesizer {
                 summaryResynthesizer, location);
             isDeclarableType = true;
             break;
-          case ReferenceKind.variable:
-            Element enclosingElement = enclosingInfo.element;
-            if (enclosingElement is ExecutableElement) {
-              element = new _DeferredLocalVariableElement(
-                  enclosingElement, linkedReference.localIndex);
-            } else {
-              throw new StateError('Unexpected element enclosing variable:'
-                  ' ${enclosingElement.runtimeType}');
-            }
-            break;
           case ReferenceKind.function:
             Element enclosingElement = enclosingInfo.element;
             if (enclosingElement is VariableElement) {
@@ -1915,6 +1873,7 @@ class _UnitResynthesizer {
           case ReferenceKind.prefix:
             element = new PrefixElementHandle(summaryResynthesizer, location);
             break;
+          case ReferenceKind.variable:
           case ReferenceKind.unresolved:
             break;
         }

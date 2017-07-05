@@ -3002,6 +3002,15 @@ abstract class ElementImpl implements Element {
     element.enclosingElement = this;
   }
 
+  /**
+   * Set this element as the enclosing element for given [elements].
+   */
+  void encloseElements(List<Element> elements) {
+    for (Element element in elements) {
+      (element as ElementImpl)._enclosingElement = this;
+    }
+  }
+
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     Element ancestor = _enclosingElement;
@@ -3564,12 +3573,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<LabelElement> _labels;
 
   /**
-   * A list containing all of the local variables defined within this executable
-   * element.
-   */
-  List<LocalVariableElement> _localVariables;
-
-  /**
    * A list containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters;
@@ -3770,39 +3773,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  List<LocalVariableElement> get localVariables {
-    if (serializedExecutable != null && _localVariables == null) {
-      List<UnlinkedVariable> unlinkedVariables =
-          serializedExecutable.localVariables;
-      int length = unlinkedVariables.length;
-      if (length != 0) {
-        List<LocalVariableElementImpl> localVariables =
-            new List<LocalVariableElementImpl>(length);
-        for (int i = 0; i < length; i++) {
-          localVariables[i] = new LocalVariableElementImpl.forSerializedFactory(
-              unlinkedVariables[i], this);
-        }
-        _localVariables = localVariables;
-      } else {
-        _localVariables = const <LocalVariableElement>[];
-      }
-    }
-    return _localVariables ?? const <LocalVariableElement>[];
-  }
-
-  /**
-   * Set the local variables defined within this executable element to the given
-   * [variables].
-   */
-  void set localVariables(List<LocalVariableElement> variables) {
-    _assertNotResynthesized(serializedExecutable);
-    for (LocalVariableElement variable in variables) {
-      (variable as LocalVariableElementImpl).enclosingElement = this;
-    }
-    this._localVariables = variables;
-  }
-
-  @override
   List<ElementAnnotation> get metadata {
     if (serializedExecutable != null) {
       return _metadata ??=
@@ -3967,12 +3937,6 @@ abstract class ExecutableElementImpl extends ElementImpl
         return labelImpl;
       }
     }
-    for (LocalVariableElement variable in _localVariables) {
-      LocalVariableElementImpl variableImpl = variable;
-      if (variableImpl.identifier == identifier) {
-        return variableImpl;
-      }
-    }
     for (ParameterElement parameter in parameters) {
       ParameterElementImpl parameterImpl = parameter;
       if (parameterImpl.identifier == identifier) {
@@ -3990,7 +3954,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(labels, visitor);
-    safelyVisitChildren(localVariables, visitor);
   }
 }
 
@@ -6454,14 +6417,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   String get identifier {
-    String identifier = super.identifier;
-    Element enclosing = this.enclosingElement;
-    if (enclosing is ExecutableElement) {
-      int id = ElementImpl.findElementIndexUsingIdentical(
-          enclosing.localVariables, this);
-      identifier += "@$id";
-    }
-    return identifier;
+    return '$name$nameOffset';
   }
 
   @override

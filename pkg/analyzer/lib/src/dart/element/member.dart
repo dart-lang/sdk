@@ -177,16 +177,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   List<LabelElement> get labels => baseElement.labels;
 
   @override
-  List<LocalVariableElement> get localVariables {
-    //
-    // Elements within this element should have type parameters substituted,
-    // just like this element.
-    //
-    throw new UnsupportedError('localVariables');
-//    return getBaseElement().getLocalVariables();
-  }
-
-  @override
   List<ParameterElement> get parameters => type.parameters;
 
   @override
@@ -208,7 +198,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     super.visitChildren(visitor);
     safelyVisitChildren(baseElement.functions, visitor);
     safelyVisitChildren(labels, visitor);
-    safelyVisitChildren(baseElement.localVariables, visitor);
     safelyVisitChildren(parameters, visitor);
   }
 }
