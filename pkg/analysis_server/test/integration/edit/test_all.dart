@@ -9,9 +9,10 @@ import 'get_assists_test.dart' as get_assists_test;
 import 'get_available_refactorings_test.dart'
     as get_available_refactorings_test;
 import 'get_fixes_test.dart' as get_fixes_test;
-import 'get_refactoring_test.dart' as get_refactoring_test;
 import 'get_postfix_completion_test.dart' as get_postfix_completion_test;
+import 'get_refactoring_test.dart' as get_refactoring_test;
 import 'get_statement_completion_test.dart' as get_statement_completion_test;
+import 'import_elements_test.dart' as import_elements_test;
 import 'is_postfix_completion_applicable_test.dart'
     as is_postfix_completion_applicable_test;
 import 'list_postfix_completion_templates_test.dart'
@@ -28,6 +29,7 @@ main() {
     get_refactoring_test.main();
     get_postfix_completion_test.main();
     get_statement_completion_test.main();
+    import_elements_test.main();
     is_postfix_completion_applicable_test.main();
     list_postfix_completion_templates_test.main();
     organize_directives_test.main();

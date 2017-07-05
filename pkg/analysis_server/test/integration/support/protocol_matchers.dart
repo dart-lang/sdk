@@ -1030,6 +1030,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   GET_IMPORTED_ELEMENTS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
+ *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_FILE_PATH_FORMAT
@@ -1058,6 +1059,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "GET_IMPORTED_ELEMENTS_INVALID_FILE",
   "GET_NAVIGATION_INVALID_FILE",
   "GET_REACHABLE_SOURCES_INVALID_FILE",
+  "IMPORT_ELEMENTS_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
   "INVALID_FILE_PATH_FORMAT",
@@ -1312,12 +1314,11 @@ final Matcher isAnalysisGetImportedElementsParams = new LazyMatcher(() =>
  *
  * {
  *   "elements": List<ImportedElements>
- *   "complete": bool
  * }
  */
 final Matcher isAnalysisGetImportedElementsResult = new LazyMatcher(() =>
     new MatchesJsonObject("analysis.getImportedElements result",
-        {"elements": isListOf(isImportedElements), "complete": isBool}));
+        {"elements": isListOf(isImportedElements)}));
 
 /**
  * analysis.getLibraryDependencies params
@@ -1988,12 +1989,11 @@ final Matcher isEditImportElementsParams = new LazyMatcher(() =>
  *
  * {
  *   "edits": List<SourceEdit>
- *   "complete": bool
  * }
  */
 final Matcher isEditImportElementsResult = new LazyMatcher(() =>
-    new MatchesJsonObject("edit.importElements result",
-        {"edits": isListOf(isSourceEdit), "complete": isBool}));
+    new MatchesJsonObject(
+        "edit.importElements result", {"edits": isListOf(isSourceEdit)}));
 
 /**
  * edit.isPostfixCompletionApplicable params

@@ -502,6 +502,10 @@ public interface AnalysisServer {
    * Return a list of edits that would need to be applied in order to ensure that all of the elements
    * in the specified list of imported elements are accessible within the library.
    *
+   * If a request is made for a file that does not exist, or that is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified via
+   * analysis.setAnalysisRoots), an error of type IMPORT_ELEMENTS_INVALID_FILE will be generated.
+   *
    * @param file The file in which the specified elements are to be made accessible.
    * @param elements The elements to be made accessible in the specified file.
    */

@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
@@ -350,6 +351,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
+      } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
+        importElements(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
         organizeDirectives(request);
         return Response.DELAYED_RESPONSE;
@@ -374,6 +378,32 @@ class EditDomainHandler extends AbstractRequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * Implement the `edit.importElements` request.
+   */
+  Future<Null> importElements(Request request) async {
+    EditImportElementsParams params =
+        new EditImportElementsParams.fromRequest(request);
+    //
+    // Prepare the resolved unit.
+    //
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result == null) {
+      server.sendResponse(new Response.importElementsInvalidFile(request));
+    }
+    //
+    // Compute the edits required to import the required elements.
+    //
+    List<SourceEdit> edits =
+        new ImportElementsComputer(result, params.file, params.elements)
+            .compute();
+    //
+    // Send the response.
+    //
+    server.sendResponse(
+        new EditImportElementsResult(edits).toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {

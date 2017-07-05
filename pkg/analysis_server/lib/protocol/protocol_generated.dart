@@ -1044,15 +1044,12 @@ class AnalysisGetImportedElementsParams implements RequestParams {
  *
  * {
  *   "elements": List<ImportedElements>
- *   "complete": bool
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetImportedElementsResult implements ResponseResult {
   List<ImportedElements> _elements;
-
-  bool _complete;
 
   /**
    * The information about the elements that are referenced in the specified
@@ -1069,29 +1066,8 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
     this._elements = value;
   }
 
-  /**
-   * True if all of the elements that are referenced in the specified region
-   * are included in the list of elements. The list of elements will be
-   * incomplete if there is an error in the specified region that prevents an
-   * identifier from being resolved to a single element.
-   */
-  bool get complete => _complete;
-
-  /**
-   * True if all of the elements that are referenced in the specified region
-   * are included in the list of elements. The list of elements will be
-   * incomplete if there is an error in the specified region that prevents an
-   * identifier from being resolved to a single element.
-   */
-  void set complete(bool value) {
-    assert(value != null);
-    this._complete = value;
-  }
-
-  AnalysisGetImportedElementsResult(
-      List<ImportedElements> elements, bool complete) {
+  AnalysisGetImportedElementsResult(List<ImportedElements> elements) {
     this.elements = elements;
-    this.complete = complete;
   }
 
   factory AnalysisGetImportedElementsResult.fromJson(
@@ -1110,14 +1086,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      bool complete;
-      if (json.containsKey("complete")) {
-        complete =
-            jsonDecoder.decodeBool(jsonPath + ".complete", json["complete"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "complete");
-      }
-      return new AnalysisGetImportedElementsResult(elements, complete);
+      return new AnalysisGetImportedElementsResult(elements);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getImportedElements result", json);
@@ -1136,7 +1105,6 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
     Map<String, dynamic> result = {};
     result["elements"] =
         elements.map((ImportedElements value) => value.toJson()).toList();
-    result["complete"] = complete;
     return result;
   }
 
@@ -1152,8 +1120,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   bool operator ==(other) {
     if (other is AnalysisGetImportedElementsResult) {
       return listEqual(elements, other.elements,
-              (ImportedElements a, ImportedElements b) => a == b) &&
-          complete == other.complete;
+          (ImportedElements a, ImportedElements b) => a == b);
     }
     return false;
   }
@@ -1162,7 +1129,6 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, elements.hashCode);
-    hash = JenkinsSmiHash.combine(hash, complete.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -7717,15 +7683,12 @@ class EditImportElementsParams implements RequestParams {
  *
  * {
  *   "edits": List<SourceEdit>
- *   "complete": bool
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditImportElementsResult implements ResponseResult {
   List<SourceEdit> _edits;
-
-  bool _complete;
 
   /**
    * The edit(s) to be applied in order to make the specified elements
@@ -7742,30 +7705,8 @@ class EditImportElementsResult implements ResponseResult {
     this._edits = value;
   }
 
-  /**
-   * True if all of the elements that are to be made accessible would be
-   * accessible if the edits were applied. The edits will not be complete, for
-   * example, if one of the libraries cannot be referenced in the target
-   * library or if one of the element names is already imported from a
-   * different library.
-   */
-  bool get complete => _complete;
-
-  /**
-   * True if all of the elements that are to be made accessible would be
-   * accessible if the edits were applied. The edits will not be complete, for
-   * example, if one of the libraries cannot be referenced in the target
-   * library or if one of the element names is already imported from a
-   * different library.
-   */
-  void set complete(bool value) {
-    assert(value != null);
-    this._complete = value;
-  }
-
-  EditImportElementsResult(List<SourceEdit> edits, bool complete) {
+  EditImportElementsResult(List<SourceEdit> edits) {
     this.edits = edits;
-    this.complete = complete;
   }
 
   factory EditImportElementsResult.fromJson(
@@ -7784,14 +7725,7 @@ class EditImportElementsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
-      bool complete;
-      if (json.containsKey("complete")) {
-        complete =
-            jsonDecoder.decodeBool(jsonPath + ".complete", json["complete"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "complete");
-      }
-      return new EditImportElementsResult(edits, complete);
+      return new EditImportElementsResult(edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements result", json);
     }
@@ -7808,7 +7742,6 @@ class EditImportElementsResult implements ResponseResult {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
-    result["complete"] = complete;
     return result;
   }
 
@@ -7824,8 +7757,7 @@ class EditImportElementsResult implements ResponseResult {
   bool operator ==(other) {
     if (other is EditImportElementsResult) {
       return listEqual(
-              edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
-          complete == other.complete;
+          edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -7834,7 +7766,6 @@ class EditImportElementsResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = JenkinsSmiHash.combine(hash, complete.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -12638,6 +12569,7 @@ class RequestError implements HasToJson {
  *   GET_IMPORTED_ELEMENTS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
+ *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_FILE_PATH_FORMAT
@@ -12720,6 +12652,13 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE =
       const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
+
+  /**
+   * An "edit.importElements" request specified a FilePath that does not match
+   * a file currently subject to analysis.
+   */
+  static const RequestErrorCode IMPORT_ELEMENTS_INVALID_FILE =
+      const RequestErrorCode._("IMPORT_ELEMENTS_INVALID_FILE");
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is
@@ -12853,6 +12792,7 @@ class RequestErrorCode implements Enum {
     GET_IMPORTED_ELEMENTS_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
     GET_REACHABLE_SOURCES_INVALID_FILE,
+    IMPORT_ELEMENTS_INVALID_FILE,
     INVALID_ANALYSIS_ROOT,
     INVALID_EXECUTION_CONTEXT,
     INVALID_FILE_PATH_FORMAT,
@@ -12896,6 +12836,8 @@ class RequestErrorCode implements Enum {
         return GET_NAVIGATION_INVALID_FILE;
       case "GET_REACHABLE_SOURCES_INVALID_FILE":
         return GET_REACHABLE_SOURCES_INVALID_FILE;
+      case "IMPORT_ELEMENTS_INVALID_FILE":
+        return IMPORT_ELEMENTS_INVALID_FILE;
       case "INVALID_ANALYSIS_ROOT":
         return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":

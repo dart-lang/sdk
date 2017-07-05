@@ -265,13 +265,6 @@ abstract class IntegrationTestMixin {
    *
    *   The information about the elements that are referenced in the specified
    *   region of the specified file that come from imported libraries.
-   *
-   * complete: bool
-   *
-   *   True if all of the elements that are referenced in the specified region
-   *   are included in the list of elements. The list of elements will be
-   *   incomplete if there is an error in the specified region that prevents an
-   *   identifier from being resolved to a single element.
    */
   Future<AnalysisGetImportedElementsResult> sendAnalysisGetImportedElements(
       String file, int offset, int length) async {
@@ -1625,6 +1618,11 @@ abstract class IntegrationTestMixin {
    * that all of the elements in the specified list of imported elements are
    * accessible within the library.
    *
+   * If a request is made for a file that does not exist, or that is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified via analysis.setAnalysisRoots), an error of type
+   * IMPORT_ELEMENTS_INVALID_FILE will be generated.
+   *
    * Parameters
    *
    * file: FilePath
@@ -1641,14 +1639,6 @@ abstract class IntegrationTestMixin {
    *
    *   The edit(s) to be applied in order to make the specified elements
    *   accessible.
-   *
-   * complete: bool
-   *
-   *   True if all of the elements that are to be made accessible would be
-   *   accessible if the edits were applied. The edits will not be complete,
-   *   for example, if one of the libraries cannot be referenced in the target
-   *   library or if one of the element names is already imported from a
-   *   different library.
    */
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements) async {

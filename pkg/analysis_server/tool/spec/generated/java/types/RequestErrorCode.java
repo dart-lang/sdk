@@ -76,6 +76,12 @@ public class RequestErrorCode {
   public static final String GET_REACHABLE_SOURCES_INVALID_FILE = "GET_REACHABLE_SOURCES_INVALID_FILE";
 
   /**
+   * An "edit.importElements" request specified a FilePath that does not match a file currently
+   * subject to analysis.
+   */
+  public static final String IMPORT_ELEMENTS_INVALID_FILE = "IMPORT_ELEMENTS_INVALID_FILE";
+
+  /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is required to be an
    * analysis root, but isn't.
    */
