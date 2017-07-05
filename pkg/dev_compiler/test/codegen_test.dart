@@ -174,17 +174,21 @@ main(List<String> arguments) {
         expect(crashing, isTrue,
             reason: "test $name crashes during compilation.\n"
                 "$exception\n$stackTrace");
-      } else if (inconsistent) {
+        return;
+      }
+
+      // Write out JavaScript and/or compilation errors/warnings.
+      _writeModule(
+          path.join(codegenOutputDir, name),
+          isTopLevelTest ? path.join(codegenExpectDir, name) : null,
+          moduleFormat,
+          module);
+
+      if (inconsistent) {
         // An inconsistent test will only compile on some platforms (see
         // comment below).  It should not crash however.
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
       } else if (module.isValid) {
-        _writeModule(
-            path.join(codegenOutputDir, name),
-            isTopLevelTest ? path.join(codegenExpectDir, name) : null,
-            moduleFormat,
-            module);
-
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
         // TODO(vsm): We don't seem to trip on non-strong errors?
         // expect(expectedCompileTimeError, isFalse,
@@ -224,7 +228,9 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
-  result.writeCodeSync(format, outPath + '.js');
+  if (result.isValid) {
+    result.writeCodeSync(format, outPath + '.js');
+  }
 
   if (result.summaryBytes != null) {
     new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
