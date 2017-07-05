@@ -962,7 +962,7 @@ LayoutTests/fast/css/implicit-attach-marking_t01: Skip # Times out. Please triag
 LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/max-device-aspect-ratio_t01: RuntimeError, Pass # 28998
+LayoutTests/fast/css/max-device-aspect-ratio_t01: RuntimeError, Pass # Issue 28998
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
