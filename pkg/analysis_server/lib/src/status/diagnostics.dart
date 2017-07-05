@@ -31,6 +31,9 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:plugin/plugin.dart';
 
 final String kCustomCss = '''
@@ -1057,6 +1060,27 @@ class ProfilePage extends DiagnosticPageWithNav {
 
     tags.forEach(writeRow);
     buf.write('</table>');
+
+    List<LintRule> rules = Registry.ruleRegistry.rules.toList();
+    rules.sort((first, second) {
+      int firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
+      int secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
+      if (firstTime == secondTime) {
+        return first.lintCode.name.compareTo(second.lintCode.name);
+      }
+      return secondTime - firstTime;
+    });
+    p('Lint rule timings');
+    buf.write('<table>');
+    _writeRow(['Lint code', 'Time (in ms)'], header: true);
+    int totalLintTime = 0;
+    for (var rule in rules) {
+      int time = lintRegistry.getTimer(rule).elapsedMilliseconds;
+      totalLintTime += time;
+      _writeRow([rule.lintCode.name, time.toString()]);
+    }
+    buf.write('</table>');
+    p('Total time spent in lints: $totalLintTime ms');
   }
 }
 
