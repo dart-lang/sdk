@@ -211,7 +211,8 @@ class Driver implements CommandLineStarter {
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
-      Iterable<io.File> files = _collectFiles(sourcePath);
+      Iterable<io.File> files =
+          _collectFiles(sourcePath, context.analysisOptions);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
@@ -446,11 +447,24 @@ class Driver implements CommandLineStarter {
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
-  Iterable<io.File> _collectFiles(String filePath) {
-    // TODO(devoncarew): This needs to respect analysis_options excludes.
+  Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
+    List<String> excludedPaths = options.excludePatterns;
+
+    /**
+     * Returns `true` if the given [path] is excluded by [excludedPaths].
+     */
+    bool _isExcluded(String path) {
+      return excludedPaths.any((excludedPath) {
+        if (resourceProvider.absolutePathContext.isWithin(excludedPath, path)) {
+          return true;
+        }
+        return path == excludedPath;
+      });
+    }
+
     List<io.File> files = <io.File>[];
     io.File file = new io.File(filePath);
-    if (file.existsSync()) {
+    if (file.existsSync() && !_isExcluded(filePath)) {
       files.add(file);
     } else {
       io.Directory directory = new io.Directory(filePath);
@@ -459,6 +473,7 @@ class Driver implements CommandLineStarter {
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
           if (AnalysisEngine.isDartFileName(entry.path) &&
+              !_isExcluded(relative) &&
               !_isInHiddenDir(relative)) {
             files.add(entry);
           }
