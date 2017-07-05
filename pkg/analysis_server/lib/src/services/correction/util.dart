@@ -317,9 +317,17 @@ int getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
     return 0;
-  }
-  if (parent is IndexExpression && parent.index == node) {
+  } else if (parent is IndexExpression && parent.index == node) {
     return 0;
+  } else if (parent is AssignmentExpression &&
+      node == parent.rightHandSide &&
+      parent.parent is CascadeExpression) {
+    // This is a hack to allow nesting of cascade expressions within other
+    // cascade expressions. The problem is that if the precedence of two
+    // expressions are equal it sometimes means that we don't need parentheses
+    // (such as replacing the `b` in `a + b` with `c + d`) and sometimes do
+    // (such as replacing the `v` in `..f = v` with `a..b`).
+    return 3;
   }
   return getExpressionPrecedence(parent);
 }
