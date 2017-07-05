@@ -105,6 +105,4 @@ utf:third_party/pkg/utf/lib
 watcher:third_party/pkg/watcher/lib
 web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
-when:third_party/pkg/when/lib
-which:third_party/pkg/which/lib
 yaml:third_party/pkg/yaml/lib
