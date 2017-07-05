@@ -4097,6 +4097,27 @@ main() {
 ''');
   }
 
+  test_invokeConstructorUsingNew() async {
+    await resolveTestUnit('''
+class C {
+  C.c();
+}
+main() {
+  C c = C.c();
+}
+''');
+    await assertHasFix(
+        DartFixKind.INVOKE_CONSTRUCTOR_USING_NEW,
+        '''
+class C {
+  C.c();
+}
+main() {
+  C c = new C.c();
+}
+''');
+  }
+
   test_isNotNull() async {
     await resolveTestUnit('''
 main(p) {

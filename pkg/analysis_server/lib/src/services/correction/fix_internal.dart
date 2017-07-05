@@ -348,6 +348,9 @@ class FixProcessor {
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
     }
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR) {
+      await _addFix_undefinedMethodWithContructor();
+    }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       await _addFix_illegalAsyncReturnType();
     }
@@ -2519,6 +2522,20 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       await _addFix_undefinedClassMember_useSimilar(invocation.realTarget,
           (Element element) => element is MethodElement && !element.isOperator);
+    }
+  }
+
+  Future<Null> _addFix_undefinedMethodWithContructor() async {
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleInsertion(node.parent.offset, 'new ');
+      });
+      _addFixFromBuilder(
+          changeBuilder, DartFixKind.INVOKE_CONSTRUCTOR_USING_NEW);
+      // TODO(brianwilkerson) Figure out whether the constructor is a `const`
+      // constructor and all of the parameters are constant expressions, and
+      // suggest inserting 'const ' if so.
     }
   }
 
