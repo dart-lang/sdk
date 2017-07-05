@@ -194,6 +194,11 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'regress_22777_test': flaky,
       'stack_overflow_stacktrace_test': fail,
       'stack_overflow_test': fail,
+
+      // https://github.com/dart-lang/sdk/issues/30075
+      'stacktrace_rethrow_error_test_withtraceparameter_multi': fail,
+      'stacktrace_rethrow_nonerror_test': fail,
+
       'stacktrace_test': chrome_fail,
       'string_interpolate_null_test': fail,
       'switch_label2_test': fail,
