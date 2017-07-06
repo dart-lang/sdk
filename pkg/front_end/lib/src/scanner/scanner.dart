@@ -129,7 +129,8 @@ abstract class Scanner {
    * A flag indicating whether the analyzer [Scanner] factory method
    * will return a fasta based scanner or an analyzer based scanner.
    */
-  static bool useFasta = const bool.fromEnvironment("useFastaScanner");
+  static bool useFasta =
+      const bool.fromEnvironment("useFastaScanner", defaultValue: true);
 
   /**
    * The reader used to access the characters in the source.

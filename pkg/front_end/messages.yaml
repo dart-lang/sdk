@@ -35,6 +35,7 @@
 AsciiControlCharacter:
   template: "The control character #unicode can only be used in strings and comments."
   dart2jsCode: BAD_INPUT_CHARACTER
+  analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
 
 NonAsciiIdentifier:
