@@ -187,6 +187,7 @@ inference/generic_methods_inference_error: Crash
 inference/generic_methods_iterable_and_future: Crash
 inference/generic_methods_nested_generic_instantiation: Crash
 inference/generic_methods_uses_greatest_lower_bound: Crash
+inference/greatest_closure_multiple_params: Crash
 inference/infer_accessor_from_later_inferred_field: Crash
 inference/infer_assign_to_implicit_this: Crash
 inference/infer_assign_to_implicit_this_upwards: Crash

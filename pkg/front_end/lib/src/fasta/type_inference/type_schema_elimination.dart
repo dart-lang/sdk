@@ -59,7 +59,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
     for (int i = 0; i < node.positionalParameters.length; i++) {
       DartType substitution = node.positionalParameters[i].accept(this);
       if (substitution != null) {
-        newPositionalParameters =
+        newPositionalParameters ??=
             node.positionalParameters.toList(growable: false);
         newPositionalParameters[i] = substitution;
       }
@@ -68,7 +68,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
     for (int i = 0; i < node.namedParameters.length; i++) {
       DartType substitution = node.namedParameters[i].type.accept(this);
       if (substitution != null) {
-        newNamedParameters = node.namedParameters.toList(growable: false);
+        newNamedParameters ??= node.namedParameters.toList(growable: false);
         newNamedParameters[i] =
             new NamedType(node.namedParameters[i].name, substitution);
       }
