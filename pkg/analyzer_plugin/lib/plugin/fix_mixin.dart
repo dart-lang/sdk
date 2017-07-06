@@ -26,10 +26,16 @@ import 'package:analyzer_plugin/utilities/generator.dart';
  */
 abstract class DartFixesMixin implements FixesMixin {
   @override
-  Future<FixesRequest> getFixesRequest(
-      EditGetFixesParams parameters, covariant AnalysisDriver driver) async {
+  Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
+    String path = parameters.file;
     int offset = parameters.offset;
-    ResolveResult result = await driver.getResult(parameters.file);
+    AnalysisDriver driver = driverForPath(path);
+    if (driver == null) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    ResolveResult result = await driver.getResult(path);
     return new DartFixesRequestImpl(
         resourceProvider, offset, _getErrors(offset, result), result);
   }
@@ -54,31 +60,22 @@ abstract class DartFixesMixin implements FixesMixin {
 abstract class FixesMixin implements ServerPlugin {
   /**
    * Return a list containing the fix contributors that should be used to create
-   * fixes when used in the context of the given analysis [driver].
+   * fixes for the file with the given [path].
    */
-  List<FixContributor> getFixContributors(
-      covariant AnalysisDriverGeneric driver);
+  List<FixContributor> getFixContributors(String path);
 
   /**
    * Return the fixes request that should be passes to the contributors
    * returned from [getFixContributors].
    */
-  Future<FixesRequest> getFixesRequest(
-      EditGetFixesParams parameters, covariant AnalysisDriverGeneric driver);
+  Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters);
 
   @override
   Future<EditGetFixesResult> handleEditGetFixes(
       EditGetFixesParams parameters) async {
     String path = parameters.file;
-    ContextRoot contextRoot = contextRootContaining(path);
-    if (contextRoot == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    AnalysisDriverGeneric driver = driverMap[contextRoot];
-    FixesRequest request = await getFixesRequest(parameters, driver);
-    FixGenerator generator = new FixGenerator(getFixContributors(driver));
+    FixesRequest request = await getFixesRequest(parameters);
+    FixGenerator generator = new FixGenerator(getFixContributors(path));
     GeneratorResult result = await generator.generateFixesResponse(request);
     result.sendNotifications(channel);
     return result.result;

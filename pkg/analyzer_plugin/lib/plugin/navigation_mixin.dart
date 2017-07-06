@@ -26,9 +26,15 @@ import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 abstract class DartNavigationMixin implements NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
-      AnalysisGetNavigationParams parameters,
-      covariant AnalysisDriver driver) async {
-    ResolveResult result = await driver.getResult(parameters.file);
+      AnalysisGetNavigationParams parameters) async {
+    String path = parameters.file;
+    AnalysisDriver driver = driverForPath(path);
+    if (driver == null) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
+    ResolveResult result = await driver.getResult(path);
     return new DartNavigationRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }
@@ -44,34 +50,24 @@ abstract class DartNavigationMixin implements NavigationMixin {
 abstract class NavigationMixin implements ServerPlugin {
   /**
    * Return a list containing the navigation contributors that should be used to
-   * create navigation information when used in the context of the given
-   * analysis [driver].
+   * create navigation information for the file with the given [path]
    */
-  List<NavigationContributor> getNavigationContributors(
-      covariant AnalysisDriverGeneric driver);
+  List<NavigationContributor> getNavigationContributors(String path);
 
   /**
    * Return the navigation request that should be passes to the contributors
    * returned from [getNavigationContributors].
    */
   Future<NavigationRequest> getNavigationRequest(
-      AnalysisGetNavigationParams parameters,
-      covariant AnalysisDriverGeneric driver);
+      AnalysisGetNavigationParams parameters);
 
   @override
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams parameters) async {
     String path = parameters.file;
-    ContextRoot contextRoot = contextRootContaining(path);
-    if (contextRoot == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    AnalysisDriverGeneric driver = driverMap[contextRoot];
-    NavigationRequest request = await getNavigationRequest(parameters, driver);
+    NavigationRequest request = await getNavigationRequest(parameters);
     NavigationGenerator generator =
-        new NavigationGenerator(getNavigationContributors(driver));
+        new NavigationGenerator(getNavigationContributors(path));
     GeneratorResult result =
         await generator.generateNavigationResponse(request);
     result.sendNotifications(channel);

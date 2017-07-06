@@ -191,6 +191,17 @@ abstract class ServerPlugin {
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
 
   /**
+   * Return the driver being used to analyze the file with the given [path].
+   */
+  AnalysisDriverGeneric driverForPath(String path) {
+    ContextRoot contextRoot = contextRootContaining(path);
+    if (contextRoot == null) {
+      return null;
+    }
+    return driverMap[contextRoot];
+  }
+
+  /**
    * Handle an 'analysis.getNavigation' request.
    */
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
