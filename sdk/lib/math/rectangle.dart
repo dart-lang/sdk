@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "math.dart";
+part of "dart:math";
 
 /**
  * A base class for representing two-dimensional axis-aligned rectangles.

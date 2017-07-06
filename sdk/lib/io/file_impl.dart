@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "io.dart";
+part of "dart:io";
 
 // Read the file in blocks of size 64k.
 const int _BLOCK_SIZE = 64 * 1024;

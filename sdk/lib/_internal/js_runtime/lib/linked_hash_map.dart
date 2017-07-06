@@ -5,7 +5,7 @@
 // Efficient JavaScript based implementation of a linked hash map used as a
 // backing map for constant maps and the [LinkedHashMap] patch
 
-part of "js_helper.dart";
+part of "dart:_js_helper";
 
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 

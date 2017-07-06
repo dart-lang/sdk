@@ -1,4 +1,4 @@
-part of "html_common_dart2js.dart";
+part of "dart:html_common";
 
 /// Converts a JavaScript object with properties into a Dart Map.
 /// Not suitable for nested objects.
