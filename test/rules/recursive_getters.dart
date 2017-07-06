@@ -5,7 +5,7 @@
 // test w/ `pub run test -N recursive_getters`
 
 class C {
-  int _field = 0;
+  final int _field = 0;
 
   int get field => field; // LINT
 
@@ -41,3 +41,16 @@ int get correctBody {
 int get value => _field == null ? 0 : value; // LINT
 
 int plusOne(int arg) => 0;
+
+// https://github.com/dart-lang/linter/issues/586
+class Nested {
+  final Nested _parent;
+
+  Nested(this._parent);
+
+  Nested get ancestor => _parent.ancestor; //OK
+
+  Nested get thisRecursive => this.thisRecursive; // LINT
+
+  Nested get recursive => recursive; // LINT
+}
