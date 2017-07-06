@@ -25,7 +25,6 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/util/util.dart';
 import 'package:compiler/src/world.dart';
 import 'package:js_ast/js_ast.dart' as js;
 import 'check_helpers.dart';
@@ -877,22 +876,8 @@ bool areJsNodesEquivalent(js.Node node1, js.Node node2) {
   return new JsEquivalenceVisitor().testNodes(node1, node2);
 }
 
-class JsEquivalenceVisitor implements js.NodeVisitor<bool> {
-  Link<js.Node> stack1 = const Link<js.Node>();
-  Link<js.Node> stack2 = const Link<js.Node>();
+class JsEquivalenceVisitor implements js.NodeVisitor1<bool, js.Node> {
   Map<String, String> labelsMap = <String, String>{};
-
-  void push(js.Node node1, js.Node node2) {
-    stack1 = stack1.prepend(node1);
-    stack2 = stack2.prepend(node2);
-  }
-
-  js.Node peek() => stack2.head;
-
-  void pop() {
-    stack1 = stack1.tail;
-    stack2 = stack2.tail;
-  }
 
   bool failAt(js.Node node1, js.Node node2) {
     print('Node mismatch:');
@@ -901,19 +886,21 @@ class JsEquivalenceVisitor implements js.NodeVisitor<bool> {
     return false;
   }
 
-  bool testValues(Object object1, Object object2) {
+  bool testValues(
+      js.Node node1, Object object1, js.Node node2, Object object2) {
     if (object1 != object2) {
       print('Value mismatch:');
       print('  ${object1}');
       print('  ${object2}');
       print('at');
-      print('  ${js.nodeToString(stack1.head)}');
-      print('  ${js.nodeToString(stack2.head)}');
+      print('  ${js.nodeToString(node1)}');
+      print('  ${js.nodeToString(node2)}');
     }
     return object1 == object2;
   }
 
-  bool testLabels(String object1, String object2) {
+  bool testLabels(
+      js.Node node1, String object1, js.Node node2, String object2) {
     if (object1 == null && object2 == null) return true;
     if (labelsMap.containsKey(object1)) {
       String expectedValue = labelsMap[object1];
@@ -922,8 +909,8 @@ class JsEquivalenceVisitor implements js.NodeVisitor<bool> {
         print('  ${object1}');
         print('  found ${object2}, expected ${expectedValue}');
         print('at');
-        print('  ${js.nodeToString(stack1.head)}');
-        print('  ${js.nodeToString(stack2.head)}');
+        print('  ${js.nodeToString(node1)}');
+        print('  ${js.nodeToString(node2)}');
       }
       return expectedValue == object2;
     } else {
@@ -935,10 +922,7 @@ class JsEquivalenceVisitor implements js.NodeVisitor<bool> {
   bool testNodes(js.Node node1, js.Node node2) {
     if (identical(node1, node2)) return true;
     if (node1 == null || node2 == null) return failAt(node1, node2);
-    push(node1, node2);
-    bool result = node1.accept(this);
-    pop();
-    return result;
+    return node1.accept1(this, node2);
   }
 
   bool testNodeLists(List<js.Node> list1, List<js.Node> list2) {
@@ -956,430 +940,434 @@ class JsEquivalenceVisitor implements js.NodeVisitor<bool> {
   }
 
   @override
-  bool visitProgram(js.Program node) {
-    if (peek() is! js.Program) return failAt(node, peek());
-    js.Program other = peek();
+  bool visitProgram(js.Program node, js.Node arg) {
+    if (arg is! js.Program) return failAt(node, arg);
+    js.Program other = arg;
     return testNodeLists(node.body, other.body);
   }
 
   @override
-  bool visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
-    if (peek() is! js.InterpolatedDeclaration) return failAt(node, peek());
-    js.InterpolatedDeclaration other = peek();
-    return testValues(node.nameOrPosition, other.nameOrPosition);
+  bool visitInterpolatedDeclaration(
+      js.InterpolatedDeclaration node, js.Node arg) {
+    if (arg is! js.InterpolatedDeclaration) return failAt(node, arg);
+    js.InterpolatedDeclaration other = arg;
+    return testValues(node, node.nameOrPosition, other, other.nameOrPosition);
   }
 
   @override
-  bool visitInterpolatedStatement(js.InterpolatedStatement node) {
-    if (peek() is! js.InterpolatedStatement) return failAt(node, peek());
-    js.InterpolatedStatement other = peek();
-    return testValues(node.nameOrPosition, other.nameOrPosition);
+  bool visitInterpolatedStatement(js.InterpolatedStatement node, js.Node arg) {
+    if (arg is! js.InterpolatedStatement) return failAt(node, arg);
+    js.InterpolatedStatement other = arg;
+    return testValues(node, node.nameOrPosition, other, other.nameOrPosition);
   }
 
   @override
-  bool visitInterpolatedSelector(js.InterpolatedSelector node) {
-    if (peek() is! js.InterpolatedSelector) return failAt(node, peek());
-    js.InterpolatedSelector other = peek();
-    return testValues(node.nameOrPosition, other.nameOrPosition);
+  bool visitInterpolatedSelector(js.InterpolatedSelector node, js.Node arg) {
+    if (arg is! js.InterpolatedSelector) return failAt(node, arg);
+    js.InterpolatedSelector other = arg;
+    return testValues(node, node.nameOrPosition, other, other.nameOrPosition);
   }
 
   @override
-  bool visitInterpolatedParameter(js.InterpolatedParameter node) {
-    if (peek() is! js.InterpolatedParameter) return failAt(node, peek());
-    js.InterpolatedParameter other = peek();
-    return testValues(node.nameOrPosition, other.nameOrPosition);
+  bool visitInterpolatedParameter(js.InterpolatedParameter node, js.Node arg) {
+    if (arg is! js.InterpolatedParameter) return failAt(node, arg);
+    js.InterpolatedParameter other = arg;
+    return testValues(node, node.nameOrPosition, other, other.nameOrPosition);
   }
 
   @override
-  bool visitInterpolatedLiteral(js.InterpolatedLiteral node) {
-    if (peek() is! js.InterpolatedLiteral) return failAt(node, peek());
-    js.InterpolatedLiteral other = peek();
-    return testValues(node.nameOrPosition, other.nameOrPosition);
+  bool visitInterpolatedLiteral(js.InterpolatedLiteral node, js.Node arg) {
+    if (arg is! js.InterpolatedLiteral) return failAt(node, arg);
+    js.InterpolatedLiteral other = arg;
+    return testValues(node, node.nameOrPosition, other, other.nameOrPosition);
   }
 
   @override
-  bool visitInterpolatedExpression(js.InterpolatedExpression node) {
-    if (peek() is! js.InterpolatedExpression) return failAt(node, peek());
-    js.InterpolatedExpression other = peek();
-    return testValues(node.nameOrPosition, other.nameOrPosition);
+  bool visitInterpolatedExpression(
+      js.InterpolatedExpression node, js.Node arg) {
+    if (arg is! js.InterpolatedExpression) return failAt(node, arg);
+    js.InterpolatedExpression other = arg;
+    return testValues(node, node.nameOrPosition, other, other.nameOrPosition);
   }
 
   @override
-  bool visitComment(js.Comment node) {
-    if (peek() is! js.Comment) return failAt(node, peek());
-    js.Comment other = peek();
-    return testValues(node.comment, other.comment);
+  bool visitComment(js.Comment node, js.Node arg) {
+    if (arg is! js.Comment) return failAt(node, arg);
+    js.Comment other = arg;
+    return testValues(node, node.comment, other, other.comment);
   }
 
   @override
-  bool visitAwait(js.Await node) {
-    if (peek() is! js.Await) return failAt(node, peek());
-    js.Await other = peek();
+  bool visitAwait(js.Await node, js.Node arg) {
+    if (arg is! js.Await) return failAt(node, arg);
+    js.Await other = arg;
     return testNodes(node.expression, other.expression);
   }
 
   @override
-  bool visitRegExpLiteral(js.RegExpLiteral node) {
-    if (peek() is! js.RegExpLiteral) return failAt(node, peek());
-    js.RegExpLiteral other = peek();
-    return testValues(node.pattern, other.pattern);
+  bool visitRegExpLiteral(js.RegExpLiteral node, js.Node arg) {
+    if (arg is! js.RegExpLiteral) return failAt(node, arg);
+    js.RegExpLiteral other = arg;
+    return testValues(node, node.pattern, other, other.pattern);
   }
 
   @override
-  bool visitProperty(js.Property node) {
-    if (peek() is! js.Property) return failAt(node, peek());
-    js.Property other = peek();
+  bool visitProperty(js.Property node, js.Node arg) {
+    if (arg is! js.Property) return failAt(node, arg);
+    js.Property other = arg;
     return testNodes(node.name, other.name) &&
         testNodes(node.value, other.value);
   }
 
   @override
-  bool visitObjectInitializer(js.ObjectInitializer node) {
-    if (peek() is! js.ObjectInitializer) return failAt(node, peek());
-    js.ObjectInitializer other = peek();
+  bool visitObjectInitializer(js.ObjectInitializer node, js.Node arg) {
+    if (arg is! js.ObjectInitializer) return failAt(node, arg);
+    js.ObjectInitializer other = arg;
     return testNodeLists(node.properties, other.properties);
   }
 
   @override
-  bool visitArrayHole(js.ArrayHole node) {
-    if (peek() is! js.ArrayHole) return failAt(node, peek());
+  bool visitArrayHole(js.ArrayHole node, js.Node arg) {
+    if (arg is! js.ArrayHole) return failAt(node, arg);
     return true;
   }
 
   @override
-  bool visitArrayInitializer(js.ArrayInitializer node) {
-    if (peek() is! js.ArrayInitializer) return failAt(node, peek());
-    js.ArrayInitializer other = peek();
+  bool visitArrayInitializer(js.ArrayInitializer node, js.Node arg) {
+    if (arg is! js.ArrayInitializer) return failAt(node, arg);
+    js.ArrayInitializer other = arg;
     return testNodeLists(node.elements, other.elements);
   }
 
   @override
-  bool visitName(js.Name node) {
-    if (peek() is! js.Name) return failAt(node, peek());
-    js.Name other = peek();
-    return testValues(node.key, other.key);
+  bool visitName(js.Name node, js.Node arg) {
+    if (arg is! js.Name) return failAt(node, arg);
+    js.Name other = arg;
+    return testValues(node, node.key, other, other.key);
   }
 
   @override
-  bool visitStringConcatenation(js.StringConcatenation node) {
-    if (peek() is! js.StringConcatenation) return failAt(node, peek());
-    js.StringConcatenation other = peek();
+  bool visitStringConcatenation(js.StringConcatenation node, js.Node arg) {
+    if (arg is! js.StringConcatenation) return failAt(node, arg);
+    js.StringConcatenation other = arg;
     return testNodeLists(node.parts, other.parts);
   }
 
   @override
-  bool visitLiteralNull(js.LiteralNull node) {
-    if (peek() is! js.LiteralNull) return failAt(node, peek());
+  bool visitLiteralNull(js.LiteralNull node, js.Node arg) {
+    if (arg is! js.LiteralNull) return failAt(node, arg);
     return true;
   }
 
   @override
-  bool visitLiteralNumber(js.LiteralNumber node) {
-    if (peek() is! js.LiteralNumber) return failAt(node, peek());
-    js.LiteralNumber other = peek();
-    return testValues(node.value, other.value);
+  bool visitLiteralNumber(js.LiteralNumber node, js.Node arg) {
+    if (arg is! js.LiteralNumber) return failAt(node, arg);
+    js.LiteralNumber other = arg;
+    return testValues(node, node.value, other, other.value);
   }
 
   @override
-  bool visitLiteralString(js.LiteralString node) {
-    if (peek() is! js.LiteralString) return failAt(node, peek());
-    js.LiteralString other = peek();
-    return testValues(node.value, other.value);
+  bool visitLiteralString(js.LiteralString node, js.Node arg) {
+    if (arg is! js.LiteralString) return failAt(node, arg);
+    js.LiteralString other = arg;
+    return testValues(node, node.value, other, other.value);
   }
 
   @override
-  bool visitLiteralBool(js.LiteralBool node) {
-    if (peek() is! js.LiteralBool) return failAt(node, peek());
-    js.LiteralBool other = peek();
-    return testValues(node.value, other.value);
+  bool visitLiteralBool(js.LiteralBool node, js.Node arg) {
+    if (arg is! js.LiteralBool) return failAt(node, arg);
+    js.LiteralBool other = arg;
+    return testValues(node, node.value, other, other.value);
   }
 
   @override
-  bool visitDeferredString(js.DeferredString node) {
-    if (peek() is! js.DeferredString) return failAt(node, peek());
-    js.DeferredString other = peek();
-    return testValues(node.value, other.value);
+  bool visitDeferredString(js.DeferredString node, js.Node arg) {
+    if (arg is! js.DeferredString) return failAt(node, arg);
+    js.DeferredString other = arg;
+    return testValues(node, node.value, other, other.value);
   }
 
   @override
-  bool visitDeferredNumber(js.DeferredNumber node) {
-    if (peek() is! js.DeferredNumber) return failAt(node, peek());
-    js.DeferredNumber other = peek();
-    return testValues(node.value, other.value);
+  bool visitDeferredNumber(js.DeferredNumber node, js.Node arg) {
+    if (arg is! js.DeferredNumber) return failAt(node, arg);
+    js.DeferredNumber other = arg;
+    return testValues(node, node.value, other, other.value);
   }
 
   @override
-  bool visitDeferredExpression(js.DeferredExpression node) {
-    if (peek() is! js.DeferredExpression) return failAt(node, peek());
-    js.DeferredExpression other = peek();
+  bool visitDeferredExpression(js.DeferredExpression node, js.Node arg) {
+    if (arg is! js.DeferredExpression) return failAt(node, arg);
+    js.DeferredExpression other = arg;
     return testNodes(node.value, other.value);
   }
 
   @override
-  bool visitFun(js.Fun node) {
-    if (peek() is! js.Fun) return failAt(node, peek());
-    js.Fun other = peek();
+  bool visitFun(js.Fun node, js.Node arg) {
+    if (arg is! js.Fun) return failAt(node, arg);
+    js.Fun other = arg;
     return testNodeLists(node.params, other.params) &&
         testNodes(node.body, other.body) &&
-        testValues(node.asyncModifier, other.asyncModifier);
+        testValues(node, node.asyncModifier, other, other.asyncModifier);
   }
 
   @override
-  bool visitNamedFunction(js.NamedFunction node) {
-    if (peek() is! js.NamedFunction) return failAt(node, peek());
-    js.NamedFunction other = peek();
+  bool visitNamedFunction(js.NamedFunction node, js.Node arg) {
+    if (arg is! js.NamedFunction) return failAt(node, arg);
+    js.NamedFunction other = arg;
     return testNodes(node.name, other.name) &&
         testNodes(node.function, other.function);
   }
 
   @override
-  bool visitAccess(js.PropertyAccess node) {
-    if (peek() is! js.PropertyAccess) return failAt(node, peek());
-    js.PropertyAccess other = peek();
+  bool visitAccess(js.PropertyAccess node, js.Node arg) {
+    if (arg is! js.PropertyAccess) return failAt(node, arg);
+    js.PropertyAccess other = arg;
     return testNodes(node.receiver, other.receiver) &&
         testNodes(node.selector, other.selector);
   }
 
   @override
-  bool visitParameter(js.Parameter node) {
-    if (peek() is! js.Parameter) return failAt(node, peek());
-    js.Parameter other = peek();
-    return testValues(node.name, other.name);
+  bool visitParameter(js.Parameter node, js.Node arg) {
+    if (arg is! js.Parameter) return failAt(node, arg);
+    js.Parameter other = arg;
+    return testValues(node, node.name, other, other.name);
   }
 
   @override
-  bool visitVariableDeclaration(js.VariableDeclaration node) {
-    if (peek() is! js.VariableDeclaration) return failAt(node, peek());
-    js.VariableDeclaration other = peek();
-    return testValues(node.name, other.name) &&
-        testValues(node.allowRename, other.allowRename);
+  bool visitVariableDeclaration(js.VariableDeclaration node, js.Node arg) {
+    if (arg is! js.VariableDeclaration) return failAt(node, arg);
+    js.VariableDeclaration other = arg;
+    return testValues(node, node.name, other, other.name) &&
+        testValues(node, node.allowRename, other, other.allowRename);
   }
 
   @override
-  bool visitThis(js.This node) {
-    if (peek() is! js.This) return failAt(node, peek());
+  bool visitThis(js.This node, js.Node arg) {
+    if (arg is! js.This) return failAt(node, arg);
     return true;
   }
 
   @override
-  bool visitVariableUse(js.VariableUse node) {
-    if (peek() is! js.VariableUse) return failAt(node, peek());
-    js.VariableUse other = peek();
-    return testValues(node.name, other.name);
+  bool visitVariableUse(js.VariableUse node, js.Node arg) {
+    if (arg is! js.VariableUse) return failAt(node, arg);
+    js.VariableUse other = arg;
+    return testValues(node, node.name, other, other.name);
   }
 
   @override
-  bool visitPostfix(js.Postfix node) {
-    if (peek() is! js.Postfix) return failAt(node, peek());
-    js.Postfix other = peek();
-    return testValues(node.op, other.op) &&
+  bool visitPostfix(js.Postfix node, js.Node arg) {
+    if (arg is! js.Postfix) return failAt(node, arg);
+    js.Postfix other = arg;
+    return testValues(node, node.op, other, other.op) &&
         testNodes(node.argument, other.argument);
   }
 
   @override
-  bool visitPrefix(js.Prefix node) {
-    if (peek() is! js.Prefix) return failAt(node, peek());
-    js.Prefix other = peek();
-    return testValues(node.op, other.op) &&
+  bool visitPrefix(js.Prefix node, js.Node arg) {
+    if (arg is! js.Prefix) return failAt(node, arg);
+    js.Prefix other = arg;
+    return testValues(node, node.op, other, other.op) &&
         testNodes(node.argument, other.argument);
   }
 
   @override
-  bool visitBinary(js.Binary node) {
-    if (peek() is! js.Binary) return failAt(node, peek());
-    js.Binary other = peek();
+  bool visitBinary(js.Binary node, js.Node arg) {
+    if (arg is! js.Binary) return failAt(node, arg);
+    js.Binary other = arg;
     return testNodes(node.left, other.left) &&
-        testValues(node.op, other.op) &&
+        testValues(node, node.op, other, other.op) &&
         testNodes(node.right, other.right);
   }
 
   @override
-  bool visitCall(js.Call node) {
-    if (peek() is! js.Call) return failAt(node, peek());
-    js.Call other = peek();
+  bool visitCall(js.Call node, js.Node arg) {
+    if (arg is! js.Call) return failAt(node, arg);
+    js.Call other = arg;
     return testNodes(node.target, other.target) &&
         testNodeLists(node.arguments, other.arguments);
   }
 
   @override
-  bool visitNew(js.New node) {
-    if (peek() is! js.New) return failAt(node, peek());
-    js.New other = peek();
+  bool visitNew(js.New node, js.Node arg) {
+    if (arg is! js.New) return failAt(node, arg);
+    js.New other = arg;
     return testNodes(node.target, other.target) &&
         testNodeLists(node.arguments, other.arguments);
   }
 
   @override
-  bool visitConditional(js.Conditional node) {
-    if (peek() is! js.Conditional) return failAt(node, peek());
-    js.Conditional other = peek();
+  bool visitConditional(js.Conditional node, js.Node arg) {
+    if (arg is! js.Conditional) return failAt(node, arg);
+    js.Conditional other = arg;
     return testNodes(node.condition, other.condition) &&
         testNodes(node.then, other.then) &&
         testNodes(node.otherwise, other.otherwise);
   }
 
   @override
-  bool visitVariableInitialization(js.VariableInitialization node) {
-    if (peek() is! js.VariableInitialization) return failAt(node, peek());
-    js.VariableInitialization other = peek();
+  bool visitVariableInitialization(
+      js.VariableInitialization node, js.Node arg) {
+    if (arg is! js.VariableInitialization) return failAt(node, arg);
+    js.VariableInitialization other = arg;
     return testNodes(node.declaration, other.declaration) &&
         testNodes(node.leftHandSide, other.leftHandSide) &&
-        testValues(node.op, other.op) &&
+        testValues(node, node.op, other, other.op) &&
         testNodes(node.value, other.value);
   }
 
   @override
-  bool visitAssignment(js.Assignment node) {
-    if (peek() is! js.Assignment) return failAt(node, peek());
-    js.Assignment other = peek();
+  bool visitAssignment(js.Assignment node, js.Node arg) {
+    if (arg is! js.Assignment) return failAt(node, arg);
+    js.Assignment other = arg;
     return testNodes(node.leftHandSide, other.leftHandSide) &&
-        testValues(node.op, other.op) &&
+        testValues(node, node.op, other, other.op) &&
         testNodes(node.value, other.value);
   }
 
   @override
-  bool visitVariableDeclarationList(js.VariableDeclarationList node) {
-    if (peek() is! js.VariableDeclarationList) return failAt(node, peek());
-    js.VariableDeclarationList other = peek();
+  bool visitVariableDeclarationList(
+      js.VariableDeclarationList node, js.Node arg) {
+    if (arg is! js.VariableDeclarationList) return failAt(node, arg);
+    js.VariableDeclarationList other = arg;
     return testNodeLists(node.declarations, other.declarations);
   }
 
   @override
-  bool visitLiteralExpression(js.LiteralExpression node) {
-    if (peek() is! js.LiteralExpression) return failAt(node, peek());
-    js.LiteralExpression other = peek();
-    return testValues(node.template, other.template) &&
+  bool visitLiteralExpression(js.LiteralExpression node, js.Node arg) {
+    if (arg is! js.LiteralExpression) return failAt(node, arg);
+    js.LiteralExpression other = arg;
+    return testValues(node, node.template, other, other.template) &&
         testNodeLists(node.inputs, other.inputs);
   }
 
   @override
-  bool visitDartYield(js.DartYield node) {
-    if (peek() is! js.DartYield) return failAt(node, peek());
-    js.DartYield other = peek();
+  bool visitDartYield(js.DartYield node, js.Node arg) {
+    if (arg is! js.DartYield) return failAt(node, arg);
+    js.DartYield other = arg;
     return testNodes(node.expression, other.expression) &&
-        testValues(node.hasStar, other.hasStar);
+        testValues(node, node.hasStar, other, other.hasStar);
   }
 
   @override
-  bool visitLiteralStatement(js.LiteralStatement node) {
-    if (peek() is! js.LiteralStatement) return failAt(node, peek());
-    js.LiteralStatement other = peek();
-    return testValues(node.code, other.code);
+  bool visitLiteralStatement(js.LiteralStatement node, js.Node arg) {
+    if (arg is! js.LiteralStatement) return failAt(node, arg);
+    js.LiteralStatement other = arg;
+    return testValues(node, node.code, other, other.code);
   }
 
   @override
-  bool visitLabeledStatement(js.LabeledStatement node) {
-    if (peek() is! js.LabeledStatement) return failAt(node, peek());
-    js.LabeledStatement other = peek();
-    return testLabels(node.label, other.label) &&
+  bool visitLabeledStatement(js.LabeledStatement node, js.Node arg) {
+    if (arg is! js.LabeledStatement) return failAt(node, arg);
+    js.LabeledStatement other = arg;
+    return testLabels(node, node.label, other, other.label) &&
         testNodes(node.body, other.body);
   }
 
   @override
-  bool visitFunctionDeclaration(js.FunctionDeclaration node) {
-    if (peek() is! js.FunctionDeclaration) return failAt(node, peek());
-    js.FunctionDeclaration other = peek();
+  bool visitFunctionDeclaration(js.FunctionDeclaration node, js.Node arg) {
+    if (arg is! js.FunctionDeclaration) return failAt(node, arg);
+    js.FunctionDeclaration other = arg;
     return testNodes(node.name, other.name) &&
         testNodes(node.function, other.function);
   }
 
   @override
-  bool visitDefault(js.Default node) {
-    if (peek() is! js.Default) return failAt(node, peek());
-    js.Default other = peek();
+  bool visitDefault(js.Default node, js.Node arg) {
+    if (arg is! js.Default) return failAt(node, arg);
+    js.Default other = arg;
     return testNodes(node.body, other.body);
   }
 
   @override
-  bool visitCase(js.Case node) {
-    if (peek() is! js.Case) return failAt(node, peek());
-    js.Case other = peek();
+  bool visitCase(js.Case node, js.Node arg) {
+    if (arg is! js.Case) return failAt(node, arg);
+    js.Case other = arg;
     return testNodes(node.expression, other.expression) &&
         testNodes(node.body, other.body);
   }
 
   @override
-  bool visitSwitch(js.Switch node) {
-    if (peek() is! js.Switch) return failAt(node, peek());
-    js.Switch other = peek();
+  bool visitSwitch(js.Switch node, js.Node arg) {
+    if (arg is! js.Switch) return failAt(node, arg);
+    js.Switch other = arg;
     return testNodes(node.key, other.key) &&
         testNodeLists(node.cases, other.cases);
   }
 
   @override
-  bool visitCatch(js.Catch node) {
-    if (peek() is! js.Catch) return failAt(node, peek());
-    js.Catch other = peek();
+  bool visitCatch(js.Catch node, js.Node arg) {
+    if (arg is! js.Catch) return failAt(node, arg);
+    js.Catch other = arg;
     return testNodes(node.declaration, other.declaration) &&
         testNodes(node.body, other.body);
   }
 
   @override
-  bool visitTry(js.Try node) {
-    if (peek() is! js.Try) return failAt(node, peek());
-    js.Try other = peek();
+  bool visitTry(js.Try node, js.Node arg) {
+    if (arg is! js.Try) return failAt(node, arg);
+    js.Try other = arg;
     return testNodes(node.body, other.body) &&
         testNodes(node.catchPart, other.catchPart) &&
         testNodes(node.finallyPart, other.finallyPart);
   }
 
   @override
-  bool visitThrow(js.Throw node) {
-    if (peek() is! js.Throw) return failAt(node, peek());
-    js.Throw other = peek();
+  bool visitThrow(js.Throw node, js.Node arg) {
+    if (arg is! js.Throw) return failAt(node, arg);
+    js.Throw other = arg;
     return testNodes(node.expression, other.expression);
   }
 
   @override
-  bool visitReturn(js.Return node) {
-    if (peek() is! js.Return) return failAt(node, peek());
-    js.Return other = peek();
+  bool visitReturn(js.Return node, js.Node arg) {
+    if (arg is! js.Return) return failAt(node, arg);
+    js.Return other = arg;
     return testNodes(node.value, other.value);
   }
 
   @override
-  bool visitBreak(js.Break node) {
-    if (peek() is! js.Break) return failAt(node, peek());
-    js.Break other = peek();
-    return testLabels(node.targetLabel, other.targetLabel);
+  bool visitBreak(js.Break node, js.Node arg) {
+    if (arg is! js.Break) return failAt(node, arg);
+    js.Break other = arg;
+    return testLabels(node, node.targetLabel, other, other.targetLabel);
   }
 
   @override
-  bool visitContinue(js.Continue node) {
-    if (peek() is! js.Continue) return failAt(node, peek());
-    js.Continue other = peek();
-    return testLabels(node.targetLabel, other.targetLabel);
+  bool visitContinue(js.Continue node, js.Node arg) {
+    if (arg is! js.Continue) return failAt(node, arg);
+    js.Continue other = arg;
+    return testLabels(node, node.targetLabel, other, other.targetLabel);
   }
 
   @override
-  bool visitDo(js.Do node) {
-    if (peek() is! js.Do) return failAt(node, peek());
-    js.Do other = peek();
+  bool visitDo(js.Do node, js.Node arg) {
+    if (arg is! js.Do) return failAt(node, arg);
+    js.Do other = arg;
     return testNodes(node.condition, other.condition) &&
         testNodes(node.body, other.body);
   }
 
   @override
-  bool visitWhile(js.While node) {
-    if (peek() is! js.While) return failAt(node, peek());
-    js.While other = peek();
+  bool visitWhile(js.While node, js.Node arg) {
+    if (arg is! js.While) return failAt(node, arg);
+    js.While other = arg;
     return testNodes(node.condition, other.condition) &&
         testNodes(node.body, other.body);
   }
 
   @override
-  bool visitForIn(js.ForIn node) {
-    if (peek() is! js.ForIn) return failAt(node, peek());
-    js.ForIn other = peek();
+  bool visitForIn(js.ForIn node, js.Node arg) {
+    if (arg is! js.ForIn) return failAt(node, arg);
+    js.ForIn other = arg;
     return testNodes(node.leftHandSide, other.leftHandSide) &&
         testNodes(node.object, other.object) &&
         testNodes(node.body, other.body);
   }
 
   @override
-  bool visitFor(js.For node) {
-    if (peek() is! js.For) return failAt(node, peek());
-    js.For other = peek();
+  bool visitFor(js.For node, js.Node arg) {
+    if (arg is! js.For) return failAt(node, arg);
+    js.For other = arg;
     return testNodes(node.init, other.init) &&
         testNodes(node.condition, other.condition) &&
         testNodes(node.update, other.update) &&
@@ -1387,31 +1375,31 @@ class JsEquivalenceVisitor implements js.NodeVisitor<bool> {
   }
 
   @override
-  bool visitIf(js.If node) {
-    if (peek() is! js.If) return failAt(node, peek());
-    js.If other = peek();
+  bool visitIf(js.If node, js.Node arg) {
+    if (arg is! js.If) return failAt(node, arg);
+    js.If other = arg;
     return testNodes(node.condition, other.condition) &&
         testNodes(node.then, other.then) &&
         testNodes(node.otherwise, other.otherwise);
   }
 
   @override
-  bool visitEmptyStatement(js.EmptyStatement node) {
-    if (peek() is! js.EmptyStatement) return failAt(node, peek());
+  bool visitEmptyStatement(js.EmptyStatement node, js.Node arg) {
+    if (arg is! js.EmptyStatement) return failAt(node, arg);
     return true;
   }
 
   @override
-  bool visitExpressionStatement(js.ExpressionStatement node) {
-    if (peek() is! js.ExpressionStatement) return failAt(node, peek());
-    js.ExpressionStatement other = peek();
+  bool visitExpressionStatement(js.ExpressionStatement node, js.Node arg) {
+    if (arg is! js.ExpressionStatement) return failAt(node, arg);
+    js.ExpressionStatement other = arg;
     return testNodes(node.expression, other.expression);
   }
 
   @override
-  bool visitBlock(js.Block node) {
-    if (peek() is! js.Block) return failAt(node, peek());
-    js.Block other = peek();
+  bool visitBlock(js.Block node, js.Node arg) {
+    if (arg is! js.Block) return failAt(node, arg);
+    js.Block other = arg;
     return testNodeLists(node.statements, other.statements);
   }
 }
