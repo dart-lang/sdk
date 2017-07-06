@@ -1915,13 +1915,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  ConstLocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
-      ExecutableElementImpl enclosingExecutable)
-      : super.forSerialized(unlinkedVariable, enclosingExecutable);
 }
 
 /**
@@ -6391,29 +6384,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   LocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  LocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
-      ExecutableElementImpl enclosingExecutable)
-      : super.forSerialized(unlinkedVariable, enclosingExecutable);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  factory LocalVariableElementImpl.forSerializedFactory(
-      UnlinkedVariable unlinkedVariable,
-      ExecutableElementImpl enclosingExecutable) {
-    if (unlinkedVariable.isConst &&
-        unlinkedVariable.initializer?.bodyExpr != null) {
-      return new ConstLocalVariableElementImpl.forSerialized(
-          unlinkedVariable, enclosingExecutable);
-    } else {
-      return new LocalVariableElementImpl.forSerialized(
-          unlinkedVariable, enclosingExecutable);
-    }
-  }
 
   @override
   String get identifier {
