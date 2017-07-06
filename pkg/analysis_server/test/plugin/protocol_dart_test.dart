@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer/src/generated/testing/search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,16 +24,6 @@ main() {
     defineReflectiveTests(ElementTest);
     defineReflectiveTests(ElementKindTest);
   });
-}
-
-/**
- * Search the [unit] for the [engine.Element]s with the given [name].
- */
-List<engine.Element> findElementsByName(
-    engine.CompilationUnit unit, String name) {
-  var finder = new _ElementsByNameFinder(name);
-  unit.accept(finder);
-  return finder.elements;
 }
 
 @reflectiveTest
@@ -486,19 +477,5 @@ class A {
     expect(element.parameters, '(String x)');
     expect(element.returnType, isNull);
     expect(element.flags, 0);
-  }
-}
-
-class _ElementsByNameFinder extends engine.RecursiveAstVisitor<Null> {
-  final String name;
-  final List<engine.Element> elements = [];
-
-  _ElementsByNameFinder(this.name);
-
-  @override
-  visitSimpleIdentifier(engine.SimpleIdentifier node) {
-    if (node.name == name && node.inDeclarationContext()) {
-      elements.add(node.staticElement);
-    }
   }
 }

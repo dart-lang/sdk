@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -19,6 +18,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 
@@ -39,15 +39,6 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
     result = element;
   }));
   return result;
-}
-
-/**
- * Search the [unit] for the [Element]s with the given [name].
- */
-List<Element> findElementsByName(CompilationUnit unit, String name) {
-  var finder = new _ElementsByNameFinder(name);
-  unit.accept(finder);
-  return finder.elements;
 }
 
 /**
@@ -185,20 +176,6 @@ class PrintLogger implements Logger {
     print(message);
     if (exception != null) {
       print(exception);
-    }
-  }
-}
-
-class _ElementsByNameFinder extends RecursiveAstVisitor<Null> {
-  final String name;
-  final List<Element> elements = [];
-
-  _ElementsByNameFinder(this.name);
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.name == name && node.inDeclarationContext()) {
-      elements.add(node.staticElement);
     }
   }
 }
