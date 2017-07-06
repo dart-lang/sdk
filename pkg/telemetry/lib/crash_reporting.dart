@@ -32,12 +32,14 @@ class CrashReportSender {
   static final Uri _baseUri = new Uri(
       scheme: 'https', host: _crashServerHost, path: _crashEndpointPath);
 
+  final String crashProductId;
   final Analytics analytics;
   final http.Client _httpClient;
 
   /// Create a new [CrashReportSender], using the data from the given
   /// [Analytics] instance.
-  CrashReportSender(this.analytics, {http.Client httpClient})
+  CrashReportSender(this.crashProductId, this.analytics,
+      {http.Client httpClient})
       : _httpClient = httpClient ?? new http.Client();
 
   /// Sends one crash report.
@@ -58,7 +60,7 @@ class CrashReportSender {
 
       final http.MultipartRequest req = new http.MultipartRequest('POST', uri);
       req.fields['uuid'] = analytics.clientId;
-      req.fields['product'] = analytics.trackingId;
+      req.fields['product'] = crashProductId;
       req.fields['version'] = analytics.applicationVersion;
       req.fields['osName'] = Platform.operatingSystem;
       // TODO(devoncarew): Report the operating system version when we're able.

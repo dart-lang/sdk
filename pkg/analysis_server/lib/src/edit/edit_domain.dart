@@ -77,6 +77,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Response format(Request request) {
+    server.options.analytics?.sendEvent('edit', 'format');
+
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
@@ -270,6 +272,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getPostfixCompletion(Request request) async {
+    server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
+
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
     SourceChange change;
 
@@ -448,6 +452,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<Null> organizeDirectives(Request request) async {
+    server.options.analytics?.sendEvent('edit', 'organizeDirectives');
+
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
     // prepare file
     String file = params.file;
@@ -717,6 +723,12 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(_request);
+
+    if (params.kind != null) {
+      server.options.analytics
+          ?.sendEvent('refactor', params.kind.name.toLowerCase());
+    }
+
     runZoned(() async {
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {

@@ -11,6 +11,11 @@ import 'package:usage/src/usage_impl_io.dart' as usage_io show getDartVersion;
 import 'package:usage/usage.dart';
 import 'package:usage/usage_io.dart';
 
+export 'package:usage/usage.dart' show Analytics;
+
+// TODO(devoncarew): Hard-coded to off for now. Remove when we're ready to ship.
+final bool _HARD_CODE_OFF = true;
+
 final String _dartDirectoryName = '.dart';
 final String _settingsFileName = 'analytics.json';
 
@@ -21,9 +26,24 @@ final String _settingsFileName = 'analytics.json';
 ///
 /// `Analytics are currently enabled (and can be disabled with --no-analytics).`
 final String analyticsNotice =
-    "Dart SDK tools anonymously report feature usage statistics and basic "
-    "crash reports to help improve Dart tools over time. See Google's privacy "
-    "policy: https://www.google.com/intl/en/policies/privacy/.";
+    "Dart SDK tools anonymously report feature usage statistics and basic crash\n"
+    "reports to help improve Dart tools over time. See Google's privacy policy:\n"
+    "https://www.google.com/intl/en/policies/privacy/.";
+
+/// Return a customized message for command-line tools to display about the
+/// state of analytics, and how users can enabled or disable analytics.
+///
+/// An example return value might be `'Analytics are currently enabled (and can
+/// be disabled with --no-analytics).'`
+String createAnalyticsStatusMessage(bool enabled,
+    {String command: 'analytics'}) {
+  String currentState = enabled ? 'enabled' : 'disabled';
+  String toggleState = enabled ? 'disabled' : 'enabled';
+  String commandToggle = enabled ? 'no-$command' : command;
+
+  return 'Analytics are currently $currentState '
+      '(and can be $toggleState with --$commandToggle).';
+}
 
 /// Create an [Analytics] instance with the given trackingID and
 /// applicationName.
@@ -35,6 +55,10 @@ Analytics createAnalyticsInstance(String trackingId, String applicationName,
   Directory dir = getDartStorageDirectory();
   if (!dir.existsSync()) {
     dir.createSync();
+  }
+
+  if (_HARD_CODE_OFF) {
+    disableForSession = true;
   }
 
   File file = new File(path.join(dir.path, _settingsFileName));
@@ -77,14 +101,14 @@ class _TelemetryAnalytics extends AnalyticsImpl {
 
   @override
   bool get enabled {
-    if (disableForSession || _isRunningOnBot()) {
+    if (disableForSession || isRunningOnBot()) {
       return false;
     }
     return super.enabled;
   }
 }
 
-bool _isRunningOnBot() {
+bool isRunningOnBot() {
   // - https://docs.travis-ci.com/user/environment-variables/
   // - https://www.appveyor.com/docs/environment-variables/
   // - CHROME_HEADLESS and BUILDBOT_BUILDERNAME are properties on Chrome infra

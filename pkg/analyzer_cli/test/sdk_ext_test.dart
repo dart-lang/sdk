@@ -40,7 +40,7 @@ main() {
 
     test('.packages file specified', () async {
       String testDir = path.join(testDirectory, 'data', 'packages_file');
-      Driver driver = new Driver();
+      Driver driver = new Driver(isTesting: true);
       await driver.start([
         '--packages',
         path.join(testDir, '_packages'),

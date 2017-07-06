@@ -278,6 +278,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the 'analysis.reanalyze' request.
    */
   Response reanalyze(Request request) {
+    server.options.analytics?.sendEvent('analysis', 'reanalyze');
+
     AnalysisReanalyzeParams params =
         new AnalysisReanalyzeParams.fromRequest(request);
     List<String> roots = params.roots;
@@ -314,6 +316,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
     List<String> excludedPathList = params.excluded;
+
+    server.options.analytics?.sendEvent('analysis', 'setAnalysisRoots',
+        value: includedPathList.length);
+
     // validate
     for (String path in includedPathList) {
       if (!server.isValidFilePath(path)) {

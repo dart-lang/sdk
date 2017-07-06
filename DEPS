@@ -122,7 +122,7 @@ vars = {
   "test_tag": "@0.12.18+1",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
-  "usage_tag": "@3.2.0+1",
+  "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+3",
   "watcher_tag": "@0.9.7+3",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",

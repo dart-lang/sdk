@@ -111,7 +111,7 @@ main() {
       });
 
       test('non-dangling part file', () async {
-        Driver driver = new Driver();
+        Driver driver = new Driver(isTesting: true);
         await driver.start([
           path.join(testDirectory, 'data/library_and_parts/lib.dart'),
           path.join(testDirectory, 'data/library_and_parts/part1.dart')
@@ -120,7 +120,7 @@ main() {
       });
 
       test('extra part file', () async {
-        Driver driver = new Driver();
+        Driver driver = new Driver(isTesting: true);
         await driver.start([
           path.join(testDirectory, 'data/library_and_parts/lib.dart'),
           path.join(testDirectory, 'data/library_and_parts/part1.dart'),
@@ -140,7 +140,7 @@ main() {
           Directory origWorkingDir = Directory.current;
           try {
             Directory.current = path.join(tempDirPath, 'proj');
-            Driver driver = new Driver();
+            Driver driver = new Driver(isTesting: true);
             try {
               await driver.start([
                 path.join('lib', 'file.dart'),
@@ -551,7 +551,7 @@ String adjustFileSpec(String fileSpec) {
 Future<Null> drive(String source,
     {String options: emptyOptionsFile,
     List<String> args: const <String>[]}) async {
-  driver = new Driver();
+  driver = new Driver(isTesting: true);
   var cmd = [
     '--options',
     path.join(testDirectory, options),

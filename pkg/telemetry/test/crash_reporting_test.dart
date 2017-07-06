@@ -24,9 +24,10 @@ void main() {
     });
 
     test('CrashReportSender', () async {
-      AnalyticsMock analytics = new AnalyticsMock();
-      CrashReportSender sender =
-          new CrashReportSender(analytics, httpClient: mockClient);
+      AnalyticsMock analytics = new AnalyticsMock()..enabled = false;
+      CrashReportSender sender = new CrashReportSender(
+          analytics.trackingId, analytics,
+          httpClient: mockClient);
 
       await sender.sendReport('test-error', stackTrace: StackTrace.current);
 

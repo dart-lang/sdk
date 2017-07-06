@@ -8,3 +8,4 @@ linter:
     - empty_statements
     - unnecessary_brace_in_string_interps
     - valid_regexps
+

@@ -61,6 +61,8 @@ import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_byte_store.dart';
 import 'package:plugin/plugin.dart';
+import 'package:telemetry/crash_reporting.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -778,6 +780,9 @@ class AnalysisServer {
         new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
 
+    // send to crash reporting
+    options.crashReportSender?.sendReport(exception, stackTrace: stackTrace);
+
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
@@ -904,8 +909,13 @@ class AnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  void shutdown() {
+  Future<Null> shutdown() async {
     running = false;
+
+    await options.analytics
+        ?.waitForLastPing(timeout: new Duration(milliseconds: 200));
+    options.analytics?.close();
+
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
     new Future(() {
@@ -1043,16 +1053,30 @@ class AnalysisServer {
   }
 }
 
+/**
+ * Various IDE options.
+ */
 class AnalysisServerOptions {
   bool useAnalysisHighlight2 = false;
+  bool enableVerboseFlutterCompletions = false;
+
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;
   String clientVersion;
 
-  // IDE options
-  bool enableVerboseFlutterCompletions = false;
+  /**
+   * The analytics instance; note, this object can be `null`, and should be
+   * accessed via a null-aware operator.
+   */
+  telemetry.Analytics analytics;
+
+  /**
+   * The crash report sender instance; note, this object can be `null`, and
+   * should be accessed via a null-aware operator.
+   */
+  CrashReportSender crashReportSender;
 }
 
 /**
