@@ -988,20 +988,26 @@ class PluginsPage extends DiagnosticPageWithNav {
   }
 }
 
-// TODO(devoncarew): Show the last x requests and responses.
 class ProfilePage extends DiagnosticPageWithNav {
   ProfilePage(DiagnosticsSite site)
       : super(site, 'profile', 'Profiling Info',
-            description: 'Profiling performance tag data.');
+            description: 'Profiling performance tag data and lint timings.');
 
   @override
   void generateContent(Map<String, String> params) {
+    h3('Profiling performance tag data');
+
     // prepare sorted tags
     List<PerformanceTag> tags = PerformanceTag.all.toList();
     tags.remove(ServerPerformanceStatistics.idle);
     tags.remove(PerformanceTag.unknown);
     tags.removeWhere((tag) => tag.elapsedMs == 0);
     tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
+
+    // print total time
+    int totalTime =
+        tags.fold<int>(0, (int a, PerformanceTag tag) => a + tag.elapsedMs);
+    p('Total measured time: ${printMilliseconds(totalTime)}');
 
     // draw a pie chart
     String rowData =
@@ -1024,11 +1030,6 @@ class ProfilePage extends DiagnosticPageWithNav {
         }
       </script>
 ''');
-
-    // print total time
-    int totalTime =
-        tags.fold<int>(0, (int a, PerformanceTag tag) => a + tag.elapsedMs);
-    p('Total measured time: ${printMilliseconds(totalTime)}');
 
     // write out a table
     void _writeRow(List<String> data, {bool header: false}) {
@@ -1061,7 +1062,12 @@ class ProfilePage extends DiagnosticPageWithNav {
     tags.forEach(writeRow);
     buf.write('</table>');
 
+    h3('Lint rule timings');
     List<LintRule> rules = Registry.ruleRegistry.rules.toList();
+    int totalLintTime = rules.fold(0,
+        (sum, rule) => sum + lintRegistry.getTimer(rule).elapsedMilliseconds);
+    p('Total time spent in lints: ${printMilliseconds(totalLintTime)}');
+
     rules.sort((first, second) {
       int firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
       int secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
@@ -1070,17 +1076,13 @@ class ProfilePage extends DiagnosticPageWithNav {
       }
       return secondTime - firstTime;
     });
-    p('Lint rule timings');
     buf.write('<table>');
     _writeRow(['Lint code', 'Time (in ms)'], header: true);
-    int totalLintTime = 0;
     for (var rule in rules) {
       int time = lintRegistry.getTimer(rule).elapsedMilliseconds;
-      totalLintTime += time;
-      _writeRow([rule.lintCode.name, time.toString()]);
+      _writeRow([rule.lintCode.name, printMilliseconds(time)]);
     }
     buf.write('</table>');
-    p('Total time spent in lints: $totalLintTime ms');
   }
 }
 
