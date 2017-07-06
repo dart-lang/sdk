@@ -372,7 +372,7 @@ void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCurrentContext(CurrentContextInstr* instr) {
+void ConstantPropagator::VisitSpecialParameter(SpecialParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

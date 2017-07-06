@@ -980,9 +980,15 @@ CompileType RelationalOpInstr::ComputeType() const {
 }
 
 
-CompileType CurrentContextInstr::ComputeType() const {
-  return CompileType(CompileType::kNonNullable, kContextCid,
-                     &Object::dynamic_type());
+CompileType SpecialParameterInstr::ComputeType() const {
+  switch (kind()) {
+    case kContext:
+      return CompileType::FromCid(kContextCid);
+    case kTypeArgs:
+      return CompileType::FromCid(kTypeArgumentsCid);
+  }
+  UNREACHABLE();
+  return CompileType::Dynamic();
 }
 
 

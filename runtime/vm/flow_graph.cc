@@ -990,12 +990,23 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
   constant_empty_context_ = GetConstant(Object::empty_context());
 
+  // Check if inlining_parameters include a type argument vector parameter.
+  const intptr_t inlined_type_args_param =
+      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
+       function().IsGeneric())
+          ? 1
+          : 0;
+
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
     // Use known parameters.
-    ASSERT(parameter_count() == inlining_parameters->length());
+    ASSERT(inlined_type_args_param + parameter_count() ==
+           inlining_parameters->length());
     for (intptr_t i = 0; i < parameter_count(); ++i) {
-      Definition* defn = (*inlining_parameters)[i];
+      // If inlined_type_args_param == 1, then (*inlining_parameters)[0]
+      // is the passed-in type args. We do not add it to env[0] but to
+      // env[parameter_count()] below.
+      Definition* defn = (*inlining_parameters)[inlined_type_args_param + i];
       AllocateSSAIndexes(defn);
       AddToInitialDefinitions(defn);
       env.Add(defn);
@@ -1015,11 +1026,29 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // Initialize all locals in the renaming environment  For OSR, the locals have
   // already been handled as parameters.
   if (!IsCompiledForOsr()) {
-    for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
+    intptr_t i = parameter_count();
+    if (FLAG_reify_generic_functions && function().IsGeneric()) {
+      // The first local is the slot holding the copied passed-in type args.
+      // TODO(regis): Do we need the SpecialParameterInstr if the type_args_var
+      // is not needed? Add an assert for now:
+      ASSERT(parsed_function().function_type_arguments() != NULL);
+      Definition* defn;
+      if (inlining_parameters == NULL) {
+        defn = new SpecialParameterInstr(SpecialParameterInstr::kTypeArgs,
+                                         Thread::kNoDeoptId);
+      } else {
+        defn = (*inlining_parameters)[0];
+      }
+      AllocateSSAIndexes(defn);
+      AddToInitialDefinitions(defn);
+      env.Add(defn);
+      ++i;
+    }
+    for (; i < variable_count(); ++i) {
       if (i == CurrentContextEnvIndex()) {
         if (function().IsClosureFunction()) {
-          CurrentContextInstr* context =
-              new CurrentContextInstr(Thread::kNoDeoptId);
+          SpecialParameterInstr* context = new SpecialParameterInstr(
+              SpecialParameterInstr::kContext, Thread::kNoDeoptId);
           context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
           AddToInitialDefinitions(context);
           env.Add(context);

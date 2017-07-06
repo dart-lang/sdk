@@ -703,6 +703,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     ASSERT((flow_graph_.num_copied_params() == 0) ||
            (flow_graph_.num_non_copied_params() == 0));
     intptr_t slot_index = param->index();
+    ASSERT(slot_index >= 0);
     ASSERT((param->base_reg() == FPREG) || (param->base_reg() == SPREG));
     if (param->base_reg() == FPREG) {
       // Slot index for the leftmost copied parameter is 0.
@@ -725,22 +726,32 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
         Location::StackSlot(slot_index, param->base_reg()));
     range->set_spill_slot(Location::StackSlot(slot_index, param->base_reg()));
 
-  } else if (defn->IsCurrentContext()) {
+  } else if (defn->IsSpecialParameter()) {
+    SpecialParameterInstr* param = defn->AsSpecialParameter();
+    if (param->kind() == SpecialParameterInstr::kContext) {
 #if !defined(TARGET_ARCH_DBC)
-    const Register context_reg = CTX;
+      const Register context_reg = CTX;
 #else
-    const intptr_t context_reg = flow_graph_.num_copied_params();
+      const intptr_t context_reg = flow_graph_.num_copied_params();
 #endif
 
-    AssignSafepoints(defn, range);
-    range->finger()->Initialize(range);
-    range->set_assigned_location(Location::RegisterLocation(context_reg));
-    if (range->End() > kNormalEntryPos) {
-      LiveRange* tail = range->SplitAt(kNormalEntryPos);
-      CompleteRange(tail, Location::kRegister);
+      AssignSafepoints(defn, range);
+      range->finger()->Initialize(range);
+      range->set_assigned_location(Location::RegisterLocation(context_reg));
+      if (range->End() > kNormalEntryPos) {
+        LiveRange* tail = range->SplitAt(kNormalEntryPos);
+        CompleteRange(tail, Location::kRegister);
+      }
+      ConvertAllUses(range);
+      return;
     }
-    ConvertAllUses(range);
-    return;
+    ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
+#if defined(TARGET_ARCH_DBC)
+    UNIMPLEMENTED();
+#endif
+    const intptr_t slot_index = flow_graph_.num_copied_params();
+    range->set_assigned_location(Location::StackSlot(slot_index, FPREG));
+    range->set_spill_slot(Location::StackSlot(slot_index, FPREG));
   } else {
     ConstantInstr* constant = defn->AsConstant();
     ASSERT(constant != NULL);
@@ -757,9 +768,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     CompleteRange(tail, Location::kRegister);
   }
   ConvertAllUses(range);
-  if (defn->IsParameter() && (range->spill_slot().stack_index() >= 0)) {
-    // Parameters above the frame pointer consume spill slots and are marked
-    // in stack maps.
+  if (range->spill_slot().IsStackSlot() &&
+      (range->spill_slot().stack_index() >= 0)) {
+    // On entry to the function, range is stored on the stack above the FP in
+    // the same space which is used for spill slots. Update spill slot state to
+    // reflect that and prevent register allocator from reusing this space as a
+    // spill slot.
     spill_slots_.Add(range_end);
     quad_spill_slots_.Add(false);
     untagged_spill_slots_.Add(false);

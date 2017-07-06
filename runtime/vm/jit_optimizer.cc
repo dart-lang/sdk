@@ -98,10 +98,13 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
 
+  const intptr_t receiver_index = call->FirstParamIndex();
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
-  ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
+  ASSERT(call->ic_data()->NumArgsTested() <=
+         call->ArgumentCountWithoutTypeArgs());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    class_ids.Add(call->PushArgumentAt(i)->value()->Type()->ToCid());
+    class_ids.Add(
+        call->PushArgumentAt(receiver_index + i)->value()->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();

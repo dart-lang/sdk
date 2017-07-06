@@ -3248,15 +3248,15 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
 }
 
 
-LocationSummary* CurrentContextInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
+LocationSummary* SpecialParameterInstr::MakeLocationSummary(Zone* zone,
+                                                            bool opt) const {
   // Only appears in initial definitions, never in normal code.
   UNREACHABLE();
   return NULL;
 }
 
 
-void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void SpecialParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Only appears in initial definitions, never in normal code.
   UNREACHABLE();
 }
