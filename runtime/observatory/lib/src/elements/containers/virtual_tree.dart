@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:collection';
 import 'dart:math' as Math;
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
@@ -89,8 +90,14 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
       bool autoExpandWholeTree: false}) {
     if (_expanded.add(item)) _r.dirty();
     if (autoExpandWholeTree) {
-      for (final child in _children(item)) {
-        expand(child, autoExpandWholeTree: true);
+      // The tree is potentially very deep, simple recursion can produce a
+      // Stack Overflow
+      Queue pendingNodes = new Queue();
+      pendingNodes.addAll(_children(item));
+      while (pendingNodes.isNotEmpty) {
+        final item = pendingNodes.removeFirst();
+        if (_expanded.add(item)) _r.dirty();
+        pendingNodes.addAll(_children(item));
       }
     } else if (autoExpandSingleChildNodes) {
       var children = _children(item);
@@ -106,8 +113,14 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
       bool autoCollapseWholeTree: false}) {
     if (_expanded.remove(item)) _r.dirty();
     if (autoCollapseWholeTree) {
-      for (final child in _children(item)) {
-        collapse(child, autoCollapseWholeTree: true);
+      // The tree is potentially very deep, simple recursion can produce a
+      // Stack Overflow
+      Queue pendingNodes = new Queue();
+      pendingNodes.addAll(_children(item));
+      while (pendingNodes.isNotEmpty) {
+        final item = pendingNodes.removeFirst();
+        if (_expanded.remove(item)) _r.dirty();
+        pendingNodes.addAll(_children(item));
       }
     } else if (autoCollapseSingleChildNodes) {
       var children = _children(item);
@@ -137,29 +150,32 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     if (children.length == 0) {
       children = [_collection];
     }
-    Iterable _toList(item) {
-      if (isExpanded(item)) {
-        Iterable children = _children(item);
-        if (children.isNotEmpty) {
-          return [item]..addAll(children.expand(_toList));
+
+    final items = [];
+    final depths = new List.filled(_items.length, 0, growable: true);
+
+    {
+      final toDo = new Queue();
+
+      toDo.addAll(_items);
+      while (toDo.isNotEmpty) {
+        final item = toDo.removeFirst();
+
+        items.add(item);
+        if (isExpanded(item)) {
+          final children = _children(item);
+          children
+              .toList(growable: false)
+              .reversed
+              .forEach((c) => toDo.addFirst(c));
+          final depth = depths[items.length - 1];
+          depths.insertAll(
+              items.length, new List.filled(children.length, depth + 1));
         }
       }
-      return [item];
     }
 
-    _collection.items = _items.expand(_toList);
-    var depth = 0;
-    Iterable _toDepth(item) {
-      if (isExpanded(item)) {
-        Iterable children = _children(item);
-        if (children.isNotEmpty) {
-          depth++;
-          return children.expand(_toDepth).toList()..insert(0, --depth);
-        }
-      }
-      return [depth];
-    }
-
-    _depths = _items.expand(_toDepth).toList();
+    _depths = depths;
+    _collection.items = items;
   }
 }
