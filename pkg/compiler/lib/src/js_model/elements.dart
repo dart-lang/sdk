@@ -17,7 +17,6 @@ import '../kernel/elements.dart';
 import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
 import '../universe/class_set.dart';
-import '../universe/world_builder.dart';
 import '../world.dart';
 
 /// Bidirectional map between 'frontend' and 'backend' elements.
@@ -529,9 +528,9 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
       Iterable<MemberEntity> liveInstanceMembers,
+      Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -545,9 +544,9 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             nativeData,
             interceptorData,
             backendUsage,
-            resolutionWorldBuilder,
             implementedClasses,
             liveInstanceMembers,
+            assignedInstanceMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,

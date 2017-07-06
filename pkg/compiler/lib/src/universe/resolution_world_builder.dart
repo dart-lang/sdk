@@ -928,6 +928,17 @@ abstract class ResolutionWorldBuilderBase
 
     return typesImplementedBySubclasses;
   }
+
+  Iterable<MemberEntity> computeAssignedInstanceMembers() {
+    Set<MemberEntity> assignedInstanceMembers = new Set<MemberEntity>();
+    for (MemberEntity instanceMember in _liveInstanceMembers) {
+      if (hasInvokedSetter(instanceMember)) {
+        assignedInstanceMembers.add(instanceMember);
+      }
+    }
+    assignedInstanceMembers.addAll(fieldSetters);
+    return assignedInstanceMembers;
+  }
 }
 
 abstract class KernelResolutionWorldBuilderBase
@@ -973,9 +984,9 @@ abstract class KernelResolutionWorldBuilderBase
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
         constantSystem: _constantSystem,
-        resolutionWorldBuilder: this,
         implementedClasses: _implementedClasses,
         liveInstanceMembers: _liveInstanceMembers,
+        assignedInstanceMembers: computeAssignedInstanceMembers(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,

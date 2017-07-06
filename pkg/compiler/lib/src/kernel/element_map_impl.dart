@@ -413,13 +413,13 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   ClassEntity _getAppliedMixin(IndexedClass cls) {
     ClassData data = _classData[cls.classIndex];
-    _ensureThisAndRawType(cls, data);
+    _ensureSupertypes(cls, data);
     return data.mixedInType?.element;
   }
 
   bool _isMixinApplication(IndexedClass cls) {
     ClassData data = _classData[cls.classIndex];
-    _ensureThisAndRawType(cls, data);
+    _ensureSupertypes(cls, data);
     return data.isMixinApplication;
   }
 
@@ -430,14 +430,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
     ClassData data = _classData[cls.classIndex];
-    _ensureThisAndRawType(cls, data);
+    _ensureSupertypes(cls, data);
     data.orderedTypeSet.supertypes.forEach(f);
   }
 
   void _forEachMixin(IndexedClass cls, void f(ClassEntity mixin)) {
     while (cls != null) {
       ClassData data = _classData[cls.classIndex];
-      _ensureThisAndRawType(cls, data);
+      _ensureSupertypes(cls, data);
       if (data.mixedInType != null) {
         f(data.mixedInType.element);
       }
@@ -487,19 +487,19 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   OrderedTypeSet _getOrderedTypeSet(IndexedClass cls) {
     ClassData data = _classData[cls.classIndex];
-    _ensureThisAndRawType(cls, data);
+    _ensureSupertypes(cls, data);
     return data.orderedTypeSet;
   }
 
   int _getHierarchyDepth(IndexedClass cls) {
     ClassData data = _classData[cls.classIndex];
-    _ensureThisAndRawType(cls, data);
+    _ensureSupertypes(cls, data);
     return data.orderedTypeSet.maxDepth;
   }
 
   Iterable<InterfaceType> _getInterfaces(IndexedClass cls) {
     ClassData data = _classData[cls.classIndex];
-    _ensureThisAndRawType(cls, data);
+    _ensureSupertypes(cls, data);
     return data.interfaces;
   }
 
@@ -1550,9 +1550,9 @@ class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
       Iterable<MemberEntity> liveInstanceMembers,
+      Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -1566,9 +1566,9 @@ class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             nativeData,
             interceptorData,
             backendUsage,
-            resolutionWorldBuilder,
             implementedClasses,
             liveInstanceMembers,
+            assignedInstanceMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,

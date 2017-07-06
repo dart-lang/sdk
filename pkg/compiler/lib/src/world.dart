@@ -28,7 +28,6 @@ import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
-import 'universe/world_builder.dart' show ResolutionWorldBuilder;
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -444,13 +443,13 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final DartTypes dartTypes;
   final CommonElements commonElements;
 
-  // TODO(johnniwinther): Avoid this.
-  final ResolutionWorldBuilder _resolverWorld;
-
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
 
   final Iterable<MemberEntity> liveInstanceMembers;
+
+  /// Members that are written either directly or through a setter selector.
+  final Iterable<MemberEntity> assignedInstanceMembers;
 
   ClosedWorldBase(
       this.elementEnvironment,
@@ -460,16 +459,15 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.nativeData,
       this.interceptorData,
       this.backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
       this.liveInstanceMembers,
+      this.assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
       this.mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets)
-      : this._resolverWorld = resolutionWorldBuilder,
-        this._implementedClasses = implementedClasses,
+      : this._implementedClasses = implementedClasses,
         this._allTypedefs = allTypedefs,
         this._typesImplementedBySubclasses = typesImplementedBySubclasses,
         this._classHierarchyNodes = classHierarchyNodes,
@@ -1068,8 +1066,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       return true;
     }
     if (element.isInstanceMember) {
-      return !_resolverWorld.hasInvokedSetter(element) &&
-          !_resolverWorld.fieldSetters.contains(element);
+      return !assignedInstanceMembers.contains(element);
     }
     return false;
   }
@@ -1182,9 +1179,9 @@ class ClosedWorldImpl extends ClosedWorldBase {
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
       Iterable<MemberEntity> liveInstanceMembers,
+      Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
@@ -1198,9 +1195,9 @@ class ClosedWorldImpl extends ClosedWorldBase {
             nativeData,
             interceptorData,
             backendUsage,
-            resolutionWorldBuilder,
             implementedClasses,
             liveInstanceMembers,
+            assignedInstanceMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,

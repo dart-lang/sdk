@@ -10,48 +10,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
+import '../kernel/compile_from_dill_test_helper.dart';
 import '../kernel/compiler_helper.dart';
 import '../serialization/helper.dart';
-
-const Map<String, String> SOURCE = const <String, String>{
-  'main.dart': r'''
-foo({named}) => 1;
-bar(a) => !a;
-class Class {
-  var field;
-  static var staticField;
-
-  Class();
-  Class.named(this.field);
-
-  method() {}
-}
- 
-class SubClass extends Class {
-  method() {
-    super.method();
-  }  
-}
-
-main() {
-  foo();
-  bar(true);
-  [];
-  {};
-  new Object();
-  new Class.named('');
-  new SubClass().method();
-  Class.staticField;
-  var x = null;
-  var y1 = x == null;
-  var y2 = null == x;
-  var z1 = x?.toString();
-  var z2 = x ?? y1;
-  var z3 = x ??= y2;
-  return x;
-}
-'''
-};
 
 main(List<String> args) {
   useJsStrategyForTesting = true;
@@ -61,25 +22,34 @@ main(List<String> args) {
 }
 
 Future mainInternal(List<String> args,
-    {bool skipWarnings: false, bool skipErrors: false}) async {
+    {bool skipWarnings: false,
+    bool skipErrors: false,
+    List<String> options: const <String>[]}) async {
   Arguments arguments = new Arguments.from(args);
-  Uri entryPoint;
-  Map<String, String> memorySourceFiles;
+  List<Test> tests;
   if (arguments.uri != null) {
-    entryPoint = arguments.uri;
-    memorySourceFiles = const <String, String>{};
+    tests = <Test>[new Test.fromUri(arguments.uri)];
   } else {
-    entryPoint = Uri.parse('memory:main.dart');
-    memorySourceFiles = SOURCE;
+    tests = TESTS;
   }
+  for (Test test in tests) {
+    if (test.uri != null) {
+      print('--- running test uri ${test.uri} -------------------------------');
+    } else {
+      print(
+          '--- running test code -------------------------------------------');
+      print(test.sources.values.first);
+      print('----------------------------------------------------------------');
+    }
 
-  enableDebugMode();
+    enableDebugMode();
 
-  Compiler compiler1 = await compileWithDill(entryPoint, memorySourceFiles, [
-    Flags.disableInlining,
-    Flags.disableTypeInference
-  ], beforeRun: (Compiler compiler) {
-    compiler.backendStrategy = new JsBackendStrategy(compiler);
-  }, printSteps: true);
-  Expect.isFalse(compiler1.compilationFailed);
+    Compiler compiler1 = await compileWithDill(test.entryPoint, test.sources, [
+      Flags.disableInlining,
+      Flags.disableTypeInference
+    ], beforeRun: (Compiler compiler) {
+      compiler.backendStrategy = new JsBackendStrategy(compiler);
+    }, printSteps: true);
+    Expect.isFalse(compiler1.compilationFailed);
+  }
 }
