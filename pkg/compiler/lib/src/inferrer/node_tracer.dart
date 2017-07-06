@@ -431,7 +431,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return (name == '[]=');
   }
 
-  bool isClosure(Element element) {
+  bool isClosure(MemberEntity element) {
     if (!element.isFunction) return false;
 
     /// Creating an instance of a class that implements [Function] also
@@ -442,8 +442,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (element.isInstanceMember && element.name == Identifiers.call) {
       return true;
     }
-    Element outermost = element.outermostEnclosingMemberOrTopLevel;
-    return outermost.declaration != element.declaration;
+    ClassEntity cls = element.enclosingClass;
+    return cls != null && cls.isClosure;
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {

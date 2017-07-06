@@ -393,7 +393,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   MemberTypeInformation._internal(this._member) : super._internal(null);
 
-  MemberElement get member => _member;
+  MemberEntity get member => _member;
 
   String get debugName => '$member';
 

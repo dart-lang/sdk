@@ -667,9 +667,14 @@ class JavaScriptBackend {
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
   bool canFieldBeUsedForGlobalOptimizations(
-      FieldElement element, ClosedWorld closedWorld) {
-    return !closedWorld.backendUsage.isFieldUsedByBackend(element) &&
-        !mirrorsData.invokedReflectively(element);
+      FieldEntity element, ClosedWorld closedWorld) {
+    if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
+      return false;
+    }
+    if ((element.isTopLevel || element.isStatic) && !element.isAssignable) {
+      return true;
+    }
+    return !mirrorsData.isMemberAccessibleByReflection(element);
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -678,11 +683,9 @@ class JavaScriptBackend {
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
-      FunctionElement element, ClosedWorld closedWorld) {
-    if (element.isLocal) return true;
-    MethodElement method = element;
-    return !closedWorld.backendUsage.isFunctionUsedByBackend(method) &&
-        !mirrorsData.invokedReflectively(method);
+      FunctionEntity function, ClosedWorld closedWorld) {
+    return !closedWorld.backendUsage.isFunctionUsedByBackend(function) &&
+        !mirrorsData.isMemberAccessibleByReflection(function);
   }
 
   bool operatorEqHandlesNullArgument(FunctionEntity operatorEqfunction) {
