@@ -49,7 +49,31 @@ class RecursiveGetters extends LintRule {
   AstVisitor getVisitor() => _visitor;
 }
 
+/// Tests if a simple identifier is a recursive getter by looking at its parent.
+class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
+  @override
+  bool visitPropertyAccess(PropertyAccess node) =>
+      node.target is ThisExpression;
+
+  @override
+  bool visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.parent is ArgumentList ||
+        node.parent is ConditionalExpression ||
+        node.parent is ExpressionFunctionBody ||
+        node.parent is ReturnStatement) {
+      return true;
+    }
+
+    if (node.parent is PropertyAccess) {
+      return node.parent.accept(this);
+    }
+
+    return false;
+  }
+}
+
 class _Visitor extends SimpleAstVisitor {
+  final visitor = new _RecursiveGetterParentVisitor();
   final LintRule rule;
   _Visitor(this.rule);
 
@@ -78,10 +102,11 @@ class _Visitor extends SimpleAstVisitor {
   void _verifyElement(AstNode node, ExecutableElement element) {
     final nodes = DartTypeUtilities.traverseNodesInDFS(node);
 
-    nodes.where((n) => n is SimpleIdentifier).forEach((n) {
-      if (element == (n as SimpleIdentifier).staticElement) {
-        rule.reportLint(n);
-      }
-    });
+    for (final n in nodes.where((n) =>
+        n is SimpleIdentifier &&
+        element == n.staticElement &&
+        n.accept(visitor))) {
+      rule.reportLint(n);
+    }
   }
 }
