@@ -345,18 +345,25 @@ class TypeSystem {
         LocalFunctionElement localFunction = parameter.functionDeclaration;
         MethodElement callMethod = localFunction.callMethod;
         return new ParameterTypeInformation.localFunction(
-            getInferredTypeOfMember(callMethod), parameter, callMethod);
+            getInferredTypeOfMember(callMethod),
+            parameter,
+            parameter.type,
+            callMethod);
       } else if (parameter.functionDeclaration.isInstanceMember) {
         MethodElement method = parameter.functionDeclaration;
         return new ParameterTypeInformation.instanceMember(
             getInferredTypeOfMember(method),
             parameter,
+            parameter.type,
             method,
             new ParameterAssignments());
       } else {
         MethodElement method = parameter.functionDeclaration;
         return new ParameterTypeInformation.static(
-            getInferredTypeOfMember(method), parameter, method);
+            getInferredTypeOfMember(method), parameter, parameter.type, method,
+            // TODO(johnniwinther): Is this still valid now that initializing
+            // formals also introduce locals?
+            isInitializingFormal: parameter.isInitializingFormal);
       }
     }
 

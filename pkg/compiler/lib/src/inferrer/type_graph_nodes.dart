@@ -666,38 +666,48 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
  * the [ElementTypeInformation] factory.
  */
 class ParameterTypeInformation extends ElementTypeInformation {
-  final ParameterElement _parameter;
-  final MethodElement _method;
-  bool _isInstanceMemberParameter;
-  bool _isClosureParameter;
+  final Local _parameter;
+  final DartType _type;
+  final FunctionEntity _method;
+  final bool _isInstanceMemberParameter;
+  final bool _isClosureParameter;
+  final bool _isInitializingFormal;
   bool _isTearOffClosureParameter = false;
 
   ParameterTypeInformation.localFunction(
-      MemberTypeInformation context, this._parameter, this._method)
+      MemberTypeInformation context, this._parameter, this._type, this._method)
       : _isInstanceMemberParameter = false,
         _isClosureParameter = true,
+        _isInitializingFormal = false,
         super._internal(context);
 
   ParameterTypeInformation.static(
-      MemberTypeInformation context, this._parameter, this._method)
+      MemberTypeInformation context, this._parameter, this._type, this._method,
+      {bool isInitializingFormal: false})
       : _isInstanceMemberParameter = false,
         _isClosureParameter = false,
+        _isInitializingFormal = isInitializingFormal,
         super._internal(context);
 
-  ParameterTypeInformation.instanceMember(MemberTypeInformation context,
-      this._parameter, this._method, ParameterAssignments assignments)
+  ParameterTypeInformation.instanceMember(
+      MemberTypeInformation context,
+      this._parameter,
+      this._type,
+      this._method,
+      ParameterAssignments assignments)
       : _isInstanceMemberParameter = true,
         _isClosureParameter = false,
+        _isInitializingFormal = false,
         super._withAssignments(context, assignments);
 
-  MethodElement get method => _method;
+  FunctionEntity get method => _method;
 
   Local get parameter => _parameter;
 
   String get debugName => '$parameter';
 
   void tagAsTearOffClosureParameter(InferrerEngine inferrer) {
-    assert(_parameter.isRegularParameter);
+    assert(!_isInitializingFormal);
     _isTearOffClosureParameter = true;
     // We have to add a flow-edge for the default value (if it exists), as we
     // might not see all call-sites and thus miss the use of it.
@@ -719,7 +729,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
     // The below do not apply to parameters of constructors, so skip
     // initializing formals.
-    if (_parameter.isInitializingFormal) return null;
+    if (_isInitializingFormal) return null;
 
     if ((_isTearOffClosureParameter || _isClosureParameter) &&
         disableInferenceForClosures) {
@@ -766,7 +776,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
     assert(!compiler.options.enableTypeAssertions);
-    return _narrowType(inferrer.closedWorld, mask, _parameter.type);
+    return _narrowType(inferrer.closedWorld, mask, _type);
   }
 
   TypeMask computeType(InferrerEngine inferrer) {
