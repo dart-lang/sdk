@@ -363,14 +363,16 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// If the return value of visiting [node] is an expression guaranteed to have
   /// no side effect, it is dropped.
   void visitExpressionIgnoreResult(js.Expression node) {
-    js.Expression result = node.accept(this);
+    // TODO(28763): Remove `<dynamic>` when issue 28763 is fixed.
+    js.Expression result = node.accept<dynamic>(this);
     if (!(result is js.Literal || result is js.VariableUse)) {
       addExpressionStatement(result);
     }
   }
 
   js.Expression visitExpression(js.Expression node) {
-    return node.accept(this);
+    // TODO(28763): Remove `<dynamic>` when issue 28763 is fixed.
+    return node.accept<dynamic>(this);
   }
 
   /// Calls [fn] with the value of evaluating [node1] and [node2].
