@@ -372,19 +372,25 @@ class TypeSystem {
     return memberTypeInformations.putIfAbsent(member, () {
       MemberTypeInformation typeInformation;
       if (member.isField) {
-        typeInformation = new FieldTypeInformation(member);
+        FieldElement field = member;
+        typeInformation = new FieldTypeInformation(field, field.type);
       } else if (member.isGetter) {
-        typeInformation = new GetterTypeInformation(member);
+        GetterElement getter = member;
+        typeInformation = new GetterTypeInformation(getter, getter.type);
       } else if (member.isSetter) {
-        typeInformation = new SetterTypeInformation(member);
+        SetterElement setter = member;
+        typeInformation = new SetterTypeInformation(setter);
       } else if (member.isFunction) {
-        typeInformation = new MethodTypeInformation(member);
+        MethodElement method = member;
+        typeInformation = new MethodTypeInformation(method, method.type);
       } else {
         ConstructorElement constructor = member;
         if (constructor.isFactoryConstructor) {
-          typeInformation = new FactoryConstructorTypeInformation(member);
+          typeInformation = new FactoryConstructorTypeInformation(
+              constructor, constructor.type);
         } else {
-          typeInformation = new GenerativeConstructorTypeInformation(member);
+          typeInformation =
+              new GenerativeConstructorTypeInformation(constructor);
         }
       }
       _orderedTypeInformations.add(typeInformation);

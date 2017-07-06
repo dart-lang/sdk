@@ -340,15 +340,13 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  *
  */
 abstract class ElementTypeInformation extends TypeInformation {
-  final Element _element;
-
   /// Marker to disable inference for closures in [handleSpecialCases].
   bool disableInferenceForClosures = true;
 
-  ElementTypeInformation._internal(MemberTypeInformation context, this._element)
+  ElementTypeInformation._internal(MemberTypeInformation context)
       : super(context);
-  ElementTypeInformation._withAssignments(MemberTypeInformation context,
-      this._element, ParameterAssignments assignments)
+  ElementTypeInformation._withAssignments(
+      MemberTypeInformation context, ParameterAssignments assignments)
       : super.withAssignments(context, assignments);
 
   String getInferredSignature(TypeSystem types);
@@ -369,7 +367,7 @@ abstract class ElementTypeInformation extends TypeInformation {
  */
 abstract class MemberTypeInformation extends ElementTypeInformation
     with ApplyableTypeInformation {
-  MemberElement get _member => super._element;
+  final MemberEntity _member;
 
   /**
    * If [element] is a function, [closurizedCount] is the number of
@@ -393,10 +391,9 @@ abstract class MemberTypeInformation extends ElementTypeInformation
    */
   Map<MemberElement, Setlet<Spannable>> _callers;
 
-  MemberTypeInformation._internal(MemberElement element)
-      : super._internal(null, element);
+  MemberTypeInformation._internal(this._member) : super._internal(null);
 
-  MemberElement get member => _element;
+  MemberElement get member => _member;
 
   String get debugName => '$member';
 
@@ -474,7 +471,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
     Compiler compiler = inferrer.compiler;
     if (!compiler.options.trustTypeAnnotations &&
         !compiler.options.enableTypeAssertions &&
-        !inferrer.trustTypeAnnotations(_member)) {
+        !inferrer.optimizerHints.trustTypeAnnotations(_member)) {
       return mask;
     }
     return _potentiallyNarrowType(mask, inferrer);
@@ -514,14 +511,16 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 }
 
 class FieldTypeInformation extends MemberTypeInformation {
-  FieldElement get _field => _member;
+  FieldEntity get _field => _member;
+  final DartType _type;
 
-  FieldTypeInformation(FieldElement element) : super._internal(element);
+  FieldTypeInformation(FieldEntity element, this._type)
+      : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
             _field, inferrer.closedWorld) ||
-        inferrer.assumeDynamic(_field)) {
+        inferrer.optimizerHints.assumeDynamic(_field)) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
 
@@ -542,13 +541,13 @@ class FieldTypeInformation extends MemberTypeInformation {
   }
 
   TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    return _narrowType(inferrer.closedWorld, mask, _field.type);
+    return _narrowType(inferrer.closedWorld, mask, _type);
   }
 
   bool hasStableType(InferrerEngine inferrer) {
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
-    if (!(_field.isConst || _field.isFinal)) {
+    if (!_field.isAssignable) {
       return false;
     }
     return super.hasStableType(inferrer);
@@ -556,24 +555,25 @@ class FieldTypeInformation extends MemberTypeInformation {
 }
 
 class GetterTypeInformation extends MemberTypeInformation {
-  GetterElement get _getter => _member;
+  FunctionEntity get _getter => _member;
+  final FunctionType _type;
 
-  GetterTypeInformation(GetterElement element) : super._internal(element);
+  GetterTypeInformation(FunctionEntity element, this._type)
+      : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_getter, inferrer);
   }
 
   TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    FunctionType type = _getter.type;
-    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
   }
 }
 
 class SetterTypeInformation extends MemberTypeInformation {
-  SetterElement get _setter => _member;
+  FunctionEntity get _setter => _member;
 
-  SetterTypeInformation(SetterElement element) : super._internal(element);
+  SetterTypeInformation(FunctionEntity element) : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_setter, inferrer);
@@ -585,46 +585,51 @@ class SetterTypeInformation extends MemberTypeInformation {
 }
 
 class MethodTypeInformation extends MemberTypeInformation {
-  MethodElement get _method => _member;
+  FunctionEntity get _method => _member;
+  final FunctionType _type;
 
-  MethodTypeInformation(MethodElement element) : super._internal(element);
+  MethodTypeInformation(FunctionEntity element, this._type)
+      : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_method, inferrer);
   }
 
   TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    FunctionType type = _method.type;
-    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
   }
 
   bool hasStableType(InferrerEngine inferrer) => false;
 }
 
 class FactoryConstructorTypeInformation extends MemberTypeInformation {
-  ConstructorElement get _constructor => _member;
+  ConstructorEntity get _constructor => _member;
+  final FunctionType _type;
 
-  FactoryConstructorTypeInformation(ConstructorElement element)
+  FactoryConstructorTypeInformation(ConstructorEntity element, this._type)
       : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     CommonMasks commonMasks = inferrer.commonMasks;
-    if (_constructor.isIntFromEnvironmentConstructor) {
-      giveUp(inferrer);
-      return commonMasks.intType.nullable();
-    } else if (_constructor.isBoolFromEnvironmentConstructor) {
-      giveUp(inferrer);
-      return commonMasks.boolType.nullable();
-    } else if (_constructor.isStringFromEnvironmentConstructor) {
-      giveUp(inferrer);
-      return commonMasks.stringType.nullable();
+    if (_constructor.isFromEnvironmentConstructor) {
+      if (_constructor.enclosingClass == inferrer.commonElements.intClass) {
+        giveUp(inferrer);
+        return commonMasks.intType.nullable();
+      } else if (_constructor.enclosingClass ==
+          inferrer.commonElements.boolClass) {
+        giveUp(inferrer);
+        return commonMasks.boolType.nullable();
+      } else if (_constructor.enclosingClass ==
+          inferrer.commonElements.stringClass) {
+        giveUp(inferrer);
+        return commonMasks.stringType.nullable();
+      }
     }
     return _handleFunctionCase(_constructor, inferrer);
   }
 
   TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
-    FunctionType type = _constructor.type;
-    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+    return _narrowType(inferrer.closedWorld, mask, _type.returnType);
   }
 
   bool hasStableType(InferrerEngine inferrer) {
@@ -633,7 +638,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
 }
 
 class GenerativeConstructorTypeInformation extends MemberTypeInformation {
-  ConstructorElement get _constructor => _member;
+  ConstructorEntity get _constructor => _member;
 
   GenerativeConstructorTypeInformation(ConstructorElement element)
       : super._internal(element);
@@ -661,32 +666,29 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
  * the [ElementTypeInformation] factory.
  */
 class ParameterTypeInformation extends ElementTypeInformation {
-  ParameterElement get _parameter => super._element;
+  final ParameterElement _parameter;
   final MethodElement _method;
   bool _isInstanceMemberParameter;
   bool _isClosureParameter;
   bool _isTearOffClosureParameter = false;
 
   ParameterTypeInformation.localFunction(
-      MemberTypeInformation context, ParameterElement parameter, this._method)
+      MemberTypeInformation context, this._parameter, this._method)
       : _isInstanceMemberParameter = false,
         _isClosureParameter = true,
-        super._internal(context, parameter);
+        super._internal(context);
 
   ParameterTypeInformation.static(
-      MemberTypeInformation context, ParameterElement parameter, this._method)
+      MemberTypeInformation context, this._parameter, this._method)
       : _isInstanceMemberParameter = false,
         _isClosureParameter = false,
-        super._internal(context, parameter);
+        super._internal(context);
 
-  ParameterTypeInformation.instanceMember(
-      MemberTypeInformation context,
-      ParameterElement parameter,
-      this._method,
-      ParameterAssignments assignments)
+  ParameterTypeInformation.instanceMember(MemberTypeInformation context,
+      this._parameter, this._method, ParameterAssignments assignments)
       : _isInstanceMemberParameter = true,
         _isClosureParameter = false,
-        super._withAssignments(context, parameter, assignments);
+        super._withAssignments(context, assignments);
 
   MethodElement get method => _method;
 
@@ -708,7 +710,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
             _method, inferrer.closedWorld) ||
-        inferrer.assumeDynamic(_method)) {
+        inferrer.optimizerHints.assumeDynamic(_method)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
       giveUp(inferrer);
@@ -757,7 +759,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
     if (!compiler.options.trustTypeAnnotations &&
-        !inferrer.trustTypeAnnotations(_method)) {
+        !inferrer.optimizerHints.trustTypeAnnotations(_method)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always

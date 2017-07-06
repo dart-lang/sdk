@@ -87,17 +87,6 @@ class InferrerEngine {
 
   CommonElements get commonElements => closedWorld.commonElements;
 
-  /// Returns `true` if [element] has an `@AssumeDynamic()` annotation.
-  bool assumeDynamic(Element element) {
-    return element is MemberElement && optimizerHints.assumeDynamic(element);
-  }
-
-  /// Returns `true` if [element] has an `@TrustTypeAnnotations()` annotation.
-  bool trustTypeAnnotations(Element element) {
-    return element is MemberElement &&
-        optimizerHints.trustTypeAnnotations(element);
-  }
-
   /**
    * Applies [f] to all elements in the universe that match
    * [selector] and [mask]. If [f] returns false, aborts the iteration.

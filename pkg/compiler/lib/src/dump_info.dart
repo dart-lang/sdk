@@ -126,6 +126,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       compiler.globalInference.results.resultOfParameter(e);
 
   FieldInfo visitFieldElement(FieldElement element, _) {
+    if (!compiler.resolution.hasBeenResolved(element)) return null;
     TypeMask inferredType = _resultOfMember(element).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
