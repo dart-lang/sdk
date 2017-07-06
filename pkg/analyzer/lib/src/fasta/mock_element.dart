@@ -141,8 +141,6 @@ abstract class MockElement extends Builder implements Element, LocalElement {
 
   bool get isSynchronous => internalError("not supported.");
 
-  List<LabelElement> get labels => internalError("not supported.");
-
   @override
   get visibleRange => internalError("not supported.");
 

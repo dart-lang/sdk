@@ -3561,11 +3561,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<FunctionElement> _functions;
 
   /**
-   * A list containing all of the labels defined within this executable element.
-   */
-  List<LabelElement> _labels;
-
-  /**
    * A list containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters;
@@ -3745,27 +3740,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<LabelElement> get labels {
-    if (serializedExecutable != null) {
-      _labels ??= LabelElementImpl.resynthesizeList(
-          this, serializedExecutable.localLabels);
-    }
-    return _labels ?? const <LabelElement>[];
-  }
-
-  /**
-   * Set the labels defined within this executable element to the given
-   * [labels].
-   */
-  void set labels(List<LabelElement> labels) {
-    _assertNotResynthesized(serializedExecutable);
-    for (LabelElement label in labels) {
-      (label as LabelElementImpl).enclosingElement = this;
-    }
-    this._labels = labels;
-  }
-
-  @override
   List<ElementAnnotation> get metadata {
     if (serializedExecutable != null) {
       return _metadata ??=
@@ -3924,12 +3898,6 @@ abstract class ExecutableElementImpl extends ElementImpl
         return functionImpl;
       }
     }
-    for (LabelElement label in _labels) {
-      LabelElementImpl labelImpl = label;
-      if (labelImpl.identifier == identifier) {
-        return labelImpl;
-      }
-    }
     for (ParameterElement parameter in parameters) {
       ParameterElementImpl parameterImpl = parameter;
       if (parameterImpl.identifier == identifier) {
@@ -3946,7 +3914,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(labels, visitor);
   }
 }
 

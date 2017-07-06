@@ -505,9 +505,6 @@ abstract class ExecutableElementHandle extends ElementHandle
   bool get isSynchronous => actualElement.isSynchronous;
 
   @override
-  List<LabelElement> get labels => actualElement.labels;
-
-  @override
   List<ParameterElement> get parameters => actualElement.parameters;
 
   @override

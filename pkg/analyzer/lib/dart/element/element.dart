@@ -1154,12 +1154,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
    * synchronous.
    */
   bool get isSynchronous;
-
-  /**
-   * Return a list containing all of the labels defined within this executable
-   * element.
-   */
-  List<LabelElement> get labels;
 }
 
 /**

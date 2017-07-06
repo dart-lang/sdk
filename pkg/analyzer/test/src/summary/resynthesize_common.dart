@@ -888,15 +888,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             '$desc local function ${oFunctions[i].name}');
       }
     }
-    if (original is! Member) {
-      List<LabelElement> rLabels = resynthesized.labels;
-      List<LabelElement> oLabels = original.labels;
-      expect(rLabels, hasLength(oLabels.length));
-      for (int i = 0; i < oLabels.length; i++) {
-        compareLabelElements(
-            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
-      }
-    }
   }
 
   void compareMetadata(List<ElementAnnotation> resynthesized,
