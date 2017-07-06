@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "dart:_js_helper";
+part of "js_helper.dart";
 
 // TODO(ngeoffray): stop using this method once our optimizers can
 // change str1.contains(str2) into str1.indexOf(str2) != -1.

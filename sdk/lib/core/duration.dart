@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "dart:core";
+part of "core.dart";
 
 /**
  * A span of time, such as 27 days, 4 hours, 12 minutes, and 3 seconds.

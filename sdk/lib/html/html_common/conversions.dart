@@ -25,7 +25,7 @@
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
-part of "dart:html_common";
+part of html_common;
 
 /// Converts a Dart value into a JavaScript SerializedScriptValue.
 convertDartToNative_SerializedScriptValue(value) {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "dart:isolate";
+part of "isolate.dart";
 
 /**
  * An unforgeable object that comes back as equal when passed through other
