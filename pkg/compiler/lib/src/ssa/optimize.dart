@@ -1070,17 +1070,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
           if (constant.constant.isTrue) return constant;
         }
       }
-    } else if (element == commonElements.checkInt) {
+    } else if (commonElements.isCheckInt(element)) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
         if (argument.isInteger(_closedWorld)) return argument;
       }
-    } else if (element == commonElements.checkNum) {
+    } else if (commonElements.isCheckNum(element)) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
         if (argument.isNumber(_closedWorld)) return argument;
       }
-    } else if (element == commonElements.checkString) {
+    } else if (commonElements.isCheckString(element)) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
         if (argument.isString(_closedWorld)) return argument;

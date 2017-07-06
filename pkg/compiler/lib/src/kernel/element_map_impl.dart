@@ -513,9 +513,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 }
 
-/// Mixin that implements the abstract methods in [KernelToElementMapBase] by
-/// creating K-model elements.
-abstract class KElementCreatorMixin {
+/// Mixin that implements the abstract methods in [KernelToElementMapBase].
+abstract class ElementCreatorMixin {
   ProgramEnv get _env;
   List<LibraryEntity> get _libraryList;
   List<LibraryEnv> get _libraryEnvs;
@@ -524,15 +523,16 @@ abstract class KElementCreatorMixin {
   List<MemberEntity> get _memberList;
   List<MemberData> get _memberData;
 
-  Map<ir.Library, KLibrary> _libraryMap = <ir.Library, KLibrary>{};
-  Map<ir.Class, KClass> _classMap = <ir.Class, KClass>{};
-  Map<ir.TypeParameter, KTypeVariable> _typeVariableMap =
-      <ir.TypeParameter, KTypeVariable>{};
-  Map<ir.Member, KConstructor> _constructorMap = <ir.Member, KConstructor>{};
-  Map<ir.Procedure, KFunction> _methodMap = <ir.Procedure, KFunction>{};
-  Map<ir.Field, KField> _fieldMap = <ir.Field, KField>{};
-  Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
-      <ir.TreeNode, KLocalFunction>{};
+  Map<ir.Library, IndexedLibrary> _libraryMap = <ir.Library, IndexedLibrary>{};
+  Map<ir.Class, IndexedClass> _classMap = <ir.Class, IndexedClass>{};
+  Map<ir.TypeParameter, TypeVariableEntity> _typeVariableMap =
+      <ir.TypeParameter, TypeVariableEntity>{};
+  Map<ir.Member, IndexedConstructor> _constructorMap =
+      <ir.Member, IndexedConstructor>{};
+  Map<ir.Procedure, IndexedFunction> _methodMap =
+      <ir.Procedure, IndexedFunction>{};
+  Map<ir.Field, IndexedField> _fieldMap = <ir.Field, IndexedField>{};
+  Map<ir.TreeNode, Local> _localFunctionMap = <ir.TreeNode, Local>{};
 
   Name getName(ir.Name node);
   FunctionType getFunctionType(ir.FunctionNode node);
@@ -559,7 +559,7 @@ abstract class KElementCreatorMixin {
         name = path.substring(path.lastIndexOf('/') + 1);
       }
       LibraryEntity library =
-          new KLibrary(_libraryMap.length, name, canonicalUri);
+          createLibrary(_libraryMap.length, name, canonicalUri);
       _libraryList.add(library);
       return library;
     });
@@ -572,7 +572,7 @@ abstract class KElementCreatorMixin {
         classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
       }
       _classEnvs.add(classEnv);
-      ClassEntity cls = new KClass(library, _classMap.length, node.name,
+      ClassEntity cls = createClass(library, _classMap.length, node.name,
           isAbstract: node.isAbstract);
       _classList.add(cls);
       return cls;
@@ -584,7 +584,7 @@ abstract class KElementCreatorMixin {
       if (node.parent is ir.Class) {
         ir.Class cls = node.parent;
         int index = cls.typeParameters.indexOf(node);
-        return new KTypeVariable(_getClass(cls), node.name, index);
+        return createTypeVariable(_getClass(cls), node.name, index);
       }
       if (node.parent is ir.FunctionNode) {
         ir.FunctionNode func = node.parent;
@@ -600,7 +600,7 @@ abstract class KElementCreatorMixin {
             ir.Class cls = procedure.enclosingClass;
             return _getTypeVariable(cls.typeParameters[index]);
           } else {
-            return new KTypeVariable(_getMethod(procedure), node.name, index);
+            return createTypeVariable(_getMethod(procedure), node.name, index);
           }
         }
       }
@@ -619,7 +619,7 @@ abstract class KElementCreatorMixin {
       ir.FunctionNode functionNode;
       if (node is ir.Constructor) {
         functionNode = node.function;
-        constructor = new KGenerativeConstructor(memberIndex, enclosingClass,
+        constructor = createGenerativeConstructor(memberIndex, enclosingClass,
             name, _getParameterStructure(functionNode),
             isExternal: isExternal, isConst: node.isConst);
       } else if (node is ir.Procedure) {
@@ -627,8 +627,8 @@ abstract class KElementCreatorMixin {
         bool isFromEnvironment = isExternal &&
             name.text == 'fromEnvironment' &&
             const ['int', 'bool', 'String'].contains(enclosingClass.name);
-        constructor = new KFactoryConstructor(memberIndex, enclosingClass, name,
-            _getParameterStructure(functionNode),
+        constructor = createFactoryConstructor(memberIndex, enclosingClass,
+            name, _getParameterStructure(functionNode),
             isExternal: isExternal,
             isConst: node.isConst,
             isFromEnvironmentConstructor: isFromEnvironment);
@@ -658,7 +658,7 @@ abstract class KElementCreatorMixin {
       bool isStatic = node.isStatic;
       bool isExternal = node.isExternal;
       bool isAbstract = node.isAbstract;
-      KFunction function;
+      IndexedFunction function;
       AsyncMarker asyncMarker;
       switch (node.function.asyncMarker) {
         case ir.AsyncMarker.Async:
@@ -681,7 +681,7 @@ abstract class KElementCreatorMixin {
         case ir.ProcedureKind.Factory:
           throw new UnsupportedError("Cannot create method from factory.");
         case ir.ProcedureKind.Getter:
-          function = new KGetter(
+          function = createGetter(
               memberIndex, library, enclosingClass, name, asyncMarker,
               isStatic: isStatic,
               isExternal: isExternal,
@@ -689,7 +689,7 @@ abstract class KElementCreatorMixin {
           break;
         case ir.ProcedureKind.Method:
         case ir.ProcedureKind.Operator:
-          function = new KMethod(memberIndex, library, enclosingClass, name,
+          function = createMethod(memberIndex, library, enclosingClass, name,
               _getParameterStructure(node.function), asyncMarker,
               isStatic: isStatic,
               isExternal: isExternal,
@@ -697,8 +697,8 @@ abstract class KElementCreatorMixin {
           break;
         case ir.ProcedureKind.Setter:
           assert(asyncMarker == AsyncMarker.SYNC);
-          function = new KSetter(
-              memberIndex, library, enclosingClass, getName(node.name).setter,
+          function = createSetter(
+              memberIndex, library, enclosingClass, name.setter,
               isStatic: isStatic,
               isExternal: isExternal,
               isAbstract: isAbstract);
@@ -724,7 +724,8 @@ abstract class KElementCreatorMixin {
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
       _memberData.add(new FieldData(node));
-      FieldEntity field = new KField(memberIndex, library, enclosingClass, name,
+      FieldEntity field = createField(
+          memberIndex, library, enclosingClass, name,
           isStatic: isStatic,
           isAssignable: node.isMutable,
           isConst: node.isConst);
@@ -755,7 +756,7 @@ abstract class KElementCreatorMixin {
         }
         if (parent is ir.FunctionDeclaration ||
             parent is ir.FunctionExpression) {
-          KLocalFunction localFunction = _getLocalFunction(parent);
+          Local localFunction = _getLocalFunction(parent);
           executableContext = localFunction;
           memberContext = localFunction.memberContext;
           break;
@@ -770,9 +771,147 @@ abstract class KElementCreatorMixin {
       } else if (node is ir.FunctionExpression) {
         functionType = getFunctionType(node.function);
       }
-      return new KLocalFunction(
+      return createLocalFunction(
           name, memberContext, executableContext, functionType);
     });
+  }
+
+  IndexedLibrary createLibrary(int libraryIndex, String name, Uri canonicalUri);
+
+  IndexedClass createClass(LibraryEntity library, int classIndex, String name,
+      {bool isAbstract});
+
+  TypeVariableEntity createTypeVariable(
+      Entity typeDeclaration, String name, int index);
+
+  IndexedConstructor createGenerativeConstructor(
+      int memberIndex,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal,
+      bool isConst});
+
+  IndexedConstructor createFactoryConstructor(
+      int memberIndex,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal,
+      bool isConst,
+      bool isFromEnvironmentConstructor});
+
+  IndexedFunction createGetter(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, bool isAbstract});
+
+  IndexedFunction createMethod(
+      int memberIndex,
+      LibraryEntity library,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      AsyncMarker asyncMarker,
+      {bool isStatic,
+      bool isExternal,
+      bool isAbstract});
+
+  IndexedFunction createSetter(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isExternal, bool isAbstract});
+
+  IndexedField createField(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isAssignable, bool isConst});
+
+  Local createLocalFunction(String name, MemberEntity memberContext,
+      Entity executableContext, FunctionType functionType);
+}
+
+/// Completes the [ElementCreatorMixin] by creating K-model elements.
+abstract class KElementCreatorMixin implements ElementCreatorMixin {
+  IndexedLibrary createLibrary(
+      int libraryIndex, String name, Uri canonicalUri) {
+    return new KLibrary(libraryIndex, name, canonicalUri);
+  }
+
+  IndexedClass createClass(LibraryEntity library, int classIndex, String name,
+      {bool isAbstract}) {
+    return new KClass(library, classIndex, name, isAbstract: isAbstract);
+  }
+
+  TypeVariableEntity createTypeVariable(
+      Entity typeDeclaration, String name, int index) {
+    return new KTypeVariable(typeDeclaration, name, index);
+  }
+
+  IndexedConstructor createGenerativeConstructor(
+      int memberIndex,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal,
+      bool isConst}) {
+    return new KGenerativeConstructor(
+        memberIndex, enclosingClass, name, parameterStructure,
+        isExternal: isExternal, isConst: isConst);
+  }
+
+  IndexedConstructor createFactoryConstructor(
+      int memberIndex,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal,
+      bool isConst,
+      bool isFromEnvironmentConstructor}) {
+    return new KFactoryConstructor(
+        memberIndex, enclosingClass, name, parameterStructure,
+        isExternal: isExternal,
+        isConst: isConst,
+        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
+  }
+
+  IndexedFunction createGetter(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new KGetter(memberIndex, library, enclosingClass, name, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedFunction createMethod(
+      int memberIndex,
+      LibraryEntity library,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      AsyncMarker asyncMarker,
+      {bool isStatic,
+      bool isExternal,
+      bool isAbstract}) {
+    return new KMethod(memberIndex, library, enclosingClass, name,
+        parameterStructure, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedFunction createSetter(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new KSetter(memberIndex, library, enclosingClass, name,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedField createField(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isAssignable, bool isConst}) {
+    return new KField(memberIndex, library, enclosingClass, name,
+        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
+  }
+
+  Local createLocalFunction(String name, MemberEntity memberContext,
+      Entity executableContext, FunctionType functionType) {
+    return new KLocalFunction(
+        name, memberContext, executableContext, functionType);
   }
 }
 
@@ -821,6 +960,7 @@ class KernelToElementMapForImpactImpl2 extends KernelToElementMapBase
     with
         KernelToElementMapForImpactMixin,
         KernelToElementMapForImpactImpl,
+        ElementCreatorMixin,
         KElementCreatorMixin {
   KernelToElementMapForImpactImpl2(
       DiagnosticReporter reporter, Environment environment)
@@ -831,7 +971,10 @@ class KernelToElementMapForImpactImpl2 extends KernelToElementMapBase
 /// IR nodes.
 // TODO(johnniwinther): Use this in the JsStrategy
 class KernelToElementMapForBuildingImpl extends KernelToElementMapBase
-    with KernelToElementMapForBuildingMixin, KElementCreatorMixin
+    with
+        KernelToElementMapForBuildingMixin,
+        ElementCreatorMixin,
+        KElementCreatorMixin
     implements KernelToWorldBuilder {
   KernelToElementMapForBuildingImpl(
       DiagnosticReporter reporter, Environment environment)
@@ -893,6 +1036,7 @@ class KernelToElementMapImpl extends KernelToElementMapForBuildingImpl
     with
         KernelToElementMapForImpactMixin,
         KernelToElementMapForImpactImpl,
+        ElementCreatorMixin,
         KElementCreatorMixin
     implements KernelToElementMapForImpactImpl2 {
   KernelToElementMapImpl(DiagnosticReporter reporter, Environment environment)
@@ -1533,17 +1677,21 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
 }
 
 class JsKernelToElementMap extends KernelToElementMapBase
-    with KernelToElementMapForBuildingMixin, JsElementCreatorMixin
-    implements KernelToWorldBuilder {
+    with
+        KernelToElementMapForBuildingMixin,
+        JsElementCreatorMixin,
+        // TODO(johnniwinther): Avoid mixin in [ElementCreatorMixin]. The
+        // codegen world should be a strict subset of the resolution world and
+        // creating elements for IR nodes should therefore not be needed.
+        // Currently some are created purely for testing (like
+        // `element == commonElements.foo`, where 'foo' might not be live).
+        // Others are created because we do a
+        // `elementEnvironment.forEachLibraryMember(...)` call on each emitted
+        // library.
+        ElementCreatorMixin
+    implements
+        KernelToWorldBuilder {
   JsToFrontendMap _jsToFrontendMap;
-
-  Map<ir.Library, JLibrary> _libraryMap = <ir.Library, JLibrary>{};
-  Map<ir.Class, JClass> _classMap = <ir.Class, JClass>{};
-  Map<ir.TypeParameter, JTypeVariable> _typeVariableMap =
-      <ir.TypeParameter, JTypeVariable>{};
-  Map<ir.Member, JConstructor> _constructorMap = <ir.Member, JConstructor>{};
-  Map<ir.Procedure, JFunction> _methodMap = <ir.Procedure, JFunction>{};
-  Map<ir.Field, JField> _fieldMap = <ir.Field, JField>{};
 
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapForImpactImpl _elementMap)
@@ -1555,7 +1703,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         libraryIndex++) {
       LibraryEnv env = _elementMap._libraryEnvs[libraryIndex];
       LibraryEntity oldLibrary = _elementMap._libraryList[libraryIndex];
-      JLibrary newLibrary = createLibrary(oldLibrary);
+      LibraryEntity newLibrary = convertLibrary(oldLibrary);
       _libraryMap[env.library] = newLibrary;
       _libraryList.add(newLibrary);
       _libraryEnvs.add(env);
@@ -1566,8 +1714,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       ClassEnv env = _elementMap._classEnvs[classIndex];
       ClassEntity oldClass = _elementMap._classList[classIndex];
       IndexedLibrary oldLibrary = oldClass.library;
-      JLibrary newLibrary = _libraryList[oldLibrary.libraryIndex];
-      JClass newClass = createClass(newLibrary, oldClass);
+      LibraryEntity newLibrary = _libraryList[oldLibrary.libraryIndex];
+      ClassEntity newClass = convertClass(newLibrary, oldClass);
       _classMap[env.cls] = newClass;
       _classList.add(newClass);
       _classEnvs.add(env);
@@ -1579,10 +1727,10 @@ class JsKernelToElementMap extends KernelToElementMapBase
       MemberEntity oldMember = _elementMap._memberList[memberIndex];
       IndexedLibrary oldLibrary = oldMember.library;
       IndexedClass oldClass = oldMember.enclosingClass;
-      JLibrary newLibrary = _libraryList[oldLibrary.libraryIndex];
-      JClass newClass =
+      LibraryEntity newLibrary = _libraryList[oldLibrary.libraryIndex];
+      ClassEntity newClass =
           oldClass != null ? _classList[oldClass.classIndex] : null;
-      JMember newMember = createMember(newLibrary, newClass, oldMember);
+      IndexedMember newMember = convertMember(newLibrary, newClass, oldMember);
       _memberList.add(newMember);
       _memberData.add(data);
       if (newMember.isField) {
@@ -1630,19 +1778,21 @@ class JsKernelToElementMap extends KernelToElementMapBase
     throw new UnsupportedError("JsKernelToElementMap._getTypeVariable");
   }
 
-  @override
+  // TODO(johnniwinther): Reinsert these when [ElementCreatorMixin] is no longer
+  // mixed in.
+  /*@override
   FieldEntity _getField(ir.Field node) {
     FieldEntity field = _fieldMap[node];
     assert(field != null, "No field entity for $node");
     return field;
-  }
+  }*/
 
-  @override
+  /*@override
   FunctionEntity _getMethod(ir.Procedure node) {
     FunctionEntity function = _methodMap[node];
     assert(function != null, "No function entity for $node");
     return function;
-  }
+  }*/
 
   @override
   ConstructorEntity _getConstructor(ir.Member node) {

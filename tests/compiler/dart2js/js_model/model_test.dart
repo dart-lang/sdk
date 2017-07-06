@@ -15,7 +15,15 @@ import '../serialization/helper.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
   'main.dart': r'''
-main() {}
+foo({named}) => 1;
+bar(a) => !a;
+
+main() {
+  foo();
+  bar(true);
+  [];
+  {};
+}
 '''
 };
 

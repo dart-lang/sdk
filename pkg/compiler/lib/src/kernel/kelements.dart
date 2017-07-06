@@ -9,6 +9,8 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import 'elements.dart';
 
+const String kElementPrefix = 'k';
+
 class KLibrary implements IndexedLibrary {
   /// Library index used for fast lookup in [KernelWorldBuilder].
   final int libraryIndex;
@@ -17,7 +19,7 @@ class KLibrary implements IndexedLibrary {
 
   KLibrary(this.libraryIndex, this.name, this.canonicalUri);
 
-  String toString() => 'library($name)';
+  String toString() => '${kElementPrefix}library($name)';
 }
 
 class KClass implements IndexedClass {
@@ -34,7 +36,7 @@ class KClass implements IndexedClass {
   @override
   bool get isClosure => false;
 
-  String toString() => 'class($name)';
+  String toString() => '${kElementPrefix}class($name)';
 }
 
 abstract class KMember implements IndexedMember {
@@ -88,8 +90,8 @@ abstract class KMember implements IndexedMember {
 
   String get _kind;
 
-  String toString() =>
-      '$_kind(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
+  String toString() => '${kElementPrefix}$_kind'
+      '(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
 }
 
 abstract class KFunction extends KMember
@@ -233,7 +235,8 @@ class KTypeVariable implements TypeVariableEntity {
 
   KTypeVariable(this.typeDeclaration, this.name, this.index);
 
-  String toString() => 'type_variable(${typeDeclaration.name}.$name)';
+  String toString() =>
+      '${kElementPrefix}type_variable(${typeDeclaration.name}.$name)';
 }
 
 class KLocalFunction implements Local {
@@ -246,5 +249,5 @@ class KLocalFunction implements Local {
       this.name, this.memberContext, this.executableContext, this.functionType);
 
   String toString() =>
-      'local_function(${memberContext.name}.${name ?? '<anonymous>'})';
+      '${kElementPrefix}local_function(${memberContext.name}.${name ?? '<anonymous>'})';
 }

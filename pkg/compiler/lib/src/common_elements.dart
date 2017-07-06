@@ -942,15 +942,32 @@ class CommonElements {
   FunctionEntity get throwConcurrentModificationError =>
       _findHelperFunction('throwConcurrentModificationError');
 
-  FunctionEntity _checkInt;
-  FunctionEntity get checkInt => _checkInt ??= _findHelperFunction('checkInt');
+  /// Return `true` if [member] is the 'checkInt' function defined in
+  /// dart:_js_helpers.
+  bool isCheckInt(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkInt';
+  }
 
-  FunctionEntity _checkNum;
-  FunctionEntity get checkNum => _checkNum ??= _findHelperFunction('checkNum');
+  /// Return `true` if [member] is the 'checkNum' function defined in
+  /// dart:_js_helpers.
+  bool isCheckNum(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkNum';
+  }
 
-  FunctionEntity _checkString;
-  FunctionEntity get checkString =>
-      _checkString ??= _findHelperFunction('checkString');
+  /// Return `true` if [member] is the 'checkString' function defined in
+  /// dart:_js_helpers.
+  bool isCheckString(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkString';
+  }
 
   FunctionEntity get stringInterpolationHelper => _findHelperFunction('S');
 

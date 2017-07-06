@@ -97,23 +97,106 @@ abstract class JsToFrontendMapBase implements JsToFrontendMap {
 }
 
 class JsElementCreatorMixin {
-  LibraryEntity createLibrary(IndexedLibrary library) {
-    return new JLibrary(
+  IndexedLibrary createLibrary(
+      int libraryIndex, String name, Uri canonicalUri) {
+    return new JLibrary(libraryIndex, name, canonicalUri);
+  }
+
+  IndexedClass createClass(LibraryEntity library, int classIndex, String name,
+      {bool isAbstract}) {
+    return new JClass(library, classIndex, name, isAbstract: isAbstract);
+  }
+
+  TypeVariableEntity createTypeVariable(
+      Entity typeDeclaration, String name, int index) {
+    throw new UnsupportedError('JsElementCreatorMixin.createTypeVariable');
+  }
+
+  IndexedConstructor createGenerativeConstructor(
+      int memberIndex,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal,
+      bool isConst}) {
+    return new JGenerativeConstructor(
+        memberIndex, enclosingClass, name, parameterStructure,
+        isExternal: isExternal, isConst: isConst);
+  }
+
+  IndexedConstructor createFactoryConstructor(
+      int memberIndex,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal,
+      bool isConst,
+      bool isFromEnvironmentConstructor}) {
+    return new JFactoryConstructor(
+        memberIndex, enclosingClass, name, parameterStructure,
+        isExternal: isExternal,
+        isConst: isConst,
+        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
+  }
+
+  IndexedFunction createGetter(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new JGetter(memberIndex, library, enclosingClass, name, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedFunction createMethod(
+      int memberIndex,
+      LibraryEntity library,
+      ClassEntity enclosingClass,
+      Name name,
+      ParameterStructure parameterStructure,
+      AsyncMarker asyncMarker,
+      {bool isStatic,
+      bool isExternal,
+      bool isAbstract}) {
+    return new JMethod(memberIndex, library, enclosingClass, name,
+        parameterStructure, asyncMarker,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedFunction createSetter(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isExternal, bool isAbstract}) {
+    return new JSetter(memberIndex, library, enclosingClass, name,
+        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+  }
+
+  IndexedField createField(int memberIndex, LibraryEntity library,
+      ClassEntity enclosingClass, Name name,
+      {bool isStatic, bool isAssignable, bool isConst}) {
+    return new JField(memberIndex, library, enclosingClass, name,
+        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
+  }
+
+  Local createLocalFunction(String name, MemberEntity memberContext,
+      Entity executableContext, FunctionType functionType) {
+    throw new UnsupportedError('JsElementCreatorMixin.createLocalFunction');
+  }
+
+  LibraryEntity convertLibrary(IndexedLibrary library) {
+    return createLibrary(
         library.libraryIndex, library.name, library.canonicalUri);
   }
 
-  ClassEntity createClass(LibraryEntity library, IndexedClass cls) {
-    return new JClass(library, cls.classIndex, cls.name,
+  ClassEntity convertClass(LibraryEntity library, IndexedClass cls) {
+    return createClass(library, cls.classIndex, cls.name,
         isAbstract: cls.isAbstract);
   }
 
-  MemberEntity createMember(
+  MemberEntity convertMember(
       LibraryEntity library, ClassEntity cls, IndexedMember member) {
     Name memberName = new Name(member.memberName.text, library,
         isSetter: member.memberName.isSetter);
     if (member.isField) {
       IndexedField field = member;
-      return new JField(member.memberIndex, library, cls, memberName,
+      return createField(member.memberIndex, library, cls, memberName,
           isStatic: field.isStatic,
           isAssignable: field.isAssignable,
           isConst: field.isConst);
@@ -121,33 +204,33 @@ class JsElementCreatorMixin {
       IndexedConstructor constructor = member;
       if (constructor.isFactoryConstructor) {
         // TODO(redemption): This should be a JFunction.
-        return new JFactoryConstructor(
+        return createFactoryConstructor(
             member.memberIndex, cls, memberName, constructor.parameterStructure,
             isExternal: constructor.isExternal,
             isConst: constructor.isConst,
             isFromEnvironmentConstructor:
                 constructor.isFromEnvironmentConstructor);
       } else {
-        return new JGenerativeConstructor(
+        return createGenerativeConstructor(
             member.memberIndex, cls, memberName, constructor.parameterStructure,
             isExternal: constructor.isExternal, isConst: constructor.isConst);
       }
     } else if (member.isGetter) {
       IndexedFunction getter = member;
-      return new JGetter(
+      return createGetter(
           member.memberIndex, library, cls, memberName, getter.asyncMarker,
           isStatic: getter.isStatic,
           isExternal: getter.isExternal,
           isAbstract: getter.isAbstract);
     } else if (member.isSetter) {
       IndexedFunction setter = member;
-      return new JSetter(member.memberIndex, library, cls, memberName,
+      return createSetter(member.memberIndex, library, cls, memberName,
           isStatic: setter.isStatic,
           isExternal: setter.isExternal,
           isAbstract: setter.isAbstract);
     } else {
       IndexedFunction function = member;
-      return new JMethod(member.memberIndex, library, cls, memberName,
+      return createMethod(member.memberIndex, library, cls, memberName,
           function.parameterStructure, function.asyncMarker,
           isStatic: function.isStatic,
           isExternal: function.isExternal,
@@ -207,6 +290,8 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
   }
 }
 
+const String jsElementPrefix = 'j';
+
 class JLibrary implements LibraryEntity, IndexedLibrary {
   /// Library index used for fast lookup in [JsToFrontendMapImpl].
   final int libraryIndex;
@@ -215,7 +300,7 @@ class JLibrary implements LibraryEntity, IndexedLibrary {
 
   JLibrary(this.libraryIndex, this.name, this.canonicalUri);
 
-  String toString() => 'library($name)';
+  String toString() => '${jsElementPrefix}library($name)';
 }
 
 class JClass implements ClassEntity, IndexedClass {
@@ -232,7 +317,7 @@ class JClass implements ClassEntity, IndexedClass {
   @override
   bool get isClosure => false;
 
-  String toString() => 'class($name)';
+  String toString() => '${jsElementPrefix}class($name)';
 }
 
 abstract class JMember implements MemberEntity, IndexedMember {
@@ -286,8 +371,8 @@ abstract class JMember implements MemberEntity, IndexedMember {
 
   String get _kind;
 
-  String toString() =>
-      '$_kind(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
+  String toString() => '${jsElementPrefix}$_kind'
+      '(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
 }
 
 abstract class JFunction extends JMember
@@ -431,7 +516,8 @@ class JTypeVariable implements TypeVariableEntity {
 
   JTypeVariable(this.typeDeclaration, this.name, this.index);
 
-  String toString() => 'type_variable(${typeDeclaration.name}.$name)';
+  String toString() =>
+      '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
 }
 
 class JsClosedWorld extends ClosedWorldBase {
