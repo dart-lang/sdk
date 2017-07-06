@@ -34,10 +34,9 @@ import 'locals.dart';
 
 class JsBackendStrategy implements KernelBackendStrategy {
   final Compiler _compiler;
-  final JsToFrontendMap _map = new JsToFrontendMapImpl();
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
-  KernelToElementMapForBuilding _elementMap;
+  JsKernelToElementMap _elementMap;
   ClosureConversionTask _closureDataLookup;
   final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
   Sorter _sorter;
@@ -45,17 +44,8 @@ class JsBackendStrategy implements KernelBackendStrategy {
   JsBackendStrategy(this._compiler);
 
   KernelToElementMapForBuilding get elementMap {
-    if (_elementMap == null) {
-      KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
-      KernelToElementMapForImpact elementMap = strategy.elementMap;
-      _elementMap = new JsKernelToElementMap(
-          _compiler.reporter,
-          _compiler.environment,
-          _map,
-          _elementEnvironment,
-          _commonElements,
-          elementMap);
-    }
+    assert(_elementMap != null,
+        "JsBackendStrategy.elementMap has not been created yet.");
     return _elementMap;
   }
 
@@ -63,9 +53,13 @@ class JsBackendStrategy implements KernelBackendStrategy {
 
   @override
   ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
-    _elementEnvironment =
-        new JsElementEnvironment(_map, closedWorld.elementEnvironment);
-    _commonElements = new JsCommonElements(_map, closedWorld.commonElements);
+    KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
+    KernelToElementMapForImpact elementMap = strategy.elementMap;
+    _elementMap = new JsKernelToElementMap(
+        _compiler.reporter, _compiler.environment, elementMap);
+    _elementEnvironment = _elementMap.elementEnvironment;
+    _commonElements = _elementMap.commonElements;
+    JsToFrontendMap _map = _elementMap.jsToFrontendMap;
     BackendUsage backendUsage =
         new JsBackendUsage(_map, closedWorld.backendUsage);
     NativeData nativeData = new JsNativeData(_map, closedWorld.nativeData);

@@ -76,10 +76,10 @@ class EmitterFactory implements js_emitter.EmitterFactory {
   bool get supportsReflection => true;
 
   @override
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, closedWorld, generateSourceMap,
-        task, task.sorter);
+  Emitter createEmitter(CodeEmitterTask task, Namer namer,
+      ClosedWorld closedWorld, Sorter sorter) {
+    return new Emitter(
+        task.compiler, namer, closedWorld, generateSourceMap, task, sorter);
   }
 }
 

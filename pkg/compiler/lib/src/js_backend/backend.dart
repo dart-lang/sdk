@@ -36,6 +36,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/sorter.dart' show Sorter;
 import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
@@ -1067,8 +1068,8 @@ class JavaScriptBackend {
 
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
-  WorldImpact onCodegenStart(
-      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
+  WorldImpact onCodegenStart(ClosedWorld closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
     functionCompiler.onCodegenStart();
     _oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData, closedWorld.commonElements);
@@ -1076,7 +1077,7 @@ class JavaScriptBackend {
     tracer = new Tracer(closedWorld, namer, compiler);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
         namer, closedWorld.elementEnvironment, closedWorld.commonElements);
-    emitter.createEmitter(namer, closedWorld, codegenWorldBuilder);
+    emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
         closedWorld.elementEnvironment,

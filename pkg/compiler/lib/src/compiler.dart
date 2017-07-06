@@ -636,8 +636,8 @@ abstract class Compiler {
   Enqueuer startCodegen(ClosedWorld closedWorld) {
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-    codegenEnqueuer
-        .applyImpact(backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
+    codegenEnqueuer.applyImpact(backend.onCodegenStart(
+        closedWorld, _codegenWorldBuilder, backendStrategy.sorter));
     return codegenEnqueuer;
   }
 

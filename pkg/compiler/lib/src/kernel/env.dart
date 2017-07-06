@@ -23,15 +23,15 @@ import 'element_map_mixins.dart';
 
 /// Environment for fast lookup of program libraries.
 class ProgramEnv {
-  final Set<ir.Program> programs = new Set<ir.Program>();
+  final Set<ir.Program> _programs = new Set<ir.Program>();
 
   Map<Uri, LibraryEnv> _libraryMap;
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
-  ir.Member get mainMethod => programs.first?.mainMethod;
+  ir.Member get mainMethod => _programs.first?.mainMethod;
 
   void addProgram(ir.Program program) {
-    if (programs.add(program)) {
+    if (_programs.add(program)) {
       if (_libraryMap != null) {
         _addLibraries(program);
       }
@@ -47,7 +47,7 @@ class ProgramEnv {
   void _ensureLibraryMap() {
     if (_libraryMap == null) {
       _libraryMap = <Uri, LibraryEnv>{};
-      for (ir.Program program in programs) {
+      for (ir.Program program in _programs) {
         _addLibraries(program);
       }
     }
