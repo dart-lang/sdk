@@ -89,7 +89,7 @@ class KernelBackendStrategyImpl implements KernelBackendStrategy {
   @override
   ClosureConversionTask get closureDataLookup =>
       _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, elementMap, _globalLocalsMap);
+          _compiler.measurer, elementMap, null, _globalLocalsMap);
 
   @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {

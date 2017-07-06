@@ -63,6 +63,8 @@ class JsBackendStrategy implements KernelBackendStrategy {
     JsToFrontendMap _map = _elementMap.jsToFrontendMap;
     BackendUsage backendUsage =
         new JsBackendUsage(_map, closedWorld.backendUsage);
+    _closureDataLookup = new KernelClosureConversionTask(
+        _compiler.measurer, _elementMap, _map, _globalLocalsMap);
     NativeData nativeData = new JsNativeData(_map, closedWorld.nativeData);
     InterceptorData interceptorData = new InterceptorDataImpl(
         nativeData,
@@ -151,9 +153,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  ClosureConversionTask get closureDataLookup =>
-      _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, elementMap, _globalLocalsMap);
+  ClosureConversionTask get closureDataLookup => _closureDataLookup;
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>

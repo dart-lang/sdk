@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,53 +9,9 @@ import '../common/tasks.dart';
 import '../elements/entities.dart';
 import '../kernel/element_map.dart';
 import '../world.dart';
+import 'elements.dart';
+import 'closure_visitors.dart';
 import 'locals.dart';
-
-class KernelClosureDataBuilder extends ir.Visitor {
-  final KernelToLocalsMap _localsMap;
-  final KernelClosureRepresentationInfo info;
-
-  bool _inTry = false;
-
-  KernelClosureDataBuilder(this._localsMap, ThisLocal thisLocal)
-      : info = new KernelClosureRepresentationInfo(thisLocal);
-
-  @override
-  defaultNode(ir.Node node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  visitTryCatch(ir.TryCatch node) {
-    bool oldInTry = _inTry;
-    _inTry = true;
-    node.visitChildren(this);
-    _inTry = oldInTry;
-  }
-
-  @override
-  visitTryFinally(ir.TryFinally node) {
-    bool oldInTry = _inTry;
-    _inTry = true;
-    node.visitChildren(this);
-    _inTry = oldInTry;
-  }
-
-  @override
-  visitVariableGet(ir.VariableGet node) {
-    if (_inTry) {
-      info.registerUsedInTryOrSync(_localsMap.getLocal(node.variable));
-    }
-  }
-
-  @override
-  visitVariableSet(ir.VariableSet node) {
-    if (_inTry) {
-      info.registerUsedInTryOrSync(_localsMap.getLocal(node.variable));
-    }
-    node.visitChildren(this);
-  }
-}
 
 /// Closure conversion code using our new Entity model. Closure conversion is
 /// necessary because the semantics of closures are slightly different in Dart
@@ -69,14 +25,24 @@ class KernelClosureDataBuilder extends ir.Visitor {
 /// check out:
 /// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
 /// http://matt.might.net/articles/closure-conversion/.
+// TODO(efortuna): Change inheritance hierarchy so that the
+// ClosureConversionTask doesn't inherit from ClosureTask because it's just a
+// glorified timer.
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  Map<Entity, ClosureRepresentationInfo> _infoMap =
+  Map<ir.Node, ClosureScope> _closureScopeMap = <ir.Node, ClosureScope>{};
+
+  Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
       <Entity, ClosureRepresentationInfo>{};
 
-  KernelClosureConversionTask(
-      Measurer measurer, this._elementMap, this._globalLocalsMap)
+  /// Should only be used at the very beginning to ensure we are looking at the
+  /// right kind of elements.
+  // TODO(efortuna): Remove this map once we have one kernel backend strategy.
+  final JsToFrontendMap _kToJElementMap;
+
+  KernelClosureConversionTask(Measurer measurer, this._elementMap,
+      this._kToJElementMap, this._globalLocalsMap)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -88,67 +54,195 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {
-    // TODO(efortuna): implement.
+    var closuresToGenerate = <ir.Node, ScopeInfo>{};
+    processedEntities.forEach((MemberEntity kEntity) {
+      MemberEntity entity = kEntity;
+      if (_kToJElementMap != null) {
+        entity = _kToJElementMap.toBackendMember(kEntity);
+      }
+      if (entity.isAbstract) return;
+      if (entity.isField && !entity.isInstanceMember) {
+        ir.Field field = _elementMap.getMemberNode(entity);
+        // Skip top-level/static fields without an initializer.
+        if (field.initializer == null) return;
+      }
+      _buildClosureModel(entity, closuresToGenerate, closedWorldRefiner);
+    });
+
+    for (ir.Node node in closuresToGenerate.keys) {
+      _produceSyntheticElements(
+          node, closuresToGenerate[node], closedWorldRefiner);
+    }
   }
 
-  /// TODO(johnniwinther,efortuna): Implement this.
-  @override
-  ClosureScope getClosureScope(ir.Node node) {
-    return const ClosureScope();
+  /// Inspect members and mark if those members capture any state that needs to
+  /// be marked as free variables.
+  void _buildClosureModel(
+      MemberEntity entity,
+      Map<ir.Node, ScopeInfo> closuresToGenerate,
+      ClosedWorldRefiner closedWorldRefiner) {
+    ir.Node node = _elementMap.getMemberNode(entity);
+    if (_closureScopeMap.keys.contains(node)) return;
+    ClosureScopeBuilder translator = new ClosureScopeBuilder(_closureScopeMap,
+        closuresToGenerate, _globalLocalsMap.getLocalsMap(entity), _elementMap);
+    if (entity.isField) {
+      if (node is ir.Field && node.initializer != null) {
+        translator.translateLazyInitializer(node);
+      }
+    } else {
+      assert(node is ir.Procedure || node is ir.Constructor);
+      translator.translateConstructorOrProcedure(node);
+    }
+  }
+
+  /// Given what variables are captured at each point, construct closure classes
+  /// with fields containing the captured variables to replicate the Dart
+  /// closure semantics in JS.
+  void _produceSyntheticElements(
+      ir.Node node, ScopeInfo info, ClosedWorldRefiner closedWorldRefiner) {
+    Entity entity;
+    KernelClosureClass closureClass =
+        new KernelClosureClass.fromScopeInfo(info);
+    if (node is ir.FunctionNode) {
+      // We want the original declaration where that function is used to point
+      // to the correct closure class.
+      // TODO(efortuna): entity equivalent of element.declaration?
+      node = (node as ir.FunctionNode).parent;
+      _closureRepresentationMap[closureClass.callMethod] = closureClass;
+    }
+
+    if (node is ir.Member) {
+      entity = _elementMap.getMember(node);
+    } else {
+      entity = _elementMap.getLocalFunction(node);
+    }
+    assert(entity != null);
+
+    _closureRepresentationMap[entity] = closureClass;
   }
 
   @override
   ScopeInfo getScopeInfo(Entity entity) {
-    // TODO(efortuna): Specialize this function from the one below.
     return getClosureRepresentationInfo(entity);
   }
 
-  /// TODO(johnniwinther,efortuna): Implement this.
   @override
-  LoopClosureScope getLoopClosureScope(ir.Node loopNode) {
-    return const LoopClosureScope();
-  }
+  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
+  // and we should just test that with an assert.
+  ClosureScope getClosureScope(ir.Node node) =>
+      _closureScopeMap[node] ?? const ClosureScope();
 
   @override
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
-    return _infoMap.putIfAbsent(entity, () {
-      if (entity is MemberEntity) {
-        ir.Member node = _elementMap.getMemberNode(entity);
-        ThisLocal thisLocal;
-        if (entity.isInstanceMember) {
-          thisLocal = new ThisLocal(entity);
-        }
-        KernelClosureDataBuilder builder = new KernelClosureDataBuilder(
-            _globalLocalsMap.getLocalsMap(entity), thisLocal);
-        node.accept(builder);
-        return builder.info;
-      }
+  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
+  // and we should just test that with an assert.
+  LoopClosureScope getLoopClosureScope(ir.Node loopNode) =>
+      _closureScopeMap[loopNode] ?? const LoopClosureScope();
 
-      /// TODO(johnniwinther,efortuna): Implement this.
-      return const ClosureRepresentationInfo();
-    });
-  }
+  @override
+  // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
+  // non-null, and we should just test that with an assert.
+  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) =>
+      _closureRepresentationMap[entity] ?? const ClosureRepresentationInfo();
 }
 
-// TODO(johnniwinther): Add unittest for the computed
-// [ClosureRepresentationInfo].
-class KernelClosureRepresentationInfo extends ClosureRepresentationInfo {
-  final ThisLocal thisLocal;
-  final Set<Local> _localsUsedInTryOrSync = new Set<Local>();
+class KernelScopeInfo extends ScopeInfo {
+  final Set<Local> localsUsedInTryOrSync;
+  final Local thisLocal;
+  final Set<Local> boxedVariables;
 
-  KernelClosureRepresentationInfo(this.thisLocal);
+  /// The set of variables that were defined in another scope, but are used in
+  /// this scope.
+  Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
 
-  void registerUsedInTryOrSync(Local local) {
-    _localsUsedInTryOrSync.add(local);
+  KernelScopeInfo(this.thisLocal)
+      : localsUsedInTryOrSync = new Set<Local>(),
+        boxedVariables = new Set<Local>();
+
+  KernelScopeInfo.from(this.thisLocal, KernelScopeInfo info)
+      : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
+        boxedVariables = info.boxedVariables;
+
+  KernelScopeInfo.withBoxedVariables(this.boxedVariables, this.thisLocal)
+      : localsUsedInTryOrSync = new Set<Local>();
+
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {
+    boxedVariables.forEach((Local l) {
+      // TODO(efortuna): add FieldEntities as created.
+      f(l, null);
+    });
   }
 
-  bool variableIsUsedInTryOrSync(Local variable) =>
-      _localsUsedInTryOrSync.contains(variable);
+  bool localIsUsedInTryOrSync(Local variable) =>
+      localsUsedInTryOrSync.contains(variable);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('this=$thisLocal,');
-    sb.write('localsUsedInTryOrSync={${_localsUsedInTryOrSync.join(', ')}}');
+    sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
     return sb.toString();
   }
+
+  bool isBoxed(Local variable) => boxedVariables.contains(variable);
+}
+
+class KernelClosureScope extends KernelScopeInfo implements ClosureScope {
+  final Local context;
+
+  KernelClosureScope(Set<Local> boxedVariables, this.context, Local thisLocal)
+      : super.withBoxedVariables(boxedVariables, thisLocal);
+
+  bool get requiresContextBox => boxedVariables.isNotEmpty;
+}
+
+class KernelLoopClosureScope extends KernelClosureScope
+    implements LoopClosureScope {
+  final List<Local> boxedLoopVariables;
+
+  KernelLoopClosureScope(Set<Local> boxedVariables, this.boxedLoopVariables,
+      Local context, Local thisLocal)
+      : super(boxedVariables, context, thisLocal);
+
+  bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
+}
+
+// TODO(johnniwinther): Add unittest for the computed [ClosureClass].
+class KernelClosureClass extends KernelScopeInfo
+    implements ClosureRepresentationInfo {
+  KernelClosureClass.fromScopeInfo(ScopeInfo info)
+      : super.from(info.thisLocal, info);
+
+  // TODO(efortuna): Implement.
+  Local get closureEntity => null;
+
+  // TODO(efortuna): Implement.
+  ClassEntity get closureClassEntity => null;
+
+  // TODO(efortuna): Implement.
+  FunctionEntity get callMethod => null;
+
+  // TODO(efortuna): Implement.
+  List<Local> get createdFieldEntities => const <Local>[];
+
+  // TODO(efortuna): Implement.
+  FieldEntity get thisFieldEntity => null;
+
+  // TODO(efortuna): Implement.
+  void forEachCapturedVariable(f(Local from, FieldEntity to)) {}
+
+  // TODO(efortuna): Implement.
+  @override
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
+
+  // TODO(efortuna): Implement.
+  void forEachFreeVariable(f(Local variable, FieldEntity field)) {}
+
+  // TODO(efortuna): Implement.
+  bool isVariableBoxed(Local variable) => false;
+
+  // TODO(efortuna): Implement.
+  // Why is this closure not actually a closure? Well, to properly call
+  // ourselves a closure, we need to register the new closure class with the
+  // ClosedWorldRefiner, which currently only takes elements. The change to
+  // that (and the subsequent adjustment here) will follow soon.
+  bool get isClosure => false;
 }
