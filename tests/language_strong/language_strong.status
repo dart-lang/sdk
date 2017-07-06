@@ -715,9 +715,6 @@ super_setter_test: StaticWarning # Issue 28823
 try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
 
-[ $compiler == dart2analyzer && $system != windows ]
-bad_raw_string_test/03: MissingCompileTimeError # Issue 28664
-
 [ $compiler == dartdevc ]
 assertion_test: RuntimeError # DDC doesn't support function arguments to assert().
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
