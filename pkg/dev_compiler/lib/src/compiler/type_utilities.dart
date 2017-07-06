@@ -150,12 +150,6 @@ class _GeneratorTable extends _CacheTable {
 }
 
 class TypeTable {
-  /// Cache variable names for types emitted in place.
-  final _cacheNames = new _CacheTable();
-
-  /// Cache variable names for definite function types emitted in place.
-  final _definiteCacheNames = new _CacheTable();
-
   /// Generator variable names for hoisted types.
   final _GeneratorTable _generators;
 
@@ -177,12 +171,9 @@ class TypeTable {
   /// emit the definitions which depend on the formals.
   List<JS.Statement> discharge([List<TypeParameterElement> formals]) {
     var filter = formals?.expand((p) => _scopeDependencies[p] ?? <DartType>[]);
-    var stmts = [
-      _cacheNames,
-      _definiteCacheNames,
-      _generators,
-      _definiteGenerators
-    ].expand((c) => c.discharge(filter)).toList();
+    var stmts = [_generators, _definiteGenerators]
+        .expand((c) => c.discharge(filter))
+        .toList();
     formals?.forEach(_scopeDependencies.remove);
     return stmts;
   }
@@ -231,11 +222,8 @@ class TypeTable {
   /// types and other types (since the same DartType may have different
   /// representations as definite and indefinite function types).
   JS.Expression nameType(DartType type, JS.Expression typeRep,
-      {bool hoistType, bool definite: false}) {
-    assert(hoistType != null);
-    var table = hoistType
-        ? (definite ? _definiteGenerators : _generators)
-        : (definite ? _definiteCacheNames : _cacheNames);
+      {bool definite: false}) {
+    var table = definite ? _definiteGenerators : _generators;
     if (!table.isNamed(type)) {
       if (recordScopeDependencies(type)) return typeRep;
     }

@@ -31,8 +31,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/summary/summary_sdk.dart';
-import 'package:analyzer/src/task/strong/ast_properties.dart'
-    show isDynamicInvoke, setIsDynamicInvoke, getImplicitAssignmentCast;
+import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' show isWithin, relative, separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
@@ -195,6 +194,8 @@ class CodeGenerator extends Object
   /// unit.
   final virtualFields = new VirtualFieldModel();
 
+  final _usedCovariantPrivateMembers = new HashSet<ExecutableElement>();
+
   CodeGenerator(
       AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
       : context = c,
@@ -287,6 +288,10 @@ class CodeGenerator extends Object
   JS.Program _emitModule(List<CompilationUnit> compilationUnits, String name) {
     if (_moduleItems.isNotEmpty) {
       throw new StateError('Can only call emitModule once.');
+    }
+
+    for (var unit in compilationUnits) {
+      _usedCovariantPrivateMembers.addAll(getCovariantPrivateMembers(unit));
     }
 
     // Transform the AST to make coercions explicit.
@@ -679,17 +684,38 @@ class CodeGenerator extends Object
     Expression fromExpr = node.expression;
     var from = getStaticType(fromExpr);
     var to = node.type.type;
-
     JS.Expression jsFrom = _visit(fromExpr);
 
-    // Skip the cast if it's not needed.
-    if (rules.isSubtypeOf(from, to)) return jsFrom;
+    // If the check was put here by static analysis to ensure soundness, we
+    // can't skip it. This happens because of unsound covariant generics:
+    //
+    //      typedef F<T>(T t);
+    //      class C<T> {
+    //        F<T> f;
+    //        add(T t) {
+    //          // required check `t as T`
+    //        }
+    //      }
+    //      main() {
+    //        C<Object> c = new C<int>()..f = (int x) => x.isEven;
+    //        c.f('hi'); // required check `c.f as F<Object>`
+    //        c.add('hi);
+    //      }
+    //
+    // NOTE: due to implementation details, we do not currently reify the the
+    // `C<T>.add` check in CoercionReifier, so it does not reach this point;
+    // rather we check for it explicitly when emitting methods and fields.
+    // However we do reify the `c.f` check, so we must not eliminate it.
+    var isRequiredForSoundness = CoercionReifier.isRequiredForSoundness(node);
+    if (!isRequiredForSoundness && rules.isSubtypeOf(from, to)) return jsFrom;
 
     // All Dart number types map to a JS double.
     if (typeRep.isNumber(from) && typeRep.isNumber(to)) {
       // Make sure to check when converting to int.
       if (from != types.intType && to == types.intType) {
         // TODO(jmesserly): fuse this with notNull check.
+        // TODO(jmesserly): this does not correctly distinguish user casts from
+        // required-for-soundness casts.
         return _callHelper('asInt(#)', jsFrom);
       }
 
@@ -697,14 +723,8 @@ class CodeGenerator extends Object
       return jsFrom;
     }
 
-    var type = _emitType(to,
-        nameType: options.nameTypeTests || options.hoistTypeTests,
-        hoistType: options.hoistTypeTests);
-    if (CoercionReifier.isImplicitCast(node)) {
-      return js.call('#._check(#)', [type, jsFrom]);
-    } else {
-      return js.call('#.as(#)', [type, jsFrom]);
-    }
+    var code = isRequiredForSoundness ? '#._check(#)' : '#.as(#)';
+    return js.call(code, [_emitType(to), jsFrom]);
   }
 
   @override
@@ -720,9 +740,7 @@ class CodeGenerator extends Object
     } else {
       // Always go through a runtime helper, because implicit interfaces.
 
-      var castType = _emitType(type,
-          nameType: options.nameTypeTests || options.hoistTypeTests,
-          hoistType: options.hoistTypeTests);
+      var castType = _emitType(type);
 
       result = js.call('#.is(#)', [castType, lhs]);
     }
@@ -800,9 +818,16 @@ class CodeGenerator extends Object
     // The resulting 'class' is a mixable class in this case.
     bool isMixinAlias = supertype.isObject && classElem.mixins.length == 1;
 
+    // TODO(jmesserly): what do we do if the mixin alias has implied superclass
+    // covariance checks (due to new interfaces)? We can't add them without
+    // messing up the inheritance chain and breaking the ability of the mixin
+    // alias to be mixed in elsewhere. We're going to need something special,
+    // like adding these checks when we copy in the methods.
+    var jsMethods = <JS.Method>[];
+    _emitSuperclassCovarianceChecks(node, jsMethods);
     var classExpr = isMixinAlias
         ? _emitClassHeritage(classElem)
-        : _emitClassExpression(classElem, []);
+        : _emitClassExpression(classElem, jsMethods);
     var className = isGeneric
         ? new JS.Identifier(classElem.name)
         : _emitTopLevelName(classElem);
@@ -886,8 +911,12 @@ class CodeGenerator extends Object
     }
 
     var savedClassProperties = _classProperties;
-    _classProperties =
-        new ClassPropertyModel.build(_extensionTypes, virtualFields, classElem);
+    _classProperties = new ClassPropertyModel.build(
+        _extensionTypes,
+        virtualFields,
+        classElem,
+        getClassCovariantParameters(node),
+        _usedCovariantPrivateMembers);
 
     var jsCtors = _defineConstructors(classElem, className, fields, ctors);
     var classExpr = _emitClassExpression(classElem, _emitClassMethods(node),
@@ -1423,7 +1452,86 @@ class CodeGenerator extends Object
     // Add all of the super helper methods
     jsMethods.addAll(_superHelpers.values);
 
+    _emitSuperclassCovarianceChecks(node, jsMethods);
     return jsMethods.where((m) => m != null).toList(growable: false);
+  }
+
+  void _emitSuperclassCovarianceChecks(
+      Declaration node, List<JS.Method> methods) {
+    var covariantParams = getSuperclassCovariantParameters(node);
+    if (covariantParams == null) return;
+
+    for (var member in covariantParams.map((p) => p.enclosingElement).toSet()) {
+      var name = _declareMemberName(member);
+      if (member is PropertyAccessorElement) {
+        var param = member.parameters[0];
+        assert(covariantParams.contains(param));
+        methods.add(new JS.Method(
+            name,
+            js.call('function(x) { return super.#(#._check(x)); }',
+                [name, _emitType(param.type)]),
+            isSetter: true));
+        methods.add(new JS.Method(
+            name, js.call('function() { return super.#; }', [name]),
+            isGetter: true));
+      } else if (member is MethodElement) {
+        var type = member.type;
+
+        var body = <JS.Statement>[];
+        var typeFormals = _emitTypeFormals(type.typeFormals);
+        if (type.typeFormals.any(covariantParams.contains)) {
+          body.add(js.statement(
+              '#.checkBounds([#]);', [_emitType(type), typeFormals]));
+        }
+
+        var jsParams = <JS.Parameter>[];
+        bool foundNamedParams = false;
+        for (var param in member.parameters) {
+          JS.Parameter jsParam;
+          if (param.kind == ParameterKind.NAMED) {
+            foundNamedParams = true;
+            if (covariantParams.contains(param)) {
+              var name = _propertyName(param.name);
+              body.add(js.statement('if (# in #) #._check(#.#);', [
+                name,
+                namedArgumentTemp,
+                _emitType(param.type),
+                namedArgumentTemp,
+                name
+              ]));
+            }
+          } else {
+            jsParam = _emitParameter(param);
+            jsParams.add(jsParam);
+            if (covariantParams.contains(param)) {
+              if (param.kind == ParameterKind.POSITIONAL) {
+                body.add(js.statement('if (# !== void 0) #._check(#);',
+                    [jsParam, _emitType(param.type), jsParam]));
+              } else {
+                body.add(js.statement(
+                    '#._check(#);', [_emitType(param.type), jsParam]));
+              }
+            }
+          }
+        }
+
+        if (foundNamedParams) jsParams.add(namedArgumentTemp);
+
+        if (typeFormals.isEmpty) {
+          body.add(js.statement('return super.#(#);', [name, jsParams]));
+        } else {
+          body.add(js.statement(
+              'return super.#(#)(#);', [name, typeFormals, jsParams]));
+        }
+        var fn = new JS.Fun(jsParams, new JS.Block(body),
+            typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
+        methods.add(new JS.Method(name, _makeGenericFunction(fn)));
+      } else {
+        throw new StateError(
+            'unable to generate a covariant check for element: `$member` '
+            '(${member.runtimeType})');
+      }
+    }
   }
 
   /// Emits a Dart factory constructor to a JS static method.
@@ -1566,9 +1674,19 @@ class CodeGenerator extends Object
           ? [new JS.Super(), name]
           : [new JS.This(), virtualField];
 
-      result.add(new JS.Method(
-          name, js.call('function(value) { #[#] = value; }', args),
-          isSetter: true));
+      String jsCode;
+      var setter = element.setter;
+      var covariantParams = _classProperties.covariantParameters;
+      if (setter != null &&
+          covariantParams != null &&
+          covariantParams.contains(setter.parameters[0])) {
+        args.add(_emitType(setter.parameters[0].type));
+        jsCode = 'function(value) { #[#] = #._check(value); }';
+      } else {
+        jsCode = 'function(value) { #[#] = value; }';
+      }
+
+      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true));
     }
 
     return result;
@@ -1927,8 +2045,7 @@ class CodeGenerator extends Object
 
       var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
           parameters: node.parameters?.parameters,
-          nameType: options.hoistSignatureTypes,
-          hoistType: options.hoistSignatureTypes,
+          nameType: false,
           definite: true);
 
       if (needsSignature) {
@@ -1969,8 +2086,7 @@ class CodeGenerator extends Object
         var memberName = _constructorName(element);
         var type = _emitAnnotatedFunctionType(element.type, node.metadata,
             parameters: node.parameters.parameters,
-            nameType: options.hoistSignatureTypes,
-            hoistType: options.hoistSignatureTypes,
+            nameType: false,
             definite: true);
         var property = new JS.Property(memberName, type);
         tCtors.add(property);
@@ -2271,6 +2387,8 @@ class CodeGenerator extends Object
     var parameters = _parametersOf(node);
     if (parameters == null) return null;
 
+    var covariantParams = _classProperties?.covariantParameters;
+
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
       var jsParam = _emitSimpleIdentifier(param.identifier);
@@ -2297,37 +2415,14 @@ class CodeGenerator extends Object
         }
       }
 
-      // TODO(jmesserly): various problems here, see:
-      // https://github.com/dart-lang/sdk/issues/27259
-      var paramType =
-          resolutionMap.elementDeclaredByFormalParameter(param).type;
-      if (node is MethodDeclaration &&
-          (resolutionMap.elementDeclaredByFormalParameter(param).isCovariant ||
-              _unsoundCovariant(paramType, true))) {
-        var castType = _emitType(paramType,
-            nameType: options.nameTypeTests || options.hoistTypeTests,
-            hoistType: options.hoistTypeTests);
+      var paramElement = resolutionMap.elementDeclaredByFormalParameter(param);
+      if (paramElement.isCovariant ||
+          covariantParams != null && covariantParams.contains(paramElement)) {
+        var castType = _emitType(paramElement.type);
         body.add(js.statement('#._check(#);', [castType, jsParam]));
       }
     }
     return body.isEmpty ? null : _statement(body);
-  }
-
-  /// Given a type [t], return whether or not t is unsoundly covariant.
-  /// If [contravariant] is true, then t appears in a contravariant
-  /// position.
-  bool _unsoundCovariant(DartType t, bool contravariant) {
-    if (t is TypeParameterType) {
-      return contravariant && t.element.enclosingElement is ClassElement;
-    }
-    if (t is FunctionType) {
-      if (_unsoundCovariant(t.returnType, contravariant)) return true;
-      return t.parameters.any((p) => _unsoundCovariant(p.type, !contravariant));
-    }
-    if (t is ParameterizedType) {
-      return t.typeArguments.any((t) => _unsoundCovariant(t, contravariant));
-    }
-    return false;
   }
 
   JS.Expression _defaultParamValue(FormalParameter param) {
@@ -2600,10 +2695,21 @@ class CodeGenerator extends Object
         : new JS.Block(
             [_emitGeneratorFunctionBody(element, parameters, body).toReturn()]);
     var typeFormals = _emitTypeFormals(type.typeFormals);
+
     var returnType = emitTypeRef(type.returnType);
     if (type.typeFormals.isNotEmpty) {
-      code = new JS.Block(
-          [new JS.Block(_typeTable.discharge(type.typeFormals)), code]);
+      var block = <JS.Statement>[
+        new JS.Block(_typeTable.discharge(type.typeFormals))
+      ];
+
+      var covariantParams = _classProperties?.covariantParameters;
+      if (covariantParams != null &&
+          type.typeFormals.any(covariantParams.contains)) {
+        block.add(js.statement('#.checkBounds(#);',
+            [_emitType(type), new JS.ArrayInitializer(typeFormals)]));
+      }
+
+      code = new JS.Block(block..add(code));
     }
 
     if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
@@ -2861,9 +2967,9 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _emitAnnotatedType(DartType type, List<Annotation> metadata,
-      {bool nameType: true, bool hoistType: true}) {
+      {bool nameType: true}) {
     metadata ??= [];
-    var typeName = _emitType(type, nameType: nameType, hoistType: hoistType);
+    var typeName = _emitType(type, nameType: nameType);
     return _emitAnnotatedResult(typeName, metadata);
   }
 
@@ -2879,7 +2985,7 @@ class CodeGenerator extends Object
 
   JS.ArrayInitializer _emitTypeNames(
       List<DartType> types, List<FormalParameter> parameters,
-      {bool nameType: true, bool hoistType: true}) {
+      {bool nameType: true}) {
     var result = <JS.Expression>[];
     for (int i = 0; i < types.length; ++i) {
       var metadata = parameters != null
@@ -2906,16 +3012,13 @@ class CodeGenerator extends Object
       {List<FormalParameter> parameters,
       bool lowerTypedef: false,
       bool nameType: true,
-      bool hoistType: true,
       definite: false}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
-    var rt =
-        _emitType(type.returnType, nameType: nameType, hoistType: hoistType);
+    var rt = _emitType(type.returnType, nameType: nameType);
 
-    var ra = _emitTypeNames(parameterTypes, parameters,
-        nameType: nameType, hoistType: hoistType);
+    var ra = _emitTypeNames(parameterTypes, parameters, nameType: nameType);
 
     List<JS.Expression> typeParts;
     if (namedTypes.isNotEmpty) {
@@ -2927,7 +3030,7 @@ class CodeGenerator extends Object
       assert(namedTypes.isEmpty);
       var oa = _emitTypeNames(
           optionalTypes, parameters?.sublist(parameterTypes.length),
-          nameType: nameType, hoistType: hoistType);
+          nameType: nameType);
       typeParts = [rt, ra, oa];
     } else {
       typeParts = [rt, ra];
@@ -2960,8 +3063,7 @@ class CodeGenerator extends Object
     }
     fullType = _callHelper(helperCall, [typeParts]);
     if (!nameType) return fullType;
-    return _typeTable.nameType(type, fullType,
-        hoistType: hoistType, definite: definite);
+    return _typeTable.nameType(type, fullType, definite: definite);
   }
 
   JS.Expression _emitAnnotatedFunctionType(
@@ -2969,13 +3071,11 @@ class CodeGenerator extends Object
       {List<FormalParameter> parameters,
       bool lowerTypedef: false,
       bool nameType: true,
-      bool hoistType: true,
       bool definite: false}) {
     var result = _emitFunctionType(type,
         parameters: parameters,
         lowerTypedef: lowerTypedef,
         nameType: nameType,
-        hoistType: hoistType,
         definite: definite);
     return _emitAnnotatedResult(result, metadata);
   }
@@ -2984,10 +3084,8 @@ class CodeGenerator extends Object
   ///
   /// If [nameType] is true, then the type will be named.  In addition,
   /// if [hoistType] is true, then the named type will be hoisted.
-  JS.Expression _emitConstructorAccess(DartType type,
-      {bool nameType: true, bool hoistType: true}) {
-    return _emitJSInterop(type.element) ??
-        _emitType(type, nameType: nameType, hoistType: hoistType);
+  JS.Expression _emitConstructorAccess(DartType type, {bool nameType: true}) {
+    return _emitJSInterop(type.element) ?? _emitType(type, nameType: nameType);
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -3031,7 +3129,6 @@ class CodeGenerator extends Object
       {bool lowerTypedef: false,
       bool lowerGeneric: false,
       bool nameType: true,
-      bool hoistType: true,
       ClassElement subClass,
       JS.Expression className}) {
     // The void and dynamic types are not defined in core.
@@ -3079,7 +3176,7 @@ class CodeGenerator extends Object
       // go through use similar logic as generic classes. This makes them
       // different from universal function types.
       return _emitFunctionType(type as FunctionType,
-          lowerTypedef: lowerTypedef, nameType: nameType, hoistType: hoistType);
+          lowerTypedef: lowerTypedef, nameType: nameType);
     }
 
     if (type is TypeParameterType) {
@@ -3094,19 +3191,14 @@ class CodeGenerator extends Object
       Iterable jsArgs = null;
       if (args.any((a) => !a.isDynamic)) {
         jsArgs = args.map((x) => _emitType(x,
-            nameType: nameType,
-            hoistType: hoistType,
-            subClass: subClass,
-            className: className));
+            nameType: nameType, subClass: subClass, className: className));
       } else if (lowerGeneric || element == subClass) {
         jsArgs = [];
       }
       if (jsArgs != null) {
         var genericName = _emitTopLevelNameNoInterop(element, suffix: '\$');
         var typeRep = js.call('#(#)', [genericName, jsArgs]);
-        return nameType
-            ? _typeTable.nameType(type, typeRep, hoistType: hoistType)
-            : typeRep;
+        return nameType ? _typeTable.nameType(type, typeRep) : typeRep;
       }
     }
 
@@ -3162,7 +3254,7 @@ class CodeGenerator extends Object
       ..staticElement = element
       ..staticType = getStaticType(lhs);
 
-    var castTo = getImplicitAssignmentCast(left);
+    var castTo = getImplicitOperationCast(left);
     if (castTo != null) inc = CoercionReifier.castExpression(inc, castTo);
     return new JS.MetaLet(vars, [_emitSet(lhs, inc)]);
   }
@@ -3483,8 +3575,11 @@ class CodeGenerator extends Object
       return _callHelper('#(#, #)', [name, jsTarget, args]);
     }
     jsTarget = _emitTargetAccess(jsTarget, jsName, element);
+    var castTo = getImplicitOperationCast(node);
+    if (castTo != null) {
+      jsTarget = js.call('#._check(#)', [_emitType(castTo), jsTarget]);
+    }
     if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
-
     return new JS.Call(jsTarget, args);
   }
 
@@ -3554,8 +3649,10 @@ class CodeGenerator extends Object
   /// an expression.
   JS.Expression _emitFunctionCall(InvocationExpression node,
       [Expression function]) {
-    if (function == null) {
-      function = node.function;
+    function ??= node.function;
+    var castTo = getImplicitOperationCast(function);
+    if (castTo != null) {
+      function = CoercionReifier.castExpression(function, castTo);
     }
     if (_isCoreIdentical(function)) {
       return _emitCoreIdenticalCall(node.argumentList.arguments);
@@ -5102,9 +5199,7 @@ class CodeGenerator extends Object
 
     // TODO(jmesserly): this is inconsistent with [visitIsExpression], which
     // has special case for typeof.
-    var castType = _emitType(clause.exceptionType.type,
-        nameType: options.nameTypeTests || options.hoistTypeTests,
-        hoistType: options.hoistTypeTests);
+    var castType = _emitType(clause.exceptionType.type);
 
     return new JS.If(js.call('#.is(#)', [castType, _visit(_catchParameter)]),
         then, otherwise);
@@ -5360,7 +5455,7 @@ class CodeGenerator extends Object
       if (op == '&&') return shortCircuit('# && #');
       if (op == '||') return shortCircuit('# || #');
     }
-    if (node is AsExpression && CoercionReifier.isImplicitCast(node)) {
+    if (node is AsExpression && CoercionReifier.isRequiredForSoundness(node)) {
       assert(node.staticType == types.boolType);
       return _callHelper('dtest(#)', _visit(node.expression));
     }

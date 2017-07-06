@@ -497,19 +497,25 @@ class StrongTypeSystemImpl extends TypeSystem {
         !nonnullableTypes.contains(_getTypeFullyQualifiedName(type));
   }
 
-  /// Check that [f1] is a subtype of [f2] for an override.
+  /// Check that [f1] is a subtype of [f2] for a member override.
   ///
   /// This is different from the normal function subtyping in two ways:
   /// - we know the function types are strict arrows,
   /// - it allows opt-in covariant parameters.
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(
-        f1,
-        f2,
-        (t1, t2, t1Covariant, _) =>
-            isSubtypeOf(t2, t1) || t1Covariant && isSubtypeOf(t1, t2),
-        instantiateToBounds,
-        returnRelation: isSubtypeOf);
+    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
+        parameterRelation: isOverrideSubtypeOfParameter);
+  }
+
+  /// Check that parameter [p2] is a subtype of [p1], given that we are
+  /// checking `f1 <: f2` where `p1` is a parameter of `f1` and `p2` is a
+  /// parameter of `f2`.
+  ///
+  /// Parameters are contravariant, so we must check `p2 <: p1` to
+  /// determine if `f1 <: f2`. This is used by [isOverrideSubtypeOf].
+  bool isOverrideSubtypeOfParameter(ParameterElement p1, ParameterElement p2) {
+    return isSubtypeOf(p2.type, p1.type) ||
+        p1.isCovariant && isSubtypeOf(p1.type, p2.type);
   }
 
   @override
@@ -789,13 +795,10 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// that dynamic parameters of f1 and f2 are treated as bottom.
   bool _isFunctionSubtypeOf(
       FunctionType f1, FunctionType f2, Set<TypeImpl> visitedTypes) {
-    return FunctionTypeImpl.relate(
-        f1,
-        f2,
-        (t1, t2, _, __) =>
-            _isSubtypeOf(t2, t1, visitedTypes, dynamicIsBottom: true),
-        instantiateToBounds,
-        returnRelation: isSubtypeOf);
+    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
+        parameterRelation: (p1, p2) => _isSubtypeOf(
+            p2.type, p1.type, visitedTypes,
+            dynamicIsBottom: true));
   }
 
   bool _isInterfaceSubtypeOf(
@@ -2176,14 +2179,16 @@ class _GenericInferrer {
       FunctionTypeImpl.relate(
           t1,
           t2,
-          (t1, t2, _, __) {
-            _matchSubtypeOf(t2, t1, null, origin,
-                covariant: !covariant, dynamicIsBottom: true);
+          (t1, t2) {
+            // TODO(jmesserly): should we flip covariance when we're relating
+            // type formal bounds? They're more like parameters.
+            matchSubtype(t1, t2);
             return true;
           },
           _typeSystem.instantiateToBounds,
-          returnRelation: (t1, t2) {
-            matchSubtype(t1, t2);
+          parameterRelation: (p1, p2) {
+            _matchSubtypeOf(p2.type, p1.type, null, origin,
+                covariant: !covariant, dynamicIsBottom: true);
             return true;
           });
     }

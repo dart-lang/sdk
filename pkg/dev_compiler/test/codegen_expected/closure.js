@@ -51,7 +51,7 @@ closure.Foo$ = dart.generic(T => {
       return this[v$];
     }
     set v(value) {
-      this[v$] = value;
+      this[v$] = T._check(value);
     }
     static build() {
       return new (FooOfT()).new(1, null);

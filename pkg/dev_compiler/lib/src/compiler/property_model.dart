@@ -190,8 +190,15 @@ class ClassPropertyModel {
   final extensionMembers = new Set<ExecutableElement>();
   final mixinExtensionMembers = new Set<ExecutableElement>();
 
-  ClassPropertyModel.build(ExtensionTypeSet extensionTypes,
-      VirtualFieldModel fieldModel, ClassElement classElem) {
+  /// Parameters that are covariant due to covariant generics.
+  final Set<Element> covariantParameters;
+
+  ClassPropertyModel.build(
+      ExtensionTypeSet extensionTypes,
+      VirtualFieldModel fieldModel,
+      ClassElement classElem,
+      this.covariantParameters,
+      Set<ExecutableElement> covariantPrivateMembers) {
     // Visit superclasses to collect information about their fields/accessors.
     // This is expensive so we try to collect everything in one pass.
     for (var base in getSuperclasses(classElem)) {
@@ -233,8 +240,13 @@ class ClassPropertyModel {
       var name = field.name;
       // Is it a field?
       if (!field.isSynthetic && field is FieldElementImpl) {
+        var setter = field.setter;
         if (virtualAccessorNames.contains(name) ||
-            fieldModel.isVirtual(field)) {
+            fieldModel.isVirtual(field) ||
+            setter != null &&
+                covariantParameters != null &&
+                covariantParameters.contains(setter.parameters[0]) &&
+                covariantPrivateMembers.contains(setter)) {
           if (field.isStatic) {
             staticFieldOverrides.add(field);
           } else {
