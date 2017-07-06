@@ -137,7 +137,7 @@ dart_library =
 
   // Map from name to LibraryLoader
   let _libraries = new Map();
-  dart_library.libraries = function() { return libraries.keys(); };
+  dart_library.libraries = function() { return _libraries.keys(); };
   dart_library.debuggerLibraries = function() {
     var debuggerLibraries = [];
     _libraries.forEach(function (value, key, map) {
