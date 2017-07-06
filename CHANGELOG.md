@@ -59,6 +59,11 @@
     * Fixed a Safari issue during bootstrapping (note that Safari is still not
       officially supported but does work for trivial examples).
 
+* dartfmt
+
+    * Support assert in const constructor initializer lists.
+    * Better formatting for multi-line strings in argument lists.
+
 ## 1.24.2 - 22-06-2017
 
 * Fixes for debugging in Dartium.
