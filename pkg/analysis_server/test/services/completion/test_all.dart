@@ -4,13 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'dart/test_all.dart' as dart_contributor_tests;
-import 'statement/statement_completion_test.dart' as statement_completion_test;
+import 'dart/test_all.dart' as dart_all;
+import 'postfix/test_all.dart' as postfix_all;
+import 'statement/test_all.dart' as statement_all;
 
-/// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
-    dart_contributor_tests.main();
-    statement_completion_test.main();
+    dart_all.main();
+    postfix_all.main();
+    statement_all.main();
   }, name: 'completion');
 }
