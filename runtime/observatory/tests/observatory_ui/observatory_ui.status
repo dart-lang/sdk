@@ -22,5 +22,5 @@ heap_snapshot/element_test: RuntimeError # Issue 27925
 vm_connect/element_test: Skip # Times out
 heap_snapshot/element_test: RuntimeError # Issue 27925
 
-[ $runtime == ff ]
+[ $runtime == ff || $runtime == safari ]
 virtual_tree/element_test: Fail # Issue 30087
