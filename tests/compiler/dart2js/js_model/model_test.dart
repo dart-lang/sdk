@@ -23,6 +23,7 @@ main() {
   bar(true);
   [];
   {};
+  new Object();
 }
 '''
 };

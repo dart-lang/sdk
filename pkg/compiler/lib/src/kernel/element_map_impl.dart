@@ -84,6 +84,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   /// fast lookup into class members.
   List<ClassEnv> _classEnvs = <ClassEnv>[];
 
+  /// List of class data by `IndexedClass.classIndex`. This is used for
+  /// fast lookup into class properties.
+  List<ClassData> _classData = <ClassData>[];
+
   /// List of member data by `IndexedMember.memberIndex`. This is used for
   /// fast lookup into member properties.
   List<MemberData> _memberData = <MemberData>[];
@@ -189,28 +193,28 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]);
 
   InterfaceType _getSuperType(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.supertype;
+    ClassData data = _classData[cls.classIndex];
+    _ensureSupertypes(cls, data);
+    return data.supertype;
   }
 
-  void _ensureThisAndRawType(ClassEntity cls, ClassEnv env) {
-    if (env.thisType == null) {
-      ir.Class node = env.cls;
+  void _ensureThisAndRawType(ClassEntity cls, ClassData data) {
+    if (data.thisType == null) {
+      ir.Class node = data.cls;
       // TODO(johnniwinther): Add the type argument to the list literal when we
       // no longer use resolution types.
       if (node.typeParameters.isEmpty) {
-        env.thisType =
-            env.rawType = new InterfaceType(cls, const/*<DartType>*/ []);
+        data.thisType =
+            data.rawType = new InterfaceType(cls, const/*<DartType>*/ []);
       } else {
-        env.thisType = new InterfaceType(
+        data.thisType = new InterfaceType(
             cls,
             new List/*<DartType>*/ .generate(node.typeParameters.length,
                 (int index) {
               return new TypeVariableType(
                   _getTypeVariable(node.typeParameters[index]));
             }));
-        env.rawType = new InterfaceType(
+        data.rawType = new InterfaceType(
             cls,
             new List/*<DartType>*/ .filled(
                 node.typeParameters.length, const DynamicType()));
@@ -223,34 +227,34 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   TypeVariableEntity _getTypeVariable(ir.TypeParameter node);
 
-  void _ensureSupertypes(ClassEntity cls, ClassEnv env) {
-    if (env.orderedTypeSet == null) {
-      _ensureThisAndRawType(cls, env);
+  void _ensureSupertypes(ClassEntity cls, ClassData data) {
+    if (data.orderedTypeSet == null) {
+      _ensureThisAndRawType(cls, data);
 
-      ir.Class node = env.cls;
+      ir.Class node = data.cls;
 
       if (node.supertype == null) {
-        env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
-        env.isMixinApplication = false;
-        env.interfaces = const <InterfaceType>[];
+        data.orderedTypeSet = new OrderedTypeSet.singleton(data.thisType);
+        data.isMixinApplication = false;
+        data.interfaces = const <InterfaceType>[];
       } else {
         InterfaceType processSupertype(ir.Supertype node) {
-          InterfaceType type = _typeConverter.visitSupertype(node);
-          IndexedClass superclass = type.element;
-          ClassEnv env = _classEnvs[superclass.classIndex];
-          _ensureSupertypes(superclass, env);
-          return type;
+          InterfaceType supertype = _typeConverter.visitSupertype(node);
+          IndexedClass superclass = supertype.element;
+          ClassData superdata = _classData[superclass.classIndex];
+          _ensureSupertypes(superclass, superdata);
+          return supertype;
         }
 
-        env.supertype = processSupertype(node.supertype);
+        data.supertype = processSupertype(node.supertype);
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
-          env.isMixinApplication = true;
+          data.isMixinApplication = true;
           linkBuilder
-              .addLast(env.mixedInType = processSupertype(node.mixedInType));
+              .addLast(data.mixedInType = processSupertype(node.mixedInType));
         } else {
-          env.isMixinApplication = false;
+          data.isMixinApplication = false;
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
@@ -258,9 +262,9 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         Link<InterfaceType> interfaces = linkBuilder.toLink();
         OrderedTypeSetBuilder setBuilder =
             new _KernelOrderedTypeSetBuilder(this, cls);
-        env.orderedTypeSet =
-            setBuilder.createOrderedTypeSet(env.supertype, interfaces);
-        env.interfaces = new List<InterfaceType>.from(interfaces.toList());
+        data.orderedTypeSet =
+            setBuilder.createOrderedTypeSet(data.supertype, interfaces);
+        data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
   }
@@ -392,15 +396,15 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   InterfaceType _getThisType(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureThisAndRawType(cls, env);
-    return env.thisType;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.thisType;
   }
 
   InterfaceType _getRawType(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureThisAndRawType(cls, env);
-    return env.rawType;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.rawType;
   }
 
   FunctionType _getFunctionType(IndexedFunction function) {
@@ -409,37 +413,36 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   ClassEntity _getAppliedMixin(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.mixedInType?.element;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.mixedInType?.element;
   }
 
   bool _isMixinApplication(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.isMixinApplication;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.isMixinApplication;
   }
 
   bool _isUnnamedMixinApplication(IndexedClass cls) {
     ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
     return env.isUnnamedMixinApplication;
   }
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    env.orderedTypeSet.supertypes.forEach(f);
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    data.orderedTypeSet.supertypes.forEach(f);
   }
 
   void _forEachMixin(IndexedClass cls, void f(ClassEntity mixin)) {
     while (cls != null) {
-      ClassEnv env = _classEnvs[cls.classIndex];
-      _ensureSupertypes(cls, env);
-      if (env.mixedInType != null) {
-        f(env.mixedInType.element);
+      ClassData data = _classData[cls.classIndex];
+      _ensureThisAndRawType(cls, data);
+      if (data.mixedInType != null) {
+        f(data.mixedInType.element);
       }
-      cls = env.supertype?.element;
+      cls = data.supertype?.element;
     }
   }
 
@@ -456,9 +459,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     env.forEachMember((ir.Member member) {
       f(cls, getMember(member));
     });
-    _ensureSupertypes(cls, env);
-    if (env.supertype != null) {
-      _forEachClassMember(env.supertype.element, f);
+    ClassData data = _classData[cls.classIndex];
+    _ensureSupertypes(cls, data);
+    if (data.supertype != null) {
+      _forEachClassMember(data.supertype.element, f);
     }
   }
 
@@ -483,21 +487,21 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   OrderedTypeSet _getOrderedTypeSet(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.orderedTypeSet;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.orderedTypeSet;
   }
 
   int _getHierarchyDepth(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.orderedTypeSet.maxDepth;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.orderedTypeSet.maxDepth;
   }
 
   Iterable<InterfaceType> _getInterfaces(IndexedClass cls) {
-    ClassEnv env = _classEnvs[cls.classIndex];
-    _ensureSupertypes(cls, env);
-    return env.interfaces;
+    ClassData data = _classData[cls.classIndex];
+    _ensureThisAndRawType(cls, data);
+    return data.interfaces;
   }
 
   Spannable _getSpannable(MemberEntity member, ir.Node node) {
@@ -520,6 +524,7 @@ abstract class ElementCreatorMixin {
   List<LibraryEnv> get _libraryEnvs;
   List<ClassEntity> get _classList;
   List<ClassEnv> get _classEnvs;
+  List<ClassData> get _classData;
   List<MemberEntity> get _memberList;
   List<MemberData> get _memberData;
 
@@ -572,6 +577,7 @@ abstract class ElementCreatorMixin {
         classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
       }
       _classEnvs.add(classEnv);
+      _classData.add(new ClassData(node));
       ClassEntity cls = createClass(library, _classMap.length, node.name,
           isAbstract: node.isAbstract);
       _classList.add(cls);
@@ -948,7 +954,7 @@ abstract class KernelToElementMapForImpactImpl
   }
 
   Iterable<ConstantValue> _getClassMetadata(KClass cls) {
-    return _classEnvs[cls.classIndex].getMetadata(this);
+    return _classData[cls.classIndex].getMetadata(this);
   }
 }
 
@@ -1081,12 +1087,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isMixinApplication(covariant KClass cls) {
+  bool isMixinApplication(ClassEntity cls) {
     return elementMap._isMixinApplication(cls);
   }
 
   @override
-  bool isUnnamedMixinApplication(covariant KClass cls) {
+  bool isUnnamedMixinApplication(ClassEntity cls) {
     return elementMap._isUnnamedMixinApplication(cls);
   }
 
@@ -1214,7 +1220,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  void forEachClass(covariant KLibrary library, void f(ClassEntity cls)) {
+  void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
     elementMap._forEachClass(library, f);
   }
 
@@ -1229,13 +1235,13 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isDeferredLoadLibraryGetter(covariant KMember member) {
+  bool isDeferredLoadLibraryGetter(MemberEntity member) {
     // TODO(redemption): Support these.
     return false;
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(covariant KMember member) {
+  Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member) {
     MemberData memberData = elementMap._memberData[member.memberIndex];
     return memberData.getMetadata(elementMap);
   }
@@ -1712,6 +1718,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         classIndex < _elementMap._classEnvs.length;
         classIndex++) {
       ClassEnv env = _elementMap._classEnvs[classIndex];
+      ClassData data = _elementMap._classData[classIndex];
       ClassEntity oldClass = _elementMap._classList[classIndex];
       IndexedLibrary oldLibrary = oldClass.library;
       LibraryEntity newLibrary = _libraryList[oldLibrary.libraryIndex];
@@ -1719,6 +1726,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       _classMap[env.cls] = newClass;
       _classList.add(newClass);
       _classEnvs.add(env);
+      _classData.add(data.copy());
     }
     for (int memberIndex = 0;
         memberIndex < _elementMap._memberData.length;
@@ -1732,7 +1740,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
           oldClass != null ? _classList[oldClass.classIndex] : null;
       IndexedMember newMember = convertMember(newLibrary, newClass, oldMember);
       _memberList.add(newMember);
-      _memberData.add(data);
+      _memberData.add(data.copy());
       if (newMember.isField) {
         _fieldMap[data.node] = newMember;
       } else if (newMember.isConstructor) {
@@ -1771,11 +1779,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
     ClassEntity cls = _classMap[node];
     assert(cls != null, "No class entity for $node");
     return cls;
-  }
-
-  @override
-  TypeVariableEntity _getTypeVariable(ir.TypeParameter node) {
-    throw new UnsupportedError("JsKernelToElementMap._getTypeVariable");
   }
 
   // TODO(johnniwinther): Reinsert these when [ElementCreatorMixin] is no longer

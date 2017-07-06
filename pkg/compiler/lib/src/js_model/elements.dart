@@ -109,7 +109,7 @@ class JsElementCreatorMixin {
 
   TypeVariableEntity createTypeVariable(
       Entity typeDeclaration, String name, int index) {
-    throw new UnsupportedError('JsElementCreatorMixin.createTypeVariable');
+    return new JTypeVariable(typeDeclaration, name, index);
   }
 
   IndexedConstructor createGenerativeConstructor(

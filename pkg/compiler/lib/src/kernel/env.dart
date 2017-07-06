@@ -149,21 +149,11 @@ class LibraryEnv {
 /// Environment for fast lookup of class members.
 class ClassEnv {
   final ir.Class cls;
-  bool isMixinApplication;
   final bool isUnnamedMixinApplication;
-
-  InterfaceType thisType;
-  InterfaceType rawType;
-  InterfaceType supertype;
-  InterfaceType mixedInType;
-  List<InterfaceType> interfaces;
-  OrderedTypeSet orderedTypeSet;
 
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
-
-  Iterable<ConstantValue> _metadata;
 
   ClassEnv(this.cls)
       // TODO(johnniwinther): Change this to use a property on [cls] when such
@@ -305,9 +295,29 @@ class ClassEnv {
     _ensureMaps();
     _constructorMap.values.forEach(f);
   }
+}
+
+class ClassData {
+  final ir.Class cls;
+  bool isMixinApplication;
+
+  InterfaceType thisType;
+  InterfaceType rawType;
+  InterfaceType supertype;
+  InterfaceType mixedInType;
+  List<InterfaceType> interfaces;
+  OrderedTypeSet orderedTypeSet;
+
+  Iterable<ConstantValue> _metadata;
+
+  ClassData(this.cls);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(cls.annotations);
+  }
+
+  ClassData copy() {
+    return new ClassData(cls);
   }
 }
 
@@ -323,6 +333,10 @@ class MemberData {
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
+  }
+
+  MemberData copy() {
+    return new MemberData(node);
   }
 }
 
@@ -360,6 +374,11 @@ class FunctionData extends MemberData {
       ..sort(namedOrdering)
       ..forEach(handleParameter);
   }
+
+  @override
+  FunctionData copy() {
+    return new FunctionData(node, functionNode);
+  }
 }
 
 class ConstructorData extends FunctionData {
@@ -383,6 +402,11 @@ class ConstructorData extends FunctionData {
     }
     return _constantConstructor;
   }
+
+  @override
+  ConstructorData copy() {
+    return new ConstructorData(node, functionNode);
+  }
 }
 
 class FieldData extends MemberData {
@@ -405,5 +429,10 @@ class FieldData extends MemberData {
       }
     }
     return _constant;
+  }
+
+  @override
+  FieldData copy() {
+    return new FieldData(node);
   }
 }
