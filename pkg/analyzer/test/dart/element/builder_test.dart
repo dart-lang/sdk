@@ -481,10 +481,9 @@ class C {
   }
 
   void test_visitLabeledStatement() {
-    List<LabelElement> labels =
-        buildElementsForText('f() { l: print(42); }').functions[0].labels;
-    expect(labels, hasLength(1));
-    LabelElement label = labels[0];
+    String code = 'f() { l: print(42); }';
+    buildElementsForText(code);
+    LabelElement label = findLabel(code, 'l:');
     expect(label, isNotNull);
     expect(label.name, 'l');
     expect(label.isSynthetic, isFalse);
@@ -516,9 +515,7 @@ class C {
     var e = findLocalVariable(code, 'e) {}');
     expect(e.name, 'e');
 
-    List<LabelElement> labels = method.labels;
-    expect(labels, hasLength(1));
-    LabelElement label = labels[0];
+    LabelElement label = findLabel(code, 'l:');
     expect(label, isNotNull);
     expect(label.name, labelName);
   }
@@ -1640,7 +1637,6 @@ class C {
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
     expect(constructor.parameters, hasLength(0));
   }
 
@@ -1665,7 +1661,6 @@ class C {
     expect(constructor.isFactory, isTrue);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
     expect(constructor.parameters, hasLength(0));
   }
 
@@ -1696,7 +1691,6 @@ class C {
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
     expect(constructor.parameters, hasLength(0));
   }
 
@@ -1722,7 +1716,6 @@ class C {
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, constructorName);
     expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
     expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.name.staticElement, same(constructor));
     expect(constructorDeclaration.element, same(constructor));
@@ -1749,7 +1742,6 @@ class C {
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
     expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.element, same(constructor));
   }
@@ -2039,7 +2031,6 @@ class C {
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isTrue);
@@ -2107,7 +2098,6 @@ class A {
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2152,7 +2142,6 @@ class A {
     expect(getter.name, methodName);
     expect(getter.variable, field);
     expect(getter.functions, hasLength(0));
-    expect(getter.labels, hasLength(0));
     expect(getter.parameters, hasLength(0));
   }
 
@@ -2186,7 +2175,6 @@ class A {
     expect(getter.name, methodName);
     expect(getter.variable, field);
     expect(getter.functions, hasLength(0));
-    expect(getter.labels, hasLength(0));
     expect(getter.parameters, hasLength(0));
   }
 
@@ -2221,7 +2209,6 @@ class A {
     expect(getter.name, methodName);
     expect(getter.variable, field);
     expect(getter.functions, hasLength(0));
-    expect(getter.labels, hasLength(0));
     expect(getter.parameters, hasLength(0));
   }
 
@@ -2251,7 +2238,6 @@ class A {
     expect(method.hasImplicitReturnType, isFalse);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2281,7 +2267,6 @@ class A {
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
     expect(method.parameters, hasLength(1));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2328,7 +2313,6 @@ class A {
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
     expect(setter.functions, hasLength(0));
-    expect(setter.labels, hasLength(0));
     expect(setter.parameters, hasLength(0));
   }
 
@@ -2363,7 +2347,6 @@ class A {
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
     expect(setter.functions, hasLength(0));
-    expect(setter.labels, hasLength(0));
     expect(setter.parameters, hasLength(0));
   }
 
@@ -2399,7 +2382,6 @@ class A {
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
     expect(setter.functions, hasLength(0));
-    expect(setter.labels, hasLength(0));
     expect(setter.parameters, hasLength(0));
   }
 
@@ -2422,7 +2404,6 @@ class A {
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2452,7 +2433,6 @@ class A {
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(1));
     expect(method.isAbstract, isFalse);
@@ -2617,6 +2597,10 @@ abstract class _BaseTest extends ParserTestCase {
   }
 
   LocalVariableElement findLocalVariable(String code, String prefix) {
+    return findIdentifier(code, prefix).staticElement;
+  }
+
+  LabelElement findLabel(String code, String prefix) {
     return findIdentifier(code, prefix).staticElement;
   }
 
