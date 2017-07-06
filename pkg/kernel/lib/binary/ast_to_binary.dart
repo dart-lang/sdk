@@ -378,6 +378,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
     writeOffset(node.fileOffset);
+    writeOffset(node.fileEndOffset);
     writeByte(flags);
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri ?? '');

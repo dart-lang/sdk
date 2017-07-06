@@ -1198,6 +1198,7 @@ class ClassHelper {
     kStart,  // tag.
     kCanonicalName,
     kPosition,
+    kEndPosition,
     kIsAbstract,
     kNameIndex,
     kSourceUriIndex,
@@ -1237,6 +1238,9 @@ class ClassHelper {
         if (++next_read_ == field) return;
       case kPosition:
         position_ = builder_->ReadPosition(false);  // read position.
+        if (++next_read_ == field) return;
+      case kEndPosition:
+        end_position_ = builder_->ReadPosition();  // read end position.
         if (++next_read_ == field) return;
       case kIsAbstract:
         is_abstract_ = builder_->ReadBool();  // read is_abstract.
@@ -1314,6 +1318,7 @@ class ClassHelper {
 
   NameIndex canonical_name_;
   TokenPosition position_;
+  TokenPosition end_position_;
   bool is_abstract_;
   StringIndex name_index_;
   intptr_t source_uri_index_;

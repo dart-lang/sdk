@@ -223,6 +223,7 @@ abstract type Class extends Node {
   Byte tag = 2;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.

@@ -585,6 +585,11 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 class Class extends NamedNode {
+  /// End offset in the source file it comes from. Valid values are from 0 and
+  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
+  /// (this is the default if none is specifically set).
+  int fileEndOffset = TreeNode.noOffset;
+
   /// Offset of the declaration, set and used when writing the binary.
   int binaryOffset = -1;
 

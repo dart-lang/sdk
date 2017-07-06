@@ -445,6 +445,7 @@ class BinaryBuilder {
       node = new Class(reference: reference)..level = ClassLevel.Temporary;
     }
     node.fileOffset = readOffset();
+    node.fileEndOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     int levelIndex = (flags >> 1) & 0x3;
