@@ -48,16 +48,16 @@
   * `pub get` and `pub upgrade` properly produce an error message and exit code
     when no network is present.
 
-  * Bug fixes for dartdevc support in `pub serve`.
+  * `pub serve` now waits for file watcher events to stabilize before scheduling
+     new builds. This helps specifically with `safe-write` features in editors,
+     as well as other situations such as `save all` which cause many fast edits.
 
-    * Fixed module config invalidation logic so modules are properly
-      recalculated when package layout changes.
-    * Fixed exception when handling require.js errors that aren't script load
-      errors.
-    * Fixed an issue where requesting the bootstrap.js file before the dart.js
-      file would result in a 404.
-    * Fixed a Safari issue during bootstrapping (note that Safari is still not
-      officially supported but does work for trivial examples).
+  * Added the `--build-delay` argument to `pub serve` which sets the amount of
+    time (in ms) to wait between file watcher events before scheduling a build.
+    Defaults to 50.
+
+  * Removed require.js module loading timeout for dartdevc, which resolves an
+    issue where the initial load of an app might give a timeout error.
 
 * dartfmt
 
