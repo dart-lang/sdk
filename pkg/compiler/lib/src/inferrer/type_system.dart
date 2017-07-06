@@ -370,7 +370,23 @@ class TypeSystem {
   MemberTypeInformation getInferredTypeOfMember(MemberElement member) {
     member = member.implementation;
     return memberTypeInformations.putIfAbsent(member, () {
-      MemberTypeInformation typeInformation = new MemberTypeInformation(member);
+      MemberTypeInformation typeInformation;
+      if (member.isField) {
+        typeInformation = new FieldTypeInformation(member);
+      } else if (member.isGetter) {
+        typeInformation = new GetterTypeInformation(member);
+      } else if (member.isSetter) {
+        typeInformation = new SetterTypeInformation(member);
+      } else if (member.isFunction) {
+        typeInformation = new MethodTypeInformation(member);
+      } else {
+        ConstructorElement constructor = member;
+        if (constructor.isFactoryConstructor) {
+          typeInformation = new FactoryConstructorTypeInformation(member);
+        } else {
+          typeInformation = new GenerativeConstructorTypeInformation(member);
+        }
+      }
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });

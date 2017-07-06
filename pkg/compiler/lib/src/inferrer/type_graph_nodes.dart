@@ -13,11 +13,8 @@ import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
-    show
-        ResolutionDartType,
-        ResolutionFunctionType,
-        ResolutionInterfaceType,
-        ResolutionTypeKind;
+    show ResolutionDartType, ResolutionInterfaceType;
+import '../elements/types.dart';
 import '../tree/tree.dart' as ast show Node, Send;
 import '../types/masks.dart'
     show
@@ -370,7 +367,7 @@ abstract class ElementTypeInformation extends TypeInformation {
  * These should never be created directly but instead are constructed by
  * the [ElementTypeInformation] factory.
  */
-class MemberTypeInformation extends ElementTypeInformation
+abstract class MemberTypeInformation extends ElementTypeInformation
     with ApplyableTypeInformation {
   MemberElement get _member => super._element;
 
@@ -396,7 +393,8 @@ class MemberTypeInformation extends ElementTypeInformation
    */
   Map<MemberElement, Setlet<Spannable>> _callers;
 
-  MemberTypeInformation(MemberElement element) : super._internal(null, element);
+  MemberTypeInformation._internal(MemberElement element)
+      : super._internal(null, element);
 
   MemberElement get member => _element;
 
@@ -455,59 +453,19 @@ class MemberTypeInformation extends ElementTypeInformation
   // state of the [isStable] field inherited from [TypeInformation].
   bool get isStable => super.isStable && !isClosurized;
 
-  TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (_member.isField &&
-        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
-                _member, inferrer.closedWorld) ||
-            inferrer.assumeDynamic(_member))) {
-      // Do not infer types for fields that have a corresponding annotation or
-      // are assigned by synthesized calls
+  TypeMask handleSpecialCases(InferrerEngine inferrer);
 
-      giveUp(inferrer);
-      return safeType(inferrer);
-    }
-    if (inferrer.closedWorld.nativeData.isNativeMember(_member)) {
+  TypeMask _handleFunctionCase(
+      FunctionEntity function, InferrerEngine inferrer) {
+    if (inferrer.closedWorld.nativeData.isNativeMember(function)) {
       // Use the type annotation as the type for native elements. We
       // also give up on inferring to make sure this element never
       // goes in the work queue.
       giveUp(inferrer);
-      if (_member.isField) {
-        FieldElement field = _member;
-        return inferrer
-            .typeOfNativeBehavior(inferrer.closedWorld.nativeData
-                .getNativeFieldLoadBehavior(field))
-            .type;
-      } else {
-        assert(_member.isFunction ||
-            _member.isGetter ||
-            _member.isSetter ||
-            _member.isConstructor);
-        MethodElement methodElement = _member;
-        var elementType = methodElement.type;
-        if (elementType.kind != ResolutionTypeKind.FUNCTION) {
-          return safeType(inferrer);
-        } else {
-          return inferrer
-              .typeOfNativeBehavior(inferrer.closedWorld.nativeData
-                  .getNativeMethodBehavior(methodElement))
-              .type;
-        }
-      }
-    }
-
-    CommonMasks commonMasks = inferrer.commonMasks;
-    if (_member.isConstructor) {
-      ConstructorElement constructor = _member;
-      if (constructor.isIntFromEnvironmentConstructor) {
-        giveUp(inferrer);
-        return commonMasks.intType.nullable();
-      } else if (constructor.isBoolFromEnvironmentConstructor) {
-        giveUp(inferrer);
-        return commonMasks.boolType.nullable();
-      } else if (constructor.isStringFromEnvironmentConstructor) {
-        giveUp(inferrer);
-        return commonMasks.stringType.nullable();
-      }
+      return inferrer
+          .typeOfNativeBehavior(
+              inferrer.closedWorld.nativeData.getNativeMethodBehavior(function))
+          .type;
     }
     return null;
   }
@@ -519,18 +477,10 @@ class MemberTypeInformation extends ElementTypeInformation
         !inferrer.trustTypeAnnotations(_member)) {
       return mask;
     }
-    if (_member.isGenerativeConstructor || _member.isSetter) {
-      return mask;
-    }
-    if (_member.isField) {
-      return _narrowType(inferrer.closedWorld, mask, _member.type);
-    }
-    assert(
-        _member.isFunction || _member.isGetter || _member.isFactoryConstructor);
-
-    ResolutionFunctionType type = _member.type;
-    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+    return _potentiallyNarrowType(mask, inferrer);
   }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer);
 
   TypeMask computeType(InferrerEngine inferrer) {
     TypeMask special = handleSpecialCases(inferrer);
@@ -549,18 +499,6 @@ class MemberTypeInformation extends ElementTypeInformation
     return visitor.visitMemberTypeInformation(this);
   }
 
-  bool hasStableType(InferrerEngine inferrer) {
-    // The number of assignments of non-final fields is
-    // not stable. Therefore such a field cannot be stable.
-    if (_member.isField && !(_member.isConst || _member.isFinal)) {
-      return false;
-    }
-
-    if (_member.isFunction) return false;
-
-    return super.hasStableType(inferrer);
-  }
-
   void cleanup() {
     // This node is on multiple lists so cleanup() can be called twice.
     if (_isCalledOnce != null) return;
@@ -572,6 +510,144 @@ class MemberTypeInformation extends ElementTypeInformation
   @override
   String getInferredSignature(TypeSystem types) {
     return types.getInferredSignatureOfMethod(_member);
+  }
+}
+
+class FieldTypeInformation extends MemberTypeInformation {
+  FieldElement get _field => _member;
+
+  FieldTypeInformation(FieldElement element) : super._internal(element);
+
+  TypeMask handleSpecialCases(InferrerEngine inferrer) {
+    if (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(
+            _field, inferrer.closedWorld) ||
+        inferrer.assumeDynamic(_field)) {
+      // Do not infer types for fields that have a corresponding annotation or
+      // are assigned by synthesized calls
+
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+    if (inferrer.closedWorld.nativeData.isNativeMember(_field)) {
+      // Use the type annotation as the type for native elements. We
+      // also give up on inferring to make sure this element never
+      // goes in the work queue.
+      giveUp(inferrer);
+      return inferrer
+          .typeOfNativeBehavior(inferrer.closedWorld.nativeData
+              .getNativeFieldLoadBehavior(_field))
+          .type;
+    }
+    return null;
+  }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
+    return _narrowType(inferrer.closedWorld, mask, _field.type);
+  }
+
+  bool hasStableType(InferrerEngine inferrer) {
+    // The number of assignments of non-final fields is
+    // not stable. Therefore such a field cannot be stable.
+    if (!(_field.isConst || _field.isFinal)) {
+      return false;
+    }
+    return super.hasStableType(inferrer);
+  }
+}
+
+class GetterTypeInformation extends MemberTypeInformation {
+  GetterElement get _getter => _member;
+
+  GetterTypeInformation(GetterElement element) : super._internal(element);
+
+  TypeMask handleSpecialCases(InferrerEngine inferrer) {
+    return _handleFunctionCase(_getter, inferrer);
+  }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
+    FunctionType type = _getter.type;
+    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+  }
+}
+
+class SetterTypeInformation extends MemberTypeInformation {
+  SetterElement get _setter => _member;
+
+  SetterTypeInformation(SetterElement element) : super._internal(element);
+
+  TypeMask handleSpecialCases(InferrerEngine inferrer) {
+    return _handleFunctionCase(_setter, inferrer);
+  }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
+    return mask;
+  }
+}
+
+class MethodTypeInformation extends MemberTypeInformation {
+  MethodElement get _method => _member;
+
+  MethodTypeInformation(MethodElement element) : super._internal(element);
+
+  TypeMask handleSpecialCases(InferrerEngine inferrer) {
+    return _handleFunctionCase(_method, inferrer);
+  }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
+    FunctionType type = _method.type;
+    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+  }
+
+  bool hasStableType(InferrerEngine inferrer) => false;
+}
+
+class FactoryConstructorTypeInformation extends MemberTypeInformation {
+  ConstructorElement get _constructor => _member;
+
+  FactoryConstructorTypeInformation(ConstructorElement element)
+      : super._internal(element);
+
+  TypeMask handleSpecialCases(InferrerEngine inferrer) {
+    CommonMasks commonMasks = inferrer.commonMasks;
+    if (_constructor.isIntFromEnvironmentConstructor) {
+      giveUp(inferrer);
+      return commonMasks.intType.nullable();
+    } else if (_constructor.isBoolFromEnvironmentConstructor) {
+      giveUp(inferrer);
+      return commonMasks.boolType.nullable();
+    } else if (_constructor.isStringFromEnvironmentConstructor) {
+      giveUp(inferrer);
+      return commonMasks.stringType.nullable();
+    }
+    return _handleFunctionCase(_constructor, inferrer);
+  }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
+    FunctionType type = _constructor.type;
+    return _narrowType(inferrer.closedWorld, mask, type.returnType);
+  }
+
+  bool hasStableType(InferrerEngine inferrer) {
+    return super.hasStableType(inferrer);
+  }
+}
+
+class GenerativeConstructorTypeInformation extends MemberTypeInformation {
+  ConstructorElement get _constructor => _member;
+
+  GenerativeConstructorTypeInformation(ConstructorElement element)
+      : super._internal(element);
+
+  TypeMask handleSpecialCases(InferrerEngine inferrer) {
+    return _handleFunctionCase(_constructor, inferrer);
+  }
+
+  TypeMask _potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
+    return mask;
+  }
+
+  bool hasStableType(InferrerEngine inferrer) {
+    return super.hasStableType(inferrer);
   }
 }
 
