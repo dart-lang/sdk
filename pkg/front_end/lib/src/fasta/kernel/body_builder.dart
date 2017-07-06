@@ -2279,10 +2279,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         } else if (b.isConstructor) {
           initialTarget = b.target;
           if (type.isAbstract) {
-            push(evaluateArgumentsBefore(
+            push(new KernelSyntheticExpression(evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
-                    type.name, nameToken.charOffset)));
+                    type.name, nameToken.charOffset))));
             return;
           } else {
             target = initialTarget;
@@ -3053,9 +3053,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     warning("The class '$className' is abstract and can't be instantiated.",
         charOffset);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
-    return new KernelSyntheticExpression(new Throw(buildStaticInvocation(
-        constructor.target,
-        new KernelArguments(<Expression>[new StringLiteral(className)]))));
+    return new Throw(buildStaticInvocation(constructor.target,
+        new KernelArguments(<Expression>[new StringLiteral(className)])));
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {

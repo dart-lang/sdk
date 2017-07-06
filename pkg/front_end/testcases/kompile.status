@@ -58,6 +58,7 @@ uninitialized_fields: Crash
 unused_methods: Crash
 void-methods: Crash
 
+inference/abstract_class_instantiation: Crash
 inference/assert: VerificationError
 inference/async_closure_return_type_flatten: Crash
 inference/async_closure_return_type_future: Crash

@@ -51,6 +51,7 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void-methods: Fail
 
+inference/abstract_class_instantiation: Fail # Issue #30040
 inference/constructors_too_many_positional_arguments: Fail # Issue #30040
 inference/downwards_inference_annotations_for_loop_variable: Fail # Issue #30035
 inference/downwards_inference_annotations_locals: Fail # Issue #30031 and Issue #30035

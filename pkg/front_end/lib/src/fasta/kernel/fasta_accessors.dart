@@ -8,6 +8,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show
         KernelArguments,
         KernelComplexAssignment,
+        KernelIllegalAssignment,
         KernelIndexAssign,
         KernelPropertyAssign,
         KernelStaticAssignment,
@@ -202,7 +203,8 @@ abstract class FastaAccessor implements Accessor {
   bool get isThisPropertyAccessor => false;
 
   @override
-  KernelComplexAssignment startComplexAssignment(Expression rhs) => null;
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelIllegalAssignment(rhs);
 }
 
 abstract class ErrorAccessor implements FastaAccessor {

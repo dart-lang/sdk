@@ -10,10 +10,12 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelArguments,
         KernelComplexAssignment,
         KernelConditionalExpression,
+        KernelIllegalAssignment,
         KernelMethodInvocation,
         KernelNullAwarePropertyGet,
         KernelPropertyAssign,
         KernelPropertyGet,
+        KernelSuperMethodInvocation,
         KernelSuperPropertyGet,
         KernelThisExpression,
         KernelVariableDeclaration,
@@ -190,9 +192,9 @@ abstract class Accessor {
   }
 
   /// Creates a data structure for tracking the desugaring of a complex
-  /// assignment expression whose right hand side is [rhs], if necessary, or
-  /// returns `null` if not necessary.
-  KernelComplexAssignment startComplexAssignment(Expression rhs) => null;
+  /// assignment expression whose right hand side is [rhs].
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelIllegalAssignment(rhs);
 }
 
 abstract class VariableAccessor extends Accessor {
@@ -280,13 +282,7 @@ class PropertyAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    body = makeLet(_receiverVariable, body);
-    if (complexAssignment != null) {
-      complexAssignment.desugared = body;
-      return complexAssignment;
-    } else {
-      return body;
-    }
+    return super._finish(makeLet(_receiverVariable, body), complexAssignment);
   }
 }
 
@@ -493,14 +489,9 @@ class IndexAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    Expression desugared =
-        makeLet(receiverVariable, makeLet(indexVariable, body));
-    if (complexAssignment != null) {
-      complexAssignment.desugared = desugared;
-      return complexAssignment;
-    } else {
-      return desugared;
-    }
+    return super._finish(
+        makeLet(receiverVariable, makeLet(indexVariable, body)),
+        complexAssignment);
   }
 }
 
@@ -575,13 +566,7 @@ class ThisIndexAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    var desugared = makeLet(indexVariable, body);
-    if (complexAssignment != null) {
-      complexAssignment.desugared = desugared;
-      return complexAssignment;
-    } else {
-      return desugared;
-    }
+    return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
 }
 
@@ -604,8 +589,9 @@ class SuperIndexAccessor extends Accessor {
       helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
-    return new SuperMethodInvocation(
-        indexGetName, new KernelArguments(<Expression>[index]), getter);
+    return new KernelSuperMethodInvocation(
+        indexGetName, new KernelArguments(<Expression>[index]), getter)
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
@@ -665,13 +651,7 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    var desugared = makeLet(indexVariable, body);
-    if (complexAssignment != null) {
-      complexAssignment.desugared = desugared;
-      return complexAssignment;
-    } else {
-      return desugared;
-    }
+    return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
 }
 
@@ -727,7 +707,7 @@ class ReadOnlyAccessor extends Accessor {
 
   Expression _finish(
           Expression body, KernelComplexAssignment complexAssignment) =>
-      makeLet(value, body);
+      super._finish(makeLet(value, body), complexAssignment);
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

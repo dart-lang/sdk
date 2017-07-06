@@ -904,6 +904,12 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
   }
 }
 
+/// Concrete shadow object representing an assignment to a target for which
+/// assignment is not allowed.
+class KernelIllegalAssignment extends KernelComplexAssignment {
+  KernelIllegalAssignment(Expression rhs) : super(rhs);
+}
+
 /// Concrete shadow object representing an assignment to a target of the form
 /// `a[b]`.
 class KernelIndexAssign extends KernelComplexAssignmentWithReceiver {
