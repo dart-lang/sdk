@@ -348,23 +348,10 @@ abstract class ElementTypeInformation extends TypeInformation {
   /// Marker to disable inference for closures in [handleSpecialCases].
   bool disableInferenceForClosures = true;
 
-  factory ElementTypeInformation(Element element, TypeSystem types) {
-    if (element.isParameter) {
-      ParameterElement parameter = element;
-      if (parameter.functionDeclaration.isLocal) {
-        return new ParameterTypeInformation._localFunction(element, types);
-      } else if (parameter.functionDeclaration.isInstanceMember) {
-        return new ParameterTypeInformation._instanceMember(element, types);
-      }
-      return new ParameterTypeInformation._static(element, types);
-    }
-    return new MemberTypeInformation(element);
-  }
-
   ElementTypeInformation._internal(MemberTypeInformation context, this._element)
       : super(context);
-  ElementTypeInformation._withAssignments(
-      MemberTypeInformation context, this._element, assignments)
+  ElementTypeInformation._withAssignments(MemberTypeInformation context,
+      this._element, ParameterAssignments assignments)
       : super.withAssignments(context, assignments);
 
   String getInferredSignature(TypeSystem types);
@@ -602,40 +589,22 @@ class ParameterTypeInformation extends ElementTypeInformation {
   final FunctionElement _declaration;
   final MethodElement _method;
 
-  ParameterTypeInformation._internal(MemberTypeInformation context,
+  ParameterTypeInformation.localFunction(MemberTypeInformation context,
       ParameterElement parameter, this._declaration, this._method)
       : super._internal(context, parameter);
 
-  factory ParameterTypeInformation._static(
-      ParameterElement element, TypeSystem types) {
-    MethodElement method = element.functionDeclaration;
-    assert(!method.isInstanceMember);
-    return new ParameterTypeInformation._internal(
-        types.getInferredTypeOfMember(method), element, method, method);
-  }
+  ParameterTypeInformation.static(
+      MemberTypeInformation context, ParameterElement parameter, this._method)
+      : this._declaration = _method,
+        super._internal(context, parameter);
 
-  factory ParameterTypeInformation._localFunction(
-      ParameterElement element, TypeSystem types) {
-    LocalFunctionElement localFunction = element.functionDeclaration;
-    MethodElement callMethod = localFunction.callMethod;
-    return new ParameterTypeInformation._internal(
-        types.getInferredTypeOfMember(callMethod),
-        element,
-        localFunction,
-        callMethod);
-  }
-
-  ParameterTypeInformation._instanceMember(
-      ParameterElement element, TypeSystem types)
-      : _declaration = element.functionDeclaration,
-        _method = element.functionDeclaration,
-        super._withAssignments(
-            types.getInferredTypeOfMember(
-                element.functionDeclaration as MethodElement),
-            element,
-            new ParameterAssignments()) {
-    assert(element.functionDeclaration.isInstanceMember);
-  }
+  ParameterTypeInformation.instanceMember(
+      MemberTypeInformation context,
+      ParameterElement parameter,
+      this._method,
+      ParameterAssignments assignments)
+      : this._declaration = _method,
+        super._withAssignments(context, parameter, assignments);
 
   MethodElement get method => _method;
 

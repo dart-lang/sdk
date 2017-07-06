@@ -151,13 +151,6 @@ class TypeGraphInferrer implements TypesInferrer {
     return info.isCalledOnce();
   }
 
-  bool isParameterCalledOnce(ParameterElement element) {
-    if (compiler.disableTypeInference) return false;
-    MemberTypeInformation info =
-        inferrer.types.getInferredTypeOfParameter(element);
-    return info.isCalledOnce();
-  }
-
   void clear() {
     inferrer.clear();
   }

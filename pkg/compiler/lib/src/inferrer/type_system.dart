@@ -19,9 +19,17 @@ import 'type_graph_nodes.dart';
 class TypeSystem {
   final ClosedWorld closedWorld;
 
-  /// [ElementTypeInformation]s for elements.
-  final Map<Element, TypeInformation> typeInformations =
-      new Map<Element, TypeInformation>();
+  /// [parameterTypeInformations] and [memberTypeInformations] ordered by
+  /// creation time. This is used as the inference enqueueing order.
+  final List<TypeInformation> _orderedTypeInformations = <TypeInformation>[];
+
+  /// [ParameterTypeInformation]s for parameters.
+  final Map<ParameterElement, TypeInformation> parameterTypeInformations =
+      new Map<ParameterElement, TypeInformation>();
+
+  /// [MemberTypeInformation]s for members.
+  final Map<MemberElement, TypeInformation> memberTypeInformations =
+      new Map<MemberElement, TypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
   final Map<ast.Node, TypeInformation> allocatedLists =
@@ -46,8 +54,14 @@ class TypeSystem {
   /// phis, and containers).
   final List<TypeInformation> allocatedTypes = <TypeInformation>[];
 
+  /// [parameterTypeInformations] and [memberTypeInformations] ordered by
+  /// creation time. This is used as the inference enqueueing order.
+  Iterable<TypeInformation> get orderedTypeInformations =>
+      _orderedTypeInformations;
+
   Iterable<TypeInformation> get allTypes => [
-        typeInformations.values,
+        parameterTypeInformations.values,
+        memberTypeInformations.values,
         allocatedLists.values,
         allocatedMaps.values,
         allocatedClosures,
@@ -322,20 +336,47 @@ class TypeSystem {
     return newType;
   }
 
-  ElementTypeInformation getInferredTypeOfParameter(ParameterElement element) {
-    return _getInferredTypeOf(element);
+  ParameterTypeInformation getInferredTypeOfParameter(
+      ParameterElement parameter) {
+    parameter = parameter.implementation;
+
+    ParameterTypeInformation createTypeInformation() {
+      if (parameter.functionDeclaration.isLocal) {
+        LocalFunctionElement localFunction = parameter.functionDeclaration;
+        MethodElement callMethod = localFunction.callMethod;
+        return new ParameterTypeInformation.localFunction(
+            getInferredTypeOfMember(callMethod),
+            parameter,
+            localFunction,
+            callMethod);
+      } else if (parameter.functionDeclaration.isInstanceMember) {
+        MethodElement method = parameter.functionDeclaration;
+        return new ParameterTypeInformation.instanceMember(
+            getInferredTypeOfMember(method),
+            parameter,
+            method,
+            new ParameterAssignments());
+      } else {
+        MethodElement method = parameter.functionDeclaration;
+        return new ParameterTypeInformation.static(
+            getInferredTypeOfMember(method), parameter, method);
+      }
+    }
+
+    return parameterTypeInformations.putIfAbsent(parameter, () {
+      ParameterTypeInformation typeInformation = createTypeInformation();
+      _orderedTypeInformations.add(typeInformation);
+      return typeInformation;
+    });
   }
 
-  ElementTypeInformation getInferredTypeOfMember(MemberElement element) {
-    return _getInferredTypeOf(element);
-  }
-
-  @deprecated
-  ElementTypeInformation _getInferredTypeOf(Element element) {
-    element = element.implementation;
-    assert(element.isParameter || element is MemberElement);
-    return typeInformations[element] ??=
-        new ElementTypeInformation(element, this);
+  MemberTypeInformation getInferredTypeOfMember(MemberElement member) {
+    member = member.implementation;
+    return memberTypeInformations.putIfAbsent(member, () {
+      MemberTypeInformation typeInformation = new MemberTypeInformation(member);
+      _orderedTypeInformations.add(typeInformation);
+      return typeInformation;
+    });
   }
 
   /**

@@ -621,7 +621,7 @@ class InferrerEngine {
   }
 
   void buildWorkQueue() {
-    workQueue.addAll(types.typeInformations.values);
+    workQueue.addAll(types.orderedTypeInformations);
     workQueue.addAll(types.allocatedTypes);
     workQueue.addAll(types.allocatedClosures);
     workQueue.addAll(types.allocatedCalls);
@@ -1037,7 +1037,8 @@ class InferrerEngine {
 
     defaultTypeOfParameter.clear();
 
-    types.typeInformations.values.forEach(cleanup);
+    types.parameterTypeInformations.values.forEach(cleanup);
+    types.memberTypeInformations.values.forEach(cleanup);
 
     types.allocatedTypes.forEach(cleanup);
     types.allocatedTypes.clear();

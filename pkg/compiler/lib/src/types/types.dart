@@ -33,10 +33,6 @@ abstract class GlobalTypeInferenceElementResult {
   /// Whether the method element associated with this result always throws.
   bool get throwsAlways;
 
-  /// Whether the element associated with this result is only called once in one
-  /// location in the entire program.
-  bool get isCalledOnce;
-
   /// The inferred type when this result belongs to a parameter or field
   /// element, null otherwise.
   TypeMask get type;
@@ -69,6 +65,13 @@ abstract class GlobalTypeInferenceElementResult {
 
   /// Returns the type of the `current` getter of an iterator in a [loop].
   TypeMask typeOfIteratorCurrent(ForIn node);
+}
+
+abstract class GlobalTypeInferenceMemberResult
+    extends GlobalTypeInferenceElementResult {
+  /// Whether the member associated with this result is only called once in one
+  /// location in the entire program.
+  bool get isCalledOnce;
 }
 
 abstract class GlobalTypeInferenceElementResultImpl
@@ -108,9 +111,10 @@ abstract class GlobalTypeInferenceElementResultImpl
       _data?.typeOfIteratorCurrent(node);
 }
 
-class GlobalTypeInferenceMemberResult
-    extends GlobalTypeInferenceElementResultImpl {
-  GlobalTypeInferenceMemberResult(
+class GlobalTypeInferenceMemberResultImpl
+    extends GlobalTypeInferenceElementResultImpl
+    implements GlobalTypeInferenceMemberResult {
+  GlobalTypeInferenceMemberResultImpl(
       MemberElement owner,
       GlobalTypeInferenceElementData data,
       TypesInferrer inferrer,
@@ -132,8 +136,6 @@ class GlobalTypeInferenceParameterResult
   GlobalTypeInferenceParameterResult(
       ParameterElement owner, TypesInferrer inferrer, TypeMask _dynamic)
       : super.internal(owner, null, inferrer, false, _dynamic);
-
-  bool get isCalledOnce => _inferrer.isParameterCalledOnce(_owner);
 
   TypeMask get returnType =>
       _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfParameter(_owner);
@@ -205,7 +207,6 @@ abstract class TypesInferrer {
   TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
   void clear();
   bool isMemberCalledOnce(MemberElement element);
-  bool isParameterCalledOnce(ParameterElement element);
   bool isFixedArrayCheckedForGrowable(Node node);
 }
 
@@ -227,7 +228,7 @@ class GlobalTypeInferenceResults {
 
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
   // error to query for results that don't exist.
-  GlobalTypeInferenceElementResult resultOfMember(MemberElement member) {
+  GlobalTypeInferenceMemberResult resultOfMember(MemberElement member) {
     assert(
         !member.isGenerativeConstructorBody,
         failedAt(
@@ -238,7 +239,7 @@ class GlobalTypeInferenceResults {
     bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
     return _memberResults.putIfAbsent(
         member,
-        () => new GlobalTypeInferenceMemberResult(
+        () => new GlobalTypeInferenceMemberResultImpl(
             member,
             // We store data in the context of the enclosing method, even
             // for closure elements.
