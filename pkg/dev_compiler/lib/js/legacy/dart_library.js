@@ -52,9 +52,18 @@ dart_library =
     });
   };
 
+  let _reverseImports = new Map();
   class LibraryLoader {
 
     constructor(name, defaultValue, imports, loader) {
+      imports.forEach(function(i) {
+        var deps = _reverseImports.get(i);
+        if (!deps) {
+          deps = new Set();
+          _reverseImports.set(i, deps);
+        }
+        deps.add(name);
+      });
       this._name = name;
       this._library = defaultValue ? defaultValue : {};
       this._imports = imports;
@@ -96,7 +105,6 @@ dart_library =
       if (this._name == 'dart_sdk') {
         // Eagerly load the SDK.
         this._loader.apply(null, args);
-        loader._loader = null;
       } else {
         // Load / parse other modules on demand.
         let done = false;
@@ -105,7 +113,6 @@ dart_library =
             if (!done) {
               done = true;
               loader._loader.apply(null, args);
-              loader._loader = null;
             }
             return o[name];
           }
@@ -125,25 +132,36 @@ dart_library =
   LibraryLoader.READY = 2;
 
   // Map from name to LibraryLoader
-  let libraries = new Map();
+  let _libraries = new Map();
   dart_library.libraries = function() { return libraries.keys(); };
   dart_library.debuggerLibraries = function() {
     var debuggerLibraries = [];
-    libraries.forEach(function (value, key, map) {
+    _libraries.forEach(function (value, key, map) {
       debuggerLibraries.push(value.load());
     });
     debuggerLibraries.__proto__ = null;
     return debuggerLibraries;
   };
 
+  // Invalidate a library and all things that depend on it
+  function _invalidateLibrary(name) {
+    let lib = _libraries.get(name);
+    if (lib._state == LibraryLoader.NOT_LOADED) return;
+    lib._state = LibraryLoader.NOT_LOADED;
+    lib._library = {};
+    let deps = _reverseImports.get(name);
+    if (!deps) return;
+    deps.forEach(_invalidateLibrary);
+  }
+
   function library(name, defaultValue, imports, loader) {
-    let result = libraries.get(name);
+    let result = _libraries.get(name);
     if (result) {
-      console.warn('Already loaded ' + name);
-      return result;
+      console.log('Re-loading ' + name);
+      _invalidateLibrary(name);
     }
     result = new LibraryLoader(name, defaultValue, imports, loader);
-    libraries.set(name, result);
+    _libraries.set(name, result);
     return result;
   }
   dart_library.library = library;
@@ -152,7 +170,7 @@ dart_library =
   // available, print the stack to show where/how it was requested.
   let _stack = [];
   function import_(name) {
-    let lib = libraries.get(name);
+    let lib = _libraries.get(name);
     if (!lib) {
       let message = 'Module ' + name + ' not loaded in the browser.';
       if (_stack != []) {
@@ -174,9 +192,42 @@ dart_library =
 
   var _currentIsolate = false;
 
-  function start(moduleName, libraryName) {
+  function _restart() {
+    start(_lastModuleName, _lastLibraryName, true);
+  }
+
+  function reload() {
+    if (!window || !window.$dartWarmReload) {
+      console.warn('Warm reload not supported in this environment.');
+      return;
+    }
+    var result;
+    if (_lastLibrary && _lastLibrary.onReloadStart) {
+      result = _lastLibrary.onReloadStart();
+    }
+    if (result && result.then) {
+      let sdk = _libraries.get("dart_sdk");
+      result.then(sdk._library.dart.Dynamic)(function() {
+        window.$dartWarmReload(_restart);
+      });
+    } else {
+      window.$dartWarmReload(_restart);
+    }
+  }
+  dart_library.reload = reload;
+
+
+  var _lastModuleName;
+  var _lastLibraryName;
+  var _lastLibrary;
+  var _originalBody;
+
+  function start(moduleName, libraryName, isReload) {
     if (libraryName == null) libraryName = moduleName;
+    _lastModuleName = moduleName;
+    _lastLibraryName = libraryName;
     let library = import_(moduleName)[libraryName];
+    _lastLibrary = library;
     let dart_sdk = import_('dart_sdk');
 
     if (!_currentIsolate) {
@@ -188,7 +239,17 @@ dart_library =
       _currentIsolate = true;
       dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
     }
-
+    if (isReload) {
+      if (library.onReloadEnd) {
+        library.onReloadEnd();
+        return;
+      } else {
+        document.body = _originalBody;
+      }
+    } else {
+      // If not a reload then store the initial html to reset it on reload.
+      _originalBody = document.body.cloneNode(true);
+    }
     library.main();
   }
   dart_library.start = start;
