@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -38,6 +39,15 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
     result = element;
   }));
   return result;
+}
+
+/**
+ * Search the [unit] for the [Element]s with the given [name].
+ */
+List<Element> findElementsByName(CompilationUnit unit, String name) {
+  var finder = new _ElementsByNameFinder(name);
+  unit.accept(finder);
+  return finder.elements;
 }
 
 /**
@@ -99,7 +109,9 @@ class Required {
 
   Element findElementInUnit(CompilationUnit unit, String name,
       [ElementKind kind]) {
-    return findChildElement(unit.element, name, kind);
+    return findElementsByName(unit, name)
+        .where((e) => kind == null || e.kind == kind)
+        .single;
   }
 
   File newFile(String path, [String content]) =>
@@ -173,6 +185,20 @@ class PrintLogger implements Logger {
     print(message);
     if (exception != null) {
       print(exception);
+    }
+  }
+}
+
+class _ElementsByNameFinder extends RecursiveAstVisitor<Null> {
+  final String name;
+  final List<Element> elements = [];
+
+  _ElementsByNameFinder(this.name);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.name == name && node.inDeclarationContext()) {
+      elements.add(node.staticElement);
     }
   }
 }

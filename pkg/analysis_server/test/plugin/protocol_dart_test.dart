@@ -25,6 +25,16 @@ main() {
   });
 }
 
+/**
+ * Search the [unit] for the [engine.Element]s with the given [name].
+ */
+List<engine.Element> findElementsByName(
+    engine.CompilationUnit unit, String name) {
+  var finder = new _ElementsByNameFinder(name);
+  unit.accept(finder);
+  return finder.elements;
+}
+
 @reflectiveTest
 class ElementKindTest {
   void test_fromEngine() {
@@ -97,7 +107,9 @@ class ElementKindTest {
 class ElementTest extends AbstractContextTest {
   engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
-    return findChildElement(unit.element, name, kind);
+    return findElementsByName(unit, name)
+        .where((e) => kind == null || e.kind == kind)
+        .single;
   }
 
   test_fromElement_CLASS() async {
@@ -273,7 +285,8 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'index');
+      engine.FieldElement engineElement =
+          unit.element.enums[1].getField('index');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -291,7 +304,8 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_FINAL);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'values');
+      engine.FieldElement engineElement =
+          unit.element.enums[1].getField('values');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -455,9 +469,8 @@ class A {
   set mySetter(String x) {}
 }''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
-    engine.FieldElement engineFieldElement =
-        findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
-    engine.PropertyAccessorElement engineElement = engineFieldElement.setter;
+    engine.PropertyAccessorElement engineElement =
+        findElementInUnit(unit, 'mySetter', engine.ElementKind.SETTER);
     // create notification Element
     Element element = convertElement(engineElement);
     expect(element.kind, ElementKind.SETTER);
@@ -473,5 +486,19 @@ class A {
     expect(element.parameters, '(String x)');
     expect(element.returnType, isNull);
     expect(element.flags, 0);
+  }
+}
+
+class _ElementsByNameFinder extends engine.RecursiveAstVisitor<Null> {
+  final String name;
+  final List<engine.Element> elements = [];
+
+  _ElementsByNameFinder(this.name);
+
+  @override
+  visitSimpleIdentifier(engine.SimpleIdentifier node) {
+    if (node.name == name && node.inDeclarationContext()) {
+      elements.add(node.staticElement);
+    }
   }
 }

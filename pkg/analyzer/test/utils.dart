@@ -14,6 +14,15 @@ import 'package:front_end/src/base/source.dart';
 import 'package:test/test.dart';
 
 /**
+ * Search the [unit] for the [Element]s with the given [name].
+ */
+List<Element> findElementsByName(CompilationUnit unit, String name) {
+  var finder = new _ElementsByNameFinder(name);
+  unit.accept(finder);
+  return finder.elements;
+}
+
+/**
  * Search the [unit] for the [LocalVariableElement] with the given [name].
  * Fail if there is not exactly one such variable.
  */

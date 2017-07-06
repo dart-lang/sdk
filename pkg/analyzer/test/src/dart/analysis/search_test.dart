@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../utils.dart';
 import 'base.dart';
 
 main() {
@@ -572,7 +573,7 @@ label:
   }
 }
 ''');
-    Element element = _findElement('label');
+    Element element = findElementsByName(testUnit, 'label').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 1'),
@@ -613,7 +614,7 @@ main() {
   v();
 }
 ''');
-    Element element = _findElementAtString('v;');
+    Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -635,7 +636,7 @@ main() {
   }
 }
 ''');
-    Element element = _findElementAtString('v in []');
+    Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
