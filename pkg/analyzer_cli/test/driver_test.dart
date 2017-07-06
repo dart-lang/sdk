@@ -222,9 +222,10 @@ void _test_buildMode() {
   void createTests(String designator, String optionsFileName) {
     group('build-mode - $designator', () {
       // Shared driver command.
-      Future<Null> doDrive(String filePath,
-          {List<String> additionalArgs: const []}) async {
-        await drive('file:///test_file.dart|$filePath',
+      Future<Null> doDrive(String path,
+          {String uri, List<String> additionalArgs: const []}) async {
+        uri ??= 'file:///test_file.dart';
+        await drive('$uri|$path',
             args: [
               '--dart-sdk',
               findSdkDirForSummaries(),
@@ -261,6 +262,141 @@ void _test_buildMode() {
         await doDrive(path.join('data', 'file_with_error.dart'),
             additionalArgs: ['--build-suppress-exit-code']);
         expect(exitCode, 0);
+      });
+
+      test('Consume summaries', () async {
+        await withTempDirAsync((tempDir) async {
+          var aDart = path.join(tempDir, 'a.dart');
+          var bDart = path.join(tempDir, 'b.dart');
+          var cDart = path.join(tempDir, 'c.dart');
+
+          var aUri = 'package:aaa/a.dart';
+          var bUri = 'package:bbb/b.dart';
+          var cUri = 'package:ccc/c.dart';
+
+          var aSum = path.join(tempDir, 'a.sum');
+          var bSum = path.join(tempDir, 'b.sum');
+          var cSum = path.join(tempDir, 'c.sum');
+
+          new File(aDart).writeAsStringSync('class A {}');
+          new File(bDart).writeAsStringSync('''
+export 'package:aaa/a.dart';
+class B {}
+''');
+          new File(cDart).writeAsStringSync('''
+import 'package:bbb/b.dart';
+var a = new A();
+var b = new B();
+''');
+
+          // Analyze package:aaa/a.dart and compute summary.
+          {
+            await doDrive(aDart,
+                uri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
+            expect(exitCode, 0);
+            var bytes = new File(aSum).readAsBytesSync();
+            var bundle = new PackageBundle.fromBuffer(bytes);
+            expect(bundle.unlinkedUnitUris, equals([aUri]));
+            expect(bundle.linkedLibraryUris, equals([aUri]));
+          }
+
+          // Analyze package:bbb/b.dart and compute summary.
+          {
+            await doDrive(bDart, uri: bUri, additionalArgs: [
+              '--build-summary-input=$aSum',
+              '--build-summary-output=$bSum'
+            ]);
+            expect(exitCode, 0);
+            var bytes = new File(bSum).readAsBytesSync();
+            var bundle = new PackageBundle.fromBuffer(bytes);
+            expect(bundle.unlinkedUnitUris, equals([bUri]));
+            expect(bundle.linkedLibraryUris, equals([bUri]));
+          }
+
+          // Analyze package:ccc/c.dart and compute summary.
+          {
+            await doDrive(cDart, uri: cUri, additionalArgs: [
+              '--build-summary-input=$aSum,$bSum',
+              '--build-summary-output=$cSum'
+            ]);
+            expect(exitCode, 0);
+            var bytes = new File(cSum).readAsBytesSync();
+            var bundle = new PackageBundle.fromBuffer(bytes);
+            expect(bundle.unlinkedUnitUris, equals([cUri]));
+            expect(bundle.linkedLibraryUris, equals([cUri]));
+          }
+        });
+      });
+
+      test('Error - unlinked summary as linked', () async {
+        await withTempDirAsync((tempDir) async {
+          var aDart = path.join(tempDir, 'a.dart');
+          var bDart = path.join(tempDir, 'b.dart');
+
+          var aUri = 'package:aaa/a.dart';
+          var bUri = 'package:bbb/b.dart';
+
+          var aSum = path.join(tempDir, 'a.sum');
+          var bSum = path.join(tempDir, 'b.sum');
+
+          new File(aDart).writeAsStringSync('class A {}');
+
+          // Build unlinked a.sum
+          await doDrive(aDart, uri: aUri, additionalArgs: [
+            '--build-summary-only',
+            '--build-summary-only-unlinked',
+            '--build-summary-output=$aSum'
+          ]);
+          expect(new File(aSum).existsSync(), isTrue);
+
+          // Try to consume unlinked a.sum as linked.
+          try {
+            await doDrive(bDart, uri: bUri, additionalArgs: [
+              '--build-summary-input=$aSum',
+              '--build-summary-output=$bSum'
+            ]);
+            fail('ArgumentError expected.');
+          } on ArgumentError catch (e) {
+            expect(e.message,
+                contains('Got an unlinked summary for --build-summary-input'));
+          }
+        });
+      });
+
+      test('Error - linked summary as unlinked', () async {
+        await withTempDirAsync((tempDir) async {
+          var aDart = path.join(tempDir, 'a.dart');
+          var bDart = path.join(tempDir, 'b.dart');
+
+          var aUri = 'package:aaa/a.dart';
+          var bUri = 'package:bbb/b.dart';
+
+          var aSum = path.join(tempDir, 'a.sum');
+          var bSum = path.join(tempDir, 'b.sum');
+
+          new File(aDart).writeAsStringSync('class A {}');
+
+          // Build linked a.sum
+          await doDrive(aDart, uri: aUri, additionalArgs: [
+            '--build-summary-only',
+            '--build-summary-output=$aSum'
+          ]);
+          expect(new File(aSum).existsSync(), isTrue);
+
+          // Try to consume linked a.sum as unlinked.
+          try {
+            await doDrive(bDart, uri: bUri, additionalArgs: [
+              '--build-summary-unlinked-input=$aSum',
+              '--build-summary-output=$bSum'
+            ]);
+            fail('ArgumentError expected.');
+          } on ArgumentError catch (e) {
+            expect(
+                e.message,
+                contains(
+                    'Got a linked summary for --build-summary-input-unlinked'));
+          }
+        });
       });
 
       test('Linked summary', () async {
