@@ -1,0 +1,28 @@
+{
+  "":"Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file",
+  "":"for details. All rights reserved. Use of this source code is governed by a",
+  "":"BSD-style license that can be found in the LICENSE.md file.",
+  "packages": "../../../../.packages",
+  "suites": [
+    {
+      "name": "closures_initializers",
+      "kind": "Chain",
+      "source": "suite.dart",
+      "path": "../../testcases/closures_initializers/",
+      "status": "closures_initializers.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/test/closures_initializers/suite\\.dart$"
+      ]
+    }
+  ],
+  "analyze": {
+    "uris": [
+      "suite.dart"
+    ],
+    "exclude": [
+    ]
+  }
+}
