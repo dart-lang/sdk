@@ -781,7 +781,13 @@ class AnalysisServer {
             .toNotification());
 
     // send to crash reporting
-    options.crashReportSender?.sendReport(exception, stackTrace: stackTrace);
+    if (options.crashReportSender != null) {
+      // Catch and ignore any exceptions when reporting exceptions (network
+      // errors or other).
+      options.crashReportSender
+          .sendReport(exception, stackTrace: stackTrace)
+          .catchError((_) {});
+    }
 
     // remember the last few exceptions
     if (exception is CaughtException) {

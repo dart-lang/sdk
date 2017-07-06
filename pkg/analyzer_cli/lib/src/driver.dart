@@ -225,7 +225,9 @@ class Driver implements CommandLineStarter {
     try {
       return await _analyzeAllImpl(options);
     } catch (e, st) {
-      crashReportSender.sendReport(e, stackTrace: st);
+      // Catch and ignore any exceptions when reporting exceptions (network
+      // errors or other).
+      crashReportSender.sendReport(e, stackTrace: st).catchError((_) {});
       rethrow;
     } finally {
       previous.makeCurrent();
