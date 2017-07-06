@@ -19,6 +19,7 @@ foo({named}) => 1;
 bar(a) => !a;
 class Class {
   var field;
+  static var staticField;
 
   Class();
   Class.named(this.field);
@@ -40,6 +41,14 @@ main() {
   new Object();
   new Class.named('');
   new SubClass().method();
+  Class.staticField;
+  var x = null;
+  var y1 = x == null;
+  var y2 = null == x;
+  var z1 = x?.toString();
+  var z2 = x ?? y1;
+  var z3 = x ??= y2;
+  return x;
 }
 '''
 };

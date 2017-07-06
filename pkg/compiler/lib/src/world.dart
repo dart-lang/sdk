@@ -1012,6 +1012,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   void _ensureFunctionSet() {
     if (_allFunctions == null) {
+      // [FunctionSet] is created lazily because it is not used when we switch
+      // from a frontend to a backend model before inference.
       _allFunctions = new FunctionSet(liveInstanceMembers);
     }
   }

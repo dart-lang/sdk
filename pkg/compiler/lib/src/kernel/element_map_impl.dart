@@ -972,12 +972,44 @@ class KernelToElementMapForImpactImpl2 extends KernelToElementMapBase
       : super(reporter, environment);
 }
 
+/// Mixin for implementing [KernelToElementMapForBuilding] shared between
+/// classes that extend [KernelToElementMapBase], i.e. not [KernelAstAdapter].
+abstract class KernelToElementMapForBuildingFromBaseMixin
+    implements KernelToElementMapForBuilding, KernelToElementMapBase {
+  @override
+  ConstantValue getFieldConstantValue(ir.Field field) {
+    // TODO(johnniwinther): Cache the result in [FieldData].
+    return getConstantValue(field.initializer,
+        requireConstant: field.isConst, implicitNull: !field.isConst);
+  }
+
+  bool hasConstantFieldInitializer(covariant IndexedField field) {
+    FieldData data = _memberData[field.memberIndex];
+    return getFieldConstantValue(data.node) != null;
+  }
+
+  ConstantValue getConstantFieldInitializer(covariant IndexedField field) {
+    FieldData data = _memberData[field.memberIndex];
+    ConstantValue value = getFieldConstantValue(data.node);
+    assert(value != null,
+        failedAt(field, "Field $field doesn't have a constant initial value."));
+    return value;
+  }
+
+  void forEachParameter(covariant IndexedFunction function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    FunctionData data = _memberData[function.memberIndex];
+    data.forEachParameter(this, f);
+  }
+}
+
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
 // TODO(johnniwinther): Use this in the JsStrategy
 class KernelToElementMapForBuildingImpl extends KernelToElementMapBase
     with
         KernelToElementMapForBuildingMixin,
+        KernelToElementMapForBuildingFromBaseMixin,
         ElementCreatorMixin,
         KElementCreatorMixin
     implements KernelToWorldBuilder {
@@ -987,36 +1019,10 @@ class KernelToElementMapForBuildingImpl extends KernelToElementMapBase
 
   ConstantEnvironment get constantEnvironment => _constantEnvironment;
 
-  @override
-  ConstantValue getFieldConstantValue(ir.Field field) {
-    // TODO(johnniwinther): Cache the result in [FieldData].
-    return getConstantValue(field.initializer,
-        requireConstant: field.isConst, implicitNull: !field.isConst);
-  }
-
   ir.Library getKernelLibrary(KLibrary entity) =>
       _libraryEnvs[entity.libraryIndex].library;
 
   ir.Class getKernelClass(KClass entity) => _classEnvs[entity.classIndex].cls;
-
-  bool hasConstantFieldInitializer(covariant KField field) {
-    FieldData data = _memberData[field.memberIndex];
-    return getFieldConstantValue(data.node) != null;
-  }
-
-  ConstantValue getConstantFieldInitializer(covariant KField field) {
-    FieldData data = _memberData[field.memberIndex];
-    ConstantValue value = getFieldConstantValue(data.node);
-    assert(value != null,
-        failedAt(field, "Field $field doesn't have a constant initial value."));
-    return value;
-  }
-
-  void forEachParameter(covariant KFunction function,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    FunctionData data = _memberData[function.memberIndex];
-    data.forEachParameter(this, f);
-  }
 
   @override
   Spannable getSpannable(MemberEntity member, ir.Node node) {
@@ -1467,7 +1473,9 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
   bool checkClass(ClassEntity cls) => true;
 }
 
-abstract class KernelClosedWorldMixin implements ClosedWorld {
+abstract class KernelClosedWorldMixin implements ClosedWorldBase {
+  KernelToElementMapBase get elementMap;
+
   @override
   bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
     while (cls != null) {
@@ -1482,12 +1490,59 @@ abstract class KernelClosedWorldMixin implements ClosedWorld {
     }
     return false;
   }
+
+  @override
+  bool hasConcreteMatch(ClassEntity cls, Selector selector,
+      {ClassEntity stopAtSuperclass}) {
+    throw new UnimplementedError('KernelClosedWorldMixin.hasConcreteMatch');
+  }
+
+  @override
+  bool isNamedMixinApplication(ClassEntity cls) {
+    throw new UnimplementedError(
+        'KernelClosedWorldMixin.isNamedMixinApplication');
+  }
+
+  @override
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorldMixin.getAppliedMixin');
+  }
+
+  @override
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorldMixin.getInterfaces');
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorldMixin.getSuperClass');
+  }
+
+  @override
+  int getHierarchyDepth(ClassEntity cls) {
+    return elementMap._getHierarchyDepth(cls);
+  }
+
+  @override
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
+    return elementMap._getOrderedTypeSet(cls);
+  }
+
+  @override
+  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
+      true;
+
+  @override
+  bool checkClass(ClassEntity cls) => true;
+
+  @override
+  bool checkEntity(Entity element) => true;
 }
 
 class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
-  final KernelToElementMapForImpactImpl _elementMap;
+  final KernelToElementMapForImpactImpl elementMap;
 
-  KernelClosedWorld(this._elementMap,
+  KernelClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
@@ -1519,52 +1574,6 @@ class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             typesImplementedBySubclasses,
             classHierarchyNodes,
             classSets);
-
-  @override
-  bool hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass}) {
-    throw new UnimplementedError('KernelClosedWorld.hasConcreteMatch');
-  }
-
-  @override
-  bool isNamedMixinApplication(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.isNamedMixinApplication');
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getAppliedMixin');
-  }
-
-  @override
-  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getInterfaces');
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getSuperClass');
-  }
-
-  @override
-  int getHierarchyDepth(ClassEntity cls) {
-    return _elementMap._getHierarchyDepth(cls);
-  }
-
-  @override
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
-    return _elementMap._getOrderedTypeSet(cls);
-  }
-
-  @override
-  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
-      true;
-
-  @override
-  bool checkClass(ClassEntity cls) => true;
-
-  @override
-  bool checkEntity(Entity element) => true;
 
   @override
   void registerClosureClass(ClassElement cls) {
@@ -1686,6 +1695,7 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
 class JsKernelToElementMap extends KernelToElementMapBase
     with
         KernelToElementMapForBuildingMixin,
+        KernelToElementMapForBuildingFromBaseMixin,
         JsElementCreatorMixin,
         // TODO(johnniwinther): Avoid mixin in [ElementCreatorMixin]. The
         // codegen world should be a strict subset of the resolution world and
@@ -1813,28 +1823,5 @@ class JsKernelToElementMap extends KernelToElementMapBase
   @override
   ir.Class getClassNode(ClassEntity cls) {
     return _getClassNode(cls);
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(ir.Field field) {
-    throw new UnsupportedError("JsKernelToElementMap.getFieldConstantValue");
-  }
-
-  @override
-  void forEachParameter(FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    throw new UnsupportedError("JsKernelToElementMap.forEachParameter");
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(FieldEntity field) {
-    throw new UnsupportedError(
-        "JsKernelToElementMap.getConstantFieldInitializer");
-  }
-
-  @override
-  bool hasConstantFieldInitializer(FieldEntity field) {
-    throw new UnsupportedError(
-        "JsKernelToElementMap.hasConstantFieldInitializer");
   }
 }

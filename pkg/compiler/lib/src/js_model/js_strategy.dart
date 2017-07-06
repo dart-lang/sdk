@@ -123,7 +123,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
           uses.map(_map.toBackendClass).toSet();
     });
 
-    return new JsClosedWorld(
+    return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
         commonElements: _commonElements,
@@ -135,10 +135,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
         classSets: classSets,
         implementedClasses: implementedClasses,
         liveInstanceMembers: liveInstanceMembers,
+        mixinUses: mixinUses,
         // TODO(johnniwinther): Support these.
         allTypedefs: new ImmutableEmptySet<TypedefElement>(),
         resolutionWorldBuilder: null,
-        mixinUses: mixinUses,
         typesImplementedBySubclasses: null);
   }
 

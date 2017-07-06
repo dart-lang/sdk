@@ -16,9 +16,7 @@ import '../js_backend/native_data.dart';
 import '../kernel/elements.dart';
 import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
-import '../ordered_typeset.dart';
 import '../universe/class_set.dart';
-import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
 
@@ -521,7 +519,9 @@ class JTypeVariable implements TypeVariableEntity {
 }
 
 class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
-  JsClosedWorld(
+  final JsKernelToElementMap elementMap;
+
+  JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
@@ -555,55 +555,8 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             classSets);
 
   @override
-  bool hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass}) {
-    throw new UnimplementedError('JsClosedWorld.hasConcreteMatch');
-  }
-
-  @override
   void registerClosureClass(ClassElement cls) {
     throw new UnimplementedError('JsClosedWorld.registerClosureClass');
-  }
-
-  @override
-  bool checkEntity(Entity element) => true;
-
-  @override
-  bool checkClass(ClassEntity cls) => true;
-
-  @override
-  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) {
-    return true;
-  }
-
-  @override
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
-    throw new UnimplementedError('JsClosedWorld.getOrderedTypeSet');
-  }
-
-  @override
-  int getHierarchyDepth(ClassEntity cls) {
-    throw new UnimplementedError('JsClosedWorld.getHierarchyDepth');
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('JsClosedWorld.getSuperClass');
-  }
-
-  @override
-  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
-    throw new UnimplementedError('JsClosedWorld.getInterfaces');
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassEntity cls) {
-    throw new UnimplementedError('JsClosedWorld.getAppliedMixin');
-  }
-
-  @override
-  bool isNamedMixinApplication(ClassEntity cls) {
-    throw new UnimplementedError('JsClosedWorld.isNamedMixinApplication');
   }
 }
 
