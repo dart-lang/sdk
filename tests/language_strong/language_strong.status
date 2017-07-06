@@ -735,7 +735,6 @@ bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
-bool_condition_check_test/01: RuntimeError # Issue 29920
 branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
 call_through_null_getter_test: RuntimeError # Issue 29920
@@ -760,8 +759,7 @@ cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920
 cyclic_type_test/04: RuntimeError # Issue 29920
 deferred_call_empty_before_load_test: RuntimeError # Issue 27777
-deferred_load_library_wrong_args_test/01: MissingRuntimeError # Issue 29920
-deferred_load_library_wrong_args_test/01: RuntimeError # Issue 27777
+deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_regression_22995_test: RuntimeError # Issue 29920
@@ -775,7 +773,6 @@ export_private_test/01: MissingCompileTimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
-field_type_check2_test/01: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920

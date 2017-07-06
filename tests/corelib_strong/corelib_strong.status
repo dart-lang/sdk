@@ -90,7 +90,6 @@ main_test: RuntimeError # Issue 29921
 map_keys2_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test: RuntimeError # Issue 29921
-null_test: RuntimeError # Issue 29921
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
