@@ -3397,9 +3397,7 @@ class LinkedReferenceBuilder extends Object
   /**
    * If [kind] is [ReferenceKind.function] (that is, the entity being referred
    * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  If [kind] is
-   * [ReferenceKind.variable], the index of the variable within
-   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
   void set localIndex(int value) {
     assert(value == null || value >= 0);
@@ -7386,7 +7384,6 @@ class UnlinkedExecutableBuilder extends Object
   idl.UnlinkedExecutableKind _kind;
   List<UnlinkedExecutableBuilder> _localFunctions;
   List<UnlinkedLabelBuilder> _localLabels;
-  List<UnlinkedVariableBuilder> _localVariables;
   String _name;
   int _nameEnd;
   int _nameOffset;
@@ -7608,14 +7605,7 @@ class UnlinkedExecutableBuilder extends Object
 
   @override
   List<UnlinkedVariableBuilder> get localVariables =>
-      _localVariables ??= <UnlinkedVariableBuilder>[];
-
-  /**
-   * The list of local variables.
-   */
-  void set localVariables(List<UnlinkedVariableBuilder> value) {
-    this._localVariables = value;
-  }
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get name => _name ??= '';
@@ -7770,7 +7760,6 @@ class UnlinkedExecutableBuilder extends Object
       idl.UnlinkedExecutableKind kind,
       List<UnlinkedExecutableBuilder> localFunctions,
       List<UnlinkedLabelBuilder> localLabels,
-      List<UnlinkedVariableBuilder> localVariables,
       String name,
       int nameEnd,
       int nameOffset,
@@ -7800,7 +7789,6 @@ class UnlinkedExecutableBuilder extends Object
         _kind = kind,
         _localFunctions = localFunctions,
         _localLabels = localLabels,
-        _localVariables = localVariables,
         _name = name,
         _nameEnd = nameEnd,
         _nameOffset = nameOffset,
@@ -7826,7 +7814,6 @@ class UnlinkedExecutableBuilder extends Object
     _isGenerator = null;
     _localFunctions?.forEach((b) => b.flushInformative());
     _localLabels = null;
-    _localVariables = null;
     _nameEnd = null;
     _nameOffset = null;
     _parameters?.forEach((b) => b.flushInformative());
@@ -7909,7 +7896,6 @@ class UnlinkedExecutableBuilder extends Object
     fb.Offset offset_documentationComment;
     fb.Offset offset_localFunctions;
     fb.Offset offset_localLabels;
-    fb.Offset offset_localVariables;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
     fb.Offset offset_redirectedConstructor;
@@ -7940,10 +7926,6 @@ class UnlinkedExecutableBuilder extends Object
     if (!(_localLabels == null || _localLabels.isEmpty)) {
       offset_localLabels = fbBuilder
           .writeList(_localLabels.map((b) => b.finish(fbBuilder)).toList());
-    }
-    if (!(_localVariables == null || _localVariables.isEmpty)) {
-      offset_localVariables = fbBuilder
-          .writeList(_localVariables.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -8021,9 +8003,6 @@ class UnlinkedExecutableBuilder extends Object
     if (offset_localLabels != null) {
       fbBuilder.addOffset(22, offset_localLabels);
     }
-    if (offset_localVariables != null) {
-      fbBuilder.addOffset(19, offset_localVariables);
-    }
     if (offset_name != null) {
       fbBuilder.addOffset(1, offset_name);
     }
@@ -8096,7 +8075,6 @@ class _UnlinkedExecutableImpl extends Object
   idl.UnlinkedExecutableKind _kind;
   List<idl.UnlinkedExecutable> _localFunctions;
   List<idl.UnlinkedLabel> _localLabels;
-  List<idl.UnlinkedVariable> _localVariables;
   String _name;
   int _nameEnd;
   int _nameOffset;
@@ -8235,12 +8213,8 @@ class _UnlinkedExecutableImpl extends Object
   }
 
   @override
-  List<idl.UnlinkedVariable> get localVariables {
-    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(
-            const _UnlinkedVariableReader())
-        .vTableGet(_bc, _bcOffset, 19, const <idl.UnlinkedVariable>[]);
-    return _localVariables;
-  }
+  List<idl.UnlinkedVariable> get localVariables =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get name {
@@ -8349,9 +8323,6 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     if (localLabels.isNotEmpty)
       _result["localLabels"] =
           localLabels.map((_value) => _value.toJson()).toList();
-    if (localVariables.isNotEmpty)
-      _result["localVariables"] =
-          localVariables.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
     if (nameEnd != 0) _result["nameEnd"] = nameEnd;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
@@ -8392,7 +8363,6 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
         "kind": kind,
         "localFunctions": localFunctions,
         "localLabels": localLabels,
-        "localVariables": localVariables,
         "name": name,
         "nameEnd": nameEnd,
         "nameOffset": nameOffset,

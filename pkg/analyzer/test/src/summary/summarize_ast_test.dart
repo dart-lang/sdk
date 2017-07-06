@@ -96,12 +96,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
 
   @override
   @failingTest
-  test_initializer_executable_with_return_type_from_closure_local() {
-    super.test_initializer_executable_with_return_type_from_closure_local();
-  }
-
-  @override
-  @failingTest
   test_initializer_executable_with_unimported_return_type() {
     super.test_initializer_executable_with_unimported_return_type();
   }
@@ -110,12 +104,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   @failingTest
   test_syntheticFunctionType_inGenericClass() {
     super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_inGenericFunction() {
-    super.test_syntheticFunctionType_inGenericFunction();
   }
 }
 
