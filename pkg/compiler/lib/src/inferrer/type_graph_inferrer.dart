@@ -136,7 +136,7 @@ class TypeGraphInferrer implements TypesInferrer {
     return result;
   }
 
-  Iterable<Element> getCallersOf(MemberElement element) {
+  Iterable<MemberEntity> getCallersOf(MemberElement element) {
     if (compiler.disableTypeInference) {
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");

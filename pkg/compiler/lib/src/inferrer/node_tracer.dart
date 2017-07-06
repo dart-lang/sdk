@@ -80,7 +80,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   static const int MAX_ANALYSIS_COUNT =
       const int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
-  final Setlet<Element> analyzedElements = new Setlet<Element>();
+  final Setlet<MemberEntity> analyzedElements = new Setlet<MemberEntity>();
 
   TracerVisitor(this.tracedType, InferrerEngine inferrer)
       : this.inferrer = inferrer,

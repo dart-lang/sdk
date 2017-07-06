@@ -60,7 +60,7 @@ abstract class TypeInformation {
   final MemberTypeInformation context;
 
   /// The element this [TypeInformation] node belongs to.
-  MemberElement get contextMember => context == null ? null : context.member;
+  MemberEntity get contextMember => context == null ? null : context.member;
 
   Iterable<TypeInformation> get assignments => _assignments;
 
@@ -203,7 +203,7 @@ abstract class TypeInformation {
   /// The [Element] where this [TypeInformation] was created. May be `null`
   /// for some [TypeInformation] nodes, where we do not need to store
   /// the information.
-  TypedElement get owner => (context != null) ? context.member : null;
+  MemberEntity get owner => (context != null) ? context.member : null;
 
   /// Returns whether the type cannot change after it has been
   /// inferred.
@@ -389,7 +389,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
    * The global information is summarized in [cleanup], after which [_callers]
    * is set to `null`.
    */
-  Map<MemberElement, Setlet<Spannable>> _callers;
+  Map<MemberEntity, Setlet<Spannable>> _callers;
 
   MemberTypeInformation._internal(this._member) : super._internal(null);
 
@@ -397,13 +397,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   String get debugName => '$member';
 
-  void addCall(MemberElement caller, Spannable node) {
+  void addCall(MemberEntity caller, Spannable node) {
     assert(node is ast.Node || node is Element);
-    _callers ??= <MemberElement, Setlet<Spannable>>{};
+    _callers ??= <MemberEntity, Setlet<Spannable>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCall(MemberElement caller, node) {
+  void removeCall(MemberEntity caller, node) {
     if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
@@ -413,7 +413,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
     }
   }
 
-  Iterable<MemberElement> get callers {
+  Iterable<MemberEntity> get callers {
     // TODO(sra): This is called only from an unused API and a test. If it
     // becomes used, [cleanup] will need to copy `_caller.keys`.
 
@@ -640,7 +640,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
 class GenerativeConstructorTypeInformation extends MemberTypeInformation {
   ConstructorEntity get _constructor => _member;
 
-  GenerativeConstructorTypeInformation(ConstructorElement element)
+  GenerativeConstructorTypeInformation(ConstructorEntity element)
       : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
