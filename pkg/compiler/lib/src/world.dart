@@ -408,11 +408,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
 
-  final FunctionSet _allFunctions;
+  FunctionSet _allFunctions;
 
   final Set<TypedefElement> _allTypedefs;
 
-  final Map<ClassEntity, Set<ClassEntity>> _mixinUses;
+  final Map<ClassEntity, Set<ClassEntity>> mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
 
   final Map<ClassEntity, Set<ClassEntity>> _typesImplementedBySubclasses;
@@ -450,8 +450,10 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
 
+  final Iterable<MemberEntity> liveInstanceMembers;
+
   ClosedWorldBase(
-      {this.elementEnvironment,
+      this.elementEnvironment,
       this.dartTypes,
       this.commonElements,
       this.constantSystem,
@@ -460,17 +462,15 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
+      this.liveInstanceMembers,
       Set<TypedefElement> allTypedefs,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
+      this.mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
+      Map<ClassEntity, ClassSet> classSets)
       : this._resolverWorld = resolutionWorldBuilder,
         this._implementedClasses = implementedClasses,
-        this._allFunctions = functionSet,
         this._allTypedefs = allTypedefs,
-        this._mixinUses = mixinUses,
         this._typesImplementedBySubclasses = typesImplementedBySubclasses,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
@@ -941,21 +941,21 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
       _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
-      for (ClassEntity mixin in _mixinUses.keys) {
+      for (ClassEntity mixin in mixinUses.keys) {
         List<ClassEntity> uses = <ClassEntity>[];
 
         void addLiveUse(ClassEntity mixinApplication) {
           if (isInstantiated(mixinApplication)) {
             uses.add(mixinApplication);
           } else if (isNamedMixinApplication(mixinApplication)) {
-            Set<ClassEntity> next = _mixinUses[mixinApplication];
+            Set<ClassEntity> next = mixinUses[mixinApplication];
             if (next != null) {
               next.forEach(addLiveUse);
             }
           }
         }
 
-        _mixinUses[mixin].forEach(addLiveUse);
+        mixinUses[mixin].forEach(addLiveUse);
         if (uses.isNotEmpty) {
           _liveMixinUses[mixin] = uses;
         }
@@ -1010,15 +1010,24 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   Iterable<TypedefElement> get allTypedefs => _allTypedefs;
 
+  void _ensureFunctionSet() {
+    if (_allFunctions == null) {
+      _allFunctions = new FunctionSet(liveInstanceMembers);
+    }
+  }
+
   TypeMask computeReceiverType(Selector selector, TypeMask mask) {
+    _ensureFunctionSet();
     return _allFunctions.receiverType(selector, mask, this);
   }
 
   Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask) {
+    _ensureFunctionSet();
     return _allFunctions.filter(selector, mask, this);
   }
 
   bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
+    _ensureFunctionSet();
     return _allFunctions
         .filter(selector, mask, this)
         .any((each) => each.isGetter);
@@ -1067,6 +1076,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
+    _ensureFunctionSet();
     for (MemberEntity e in _allFunctions.filter(selector, mask, this)) {
       if (e.isField) {
         if (selector.isGetter) {
@@ -1172,28 +1182,28 @@ class ClosedWorldImpl extends ClosedWorldBase {
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
+      Iterable<MemberEntity> liveInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
-            elementEnvironment: elementEnvironment,
-            dartTypes: dartTypes,
-            commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
-            resolutionWorldBuilder: resolutionWorldBuilder,
-            implementedClasses: implementedClasses,
-            functionSet: functionSet,
-            allTypedefs: allTypedefs,
-            mixinUses: mixinUses,
-            typesImplementedBySubclasses: typesImplementedBySubclasses,
-            classHierarchyNodes: classHierarchyNodes,
-            classSets: classSets);
+            elementEnvironment,
+            dartTypes,
+            commonElements,
+            constantSystem,
+            nativeData,
+            interceptorData,
+            backendUsage,
+            resolutionWorldBuilder,
+            implementedClasses,
+            liveInstanceMembers,
+            allTypedefs,
+            mixinUses,
+            typesImplementedBySubclasses,
+            classHierarchyNodes,
+            classSets);
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
 

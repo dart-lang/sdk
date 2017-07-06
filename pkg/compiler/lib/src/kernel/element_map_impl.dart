@@ -32,7 +32,6 @@ import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ordered_typeset.dart';
 import '../universe/class_set.dart';
-import '../universe/function_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
@@ -1468,7 +1467,24 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
   bool checkClass(ClassEntity cls) => true;
 }
 
-class KernelClosedWorld extends ClosedWorldBase {
+abstract class KernelClosedWorldMixin implements ClosedWorld {
+  @override
+  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
+    while (cls != null) {
+      MemberEntity member = elementEnvironment
+          .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+      if (member != null &&
+          (!selector.memberName.isPrivate ||
+              member.library == selector.library)) {
+        return member == element;
+      }
+      cls = elementEnvironment.getSuperClass(cls);
+    }
+    return false;
+  }
+}
+
+class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   final KernelToElementMapForImpactImpl _elementMap;
 
   KernelClosedWorld(this._elementMap,
@@ -1481,28 +1497,28 @@ class KernelClosedWorld extends ClosedWorldBase {
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
+      Iterable<MemberEntity> liveInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
-            elementEnvironment: elementEnvironment,
-            dartTypes: dartTypes,
-            commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
-            resolutionWorldBuilder: resolutionWorldBuilder,
-            implementedClasses: implementedClasses,
-            functionSet: functionSet,
-            allTypedefs: allTypedefs,
-            mixinUses: mixinUses,
-            typesImplementedBySubclasses: typesImplementedBySubclasses,
-            classHierarchyNodes: classHierarchyNodes,
-            classSets: classSets);
+            elementEnvironment,
+            dartTypes,
+            commonElements,
+            constantSystem,
+            nativeData,
+            interceptorData,
+            backendUsage,
+            resolutionWorldBuilder,
+            implementedClasses,
+            liveInstanceMembers,
+            allTypedefs,
+            mixinUses,
+            typesImplementedBySubclasses,
+            classHierarchyNodes,
+            classSets);
 
   @override
   bool hasConcreteMatch(ClassEntity cls, Selector selector,
@@ -1553,21 +1569,6 @@ class KernelClosedWorld extends ClosedWorldBase {
   @override
   void registerClosureClass(ClassElement cls) {
     throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
-  }
-
-  @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
-    while (cls != null) {
-      MemberEntity member = elementEnvironment
-          .lookupClassMember(cls, selector.name, setter: selector.isSetter);
-      if (member != null &&
-          (!selector.memberName.isPrivate ||
-              member.library == selector.library)) {
-        return member == element;
-      }
-      cls = elementEnvironment.getSuperClass(cls);
-    }
-    return false;
   }
 }
 

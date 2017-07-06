@@ -17,6 +17,20 @@ const Map<String, String> SOURCE = const <String, String>{
   'main.dart': r'''
 foo({named}) => 1;
 bar(a) => !a;
+class Class {
+  var field;
+
+  Class();
+  Class.named(this.field);
+
+  method() {}
+}
+ 
+class SubClass extends Class {
+  method() {
+    super.method();
+  }  
+}
 
 main() {
   foo();
@@ -24,6 +38,8 @@ main() {
   [];
   {};
   new Object();
+  new Class.named('');
+  new SubClass().method();
 }
 '''
 };

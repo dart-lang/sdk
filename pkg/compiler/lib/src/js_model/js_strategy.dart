@@ -52,7 +52,8 @@ class JsBackendStrategy implements KernelBackendStrategy {
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
+  ClosedWorldRefiner createClosedWorldRefiner(
+      covariant ClosedWorldBase closedWorld) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     KernelToElementMapForImpact elementMap = strategy.elementMap;
     _elementMap = new JsKernelToElementMap(
@@ -112,6 +113,16 @@ class JsBackendStrategy implements KernelBackendStrategy {
       convertClassSet(closedWorld.getClassSet(cls));
     }, ClassHierarchyNode.ALL);
 
+    List<MemberEntity> liveInstanceMembers =
+        closedWorld.liveInstanceMembers.map(_map.toBackendMember).toList();
+
+    Map<ClassEntity, Set<ClassEntity>> mixinUses =
+        <ClassEntity, Set<ClassEntity>>{};
+    closedWorld.mixinUses.forEach((ClassEntity cls, Set<ClassEntity> uses) {
+      mixinUses[_map.toBackendClass(cls)] =
+          uses.map(_map.toBackendClass).toSet();
+    });
+
     return new JsClosedWorld(
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
@@ -123,11 +134,11 @@ class JsBackendStrategy implements KernelBackendStrategy {
         classHierarchyNodes: classHierarchyNodes,
         classSets: classSets,
         implementedClasses: implementedClasses,
+        liveInstanceMembers: liveInstanceMembers,
         // TODO(johnniwinther): Support these.
         allTypedefs: new ImmutableEmptySet<TypedefElement>(),
         resolutionWorldBuilder: null,
-        functionSet: null,
-        mixinUses: null,
+        mixinUses: mixinUses,
         typesImplementedBySubclasses: null);
   }
 

@@ -14,10 +14,10 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../kernel/elements.dart';
+import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
 import '../ordered_typeset.dart';
 import '../universe/class_set.dart';
-import '../universe/function_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
@@ -520,7 +520,7 @@ class JTypeVariable implements TypeVariableEntity {
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
 }
 
-class JsClosedWorld extends ClosedWorldBase {
+class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   JsClosedWorld(
       {ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
@@ -531,28 +531,28 @@ class JsClosedWorld extends ClosedWorldBase {
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
+      Iterable<MemberEntity> liveInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
-            elementEnvironment: elementEnvironment,
-            dartTypes: dartTypes,
-            commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
-            resolutionWorldBuilder: resolutionWorldBuilder,
-            implementedClasses: implementedClasses,
-            functionSet: functionSet,
-            allTypedefs: allTypedefs,
-            mixinUses: mixinUses,
-            typesImplementedBySubclasses: typesImplementedBySubclasses,
-            classHierarchyNodes: classHierarchyNodes,
-            classSets: classSets);
+            elementEnvironment,
+            dartTypes,
+            commonElements,
+            constantSystem,
+            nativeData,
+            interceptorData,
+            backendUsage,
+            resolutionWorldBuilder,
+            implementedClasses,
+            liveInstanceMembers,
+            allTypedefs,
+            mixinUses,
+            typesImplementedBySubclasses,
+            classHierarchyNodes,
+            classSets);
 
   @override
   bool hasConcreteMatch(ClassEntity cls, Selector selector,
@@ -563,11 +563,6 @@ class JsClosedWorld extends ClosedWorldBase {
   @override
   void registerClosureClass(ClassElement cls) {
     throw new UnimplementedError('JsClosedWorld.registerClosureClass');
-  }
-
-  @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
-    throw new UnimplementedError('JsClosedWorld.hasElementIn');
   }
 
   @override

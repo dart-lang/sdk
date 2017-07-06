@@ -354,7 +354,7 @@ abstract class ResolutionWorldBuilderBase
 
   bool _closed = false;
   ClosedWorld _closedWorldCache;
-  FunctionSetBuilder _allFunctions;
+  final Set<MemberEntity> _liveInstanceMembers = new Set<MemberEntity>();
 
   final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
 
@@ -380,9 +380,7 @@ abstract class ResolutionWorldBuilderBase
       this._nativeDataBuilder,
       this._interceptorDataBuilder,
       this._backendUsageBuilder,
-      this.selectorConstraintsStrategy) {
-    _allFunctions = new FunctionSetBuilder();
-  }
+      this.selectorConstraintsStrategy);
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
@@ -787,7 +785,7 @@ abstract class ResolutionWorldBuilderBase
 
   void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember && !element.isAbstract) {
-      _allFunctions.add(element);
+      _liveInstanceMembers.add(element);
     }
   }
 
@@ -977,7 +975,7 @@ abstract class KernelResolutionWorldBuilderBase
         constantSystem: _constantSystem,
         resolutionWorldBuilder: this,
         implementedClasses: _implementedClasses,
-        functionSet: _allFunctions.close(),
+        liveInstanceMembers: _liveInstanceMembers,
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
