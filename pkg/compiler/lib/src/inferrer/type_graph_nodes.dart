@@ -586,16 +586,21 @@ class MemberTypeInformation extends ElementTypeInformation
  */
 class ParameterTypeInformation extends ElementTypeInformation {
   ParameterElement get _parameter => super._element;
-  final FunctionElement _declaration;
   final MethodElement _method;
+  bool _isInstanceMemberParameter;
+  bool _isClosureParameter;
+  bool _isTearOffClosureParameter = false;
 
-  ParameterTypeInformation.localFunction(MemberTypeInformation context,
-      ParameterElement parameter, this._declaration, this._method)
-      : super._internal(context, parameter);
+  ParameterTypeInformation.localFunction(
+      MemberTypeInformation context, ParameterElement parameter, this._method)
+      : _isInstanceMemberParameter = false,
+        _isClosureParameter = true,
+        super._internal(context, parameter);
 
   ParameterTypeInformation.static(
       MemberTypeInformation context, ParameterElement parameter, this._method)
-      : this._declaration = _method,
+      : _isInstanceMemberParameter = false,
+        _isClosureParameter = false,
         super._internal(context, parameter);
 
   ParameterTypeInformation.instanceMember(
@@ -603,7 +608,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
       ParameterElement parameter,
       this._method,
       ParameterAssignments assignments)
-      : this._declaration = _method,
+      : _isInstanceMemberParameter = true,
+        _isClosureParameter = false,
         super._withAssignments(context, parameter, assignments);
 
   MethodElement get method => _method;
@@ -612,11 +618,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   String get debugName => '$parameter';
 
-  bool isTearOffClosureParameter = false;
-
   void tagAsTearOffClosureParameter(InferrerEngine inferrer) {
     assert(_parameter.isRegularParameter);
-    isTearOffClosureParameter = true;
+    _isTearOffClosureParameter = true;
     // We have to add a flow-edge for the default value (if it exists), as we
     // might not see all call-sites and thus miss the use of it.
     TypeInformation defaultType =
@@ -639,7 +643,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // initializing formals.
     if (_parameter.isInitializingFormal) return null;
 
-    if ((isTearOffClosureParameter || _declaration.isLocal) &&
+    if ((_isTearOffClosureParameter || _isClosureParameter) &&
         disableInferenceForClosures) {
       // Do not infer types for parameters of closures. We do not
       // clear the assignments in case the closure is successfully
@@ -647,9 +651,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer, clearAssignments: false);
       return safeType(inferrer);
     }
-    if (_declaration.isInstanceMember &&
-        (_declaration.name == Identifiers.noSuchMethod_ ||
-            (_declaration.name == Identifiers.call &&
+    if (_isInstanceMemberParameter &&
+        (_method.name == Identifiers.noSuchMethod_ ||
+            (_method.name == Identifiers.call &&
                 disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
@@ -701,7 +705,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool hasStableType(InferrerEngine inferrer) {
     // The number of assignments of parameters of instance methods is
     // not stable. Therefore such a parameter cannot be stable.
-    if (_declaration.isInstanceMember) {
+    if (_isInstanceMemberParameter) {
       return false;
     }
     return super.hasStableType(inferrer);

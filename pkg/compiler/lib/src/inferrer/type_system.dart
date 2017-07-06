@@ -5,8 +5,7 @@
 import '../common.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
+import '../elements/types.dart';
 import '../tree/nodes.dart' as ast;
 import '../types/masks.dart';
 import '../universe/selector.dart';
@@ -291,26 +290,27 @@ class TypeSystem {
    * [isNullable] indicates whether the annotation implies a null
    * type.
    */
-  TypeInformation narrowType(
-      TypeInformation type, ResolutionDartType annotation,
+  TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return type;
-    if (annotation.element == closedWorld.commonElements.objectClass &&
-        isNullable) {
-      return type;
-    }
     TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
+    if (annotation.isInterfaceType) {
+      InterfaceType interface = annotation;
+      if (interface.element == closedWorld.commonElements.objectClass) {
+        if (isNullable) {
+          return type;
+        }
+        otherType = dynamicType.type.nonNullable();
+      } else {
+        otherType = new TypeMask.nonNullSubtype(interface.element, closedWorld);
+      }
+    } else if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
-    } else if (annotation.isTypeVariable) {
+    } else {
+      assert(annotation.isTypeVariable);
       // TODO(ngeoffray): Narrow to bound.
       return type;
-    } else {
-      ResolutionInterfaceType interface = annotation;
-      otherType = annotation.element == closedWorld.commonElements.objectClass
-          ? dynamicType.type.nonNullable()
-          : new TypeMask.nonNullSubtype(interface.element, closedWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
@@ -345,10 +345,7 @@ class TypeSystem {
         LocalFunctionElement localFunction = parameter.functionDeclaration;
         MethodElement callMethod = localFunction.callMethod;
         return new ParameterTypeInformation.localFunction(
-            getInferredTypeOfMember(callMethod),
-            parameter,
-            localFunction,
-            callMethod);
+            getInferredTypeOfMember(callMethod), parameter, callMethod);
       } else if (parameter.functionDeclaration.isInstanceMember) {
         MethodElement method = parameter.functionDeclaration;
         return new ParameterTypeInformation.instanceMember(
