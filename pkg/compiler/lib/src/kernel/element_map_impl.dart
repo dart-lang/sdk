@@ -1781,14 +1781,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   @override
-  Local _getLocalFunction(ir.TreeNode node) {
-    // TODO(efortuna, johnniwinther): This function should not be called once
-    // the K + J element situation has been properly sorted out. Ultimately this
-    // should throw.
-    return _getLocalFunction(node);
-  }
-
-  @override
   ClassEntity _getClass(ir.Class node, [ClassEnv env]) {
     ClassEntity cls = _classMap[node];
     assert(cls != null, "No class entity for $node");

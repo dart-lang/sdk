@@ -6,8 +6,8 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../elements/entities.dart';
-import 'closure.dart';
 import '../kernel/element_map.dart';
+import 'closure.dart';
 
 /// This builder walks the code to determine what variables are captured/free at
 /// various points to build ClosureScope that can respond to queries

@@ -248,6 +248,6 @@ class KLocalFunction implements Local {
   KLocalFunction(
       this.name, this.memberContext, this.executableContext, this.functionType);
 
-  String toString() =>
-      '${kElementPrefix}local_function(${memberContext.name}.${name ?? '<anonymous>'})';
+  String toString() => '${kElementPrefix}local_function'
+      '(${memberContext.name}.${name ?? '<anonymous>'})';
 }
