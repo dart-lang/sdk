@@ -100,9 +100,10 @@ abstract class InitializerRewriter extends AstRewriter {
   @override
   void insertContextDeclaration(Expression accessParent) {
     _createDeclaration();
+    var oldParent = initializingExpression.parent;
     Let binding = new Let(contextDeclaration, initializingExpression);
+    binding.parent = oldParent;
     setInitializerExpression(binding);
-    initializingExpression.parent = binding;
   }
 
   @override
@@ -124,23 +125,19 @@ class FieldInitializerRewriter extends InitializerRewriter {
   }
 
   void setInitializerExpression(Expression expression) {
-    assert(initializingExpression.parent is FieldInitializer);
-    FieldInitializer parent = initializingExpression.parent;
-    parent.value = expression;
-    expression.parent = parent;
+    expression.parent.value = expression;
   }
 }
 
 class LocalInitializerRewriter extends InitializerRewriter {
   LocalInitializerRewriter(Expression initializingExpression)
       : super(initializingExpression) {
-    assert(initializingExpression.parent is LocalInitializer);
+    // The initializer is up two levels because the variable declaration node is
+    // in between.
+    assert(initializingExpression.parent.parent is LocalInitializer);
   }
 
   void setInitializerExpression(Expression expression) {
-    assert(initializingExpression.parent is LocalInitializer);
-    LocalInitializer parent = initializingExpression.parent;
-    parent.variable.initializer = expression;
-    expression.parent = parent;
+    expression.parent.initializer = expression;
   }
 }
