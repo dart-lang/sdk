@@ -2151,7 +2151,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // of ParseFormalParameter.
     parameter.type = &Object::void_type();
   }
-  if (parameter.type == NULL) {
+  if ((parameter.type == NULL) || IsFunctionTypeSymbol()) {
     // At this point, we must see an identifier for the type or the
     // function parameter. The identifier may be 'Function'.
     if (!IsIdentifier()) {
@@ -2176,8 +2176,14 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       parameter.has_explicit_type = true;
       // It is too early to resolve the type here, since it can be a result
       // type referring to a not yet declared function type parameter.
-      parameter.type = &AbstractType::ZoneHandle(
-          Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
+      if (parameter.type == NULL) {
+        parameter.type = &AbstractType::ZoneHandle(
+            Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
+      } else {
+        parameter.type = &AbstractType::ZoneHandle(
+            Z,
+            ParseFunctionType(*parameter.type, ClassFinalizer::kDoNotResolve));
+      }
     } else {
       // If this is an initializing formal, its type will be set to the type
       // of the respective field when the constructor is fully parsed.
