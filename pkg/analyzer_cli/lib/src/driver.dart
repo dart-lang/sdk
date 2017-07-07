@@ -54,6 +54,8 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:yaml/yaml.dart';
 
+const _analyticsID = 'UA-26406144-28';
+
 /// Shared IO sink for standard error reporting.
 @visibleForTesting
 StringSink errorSink = io.stderr;
@@ -62,19 +64,17 @@ StringSink errorSink = io.stderr;
 @visibleForTesting
 StringSink outSink = io.stdout;
 
+telemetry.Analytics _analytics;
+
+/// The analytics instance for analyzer-cli.
+telemetry.Analytics get analytics => (_analytics ??=
+    telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
+
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(Map<String, YamlNode> options) {
   var linterNode = options['linter'];
   return linterNode is YamlMap && linterNode.containsKey('rules');
 }
-
-telemetry.Analytics _analytics;
-
-const _analyticsID = 'UA-26406144-28';
-
-/// The analytics instance for analyzer-cli.
-telemetry.Analytics get analytics => (_analytics ??=
-    telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
 
 /// Make sure that we create an analytics instance that doesn't send for this
 /// session.
@@ -132,11 +132,6 @@ class Driver implements CommandLineStarter {
 
   CrashReportSender _crashReportSender;
 
-  // TODO(devoncarew): Replace with the real crash product ID.
-  /// The crash reporting instance for analyzer-cli.
-  CrashReportSender get crashReportSender => (_crashReportSender ??=
-      new CrashReportSender('Dart_analyzer_cli', analytics));
-
   /// Create a new Driver instance.
   ///
   /// [isTesting] is true if we're running in a test environment.
@@ -149,6 +144,11 @@ class Driver implements CommandLineStarter {
   /// This Driver's current analysis context.
   @visibleForTesting
   AnalysisContext get context => _context;
+
+  /// The crash reporting instance for analyzer-cli.
+  /// TODO(devoncarew): Replace with the real crash product ID.
+  CrashReportSender get crashReportSender => (_crashReportSender ??=
+      new CrashReportSender('Dart_analyzer_cli', analytics));
 
   @override
   void set userDefinedPlugins(List<Plugin> plugins) {
@@ -864,11 +864,9 @@ class Driver implements CommandLineStarter {
   static void setAnalysisContextOptions(
       file_system.ResourceProvider resourceProvider,
       AnalysisContext context,
-      CommandLineOptions options,
-      void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
+      CommandLineOptions options) {
     AnalysisOptionsImpl analysisOptions =
         createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
-    configureContextOptions(analysisOptions);
     setupAnalysisContext(context, options, analysisOptions);
   }
 

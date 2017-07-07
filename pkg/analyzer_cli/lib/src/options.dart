@@ -57,10 +57,6 @@ class CommandLineOptions {
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
-  /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
-  /// analyze function bodies to use summaries during future compilation steps.
-  final bool buildSummaryOnlyDiet;
-
   /// Whether to only produce unlinked summaries instead of linked summaries.
   /// Must be used in combination with `buildSummaryOnly`.
   final bool buildSummaryOnlyUnlinked;
@@ -167,7 +163,6 @@ class CommandLineOptions {
         buildSummaryUnlinkedInputs =
             args['build-summary-unlinked-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
-        buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
@@ -279,11 +274,6 @@ class CommandLineOptions {
     if (options.buildModePersistentWorker && !options.buildMode) {
       printAndFail('The option --persisten_worker can be used only '
           'together with --build-mode.');
-      return null; // Only reachable in testing.
-    }
-    if (options.buildSummaryOnlyDiet && !options.buildSummaryOnly) {
-      printAndFail('The option --build-summary-only-diet can be used only '
-          'together with --build-summary-only.');
       return null; // Only reachable in testing.
     }
 
@@ -408,11 +398,6 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('build-summary-only-diet',
-          help: 'Diet parse function bodies.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
