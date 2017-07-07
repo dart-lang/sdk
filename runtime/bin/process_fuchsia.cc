@@ -502,7 +502,7 @@ bool Process::Wait(intptr_t pid,
 
   // Create a port, which is like an epoll() fd on Linux.
   mx_handle_t port;
-  mx_status_t status = mx_port_create(MX_PORT_OPT_V2, &port);
+  mx_status_t status = mx_port_create(0, &port);
   if (status != MX_OK) {
     Log::PrintErr("Process::Wait: mx_port_create failed: %s\n",
                   mx_status_get_string(status));

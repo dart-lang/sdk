@@ -285,7 +285,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   shutdown_ = false;
   // Create the port.
   port_handle_ = MX_HANDLE_INVALID;
-  mx_status_t status = mx_port_create(MX_PORT_OPT_V2, &port_handle_);
+  mx_status_t status = mx_port_create(0, &port_handle_);
   if (status != MX_OK) {
     // This is a FATAL because the VM won't work at all if we can't create this
     // port.
