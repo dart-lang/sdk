@@ -13043,8 +13043,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
-      [int skipCount = 0]) {
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -13052,7 +13051,12 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void removeRange(int start, int end) {
+    throw new UnimplementedError();
+  }
+
+  void setRange(int start, int end, Iterable<Element> iterable,
+      [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
