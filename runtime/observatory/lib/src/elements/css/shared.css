@@ -2511,6 +2511,15 @@ virtual-tree .lines > span:nth-child(5n+4) {
 
 /* vm-connect-target */
 
+vm-connect-target > a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+vm-connect-target > a:hover {
+  text-decoration: underline;
+}
+
 vm-connect-target > button.delete-button {
   margin-left: 0.28em;
   padding: 4px;

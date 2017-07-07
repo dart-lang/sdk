@@ -64,6 +64,11 @@ class TargetRepositoryMock implements M.TargetRepository {
     return null;
   }
 
+  @override
+  bool isConnectedVMTarget(M.Target target) {
+    return false;
+  }
+
   TargetRepositoryMock(
       {M.Target current,
       Iterable<M.Target> list: const [],
