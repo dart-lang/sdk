@@ -35,8 +35,65 @@ main() {
   }, name: 'Driver');
 }
 
+class BaseTest {
+  static const emptyOptionsFile = 'data/empty_options.yaml';
+
+  StringSink _savedOutSink, _savedErrorSink;
+  int _savedExitCode;
+  ExitHandler _savedExitHandler;
+
+  Driver driver;
+
+  /// Normalize text with bullets.
+  String bulletToDash(item) => '$item'.replaceAll('•', '-');
+
+  /// Start a driver for the given [source], optionally providing additional
+  /// [args] and an [options] file path.  The value of [options] defaults to
+  /// an empty options file to avoid unwanted configuration from an otherwise
+  /// discovered options file.
+  Future<Null> drive(String source,
+      {String options: emptyOptionsFile,
+      List<String> args: const <String>[]}) async {
+    driver = new Driver(isTesting: true);
+    var cmd = [
+      '--options',
+      path.join(testDirectory, options),
+      _adjustFileSpec(source)
+    ]..addAll(args);
+    await driver.start(cmd);
+  }
+
+  void setUp() {
+    ansi.runningTests = true;
+    _savedOutSink = outSink;
+    _savedErrorSink = errorSink;
+    _savedExitHandler = exitHandler;
+    _savedExitCode = exitCode;
+    exitHandler = (code) => exitCode = code;
+    outSink = new StringBuffer();
+    errorSink = new StringBuffer();
+  }
+
+  void tearDown() {
+    outSink = _savedOutSink;
+    errorSink = _savedErrorSink;
+    exitCode = _savedExitCode;
+    exitHandler = _savedExitHandler;
+    ansi.runningTests = false;
+  }
+
+  /// Convert a file specification from a relative path to an absolute path.
+  /// Handles the case where the file specification is of the form "$uri|$path".
+  String _adjustFileSpec(String fileSpec) {
+    int uriPrefixLength = fileSpec.indexOf('|') + 1;
+    String uriPrefix = fileSpec.substring(0, uriPrefixLength);
+    String relativePath = fileSpec.substring(uriPrefixLength);
+    return '$uriPrefix${path.join(testDirectory, relativePath)}';
+  }
+}
+
 @reflectiveTest
-class BuildModeTest extends _BaseTest {
+class BuildModeTest extends BaseTest {
   test_buildLinked() async {
     await withTempDirAsync((tempDir) async {
       var outputPath = path.join(tempDir, 'test_file.dart.sum');
@@ -295,7 +352,7 @@ var b = new B();
 }
 
 @reflectiveTest
-class ExitCodesTest extends _BaseTest {
+class ExitCodesTest extends BaseTest {
   test_bazelWorkspace_relativePath() async {
     // Copy to temp dir so that existing analysis options
     // in the test directory hierarchy do not interfere
@@ -396,7 +453,7 @@ class ExitCodesTest extends _BaseTest {
 }
 
 @reflectiveTest
-class LinterTest extends _BaseTest {
+class LinterTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   test_containsLintRuleEntry() async {
@@ -426,7 +483,7 @@ linter:
 
   test_defaultLints_generatedLints() async {
     await _runLinter_defaultLints();
-    expect(_bulletToDash(outSink),
+    expect(bulletToDash(outSink),
         contains('lint - Name types using UpperCamelCase'));
   }
 
@@ -443,7 +500,7 @@ linter:
 
   test_lintsInOptions_generatedLints() async {
     await _runLinter_lintsInOptions();
-    expect(_bulletToDash(outSink),
+    expect(bulletToDash(outSink),
         contains('lint - Name types using UpperCamelCase'));
   }
 
@@ -493,7 +550,7 @@ linter:
 }
 
 @reflectiveTest
-class OptionsTest extends _BaseTest {
+class OptionsTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   List<ErrorProcessor> get processors =>
@@ -519,7 +576,7 @@ class OptionsTest extends _BaseTest {
       ['x']
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
-    expect(_bulletToDash(outSink),
+    expect(bulletToDash(outSink),
         contains("error - This function declares a return type of 'int'"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
@@ -581,7 +638,7 @@ class OptionsTest extends _BaseTest {
     ]);
     expect(processorFor(undefined_function).severity, ErrorSeverity.WARNING);
     // Should not be made fatal by `--fatal-warnings`.
-    expect(_bulletToDash(outSink),
+    expect(bulletToDash(outSink),
         contains("warning - The function 'baz' isn't defined"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
@@ -597,61 +654,4 @@ class TestSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _BaseTest {
-  static const emptyOptionsFile = 'data/empty_options.yaml';
-
-  StringSink _savedOutSink, _savedErrorSink;
-  int _savedExitCode;
-  ExitHandler _savedExitHandler;
-
-  Driver driver;
-
-  /// Start a driver for the given [source], optionally providing additional
-  /// [args] and an [options] file path.  The value of [options] defaults to
-  /// an empty options file to avoid unwanted configuration from an otherwise
-  /// discovered options file.
-  Future<Null> drive(String source,
-      {String options: emptyOptionsFile,
-      List<String> args: const <String>[]}) async {
-    driver = new Driver(isTesting: true);
-    var cmd = [
-      '--options',
-      path.join(testDirectory, options),
-      _adjustFileSpec(source)
-    ]..addAll(args);
-    await driver.start(cmd);
-  }
-
-  void setUp() {
-    ansi.runningTests = true;
-    _savedOutSink = outSink;
-    _savedErrorSink = errorSink;
-    _savedExitHandler = exitHandler;
-    _savedExitCode = exitCode;
-    exitHandler = (code) => exitCode = code;
-    outSink = new StringBuffer();
-    errorSink = new StringBuffer();
-  }
-
-  void tearDown() {
-    outSink = _savedOutSink;
-    errorSink = _savedErrorSink;
-    exitCode = _savedExitCode;
-    exitHandler = _savedExitHandler;
-    ansi.runningTests = false;
-  }
-
-  /// Convert a file specification from a relative path to an absolute path.
-  /// Handles the case where the file specification is of the form "$uri|$path".
-  String _adjustFileSpec(String fileSpec) {
-    int uriPrefixLength = fileSpec.indexOf('|') + 1;
-    String uriPrefix = fileSpec.substring(0, uriPrefixLength);
-    String relativePath = fileSpec.substring(uriPrefixLength);
-    return '$uriPrefix${path.join(testDirectory, relativePath)}';
-  }
-
-  /// Normalize text with bullets.
-  String _bulletToDash(item) => '$item'.replaceAll('•', '-');
 }
