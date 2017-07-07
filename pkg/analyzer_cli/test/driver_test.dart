@@ -112,6 +112,98 @@ class BuildModeTest extends BaseTest {
     });
   }
 
+  test_buildLinked_buildSummaryOutputSemantic() async {
+    await withTempDirAsync((tempDir) async {
+      var testDart = path.join(tempDir, 'test.dart');
+      var testSumFull = path.join(tempDir, 'test.sum.full');
+      var testSumSemantic = path.join(tempDir, 'test.sum.sem');
+
+      new File(testDart).writeAsStringSync('var v = 42;');
+
+      await _doDrive(testDart, additionalArgs: [
+        '--build-summary-only',
+        '--build-summary-output=$testSumFull',
+        '--build-summary-output-semantic=$testSumSemantic',
+      ]);
+      expect(exitCode, 0);
+
+      // The full summary is produced.
+      {
+        var file = new File(testSumFull);
+        expect(file.existsSync(), isTrue);
+        var bytes = file.readAsBytesSync();
+        var bundle = new PackageBundle.fromBuffer(bytes);
+        var v = bundle.unlinkedUnits[0].variables[0];
+        expect(v.name, 'v');
+        expect(v.nameOffset, 4);
+      }
+
+      // The semantic summary is produced.
+      {
+        var file = new File(testSumSemantic);
+        expect(file.existsSync(), isTrue);
+        var bytes = file.readAsBytesSync();
+        var bundle = new PackageBundle.fromBuffer(bytes);
+        var v = bundle.unlinkedUnits[0].variables[0];
+        expect(v.name, 'v');
+        expect(v.nameOffset, 0);
+      }
+    });
+  }
+
+  test_buildLinked_fromUnlinked() async {
+    await withTempDirAsync((tempDir) async {
+      var aDart = path.join(tempDir, 'a.dart');
+      var bDart = path.join(tempDir, 'b.dart');
+
+      var aUri = 'package:aaa/a.dart';
+      var bUri = 'package:bbb/b.dart';
+
+      var aUnlinked = path.join(tempDir, 'a.unlinked');
+      var bUnlinked = path.join(tempDir, 'b.unlinked');
+      var abLinked = path.join(tempDir, 'ab.linked');
+
+      new File(aDart).writeAsStringSync('var a = 1;');
+      new File(bDart).writeAsStringSync('''
+import 'package:aaa/a.dart';
+var b = a;
+''');
+
+      Future<Null> buildUnlinked(String uri, String path, String output) async {
+        await _doDrive(path, uri: uri, additionalArgs: [
+          '--build-summary-only',
+          '--build-summary-only-unlinked',
+          '--build-summary-output=$output'
+        ]);
+        expect(exitCode, 0);
+        expect(new File(output).existsSync(), isTrue);
+      }
+
+      await buildUnlinked(aUri, aDart, aUnlinked);
+      await buildUnlinked(bUri, bDart, bUnlinked);
+
+      await new Driver(isTesting: true).start([
+        '--dart-sdk',
+        _findSdkDirForSummaries(),
+        '--strong',
+        '--build-mode',
+        '--build-summary-unlinked-input=$aUnlinked,$bUnlinked',
+        '--build-summary-output=$abLinked'
+      ]);
+      expect(exitCode, 0);
+      var bytes = new File(abLinked).readAsBytesSync();
+      var bundle = new PackageBundle.fromBuffer(bytes);
+
+      // Only linked information.
+      expect(bundle.unlinkedUnitUris, isEmpty);
+      expect(bundle.linkedLibraryUris, unorderedEquals([aUri, bUri]));
+
+      // Strong mode type inference was performed.
+      expect(bundle.linkedLibraries[0].units[0].types, isNotEmpty);
+      expect(bundle.linkedLibraries[1].units[0].types, isNotEmpty);
+    });
+  }
+
   test_buildSuppressExitCode_fail_whenFileNotFound() async {
     await _doDrive(path.join('data', 'non_existent_file.dart'),
         additionalArgs: ['--build-suppress-exit-code']);
@@ -208,6 +300,29 @@ var b = new B();
     });
   }
 
+  test_dartSdkSummaryPath_strong() async {
+    await withTempDirAsync((tempDir) async {
+      String sdkPath = _findSdkDirForSummaries();
+      String strongSummaryPath =
+          path.join(sdkPath, 'lib', '_internal', 'strong.sum');
+
+      var testDart = path.join(tempDir, 'test.dart');
+      var testSum = path.join(tempDir, 'test.sum');
+      new File(testDart).writeAsStringSync('var v = 42;');
+
+      await _doDrive(testDart,
+          additionalArgs: [
+            '--strong',
+            '--build-summary-only',
+            '--build-summary-output=$testSum'
+          ],
+          dartSdkSummaryPath: strongSummaryPath);
+      var output = new File(testSum);
+      expect(output.existsSync(), isTrue);
+      expect(exitCode, 0);
+    });
+  }
+
   test_error_linkedAsUnlinked() async {
     await withTempDirAsync((tempDir) async {
       var aDart = path.join(tempDir, 'a.dart');
@@ -241,6 +356,17 @@ var b = new B();
             contains(
                 'Got a linked summary for --build-summary-input-unlinked'));
       }
+    });
+  }
+
+  test_error_notUriPipePath() async {
+    await withTempDirAsync((tempDir) async {
+      var testDart = path.join(tempDir, 'test.dart');
+      new File(testDart).writeAsStringSync('var v = 42;');
+
+      // We pass just path, not "uri|path", this is a fatal error.
+      await drive(testDart, args: ['--build-mode', '--format=machine']);
+      expect(exitCode, ErrorSeverity.ERROR.ordinal);
     });
   }
 
@@ -293,17 +419,29 @@ var b = new B();
   }
 
   Future<Null> _doDrive(String path,
-      {String uri, List<String> additionalArgs: const []}) async {
-    uri ??= 'file:///test_file.dart';
+      {String uri,
+      List<String> additionalArgs: const [],
+      String dartSdkSummaryPath}) async {
     var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-    await drive('$uri|$path',
-        args: [
-          '--dart-sdk',
-          _findSdkDirForSummaries(),
-          '--build-mode',
-          '--format=machine'
-        ]..addAll(additionalArgs),
-        options: 'data/options_tests_project/$optionsFileName');
+
+    List<String> args = <String>[];
+    if (dartSdkSummaryPath != null) {
+      args.add('--dart-sdk-summary');
+      args.add(dartSdkSummaryPath);
+    } else {
+      String sdkPath = _findSdkDirForSummaries();
+      args.add('--dart-sdk');
+      args.add(sdkPath);
+    }
+    args.add('--build-mode');
+    args.add('--format=machine');
+    args.addAll(additionalArgs);
+
+    uri ??= 'file:///test_file.dart';
+    String source = '$uri|$path';
+
+    await drive(source,
+        args: args, options: 'data/options_tests_project/$optionsFileName');
   }
 
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
