@@ -263,7 +263,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     String returnType = null;
     List<ParameterInfo> parameters = <ParameterInfo>[];
     if (element.hasFunctionSignature) {
-      FunctionSignature signature = element.functionSignature;
+      FunctionElement implementation = element.implementation;
+      FunctionSignature signature = implementation.functionSignature;
       signature.forEachParameter((parameter) {
         parameters.add(new ParameterInfo(parameter.name,
             '${_resultOfParameter(parameter).type}', '${parameter.node.type}'));

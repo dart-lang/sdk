@@ -338,19 +338,20 @@ class TypeSystem {
 
   ParameterTypeInformation getInferredTypeOfParameter(
       ParameterElement parameter) {
-    parameter = parameter.implementation;
+    assert(parameter.isImplementation);
 
     ParameterTypeInformation createTypeInformation() {
-      if (parameter.functionDeclaration.isLocal) {
-        LocalFunctionElement localFunction = parameter.functionDeclaration;
+      FunctionTypedElement function = parameter.functionDeclaration.declaration;
+      if (function.isLocal) {
+        LocalFunctionElement localFunction = function;
         MethodElement callMethod = localFunction.callMethod;
         return new ParameterTypeInformation.localFunction(
             getInferredTypeOfMember(callMethod),
             parameter,
             parameter.type,
             callMethod);
-      } else if (parameter.functionDeclaration.isInstanceMember) {
-        MethodElement method = parameter.functionDeclaration;
+      } else if (function.isInstanceMember) {
+        MethodElement method = function;
         return new ParameterTypeInformation.instanceMember(
             getInferredTypeOfMember(method),
             parameter,
@@ -358,7 +359,7 @@ class TypeSystem {
             method,
             new ParameterAssignments());
       } else {
-        MethodElement method = parameter.functionDeclaration;
+        MethodElement method = function;
         return new ParameterTypeInformation.static(
             getInferredTypeOfMember(method), parameter, parameter.type, method,
             // TODO(johnniwinther): Is this still valid now that initializing
@@ -375,7 +376,7 @@ class TypeSystem {
   }
 
   MemberTypeInformation getInferredTypeOfMember(MemberElement member) {
-    member = member.implementation;
+    assert(member.isDeclaration);
     return memberTypeInformations.putIfAbsent(member, () {
       MemberTypeInformation typeInformation;
       if (member.isField) {

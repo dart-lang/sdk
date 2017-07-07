@@ -391,7 +391,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
    */
   Map<MemberEntity, Setlet<Spannable>> _callers;
 
-  MemberTypeInformation._internal(this._member) : super._internal(null);
+  MemberTypeInformation._internal(this._member) : super._internal(null) {
+    assert(_checkMember(_member));
+  }
+
+  bool _checkMember(MemberEntity member) {
+    return !(member is MemberElement && !member.isDeclaration);
+  }
 
   MemberEntity get member => _member;
 
@@ -490,7 +496,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
     return potentiallyNarrowType(super.safeType(inferrer), inferrer);
   }
 
-  String toString() => 'MemberElement $_member $type';
+  String toString() => 'Member $_member $type';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitMemberTypeInformation(this);
@@ -679,7 +685,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _isInstanceMemberParameter = false,
         _isClosureParameter = true,
         _isInitializingFormal = false,
-        super._internal(context);
+        super._internal(context) {
+    assert(_checkParameter(_parameter));
+  }
 
   ParameterTypeInformation.static(
       MemberTypeInformation context, this._parameter, this._type, this._method,
@@ -687,7 +695,9 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _isInstanceMemberParameter = false,
         _isClosureParameter = false,
         _isInitializingFormal = isInitializingFormal,
-        super._internal(context);
+        super._internal(context) {
+    assert(_checkParameter(_parameter));
+  }
 
   ParameterTypeInformation.instanceMember(
       MemberTypeInformation context,
@@ -698,7 +708,13 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _isInstanceMemberParameter = true,
         _isClosureParameter = false,
         _isInitializingFormal = false,
-        super._withAssignments(context, assignments);
+        super._withAssignments(context, assignments) {
+    assert(_checkParameter(_parameter));
+  }
+
+  bool _checkParameter(Local parameter) {
+    return !(parameter is LocalElement && !parameter.isImplementation);
+  }
 
   FunctionEntity get method => _method;
 
@@ -824,7 +840,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final Spannable call;
-  final MemberElement caller;
+  final MemberEntity caller;
   final Selector selector;
   final TypeMask mask;
   final ArgumentsTypes arguments;
@@ -832,7 +848,13 @@ abstract class CallSiteTypeInformation extends TypeInformation
 
   CallSiteTypeInformation(MemberTypeInformation context, this.call, this.caller,
       this.selector, this.mask, this.arguments, this.inLoop)
-      : super.noAssignments(context);
+      : super.noAssignments(context) {
+    assert(_checkCaller(caller));
+  }
+
+  bool _checkCaller(MemberEntity caller) {
+    return !(caller is MemberElement && !caller.isDeclaration);
+  }
 
   String toString() => 'Call site $call $type';
 
@@ -840,22 +862,28 @@ abstract class CallSiteTypeInformation extends TypeInformation
   void addToGraph(InferrerEngine engine);
 
   /// Return an iterable over the targets of this call.
-  Iterable<Element> get callees;
+  Iterable<MemberEntity> get callees;
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
-  final MemberElement calledElement;
+  final MemberEntity calledElement;
 
   StaticCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      MemberElement enclosing,
+      MemberEntity enclosing,
       this.calledElement,
       Selector selector,
       TypeMask mask,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(context, call, enclosing, selector, mask, arguments, inLoop);
+      : super(context, call, enclosing, selector, mask, arguments, inLoop) {
+    assert(_checkCalledElement(calledElement));
+  }
+
+  bool _checkCalledElement(MemberEntity calledElement) {
+    return !(calledElement is MemberElement && !calledElement.isDeclaration);
+  }
 
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
     return inferrer.types.getInferredTypeOfMember(calledElement);
@@ -894,7 +922,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
-  Iterable<Element> get callees => [calledElement.implementation];
+  Iterable<MemberEntity> get callees => [calledElement];
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStaticCallSiteTypeInformation(this);
@@ -926,7 +954,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   DynamicCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      MemberElement enclosing,
+      MemberEntity enclosing,
       Selector selector,
       TypeMask mask,
       this.receiver,
@@ -942,7 +970,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
     }
-    for (MemberElement element in targets) {
+    for (MemberEntity element in targets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.addCall(caller, call);
@@ -953,10 +981,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
-  Iterable<Element> get callees => targets.map((_e) {
-        MemberElement e = _e;
-        return e.implementation;
-      });
+  Iterable<MemberEntity> get callees => targets;
 
   TypeMask computeTypedSelector(InferrerEngine inferrer) {
     TypeMask receiverType = receiver.type;
@@ -971,9 +996,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
-    return targets.any((_e) {
-      MemberElement e = _e;
-      return e is MethodElement &&
+    return targets.any((MemberEntity e) {
+      return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
           inferrer.backend.noSuchMethodRegistry.isComplex(e);
@@ -1113,8 +1137,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       // Add calls to new targets to the graph.
       targets
           .where((target) => !oldTargets.contains(target))
-          .forEach((MemberEntity _element) {
-        MemberElement element = _element;
+          .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
         callee.addCall(caller, call);
@@ -1127,8 +1150,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
           .where((target) => !targets.contains(target))
-          .forEach((MemberEntity _element) {
-        MemberElement element = _element;
+          .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
         callee.removeCall(caller, call);
@@ -1204,7 +1226,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       inferrer.updateSelectorInMember(caller, call, selector, mask);
       Iterable<MemberEntity> oldTargets = targets;
       targets = inferrer.closedWorld.locateMembers(selector, mask);
-      for (MemberElement element in targets) {
+      for (MemberEntity element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
@@ -1219,8 +1241,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   void removeAndClearReferences(InferrerEngine inferrer) {
-    for (MemberElement element in targets) {
-      ElementTypeInformation callee =
+    for (MemberEntity element in targets) {
+      MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
       callee.removeUser(this);
     }
@@ -1238,8 +1260,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
-        targets.every((_element) {
-          MemberElement element = _element;
+        targets.every((MemberEntity element) {
           return inferrer.types.getInferredTypeOfMember(element).isStable;
         }) &&
         (arguments == null || arguments.every((info) => info.isStable)) &&
@@ -1253,7 +1274,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   ClosureCallSiteTypeInformation(
       MemberTypeInformation context,
       Spannable call,
-      MemberElement enclosing,
+      MemberEntity enclosing,
       Selector selector,
       TypeMask mask,
       this.closure,
@@ -1268,7 +1289,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 
   TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
 
-  Iterable<Element> get callees {
+  Iterable<MemberEntity> get callees {
     throw new UnsupportedError("Cannot compute callees of a closure call.");
   }
 

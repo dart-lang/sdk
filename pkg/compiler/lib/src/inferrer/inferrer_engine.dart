@@ -312,8 +312,7 @@ class InferrerEngine {
       }
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
-      types.withMember(
-          resolvedAst.element.implementation, () => analyze(resolvedAst, null));
+      types.withMember(resolvedAst.element, () => analyze(resolvedAst, null));
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -334,18 +333,22 @@ class InferrerEngine {
       analyzeMapAndEnqueue(info);
     });
 
-    Set<MethodElement> bailedOutOn = new Set<MethodElement>();
+    Set<FunctionEntity> bailedOutOn = new Set<FunctionEntity>();
 
     // Trace closures to potentially infer argument types.
     types.allocatedClosures.forEach((dynamic info) {
       void trace(
-          Iterable<MethodElement> elements, ClosureTracerVisitor tracer) {
+          Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
         tracer.run();
         if (!tracer.continueAnalyzing) {
-          elements.forEach((MethodElement e) {
-            closedWorldRefiner.registerMightBePassedToApply(e);
-            if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
-            e.functionSignature.forEachParameter((parameter) {
+          elements.forEach((FunctionEntity _element) {
+            MethodElement element = _element;
+            MethodElement implementation = element.implementation;
+            closedWorldRefiner.registerMightBePassedToApply(element);
+            if (debug.VERBOSE) {
+              print("traced closure $element as ${true} (bail)");
+            }
+            implementation.functionSignature.forEachParameter((parameter) {
               types
                   .getInferredTypeOfParameter(parameter)
                   .giveUp(this, clearAssignments: false);
@@ -356,19 +359,21 @@ class InferrerEngine {
         }
         elements
             .where((e) => !bailedOutOn.contains(e))
-            .forEach((MethodElement e) {
-          e.functionSignature.forEachParameter((parameter) {
+            .forEach((FunctionEntity _element) {
+          MethodElement element = _element;
+          MethodElement implementation = element.implementation;
+          implementation.functionSignature.forEachParameter((parameter) {
             var info = types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
             workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
-            closedWorldRefiner.registerMightBePassedToApply(e);
+            closedWorldRefiner.registerMightBePassedToApply(element);
           }
           if (debug.VERBOSE) {
-            print("traced closure $e as "
+            print("traced closure $element as "
                 "${closedWorldRefiner
-                .getCurrentlyKnownMightBePassedToApply(e)}");
+                .getCurrentlyKnownMightBePassedToApply(element)}");
           }
         });
       }
@@ -382,22 +387,23 @@ class InferrerEngine {
             info.selector.isCall) {
           // This is a constructor call to a class with a call method. So we
           // need to trace the call method here.
-          assert(info.calledElement.isGenerativeConstructor);
-          ClassElement cls = info.calledElement.enclosingClass;
+          MethodElement calledElement = info.calledElement;
+          assert(calledElement.isGenerativeConstructor);
+          ClassElement cls = calledElement.enclosingClass;
           MethodElement callMethod = cls.lookupMember(Identifiers.call);
           assert(callMethod != null, failedAt(cls));
-          Iterable<MethodElement> elements = [callMethod];
+          Iterable<FunctionEntity> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         } else {
           // We only are interested in functions here, as other targets
           // of this closure call are not a root to trace but an intermediate
           // for some other function.
-          Iterable<MethodElement> elements = new List<MethodElement>.from(
+          Iterable<FunctionEntity> elements = new List<FunctionEntity>.from(
               info.callees.where((e) => e.isFunction));
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         }
       } else if (info is MemberTypeInformation) {
-        trace([info.member],
+        trace(<FunctionEntity>[info.member],
             new StaticTearOffClosureTracerVisitor(info.member, info, this));
       } else if (info is ParameterTypeInformation) {
         throw new SpannableAssertionFailure(
@@ -476,7 +482,7 @@ class InferrerEngine {
   }
 
   void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments) {
-    MemberElement element = resolvedAst.element.implementation;
+    MemberElement element = resolvedAst.element;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
@@ -564,7 +570,7 @@ class InferrerEngine {
     types.allocatedCalls.forEach((dynamic info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        MemberElement member = info.calledElement.declaration;
+        MemberEntity member = info.calledElement;
         closedWorldRefiner.addFunctionCalledInLoop(member);
       } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
@@ -621,7 +627,7 @@ class InferrerEngine {
    * wheter assignments must be added or removed. If [init] is false,
    * parameters are added to the work queue.
    */
-  void updateParameterAssignments(TypeInformation caller, Element callee,
+  void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector, TypeMask mask,
       {bool remove, bool addToQueue: true}) {
     if (callee.name == Identifiers.noSuchMethod_) return;
@@ -640,19 +646,20 @@ class InferrerEngine {
     } else if (selector != null && selector.isGetter) {
       // We are tearing a function off and thus create a closure.
       assert(callee.isFunction);
-      MemberTypeInformation info = types.getInferredTypeOfMember(callee);
+      MethodElement method = callee;
+      MemberTypeInformation info = types.getInferredTypeOfMember(method);
       if (remove) {
         info.closurizedCount--;
       } else {
         info.closurizedCount++;
-        if (Elements.isStaticOrTopLevel(callee)) {
+        if (Elements.isStaticOrTopLevel(method)) {
           types.allocatedClosures.add(info);
         } else {
           // We add the call-site type information here so that we
           // can benefit from further refinement of the selector.
           types.allocatedClosures.add(caller);
         }
-        FunctionElement function = callee.implementation;
+        FunctionElement function = method.implementation;
         FunctionSignature signature = function.functionSignature;
         signature.forEachParameter((Element parameter) {
           ParameterTypeInformation info =
@@ -662,7 +669,8 @@ class InferrerEngine {
         });
       }
     } else {
-      FunctionElement function = callee.implementation;
+      MethodElement method = callee;
+      FunctionElement function = method.implementation;
       FunctionSignature signature = function.functionSignature;
       int parameterIndex = 0;
       bool visitingRequiredParameter = true;

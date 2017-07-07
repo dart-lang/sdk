@@ -299,6 +299,7 @@ class LocalsHandler {
         options = other.options;
 
   TypeInformation use(Local local) {
+    assert(!(local is LocalElement && !local.isImplementation));
     if (capturedAndBoxed.containsKey(local)) {
       FieldElement field = capturedAndBoxed[local];
       return inferrer.typeOfMember(field);

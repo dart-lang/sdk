@@ -88,7 +88,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         this.inferrer = inferrer,
         this.types = inferrer.types,
         this.memberData = inferrer.dataOfMember(analyzedElement.memberContext) {
+    assert(analyzedElement.isDeclaration);
     assert(outermostElement != null);
+    assert(outermostElement.isDeclaration);
     if (locals != null) return;
     ast.Node node;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
@@ -104,8 +106,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   ElementGraphBuilder(MemberElement element, ResolvedAst resolvedAst,
       Compiler compiler, InferrerEngine inferrer, [LocalsHandler handler])
-      : this.internal(element, resolvedAst, element.memberContext, inferrer,
-            compiler, handler);
+      : this.internal(element, resolvedAst, element.memberContext.declaration,
+            inferrer, compiler, handler);
 
   TreeElements get elements => resolvedAst.elements;
 
@@ -923,11 +925,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       return visit(initializer);
     }
 
-    MethodElement function = analyzedElement;
+    MethodElement function = analyzedElement.implementation;
     FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((FormalElement _element) {
-      ParameterElement element = _element;
-      ast.Expression defaultValue = element.initializer;
+      ParameterElement parameter = _element;
+      ast.Expression defaultValue = parameter.initializer;
       // TODO(25566): The default value of a parameter of a redirecting factory
       // constructor comes from the corresponding parameter of the target.
 
@@ -937,9 +939,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       // with the correct context.
       // TODO(johnniwinther): Remove once function signatures are fixed.
       ElementGraphBuilder visitor = this;
-      if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
+      if (inferrer.hasAlreadyComputedTypeOfParameterDefault(parameter)) return;
 
-      FunctionElement declaration = element.functionDeclaration;
+      FunctionElement declaration = parameter.functionDeclaration.declaration;
       MethodElement declarationMethod = declaration is LocalFunctionElement
           ? declaration.callMethod
           : declaration;
@@ -948,15 +950,15 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         assert(
             declarationMethod is ConstructorElement,
             failedAt(
-                element,
+                parameter,
                 "Unexpected function declaration "
                 "${declarationMethod}, expected ${analyzedElement}."));
         visitor = new ElementGraphBuilder(declarationMethod,
-            element.functionDeclaration.resolvedAst, compiler, inferrer);
+            parameter.functionDeclaration.resolvedAst, compiler, inferrer);
       }
       TypeInformation type =
           (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
-      inferrer.setDefaultTypeOfParameter(element, type);
+      inferrer.setDefaultTypeOfParameter(parameter, type);
     });
 
     if (closedWorld.nativeData.isNativeMember(analyzedElement)) {
@@ -2315,7 +2317,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       if (!target.isRedirectingFactory) break;
       target = target.effectiveTarget.implementation;
     }
-    if (compiler.backend.isForeign(closedWorld.commonElements, target)) {
+    if (closedWorld.commonElements.isForeign(target)) {
       return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
@@ -2330,7 +2332,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     TypeInformation returnType =
-        handleStaticSend(node, selector, mask, target, arguments);
+        handleStaticSend(node, selector, mask, target.declaration, arguments);
     if (Elements.isGrowableListConstructorCall(
         constructor, node, closedWorld.commonElements)) {
       return inferrer.concreteTypes.putIfAbsent(
@@ -2403,7 +2405,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   /// Handle invocation of a top level or static [function].
   TypeInformation handleStaticFunctionInvoke(
       ast.Send node, MethodElement function) {
-    if (compiler.backend.isForeign(closedWorld.commonElements, function)) {
+    if (closedWorld.commonElements.isForeign(function)) {
       return handleForeignSend(node, function);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -2723,6 +2725,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   TypeInformation handleStaticSend(ast.Node node, Selector selector,
       TypeMask mask, MemberElement element, ArgumentsTypes arguments) {
+    assert(element.isDeclaration);
     assert(!element.isFactoryConstructor ||
         !(element as ConstructorElement).isRedirectingFactory);
     // Erroneous elements may be unresolved, for example missing getters.
@@ -2814,8 +2817,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   TypeInformation synthesizeForwardingCall(
       Spannable node, ConstructorElement element) {
-    element = element.implementation;
-    MethodElement function = analyzedElement;
+    assert(element.isDeclaration);
+    MethodElement function = analyzedElement.implementation;
     FunctionSignature signature = function.functionSignature;
     FunctionSignature calleeSignature = element.functionSignature;
     if (!calleeSignature.isCompatibleWith(signature)) {

@@ -1161,6 +1161,8 @@ class CommonElements {
     _ensureExpectAnnotations();
     return _expectAssumeDynamicClass;
   }
+
+  bool isForeign(MemberEntity element) => element.library == foreignLibrary;
 }
 
 /// Interface for accessing libraries, classes and members.
