@@ -8,28 +8,16 @@ class X extends core::Object {
     ;
 }
 class A extends core::Object {
-  field self::X foo;
-  constructor •(self::X i) → void
-    : self::A::foo = let final Vector #context = MakeVector(2) in let dynamic #t1 = #context[1] = i in (MakeClosure<() → dynamic>(self::closure#A#function#function, #context)).call(), super core::Object::•()
-    ;
-}
-class B extends core::Object {
   field self::X foo = null;
   constructor named(self::X foo) → void
     : super core::Object::•() {}
   constructor •(self::X foo) → void
-    : dynamic extracted#0 = let final Vector #context = MakeVector(2) in let dynamic #t2 = #context[1] = foo in (MakeClosure<() → dynamic>(self::closure#B#function#function, #context)).call(), this self::B::named(extracted#0)
+    : dynamic extracted#0 = () → self::X
+      throw "Calling unconverted closure at pkg/kernel/testcases/closures_initializers/local_initializers.dart:17:26";
+.call(), this self::A::named(extracted#0)
     ;
 }
 static method main() → dynamic {
   self::A a = new self::A::•(new self::X::•());
   a.foo;
-  self::B b = new self::B::•(new self::X::•());
-  b.foo;
-}
-static method closure#A#function#function(Vector #contextParameter) → dynamic {
-  return #contextParameter[1];
-}
-static method closure#B#function#function(Vector #contextParameter) → dynamic {
-  return #contextParameter[1];
 }
