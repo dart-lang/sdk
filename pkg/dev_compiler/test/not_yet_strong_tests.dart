@@ -1274,7 +1274,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/number_identifier_test_02_multi',
   'language/number_identifier_test_03_multi',
   'language/number_identifier_test_04_multi',
-  'language/number_identifier_test_05_multi',
   'language/number_identifier_test_06_multi',
   'language/number_identifier_test_07_multi',
   'language/number_identifier_test_08_multi',
