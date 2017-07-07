@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -154,7 +155,8 @@ main() {
   var v = test();
 }
 ''');
-    _createRefactoring('test');
+    ExecutableElement element = findElementsByName(testUnit, 'test').single;
+    _createRefactoringForElement(element);
     // check conditions
     _assertInitialConditions_fatal(
         'Only top-level functions can be converted to getters.');

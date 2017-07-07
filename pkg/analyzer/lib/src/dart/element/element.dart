@@ -3913,7 +3913,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(functions, visitor);
   }
 }
 

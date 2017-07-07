@@ -475,7 +475,7 @@ main() {
   print(test);
 }
 ''');
-    FunctionElement element = _findElement('test');
+    FunctionElement element = findElementsByName(testUnit, 'test').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.INVOCATION, 'test();'),
@@ -752,13 +752,14 @@ main() {
   foo(42);
 }
 ''');
-    ParameterElement element = _findElement('p');
-    Element fooElement = _findElement('foo');
+    Element main = _findElement('main');
+    FunctionElement foo = findElementsByName(testUnit, 'foo').single;
+    ParameterElement element = foo.parameters.single;
     var expected = [
-      _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(main, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(main, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(main, SearchResultKind.READ, 'p);'),
+      _expectId(main, SearchResultKind.INVOCATION, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -1023,12 +1024,12 @@ main() {
   }
 }
 ''');
-    TypeParameterElement element = _findElement('T');
-    Element a = _findElement('a');
-    Element b = _findElement('b');
+    Element main = _findElement('main');
+    FunctionElement foo = findElementsByName(testUnit, 'foo').single;
+    TypeParameterElement element = foo.typeParameters.single;
     var expected = [
-      _expectId(a, SearchResultKind.REFERENCE, 'T a'),
-      _expectId(b, SearchResultKind.REFERENCE, 'T b'),
+      _expectId(main, SearchResultKind.REFERENCE, 'T a'),
+      _expectId(main, SearchResultKind.REFERENCE, 'T b'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1053,12 +1054,12 @@ foo<T>(T a) {
   bar(T b) {}
 }
 ''');
+    FunctionElement foo = _findElement('foo');
     TypeParameterElement element = _findElement('T');
     Element a = _findElement('a');
-    Element b = _findElement('b');
     var expected = [
       _expectId(a, SearchResultKind.REFERENCE, 'T a'),
-      _expectId(b, SearchResultKind.REFERENCE, 'T b'),
+      _expectId(foo, SearchResultKind.REFERENCE, 'T b'),
     ];
     await _verifyReferences(element, expected);
   }
