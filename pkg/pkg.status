@@ -98,6 +98,8 @@ front_end/tool/perf_test: Skip # Issue 28698
 
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557

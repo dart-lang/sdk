@@ -84,6 +84,9 @@ abstract class Loader<L> {
         coreLibrary = library;
         target.loadExtraRequiredLibraries(this);
       }
+      if (target.backendTarget.mayDefineRestrictedType(uri)) {
+        library.mayImplementRestrictedTypes = true;
+      }
       if (uri.scheme == "dart") {
         target.readPatchFiles(library);
       }

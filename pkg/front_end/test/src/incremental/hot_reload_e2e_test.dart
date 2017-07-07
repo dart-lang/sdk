@@ -197,7 +197,7 @@ Future<Null> writeProgram(Program program, Uri outputUri) async {
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
   new LimitedBinaryPrinter(
-          sink, (library) => library.importUri.scheme != 'dart')
+          sink, (library) => library.importUri.scheme != 'dart', false)
       .writeProgramFile(program);
   await sink.close();
 }

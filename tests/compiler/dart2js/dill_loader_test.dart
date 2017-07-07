@@ -16,22 +16,10 @@ import 'package:compiler/src/library_loader.dart' show ScriptLoader;
 import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
-import 'package:path/path.dart' as path;
-
-final String dartkExecutable = Platform.isWindows
-    ? 'tools/dartk_wrappers/dartk.bat'
-    : 'tools/dartk_wrappers/dartk';
-
-/// Run the dartk.dart script, and return the binary encoded results.
-List<int> runDartk(String filename) {
-  String basePath = path.fromUri(Uri.base);
-  String dartkPath = path.normalize(path.join(basePath, dartkExecutable));
-
-  var args = [filename, '-fbin', '-ostdout'];
-  ProcessResult result = Process.runSync(dartkPath, args, stdoutEncoding: null);
-  Expect.equals(0, result.exitCode, result.stderr);
-  return result.stdout;
-}
+import 'package:front_end/front_end.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeProgram;
+import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 class TestScriptLoader implements ScriptLoader {
   CompilerImpl compiler;
@@ -53,8 +41,19 @@ main() {
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
     Uri entryPoint = Uri.parse('memory:main.dill');
-    List<int> kernelBinary = runDartk(filename);
 
+    var platform = Uri
+        .parse(Platform.resolvedExecutable)
+        .resolve('patched_dart2js_sdk/platform.dill');
+    var options = new CompilerOptions()
+      ..target = new Dart2jsTarget(new TargetFlags())
+      ..packagesFileUri = Platform.script.resolve('../../../.packages')
+      ..linkedDependencies = [platform]
+      ..verify = true
+      ..onError = errorHandler;
+
+    List<int> kernelBinary =
+        serializeProgram(await kernelForProgram(uri, options));
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: {'main.dill': kernelBinary},
@@ -76,4 +75,9 @@ main() {
     var member = environment.lookupClassMember(clss, 'testMain');
     Expect.isNotNull(member);
   });
+}
+
+void errorHandler(CompilationError e) {
+  exitCode = 1;
+  print(e.message);
 }

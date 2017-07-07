@@ -8,23 +8,18 @@ import 'dart:async' show Future;
 
 import 'dart:convert' show JSON;
 
-import 'dart:io' show BytesBuilder, Directory, File, exitCode;
+import 'dart:io' show BytesBuilder, File, exitCode;
 
-import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:kernel/binary/ast_to_binary.dart'
-    show LibraryFilteringBinaryPrinter;
 
-import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
-
-import 'package:kernel/target/targets.dart' show Target;
+import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError, formatUnexpected, inputError, reportCrash;
+import 'errors.dart' show InputError, inputError;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
@@ -35,8 +30,6 @@ import 'compile_platform.dart' show compilePlatformInternal;
 import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
-
-import 'vm.dart' show CompilationResult;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
@@ -171,69 +164,6 @@ class CompileTask {
   }
 }
 
-Future<CompilationResult> parseScript(
-    Uri fileName, Uri packages, Uri patchedSdk, Target backendTarget,
-    {bool verbose: false}) async {
-  return parseScriptInFileSystem(fileName, PhysicalFileSystem.instance,
-      packages, patchedSdk, backendTarget,
-      verbose: verbose);
-}
-
-Future<CompilationResult> parseScriptInFileSystem(Uri fileName,
-    FileSystem fileSystem, Uri packages, Uri patchedSdk, Target backendTarget,
-    {bool verbose: false}) async {
-  try {
-    if (!await fileSystem.entityForUri(fileName).exists()) {
-      return new CompilationResult.error(
-          formatUnexpected(fileName, -1, "No such file."));
-    }
-    if (!await new Directory.fromUri(patchedSdk).exists()) {
-      return new CompilationResult.error(
-          formatUnexpected(patchedSdk, -1, "Patched sdk directory not found."));
-    }
-
-    Program program;
-    try {
-      TranslateUri uriTranslator =
-          await TranslateUri.parse(fileSystem, patchedSdk, packages: packages);
-      final Ticker ticker = new Ticker(isVerbose: verbose);
-      final DillTarget dillTarget =
-          new DillTarget(ticker, uriTranslator, backendTarget);
-      _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
-      final KernelTarget kernelTarget =
-          new KernelTarget(fileSystem, dillTarget, uriTranslator);
-      kernelTarget.read(fileName);
-      await dillTarget.buildOutlines();
-      await kernelTarget.buildOutlines();
-      program = await kernelTarget.buildProgram();
-      if (kernelTarget.errors.isNotEmpty) {
-        return new CompilationResult.errors(kernelTarget.errors);
-      }
-    } on InputError catch (e) {
-      return new CompilationResult.error(e.format());
-    }
-
-    if (program.mainMethod == null) {
-      return new CompilationResult.error("No 'main' method found.");
-    }
-
-    // Write the program to a list of bytes and return it.  Do not include
-    // libraries that have a dart: import URI.
-    //
-    // TODO(kmillikin): This is intended to exclude platform libraries that are
-    // included in the Kernel binary platform platform.dill.  It does not
-    // necessarily exclude exactly the platform libraries.  Use a better
-    // predicate that knows what is included in platform.dill.
-    var sink = new ByteSink();
-    bool predicate(Library library) => !library.importUri.isScheme('dart');
-    new LibraryFilteringBinaryPrinter(sink, predicate)
-        .writeProgramFile(program);
-    return new CompilationResult.ok(sink.builder.takeBytes());
-  } catch (e, s) {
-    return reportCrash(e, s, fileName);
-  }
-}
-
 Future compilePlatform(Uri patchedSdk, Uri fullOutput,
     {Uri outlineOutput,
     Uri packages,
@@ -253,16 +183,16 @@ Future compilePlatform(Uri patchedSdk, Uri fullOutput,
   });
 }
 
-Future writeDepsFile(Uri script, Uri depsFile, Uri output,
+// TODO(sigmund): reimplement this API using the directive listener intead.
+Future<List<Uri>> getDependencies(Uri script,
     {Uri sdk,
     Uri packages,
     Uri platform,
-    Iterable<Uri> extraDependencies,
     bool verbose: false,
     String backendTarget}) async {
   backendTarget ??= "vm_fasta";
   Ticker ticker = new Ticker(isVerbose: verbose);
-  await CompilerCommandLine.withGlobalOptions("", [""],
+  return await CompilerCommandLine.withGlobalOptions("", [""],
       (CompilerContext c) async {
     c.options.options["--target"] = backendTarget;
     c.options.options["--strong-mode"] = false;
@@ -278,15 +208,14 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     ticker.logMs("Read packages file");
     DillTarget dillTarget =
         new DillTarget(ticker, uriTranslator, c.options.target);
-    _appendDillForUri(dillTarget, platform);
+    if (platform != null) _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(
         PhysicalFileSystem.instance, dillTarget, uriTranslator, c.uriToSource);
 
     kernelTarget.read(script);
     await dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
-    await kernelTarget.writeDepsFile(output, depsFile,
-        extraDependencies: extraDependencies);
+    return await kernelTarget.loader.getDependencies();
   });
 }
 

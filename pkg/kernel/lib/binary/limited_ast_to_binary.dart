@@ -13,7 +13,17 @@ import 'package:kernel/binary/ast_to_binary.dart';
 class LimitedBinaryPrinter extends BinaryPrinter {
   final LibraryFilter predicate;
 
-  LimitedBinaryPrinter(Sink<List<int>> sink, this.predicate)
+  /// Excludes all uriToSource information.
+  ///
+  /// By default the [predicate] above will only exclude canonical names and
+  /// kernel libraries, but it will still emit the sources for all libraries.
+  /// filtered by libraries matching [predicate].
+  // TODO(sigmund): provide a way to filter sources directly based on
+  // [predicate]. That requires special logic to handle sources from part files.
+  final bool excludeUriToSource;
+
+  LimitedBinaryPrinter(
+      Sink<List<int>> sink, this.predicate, this.excludeUriToSource)
       : super(sink, stringIndexer: new ReferencesStringIndexer());
 
   @override
@@ -67,6 +77,19 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   void writeProgramIndex(Program program, List<Library> libraries) {
     var librariesToWrite = libraries.where(predicate).toList();
     super.writeProgramIndex(program, librariesToWrite);
+  }
+
+  void writeUriToSource(Program program) {
+    if (!excludeUriToSource) {
+      super.writeUriToSource(program);
+    } else {
+      // Emit a practically empty uriToSrouce table.
+      writeStringTable(new StringIndexer());
+
+      // Add an entry for '', which is always included by default.
+      writeUtf8Bytes(const <int>[]);
+      writeUInt30(0);
+    }
   }
 }
 

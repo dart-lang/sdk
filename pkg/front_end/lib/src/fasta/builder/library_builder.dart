@@ -47,6 +47,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   /// True if a compile-time error has been reported in this library.
   bool hasCompileTimeErrors = false;
 
+  bool mayImplementRestrictedTypes = false;
+
   LibraryBuilder(Uri fileUri, this.scope, this.exports)
       : fileUri = fileUri,
         relativeFileUri = relativizeUri(fileUri),
