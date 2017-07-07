@@ -28,13 +28,9 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step, TestDescription;
+    show ChainContext, Result, StdioProcess, Step;
 
 import 'package:kernel/ast.dart' show Program;
-
-import 'package:front_end/front_end.dart';
-
-import 'patched_sdk_location.dart' show computePatchedSdk;
 
 class Print extends Step<Program, Program, ChainContext> {
   const Print();
@@ -172,40 +168,6 @@ class Copy extends Step<Program, Program, ChainContext> {
     new BinaryBuilder(bytes).readProgram(program);
     return pass(program);
   }
-}
-
-/// A `package:testing` step that runs the `package:front_end` compiler to
-/// generate a kernel program for an individual file.
-///
-/// Most options are hard-coded, but if necessary they could be moved to the
-/// [CompileContext] object in the future.
-class Compile extends Step<TestDescription, Program, CompileContext> {
-  const Compile();
-
-  String get name => "fasta compilation";
-
-  Future<Result<Program>> run(
-      TestDescription description, CompileContext context) async {
-    Result<Program> result;
-    reportError(CompilationError error) {
-      result ??= fail(null, error.message);
-    }
-
-    Uri sdk = await computePatchedSdk();
-    Program p = await kernelForProgram(
-        description.uri,
-        new CompilerOptions()
-          ..sdkRoot = sdk
-          ..packagesFileUri = Uri.base.resolve('.packages')
-          ..strongMode = context.strongMode
-          ..linkedDependencies = [sdk.resolve('platform.dill')]
-          ..onError = reportError);
-    return result ??= pass(p);
-  }
-}
-
-abstract class CompileContext implements ChainContext {
-  bool get strongMode;
 }
 
 class BytesCollector implements Sink<List<int>> {

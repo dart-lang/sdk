@@ -159,27 +159,16 @@ class BinaryBuilder {
 
   void _fillTreeNodeList(
       List<TreeNode> list, TreeNode buildObject(), TreeNode parent) {
-    var length = readUInt();
-    list.length = length;
-    for (int i = 0; i < length; ++i) {
-      TreeNode object = buildObject();
-      list[i] = object..parent = parent;
+    list.length = readUInt();
+    for (int i = 0; i < list.length; ++i) {
+      list[i] = buildObject()..parent = parent;
     }
   }
 
   void _fillNonTreeNodeList(List<Node> list, Node buildObject()) {
-    var length = readUInt();
-    list.length = length;
-    for (int i = 0; i < length; ++i) {
-      Node object = buildObject();
-      list[i] = object;
-    }
-  }
-
-  void _skipNodeList(Node skipObject()) {
-    var length = readUInt();
-    for (int i = 0; i < length; ++i) {
-      skipObject();
+    list.length = readUInt();
+    for (int i = 0; i < list.length; ++i) {
+      list[i] = buildObject();
     }
   }
 
@@ -381,11 +370,7 @@ class BinaryBuilder {
 
     debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
 
-    if (shouldWriteData) {
-      _fillTreeNodeList(library.annotations, readExpression, library);
-    } else {
-      _skipNodeList(readExpression);
-    }
+    _fillTreeNodeList(library.annotations, readExpression, library);
     _readLibraryDependencies(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
@@ -475,11 +460,7 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
-    if (shouldWriteData) {
-      _fillNonTreeNodeList(node.implementedTypes, readSupertype);
-    } else {
-      _skipNodeList(readSupertype);
-    }
+    _fillNonTreeNodeList(node.implementedTypes, readSupertype);
     _mergeNamedNodeList(node.fields, readField, node);
     _mergeNamedNodeList(node.constructors, readConstructor, node);
     _mergeNamedNodeList(node.procedures, readProcedure, node);
@@ -563,11 +544,7 @@ class BinaryBuilder {
     var function = readFunctionNode();
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
-    if (shouldWriteData) {
-      _fillTreeNodeList(node.initializers, readInitializer, node);
-    } else {
-      _skipNodeList(readInitializer);
-    }
+    _fillTreeNodeList(node.initializers, readInitializer, node);
     variableStack.length = 0;
     var transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();

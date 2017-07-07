@@ -269,12 +269,4 @@ class VmTarget extends Target {
           new NamedExpression("growable", new BoolLiteral(false))
         ]));
   }
-
-  // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
-  // https://github.com/dart-lang/sdk/issues/29763).
-  @override
-  bool enableNative(Uri uri) => true;
-
-  @override
-  bool get nativeExtensionExpectsString => true;
 }

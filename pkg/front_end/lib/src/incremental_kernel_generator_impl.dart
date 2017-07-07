@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:front_end/file_system.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
@@ -12,16 +13,26 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 import 'package:meta/meta.dart';
+
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  void close() {}
+}
 
 /// Implementation of [IncrementalKernelGenerator].
 ///
@@ -257,8 +268,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
         program.uriToSource.clear();
-        List<int> bytes =
-            serializeProgram(program, filter: kernelLibraries.contains);
+        List<int> bytes = _writeProgramBytes(program, kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);
         _logger.writeln('Stored ${bytes.length} bytes.');
       });
@@ -363,6 +373,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         }
       }
     });
+  }
+
+  List<int> _writeProgramBytes(Program program, bool filter(Library library)) {
+    ByteSink byteSink = new ByteSink();
+    new LimitedBinaryPrinter(byteSink, filter).writeProgramFile(program);
+    return byteSink.builder.takeBytes();
   }
 }
 

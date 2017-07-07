@@ -17,8 +17,6 @@ import '../parser/parser.dart'
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../parser/native_support.dart' show skipNativeClause;
-
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
@@ -95,7 +93,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   final Scope enclosingScope;
 
   final bool enableNative;
-  final bool stringExpectedAfterNative;
 
   /// Whether to ignore an unresolved reference to `main` within the body of
   /// `_getMainClosure` when compiling the current library.
@@ -183,10 +180,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       this._typeInferrer)
       : enclosingScope = scope,
         library = library,
-        enableNative =
-            library.loader.target.backendTarget.enableNative(library.uri),
-        stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString,
+        enableNative = library.loader.target.enableNative(library),
         ignoreMainInGetMainClosure = library.uri.scheme == 'dart' &&
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
@@ -3007,7 +3001,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (enableNative && message.code == codeExpectedFunctionBody) {
-      Token recover = skipNativeClause(token, stringExpectedAfterNative);
+      Token recover = library.loader.target.skipNativeClause(token);
       if (recover != null) return recover;
     } else if (message.code == codeExpectedButGot) {
       String expected = message.arguments["string"];

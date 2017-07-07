@@ -98,7 +98,7 @@ class FastaContext extends ChainContext {
   Uri sdk;
   Uri platformUri;
   Uri outlineUri;
-  Program outline;
+  List<int> outlineBytes;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
@@ -139,12 +139,15 @@ class FastaContext extends ChainContext {
   }
 
   Future<Program> loadPlatformOutline() async {
-    if (outline == null) {
+    if (outlineBytes == null) {
       await ensurePlatformUris();
-      outline =
-          loadProgramFromBytes(new File.fromUri(outlineUri).readAsBytesSync());
+      outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
     }
-    return outline;
+    // Note: we rebuild the platform outline on every test because the compiler
+    // currently mutates the in-memory representation of the program without
+    // cloning it.
+    // TODO(sigmund): investigate alternatives to this approach.
+    return loadProgramFromBytes(outlineBytes);
   }
 
   static Future<FastaContext> create(
@@ -256,7 +259,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       }
       p = await sourceTarget.buildOutlines();
       if (fullCompile) {
-        p = await sourceTarget.buildProgram();
+        p = await sourceTarget.buildProgram(trimDependencies: true);
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {

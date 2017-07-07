@@ -9,7 +9,7 @@ import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-import 'package:kernel/kernel.dart' show Program, Library, CanonicalName;
+import 'package:kernel/kernel.dart' show Program, Library;
 
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,22 +37,6 @@ class ProcessedOptionsTest {
     }
   }
 
-  test_sdk_summary_inferred() {
-    // The sdk-summary is inferred by default form sdk-root, when compile-sdk is
-    // false
-    var raw = new CompilerOptions()
-      ..sdkRoot = Uri.parse('file:///sdk/dir/')
-      ..compileSdk = false;
-    expect(new ProcessedOptions(raw).sdkSummary,
-        Uri.parse('file:///sdk/dir/outline.dill'));
-
-    // But it is left null when compile-sdk is true
-    raw = new CompilerOptions()
-      ..sdkRoot = Uri.parse('file:///sdk/dir/')
-      ..compileSdk = true;
-    expect(new ProcessedOptions(raw).sdkSummary, null);
-  }
-
   test_fileSystem_noBazelRoots() {
     // When no bazel roots are specified, the filesystem should be passed
     // through unmodified.
@@ -77,7 +61,7 @@ class ProcessedOptionsTest {
 
   Future<Null> checkMockSummary(CompilerOptions raw) async {
     var processed = new ProcessedOptions(raw);
-    var sdkSummary = await processed.loadSdkSummary(new CanonicalName.root());
+    var sdkSummary = await processed.sdkSummaryProgram;
     expect(sdkSummary.libraries.single.importUri,
         mockSummary.libraries.single.importUri);
   }
@@ -128,98 +112,5 @@ class ProcessedOptionsTest {
     var processed = new ProcessedOptions(raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages, isEmpty);
-  }
-
-  test_validateOptions_root_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root/');
-    fileSystem
-        // Note: this test is a bit hackish because the memory file system
-        // doesn't have the notion of directories.
-        .entityForUri(sdkRoot)
-        .writeAsStringSync('\n');
-    fileSystem
-        .entityForUri(sdkRoot.resolve('outline.dill'))
-        .writeAsStringSync('\n');
-
-    var errors = [];
-    var raw = new CompilerOptions()
-      ..sdkRoot = sdkRoot
-      ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw);
-    var result = await options.validateOptions();
-    // Note: we check this first so test failures show the cause directly.
-    expect(errors, isEmpty);
-    expect(result, isTrue);
-  }
-
-  test_validateOptions_root_doesnt_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root');
-    var errors = [];
-    var raw = new CompilerOptions()
-      ..sdkRoot = sdkRoot
-      ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw);
-    expect(await options.validateOptions(), isFalse);
-    expect('${errors.first}', contains("SDK root directory not found"));
-  }
-
-  test_validateOptions_summary_exists() async {
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
-    fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
-
-    var errors = [];
-    var raw = new CompilerOptions()
-      ..sdkSummary = sdkSummary
-      ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw);
-    var result = await options.validateOptions();
-    expect(errors, isEmpty);
-    expect(result, isTrue);
-  }
-
-  test_validateOptions_summary_doesnt_exists() async {
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
-    var errors = [];
-    var raw = new CompilerOptions()
-      ..sdkSummary = sdkSummary
-      ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw);
-    expect(await options.validateOptions(), isFalse);
-    expect('${errors.first}', contains("SDK summary not found"));
-  }
-
-  test_validateOptions_inferred_summary_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root/');
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
-    fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
-    fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
-
-    var errors = [];
-    var raw = new CompilerOptions()
-      ..sdkRoot = sdkRoot
-      ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw);
-    var result = await options.validateOptions();
-    expect(errors, isEmpty);
-    expect(result, isTrue);
-  }
-
-  test_validateOptions_inferred_summary_doesnt_exists() async {
-    var sdkRoot = Uri.parse('file:///sdk/root/');
-    var sdkSummary = Uri.parse('file:///sdk/root/outline.dill');
-    fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
-    var errors = [];
-    var raw = new CompilerOptions()
-      ..sdkSummary = sdkSummary
-      ..fileSystem = fileSystem
-      ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw);
-    expect(await options.validateOptions(), isFalse);
-    expect('${errors.first}', contains("SDK summary not found"));
   }
 }

@@ -339,6 +339,14 @@ class SourceLoader<L> extends Loader<L> {
     return output;
   }
 
+  /// Whether [library] is allowed to define classes that extend or implement
+  /// restricted types, such as `bool`, `int`, `double`, `num`, and `String`. By
+  /// default this is only allowed within the implementation of `dart:core`, but
+  /// some target implementations may need to override this to allow doing this
+  /// in other internal platform libraries.
+  bool canImplementRestrictedTypes(LibraryBuilder library) =>
+      library == coreLibrary;
+
   void checkSemantics() {
     List<ClassBuilder> allClasses = target.collectAllClasses();
     Iterable<ClassBuilder> candidates = cyclicCandidates(allClasses);
@@ -387,7 +395,7 @@ class SourceLoader<L> extends Loader<L> {
               cls.charOffset,
               "'${supertype.name}' is an enum and can't be extended or "
               "implemented.");
-        } else if (!cls.library.mayImplementRestrictedTypes &&
+        } else if (!canImplementRestrictedTypes(cls.library) &&
             blackListedClasses.contains(supertype)) {
           cls.addCompileTimeError(
               cls.charOffset,

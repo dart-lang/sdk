@@ -8,7 +8,13 @@ import 'package:kernel/target/targets.dart' as backend show Target;
 
 import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
+import 'parser/dart_vm_native.dart' as vm show skipNativeClause;
+
+import '../scanner/token.dart' show Token;
+
 import 'loader.dart' show Loader;
+
+import 'quote.dart' show unescapeString;
 
 import 'target.dart' show Target;
 
@@ -95,6 +101,25 @@ abstract class TargetImplementation extends Target {
       loader.read(Uri.parse(uri), -1);
     }
   }
+
+  /// Whether the `native` language extension is supported within [library].
+  ///
+  /// The `native` language extension is not part of the language specification,
+  /// means something else to each target, and is enabled differently for each
+  /// target implementation. For example, the VM target enables it everywhere
+  /// because of existing support for "dart-ext:" native extensions, but targets
+  /// like dart2js only enable it on the core libraries.
+  ///
+  /// This default implementation assumes a VM target, but it can be overriden
+  /// in subclasses to change the behavior.
+  // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
+  // https://github.com/dart-lang/sdk/issues/29763).
+  bool enableNative(LibraryBuilder library) => true;
+
+  Token skipNativeClause(Token token) => vm.skipNativeClause(token);
+
+  String extractNativeMethodName(Token token) =>
+      unescapeString(token.next.lexeme);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode);

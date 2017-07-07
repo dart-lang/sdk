@@ -163,7 +163,7 @@ Future<CompilationResult> rebuild(
       // TODO(sigmund): should the incremental generator always filter these
       // libraries instead?
       new LimitedBinaryPrinter(
-              sink, (library) => library.importUri.scheme != 'dart', false)
+              sink, (library) => library.importUri.scheme != 'dart')
           .writeProgramFile(program);
       await sink.close();
     }

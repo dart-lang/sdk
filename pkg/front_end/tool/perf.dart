@@ -145,6 +145,9 @@ Future<Program> generateKernel(Uri entryUri,
 
 _kernelForProgramViaDartk(Uri source, CompilerOptions options) async {
   var loader = await _createLoader(options, entry: source);
+  if (options.compileSdk) {
+    options.additionalLibraries.forEach(loader.loadLibrary);
+  }
   loader.loadProgram(source, compileSdk: options.compileSdk);
   _reportErrors(loader.errors, options.onError);
   return loader.program;
@@ -167,8 +170,8 @@ Future<DartLoader> _createLoader(CompilerOptions options,
   // URIs correctly even if sdkRoot is inferred and not specified explicitly.
   String resolve(Uri patch) => _uriToPath(options.sdkRoot.resolveUri(patch));
 
-  options.targetPatches.forEach((name, patches) {
-    patchPaths['dart:$name'] = patches.map(resolve).toList();
+  options.targetPatches.forEach((uri, patches) {
+    patchPaths['$uri'] = patches.map(resolve).toList();
   });
   AnalysisOptionsImpl analysisOptions = loader.context.analysisOptions;
   analysisOptions.patchPaths = patchPaths;
@@ -183,6 +186,7 @@ DartOptions _convertOptions(CompilerOptions options) {
       // sdk sources.
       sdkSummary: options.compileSdk ? null : _uriToPath(options.sdkSummary),
       packagePath: _uriToPath(options.packagesFileUri),
+      customUriMappings: options.uriOverride,
       declaredVariables: options.declaredVariables);
 }
 

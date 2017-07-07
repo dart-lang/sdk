@@ -15,8 +15,9 @@ import '../errors.dart' show internalError;
 ///
 /// This applies a simple "tree-shaking" technique: the full body of libraries
 /// whose URI match [isIncluded] is preserved, and so is the outline of the
-/// members and classes which are transitively visible from the
-/// included libraries.
+/// members and classes which are indicated by [data] (which should
+/// practically include all members and classes transitively visible from the
+/// included libraries).
 ///
 /// The intent is that the resulting program has the entire code that is meant
 /// to be included and the minimum required to prevent dangling references and
@@ -25,9 +26,7 @@ import '../errors.dart' show internalError;
 /// Note that the resulting program may include libraries not in [isIncluded],
 /// but those will be marked as external. There should be no method bodies for
 /// any members of those libraries.
-void trimProgram(Program program, bool isIncluded(Uri uri)) {
-  var data = new RetainedDataBuilder();
-  new RootsMarker(new CoreTypes(program), data).run(program, isIncluded);
+void trimProgram(Program program, RetainedData data, bool isIncluded(Uri uri)) {
   new KernelOutlineShaker(data, isIncluded).transform(program);
 }
 

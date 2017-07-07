@@ -41,7 +41,10 @@ final subpackageRules = {
   'lib': new SubpackageRules(allowedDependencies: [
     'lib/src',
     'lib/src/base',
-    'lib/src/incremental',
+    'lib/src/fasta',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel',
+    'lib/src/incremental'
   ]),
   'lib/src': new SubpackageRules(allowedDependencies: [
     'lib',
@@ -52,13 +55,15 @@ final subpackageRules = {
     'lib/src/fasta/source',
     'lib/src/incremental',
   ]),
-  'lib/src/base': new SubpackageRules(
-      allowedDependencies: ['lib', 'lib/src/fasta', 'lib/src/incremental']),
+  'lib/src/base': new SubpackageRules(allowedDependencies: [
+    'lib',
+    'lib/src',
+    'lib/src/fasta',
+    'lib/src/incremental'
+  ]),
   'lib/src/codegen': new SubpackageRules(),
   'lib/src/fasta': new SubpackageRules(allowedDependencies: [
     'lib',
-    'lib/src',
-    'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
@@ -116,7 +121,6 @@ final subpackageRules = {
     'lib/src/scanner',
   ]),
   'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [
-    'lib',
     'lib/src/fasta',
     'lib/src/base',
     'lib/src/fasta/kernel',
@@ -148,7 +152,6 @@ final subpackageRules = {
   ]),
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
     'lib',
-    'lib/src/fasta/testing',
   ]),
 };
 
