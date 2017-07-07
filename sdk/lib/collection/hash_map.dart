@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "collection.dart";
+part of dart.collection;
 
 /** Default function for equality comparison in customized HashMaps */
 bool _defaultEquals(a, b) => a == b;

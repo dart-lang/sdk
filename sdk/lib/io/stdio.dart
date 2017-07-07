@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "io.dart";
+part of dart.io;
 
 const int _STDIO_HANDLE_TYPE_TERMINAL = 0;
 const int _STDIO_HANDLE_TYPE_PIPE = 1;

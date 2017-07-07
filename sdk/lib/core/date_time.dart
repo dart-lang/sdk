@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "core.dart";
+part of dart.core;
 
 /**
  * An instant in time, such as July 20, 1969, 8:18pm GMT.

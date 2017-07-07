@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "convert.dart";
+part of dart.convert;
 
 /**
  * A [base64](https://tools.ietf.org/html/rfc4648) encoder and decoder.
