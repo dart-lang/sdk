@@ -61,7 +61,7 @@ class TargetRepositoryMock implements M.TargetRepository {
   }
 
   M.Target find(String networkAddress) {
-    return null;
+    return const TargetMock();
   }
 
   @override
