@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F = <V extends core::Object>(V) → void;
+typedef F<V extends core::Object> = (V) → void;
 class C<T extends core::Object> extends self::D<self::C::T> {
   constructor •() → void
     : super self::D::•()

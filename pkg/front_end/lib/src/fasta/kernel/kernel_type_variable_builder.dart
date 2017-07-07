@@ -33,11 +33,11 @@ class KernelTypeVariableBuilder
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
-      return inputError(null, null,
-          "Can't use type arguments with type parameter $parameter");
-    } else {
-      return new TypeParameterType(parameter);
+      library.addWarning(arguments.first.charOffset,
+          "Can't use type arguments with type parameter $parameter",
+          fileUri: fileUri);
     }
+    return new TypeParameterType(parameter);
   }
 
   DartType buildTypesWithBuiltArguments(
@@ -55,6 +55,7 @@ class KernelTypeVariableBuilder
   }
 
   void finish(LibraryBuilder library, KernelClassBuilder object) {
-    parameter.bound = bound?.build(library) ?? object.buildType(library, null);
+    parameter.bound ??=
+        bound?.build(library) ?? object.buildType(library, null);
   }
 }

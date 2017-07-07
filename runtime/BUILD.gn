@@ -4,35 +4,6 @@
 
 import("runtime_args.gni")
 
-declare_args() {
-  # Instead of using is_debug, we introduce a different flag for specifying a
-  # Debug build of Dart so that clients can still use a Release build of Dart
-  # while themselves doing a Debug build.
-  dart_debug = false
-
-  # Set the runtime mode. This affects how the runtime is built and what
-  # features it has. Valid values are:
-  # 'develop' (the default) - VM is built to run as a JIT with all development
-  # features enabled.
-  # 'profile' - The VM is built to run with AOT compiled code with only the
-  # CPU profiling features enabled.
-  # 'release' - The VM is built to run with AOT compiled code with no developer
-  # features enabled.
-  #
-  # These settings are only used for Flutter, at the moment. A standalone build
-  # of the Dart VM should leave this set to "develop", and should set
-  # 'is_debug', 'is_release', or 'is_product'.
-  dart_runtime_mode = "develop"
-
-  # Explicitly set the target architecture in case of precompilation. Leaving
-  # this unspecified results in automatic target architecture detection.
-  # Available options are: arm, arm64, x64, and ia32
-  dart_target_arch = ""
-
-  # The optimization level to use for debug builds.
-  dart_debug_optimization_level = "2"
-}
-
 config("dart_public_config") {
   include_dirs = [ "." ]
 }
@@ -259,7 +230,11 @@ libdart_library("libdart_with_precompiler") {
 
 action("generate_version_cc_file") {
   deps = [
-    ":libdart_dependency_helper",
+    "third_party/double-conversion/src:libdouble_conversion",
+    "vm:libdart_lib_jit",
+    "vm:libdart_lib_nosnapshot_with_precompiler",
+    "vm:libdart_vm_jit",
+    "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
   inputs = [
     "../tools/utils.py",
@@ -279,25 +254,5 @@ action("generate_version_cc_file") {
     rebase_path(output, root_build_dir),
     "--input",
     rebase_path("vm/version_in.cc", root_build_dir),
-  ]
-}
-
-executable("libdart_dependency_helper") {
-  configs += [
-    ":dart_config",
-    ":dart_maybe_product_config",
-  ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-  }
-  deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib_jit",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_jit",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-  sources = [
-    "vm/libdart_dependency_helper.cc",
   ]
 }

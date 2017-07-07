@@ -61,6 +61,8 @@ import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_byte_store.dart';
 import 'package:plugin/plugin.dart';
+import 'package:telemetry/crash_reporting.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -98,7 +100,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.1';
+  static final String VERSION = '1.18.2';
 
   /**
    * The options of this server instance.
@@ -358,11 +360,6 @@ class AnalysisServer {
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
-    defaultContextOptions.incremental = true;
-    defaultContextOptions.incrementalApi =
-        options.enableIncrementalResolutionApi;
-    defaultContextOptions.incrementalValidation =
-        options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
 
     {
@@ -587,6 +584,19 @@ class AnalysisServer {
   }
 
   /**
+   * Return the cached analysis result for the file with the given [path].
+   * If there is no cached result, return `null`.
+   */
+  nd.AnalysisResult getCachedAnalysisResult(String path) {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    return driver?.getCachedResult(path);
+  }
+
+  /**
    * Return the [nd.AnalysisDriver] for the "innermost" context whose associated
    * folder is or contains the given path.  ("innermost" refers to the nesting
    * of contexts, so if there is a context for path /foo and a context for
@@ -770,6 +780,15 @@ class AnalysisServer {
         new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
 
+    // send to crash reporting
+    if (options.crashReportSender != null) {
+      // Catch and ignore any exceptions when reporting exceptions (network
+      // errors or other).
+      options.crashReportSender
+          .sendReport(exception, stackTrace: stackTrace)
+          .catchError((_) {});
+    }
+
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
@@ -896,8 +915,13 @@ class AnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  void shutdown() {
+  Future<Null> shutdown() async {
     running = false;
+
+    await options.analytics
+        ?.waitForLastPing(timeout: new Duration(milliseconds: 200));
+    options.analytics?.close();
+
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
     new Future(() {
@@ -1035,18 +1059,30 @@ class AnalysisServer {
   }
 }
 
+/**
+ * Various IDE options.
+ */
 class AnalysisServerOptions {
-  bool enableIncrementalResolutionApi = false;
-  bool enableIncrementalResolutionValidation = false;
   bool useAnalysisHighlight2 = false;
+  bool enableVerboseFlutterCompletions = false;
+
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;
   String clientVersion;
 
-  // IDE options
-  bool enableVerboseFlutterCompletions = false;
+  /**
+   * The analytics instance; note, this object can be `null`, and should be
+   * accessed via a null-aware operator.
+   */
+  telemetry.Analytics analytics;
+
+  /**
+   * The crash report sender instance; note, this object can be `null`, and
+   * should be accessed via a null-aware operator.
+   */
+  CrashReportSender crashReportSender;
 }
 
 /**

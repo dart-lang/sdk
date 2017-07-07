@@ -320,9 +320,10 @@ vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 async_await_test: RuntimeError
 async_star_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
+vm/causal_async_exception_stack2_test: RuntimeError
 # TODO(zra): Investigate
-vm/regress_28325_test: RuntimeError
 closure_cycles_test: Pass, Crash
+vm/math_vm_test: Crash
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.

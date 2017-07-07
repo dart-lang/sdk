@@ -145,7 +145,7 @@ compileAndTest(source, checker, {createCode: false}) async {
   var commonMasks = closedWorld.commonMasks;
   getType(String name) {
     var element = findElement(compiler, name);
-    return typesInferrer.getTypeOfElement(element);
+    return typesInferrer.getTypeOfMember(element);
   }
 
   if (!createCode) {

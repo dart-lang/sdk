@@ -41,7 +41,7 @@ Future<Null> scheduleImplementedNotification(
     return;
   }
   for (String file in files) {
-    CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+    CompilationUnit unit = server.getCachedAnalysisResult(file)?.unit;
     CompilationUnitElement unitElement = unit?.element;
     if (unitElement != null) {
       try {

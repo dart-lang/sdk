@@ -992,10 +992,17 @@ void Object::InitOnce(Isolate* isolate) {
 
 
 // An object visitor which will mark all visited objects. This is used to
-// premark all objects in the vm_isolate_ heap.
-class PremarkingVisitor : public ObjectVisitor {
+// premark all objects in the vm_isolate_ heap.  Also precalculates hash
+// codes so that we can get the identity hash code of objects in the read-
+// only VM isolate.
+class FinalizeVMIsolateVisitor : public ObjectVisitor {
  public:
-  PremarkingVisitor() {}
+  FinalizeVMIsolateVisitor()
+#if defined(HASH_IN_OBJECT_HEADER)
+      : counter_(1337)
+#endif
+  {
+  }
 
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
@@ -1005,8 +1012,35 @@ class PremarkingVisitor : public ObjectVisitor {
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
+      if (obj->IsStringInstance()) {
+        RawString* str = reinterpret_cast<RawString*>(obj);
+        intptr_t hash = String::Hash(str);
+        String::SetCachedHash(str, hash);
+      }
+#if defined(HASH_IN_OBJECT_HEADER)
+      // These objects end up in the read-only VM isolate which is shared
+      // between isolates, so we have to prepopulate them with identity hash
+      // codes, since we can't add hash codes later.
+      if (Object::GetCachedHash(obj) == 0) {
+        // Some classes have identity hash codes that depend on their contents,
+        // not per object.
+        ASSERT(!obj->IsStringInstance());
+        if (!obj->IsMint() && !obj->IsDouble() && !obj->IsBigint() &&
+            !obj->IsRawNull() && !obj->IsBool()) {
+          counter_ += 2011;  // The year Dart was announced and a prime.
+          counter_ &= 0x3fffffff;
+          if (counter_ == 0) counter_++;
+          Object::SetCachedHash(obj, counter_);
+        }
+      }
+#endif
     }
   }
+
+ private:
+#if defined(HASH_IN_OBJECT_HEADER)
+  int32_t counter_;
+#endif
 };
 
 
@@ -1086,7 +1120,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   {
     ASSERT(isolate == Dart::vm_isolate());
     WritableVMIsolateScope scope(Thread::Current());
-    PremarkingVisitor premarker;
+    FinalizeVMIsolateVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
     isolate->heap()->IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
@@ -1121,13 +1155,15 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw->ptr()->tags_;
+      uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = AtomicOperations::CompareAndSwapWord(&raw->ptr()->tags_,
-                                                    old_tags, new_tags);
+        // We can't use obj.CompareAndSwapTags here because we don't have a
+        // handle for the new object.
+        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
+                                                      old_tags, new_tags);
       } while (tags != old_tags);
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
@@ -1139,13 +1175,12 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      uword tags = raw->ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw->ptr()->tags_;
+      uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
       do {
         old_tags = tags;
-        tags = AtomicOperations::CompareAndSwapWord(&raw->ptr()->tags_,
-                                                    old_tags, new_tags);
+        tags = obj.CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
     }
   }
@@ -1867,12 +1902,15 @@ void Object::InitializeObject(uword address,
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
   }
-  uword tags = 0;
+  uint32_t tags = 0;
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
+#if defined(HASH_IN_OBJECT_HEADER)
+  reinterpret_cast<RawObject*>(address)->hash_ = 0;
+#endif
   ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
 }
 
@@ -4861,6 +4899,7 @@ bool TypeArguments::IsResolved() const {
 bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
                                             intptr_t len,
                                             Genericity genericity,
+                                            intptr_t num_free_fun_type_params,
                                             TrailPtr trail) const {
   ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
@@ -4872,7 +4911,8 @@ bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
     // during finalization of V, which is also the instantiator. T depends
     // solely on the type parameters of A and will be replaced by a non-null
     // type before A is marked as finalized.
-    if (!type.IsNull() && !type.IsInstantiated(genericity, trail)) {
+    if (!type.IsNull() &&
+        !type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
       return false;
     }
   }
@@ -6005,9 +6045,9 @@ void Function::set_native_name(const String& value) const {
 void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->result_type_, value.raw());
-  if (value.IsFunctionType() && !value.IsResolved()) {
-    // The unresolved function result type may refer to this
-    // function's type parameters. Change its parent function.
+  if (value.IsFunctionType()) {
+    // The function result type may refer to this function's type parameters.
+    // Change its parent function.
     const Function& result_signature_function =
         Function::Handle(Type::Cast(value).signature());
     result_signature_function.set_parent_function(*this);
@@ -7255,15 +7295,24 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
 
 
 bool Function::HasInstantiatedSignature(Genericity genericity,
+                                        intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
+  if (genericity != kCurrentClass) {
+    // We only consider the function type parameters declared by the parents of
+    // this signature function.
+    const int num_parent_type_params = NumParentTypeParameters();
+    if (num_parent_type_params < num_free_fun_type_params) {
+      num_free_fun_type_params = num_parent_type_params;
+    }
+  }
   AbstractType& type = AbstractType::Handle(result_type());
-  if (!type.IsInstantiated(genericity, trail)) {
+  if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
     return false;
   }
   const intptr_t num_parameters = NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = ParameterTypeAt(i);
-    if (!type.IsInstantiated(genericity, trail)) {
+    if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
       return false;
     }
   }
@@ -9140,7 +9189,12 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
 
 
 bool Script::HasSource() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  return kind() == RawScript::kKernelTag ||
+         raw_ptr()->source_ != String::null();
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->source_ != String::null();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
@@ -9154,10 +9208,16 @@ RawString* Script::Source() const {
 
 
 RawString* Script::GenerateSource() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (kind() == RawScript::kKernelTag) {
-    // In kernel it's embedded.
+    String& source = String::Handle(raw_ptr()->source_);
+    if (source.IsNull()) {
+      // This is created lazily. Now we need it.
+      set_source(kernel::GetSourceFor(*this));
+    }
     return raw_ptr()->source_;
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
@@ -9180,6 +9240,11 @@ void Script::set_kernel_data(const uint8_t* kernel_data) const {
 
 void Script::set_kernel_data_size(const intptr_t kernel_data_size) const {
   StoreNonPointer(&raw_ptr()->kernel_data_size_, kernel_data_size);
+}
+
+
+void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
+  StoreNonPointer(&raw_ptr()->kernel_script_index_, kernel_script_index);
 }
 
 
@@ -9375,6 +9440,41 @@ void Script::set_debug_positions(const Array& value) const {
 
 void Script::set_yield_positions(const Array& value) const {
   StorePointer(&raw_ptr()->yield_positions_, value.raw());
+}
+
+RawArray* Script::yield_positions() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Array& yields = Array::Handle(raw_ptr()->yield_positions_);
+  if (yields.IsNull() && kind() == RawScript::kKernelTag) {
+    // This is created lazily. Now we need it.
+    kernel::CollectTokenPositionsFor(*this);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return raw_ptr()->yield_positions_;
+}
+
+
+RawArray* Script::line_starts() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const Array& line_starts_array = Array::Handle(raw_ptr()->line_starts_);
+  if (line_starts_array.IsNull() && kind() == RawScript::kKernelTag) {
+    // This is created lazily. Now we need it.
+    set_line_starts(kernel::GetLineStartsFor(*this));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return raw_ptr()->line_starts_;
+}
+
+
+RawArray* Script::debug_positions() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Array& debug_positions_array = Array::Handle(raw_ptr()->debug_positions_);
+  if (debug_positions_array.IsNull() && kind() == RawScript::kKernelTag) {
+    // This is created lazily. Now we need it.
+    kernel::CollectTokenPositionsFor(*this);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return raw_ptr()->debug_positions_;
 }
 
 void Script::set_kind(RawScript::Kind value) const {
@@ -16345,7 +16445,9 @@ TokenPosition AbstractType::token_pos() const {
 }
 
 
-bool AbstractType::IsInstantiated(Genericity genericity, TrailPtr trail) const {
+bool AbstractType::IsInstantiated(Genericity genericity,
+                                  intptr_t num_free_fun_type_params,
+                                  TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -17188,17 +17290,20 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
-bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
+bool Type::IsInstantiated(Genericity genericity,
+                          intptr_t num_free_fun_type_params,
+                          TrailPtr trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
-  if ((genericity == kAny) &&
+  if ((genericity == kAny) && (num_free_fun_type_params == kMaxInt32) &&
       (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated)) {
     return false;
   }
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(signature());
-    if (!sig_fun.HasInstantiatedSignature(genericity, trail)) {
+    if (!sig_fun.HasInstantiatedSignature(genericity, num_free_fun_type_params,
+                                          trail)) {
       return false;
     }
     // Because a generic typedef with an instantiated signature is considered
@@ -17229,7 +17334,7 @@ bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   }
   return (len == 0) ||
          args.IsSubvectorInstantiated(num_type_args - len, len, genericity,
-                                      trail);
+                                      num_free_fun_type_params, trail);
 }
 
 
@@ -17946,12 +18051,15 @@ const char* Type::ToCString() const {
 }
 
 
-bool TypeRef::IsInstantiated(Genericity genericity, TrailPtr trail) const {
+bool TypeRef::IsInstantiated(Genericity genericity,
+                             intptr_t num_free_fun_type_params,
+                             TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return true;
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
-  return !ref_type.IsNull() && ref_type.IsInstantiated(genericity, trail);
+  return !ref_type.IsNull() &&
+         ref_type.IsInstantiated(genericity, num_free_fun_type_params, trail);
 }
 
 
@@ -18118,18 +18226,14 @@ void TypeParameter::SetIsFinalized() const {
 
 
 bool TypeParameter::IsInstantiated(Genericity genericity,
+                                   intptr_t num_free_fun_type_params,
                                    TrailPtr trail) const {
-  switch (genericity) {
-    case kAny:
-      return false;
-    case kCurrentClass:
-      return IsFunctionTypeParameter();
-    case kFunctions:
-      return IsClassTypeParameter();
-    default:
-      UNREACHABLE();
+  if (IsClassTypeParameter()) {
+    return genericity == kFunctions;
   }
-  return false;
+  ASSERT(IsFunctionTypeParameter());
+  ASSERT(IsFinalized());
+  return (genericity == kCurrentClass) || (index() >= num_free_fun_type_params);
 }
 
 
@@ -20339,6 +20443,35 @@ static intptr_t HashImpl(const T* characters, intptr_t len) {
 }
 
 
+intptr_t String::Hash(RawString* raw) {
+  StringHasher hasher;
+  uword length = Smi::Value(raw->ptr()->length_);
+  if (raw->IsOneByteString() || raw->IsExternalOneByteString()) {
+    const uint8_t* data;
+    if (raw->IsOneByteString()) {
+      data = reinterpret_cast<RawOneByteString*>(raw)->ptr()->data();
+    } else {
+      ASSERT(raw->IsExternalOneByteString());
+      RawExternalOneByteString* str =
+          reinterpret_cast<RawExternalOneByteString*>(raw);
+      data = str->ptr()->external_data_->data();
+    }
+    return String::Hash(data, length);
+  } else {
+    const uint16_t* data;
+    if (raw->IsTwoByteString()) {
+      data = reinterpret_cast<RawTwoByteString*>(raw)->ptr()->data();
+    } else {
+      ASSERT(raw->IsExternalTwoByteString());
+      RawExternalTwoByteString* str =
+          reinterpret_cast<RawExternalTwoByteString*>(raw);
+      data = str->ptr()->external_data_->data();
+    }
+    return String::Hash(data, length);
+  }
+}
+
+
 intptr_t String::Hash(const char* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
@@ -21159,11 +21292,11 @@ RawString* String::MakeExternal(void* array,
 
       // Update the class information of the object.
       const intptr_t class_id = kExternalOneByteStringCid;
-      uword tags = raw_ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw_ptr()->tags_;
+      uint32_t old_tags;
       do {
         old_tags = tags;
-        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
         tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
@@ -21196,11 +21329,11 @@ RawString* String::MakeExternal(void* array,
 
       // Update the class information of the object.
       const intptr_t class_id = kExternalTwoByteStringCid;
-      uword tags = raw_ptr()->tags_;
-      uword old_tags;
+      uint32_t tags = raw_ptr()->tags_;
+      uint32_t old_tags;
       do {
         old_tags = tags;
-        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
         tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
@@ -22088,11 +22221,11 @@ void Array::MakeImmutable() const {
   if (IsImmutable()) return;
   ASSERT(!IsCanonical());
   NoSafepointScope no_safepoint;
-  uword tags = raw_ptr()->tags_;
-  uword old_tags;
+  uint32_t tags = raw_ptr()->tags_;
+  uint32_t old_tags;
   do {
     old_tags = tags;
-    uword new_tags =
+    uint32_t new_tags =
         RawObject::ClassIdTag::update(kImmutableArrayCid, old_tags);
     tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
@@ -22157,6 +22290,7 @@ RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
   }
   intptr_t capacity_len = growable_array.Capacity();
   const Array& array = Array::Handle(zone, growable_array.data());
+  ASSERT(array.IsArray());
   array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
@@ -22170,10 +22304,10 @@ RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
-  uword old_tags;
+  uint32_t old_tags;
   do {
     old_tags = tags;
-    uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+    uint32_t new_tags = RawObject::SizeTag::update(used_size, old_tags);
     tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
   // TODO(22501): For the heap to remain walkable by the sweeper, it must

@@ -44,7 +44,7 @@ hash_code_test: RuntimeError # Issue 27394
 is_check_test: CompileTimeError # Issue 27394
 issue9182_test: RuntimeError # Issue 27394
 jsobject_test: RuntimeError # Issue 27394
-load_elim_refinement_test: Crash # Issue 27394
+load_elim_refinement_test: CompileTimeError # Issue 27394
 mirror_intercepted_field_test: Crash # Issue 27394
 native_call_arity1_frog_test: RuntimeError # Issue 27394
 native_call_arity2_frog_test: RuntimeError # Issue 27394

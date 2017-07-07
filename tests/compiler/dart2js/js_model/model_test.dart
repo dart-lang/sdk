@@ -4,46 +4,43 @@
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common.dart';
-import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:expect/expect.dart';
-import '../kernel/compiler_helper.dart';
+import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import '../kernel/compile_from_dill_test_helper.dart';
 import '../serialization/helper.dart';
 
-const Map<String, String> SOURCE = const <String, String>{
-  'main.dart': r'''
-main() {}
-'''
-};
-
 main(List<String> args) {
+  useJsStrategyForTesting = true;
   asyncTest(() async {
     await mainInternal(args);
   });
 }
 
 Future mainInternal(List<String> args,
-    {bool skipWarnings: false, bool skipErrors: false}) async {
+    {bool skipWarnings: false,
+    bool skipErrors: false,
+    List<String> options: const <String>[]}) async {
   Arguments arguments = new Arguments.from(args);
-  Uri entryPoint;
-  Map<String, String> memorySourceFiles;
+  List<Test> tests;
   if (arguments.uri != null) {
-    entryPoint = arguments.uri;
-    memorySourceFiles = const <String, String>{};
+    tests = <Test>[new Test.fromUri(arguments.uri)];
   } else {
-    entryPoint = Uri.parse('memory:main.dart');
-    memorySourceFiles = SOURCE;
+    tests = TESTS;
   }
-
-  enableDebugMode();
-
-  Compiler compiler1 = await compileWithDill(entryPoint, memorySourceFiles, [
-    Flags.disableInlining,
-    Flags.disableTypeInference
-  ], beforeRun: (Compiler compiler) {
-    compiler.backendStrategy = new JsBackendStrategy(compiler);
-  }, printSteps: true);
-  Expect.isFalse(compiler1.compilationFailed);
+  for (Test test in tests) {
+    if (test.uri != null) {
+      print('--- running test uri ${test.uri} -------------------------------');
+    } else {
+      print(
+          '--- running test code -------------------------------------------');
+      print(test.sources.values.first);
+      print('----------------------------------------------------------------');
+    }
+    await runTest(test.entryPoint, test.sources,
+        verbose: arguments.verbose,
+        skipWarnings: skipWarnings,
+        skipErrors: skipErrors,
+        options: options,
+        expectAstEquivalence: true,
+        expectIdenticalOutput: false);
+  }
 }

@@ -16,6 +16,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/resolution/enum_creator.dart';
@@ -25,12 +26,29 @@ import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../equivalence/check_functions.dart';
 import '../equivalence/check_helpers.dart';
+import '../serialization/helper.dart';
 import 'test_helpers.dart';
 
 import 'compiler_helper.dart';
 
-const SOURCE = const {
-  'main.dart': '''
+class Test {
+  final Uri uri;
+  final Map<String, String> sources;
+  final bool expectIdenticalOutput;
+
+  const Test(this.sources, {this.expectIdenticalOutput: true}) : uri = null;
+
+  Test.fromUri(this.uri, {this.expectIdenticalOutput: true})
+      : sources = const {};
+
+  Uri get entryPoint => uri ?? Uri.parse('memory:main.dart');
+
+  String toString() => uri != null ? '$uri' : sources.values.first;
+}
+
+const List<Test> TESTS = const <Test>[
+  const Test(const {
+    'main.dart': '''
 import 'dart:html';
 
 foo({named}) => 1;
@@ -78,28 +96,99 @@ main() {
   while (i < 10) {
     if (i == 5) continue;
     x = i;
-    if (i == 5) break;
+    if (i == 7) break;
+    i++;
   }
   for (var v in [3, 5]) {
     if (v == 5) continue;
     x = v;
-    if (v == 5) break;
+    if (v == 7) break;
+  }
+  do {
+    x = i;
+    if (i == 7) break;
+    i++;
+  } while (i < 10);
+  switch (x) {
+  case 0:
+    x = 7;
+    break;
+  case 1:
+    x = 9;
+    break;
+  default:
+    x = 11;
+    break;
   }
   x = toplevel;
   print(x);
   return x;
 }
 '''
-};
+  }),
+  const Test(const {
+    'main.dart': ''' 
+
+main() {
+  var x;
+  int i = 0;
+  do {
+    if (i == 5) continue;
+    x = i;
+    if (i == 7) break;
+    i++;
+  } while (i < 10);
+  print(x);
+} 
+'''
+  }, expectIdenticalOutput: false),
+];
 
 enum ResultKind { crashes, errors, warnings, success, failure }
+
+const List<String> commonOptions = const <String>[
+  Flags.disableTypeInference,
+  Flags.disableInlining,
+  Flags.enableAssertMessage
+];
+
+Future runTests(List<String> args,
+    {bool skipWarnings: false,
+    bool skipErrors: false,
+    List<String> options: const <String>[]}) async {
+  Arguments arguments = new Arguments.from(args);
+  List<Test> tests;
+  if (arguments.uri != null) {
+    tests = <Test>[new Test.fromUri(arguments.uri)];
+  } else {
+    tests = TESTS;
+  }
+  for (Test test in tests) {
+    if (test.uri != null) {
+      print('--- running test uri ${test.uri} -------------------------------');
+    } else {
+      print(
+          '--- running test code -------------------------------------------');
+      print(test.sources.values.first);
+      print('----------------------------------------------------------------');
+    }
+    await runTest(test.entryPoint, test.sources,
+        verbose: arguments.verbose,
+        skipWarnings: skipWarnings,
+        skipErrors: skipErrors,
+        options: options,
+        expectIdenticalOutput: test.expectIdenticalOutput);
+  }
+}
 
 Future<ResultKind> runTest(
     Uri entryPoint, Map<String, String> memorySourceFiles,
     {bool skipWarnings: false,
     bool skipErrors: false,
     bool verbose: false,
-    List<String> options: const <String>[]}) async {
+    List<String> options: const <String>[],
+    bool expectAstEquivalence: false,
+    bool expectIdenticalOutput: true}) async {
   enableDebugMode();
   EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
@@ -118,11 +207,7 @@ Future<ResultKind> runTest(
       entryPoint: entryPoint,
       diagnosticHandler: collector,
       outputProvider: collector1,
-      options: [
-        Flags.disableTypeInference,
-        Flags.disableInlining,
-        Flags.enableAssertMessage
-      ]..addAll(options));
+      options: <String>[]..addAll(commonOptions)..addAll(options));
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
@@ -144,42 +229,35 @@ Future<ResultKind> runTest(
 
   OutputCollector collector2 = new OutputCollector();
   Compiler compiler2 = await compileWithDill(
-      entryPoint,
-      const {},
-      [
-        Flags.disableTypeInference,
-        Flags.disableInlining,
-        Flags.enableAssertMessage
-      ]..addAll(options),
-      printSteps: true,
-      compilerOutput: collector2);
+      entryPoint, const {}, <String>[]..addAll(commonOptions)..addAll(options),
+      printSteps: true, compilerOutput: collector2);
 
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
   KernelToElementMap elementMap = frontendStrategy.elementMap;
 
   Expect.isFalse(compiler2.compilationFailed);
 
-  KernelEquivalence equivalence = new KernelEquivalence(elementMap);
+  KernelEquivalence equivalence1 = new KernelEquivalence(elementMap);
 
   ClosedWorld closedWorld2 =
       compiler2.resolutionWorldBuilder.closedWorldForTesting;
 
   checkBackendUsage(closedWorld1.backendUsage, closedWorld2.backendUsage,
-      equivalence.defaultStrategy);
+      equivalence1.defaultStrategy);
 
   print('--- checking resolution enqueuers ----------------------------------');
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
       compiler1.enqueuer.resolution, compiler2.enqueuer.resolution,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      elementEquivalence: (a, b) => equivalence1.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
-        return equivalence.typeEquivalence(unalias(a), b);
+        return equivalence1.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
       verbose: verbose);
 
   print('--- checking closed worlds -----------------------------------------');
   checkClosedWorlds(closedWorld1, closedWorld2,
-      strategy: equivalence.defaultStrategy,
+      strategy: equivalence1.defaultStrategy,
       verbose: verbose,
       // TODO(johnniwinther,efortuna): Require closure class equivalence when
       // these are supported.
@@ -189,35 +267,47 @@ Future<ResultKind> runTest(
   // impacts, program model, etc.
 
   print('--- checking codegen enqueuers--------------------------------------');
+
+  KernelBackendStrategy backendStrategy = compiler2.backendStrategy;
+  KernelEquivalence equivalence2 =
+      new KernelEquivalence(backendStrategy.elementMap);
+
   checkCodegenEnqueuers(compiler1.enqueuer.codegenEnqueuerForTesting,
       compiler2.enqueuer.codegenEnqueuerForTesting,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
-        return equivalence.typeEquivalence(unalias(a), b);
+        return equivalence2.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
       verbose: verbose);
 
   checkEmitters(compiler1.backend.emitter, compiler2.backend.emitter,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
-        return equivalence.typeEquivalence(unalias(a), b);
+        return equivalence2.typeEquivalence(unalias(a), b);
       },
       verbose: verbose);
 
-  print('--- checking output------- -----------------------------------------');
-  collector1.outputMap
-      .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
-    if (outputType == OutputType.sourceMap) {
-      // TODO(johnniwinther): Support source map from .dill.
-      return;
-    }
-    Map<String, BufferedOutputSink> map2 = collector2.outputMap[outputType];
-    checkSets(map1.keys, map2.keys, 'output', equality);
-    map1.forEach((String name, BufferedOutputSink output1) {
-      BufferedOutputSink output2 = map2[name];
-      Expect.stringEquals(output1.text, output2.text);
+  if (expectAstEquivalence) {
+    checkGeneratedCode(compiler1.backend, compiler2.backend,
+        elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b));
+  }
+
+  if (expectIdenticalOutput) {
+    print('--- checking output------- ---------------------------------------');
+    collector1.outputMap
+        .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
+      if (outputType == OutputType.sourceMap) {
+        // TODO(johnniwinther): Support source map from .dill.
+        return;
+      }
+      Map<String, BufferedOutputSink> map2 = collector2.outputMap[outputType];
+      checkSets(map1.keys, map2.keys, 'output', equality);
+      map1.forEach((String name, BufferedOutputSink output1) {
+        BufferedOutputSink output2 = map2[name];
+        Expect.stringEquals(output1.text, output2.text);
+      });
     });
-  });
+  }
   return ResultKind.success;
 }

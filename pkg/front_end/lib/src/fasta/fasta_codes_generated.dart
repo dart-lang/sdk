@@ -583,6 +583,7 @@ const FastaCode<
         _AsciiControlCharacter>("AsciiControlCharacter",
     template:
         r"The control character #unicode can only be used in strings and comments.",
+    analyzerCode: "ILLEGAL_CHARACTER",
     dart2jsCode: "BAD_INPUT_CHARACTER",
     format: _formatAsciiControlCharacter);
 

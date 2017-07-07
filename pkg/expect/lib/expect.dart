@@ -503,3 +503,28 @@ class TrustTypeAnnotations {
 class AssumeDynamic {
   const AssumeDynamic();
 }
+
+/// Is true iff type assertions are enabled.
+final bool typeAssertionsEnabled = (() {
+  try {
+    var i = 42;
+    String s = i;
+  } on TypeError catch (e) {
+    return true;
+  }
+  return false;
+})();
+
+/// Is true iff `assert` statements are enabled.
+final bool assertStatementsEnabled = (() {
+  try {
+    assert(false);
+  } on AssertionError catch (e) {
+    return true;
+  }
+  return false;
+})();
+
+/// Is true iff checked mode is enabled.
+final bool checkedModeEnabled =
+    typeAssertionsEnabled && assertStatementsEnabled;

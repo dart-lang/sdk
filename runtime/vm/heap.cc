@@ -365,6 +365,23 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 #endif
 
 
+void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
+  ASSERT(reason == kFull);
+  if (BeginNewSpaceGC(thread)) {
+    RecordBeforeGC(kNew, kFull);
+    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+    TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
+    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
+    new_space_.Evacuate();
+    NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
+    RecordAfterGC(kNew);
+    PrintStats();
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+    EndNewSpaceGC();
+  }
+}
+
+
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
@@ -444,7 +461,10 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
-  CollectNewSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
+
+  // New space is evacuated so this GC will collect all dead objects
+  // kept alive by a cross-generational pointer.
+  EvacuateNewSpace(thread, kFull);
   CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
 }
 
@@ -665,11 +685,12 @@ int64_t Heap::PeerCount() const {
   return new_weak_tables_[kPeers]->count() + old_weak_tables_[kPeers]->count();
 }
 
-
+#if !defined(HASH_IN_OBJECT_HEADER)
 int64_t Heap::HashCount() const {
   return new_weak_tables_[kHashes]->count() +
          old_weak_tables_[kHashes]->count();
 }
+#endif
 
 
 int64_t Heap::ObjectIdCount() const {

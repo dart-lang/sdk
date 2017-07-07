@@ -67,7 +67,7 @@ void main() {
 
         typeOf(String name) {
           return typesInferrer
-              .getReturnTypeOfElement(findElement(compiler, name));
+              .getReturnTypeOfMember(findElement(compiler, name));
         }
 
         checkType(String name, type) {

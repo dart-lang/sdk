@@ -104,6 +104,7 @@ Future testConfigurations(List<Configuration> configurations) async {
       if (configuration.isChecked) settings.add('checked');
       if (configuration.isStrong) settings.add('strong');
       if (configuration.useFastStartup) settings.add('fast-startup');
+      if (configuration.useEnableAsserts) settings.add('enable-asserts');
       outputWords.add(settings.join('_'));
     }
     print(outputWords.join(' '));

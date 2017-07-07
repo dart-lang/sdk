@@ -831,9 +831,7 @@ abstract class LinkedReference extends base.SummaryClass {
   /**
    * If [kind] is [ReferenceKind.function] (that is, the entity being referred
    * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  If [kind] is
-   * [ReferenceKind.variable], the index of the variable within
-   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
   @Id(6)
   int get localIndex;
@@ -1802,6 +1800,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * The list of local variables.
    */
   @informative
+  @deprecated
   @Id(19)
   List<UnlinkedVariable> get localVariables;
 

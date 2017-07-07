@@ -116,6 +116,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   void subscribeForImplemented() {
+    setPriorityFiles([testFile]);
     addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
   }
 

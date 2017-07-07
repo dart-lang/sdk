@@ -451,6 +451,3 @@ part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
-
-[ $compiler == dart2analyzer && $system != windows ]
-bad_raw_string_test/03: MissingCompileTimeError # Issue 28664

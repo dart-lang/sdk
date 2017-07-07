@@ -29,7 +29,6 @@ from time import strptime
 #
 #  (e) Test by running (Ctrl-C to quit):
 #      > ./dartium_tools/update_deps.py
-#      > ./dartium_tools/update_deps.py --target=multivm
 #      > ./dartium_tools/update_deps.py --target=clank
 #      > ./dartium_tools/update_deps.py --target=integration
 #

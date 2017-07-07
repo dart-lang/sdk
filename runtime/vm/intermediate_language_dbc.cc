@@ -1011,7 +1011,7 @@ EMIT_NATIVE_CODE(AllocateObject,
       Isolate* isolate = Isolate::Current();
       if (Heap::IsAllocatableInNewSpace(instance_size) &&
           !cls().TraceAllocation(isolate)) {
-        uword tags = 0;
+        uint32_t tags = 0;
         tags = RawObject::SizeTag::update(instance_size, tags);
         ASSERT(cls().id() != kIllegalCid);
         tags = RawObject::ClassIdTag::update(cls().id(), tags);
@@ -1045,6 +1045,7 @@ EMIT_NATIVE_CODE(AllocateObject,
       tags = RawObject::SizeTag::update(instance_size, tags);
       ASSERT(cls().id() != kIllegalCid);
       tags = RawObject::ClassIdTag::update(cls().id(), tags);
+      // tags also has the initial zero hash code on 64 bit.
       if (Smi::IsValid(tags)) {
         const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
         __ AllocateOpt(locs()->out(0).reg(), tags_kidx);
@@ -1499,7 +1500,7 @@ EMIT_NATIVE_CODE(CheckClassId, 1) {
   } else {
     __ CheckClassIdRange(locs()->in(0).reg(),
                          compiler->ToEmbeddableCid(cids_.cid_start, this));
-    __ Nop(__ AddConstant(Smi::Handle(Smi::New(cids_.Extent()))));
+    __ Nop(compiler->ToEmbeddableCid(cids_.Extent(), this));
   }
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
 }
@@ -1656,6 +1657,7 @@ EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     tags = RawObject::ClassIdTag::update(compiler->double_class().id(), tags);
+    // tags also has the initial zero hash code on 64 bit.
     if (Smi::IsValid(tags)) {
       const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
       __ AllocateOpt(out, tags_kidx);

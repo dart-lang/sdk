@@ -43,7 +43,8 @@ not_main() {
 
     test('produces stricter errors', () async {
       var testPath = path.join(testDirectory, 'data/strong_example.dart');
-      new Driver().start(['--options', emptyOptionsFile, '--strong', testPath]);
+      new Driver(isTesting: true)
+          .start(['--options', emptyOptionsFile, '--strong', testPath]);
 
       expect(exitCode, 3);
       var stdout = outSink.toString();

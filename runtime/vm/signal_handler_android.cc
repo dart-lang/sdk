@@ -36,7 +36,14 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 #elif defined(HOST_ARCH_X64)
   fp = static_cast<uintptr_t>(mcontext.gregs[REG_RBP]);
 #elif defined(HOST_ARCH_ARM)
-  fp = static_cast<uintptr_t>(mcontext.arm_fp);
+  // B1.3.3 Program Status Registers (PSRs)
+  if ((mcontext.arm_cpsr & (1 << 5)) != 0) {
+    // Thumb mode.
+    fp = static_cast<uintptr_t>(mcontext.arm_r7);
+  } else {
+    // ARM mode.
+    fp = static_cast<uintptr_t>(mcontext.arm_fp);
+  }
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext.regs[29]);
 #else

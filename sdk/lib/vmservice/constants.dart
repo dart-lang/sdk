@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._vmservice;
+part of "vmservice.dart";
 
 // These must be kept in sync with runtime/vm/service.cc.
 class Constants {

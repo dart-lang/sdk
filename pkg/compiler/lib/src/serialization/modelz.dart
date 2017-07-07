@@ -1760,6 +1760,8 @@ class LocalFunctionElementZ extends DeserializedElementZ
     implements LocalFunctionElement {
   LocalFunctionElementZ(ObjectDecoder decoder) : super(decoder);
 
+  MethodElement callMethod;
+
   @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitLocalFunctionElement(this, arg);

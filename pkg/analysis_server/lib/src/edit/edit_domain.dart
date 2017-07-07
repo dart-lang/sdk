@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
@@ -76,6 +77,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Response format(Request request) {
+    server.options.analytics?.sendEvent('edit', 'format');
+
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
@@ -269,6 +272,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getPostfixCompletion(Request request) async {
+    server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
+
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
     SourceChange change;
 
@@ -290,7 +295,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         PostfixCompletionProcessor processor =
             new PostfixCompletionProcessor(context);
         PostfixCompletion completion = await processor.compute();
-        change = completion.change;
+        change = completion?.change;
       }
     }
     if (change == null) {
@@ -350,6 +355,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
+      } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
+        importElements(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
         organizeDirectives(request);
         return Response.DELAYED_RESPONSE;
@@ -374,6 +382,32 @@ class EditDomainHandler extends AbstractRequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * Implement the `edit.importElements` request.
+   */
+  Future<Null> importElements(Request request) async {
+    EditImportElementsParams params =
+        new EditImportElementsParams.fromRequest(request);
+    //
+    // Prepare the resolved unit.
+    //
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result == null) {
+      server.sendResponse(new Response.importElementsInvalidFile(request));
+    }
+    //
+    // Compute the edits required to import the required elements.
+    //
+    List<SourceEdit> edits =
+        new ImportElementsComputer(result, params.file, params.elements)
+            .compute();
+    //
+    // Send the response.
+    //
+    server.sendResponse(
+        new EditImportElementsResult(edits).toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
@@ -418,6 +452,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<Null> organizeDirectives(Request request) async {
+    server.options.analytics?.sendEvent('edit', 'organizeDirectives');
+
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
     // prepare file
     String file = params.file;
@@ -687,6 +723,12 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(_request);
+
+    if (params.kind != null) {
+      server.options.analytics
+          ?.sendEvent('refactor', params.kind.name.toLowerCase());
+    }
+
     runZoned(() async {
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {
@@ -830,8 +872,8 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring =
-            new ExtractMethodRefactoring(searchEngine, unit, offset, length);
+        refactoring = new ExtractMethodRefactoring(
+            searchEngine, server.getAstProvider(file), unit, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }

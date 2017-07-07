@@ -189,10 +189,10 @@ abstract class Compiler {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     frontendStrategy = options.loadFromDill
-        ? new KernelFrontEndStrategy(reporter, environment)
+        ? new KernelFrontEndStrategy(options, reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
-        ? new KernelBackendStrategyImpl(this)
+        ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
 
@@ -636,8 +636,8 @@ abstract class Compiler {
   Enqueuer startCodegen(ClosedWorld closedWorld) {
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-    codegenEnqueuer
-        .applyImpact(backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
+    codegenEnqueuer.applyImpact(backend.onCodegenStart(
+        closedWorld, _codegenWorldBuilder, backendStrategy.sorter));
     return codegenEnqueuer;
   }
 

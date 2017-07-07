@@ -137,10 +137,14 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractMethodRefactoring] instance.
    */
-  factory ExtractMethodRefactoring(SearchEngine searchEngine,
-      CompilationUnit unit, int selectionOffset, int selectionLength) {
+  factory ExtractMethodRefactoring(
+      SearchEngine searchEngine,
+      AstProvider astProvider,
+      CompilationUnit unit,
+      int selectionOffset,
+      int selectionLength) {
     return new ExtractMethodRefactoringImpl(
-        searchEngine, unit, selectionOffset, selectionLength);
+        searchEngine, astProvider, unit, selectionOffset, selectionLength);
   }
 
   /**
@@ -398,7 +402,8 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameLocalRefactoringImpl(searchEngine, astProvider, element);
     }
     if (element.enclosingElement is ClassElement) {
-      return new RenameClassMemberRefactoringImpl(searchEngine, element);
+      return new RenameClassMemberRefactoringImpl(
+          searchEngine, astProvider, element);
     }
     return null;
   }
@@ -449,14 +454,17 @@ class ResolvedUnitCache {
   }
 
   Future<CompilationUnit> getUnit(Element element) async {
-    CompilationUnitElement unitElement =
-        element.getAncestor((e) => e is CompilationUnitElement)
-            as CompilationUnitElement;
+    CompilationUnitElement unitElement = getUnitElement(element);
     CompilationUnit unit = _map[unitElement];
     if (unit == null) {
       unit = await _astProvider.getResolvedUnitForElement(element);
       _map[unitElement] = unit;
     }
     return unit;
+  }
+
+  CompilationUnitElement getUnitElement(Element element) {
+    return element.getAncestor((e) => e is CompilationUnitElement)
+        as CompilationUnitElement;
   }
 }

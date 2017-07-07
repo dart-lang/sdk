@@ -9,11 +9,39 @@ import 'dart:io';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:test/test.dart';
+import 'package:usage/usage.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   group('CommandLineOptions', () {
     group('parse', () {
+      int lastExitHandlerCode;
+      StringBuffer outStringBuffer = new StringBuffer();
+      StringBuffer errorStringBuffer = new StringBuffer();
+
+      StringSink savedOutSink, savedErrorSink;
+      int savedExitCode;
+      ExitHandler savedExitHandler;
+
+      setUp(() {
+        savedOutSink = outSink;
+        savedErrorSink = errorSink;
+        savedExitHandler = exitHandler;
+        savedExitCode = exitCode;
+        exitHandler = (int code) {
+          lastExitHandlerCode = code;
+        };
+        outSink = outStringBuffer;
+        errorSink = errorStringBuffer;
+      });
+
+      tearDown(() {
+        outSink = savedOutSink;
+        errorSink = savedErrorSink;
+        exitCode = savedExitCode;
+        exitHandler = savedExitHandler;
+      });
+
       test('defaults', () {
         CommandLineOptions options =
             CommandLineOptions.parse(['--dart-sdk', '.', 'foo.dart']);
@@ -41,7 +69,7 @@ main() {
         expect(options.log, isFalse);
         expect(options.machineFormat, isFalse);
         expect(options.packageRootPath, isNull);
-        expect(options.shouldBatch, isFalse);
+        expect(options.batchMode, isFalse);
         expect(options.showPackageWarnings, isFalse);
         expect(options.showSdkWarnings, isFalse);
         expect(options.sourceFiles, equals(['foo.dart']));
@@ -53,7 +81,7 @@ main() {
       test('batch', () {
         CommandLineOptions options =
             CommandLineOptions.parse(['--dart-sdk', '.', '--batch']);
-        expect(options.shouldBatch, isTrue);
+        expect(options.batchMode, isTrue);
       });
 
       test('defined variables', () {
@@ -195,16 +223,34 @@ main() {
         var failureMessage;
         CommandLineOptions.parse(
             ['--package-root', '.', '--packages', '.', 'foo.dart'],
-            (msg) => failureMessage = msg);
+            printAndFail: (msg) => failureMessage = msg);
         expect(failureMessage,
             equals("Cannot specify both '--package-root' and '--packages."));
       });
 
       test("bad SDK dir", () {
         var failureMessage;
-        CommandLineOptions.parse(
-            ['--dart-sdk', '&&&&&', 'foo.dart'], (msg) => failureMessage = msg);
+        CommandLineOptions.parse(['--dart-sdk', '&&&&&', 'foo.dart'],
+            printAndFail: (msg) => failureMessage = msg);
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
+      });
+
+      test('--analytics', () {
+        AnalyticsMock mock = new AnalyticsMock()..enabled = false;
+        setAnalytics(mock);
+        CommandLineOptions.parse(['--analytics']);
+        expect(mock.enabled, true);
+        expect(lastExitHandlerCode, 0);
+        expect(outStringBuffer.toString(), contains('Analytics are currently'));
+      });
+
+      test('--no-analytics', () {
+        AnalyticsMock mock = new AnalyticsMock()..enabled = false;
+        setAnalytics(mock);
+        CommandLineOptions.parse(['--no-analytics']);
+        expect(mock.enabled, false);
+        expect(lastExitHandlerCode, 0);
+        expect(outStringBuffer.toString(), contains('Analytics are currently'));
       });
     });
   });

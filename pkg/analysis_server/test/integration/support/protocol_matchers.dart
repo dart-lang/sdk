@@ -685,6 +685,24 @@ final Matcher isImplementedMember = new LazyMatcher(() => new MatchesJsonObject(
     "ImplementedMember", {"offset": isInt, "length": isInt}));
 
 /**
+ * ImportedElements
+ *
+ * {
+ *   "path": FilePath
+ *   "uri": String
+ *   "prefix": String
+ *   "elements": List<String>
+ * }
+ */
+final Matcher isImportedElements =
+    new LazyMatcher(() => new MatchesJsonObject("ImportedElements", {
+          "path": isFilePath,
+          "uri": isString,
+          "prefix": isString,
+          "elements": isListOf(isString)
+        }));
+
+/**
  * LinkedEditGroup
  *
  * {
@@ -1009,8 +1027,10 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
+ *   GET_IMPORTED_ELEMENTS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
+ *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_FILE_PATH_FORMAT
@@ -1036,8 +1056,10 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "FORMAT_INVALID_FILE",
   "FORMAT_WITH_ERRORS",
   "GET_ERRORS_INVALID_FILE",
+  "GET_IMPORTED_ELEMENTS_INVALID_FILE",
   "GET_NAVIGATION_INVALID_FILE",
   "GET_REACHABLE_SOURCES_INVALID_FILE",
+  "IMPORT_ELEMENTS_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
   "INVALID_FILE_PATH_FORMAT",
@@ -1273,6 +1295,30 @@ final Matcher isAnalysisGetHoverParams = new LazyMatcher(() =>
 final Matcher isAnalysisGetHoverResult = new LazyMatcher(() =>
     new MatchesJsonObject(
         "analysis.getHover result", {"hovers": isListOf(isHoverInformation)}));
+
+/**
+ * analysis.getImportedElements params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isAnalysisGetImportedElementsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.getImportedElements params",
+        {"file": isFilePath, "offset": isInt, "length": isInt}));
+
+/**
+ * analysis.getImportedElements result
+ *
+ * {
+ *   "elements": List<ImportedElements>
+ * }
+ */
+final Matcher isAnalysisGetImportedElementsResult = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.getImportedElements result",
+        {"elements": isListOf(isImportedElements)}));
 
 /**
  * analysis.getLibraryDependencies params
@@ -1925,6 +1971,29 @@ final Matcher isEditGetStatementCompletionParams = new LazyMatcher(() =>
 final Matcher isEditGetStatementCompletionResult = new LazyMatcher(() =>
     new MatchesJsonObject("edit.getStatementCompletion result",
         {"change": isSourceChange, "whitespaceOnly": isBool}));
+
+/**
+ * edit.importElements params
+ *
+ * {
+ *   "file": FilePath
+ *   "elements": List<ImportedElements>
+ * }
+ */
+final Matcher isEditImportElementsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("edit.importElements params",
+        {"file": isFilePath, "elements": isListOf(isImportedElements)}));
+
+/**
+ * edit.importElements result
+ *
+ * {
+ *   "edits": List<SourceEdit>
+ * }
+ */
+final Matcher isEditImportElementsResult = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "edit.importElements result", {"edits": isListOf(isSourceEdit)}));
 
 /**
  * edit.isPostfixCompletionApplicable params

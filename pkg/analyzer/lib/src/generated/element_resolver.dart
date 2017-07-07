@@ -629,7 +629,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       FunctionElement loadLibraryFunction =
           importedLibrary?.loadLibraryFunction;
       methodName.staticElement = loadLibraryFunction;
-      node.staticInvokeType = loadLibraryFunction.type;
+      node.staticInvokeType = loadLibraryFunction?.type;
       return null;
     } else {
       //

@@ -76,7 +76,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
       }
       // Prepare options.
       CommandLineOptions options =
-          CommandLineOptions.parse(arguments, (String msg) {
+          CommandLineOptions.parse(arguments, printAndFail: (String msg) {
         throw new ArgumentError(msg);
       });
       // Analyze and respond.

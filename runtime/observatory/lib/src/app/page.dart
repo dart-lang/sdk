@@ -105,6 +105,14 @@ abstract class MatchingPage extends Page {
     });
   }
 
+  EditorRepository getEditor(Uri uri) {
+    var editor = uri.queryParameters['editor'];
+    if (editor != null) {
+      return new EditorRepository(editor);
+    }
+    return null;
+  }
+
   bool canVisit(Uri uri) => uri.path == path;
 }
 
@@ -665,6 +673,37 @@ class AllocationProfilerPage extends MatchingPage {
       container.children = [
         new AllocationProfileElement(isolate.vm, isolate, app.events,
             app.notifications, _allocationProfileRepository,
+            queue: app.queue)
+      ];
+    });
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = container;
+    }
+    app.startGCEventListener();
+  }
+
+  @override
+  void onUninstall() {
+    super.onUninstall();
+    app.stopGCEventListener();
+    container.children = const [];
+  }
+}
+
+class MemoryDashboardPage extends MatchingPage {
+  MemoryDashboardPage(app) : super('memory-dashboard', app);
+
+  final DivElement container = new DivElement();
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      container.children = [
+        new MemoryDashboardElement(isolate.vm, isolate, app.events,
+            app.notifications, _allocationProfileRepository, getEditor(uri),
             queue: app.queue)
       ];
     });

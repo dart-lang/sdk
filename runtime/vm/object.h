@@ -245,9 +245,9 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
-  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
-    return AtomicOperations::CompareAndSwapWord(&raw()->ptr()->tags_, old_tags,
-                                                new_tags);
+  uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
+    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
+                                                  old_tags, new_tags);
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -434,13 +434,11 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
-    uword tags = obj->ptr()->tags_;
-    return tags >> 32;
+    return obj->ptr()->hash_;
   }
 
-  static void SetCachedHash(RawObject* obj, uintptr_t hash) {
-    ASSERT(hash >> 32 == 0);
-    obj->ptr()->tags_ |= hash << 32;
+  static void SetCachedHash(RawObject* obj, uint32_t hash) {
+    obj->ptr()->hash_ = hash;
   }
 #endif
 
@@ -1659,12 +1657,15 @@ class TypeArguments : public Object {
 
   // Check if the vector is instantiated (it must not be null).
   bool IsInstantiated(Genericity genericity = kAny,
+                      intptr_t num_free_fun_type_params = kMaxInt32,
                       TrailPtr trail = NULL) const {
-    return IsSubvectorInstantiated(0, Length(), genericity, trail);
+    return IsSubvectorInstantiated(0, Length(), genericity,
+                                   num_free_fun_type_params, trail);
   }
   bool IsSubvectorInstantiated(intptr_t from_index,
                                intptr_t len,
                                Genericity genericity = kAny,
+                               intptr_t num_free_fun_type_params = kMaxInt32,
                                TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
@@ -2248,6 +2249,7 @@ class Function : public Object {
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
+                                intptr_t num_free_fun_type_params = kMaxInt32,
                                 TrailPtr trail = NULL) const;
 
   // Build a string of the form 'T, {B b, C c}' representing the user
@@ -3618,6 +3620,9 @@ class Script : public Object {
   intptr_t kernel_data_size() { return raw_ptr()->kernel_data_size_; }
   void set_kernel_data_size(const intptr_t kernel_data_size) const;
 
+  intptr_t kernel_script_index() { return raw_ptr()->kernel_script_index_; }
+  void set_kernel_script_index(const intptr_t kernel_script_index) const;
+
   RawTypedData* kernel_string_offsets() const {
     return raw_ptr()->kernel_string_offsets_;
   }
@@ -3644,7 +3649,7 @@ class Script : public Object {
 
   void set_yield_positions(const Array& value) const;
 
-  RawArray* yield_positions() const { return raw_ptr()->yield_positions_; }
+  RawArray* yield_positions() const;
 
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
@@ -3696,8 +3701,8 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
-  RawArray* debug_positions() const { return raw_ptr()->debug_positions_; }
+  RawArray* line_starts() const;
+  RawArray* debug_positions() const;
 
   static RawScript* New();
 
@@ -5768,6 +5773,7 @@ class AbstractType : public Instance {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
@@ -5989,6 +5995,7 @@ class Type : public AbstractType {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -6138,6 +6145,7 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
@@ -6223,6 +6231,7 @@ class TypeParameter : public AbstractType {
                   Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
@@ -6317,12 +6326,14 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kMaxInt32,
                               TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
     // bound is instantiated. Moreover, doing so could lead into cycles, as in
     // class C<T extends C<C>> { }.
-    return AbstractType::Handle(type()).IsInstantiated(genericity, trail);
+    return AbstractType::Handle(type()).IsInstantiated(
+        genericity, num_free_fun_type_params, trail);
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
@@ -6831,16 +6842,14 @@ class String : public Instance {
     return result;
   }
 
+  static intptr_t Hash(RawString* raw);
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return GetCachedHash(raw()) != 0;
   }
 
-#if defined(HASH_IN_OBJECT_HEADER)
-  static intptr_t hash_offset() { return kInt32Size; }  // Wrong for big-endian?
-#else
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
-#endif
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);

@@ -27,8 +27,7 @@ abstract class AssistContributorMixin implements AssistContributor {
    * the message has parameters, then use the list of [args] to populate the
    * message.
    */
-  void addAssistFromBuilder(ChangeBuilder builder, AssistKind kind,
-      {List<Object> args}) {
+  void addAssist(AssistKind kind, ChangeBuilder builder, {List<Object> args}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;

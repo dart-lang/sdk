@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show HashMap, HashSet, LinkedHashMap;
-
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/dart/element/type.dart';
 
 import '../js_ast/js_ast.dart' as JS;
@@ -12,7 +11,7 @@ import '../js_ast/js_ast.dart' show js;
 import 'js_names.dart' as JS;
 
 Set<TypeParameterElement> freeTypeParameters(DartType t) {
-  var result = new HashSet<TypeParameterElement>();
+  var result = new Set<TypeParameterElement>();
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.element);
@@ -37,7 +36,7 @@ class _CacheTable {
   // Use a LinkedHashMap to maintain key insertion order so the generated code
   // is stable under slight perturbation.  (If this is not good enough we could
   // sort by name to canonicalize order.)
-  final _names = new LinkedHashMap<DartType, JS.TemporaryId>();
+  final _names = <DartType, JS.TemporaryId>{};
   Iterable<DartType> get keys => _names.keys.toList();
 
   JS.Statement _dischargeType(DartType type) {
@@ -120,7 +119,7 @@ class _CacheTable {
 /// _GeneratorTable tracks types which have been
 /// named and hoisted.
 class _GeneratorTable extends _CacheTable {
-  final _defs = new HashMap<DartType, JS.Expression>();
+  final _defs = <DartType, JS.Expression>{};
 
   final JS.Identifier _runtimeModule;
 
@@ -151,12 +150,6 @@ class _GeneratorTable extends _CacheTable {
 }
 
 class TypeTable {
-  /// Cache variable names for types emitted in place.
-  final _cacheNames = new _CacheTable();
-
-  /// Cache variable names for definite function types emitted in place.
-  final _definiteCacheNames = new _CacheTable();
-
   /// Generator variable names for hoisted types.
   final _GeneratorTable _generators;
 
@@ -167,8 +160,7 @@ class TypeTable {
   /// cache/generator variables discharged at the binding site for the
   /// type variable since the type definition depends on the type
   /// parameter.
-  final _scopeDependencies =
-      new HashMap<TypeParameterElement, List<DartType>>();
+  final _scopeDependencies = <TypeParameterElement, List<DartType>>{};
 
   TypeTable(JS.Identifier runtime)
       : _generators = new _GeneratorTable(runtime),
@@ -179,34 +171,31 @@ class TypeTable {
   /// emit the definitions which depend on the formals.
   List<JS.Statement> discharge([List<TypeParameterElement> formals]) {
     var filter = formals?.expand((p) => _scopeDependencies[p] ?? <DartType>[]);
-    var stmts = [
-      _cacheNames,
-      _definiteCacheNames,
-      _generators,
-      _definiteGenerators
-    ].expand((c) => c.discharge(filter)).toList();
+    var stmts = [_generators, _definiteGenerators]
+        .expand((c) => c.discharge(filter))
+        .toList();
     formals?.forEach(_scopeDependencies.remove);
     return stmts;
   }
 
   /// Record the dependencies of the type on its free variables
   bool recordScopeDependencies(DartType type) {
-    var fvs = freeTypeParameters(type);
+    var freeVariables = freeTypeParameters(type);
     // TODO(leafp): This is a hack to avoid trying to hoist out of
     // generic functions and generic function types.  This often degrades
     // readability to little or no benefit.  It would be good to do this
     // when we know that we can hoist it to an outer scope, but for
     // now we just disable it.
-    if (fvs.any((i) => i.enclosingElement is FunctionTypedElement)) {
+    if (freeVariables.any((i) => i.enclosingElement is FunctionTypedElement)) {
       return true;
     }
-    void addScope(TypeParameterElement i) {
-      List<DartType> types = _scopeDependencies[i];
-      if (types == null) _scopeDependencies[i] = types = [];
-      types.add(type);
-    }
 
-    fvs.forEach(addScope);
+    for (var free in freeVariables) {
+      // If `free` is a promoted type parameter, get the original one so we can
+      // find it in our map.
+      var key = free is TypeParameterMember ? free.baseElement : free;
+      _scopeDependencies.putIfAbsent(key, () => []).add(type);
+    }
     return false;
   }
 
@@ -233,11 +222,8 @@ class TypeTable {
   /// types and other types (since the same DartType may have different
   /// representations as definite and indefinite function types).
   JS.Expression nameType(DartType type, JS.Expression typeRep,
-      {bool hoistType, bool definite: false}) {
-    assert(hoistType != null);
-    var table = hoistType
-        ? (definite ? _definiteGenerators : _generators)
-        : (definite ? _definiteCacheNames : _cacheNames);
+      {bool definite: false}) {
+    var table = definite ? _definiteGenerators : _generators;
     if (!table.isNamed(type)) {
       if (recordScopeDependencies(type)) return typeRep;
     }

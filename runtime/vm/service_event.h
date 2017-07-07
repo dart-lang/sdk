@@ -56,6 +56,8 @@ class ServiceEvent {
 
     kTimelineEvents,
 
+    kEditorObjectSelected,
+
     kIllegal,
   };
 
@@ -73,6 +75,11 @@ class ServiceEvent {
   struct ExtensionEvent {
     const String* event_kind;
     const String* event_data;
+  };
+
+  struct EditorEvent {
+    const char* editor;
+    const Object* object;
   };
 
   ServiceEvent(Isolate* isolate, EventKind event_kind);
@@ -194,6 +201,10 @@ class ServiceEvent {
     extension_event_ = extension_event;
   }
 
+  void set_editor_event(const EditorEvent& editor_event) {
+    editor_event_ = editor_event;
+  }
+
   void UpdateTimestamp();
 
   int64_t timestamp() const { return timestamp_; }
@@ -231,6 +242,7 @@ class ServiceEvent {
   intptr_t bytes_length_;
   LogRecord log_record_;
   ExtensionEvent extension_event_;
+  EditorEvent editor_event_;
   int64_t timestamp_;
 };
 

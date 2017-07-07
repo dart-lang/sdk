@@ -142,6 +142,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
       type ??= findIn(Uris.dart_web_sql);
       type ??= findIn(Uris.dart_indexed_db);
       type ??= findIn(Uris.dart_typed_data);
+      type ??= findIn(Uris.dart_mirrors);
       if (type == null && required) {
         reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
             MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
@@ -306,6 +307,30 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     });
     return metadata;
   }
+
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
+    while (cls != null) {
+      cls = elementEnvironment.getSuperClass(cls);
+      MemberEntity member =
+          elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      if (member != null) {
+        if (member.isFunction) {
+          FunctionEntity function = member;
+          if (function.parameterStructure.positionalParameters >= 1) {
+            return function;
+          }
+        }
+        // If [member] is not a valid `noSuchMethod` the target is
+        // `Object.superNoSuchMethod`.
+        break;
+      }
+    }
+    FunctionEntity function = elementEnvironment.lookupClassMember(
+        commonElements.objectClass, Identifiers.noSuchMethod_);
+    assert(function != null,
+        failedAt(cls, "No super noSuchMethod found for class $cls."));
+    return function;
+  }
 }
 
 abstract class KernelToElementMapForImpactMixin
@@ -391,31 +416,6 @@ abstract class KernelToElementMapForImpactMixin
 
 abstract class KernelToElementMapForBuildingMixin
     implements KernelToElementMapForBuilding, KernelToElementMapBaseMixin {
-  @override
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
-    while (cls != null) {
-      cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member =
-          elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
-      if (member != null) {
-        if (member.isFunction) {
-          FunctionEntity function = member;
-          if (function.parameterStructure.positionalParameters >= 1) {
-            return function;
-          }
-        }
-        // If [member] is not a valid `noSuchMethod` the target is
-        // `Object.superNoSuchMethod`.
-        break;
-      }
-    }
-    FunctionEntity function = elementEnvironment.lookupClassMember(
-        commonElements.objectClass, Identifiers.noSuchMethod_);
-    assert(function != null,
-        failedAt(cls, "No super noSuchMethod found for class $cls."));
-    return function;
-  }
-
   js.Template getJsBuiltinTemplate(
       ConstantValue constant, CodeEmitterTask emitter) {
     int index = _extractEnumIndexFromConstantValue(

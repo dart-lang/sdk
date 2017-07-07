@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -97,7 +98,9 @@ class ElementKindTest {
 class ElementTest extends AbstractContextTest {
   engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
-    return findChildElement(unit.element, name, kind);
+    return findElementsByName(unit, name)
+        .where((e) => kind == null || e.kind == kind)
+        .single;
   }
 
   test_fromElement_CLASS() async {
@@ -273,7 +276,8 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'index');
+      engine.FieldElement engineElement =
+          unit.element.enums[1].getField('index');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -291,7 +295,8 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_FINAL);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'values');
+      engine.FieldElement engineElement =
+          unit.element.enums[1].getField('values');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -455,9 +460,8 @@ class A {
   set mySetter(String x) {}
 }''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
-    engine.FieldElement engineFieldElement =
-        findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
-    engine.PropertyAccessorElement engineElement = engineFieldElement.setter;
+    engine.PropertyAccessorElement engineElement =
+        findElementInUnit(unit, 'mySetter', engine.ElementKind.SETTER);
     // create notification Element
     Element element = convertElement(engineElement);
     expect(element.kind, ElementKind.SETTER);

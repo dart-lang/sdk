@@ -43,11 +43,6 @@ class CodeEmitterTask extends CompilerTask {
   Emitter _emitter;
   final Compiler compiler;
 
-  ProgramBuilder programForTesting;
-
-  /// The [Sorter] use for ordering elements in the generated JavaScript.
-  final Sorter sorter;
-
   JavaScriptBackend get backend => compiler.backend;
 
   @deprecated
@@ -60,7 +55,6 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
-        sorter = compiler.backendStrategy.sorter,
         super(compiler.measurer) {
     if (USE_LAZY_EMITTER) {
       _emitterFactory = new lazy_js_emitter.EmitterFactory();
@@ -170,11 +164,12 @@ class CodeEmitterTask extends CompilerTask {
 
   /// Creates the [Emitter] for this task.
   void createEmitter(Namer namer, ClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder) {
+      CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
     measure(() {
       _nativeEmitter = new NativeEmitter(this, closedWorld, codegenWorldBuilder,
           backend.nativeCodegenEnqueuer);
-      _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
+      _emitter =
+          _emitterFactory.createEmitter(this, namer, closedWorld, sorter);
       metadataCollector = new MetadataCollector(
           compiler.options,
           compiler.reporter,
@@ -205,7 +200,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.backendUsage,
           backend.constants,
           closedWorld.nativeData,
-          backend.rtiNeed,
+          closedWorld.rtiNeed,
           backend.mirrorsData,
           closedWorld.interceptorData,
           backend.superMemberData,
@@ -219,6 +214,7 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           this,
           closedWorld,
+          compiler.backendStrategy.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction,
           isMockCompilation: compiler.isMockCompilation);
@@ -235,8 +231,8 @@ abstract class EmitterFactory {
   bool get supportsReflection;
 
   /// Create the [Emitter] for the emitter [task] that uses the given [namer].
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld);
+  Emitter createEmitter(CodeEmitterTask task, Namer namer,
+      ClosedWorld closedWorld, Sorter sorter);
 }
 
 abstract class Emitter {

@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -1336,11 +1335,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TopLevelVariableElement> _variables;
 
   /**
-   * A map from offsets to elements of this unit at these offsets.
-   */
-  final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
-
-  /**
    * Resynthesized explicit top-level property accessors.
    */
   UnitExplicitTopLevelAccessors _explicitTopLevelAccessors;
@@ -1614,13 +1608,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitCompilationUnitElement(this);
 
-  /**
-   * This method is invoked after this unit was incrementally resolved.
-   */
-  void afterIncrementalResolution() {
-    _offsetToElementMap.clear();
-  }
-
   @override
   void appendTo(StringBuffer buffer) {
     if (source == null) {
@@ -1689,14 +1676,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     return null;
-  }
-
-  @override
-  Element getElementAt(int offset) {
-    if (_offsetToElementMap.isEmpty) {
-      accept(new _BuildOffsetToElementMap(_offsetToElementMap));
-    }
-    return _offsetToElementMap[offset];
   }
 
   @override
@@ -1936,13 +1915,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  ConstLocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
-      ExecutableElementImpl enclosingExecutable)
-      : super.forSerialized(unlinkedVariable, enclosingExecutable);
 }
 
 /**
@@ -3023,6 +2995,15 @@ abstract class ElementImpl implements Element {
     element.enclosingElement = this;
   }
 
+  /**
+   * Set this element as the enclosing element for given [elements].
+   */
+  void encloseElements(List<Element> elements) {
+    for (Element element in elements) {
+      (element as ElementImpl)._enclosingElement = this;
+    }
+  }
+
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     Element ancestor = _enclosingElement;
@@ -3580,17 +3561,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<FunctionElement> _functions;
 
   /**
-   * A list containing all of the labels defined within this executable element.
-   */
-  List<LabelElement> _labels;
-
-  /**
-   * A list containing all of the local variables defined within this executable
-   * element.
-   */
-  List<LocalVariableElement> _localVariables;
-
-  /**
    * A list containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters;
@@ -3770,60 +3740,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<LabelElement> get labels {
-    if (serializedExecutable != null) {
-      _labels ??= LabelElementImpl.resynthesizeList(
-          this, serializedExecutable.localLabels);
-    }
-    return _labels ?? const <LabelElement>[];
-  }
-
-  /**
-   * Set the labels defined within this executable element to the given
-   * [labels].
-   */
-  void set labels(List<LabelElement> labels) {
-    _assertNotResynthesized(serializedExecutable);
-    for (LabelElement label in labels) {
-      (label as LabelElementImpl).enclosingElement = this;
-    }
-    this._labels = labels;
-  }
-
-  @override
-  List<LocalVariableElement> get localVariables {
-    if (serializedExecutable != null && _localVariables == null) {
-      List<UnlinkedVariable> unlinkedVariables =
-          serializedExecutable.localVariables;
-      int length = unlinkedVariables.length;
-      if (length != 0) {
-        List<LocalVariableElementImpl> localVariables =
-            new List<LocalVariableElementImpl>(length);
-        for (int i = 0; i < length; i++) {
-          localVariables[i] = new LocalVariableElementImpl.forSerializedFactory(
-              unlinkedVariables[i], this);
-        }
-        _localVariables = localVariables;
-      } else {
-        _localVariables = const <LocalVariableElement>[];
-      }
-    }
-    return _localVariables ?? const <LocalVariableElement>[];
-  }
-
-  /**
-   * Set the local variables defined within this executable element to the given
-   * [variables].
-   */
-  void set localVariables(List<LocalVariableElement> variables) {
-    _assertNotResynthesized(serializedExecutable);
-    for (LocalVariableElement variable in variables) {
-      (variable as LocalVariableElementImpl).enclosingElement = this;
-    }
-    this._localVariables = variables;
-  }
-
-  @override
   List<ElementAnnotation> get metadata {
     if (serializedExecutable != null) {
       return _metadata ??=
@@ -3982,18 +3898,6 @@ abstract class ExecutableElementImpl extends ElementImpl
         return functionImpl;
       }
     }
-    for (LabelElement label in _labels) {
-      LabelElementImpl labelImpl = label;
-      if (labelImpl.identifier == identifier) {
-        return labelImpl;
-      }
-    }
-    for (LocalVariableElement variable in _localVariables) {
-      LocalVariableElementImpl variableImpl = variable;
-      if (variableImpl.identifier == identifier) {
-        return variableImpl;
-      }
-    }
     for (ParameterElement parameter in parameters) {
       ParameterElementImpl parameterImpl = parameter;
       if (parameterImpl.identifier == identifier) {
@@ -4010,8 +3914,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(labels, visitor);
-    safelyVisitChildren(localVariables, visitor);
   }
 }
 
@@ -6450,39 +6352,9 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
    */
   LocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
-  /**
-   * Initialize using the given serialized information.
-   */
-  LocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
-      ExecutableElementImpl enclosingExecutable)
-      : super.forSerialized(unlinkedVariable, enclosingExecutable);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  factory LocalVariableElementImpl.forSerializedFactory(
-      UnlinkedVariable unlinkedVariable,
-      ExecutableElementImpl enclosingExecutable) {
-    if (unlinkedVariable.isConst &&
-        unlinkedVariable.initializer?.bodyExpr != null) {
-      return new ConstLocalVariableElementImpl.forSerialized(
-          unlinkedVariable, enclosingExecutable);
-    } else {
-      return new LocalVariableElementImpl.forSerialized(
-          unlinkedVariable, enclosingExecutable);
-    }
-  }
-
   @override
   String get identifier {
-    String identifier = super.identifier;
-    Element enclosing = this.enclosingElement;
-    if (enclosing is ExecutableElement) {
-      int id = ElementImpl.findElementIndexUsingIdentical(
-          enclosing.localVariables, this);
-      identifier += "@$id";
-    }
-    return identifier;
+    return '$name$nameOffset';
   }
 
   @override
@@ -6662,7 +6534,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     List<ParameterElement> covariantParameters = parameters.map((parameter) {
       DartType type = parameter.isCovariant ? objectType : parameter.type;
       return new ParameterElementImpl.synthetic(
-          parameter.name, objectType, parameter.parameterKind);
+          parameter.name, type, parameter.parameterKind);
     }).toList();
 
     return new FunctionElementImpl.synthetic(covariantParameters, returnType)
@@ -9067,23 +8939,5 @@ abstract class VariableElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     _initializer?.accept(visitor);
-  }
-}
-
-/**
- * A visitor that visit all the elements recursively and fill the given [map].
- */
-class _BuildOffsetToElementMap extends GeneralizingElementVisitor {
-  final Map<int, Element> map;
-
-  _BuildOffsetToElementMap(this.map);
-
-  @override
-  void visitElement(Element element) {
-    int offset = element.nameOffset;
-    if (offset != -1) {
-      map[offset] = element;
-    }
-    super.visitElement(element);
   }
 }

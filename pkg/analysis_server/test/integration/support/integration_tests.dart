@@ -694,6 +694,7 @@ class Server {
     //
     // Add server arguments.
     //
+    arguments.add('--suppress-analytics');
     if (diagnosticPort != null) {
       arguments.add('--port');
       arguments.add(diagnosticPort.toString());
@@ -707,11 +708,9 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-//    print('Launching $serverPath');
-//    print('$dartBinary ${arguments.join(' ')}');
     // TODO(devoncarew): We could experiment with instead launching the analysis
     // server in a separate isolate. This would make it easier to debug the
-    // integration tests, and would likely speed the tests up as well.
+    // integration tests, and would likely speed up the tests as well.
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0) {

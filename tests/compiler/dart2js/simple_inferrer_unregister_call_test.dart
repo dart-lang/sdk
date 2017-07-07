@@ -37,7 +37,7 @@ void main() {
         checkReturnInClass(String className, String methodName, type) {
           dynamic cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(methodName);
-          Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
+          Expect.equals(type, typesInferrer.getReturnTypeOfMember(element));
         }
 
         checkReturnInClass(

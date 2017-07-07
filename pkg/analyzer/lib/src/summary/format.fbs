@@ -1451,9 +1451,7 @@ table LinkedReference {
   /**
    * If [kind] is [ReferenceKind.function] (that is, the entity being referred
    * to is a local function), the index of the function within
-   * [UnlinkedExecutable.localFunctions].  If [kind] is
-   * [ReferenceKind.variable], the index of the variable within
-   * [UnlinkedExecutable.localVariables].  Otherwise zero.
+   * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
   localIndex:uint (id: 6);
 
@@ -2157,7 +2155,7 @@ table UnlinkedExecutable {
   /**
    * The list of local variables.
    */
-  localVariables:[UnlinkedVariable] (id: 19);
+  localVariables:[UnlinkedVariable] (id: 19, deprecated);
 
   /**
    * Name of the executable.  For setters, this includes the trailing "=".  For

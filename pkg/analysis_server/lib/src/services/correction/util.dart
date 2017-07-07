@@ -218,6 +218,15 @@ String getDefaultValueCode(DartType type) {
 }
 
 /**
+ * Return all [LocalElement]s defined in the given [node].
+ */
+List<LocalElement> getDefinedLocalElements(AstNode node) {
+  var collector = new _LocalElementsCollector();
+  node.accept(collector);
+  return collector.elements;
+}
+
+/**
  * Return the name of the [Element] kind.
  */
 String getElementKindName(Element element) {
@@ -317,9 +326,17 @@ int getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
     return 0;
-  }
-  if (parent is IndexExpression && parent.index == node) {
+  } else if (parent is IndexExpression && parent.index == node) {
     return 0;
+  } else if (parent is AssignmentExpression &&
+      node == parent.rightHandSide &&
+      parent.parent is CascadeExpression) {
+    // This is a hack to allow nesting of cascade expressions within other
+    // cascade expressions. The problem is that if the precedence of two
+    // expressions are equal it sometimes means that we don't need parentheses
+    // (such as replacing the `b` in `a + b` with `c + d`) and sometimes do
+    // (such as replacing the `v` in `..f = v` with `a..b`).
+    return 3;
   }
   return getExpressionPrecedence(parent);
 }
@@ -710,17 +727,6 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns an [Edit] that changes indentation of the source of the given
-   * [SourceRange] from [oldIndent] to [newIndent], keeping indentation of lines
-   * relative to each other.
-   */
-  SourceEdit createIndentEdit(
-      SourceRange range, String oldIndent, String newIndent) {
-    String newSource = replaceSourceRangeIndent(range, oldIndent, newIndent);
-    return new SourceEdit(range.offset, range.length, newSource);
-  }
-
-  /**
    * Returns the [AstNode] that encloses the given offset.
    */
   AstNode findNode(int offset) => new NodeLocator(offset).searchWithin(unit);
@@ -743,80 +749,9 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns the actual type source of the given [Expression], may be `null`
-   * if can not be resolved, should be treated as the `dynamic` type.
-   */
-  String getExpressionTypeSource(
-      Expression expression, Set<Source> librariesToImport) {
-    if (expression == null) {
-      return null;
-    }
-    DartType type = expression.bestType;
-    if (type.isDynamic) {
-      return null;
-    }
-    return getTypeSource(type, librariesToImport);
-  }
-
-  /**
    * Returns the indentation with the given level.
    */
   String getIndent(int level) => repeat('  ', level);
-
-  /**
-   * Returns a [InsertDesc] describing where to insert a new library-related
-   * directive.
-   */
-  CorrectionUtils_InsertDesc getInsertDescImport() {
-    // analyze directives
-    Directive prevDirective = null;
-    for (Directive directive in unit.directives) {
-      if (directive is LibraryDirective ||
-          directive is ImportDirective ||
-          directive is ExportDirective) {
-        prevDirective = directive;
-      }
-    }
-    // insert after last library-related directive
-    if (prevDirective != null) {
-      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
-      result.offset = prevDirective.end;
-      String eol = endOfLine;
-      if (prevDirective is LibraryDirective) {
-        result.prefix = "$eol$eol";
-      } else {
-        result.prefix = eol;
-      }
-      return result;
-    }
-    // no directives, use "top" location
-    return getInsertDescTop();
-  }
-
-  /**
-   * Returns a [InsertDesc] describing where to insert a new 'part' directive.
-   */
-  CorrectionUtils_InsertDesc getInsertDescPart() {
-    // analyze directives
-    Directive prevDirective = null;
-    for (Directive directive in unit.directives) {
-      prevDirective = directive;
-    }
-    // insert after last directive
-    if (prevDirective != null) {
-      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
-      result.offset = prevDirective.end;
-      String eol = endOfLine;
-      if (prevDirective is PartDirective) {
-        result.prefix = eol;
-      } else {
-        result.prefix = "$eol$eol";
-      }
-      return result;
-    }
-    // no directives, use "top" location
-    return getInsertDescTop();
-  }
 
   /**
    * Returns a [InsertDesc] describing where to insert a new directive or a
@@ -1029,48 +964,6 @@ class CorrectionUtils {
    */
   String getNodeText(AstNode node) {
     return getText(node.offset, node.length);
-  }
-
-  /**
-   * @return the source for the parameter with the given type and name.
-   */
-  String getParameterSource(
-      DartType type, String name, Set<Source> librariesToImport) {
-    // no type
-    if (type == null || type.isDynamic) {
-      return name;
-    }
-    // function type
-    if (type is FunctionType && type.element.isSynthetic) {
-      FunctionType functionType = type;
-      StringBuffer sb = new StringBuffer();
-      // return type
-      DartType returnType = functionType.returnType;
-      if (returnType != null && !returnType.isDynamic) {
-        String returnTypeSource = getTypeSource(returnType, librariesToImport);
-        sb.write(returnTypeSource);
-        sb.write(' ');
-      }
-      // parameter name
-      sb.write(name);
-      // parameters
-      sb.write('(');
-      List<ParameterElement> fParameters = functionType.parameters;
-      for (int i = 0; i < fParameters.length; i++) {
-        ParameterElement fParameter = fParameters[i];
-        if (i != 0) {
-          sb.write(", ");
-        }
-        sb.write(getParameterSource(
-            fParameter.type, fParameter.name, librariesToImport));
-      }
-      sb.write(')');
-      // done
-      return sb.toString();
-    }
-    // simple type
-    String typeSource = getTypeSource(type, librariesToImport);
-    return '$typeSource $name';
   }
 
   /**
@@ -1652,4 +1545,21 @@ class _InvertedCondition {
 
   static _InvertedCondition _simple(String source) =>
       new _InvertedCondition(2147483647, source);
+}
+
+/**
+ * Visitor that collects defined [LocalElement]s.
+ */
+class _LocalElementsCollector extends RecursiveAstVisitor {
+  final elements = <LocalElement>[];
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      Element element = node.staticElement;
+      if (element is LocalElement) {
+        elements.add(element);
+      }
+    }
+  }
 }

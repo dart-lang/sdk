@@ -165,7 +165,7 @@ checkReturn(MockCompiler compiler, String name, type) {
   var element = findElement(compiler, name);
   Expect.equals(
       type,
-      simplify(typesInferrer.getReturnTypeOfElement(element),
+      simplify(typesInferrer.getReturnTypeOfMember(element),
           typesInferrer.closedWorld),
       name);
 }

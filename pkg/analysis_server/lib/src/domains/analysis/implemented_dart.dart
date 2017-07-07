@@ -13,13 +13,13 @@ class ImplementedComputer {
   List<protocol.ImplementedClass> classes = <protocol.ImplementedClass>[];
   List<protocol.ImplementedMember> members = <protocol.ImplementedMember>[];
 
-  Set<ClassElement> subtypes;
+  Set<String> subtypeMembers;
 
   ImplementedComputer(this.searchEngine, this.unitElement);
 
   compute() async {
     for (ClassElement type in unitElement.types) {
-      // always include Object and its members
+      // Always include Object and its members.
       if (type.supertype == null) {
         _addImplementedClass(type);
         type.accessors.forEach(_addImplementedMember);
@@ -27,14 +27,15 @@ class ImplementedComputer {
         type.methods.forEach(_addImplementedMember);
         continue;
       }
-      // analyze ancestors
-      subtypes = await searchEngine.searchAllSubtypes(type);
-      if (subtypes.isNotEmpty) {
+
+      // Analyze subtypes.
+      subtypeMembers = await searchEngine.membersOfSubtypes(type);
+      if (subtypeMembers != null) {
         _addImplementedClass(type);
+        type.accessors.forEach(_addMemberIfImplemented);
+        type.fields.forEach(_addMemberIfImplemented);
+        type.methods.forEach(_addMemberIfImplemented);
       }
-      type.accessors.forEach(_addMemberIfImplemented);
-      type.fields.forEach(_addMemberIfImplemented);
-      type.methods.forEach(_addMemberIfImplemented);
     }
   }
 
@@ -61,19 +62,7 @@ class ImplementedComputer {
 
   bool _hasOverride(Element element) {
     String name = element.displayName;
-    LibraryElement library = element.library;
-    for (ClassElement subtype in subtypes) {
-      ClassMemberElement subElement = subtype.getMethod(name);
-      if (subElement == null) {
-        subElement = subtype.getField(name);
-      }
-      if (subElement != null &&
-          !subElement.isStatic &&
-          subElement.isAccessibleIn(library)) {
-        return true;
-      }
-    }
-    return false;
+    return subtypeMembers.contains(name);
   }
 
   /**

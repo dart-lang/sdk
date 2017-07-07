@@ -12,6 +12,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -128,7 +129,7 @@ class ClosureIrChecker extends AbstractIrComputer {
 /// Compute a string representation of the data stored for [local] in [info].
 String computeLocalValue(ClosureRepresentationInfo info, Local local) {
   StringBuffer sb = new StringBuffer();
-  if (info.variableIsUsedInTryOrSync(local)) {
+  if (info.localIsUsedInTryOrSync(local)) {
     sb.write('inTry');
   }
   // TODO(johnniwinther,efortuna): Add more info (captured, boxed etc.).

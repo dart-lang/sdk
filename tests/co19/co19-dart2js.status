@@ -61,20 +61,14 @@ Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitia
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: fail # Issue 13363
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: fail # Issue 13363
-Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
-Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure
-Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure
+Language/Classes/Getters/static_getter_t02: CompileTimeError # Should be fixed with unified frontend. Issue 24534
 Language/Classes/Instance_Methods/same_name_setter_t01: fail # Issue 21201
 Language/Classes/Setters/name_t01: CompileTimeError # Issue 5023
 Language/Classes/Setters/name_t02: CompileTimeError # Issue 5023
 Language/Classes/Setters/name_t03: RuntimeError # Issue 5023
 Language/Classes/Setters/name_t07: CompileTimeError # Issue 5023
-Language/Classes/Setters/static_setter_t06: RuntimeError  # Please triage this failure
-Language/Classes/Setters/type_object_t01: RuntimeError # Please triage this failure
-Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this failure
-Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Please triage this failure
-Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure
-Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure
+Language/Classes/Setters/static_setter_t06: RuntimeError  # Should be fixed with unified frontend. Issue 23749
+Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Should be fixed with unified frontend. Issue 23749
 Language/Classes/definition_t23: CompileTimeError # Please triage this failure
 Language/Classes/same_name_type_variable_t01: Fail # Missing CT error on class with same name a type parameter
 Language/Classes/same_name_type_variable_t02: Fail # Missing CT error on member with same name a type parameter
@@ -376,6 +370,21 @@ LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Tim
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
+
+[ $compiler == dart2js && ! $checked && $enable_asserts ]
+Language/Statements/Assert/execution_t01: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t02: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t03: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t04: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t05: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t06: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t11: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/production_mode_t01: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t02: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t03: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t04: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t05: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t06: SkipByDesign # Unspec'd feature.
 
 [ $compiler == dart2js && $checked && $runtime != d8]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
@@ -968,6 +977,7 @@ LayoutTests/fast/css/implicit-attach-marking_t01: Skip # Times out. Please triag
 LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/max-device-aspect-ratio_t01: RuntimeError, Pass # Issue 28998
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
@@ -3706,6 +3716,7 @@ LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please tria
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/leftView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
+LibTest/html/Element/mouseOverEvent_A01_t01: RuntimeError, Pass # Issue 30068
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onMouseEnter_A01_t01: RuntimeError, Pass # Please triage this failure
 LibTest/html/Element/onMouseOver_A01_t01: RuntimeError, Pass # Please triage this failure
@@ -4054,7 +4065,6 @@ Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t06: Pas
 Language/Classes/Constructors/Factories/return_type_t03: Pass, Slow # Issue 25940
 Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 25940
 Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
-Language/Classes/Getters/type_object_t02: RuntimeError, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure

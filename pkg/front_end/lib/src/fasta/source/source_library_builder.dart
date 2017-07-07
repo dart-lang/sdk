@@ -58,11 +58,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<List> implementationBuilders = <List<List>>[];
 
+  /// Indicates whether type inference (and type promotion) should be disabled
+  /// for this library.
+  final bool disableTypeInference;
+
   String name;
 
   String partOfName;
 
-  Uri partOfUri;
+  String partOfUri;
 
   List<MetadataBuilder> metadata;
 
@@ -80,7 +84,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
-      : currentDeclaration = libraryDeclaration,
+      : disableTypeInference = loader.target.disableTypeInference,
+        currentDeclaration = libraryDeclaration,
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 
@@ -115,7 +120,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     currentDeclaration = currentDeclaration.createNested(name, hasMembers);
   }
 
-  DeclarationBuilder<T> endNestedDeclaration() {
+  DeclarationBuilder<T> endNestedDeclaration(String name) {
+    assert(
+        (name?.startsWith(currentDeclaration.name) ??
+                (name == currentDeclaration.name)) ||
+            currentDeclaration.name == "operator",
+        "${name} != ${currentDeclaration.name}");
     DeclarationBuilder<T> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
     return previous;
@@ -167,7 +177,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
     partOfName = name;
-    partOfUri = uri == null ? null : this.uri.resolve(uri);
+    partOfUri = uri;
   }
 
   void addClass(
@@ -233,10 +243,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
-      T returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals,
+      FunctionTypeBuilder type,
       int charOffset);
 
   FunctionTypeBuilder addFunctionType(
@@ -404,24 +413,44 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void includePart(SourceLibraryBuilder<T, R> part) {
-    if (name != null) {
-      if (!part.isPart) {
-        addCompileTimeError(
-            -1,
-            "Can't use ${part.fileUri} as a part, because it has no 'part of'"
-            " declaration.");
-        parts.remove(part);
-        return;
-      }
-      if (part.partOfName != name && part.partOfUri != uri) {
-        String partName = part.partOfName ?? "${part.partOfUri}";
-        String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
+    if (part.partOfUri != null) {
+      if (uri.resolve(part.partOfUri) != uri) {
+        // This is a warning, but the part is still included.
         addWarning(
             -1,
-            "Using '${part.fileUri}' as part of '$myName' but it's 'part of'"
-            " declaration says '$partName'.");
-        // The part is still included.
+            "Using '${part.relativeFileUri}' as part of '$uri' but its "
+            "'part of' declaration says '${part.partOfUri}'.");
+        if (uri.scheme == "dart" && relativeFileUri.endsWith(part.partOfUri)) {
+          addWarning(-1, "See https://github.com/dart-lang/sdk/issues/30072.");
+        }
       }
+    } else if (part.partOfName != null) {
+      if (name != null) {
+        if (part.partOfName != name) {
+          // This is a warning, but the part is still included.
+          addWarning(
+              -1,
+              "Using '${part.relativeFileUri}' as part of '$name' but its "
+              "'part of' declaration says '${part.partOfName}'.");
+        }
+      } else {
+        // This is a warning, but the part is still included.
+        addWarning(
+            -1,
+            "Using '${part.relativeFileUri}' as part of '${relativeFileUri}' "
+            "but its 'part of' declaration says '${part.partOfName}'.\n"
+            "Try changing the 'part of' declaration to use a relative "
+            "file name.");
+      }
+    } else if (name != null) {
+      // This is an error, and the part isn't included.
+      assert(!part.isPart);
+      addCompileTimeError(
+          -1,
+          "Can't use ${part.fileUri} as a part, because it has no 'part of'"
+          " declaration.");
+      parts.remove(part);
+      return;
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {

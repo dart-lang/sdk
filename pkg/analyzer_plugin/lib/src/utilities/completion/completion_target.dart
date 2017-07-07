@@ -451,6 +451,9 @@ class CompletionTarget {
    * [CompletionTarget] associated with the given [offset].
    */
   static bool _isCandidateToken(Token token, int offset) {
+    if (token == null) {
+      return false;
+    }
     // A token is considered a candidate entity if the cursor offset is (a)
     // before the start of the token, (b) within the token, (c) at the end of
     // the token and the token is a keyword or identifier, or (d) at the

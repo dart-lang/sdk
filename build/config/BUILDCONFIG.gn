@@ -236,6 +236,10 @@ if (is_win) {
 }
 if (is_posix) {
   _native_compiler_configs += [ "//build/config/gcc:no_exceptions" ]
+  if (is_product) {
+    _native_compiler_configs +=
+        [ "//build/config/gcc:symbol_visibility_hidden" ]
+  }
 }
 
 if (is_linux) {

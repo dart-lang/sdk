@@ -151,6 +151,18 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'front-end tests',
         'vm tests',
       ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'vm-kernel-mac-release-x64-be',
+      ], testSteps: const <String>[
+        'front-end tests',
+        'vm tests',
+      ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'vm-kernel-mac-debug-x64-be',
+      ], testSteps: const <String>[
+        'front-end tests',
+        'vm tests',
+      ]),
     ],
   ),
   const BuildGroup(
@@ -163,7 +175,7 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'checked vm tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
-        'cross-arm-vm-linux-release-be',
+        'cross-arm64-vm-linux-release-be',
       ], testSteps: const <String>[
         '', // This subgroup triggers other tests.
       ]),
@@ -187,6 +199,12 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'vm-linux-release-x64-optcounter-threshold-be',
+      ], testSteps: const <String>[
+        'vm tests',
+        'checked vm tests',
+      ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'target-arm64-vm-linux-release-be',
       ], testSteps: const <String>[
         'vm tests',
         'checked vm tests',
@@ -299,11 +317,11 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     groupName: 'dart2js-d8-hostchecked',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
-        'dart2js-linux-d8-hostchecked-1-5-be',
-        'dart2js-linux-d8-hostchecked-2-5-be',
-        'dart2js-linux-d8-hostchecked-3-5-be',
-        'dart2js-linux-d8-hostchecked-4-5-be',
-        'dart2js-linux-d8-hostchecked-5-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-1-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-2-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-3-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-4-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-5-5-be',
       ], testSteps: const <String>[
         'dart2js d8 tests',
         'dart2js d8 package tests',
@@ -379,12 +397,15 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-dump-info-be',
       ], testSteps: const <String>[
         'annotated_steps',
-      ])
+      ], isActive: false),
     ],
   ),
   const BuildGroup(
     groupName: 'analyzer',
     subgroups: const <BuildSubgroup>[
+      const BuildSubgroup(shardNames: const <String>[
+        'analyze-linux-be',
+      ], testSteps: const <String>[]),
       const BuildSubgroup(shardNames: const <String>[
         'analyzer-mac10.11-release-be',
       ], testSteps: const <String>[
@@ -600,7 +621,7 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js ie10 co19 tests',
         'dart2js ie10 fast-startup tests',
         'dart2js ie10 co19 fast-startup tests',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'dart2js-win8-ie11-be'
       ], testSteps: const <String>[
@@ -608,7 +629,7 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js ie11 co19 tests',
         'dart2js ie11 fast-startup tests',
         'dart2js ie11 co19 fast-startup tests',
-      ]),
+      ], isActive: false),
     ],
   ),
   const BuildGroup(
@@ -688,12 +709,12 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'pub-mac-be',
       ], testSteps: const <String>[
         'annotated_steps',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'pub-linux-be',
       ], testSteps: const <String>[
         'annotated_steps',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-mac10.11-release-be',
       ], testSteps: const <String>[
@@ -738,12 +759,12 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     groupName: 'misc',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
-        'version-checker-be',
+        'versionchecker-linux-be',
       ], testSteps: const <String>[
         'annotated_steps',
       ]),
       const BuildSubgroup(shardNames: const <String>[
-        'linux-distribution-support-debian_wheezy-be',
+        'debianpackage-linux-be',
       ], testSteps: const <String>[
         'annotated_steps',
       ]),
@@ -756,17 +777,17 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'app-linux-debug-x64-dev',
       ], testSteps: const <String>[
         'vm tests',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'app-linux-release-x64-dev',
       ], testSteps: const <String>[
         'vm tests',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'app-linux-product-x64-dev',
       ], testSteps: const <String>[
         'vm tests',
-      ]),
+      ], isActive: false),
     ],
   ),
 ];

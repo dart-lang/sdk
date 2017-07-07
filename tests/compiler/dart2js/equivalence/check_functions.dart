@@ -14,6 +14,8 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/enqueue.dart';
+import 'package:compiler/src/js/js_debug.dart' as js;
+import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/enqueuer.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
@@ -24,6 +26,7 @@ import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
+import 'package:js_ast/js_ast.dart' as js;
 import 'check_helpers.dart';
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
@@ -134,8 +137,8 @@ void checkInterceptorData(InterceptorDataImpl data1, InterceptorDataImpl data2,
       data1,
       data2,
       'interceptedElements',
-      data1.interceptedElementsForTesting,
-      data2.interceptedElementsForTesting,
+      data1.interceptedMembers,
+      data2.interceptedMembers,
       equality,
       (a, b) => areSetsEquivalent(a, b, elementEquivalence));
 
@@ -146,8 +149,8 @@ void checkInterceptorData(InterceptorDataImpl data1, InterceptorDataImpl data2,
       data1,
       data2,
       'classesMixedIntoInterceptedClasses',
-      data1.classesMixedIntoInterceptedClassesForTesting,
-      data2.classesMixedIntoInterceptedClassesForTesting,
+      data1.classesMixedIntoInterceptedClasses,
+      data2.classesMixedIntoInterceptedClasses,
       elementEquivalence);
 }
 
@@ -360,13 +363,13 @@ void checkNativeClasses(
   checkSetEquivalence(compiler1, compiler2, 'nativeClasses', nativeClasses1,
       nativeClasses2, strategy.elementEquivalence);
 
-  Iterable<ClassEntity> registeredClasses1 = compiler1
-      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
-  Iterable<ClassEntity> registeredClasses2 = compiler2
-      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
+  Iterable<ClassEntity> liveNativeClasses1 =
+      compiler1.backend.nativeResolutionEnqueuerForTesting.liveNativeClasses;
+  Iterable<ClassEntity> liveNativeClasses2 =
+      compiler2.backend.nativeResolutionEnqueuerForTesting.liveNativeClasses;
 
-  checkSetEquivalence(compiler1, compiler2, 'registeredClasses',
-      registeredClasses1, registeredClasses2, strategy.elementEquivalence);
+  checkSetEquivalence(compiler1, compiler2, 'liveNativeClasses',
+      liveNativeClasses1, liveNativeClasses2, strategy.elementEquivalence);
 }
 
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
@@ -860,4 +863,61 @@ void checkEmitterClasses(Class class1, Class class2) {
       (a, b) => a.name.key == b.name.key);
   checkLists(class1.isChecks, class2.isChecks, 'isChecks',
       (a, b) => a.name.key == b.name.key);
+}
+
+void checkGeneratedCode(JavaScriptBackend backend1, JavaScriptBackend backend2,
+    {bool elementEquivalence(Entity a, Entity b): _areEntitiesEquivalent}) {
+  checkMaps(backend1.generatedCode, backend2.generatedCode, 'generatedCode',
+      elementEquivalence, areJsNodesEquivalent,
+      valueToString: js.nodeToString);
+}
+
+bool areJsNodesEquivalent(js.Node node1, js.Node node2) {
+  return new JsEquivalenceVisitor().testNodes(node1, node2);
+}
+
+class JsEquivalenceVisitor extends js.EquivalenceVisitor {
+  Map<String, String> labelsMap = <String, String>{};
+
+  @override
+  bool failAt(js.Node node1, js.Node node2) {
+    print('Node mismatch:');
+    print('  ${js.nodeToString(node1)}');
+    print('  ${js.nodeToString(node2)}');
+    return false;
+  }
+
+  @override
+  bool testValues(js.Node node1, Object value1, js.Node node2, Object value2) {
+    if (value1 != value2) {
+      print('Value mismatch:');
+      print('  ${value1}');
+      print('  ${value2}');
+      print('at');
+      print('  ${js.nodeToString(node1)}');
+      print('  ${js.nodeToString(node2)}');
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  bool testLabels(js.Node node1, String label1, js.Node node2, String label2) {
+    if (label1 == null && label2 == null) return true;
+    if (labelsMap.containsKey(label1)) {
+      String expectedValue = labelsMap[label1];
+      if (expectedValue != label2) {
+        print('Value mismatch:');
+        print('  ${label1}');
+        print('  found ${label2}, expected ${expectedValue}');
+        print('at');
+        print('  ${js.nodeToString(node1)}');
+        print('  ${js.nodeToString(node2)}');
+      }
+      return expectedValue == label2;
+    } else {
+      labelsMap[label1] = label2;
+      return true;
+    }
+  }
 }

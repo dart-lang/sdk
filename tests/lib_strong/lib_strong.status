@@ -170,65 +170,20 @@ html/scripts_htmltest: Skip # Issue 29919
 html/two_scripts_htmltest: Skip # Issue 29919
 
 [ $compiler == dartdevc ]
-async/first_regression_test: CompileTimeError # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/future_or_strong_test: RuntimeError # Issue 29922
-async/future_timeout_test: CompileTimeError # Issue 29922
 async/futures_test: RuntimeError # Issue 29922
-async/multiple_timer_test: CompileTimeError # Issue 29922
-async/schedule_microtask2_test: CompileTimeError # Issue 29922
-async/schedule_microtask3_test: CompileTimeError # Issue 29922
-async/schedule_microtask5_test: CompileTimeError # Issue 29922
-async/slow_consumer_test: Timeout # Issue 29922
-async/stream_controller_async_test: CompileTimeError # Issue 29922
-async/stream_first_where_test: CompileTimeError # Issue 29922
-async/stream_from_iterable_test: CompileTimeError # Issue 29922
-async/stream_iterator_test: CompileTimeError # Issue 29922
-async/stream_join_test: CompileTimeError # Issue 29922
-async/stream_last_where_test: CompileTimeError # Issue 29922
-async/stream_periodic2_test: CompileTimeError # Issue 29922
-async/stream_periodic3_test: CompileTimeError # Issue 29922
-async/stream_periodic4_test: CompileTimeError # Issue 29922
-async/stream_periodic5_test: CompileTimeError # Issue 29922
-async/stream_periodic6_test: CompileTimeError # Issue 29922
-async/stream_periodic_test: CompileTimeError # Issue 29922
-async/stream_single_test: CompileTimeError # Issue 29922
-async/stream_single_to_multi_subscriber_test: CompileTimeError # Issue 29922
-async/stream_state_nonzero_timer_test: CompileTimeError # Issue 29922
-async/stream_state_test: CompileTimeError # Issue 29922
-async/stream_subscription_as_future_test: CompileTimeError # Issue 29922
-async/stream_subscription_cancel_test: CompileTimeError # Issue 29922
-async/stream_timeout_test: CompileTimeError # Issue 29922
-async/stream_transform_test: CompileTimeError # Issue 29922
-async/stream_transformation_broadcast_test: CompileTimeError # Issue 29922
-async/timer_cancel1_test: CompileTimeError # Issue 29922
-async/timer_cancel2_test: CompileTimeError # Issue 29922
-async/timer_cancel_test: CompileTimeError # Issue 29922
-async/timer_isActive_test: CompileTimeError # Issue 29922
+async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/timer_not_available_test: RuntimeError # Issue 29922
-async/timer_repeat_test: CompileTimeError # Issue 29922
-async/timer_test: CompileTimeError # Issue 29922
 async/zone_error_callback_test: RuntimeError # Issue 29922
 async/zone_run_unary_test: RuntimeError # Issue 29922
 convert/streamed_conversion_json_encode1_test: RuntimeError # Issue 29922
 convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
-html/async_spawnuri_test: CompileTimeError # Issue 29922
-html/async_test: CompileTimeError # Issue 29922
-html/canvas_test: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/arc: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/drawImage_canvas_element: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/drawImage_image_element: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/drawImage_video_element: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/fillText: CompileTimeError # Issue 29922
-html/canvasrenderingcontext2d_test/pixel_manipulation: CompileTimeError # Issue 29922
-html/cross_domain_iframe_test: CompileTimeError # Issue 29922
-html/css_test/functional: CompileTimeError # Issue 29922
-html/css_test/supportsPointConversions: CompileTimeError # Issue 29922
-html/cssstyledeclaration_test: CompileTimeError # Issue 29922
+html/async_spawnuri_test: RuntimeError # Issue 29922
+html/async_test: RuntimeError # Issue 29922
 html/custom/attribute_changed_callback_test/fully_supported: CompileTimeError # Issue 29922
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: CompileTimeError # Issue 29922
 html/custom/constructor_calls_created_synchronously_test: CompileTimeError # Issue 29922
@@ -264,7 +219,6 @@ html/custom_elements_test/lifecycle: CompileTimeError # Issue 29922
 html/custom_elements_test/mixins: CompileTimeError # Issue 29922
 html/custom_elements_test/preregister: CompileTimeError # Issue 29922
 html/custom_elements_test/register: CompileTimeError # Issue 29922
-html/custom_tags_test: CompileTimeError # Issue 29922
 html/element_animate_test/animate_supported: CompileTimeError # Issue 29922
 html/element_animate_test/omit_timing: CompileTimeError # Issue 29922
 html/element_animate_test/simple_timing: CompileTimeError # Issue 29922

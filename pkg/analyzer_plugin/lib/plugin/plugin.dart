@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -192,6 +191,17 @@ abstract class ServerPlugin {
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
 
   /**
+   * Return the driver being used to analyze the file with the given [path].
+   */
+  AnalysisDriverGeneric driverForPath(String path) {
+    ContextRoot contextRoot = contextRootContaining(path);
+    if (contextRoot == null) {
+      return null;
+    }
+    return driverMap[contextRoot];
+  }
+
+  /**
    * Handle an 'analysis.getNavigation' request.
    */
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
@@ -256,14 +266,6 @@ abstract class ServerPlugin {
       return null;
     }
   }
-
-  /**
-   * Handle an 'analysis.setContextBuilderOptions' request.
-   */
-  Future<AnalysisSetContextBuilderOptionsResult>
-      handleAnalysisSetContextBuilderOptions(
-              AnalysisSetContextBuilderOptionsParams parameters) async =>
-          null;
 
   /**
    * Handle an 'analysis.setContextRoots' request.
@@ -339,14 +341,10 @@ abstract class ServerPlugin {
       AnalysisUpdateContentParams parameters) async {
     Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
-      // We don't need to get the correct URI because only the full path is
-      // used by the contentCache.
-      Source source = resourceProvider.getFile(filePath).createSource();
       if (overlay is AddContentOverlay) {
-        fileContentOverlay[source.fullName] = overlay.content;
+        fileContentOverlay[filePath] = overlay.content;
       } else if (overlay is ChangeContentOverlay) {
-        String fileName = source.fullName;
-        String oldContents = fileContentOverlay[fileName];
+        String oldContents = fileContentOverlay[filePath];
         String newContents;
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
@@ -360,9 +358,9 @@ abstract class ServerPlugin {
           throw new RequestFailure(
               RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
-        fileContentOverlay[fileName] = newContents;
+        fileContentOverlay[filePath] = newContents;
       } else if (overlay is RemoveContentOverlay) {
-        fileContentOverlay[source.fullName] = null;
+        fileContentOverlay[filePath] = null;
       }
       contentChanged(filePath);
     });
@@ -512,11 +510,6 @@ abstract class ServerPlugin {
       case ANALYSIS_REQUEST_REANALYZE:
         var params = new AnalysisReanalyzeParams.fromRequest(request);
         result = await handleAnalysisReanalyze(params);
-        break;
-      case ANALYSIS_REQUEST_SET_CONTEXT_BUILDER_OPTIONS:
-        var params =
-            new AnalysisSetContextBuilderOptionsParams.fromRequest(request);
-        result = await handleAnalysisSetContextBuilderOptions(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params = new AnalysisSetContextRootsParams.fromRequest(request);

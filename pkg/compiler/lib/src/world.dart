@@ -4,7 +4,7 @@
 
 library dart2js.world;
 
-import 'closure.dart' show ClosureClassElement, SynthesizedCallMethodElementX;
+import 'closure.dart' show ClosureClassElement;
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
@@ -14,6 +14,7 @@ import 'elements/elements.dart'
         ClassElement,
         Element,
         MemberElement,
+        MethodElement,
         MixinApplicationElement,
         TypedefElement;
 import 'elements/resolution_types.dart';
@@ -21,13 +22,16 @@ import 'elements/types.dart';
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
+import 'js_backend/runtime_types.dart'
+    show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
 import 'ordered_typeset.dart';
+import 'options.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
-import 'universe/world_builder.dart' show ResolutionWorldBuilder;
+import 'universe/world_builder.dart';
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -57,6 +61,10 @@ abstract class ClosedWorld implements World {
   CommonMasks get commonMasks;
 
   ConstantSystem get constantSystem;
+
+  RuntimeTypesNeed get rtiNeed;
+
+  Iterable<ClassEntity> get liveNativeClasses;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
@@ -311,23 +319,24 @@ abstract class ClosedWorld implements World {
   FieldEntity locateSingleField(Selector selector, TypeMask mask);
 
   /// Returns the side effects of executing [element].
-  SideEffects getSideEffectsOfElement(Entity element);
+  SideEffects getSideEffectsOfElement(FunctionEntity element);
 
   /// Returns the side effects of calling [selector] on a receiver of type
   /// [mask].
   SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask);
 
   /// Returns `true` if [element] is guaranteed not to throw an exception.
-  bool getCannotThrow(Entity element);
+  bool getCannotThrow(FunctionEntity element);
 
   /// Returns `true` if [element] is called in a loop.
   // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
-  bool isCalledInLoop(Entity element);
+  // TODO(johnniwinther): Change [MemberEntity] to [FunctionEntity].
+  bool isCalledInLoop(MemberEntity element);
 
   /// Returns `true` if [element] might be passed to `Function.apply`.
   // TODO(johnniwinther): Is this 'passed invocation target` or
   // `passed as argument`?
-  bool getMightBePassedToApply(Entity element);
+  bool getMightBePassedToApply(FunctionEntity element);
 
   /// Returns a string representation of the closed world.
   ///
@@ -342,29 +351,29 @@ abstract class ClosedWorldRefiner {
   ClosedWorld get closedWorld;
 
   /// Registers the side [effects] of executing [element].
-  void registerSideEffects(Entity element, SideEffects effects);
+  void registerSideEffects(FunctionEntity element, SideEffects effects);
 
   /// Registers the executing of [element] as without side effects.
-  void registerSideEffectsFree(Entity element);
+  void registerSideEffectsFree(FunctionEntity element);
 
   /// Returns the currently known side effects of executing [element].
-  SideEffects getCurrentlyKnownSideEffects(Entity element);
+  SideEffects getCurrentlyKnownSideEffects(FunctionEntity element);
 
   /// Registers that [element] might be passed to `Function.apply`.
   // TODO(johnniwinther): Is this 'passed invocation target` or
   // `passed as argument`?
-  void registerMightBePassedToApply(Entity element);
+  void registerMightBePassedToApply(FunctionEntity element);
 
   /// Returns `true` if [element] might be passed to `Function.apply` given the
   /// currently inferred information.
-  bool getCurrentlyKnownMightBePassedToApply(Entity element);
+  bool getCurrentlyKnownMightBePassedToApply(FunctionEntity element);
 
   /// Registers that [element] is called in a loop.
   // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
-  void addFunctionCalledInLoop(Entity element);
+  void addFunctionCalledInLoop(MemberEntity element);
 
   /// Registers that [element] is guaranteed not to throw an exception.
-  void registerCannotThrow(Entity element);
+  void registerCannotThrow(FunctionEntity element);
 
   /// Adds the closure class [cls] to the inference world. The class is
   /// considered directly instantiated.
@@ -406,14 +415,14 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
 
-  final FunctionSet _allFunctions;
+  FunctionSet _allFunctions;
 
   final Set<TypedefElement> _allTypedefs;
 
-  final Map<ClassEntity, Set<ClassEntity>> _mixinUses;
+  final Map<ClassEntity, Set<ClassEntity>> mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
 
-  final Map<ClassEntity, Set<ClassEntity>> _typesImplementedBySubclasses;
+  final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
@@ -423,14 +432,18 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
       <ClassEntity, Map<ClassEntity, bool>>{};
 
-  final Set<Entity> _functionsCalledInLoop = new Set<Entity>();
-  final Map<Entity, SideEffects> _sideEffects = new Map<Entity, SideEffects>();
+  final Set<MemberEntity> _functionsCalledInLoop = new Set<MemberEntity>();
+  final Map<FunctionEntity, SideEffects> _sideEffects =
+      new Map<FunctionEntity, SideEffects>();
 
-  final Set<Entity> _sideEffectsFreeElements = new Set<Entity>();
+  final Set<FunctionEntity> _sideEffectsFreeElements =
+      new Set<FunctionEntity>();
 
-  final Set<Entity> _elementsThatCannotThrow = new Set<Entity>();
+  final Set<FunctionEntity> _elementsThatCannotThrow =
+      new Set<FunctionEntity>();
 
-  final Set<Entity> _functionsThatMightBePassedToApply = new Set<Entity>();
+  final Set<FunctionEntity> _functionsThatMightBePassedToApply =
+      new Set<FunctionEntity>();
 
   CommonMasks _commonMasks;
 
@@ -438,34 +451,35 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final DartTypes dartTypes;
   final CommonElements commonElements;
 
-  // TODO(johnniwinther): Avoid this.
-  final ResolutionWorldBuilder _resolverWorld;
-
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
 
+  final Iterable<MemberEntity> liveInstanceMembers;
+
+  /// Members that are written either directly or through a setter selector.
+  final Iterable<MemberEntity> assignedInstanceMembers;
+
+  final Iterable<ClassEntity> liveNativeClasses;
+
   ClosedWorldBase(
-      {this.elementEnvironment,
+      this.elementEnvironment,
       this.dartTypes,
       this.commonElements,
       this.constantSystem,
       this.nativeData,
       this.interceptorData,
       this.backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
       Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
+      this.liveNativeClasses,
+      this.liveInstanceMembers,
+      this.assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
+      this.mixinUses,
+      this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
-      : this._resolverWorld = resolutionWorldBuilder,
-        this._implementedClasses = implementedClasses,
-        this._allFunctions = functionSet,
+      Map<ClassEntity, ClassSet> classSets)
+      : this._implementedClasses = implementedClasses,
         this._allTypedefs = allTypedefs,
-        this._mixinUses = mixinUses,
-        this._typesImplementedBySubclasses = typesImplementedBySubclasses,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
     _commonMasks = new CommonMasks(this);
@@ -800,7 +814,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
     assert(checkClass(superclass));
-    Set<ClassEntity> subclasses = _typesImplementedBySubclasses[superclass];
+    Set<ClassEntity> subclasses = typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
     return subclasses.contains(type);
   }
@@ -935,21 +949,21 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
       _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
-      for (ClassEntity mixin in _mixinUses.keys) {
+      for (ClassEntity mixin in mixinUses.keys) {
         List<ClassEntity> uses = <ClassEntity>[];
 
         void addLiveUse(ClassEntity mixinApplication) {
           if (isInstantiated(mixinApplication)) {
             uses.add(mixinApplication);
           } else if (isNamedMixinApplication(mixinApplication)) {
-            Set<ClassEntity> next = _mixinUses[mixinApplication];
+            Set<ClassEntity> next = mixinUses[mixinApplication];
             if (next != null) {
               next.forEach(addLiveUse);
             }
           }
         }
 
-        _mixinUses[mixin].forEach(addLiveUse);
+        mixinUses[mixin].forEach(addLiveUse);
         if (uses.isNotEmpty) {
           _liveMixinUses[mixin] = uses;
         }
@@ -1004,15 +1018,26 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   Iterable<TypedefElement> get allTypedefs => _allTypedefs;
 
+  void _ensureFunctionSet() {
+    if (_allFunctions == null) {
+      // [FunctionSet] is created lazily because it is not used when we switch
+      // from a frontend to a backend model before inference.
+      _allFunctions = new FunctionSet(liveInstanceMembers);
+    }
+  }
+
   TypeMask computeReceiverType(Selector selector, TypeMask mask) {
+    _ensureFunctionSet();
     return _allFunctions.receiverType(selector, mask, this);
   }
 
   Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask) {
+    _ensureFunctionSet();
     return _allFunctions.filter(selector, mask, this);
   }
 
   bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
+    _ensureFunctionSet();
     return _allFunctions
         .filter(selector, mask, this)
         .any((each) => each.isGetter);
@@ -1051,8 +1076,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       return true;
     }
     if (element.isInstanceMember) {
-      return !_resolverWorld.hasInvokedSetter(element) &&
-          !_resolverWorld.fieldSetters.contains(element);
+      return !assignedInstanceMembers.contains(element);
     }
     return false;
   }
@@ -1061,6 +1085,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
+    _ensureFunctionSet();
     for (MemberEntity e in _allFunctions.filter(selector, mask, this)) {
       if (e.isField) {
         if (selector.isGetter) {
@@ -1081,7 +1106,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return sideEffects;
   }
 
-  SideEffects getSideEffectsOfElement(covariant Entity element) {
+  SideEffects getSideEffectsOfElement(FunctionEntity element) {
     assert(checkEntity(element));
     return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
@@ -1089,60 +1114,51 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   static SideEffects _makeSideEffects() => new SideEffects();
 
   @override
-  SideEffects getCurrentlyKnownSideEffects(Entity element) {
+  SideEffects getCurrentlyKnownSideEffects(FunctionEntity element) {
     return getSideEffectsOfElement(element);
   }
 
-  void registerSideEffects(Entity element, SideEffects effects) {
+  void registerSideEffects(FunctionEntity element, SideEffects effects) {
     assert(checkEntity(element));
     if (_sideEffectsFreeElements.contains(element)) return;
     _sideEffects[element] = effects;
   }
 
-  void registerSideEffectsFree(Entity element) {
+  void registerSideEffectsFree(FunctionEntity element) {
     assert(checkEntity(element));
     _sideEffects[element] = new SideEffects.empty();
     _sideEffectsFreeElements.add(element);
   }
 
-  void addFunctionCalledInLoop(Entity element) {
+  void addFunctionCalledInLoop(MemberEntity element) {
     assert(checkEntity(element));
     _functionsCalledInLoop.add(element);
   }
 
-  bool isCalledInLoop(Entity element) {
+  bool isCalledInLoop(MemberEntity element) {
     assert(checkEntity(element));
     return _functionsCalledInLoop.contains(element);
   }
 
-  void registerCannotThrow(Entity element) {
+  void registerCannotThrow(FunctionEntity element) {
     assert(checkEntity(element));
     _elementsThatCannotThrow.add(element);
   }
 
-  bool getCannotThrow(Entity element) {
+  bool getCannotThrow(FunctionEntity element) {
     return _elementsThatCannotThrow.contains(element);
   }
 
-  void registerMightBePassedToApply(Entity element) {
+  void registerMightBePassedToApply(FunctionEntity element) {
     _functionsThatMightBePassedToApply.add(element);
   }
 
-  bool getMightBePassedToApply(Entity element) {
-    // We have to check whether the element we look at was created after
-    // type inference ran. This is currently only the case for the call
-    // method of function classes that were generated for function
-    // expressions. In such a case, we have to look at the original
-    // function expressions's element.
-    // TODO(herhut): Generate classes for function expressions earlier.
-    if (element is SynthesizedCallMethodElementX) {
-      return getMightBePassedToApply(element.expression);
-    }
+  bool getMightBePassedToApply(FunctionEntity element) {
     return _functionsThatMightBePassedToApply.contains(element);
   }
 
   @override
-  bool getCurrentlyKnownMightBePassedToApply(Entity element) {
+  bool getCurrentlyKnownMightBePassedToApply(FunctionEntity element) {
     return getMightBePassedToApply(element);
   }
 
@@ -1164,9 +1180,10 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 }
 
-class ClosedWorldImpl extends ClosedWorldBase {
+class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
   ClosedWorldImpl(
-      {ElementEnvironment elementEnvironment,
+      {CompilerOptions options,
+      ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
@@ -1174,29 +1191,36 @@ class ClosedWorldImpl extends ClosedWorldBase {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
+      Iterable<ClassEntity> liveNativeClasses,
+      Iterable<MemberEntity> liveInstanceMembers,
+      Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
-            elementEnvironment: elementEnvironment,
-            dartTypes: dartTypes,
-            commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
-            resolutionWorldBuilder: resolutionWorldBuilder,
-            implementedClasses: implementedClasses,
-            functionSet: functionSet,
-            allTypedefs: allTypedefs,
-            mixinUses: mixinUses,
-            typesImplementedBySubclasses: typesImplementedBySubclasses,
-            classHierarchyNodes: classHierarchyNodes,
-            classSets: classSets);
+            elementEnvironment,
+            dartTypes,
+            commonElements,
+            constantSystem,
+            nativeData,
+            interceptorData,
+            backendUsage,
+            implementedClasses,
+            liveNativeClasses,
+            liveInstanceMembers,
+            assignedInstanceMembers,
+            allTypedefs,
+            mixinUses,
+            typesImplementedBySubclasses,
+            classHierarchyNodes,
+            classSets) {
+    computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
+        enableTypeAssertions: options.enableTypeAssertions);
+  }
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
 
@@ -1300,7 +1324,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
     }
   }
 
-  SideEffects getSideEffectsOfElement(Element element) {
+  SideEffects getSideEffectsOfElement(covariant MethodElement element) {
     // The type inferrer (where the side effects are being computed),
     // does not see generative constructor bodies because they are
     // created by the backend. Also, it does not make any distinction
@@ -1311,4 +1335,18 @@ class ClosedWorldImpl extends ClosedWorldBase {
     assert(!element.isField);
     return super.getSideEffectsOfElement(element);
   }
+}
+
+abstract class ClosedWorldRtiNeedMixin implements ClosedWorld {
+  RuntimeTypesNeed _rtiNeed;
+
+  void computeRtiNeed(ResolutionWorldBuilder resolutionWorldBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      {bool enableTypeAssertions}) {
+    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
+        resolutionWorldBuilder, this,
+        enableTypeAssertions: enableTypeAssertions);
+  }
+
+  RuntimeTypesNeed get rtiNeed => _rtiNeed;
 }

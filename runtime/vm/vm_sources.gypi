@@ -203,6 +203,7 @@
     'gc_marker.h',
     'gc_sweeper.cc',
     'gc_sweeper.h',
+    'gdb_helpers.cc',
     'globals.h',
     'growable_array.h',
     'growable_array_test.cc',

@@ -131,8 +131,6 @@ abstract class MirrorsData {
   bool retainMetadataOfMember(covariant MemberEntity element);
   bool retainMetadataOfParameter(ParameterElement element);
 
-  bool invokedReflectively(Element element);
-
   /// Returns true if this element has to be enqueued due to
   /// mirror usage. Might be a subset of [referencedFromMirrorSystem] if
   /// normal tree shaking is still active ([isTreeShakingDisabled] is false).
@@ -312,22 +310,6 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
         worldBuilder.addCompileTimeConstantForEmission(constant);
       }
     }
-  }
-
-  bool invokedReflectively(Element element) {
-    if (element.isParameter) {
-      ParameterElement parameter = element;
-      if (invokedReflectively(parameter.functionDeclaration)) return true;
-    }
-
-    if (element.isField) {
-      if (Elements.isStaticOrTopLevel(element) &&
-          (element.isFinal || element.isConst)) {
-        return false;
-      }
-    }
-
-    return isAccessibleByReflection(element.declaration);
   }
 
   /// Sets of elements that are needed by reflection. Computed using

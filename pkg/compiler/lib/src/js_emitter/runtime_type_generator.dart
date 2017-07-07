@@ -345,7 +345,7 @@ class RuntimeTypeGenerator {
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emitting the is test here.
         ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-        if (!_closedWorld.isSubclassOf(
+        if (!_closedWorld.isSubtypeOf(
             superclass, _commonElements.functionClass)) {
           _generateInterfacesIsTests(_commonElements.functionClass,
               generateIsTest, generateSubstitution, generated);

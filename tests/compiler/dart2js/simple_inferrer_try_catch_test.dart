@@ -176,7 +176,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld));
         }
 
         checkReturn('returnInt1', commonMasks.uint31Type);

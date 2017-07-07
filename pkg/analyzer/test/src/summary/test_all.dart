@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.serialization.test_all;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'in_summary_source_test.dart' as in_summary_source_test;
@@ -16,7 +14,6 @@ import 'summarize_ast_strong_test.dart' as summarize_ast_strong_test;
 import 'summarize_ast_test.dart' as summarize_ast_test;
 import 'top_level_inference_test.dart' as top_level_inference_test;
 
-/// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     in_summary_source_test.main();

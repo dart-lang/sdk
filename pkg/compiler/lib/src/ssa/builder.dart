@@ -239,10 +239,10 @@ class SsaAstGraphBuilder extends ast.Visitor
         this.constantSystem = backend.constantSystem,
         this.rtiSubstitutions = backend.rtiSubstitutions {
     assert(target.isImplementation);
-    elementInferenceResults = _resultOf(target);
+    elementInferenceResults = _resultOf(target.declaration);
     assert(elementInferenceResults != null);
     graph.element = target;
-    sourceElementStack.add(target);
+    sourceElementStack.add(target.declaration);
     sourceInformationBuilder =
         sourceInformationFactory.createBuilderForContext(target);
     graph.sourceInformation =
@@ -292,9 +292,11 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// Note: this helper is used selectively. When we know that we are in a
   /// context were we don't expect to see a constructor body element, we
   /// directly fetch the data from the global inference results.
-  GlobalTypeInferenceElementResult _resultOf(MemberElement element) =>
-      globalInferenceResults.resultOfMember(
-          element is ConstructorBodyElementX ? element.constructor : element);
+  GlobalTypeInferenceElementResult _resultOf(MemberElement element) {
+    assert(element.isDeclaration);
+    return globalInferenceResults.resultOfMember(
+        element is ConstructorBodyElementX ? element.constructor : element);
+  }
 
   /// Build the graph for [target].
   HGraph build() {
@@ -489,7 +491,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!function.isGenerativeConstructorBody) {
-        if (globalInferenceResults.resultOfMember(function).throwsAlways) {
+        if (globalInferenceResults.resultOfMember(declaration).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -507,7 +509,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
-      if (isCalledOnce(function)) {
+      if (isCalledOnce(declaration)) {
         return InlineWeeder.canBeInlined(functionResolvedAst, null,
             enableUserAssertions: options.enableUserAssertions);
       }
@@ -565,7 +567,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // If a method is called only once, and all the methods in the
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
-      if (isCalledOnce(function)) {
+      if (isCalledOnce(declaration)) {
         maxInliningNodes = null;
       }
       bool canInline = InlineWeeder.canBeInlined(
@@ -628,6 +630,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   bool isCalledOnce(MethodElement element) {
+    assert(element.isDeclaration);
     return allInlinedFunctionsCalledOnce && isFunctionCalledOnce(element);
   }
 
@@ -639,7 +642,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
       sourceInformationBuilder = sourceInformationBuilder.forContext(element);
-      sourceElementStack.add(element.declaration);
+      sourceElementStack.add(element);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;
       sourceElementStack.removeLast();
@@ -706,8 +709,8 @@ class SsaAstGraphBuilder extends ast.Visitor
    */
   HGraph buildMethod(MethodElement functionElement) {
     assert(functionElement.isImplementation, failedAt(functionElement));
-    graph.calledInLoop =
-        closedWorld.isCalledInLoop(functionElement.declaration);
+    MethodElement declaration = functionElement.declaration;
+    graph.calledInLoop = closedWorld.isCalledInLoop(declaration);
     ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);
@@ -727,7 +730,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // the beginning of the method. This is to avoid having call sites do the
     // null check.
     if (name == '==') {
-      if (!backend.operatorEqHandlesNullArgument(functionElement)) {
+      if (!commonElements.operatorEqHandlesNullArgument(functionElement)) {
         handleIf(
             node: function,
             visitCondition: () {
@@ -3683,7 +3686,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   void visitTopLevelFunctionInvoke(ast.Send node, MethodElement function,
       ast.NodeList arguments, CallStructure callStructure, _) {
-    if (backend.isForeign(closedWorld.commonElements, function)) {
+    if (closedWorld.commonElements.isForeign(function)) {
       handleForeignSend(node, function);
     } else {
       generateStaticFunctionInvoke(node, function, callStructure);
@@ -6478,10 +6481,10 @@ class SsaAstGraphBuilder extends ast.Visitor
         stack,
         localsHandler,
         inTryStatement,
-        isCalledOnce(function),
+        isCalledOnce(functionResolvedAst.element),
         elementInferenceResults);
     resolvedAst = functionResolvedAst;
-    elementInferenceResults = _resultOf(function);
+    elementInferenceResults = _resultOf(functionResolvedAst.element);
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the

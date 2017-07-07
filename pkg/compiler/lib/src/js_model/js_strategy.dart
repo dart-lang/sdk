@@ -19,7 +19,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
-import '../kernel/closure.dart';
+import '../js_backend/runtime_types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_backend_strategy.dart';
@@ -29,46 +29,59 @@ import '../universe/class_set.dart';
 import '../universe/world_builder.dart';
 import '../util/emptyset.dart';
 import '../world.dart';
+import 'closure.dart';
 import 'elements.dart';
+import 'locals.dart';
 
 class JsBackendStrategy implements KernelBackendStrategy {
   final Compiler _compiler;
-  final JsToFrontendMap _map = new JsToFrontendMapImpl();
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
-  KernelToElementMapForBuilding _elementMap;
+  JsKernelToElementMap _elementMap;
   ClosureConversionTask _closureDataLookup;
   final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
+  Sorter _sorter;
 
   JsBackendStrategy(this._compiler);
 
   KernelToElementMapForBuilding get elementMap {
-    if (_elementMap == null) {
-      KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
-      KernelToElementMapForBuilding elementMap = strategy.elementMap;
-      _elementMap = new JsKernelToElementMap(
-          _map, _elementEnvironment, _commonElements, elementMap);
-    }
+    assert(_elementMap != null,
+        "JsBackendStrategy.elementMap has not been created yet.");
     return _elementMap;
   }
 
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
-    _elementEnvironment =
-        new JsElementEnvironment(_map, closedWorld.elementEnvironment);
-    _commonElements = new JsCommonElements(_map, closedWorld.commonElements);
+  ClosedWorldRefiner createClosedWorldRefiner(
+      covariant ClosedWorldBase closedWorld) {
+    KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
+    KernelToElementMapForImpact elementMap = strategy.elementMap;
+    _elementMap = new JsKernelToElementMap(
+        _compiler.reporter, _compiler.environment, elementMap);
+    _elementEnvironment = _elementMap.elementEnvironment;
+    _commonElements = _elementMap.commonElements;
+    JsToFrontendMap _map = _elementMap.jsToFrontendMap;
     BackendUsage backendUsage =
         new JsBackendUsage(_map, closedWorld.backendUsage);
+    _closureDataLookup = new KernelClosureConversionTask(
+        _compiler.measurer, _elementMap, _map, _globalLocalsMap);
     NativeData nativeData = new JsNativeData(_map, closedWorld.nativeData);
+    InterceptorDataImpl interceptorDataImpl = closedWorld.interceptorData;
+    Map<String, Set<MemberEntity>> interceptedMembers =
+        <String, Set<MemberEntity>>{};
+    interceptorDataImpl.interceptedMembers
+        .forEach((String name, Set<MemberEntity> members) {
+      interceptedMembers[name] = members.map(_map.toBackendMember).toSet();
+    });
     InterceptorData interceptorData = new InterceptorDataImpl(
         nativeData,
         _commonElements,
-        // TODO(johnniwinther): Convert these.
-        const {},
-        new Set(),
-        new Set());
+        interceptedMembers,
+        interceptorDataImpl.interceptedClasses.map(_map.toBackendClass).toSet(),
+        interceptorDataImpl.classesMixedIntoInterceptedClasses
+            .map(_map.toBackendClass)
+            .toSet());
 
     Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
         <ClassEntity, ClassHierarchyNode>{};
@@ -111,29 +124,61 @@ class JsBackendStrategy implements KernelBackendStrategy {
       convertClassSet(closedWorld.getClassSet(cls));
     }, ClassHierarchyNode.ALL);
 
-    return new JsClosedWorld(
+    List<MemberEntity> liveInstanceMembers =
+        closedWorld.liveInstanceMembers.map(_map.toBackendMember).toList();
+
+    Map<ClassEntity, Set<ClassEntity>> mixinUses =
+        <ClassEntity, Set<ClassEntity>>{};
+    closedWorld.mixinUses.forEach((ClassEntity cls, Set<ClassEntity> uses) {
+      mixinUses[_map.toBackendClass(cls)] =
+          uses.map(_map.toBackendClass).toSet();
+    });
+
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        <ClassEntity, Set<ClassEntity>>{};
+    closedWorld.typesImplementedBySubclasses
+        .forEach((ClassEntity cls, Set<ClassEntity> uses) {
+      typesImplementedBySubclasses[_map.toBackendClass(cls)] =
+          uses.map(_map.toBackendClass).toSet();
+    });
+
+    Iterable<MemberEntity> assignedInstanceMembers =
+        closedWorld.assignedInstanceMembers.map(_map.toBackendMember).toList();
+
+    Iterable<ClassEntity> liveNativeClasses =
+        closedWorld.liveNativeClasses.map(_map.toBackendClass).toList();
+
+    RuntimeTypesNeed rtiNeed =
+        new JsRuntimeTypesNeed(_map, closedWorld.rtiNeed);
+
+    return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
+        dartTypes: _elementMap.types,
         commonElements: _commonElements,
         constantSystem: const JavaScriptConstantSystem(),
         backendUsage: backendUsage,
         nativeData: nativeData,
         interceptorData: interceptorData,
+        rtiNeed: rtiNeed,
         classHierarchyNodes: classHierarchyNodes,
         classSets: classSets,
         implementedClasses: implementedClasses,
-        // TODO(johnniwinther): Support this.
+        liveNativeClasses: liveNativeClasses,
+        liveInstanceMembers: liveInstanceMembers,
+        assignedInstanceMembers: assignedInstanceMembers,
+        mixinUses: mixinUses,
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        // TODO(johnniwinther): Support this:
         allTypedefs: new ImmutableEmptySet<TypedefElement>());
   }
 
   @override
   Sorter get sorter {
-    throw new UnimplementedError('JsBackendStrategy.sorter');
+    return _sorter ??= new KernelSorter(elementMap);
   }
 
   @override
-  ClosureConversionTask get closureDataLookup =>
-      _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, elementMap, _globalLocalsMap);
+  ClosureConversionTask get closureDataLookup => _closureDataLookup;
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>
@@ -162,5 +207,37 @@ class JsBackendStrategy implements KernelBackendStrategy {
         nativeBasicData,
         closedWorld,
         selectorConstraintsStrategy);
+  }
+}
+
+class JsRuntimeTypesNeed implements RuntimeTypesNeed {
+  final JsToFrontendMap _map;
+  final RuntimeTypesNeed _rtiNeed;
+
+  JsRuntimeTypesNeed(this._map, this._rtiNeed);
+
+  @override
+  bool classNeedsRti(ClassEntity cls) {
+    return _rtiNeed.classNeedsRti(_map.toFrontendClass(cls));
+  }
+
+  @override
+  bool classUsesTypeVariableExpression(ClassEntity cls) {
+    return _rtiNeed.classUsesTypeVariableExpression(_map.toFrontendClass(cls));
+  }
+
+  @override
+  bool localFunctionNeedsRti(Local function) {
+    throw new UnimplementedError('JsRuntimeTypesNeed.localFunctionNeedsRti');
+  }
+
+  @override
+  bool methodNeedsRti(FunctionEntity function) {
+    return _rtiNeed.methodNeedsRti(_map.toFrontendMember(function));
+  }
+
+  @override
+  bool classNeedsRtiField(ClassEntity cls) {
+    return _rtiNeed.classNeedsRtiField(_map.toFrontendClass(cls));
   }
 }

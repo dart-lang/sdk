@@ -1,0 +1,263 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic a = null;
+  field dynamic b = null;
+  field dynamic c = null;
+  field dynamic d = null;
+  final field dynamic f = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get e() → dynamic
+    return null;
+  set g(dynamic _) → void {}
+  get h() → dynamic
+    return null;
+  set h(dynamic _) → void {}
+  get i() → dynamic
+    return null;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic a, dynamic b) → dynamic {}
+  operator ~() → dynamic
+    return 117;
+  operator unary-() → dynamic
+    return 117;
+  operator ==(dynamic other) → core::bool
+    return true;
+  method m() → void {}
+  method n() → void {}
+  set n(dynamic _) → void {}
+}
+class B extends self::A {
+  final field dynamic d = null;
+  constructor •() → void
+    : super self::A::•()
+    ;
+  get b() → dynamic
+    return null;
+  set c(dynamic x) → void {}
+  set i(dynamic x) → void {}
+}
+class C extends self::B {
+  constructor •() → void
+    : super self::B::•()
+    ;
+  method test() → dynamic {
+    super.{self::A::~}();
+    self::use(super.{self::A::~}());
+    super.{self::A::unary-}();
+    self::use(super.{self::A::unary-}());
+    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use `super` as an expression.\n    +super;\n     ^"));
+    self::use(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use `super` as an expression.\n    use(+super);\n         ^")));
+    super.{self::A::==}(87);
+    self::use(super.{self::A::==}(87));
+    !super.{self::A::==}(87);
+    self::use(!super.{self::A::==}(87));
+    super.{self::A::a};
+    self::use(super.{self::A::a});
+    super.{self::B::b};
+    self::use(super.{self::B::b});
+    super.{self::A::c};
+    self::use(super.{self::A::c});
+    super.{self::B::d};
+    self::use(super.{self::B::d});
+    super.{self::A::e};
+    self::use(super.{self::A::e});
+    super.{self::A::f};
+    self::use(super.{self::A::f});
+    super.g;
+    self::use(super.g);
+    super.{self::A::h};
+    self::use(super.{self::A::h});
+    super.{self::A::i};
+    self::use(super.{self::A::i});
+    super.{self::A::[]}(87);
+    self::use(super.{self::A::[]}(87));
+    super.{self::A::m};
+    self::use(super.{self::A::m});
+    super.{self::A::n};
+    self::use(super.{self::A::n});
+    super.{self::A::a} = super.{self::A::a}.+(1);
+    self::use(let final dynamic #t1 = super.{self::A::a} in let final dynamic #t2 = super.{self::A::a} = #t1.+(1) in #t1);
+    super.{self::A::b} = super.{self::B::b}.+(1);
+    self::use(let final dynamic #t3 = super.{self::B::b} in let final dynamic #t4 = super.{self::A::b} = #t3.+(1) in #t3);
+    super.{self::B::c} = super.{self::A::c}.+(1);
+    self::use(let final dynamic #t5 = super.{self::A::c} in let final dynamic #t6 = super.{self::B::c} = #t5.+(1) in #t5);
+    super.{self::A::d} = super.{self::B::d}.+(1);
+    self::use(let final dynamic #t7 = super.{self::B::d} in let final dynamic #t8 = super.{self::A::d} = #t7.+(1) in #t7);
+    super.e = super.{self::A::e}.+(1);
+    self::use(let final dynamic #t9 = super.{self::A::e} in let final dynamic #t10 = super.e = #t9.+(1) in #t9);
+    super.f = super.{self::A::f}.+(1);
+    self::use(let final dynamic #t11 = super.{self::A::f} in let final dynamic #t12 = super.f = #t11.+(1) in #t11);
+    super.{self::A::g} = super.g.+(1);
+    self::use(let final dynamic #t13 = super.g in let final dynamic #t14 = super.{self::A::g} = #t13.+(1) in #t13);
+    super.{self::A::h} = super.{self::A::h}.+(1);
+    self::use(let final dynamic #t15 = super.{self::A::h} in let final dynamic #t16 = super.{self::A::h} = #t15.+(1) in #t15);
+    super.{self::B::i} = super.{self::A::i}.+(1);
+    self::use(let final dynamic #t17 = super.{self::A::i} in let final dynamic #t18 = super.{self::B::i} = #t17.+(1) in #t17);
+    let final dynamic #t19 = 87 in super.{self::A::[]=}(#t19, super.{self::A::[]}(#t19).+(1));
+    self::use(let final dynamic #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20) in let final dynamic #t22 = super.{self::A::[]=}(#t20, #t21.+(1)) in #t21);
+    super.m = super.{self::A::m}.+(1);
+    self::use(let final dynamic #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = #t23.+(1) in #t23);
+    super.{self::A::n} = super.{self::A::n}.+(1);
+    self::use(let final dynamic #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = #t25.+(1) in #t25);
+    super.{self::A::a} = super.{self::A::a}.+(1);
+    self::use(super.{self::A::a} = super.{self::A::a}.+(1));
+    super.{self::A::b} = super.{self::B::b}.+(1);
+    self::use(super.{self::A::b} = super.{self::B::b}.+(1));
+    super.{self::B::c} = super.{self::A::c}.+(1);
+    self::use(super.{self::B::c} = super.{self::A::c}.+(1));
+    super.{self::A::d} = super.{self::B::d}.+(1);
+    self::use(super.{self::A::d} = super.{self::B::d}.+(1));
+    super.e = super.{self::A::e}.+(1);
+    self::use(super.e = super.{self::A::e}.+(1));
+    super.f = super.{self::A::f}.+(1);
+    self::use(super.f = super.{self::A::f}.+(1));
+    super.{self::A::g} = super.g.+(1);
+    self::use(super.{self::A::g} = super.g.+(1));
+    super.{self::A::h} = super.{self::A::h}.+(1);
+    self::use(super.{self::A::h} = super.{self::A::h}.+(1));
+    super.{self::B::i} = super.{self::A::i}.+(1);
+    self::use(super.{self::B::i} = super.{self::A::i}.+(1));
+    let final dynamic #t27 = 87 in let final dynamic #t28 = super.{self::A::[]}(#t27).+(1) in let final dynamic #t29 = super.{self::A::[]=}(#t27, #t28) in #t28;
+    self::use(let final dynamic #t30 = 87 in let final dynamic #t31 = super.{self::A::[]}(#t30).+(1) in let final dynamic #t32 = super.{self::A::[]=}(#t30, #t31) in #t31);
+    super.m = super.{self::A::m}.+(1);
+    self::use(super.m = super.{self::A::m}.+(1));
+    super.{self::A::n} = super.{self::A::n}.+(1);
+    self::use(super.{self::A::n} = super.{self::A::n}.+(1));
+    super.{self::A::a}.call();
+    self::use(super.{self::A::a}.call());
+    super.{self::B::b}.call();
+    self::use(super.{self::B::b}.call());
+    super.{self::A::c}.call();
+    self::use(super.{self::A::c}.call());
+    super.{self::B::d}.call();
+    self::use(super.{self::B::d}.call());
+    super.{self::A::e}.call();
+    self::use(super.{self::A::e}.call());
+    super.{self::A::f}.call();
+    self::use(super.{self::A::f}.call());
+    super.g();
+    self::use(super.g());
+    super.{self::A::h}.call();
+    self::use(super.{self::A::h}.call());
+    super.{self::A::i}.call();
+    self::use(super.{self::A::i}.call());
+    super.{self::A::[]}(87).call();
+    self::use(super.{self::A::[]}(87).call());
+    super.{self::A::m}();
+    self::use(super.{self::A::m}());
+    super.{self::A::m}(87);
+    self::use(super.{self::A::m}(87));
+    super.{self::A::n}(87);
+    self::use(super.{self::A::n}(87));
+    super.{self::A::a} = 42;
+    self::use(super.{self::A::a} = 42);
+    super.{self::A::b} = 42;
+    self::use(super.{self::A::b} = 42);
+    super.{self::B::c} = 42;
+    self::use(super.{self::B::c} = 42);
+    super.{self::A::d} = 42;
+    self::use(super.{self::A::d} = 42);
+    super.e = 42;
+    self::use(super.e = 42);
+    super.f = 42;
+    self::use(super.f = 42);
+    super.{self::A::g} = 42;
+    self::use(super.{self::A::g} = 42);
+    super.{self::A::h} = 42;
+    self::use(super.{self::A::h} = 42);
+    super.{self::B::i} = 42;
+    self::use(super.{self::B::i} = 42);
+    super.{self::A::[]=}(87, 42);
+    self::use(let final dynamic #t33 = 87 in let final dynamic #t34 = 42 in let final dynamic #t35 = super.{self::A::[]=}(#t33, #t34) in #t34);
+    super.m = 42;
+    self::use(super.m = 42);
+    super.{self::A::n} = 42;
+    self::use(super.{self::A::n} = 42);
+    super.{self::A::a}.==(null) ? super.{self::A::a} = 42 : null;
+    self::use(let final dynamic #t36 = super.{self::A::a} in #t36.==(null) ? super.{self::A::a} = 42 : #t36);
+    super.{self::B::b}.==(null) ? super.{self::A::b} = 42 : null;
+    self::use(let final dynamic #t37 = super.{self::B::b} in #t37.==(null) ? super.{self::A::b} = 42 : #t37);
+    super.{self::A::c}.==(null) ? super.{self::B::c} = 42 : null;
+    self::use(let final dynamic #t38 = super.{self::A::c} in #t38.==(null) ? super.{self::B::c} = 42 : #t38);
+    super.{self::B::d}.==(null) ? super.{self::A::d} = 42 : null;
+    self::use(let final dynamic #t39 = super.{self::B::d} in #t39.==(null) ? super.{self::A::d} = 42 : #t39);
+    super.{self::A::e}.==(null) ? super.e = 42 : null;
+    self::use(let final dynamic #t40 = super.{self::A::e} in #t40.==(null) ? super.e = 42 : #t40);
+    super.{self::A::f}.==(null) ? super.f = 42 : null;
+    self::use(let final dynamic #t41 = super.{self::A::f} in #t41.==(null) ? super.f = 42 : #t41);
+    super.g.==(null) ? super.{self::A::g} = 42 : null;
+    self::use(let final dynamic #t42 = super.g in #t42.==(null) ? super.{self::A::g} = 42 : #t42);
+    super.{self::A::h}.==(null) ? super.{self::A::h} = 42 : null;
+    self::use(let final dynamic #t43 = super.{self::A::h} in #t43.==(null) ? super.{self::A::h} = 42 : #t43);
+    super.{self::A::i}.==(null) ? super.{self::B::i} = 42 : null;
+    self::use(let final dynamic #t44 = super.{self::A::i} in #t44.==(null) ? super.{self::B::i} = 42 : #t44);
+    let final dynamic #t45 = 87 in super.{self::A::[]}(#t45).==(null) ? let final dynamic #t46 = 42 in let final dynamic #t47 = super.{self::A::[]=}(#t45, #t46) in #t46 : null;
+    self::use(let final dynamic #t48 = 87 in let final dynamic #t49 = super.{self::A::[]}(#t48) in #t49.==(null) ? let final dynamic #t50 = 42 in let final dynamic #t51 = super.{self::A::[]=}(#t48, #t50) in #t50 : #t49);
+    super.{self::A::m}.==(null) ? super.m = 42 : null;
+    self::use(let final dynamic #t52 = super.{self::A::m} in #t52.==(null) ? super.m = 42 : #t52);
+    super.{self::A::n}.==(null) ? super.{self::A::n} = 42 : null;
+    self::use(let final dynamic #t53 = super.{self::A::n} in #t53.==(null) ? super.{self::A::n} = 42 : #t53);
+    super.{self::A::a} = super.{self::A::a}.+(42);
+    self::use(super.{self::A::a} = super.{self::A::a}.+(42));
+    super.{self::A::b} = super.{self::B::b}.+(42);
+    self::use(super.{self::A::b} = super.{self::B::b}.+(42));
+    super.{self::B::c} = super.{self::A::c}.+(42);
+    self::use(super.{self::B::c} = super.{self::A::c}.+(42));
+    super.{self::A::d} = super.{self::B::d}.+(42);
+    self::use(super.{self::A::d} = super.{self::B::d}.+(42));
+    super.e = super.{self::A::e}.+(42);
+    self::use(super.e = super.{self::A::e}.+(42));
+    super.f = super.{self::A::f}.+(42);
+    self::use(super.f = super.{self::A::f}.+(42));
+    super.{self::A::g} = super.g.+(42);
+    self::use(super.{self::A::g} = super.g.+(42));
+    super.{self::A::h} = super.{self::A::h}.+(42);
+    self::use(super.{self::A::h} = super.{self::A::h}.+(42));
+    super.{self::B::i} = super.{self::A::i}.+(42);
+    self::use(super.{self::B::i} = super.{self::A::i}.+(42));
+    let final dynamic #t54 = 87 in super.{self::A::[]=}(#t54, super.{self::A::[]}(#t54).+(42));
+    self::use(let final dynamic #t55 = 87 in let final dynamic #t56 = super.{self::A::[]}(#t55).+(42) in let final dynamic #t57 = super.{self::A::[]=}(#t55, #t56) in #t56);
+    super.m = super.{self::A::m}.+(42);
+    self::use(super.m = super.{self::A::m}.+(42));
+    super.{self::A::n} = super.{self::A::n}.+(42);
+    self::use(super.{self::A::n} = super.{self::A::n}.+(42));
+    super.{self::A::a} = super.{self::A::a}.-(42);
+    self::use(super.{self::A::a} = super.{self::A::a}.-(42));
+    super.{self::A::b} = super.{self::B::b}.-(42);
+    self::use(super.{self::A::b} = super.{self::B::b}.-(42));
+    super.{self::B::c} = super.{self::A::c}.-(42);
+    self::use(super.{self::B::c} = super.{self::A::c}.-(42));
+    super.{self::A::d} = super.{self::B::d}.-(42);
+    self::use(super.{self::A::d} = super.{self::B::d}.-(42));
+    super.e = super.{self::A::e}.-(42);
+    self::use(super.e = super.{self::A::e}.-(42));
+    super.f = super.{self::A::f}.-(42);
+    self::use(super.f = super.{self::A::f}.-(42));
+    super.{self::A::g} = super.g.-(42);
+    self::use(super.{self::A::g} = super.g.-(42));
+    super.{self::A::h} = super.{self::A::h}.-(42);
+    self::use(super.{self::A::h} = super.{self::A::h}.-(42));
+    super.{self::B::i} = super.{self::A::i}.-(42);
+    self::use(super.{self::B::i} = super.{self::A::i}.-(42));
+    let final dynamic #t58 = 87 in super.{self::A::[]=}(#t58, super.{self::A::[]}(#t58).-(42));
+    self::use(let final dynamic #t59 = 87 in let final dynamic #t60 = super.{self::A::[]}(#t59).-(42) in let final dynamic #t61 = super.{self::A::[]=}(#t59, #t60) in #t60);
+    super.m = super.{self::A::m}.-(42);
+    self::use(super.m = super.{self::A::m}.-(42));
+    super.{self::A::n} = super.{self::A::n}.-(42);
+    self::use(super.{self::A::n} = super.{self::A::n}.-(42));
+  }
+}
+const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator. \n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator. \n    use(+super);\n        ^"]/* from null */;
+static method use(dynamic x) → dynamic {
+  if(x.==(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
+    throw "Shouldn't happen";
+}
+static method main() → dynamic {
+  new self::C::•().{self::C::test}();
+}

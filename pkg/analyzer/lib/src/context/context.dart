@@ -311,9 +311,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.errorProcessors = options.errorProcessors;
     this._options.excludePatterns = options.excludePatterns;
     this._options.hint = options.hint;
-    this._options.incremental = options.incremental;
-    this._options.incrementalApi = options.incrementalApi;
-    this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.lintRules = options.lintRules;
     this._options.preserveComments = options.preserveComments;

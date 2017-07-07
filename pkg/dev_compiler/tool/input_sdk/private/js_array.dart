@@ -541,6 +541,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   int get hashCode => Primitives.objectHashCode(this);
 
+  bool operator ==(other) => identical(this, other);
+
   int get length => JS('int', r'#.length', this);
 
   void set length(int newLength) {
@@ -580,6 +582,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   Map<int, E> asMap() {
     return new ListMapView<E>(this);
   }
+
+  Type get runtimeType => wrapType(JS('', '#(#)', getGenericClass(List), E));
 }
 
 /**

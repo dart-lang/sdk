@@ -842,7 +842,8 @@ class SnapshotWriter : public BaseWriter {
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
 
-  uword GetObjectTags(RawObject* raw);
+  static uint32_t GetObjectTags(RawObject* raw);
+  static uword GetObjectTagsAndHash(RawObject* raw);
 
   Exceptions::ExceptionType exception_type() const { return exception_type_; }
   void set_exception_type(Exceptions::ExceptionType type) {

@@ -19,7 +19,8 @@ class JsInteropAnalysis {
   JsInteropAnalysis(this.backend);
 
   jsAst.Statement buildJsInteropBootstrap() {
-    if (!backend.nativeBasicData.isJsInteropUsed) return null;
+    if (!backend.compiler.frontendStrategy.nativeBasicData.isJsInteropUsed)
+      return null;
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     backend.compiler.codegenWorldBuilder.forEachInvokedName(
         (String name, Map<Selector, SelectorConstraints> selectors) {

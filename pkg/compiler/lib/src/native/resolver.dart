@@ -220,7 +220,8 @@ class NativeDataResolverImpl extends NativeMemberResolverBase
   ElementEnvironment get elementEnvironment =>
       _compiler.resolution.elementEnvironment;
   CommonElements get commonElements => _compiler.resolution.commonElements;
-  NativeBasicData get nativeBasicData => _backend.nativeBasicData;
+  NativeBasicData get nativeBasicData =>
+      _compiler.frontendStrategy.nativeBasicData;
   NativeDataBuilder get nativeDataBuilder => _backend.nativeDataBuilder;
 
   @override

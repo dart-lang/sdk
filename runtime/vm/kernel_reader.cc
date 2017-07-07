@@ -129,21 +129,16 @@ KernelReader::KernelReader(Program* program)
       translation_helper_(this, thread_),
       builder_(&translation_helper_,
                zone_,
-               program_->libraries()[0]->kernel_data(),
-               program_->libraries()[0]->kernel_data_size()) {
+               program_->kernel_data(),
+               program_->kernel_data_size()) {
   T.active_class_ = &active_class_;
   T.finalize_ = false;
 
-  intptr_t source_file_count = program->source_table().size();
-  scripts_ = Array::New(source_file_count, Heap::kOld);
-
-  // We need at least one library to get access to the binary.
-  ASSERT(program->libraries().length() > 0);
-  Library* library = program->libraries()[0];
-  Reader reader(library->kernel_data(), library->kernel_data_size());
+  scripts_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program->string_table_offset() >= 0);
+  Reader reader(program->kernel_data(), program->kernel_data_size());
   reader.set_offset(program->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
   TypedData& offsets = TypedData::Handle(
@@ -182,15 +177,13 @@ KernelReader::KernelReader(Program* program)
 Object& KernelReader::ReadProgram() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    intptr_t length = program_->libraries().length();
+    intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
-      Library* kernel_library = program_->libraries()[i];
-      ReadLibrary(kernel_library->kernel_offset());
+      ReadLibrary(library_offset(i));
     }
 
     for (intptr_t i = 0; i < length; i++) {
-      dart::Library& library =
-          LookupLibrary(program_->libraries()[i]->canonical_name());
+      dart::Library& library = LookupLibrary(library_canonical_name(i));
       if (!library.Loaded()) library.SetLoaded();
     }
 
@@ -222,16 +215,13 @@ Object& KernelReader::ReadProgram() {
 
 void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   builder_.SetOffset(kernel_offset);
-
-  int flags = builder_.ReadFlags();
-  ASSERT(flags == 0);  // external libraries not supported
-
-  NameIndex canonical_name =
-      builder_.ReadCanonicalNameReference();  // read canonical name.
-  dart::Library& library = LookupLibrary(canonical_name);
+  LibraryHelper library_helper(&builder_);
+  library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+  dart::Library& library = LookupLibrary(library_helper.canonical_name_);
   if (library.Loaded()) return;
-  StringIndex name = builder_.ReadStringReference();  // read name.
-  library.SetName(H.DartSymbol(name));
+
+  library_helper.ReadUntilIncluding(LibraryHelper::kName);
+  library.SetName(H.DartSymbol(library_helper.name_index_));
 
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
@@ -243,53 +233,21 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   }
   // Setup toplevel class (which contains library fields/procedures).
 
-  StringIndex import_uri_index = H.CanonicalNameString(canonical_name);
-  intptr_t source_uri_index = builder_.ReadUInt();  // read source uri index.
+  StringIndex import_uri_index =
+      H.CanonicalNameString(library_helper.canonical_name_);
+  library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
+  Script& script = ScriptAt(library_helper.source_uri_index_, import_uri_index);
 
-  Script& script = ScriptAt(source_uri_index, import_uri_index);
   dart::Class& toplevel_class = dart::Class::Handle(
       Z, dart::Class::New(library, Symbols::TopLevel(), script,
                           TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
-  intptr_t annotation_count = builder_.ReadUInt();  // read list length.
-  for (intptr_t i = 0; i < annotation_count; ++i) {
-    builder_.SkipExpression();  // read ith annotation expression.
-  }
-
-  intptr_t dependency_count = builder_.ReadUInt();  // read list length.
-  for (intptr_t i = 0; i < dependency_count; ++i) {
-    builder_.ReadFlags();                    // read flags.
-    annotation_count = builder_.ReadUInt();  // read list length.
-    for (intptr_t i = 0; i < annotation_count; ++i) {
-      builder_.SkipExpression();  // read ith annotation expression.
-    }
-    builder_.ReadCanonicalNameReference();  // read target_reference.
-    builder_.ReadStringReference();         // read name_index.
-    intptr_t combinator_count = builder_.ReadListLength();  // read list length.
-    for (intptr_t i = 0; i < combinator_count; ++i) {
-      builder_.ReadBool();                        // read is_show.
-      intptr_t name_count = builder_.ReadUInt();  // read list length.
-      for (intptr_t j = 0; j < name_count; ++j) {
-        builder_.ReadUInt();  // read ith entry of name_indices.
-      }
-    }
-  }
-
-  // Skip typedefs.
-  intptr_t typedef_count = builder_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < typedef_count; i++) {
-    builder_.SkipCanonicalNameReference();  // read canonical name.
-    builder_.ReadPosition();                // read position.
-    builder_.SkipStringReference();         // read name index.
-    builder_.ReadUInt();                    // read source_uri_index.
-    builder_.SkipListOfDartTypes();         // read type parameters.
-    builder_.SkipDartType();                // read type.
-  }
-
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
+
+  library_helper.ReadUntilExcluding(LibraryHelper::kClasses);
 
   // Load all classes.
   int class_count = builder_.ReadListLength();  // read list length.
@@ -729,88 +687,27 @@ const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
   return klass;
 }
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
-}
-
-/**
- * If index exists as sublist in list, sort the sublist from lowest to highest,
- * then copy it, as Smis and without duplicates,
- * to a new Array in Heap::kOld which is returned.
- * Note that the source list is both sorted and de-duplicated as well, but will
- * possibly contain duplicate and unsorted data at the end.
- * Otherwise (when sublist doesn't exist in list) return new empty array.
- */
-static RawArray* AsSortedDuplicateFreeArray(
-    intptr_t index,
-    MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list) {
-  if ((index < list->length()) && (list->At(index)->length() > 0)) {
-    MallocGrowableArray<intptr_t>* source = list->At(index);
-    source->Sort(LowestFirst);
-
-    intptr_t size = source->length();
-    intptr_t last = 0;
-    for (intptr_t current = 1; current < size; ++current) {
-      if (source->At(last) != source->At(current)) {
-        (*source)[++last] = source->At(current);
-      }
-    }
-    Array& array_object = Array::Handle();
-    array_object = Array::New(last + 1, Heap::kOld);
-    Smi& smi_value = Smi::Handle();
-    for (intptr_t i = 0; i <= last; ++i) {
-      smi_value = Smi::New(source->At(i));
-      array_object.SetAt(i, smi_value);
-    }
-    return array_object.raw();
-  } else {
-    return Array::New(0);
-  }
-}
-
 Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(index);
   if (script.IsNull()) {
     // Create script with correct uri(s).
-    uint8_t* uri_buffer = program_->source_table().UriFor(index);
-    intptr_t uri_size = program_->source_table().UriSizeFor(index);
-    dart::String& uri_string = H.DartString(uri_buffer, uri_size, Heap::kOld);
+    dart::String& uri_string = builder_.SourceTableUriFor(index);
     dart::String& import_uri_string =
         import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
-    uint8_t* source_buffer = program_->source_table().SourceCodeFor(index);
-    intptr_t source_size = program_->source_table().SourceCodeSizeFor(index);
-    dart::String& source_code =
-        H.DartString(source_buffer, source_size, Heap::kOld);
-    script = Script::New(import_uri_string, uri_string, source_code,
-                         RawScript::kKernelTag);
-    script.set_kernel_data(program_->libraries()[0]->kernel_data());
-    script.set_kernel_data_size(program_->libraries()[0]->kernel_data_size());
+    script = Script::New(import_uri_string, uri_string,
+                         String::Handle(String::null()), RawScript::kKernelTag);
+    script.set_kernel_data(program_->kernel_data());
+    script.set_kernel_data_size(program_->kernel_data_size());
+    script.set_kernel_script_index(index);
     script.set_kernel_string_offsets(H.string_offsets());
     script.set_kernel_string_data(H.string_data());
     script.set_kernel_canonical_names(H.canonical_names());
     scripts_.SetAt(index, script);
 
-    // Create line_starts array for the script.
-    intptr_t* line_starts = program_->source_table().LineStartsFor(index);
-    intptr_t line_count = program_->source_table().LineCountFor(index);
-    Array& array_object = Array::Handle(Z, Array::New(line_count, Heap::kOld));
-    Smi& value = Smi::Handle(Z);
-    for (intptr_t i = 0; i < line_count; ++i) {
-      value = Smi::New(line_starts[i]);
-      array_object.SetAt(i, value);
-    }
-    script.set_line_starts(array_object);
-
-    // Create tokens_seen array for the script.
-    array_object =
-        AsSortedDuplicateFreeArray(index, &program_->valid_token_positions);
-    script.set_debug_positions(array_object);
-
-    // Create yield_positions array for the script.
-    array_object =
-        AsSortedDuplicateFreeArray(index, &program_->yield_token_positions);
-    script.set_yield_positions(array_object);
+    script.set_line_starts(Array::Handle(Array::null()));
+    script.set_debug_positions(Array::Handle(Array::null()));
+    script.set_yield_positions(Array::Handle(Array::null()));
   }
   return script;
 }
@@ -907,14 +804,14 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
                                               const dart::Function& function) {
   bool is_setter = function.IsImplicitSetterFunction();
   bool is_method = !function.IsStaticFunction();
-  intptr_t num_parameters = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
+  intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
 
   function.SetNumOptionalParameters(0, false);
-  function.set_num_fixed_parameters(num_parameters);
+  function.set_num_fixed_parameters(parameter_count);
   function.set_parameter_types(
-      Array::Handle(Z, Array::New(num_parameters, Heap::kOld)));
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
   function.set_parameter_names(
-      Array::Handle(Z, Array::New(num_parameters, Heap::kOld)));
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
 
   intptr_t pos = 0;
   if (is_method) {

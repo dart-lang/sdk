@@ -2082,6 +2082,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (typeStr == '-dynamic') {
         returnType = _typeProvider.bottomType;
       } else {
+        var components = typeStr.split('|');
+        if (components.remove('Null')) {
+          typeStr = components.join('|');
+        }
         returnType = _getElementNameAsType(
             _typeProvider.objectType.element.library, typeStr, null);
       }

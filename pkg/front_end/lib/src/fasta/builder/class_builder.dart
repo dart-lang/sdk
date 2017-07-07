@@ -52,6 +52,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         constructorScopeBuilder = new ScopeBuilder(constructors),
         super(metadata, modifiers, name, parent, charOffset);
 
+  String get debugName => "ClassBuilder";
+
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
   bool get isMixinApplication => mixedInType != null;

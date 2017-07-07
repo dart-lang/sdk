@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F = <T extends core::Object>() → void;
+typedef F<T extends core::Object> = () → void;
 class Foo extends core::Object {
   const constructor •(core::List<core::String> l) → void
     ;

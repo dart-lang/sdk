@@ -212,6 +212,11 @@ class AbstractAnalysisTest {
     handleSuccessfulRequest(request);
   }
 
+  void setPriorityFiles(List<String> files) {
+    var request = new AnalysisSetPriorityFilesParams(files).toRequest('0');
+    handleSuccessfulRequest(request);
+  }
+
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();

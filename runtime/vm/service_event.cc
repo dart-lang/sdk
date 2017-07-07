@@ -111,6 +111,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "Extension";
     case kTimelineEvents:
       return "TimelineEvents";
+    case kEditorObjectSelected:
+      return "_EditorObjectSelected";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -161,6 +163,9 @@ const StreamInfo* ServiceEvent::stream_info() const {
 
     case kEmbedder:
       return NULL;
+
+    case kEditorObjectSelected:
+      return &Service::editor_stream;
 
     default:
       UNREACHABLE();
@@ -261,6 +266,12 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (kind() == kExtension) {
     js->AppendSerializedObject("extensionData",
                                extension_event_.event_data->ToCString());
+  }
+  if (kind() == kEditorObjectSelected) {
+    if (editor_event_.object != NULL) {
+      jsobj.AddProperty("editor", editor_event_.editor);
+      jsobj.AddProperty("object", *(editor_event_.object));
+    }
   }
 }
 

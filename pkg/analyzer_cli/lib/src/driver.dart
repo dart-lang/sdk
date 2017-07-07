@@ -42,6 +42,7 @@ import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
+import 'package:meta/meta.dart';
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -49,22 +50,42 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:telemetry/crash_reporting.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-///
-/// *Visible for testing.*
+@visibleForTesting
 StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-///
-/// *Visible for testing.*
+@visibleForTesting
 StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(Map<String, YamlNode> options) {
   var linterNode = options['linter'];
   return linterNode is YamlMap && linterNode.containsKey('rules');
+}
+
+telemetry.Analytics _analytics;
+
+const _analyticsID = 'UA-26406144-28';
+
+/// The analytics instance for analyzer-cli.
+telemetry.Analytics get analytics => (_analytics ??=
+    telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
+
+/// Make sure that we create an analytics instance that doesn't send for this
+/// session.
+void disableAnalyticsForSession() {
+  _analytics = telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli',
+      disableForSession: true);
+}
+
+@visibleForTesting
+void setAnalytics(telemetry.Analytics replacementAnalytics) {
+  _analytics = replacementAnalytics;
 }
 
 class Driver implements CommandLineStarter {
@@ -109,9 +130,24 @@ class Driver implements CommandLineStarter {
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
 
-  /// This Driver's current analysis context.
+  CrashReportSender _crashReportSender;
+
+  // TODO(devoncarew): Replace with the real crash product ID.
+  /// The crash reporting instance for analyzer-cli.
+  CrashReportSender get crashReportSender => (_crashReportSender ??=
+      new CrashReportSender('Dart_analyzer_cli', analytics));
+
+  /// Create a new Driver instance.
   ///
-  /// *Visible for testing.*
+  /// [isTesting] is true if we're running in a test environment.
+  Driver({bool isTesting: false}) {
+    if (isTesting) {
+      disableAnalyticsForSession();
+    }
+  }
+
+  /// This Driver's current analysis context.
+  @visibleForTesting
   AnalysisContext get context => _context;
 
   @override
@@ -133,6 +169,15 @@ class Driver implements CommandLineStarter {
     // Parse commandline options.
     CommandLineOptions options = CommandLineOptions.parse(args);
 
+    if (options.batchMode || options.buildMode) {
+      disableAnalyticsForSession();
+    }
+
+    // Ping analytics with our initial call.
+    analytics.sendScreenView('home');
+
+    var timer = analytics.startTimer('analyze');
+
     // Do analysis.
     if (options.buildMode) {
       ErrorSeverity severity = _buildModeAnalyze(options);
@@ -140,7 +185,7 @@ class Driver implements CommandLineStarter {
       if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
-    } else if (options.shouldBatch) {
+    } else if (options.batchMode) {
       BatchRunner batchRunner = new BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
         CommandLineOptions options = CommandLineOptions.parse(args);
@@ -158,17 +203,32 @@ class Driver implements CommandLineStarter {
       _analyzedFileCount += _context.sources.length;
     }
 
+    // Send how long analysis took.
+    timer.finish();
+
+    // Send how many files were analyzed.
+    analytics.sendEvent('analyze', 'fileCount', value: _analyzedFileCount);
+
     if (options.perfReport != null) {
       String json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
       new io.File(options.perfReport).writeAsStringSync(json);
     }
+
+    // Wait a brief time for any analytics calls to finish.
+    await analytics.waitForLastPing(timeout: new Duration(milliseconds: 200));
+    analytics.close();
   }
 
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       return await _analyzeAllImpl(options);
+    } catch (e, st) {
+      // Catch and ignore any exceptions when reporting exceptions (network
+      // errors or other).
+      crashReportSender.sendReport(e, stackTrace: st).catchError((_) {});
+      rethrow;
     } finally {
       previous.makeCurrent();
     }
@@ -211,7 +271,8 @@ class Driver implements CommandLineStarter {
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
-      Iterable<io.File> files = _collectFiles(sourcePath);
+      Iterable<io.File> files =
+          _collectFiles(sourcePath, context.analysisOptions);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
@@ -321,7 +382,7 @@ class Driver implements CommandLineStarter {
   /// [AnalyzeFunctionBodiesPredicate] that implements this policy.
   AnalyzeFunctionBodiesPredicate _chooseDietParsingPolicy(
       CommandLineOptions options) {
-    if (options.shouldBatch) {
+    if (options.batchMode) {
       // As analyzer is currently implemented, once a file has been diet
       // parsed, it can't easily be un-diet parsed without creating a brand new
       // context and losing caching.  In batch mode, we can't predict which
@@ -446,11 +507,24 @@ class Driver implements CommandLineStarter {
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
-  Iterable<io.File> _collectFiles(String filePath) {
-    // TODO(devoncarew): This needs to respect analysis_options excludes.
+  Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
+    List<String> excludedPaths = options.excludePatterns;
+
+    /**
+     * Returns `true` if the given [path] is excluded by [excludedPaths].
+     */
+    bool _isExcluded(String path) {
+      return excludedPaths.any((excludedPath) {
+        if (resourceProvider.absolutePathContext.isWithin(excludedPath, path)) {
+          return true;
+        }
+        return path == excludedPath;
+      });
+    }
+
     List<io.File> files = <io.File>[];
     io.File file = new io.File(filePath);
-    if (file.existsSync()) {
+    if (file.existsSync() && !_isExcluded(filePath)) {
       files.add(file);
     } else {
       io.Directory directory = new io.Directory(filePath);
@@ -459,6 +533,7 @@ class Driver implements CommandLineStarter {
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
           if (AnalysisEngine.isDartFileName(entry.path) &&
+              !_isExcluded(relative) &&
               !_isInHiddenDir(relative)) {
             files.add(entry);
           }

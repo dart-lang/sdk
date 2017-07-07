@@ -117,7 +117,7 @@ class CompileType : public ZoneAllocated {
   static CompileType FromAbstractType(const AbstractType& type,
                                       bool is_nullable = kNullable);
 
-  // Create a new CompileType representing an value with the given class id.
+  // Create a new CompileType representing a value with the given class id.
   // Resulting CompileType is nullable only if cid is kDynamicCid or kNullCid.
   static CompileType FromCid(intptr_t cid);
 
@@ -381,7 +381,7 @@ class EmbeddedArray<T, 0> {
   M(Branch)                                                                    \
   M(AssertAssignable)                                                          \
   M(AssertBoolean)                                                             \
-  M(CurrentContext)                                                            \
+  M(SpecialParameter)                                                          \
   M(ClosureCall)                                                               \
   M(InstanceCall)                                                              \
   M(PolymorphicInstanceCall)                                                   \
@@ -2778,24 +2778,29 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 };
 
 
-// Denotes the current context, normally held in a register.  This is
-// a computation, not a value, because it's mutable.
-class CurrentContextInstr : public TemplateDefinition<0, NoThrow> {
+// Denotes a special parameter, currently either the context of a closure
+// or the type arguments of a generic function.
+class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  explicit CurrentContextInstr(intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {}
+  enum SpecialParameterKind { kContext, kTypeArgs };
+  SpecialParameterInstr(SpecialParameterKind kind, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), kind_(kind) {}
 
-  DECLARE_INSTRUCTION(CurrentContext)
+  DECLARE_INSTRUCTION(SpecialParameter)
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return kind() == other->AsSpecialParameter()->kind();
+  }
+  SpecialParameterKind kind() const { return kind_; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
+  const SpecialParameterKind kind_;
+  DISALLOW_COPY_AND_ASSIGN(SpecialParameterInstr);
 };
 
 

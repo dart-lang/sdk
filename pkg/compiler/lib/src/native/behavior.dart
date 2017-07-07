@@ -774,8 +774,8 @@ class NativeBehavior {
       metadata.add(compiler.constants.getConstantValue(annotation.constant));
     }
 
-    BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(
+        compiler, compiler.frontendStrategy.nativeBasicData);
     return builder.buildMethodBehavior(
         type, metadata, lookupFromElement(compiler.resolution, element),
         isJsInterop: isJsInterop);
@@ -792,8 +792,8 @@ class NativeBehavior {
       metadata.add(compiler.constants.getConstantValue(annotation.constant));
     }
 
-    BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(
+        compiler, compiler.frontendStrategy.nativeBasicData);
     return builder.buildFieldLoadBehavior(
         type, metadata, lookupFromElement(resolution, element),
         isJsInterop: isJsInterop);
@@ -801,8 +801,8 @@ class NativeBehavior {
 
   static NativeBehavior ofFieldElementStore(
       MemberElement field, Compiler compiler) {
-    BehaviorBuilder builder =
-        new ResolverBehaviorBuilder(compiler, compiler.backend.nativeBasicData);
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(
+        compiler, compiler.frontendStrategy.nativeBasicData);
     ResolutionDartType type = field.computeType(compiler.resolution);
     return builder.buildFieldStoreBehavior(type);
   }

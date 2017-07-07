@@ -91,6 +91,7 @@ source_span:third_party/pkg/source_span/lib
 stack_trace:third_party/pkg/stack_trace/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
+telemetry:pkg/telemetry/lib
 test:third_party/pkg/test/lib
 test_dart:tools/testing/dart
 testing:pkg/testing/lib
@@ -104,6 +105,4 @@ utf:third_party/pkg/utf/lib
 watcher:third_party/pkg/watcher/lib
 web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
-when:third_party/pkg/when/lib
-which:third_party/pkg/which/lib
 yaml:third_party/pkg/yaml/lib

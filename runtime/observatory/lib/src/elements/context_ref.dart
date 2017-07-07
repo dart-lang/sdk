@@ -23,6 +23,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
   M.ContextRef _context;
   M.ObjectRepository _objects;
   M.Context _loadedContext;
+  bool _expandable;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -30,7 +31,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
 
   factory ContextRefElement(
       M.IsolateRef isolate, M.ContextRef context, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue queue, bool expandable: true}) {
     assert(isolate != null);
     assert(context != null);
     assert(objects != null);
@@ -39,6 +40,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._context = context;
     e._objects = objects;
+    e._expandable = expandable;
     return e;
   }
 
@@ -63,7 +65,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
+    var children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _context))
         ..children = [
           new SpanElement()
@@ -71,22 +73,27 @@ class ContextRefElement extends HtmlElement implements Renderable {
             ..text = 'Context',
           new SpanElement()..text = ' (${_context.length})',
         ],
-      new SpanElement()..text = ' ',
-      new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = [
-          new DivElement()
-            ..classes = ['indent']
-            ..children = _createValue()
-        ]
-        ..onToggle.listen((e) async {
-          _expanded = e.control.expanded;
-          if (_expanded) {
-            e.control.disabled = true;
-            await _refresh();
-            e.control.disabled = false;
-          }
-        })
     ];
+    if (_expandable) {
+      children.addAll([
+        new SpanElement()..text = ' ',
+        new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+          ..content = [
+            new DivElement()
+              ..classes = ['indent']
+              ..children = _createValue()
+          ]
+          ..onToggle.listen((e) async {
+            _expanded = e.control.expanded;
+            if (_expanded) {
+              e.control.disabled = true;
+              await _refresh();
+              e.control.disabled = false;
+            }
+          })
+      ]);
+    }
+    this.children = children;
   }
 
   List<Element> _createValue() {

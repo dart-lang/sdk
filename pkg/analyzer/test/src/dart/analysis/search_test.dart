@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -572,7 +573,7 @@ label:
   }
 }
 ''');
-    Element element = _findElement('label');
+    Element element = findElementsByName(testUnit, 'label').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 1'),
@@ -613,7 +614,7 @@ main() {
   v();
 }
 ''');
-    Element element = _findElement('v');
+    Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -635,7 +636,7 @@ main() {
   }
 }
 ''');
-    Element element = _findElementAtString('v in []');
+    Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -826,12 +827,11 @@ main() {
 }
 ''');
     PrefixElement element = _findElementAtString('ppp;');
-    Element a = _findElement('a');
-    Element b = _findElement('b');
+    Element main = _findElement('main');
     Element c = findChildElement(testLibraryElement, 'c');
     var expected = [
-      _expectId(a, SearchResultKind.REFERENCE, 'ppp.Future'),
-      _expectId(b, SearchResultKind.REFERENCE, 'ppp.Stream'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
       new ExpectedResult(c, SearchResultKind.REFERENCE,
           partCode.indexOf('ppp.Future c'), 'ppp'.length)
     ];

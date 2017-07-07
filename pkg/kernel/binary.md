@@ -40,7 +40,7 @@ type UInt30 extends UInt {
   Byte byte4(xxxxxxxx); // least significant byte
 }
 
-type MagicWord = big endian 32-bit unsigned integer
+type UInt32 = big endian 32-bit unsigned integer
 
 type List<T> {
   UInt length;
@@ -115,12 +115,26 @@ type CanonicalName {
 }
 
 type ProgramFile {
-  MagicWord magic = 0x90ABCDEF;
+  UInt32 magic = 0x90ABCDEF;
   StringTable strings;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
   List<Library> libraries;
   ProcedureReference mainMethod;
+  ProgramIndex programIndex;
+}
+
+// Program index with all fixed-size-32-bit integers.
+// This gives "semi-random-access" to certain parts of the binary.
+// By reading the last 4 bytes one knows the number of libaries,
+// which allows to skip to any other field in this program index,
+// which again allows to skip to what it points to.
+type ProgramIndex {
+  UInt32 binaryOffsetForSourceTable;
+  UInt32 binaryOffsetForCanonicalNames;
+  UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
+  UInt32[libraryCount] libraryOffsets;
+  UInt32 libraryCount;
 }
 
 type LibraryReference {
@@ -209,6 +223,7 @@ abstract type Class extends Node {
   Byte tag = 2;
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.

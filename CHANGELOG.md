@@ -34,17 +34,35 @@
 
 * Pub
 
+  * Git dependencies may now include a `path` parameter, indicating that the
+    package exists in a subdirectory of the Git repository. For example:
+
+    ```yaml
+    dependencies:
+      foobar:
+        git:
+          url: git://github.com/dart-lang/multi_package_repo
+          path: pkg/foobar
+    ```
+
   * `pub get` and `pub upgrade` properly produce an error message and exit code
     when no network is present.
-  * Bug fixes for dartdevc support in `pub serve`.
-    * Fixed module config invalidation logic so modules are properly
-      recalculated when package layout changes.
-    * Fixed exception when handling require.js errors that aren't script load
-      errors.
-    * Fixed an issue where requesting the bootstrap.js file before the dart.js
-      file would result in a 404.
-    * Fixed a Safari issue during bootstrapping (note that Safari is still not
-      officially supported but does work for trivial examples).
+
+  * `pub serve` now waits for file watcher events to stabilize before scheduling
+     new builds. This helps specifically with `safe-write` features in editors,
+     as well as other situations such as `save all` which cause many fast edits.
+
+  * Added the `--build-delay` argument to `pub serve` which sets the amount of
+    time (in ms) to wait between file watcher events before scheduling a build.
+    Defaults to 50.
+
+  * Removed require.js module loading timeout for dartdevc, which resolves an
+    issue where the initial load of an app might give a timeout error.
+
+* dartfmt
+
+    * Support assert in const constructor initializer lists.
+    * Better formatting for multi-line strings in argument lists.
 
 ## 1.24.2 - 22-06-2017
 

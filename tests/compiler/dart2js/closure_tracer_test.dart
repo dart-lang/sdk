@@ -160,7 +160,7 @@ void main() {
 
         checkType(String name, type) {
           var element = findElement(compiler, name);
-          var mask = typesInferrer.getReturnTypeOfElement(element);
+          var mask = typesInferrer.getReturnTypeOfMember(element);
           Expect.equals(type.nullable(), simplify(mask, closedWorld), name);
         }
 

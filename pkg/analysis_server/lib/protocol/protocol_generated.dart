@@ -904,6 +904,236 @@ class AnalysisGetHoverResult implements ResponseResult {
 }
 
 /**
+ * analysis.getImportedElements params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetImportedElementsParams implements RequestParams {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
+  /**
+   * The file in which import information is being requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file in which import information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The offset of the region for which import information is being requested.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the region for which import information is being requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the region for which import information is being requested.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the region for which import information is being requested.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  AnalysisGetImportedElementsParams(String file, int offset, int length) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory AnalysisGetImportedElementsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      return new AnalysisGetImportedElementsParams(file, offset, length);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getImportedElements params", json);
+    }
+  }
+
+  factory AnalysisGetImportedElementsParams.fromRequest(Request request) {
+    return new AnalysisGetImportedElementsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getImportedElements", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetImportedElementsParams) {
+      return file == other.file &&
+          offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getImportedElements result
+ *
+ * {
+ *   "elements": List<ImportedElements>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetImportedElementsResult implements ResponseResult {
+  List<ImportedElements> _elements;
+
+  /**
+   * The information about the elements that are referenced in the specified
+   * region of the specified file that come from imported libraries.
+   */
+  List<ImportedElements> get elements => _elements;
+
+  /**
+   * The information about the elements that are referenced in the specified
+   * region of the specified file that come from imported libraries.
+   */
+  void set elements(List<ImportedElements> value) {
+    assert(value != null);
+    this._elements = value;
+  }
+
+  AnalysisGetImportedElementsResult(List<ImportedElements> elements) {
+    this.elements = elements;
+  }
+
+  factory AnalysisGetImportedElementsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<ImportedElements> elements;
+      if (json.containsKey("elements")) {
+        elements = jsonDecoder.decodeList(
+            jsonPath + ".elements",
+            json["elements"],
+            (String jsonPath, Object json) =>
+                new ImportedElements.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "elements");
+      }
+      return new AnalysisGetImportedElementsResult(elements);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getImportedElements result", json);
+    }
+  }
+
+  factory AnalysisGetImportedElementsResult.fromResponse(Response response) {
+    return new AnalysisGetImportedElementsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["elements"] =
+        elements.map((ImportedElements value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetImportedElementsResult) {
+      return listEqual(elements, other.elements,
+          (ImportedElements a, ImportedElements b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * analysis.getLibraryDependencies params
  *
  * Clients may not extend, implement or mix-in this class.
@@ -7334,6 +7564,213 @@ class EditGetStatementCompletionResult implements ResponseResult {
 }
 
 /**
+ * edit.importElements params
+ *
+ * {
+ *   "file": FilePath
+ *   "elements": List<ImportedElements>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditImportElementsParams implements RequestParams {
+  String _file;
+
+  List<ImportedElements> _elements;
+
+  /**
+   * The file in which the specified elements are to be made accessible.
+   */
+  String get file => _file;
+
+  /**
+   * The file in which the specified elements are to be made accessible.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The elements to be made accessible in the specified file.
+   */
+  List<ImportedElements> get elements => _elements;
+
+  /**
+   * The elements to be made accessible in the specified file.
+   */
+  void set elements(List<ImportedElements> value) {
+    assert(value != null);
+    this._elements = value;
+  }
+
+  EditImportElementsParams(String file, List<ImportedElements> elements) {
+    this.file = file;
+    this.elements = elements;
+  }
+
+  factory EditImportElementsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      List<ImportedElements> elements;
+      if (json.containsKey("elements")) {
+        elements = jsonDecoder.decodeList(
+            jsonPath + ".elements",
+            json["elements"],
+            (String jsonPath, Object json) =>
+                new ImportedElements.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "elements");
+      }
+      return new EditImportElementsParams(file, elements);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.importElements params", json);
+    }
+  }
+
+  factory EditImportElementsParams.fromRequest(Request request) {
+    return new EditImportElementsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["elements"] =
+        elements.map((ImportedElements value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "edit.importElements", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditImportElementsParams) {
+      return file == other.file &&
+          listEqual(elements, other.elements,
+              (ImportedElements a, ImportedElements b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.importElements result
+ *
+ * {
+ *   "edits": List<SourceEdit>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class EditImportElementsResult implements ResponseResult {
+  List<SourceEdit> _edits;
+
+  /**
+   * The edit(s) to be applied in order to make the specified elements
+   * accessible.
+   */
+  List<SourceEdit> get edits => _edits;
+
+  /**
+   * The edit(s) to be applied in order to make the specified elements
+   * accessible.
+   */
+  void set edits(List<SourceEdit> value) {
+    assert(value != null);
+    this._edits = value;
+  }
+
+  EditImportElementsResult(List<SourceEdit> edits) {
+    this.edits = edits;
+  }
+
+  factory EditImportElementsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<SourceEdit> edits;
+      if (json.containsKey("edits")) {
+        edits = jsonDecoder.decodeList(
+            jsonPath + ".edits",
+            json["edits"],
+            (String jsonPath, Object json) =>
+                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "edits");
+      }
+      return new EditImportElementsResult(edits);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.importElements result", json);
+    }
+  }
+
+  factory EditImportElementsResult.fromResponse(Response response) {
+    return new EditImportElementsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditImportElementsResult) {
+      return listEqual(
+          edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * edit.isPostfixCompletionApplicable params
  *
  * {
@@ -10584,6 +11021,161 @@ class ImplementedMember implements HasToJson {
 }
 
 /**
+ * ImportedElements
+ *
+ * {
+ *   "path": FilePath
+ *   "uri": String
+ *   "prefix": String
+ *   "elements": List<String>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ImportedElements implements HasToJson {
+  String _path;
+
+  String _uri;
+
+  String _prefix;
+
+  List<String> _elements;
+
+  /**
+   * The absolute and normalized path of the file containing the library.
+   */
+  String get path => _path;
+
+  /**
+   * The absolute and normalized path of the file containing the library.
+   */
+  void set path(String value) {
+    assert(value != null);
+    this._path = value;
+  }
+
+  /**
+   * The URI that was used when importing the library into the original source.
+   */
+  String get uri => _uri;
+
+  /**
+   * The URI that was used when importing the library into the original source.
+   */
+  void set uri(String value) {
+    assert(value != null);
+    this._uri = value;
+  }
+
+  /**
+   * The prefix that was used when importing the library into the original
+   * source.
+   */
+  String get prefix => _prefix;
+
+  /**
+   * The prefix that was used when importing the library into the original
+   * source.
+   */
+  void set prefix(String value) {
+    assert(value != null);
+    this._prefix = value;
+  }
+
+  /**
+   * The names of the elements imported from the library.
+   */
+  List<String> get elements => _elements;
+
+  /**
+   * The names of the elements imported from the library.
+   */
+  void set elements(List<String> value) {
+    assert(value != null);
+    this._elements = value;
+  }
+
+  ImportedElements(
+      String path, String uri, String prefix, List<String> elements) {
+    this.path = path;
+    this.uri = uri;
+    this.prefix = prefix;
+    this.elements = elements;
+  }
+
+  factory ImportedElements.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String path;
+      if (json.containsKey("path")) {
+        path = jsonDecoder.decodeString(jsonPath + ".path", json["path"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "path");
+      }
+      String uri;
+      if (json.containsKey("uri")) {
+        uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "uri");
+      }
+      String prefix;
+      if (json.containsKey("prefix")) {
+        prefix = jsonDecoder.decodeString(jsonPath + ".prefix", json["prefix"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "prefix");
+      }
+      List<String> elements;
+      if (json.containsKey("elements")) {
+        elements = jsonDecoder.decodeList(
+            jsonPath + ".elements", json["elements"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "elements");
+      }
+      return new ImportedElements(path, uri, prefix, elements);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ImportedElements", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["path"] = path;
+    result["uri"] = uri;
+    result["prefix"] = prefix;
+    result["elements"] = elements;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ImportedElements) {
+      return path == other.path &&
+          uri == other.uri &&
+          prefix == other.prefix &&
+          listEqual(elements, other.elements, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, prefix.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * inlineLocalVariable feedback
  *
  * {
@@ -11974,8 +12566,10 @@ class RequestError implements HasToJson {
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
+ *   GET_IMPORTED_ELEMENTS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
+ *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_FILE_PATH_FORMAT
@@ -12039,6 +12633,13 @@ class RequestErrorCode implements Enum {
       const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
   /**
+   * An "analysis.getImportedElements" request specified a FilePath that does
+   * not match a file currently subject to analysis.
+   */
+  static const RequestErrorCode GET_IMPORTED_ELEMENTS_INVALID_FILE =
+      const RequestErrorCode._("GET_IMPORTED_ELEMENTS_INVALID_FILE");
+
+  /**
    * An "analysis.getNavigation" request specified a FilePath which does not
    * match a file currently subject to analysis.
    */
@@ -12051,6 +12652,13 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE =
       const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
+
+  /**
+   * An "edit.importElements" request specified a FilePath that does not match
+   * a file currently subject to analysis.
+   */
+  static const RequestErrorCode IMPORT_ELEMENTS_INVALID_FILE =
+      const RequestErrorCode._("IMPORT_ELEMENTS_INVALID_FILE");
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is
@@ -12181,8 +12789,10 @@ class RequestErrorCode implements Enum {
     FORMAT_INVALID_FILE,
     FORMAT_WITH_ERRORS,
     GET_ERRORS_INVALID_FILE,
+    GET_IMPORTED_ELEMENTS_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
     GET_REACHABLE_SOURCES_INVALID_FILE,
+    IMPORT_ELEMENTS_INVALID_FILE,
     INVALID_ANALYSIS_ROOT,
     INVALID_EXECUTION_CONTEXT,
     INVALID_FILE_PATH_FORMAT,
@@ -12220,10 +12830,14 @@ class RequestErrorCode implements Enum {
         return FORMAT_WITH_ERRORS;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
+      case "GET_IMPORTED_ELEMENTS_INVALID_FILE":
+        return GET_IMPORTED_ELEMENTS_INVALID_FILE;
       case "GET_NAVIGATION_INVALID_FILE":
         return GET_NAVIGATION_INVALID_FILE;
       case "GET_REACHABLE_SOURCES_INVALID_FILE":
         return GET_REACHABLE_SOURCES_INVALID_FILE;
+      case "IMPORT_ELEMENTS_INVALID_FILE":
+        return IMPORT_ELEMENTS_INVALID_FILE;
       case "INVALID_ANALYSIS_ROOT":
         return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":

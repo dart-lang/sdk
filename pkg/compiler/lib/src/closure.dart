@@ -17,6 +17,7 @@ import 'elements/resolution_types.dart';
 import 'elements/types.dart';
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_backend/runtime_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
@@ -84,13 +85,13 @@ class ScopeInfo {
   /// Also parameters to a `sync*` generator must be boxed, because of the way
   /// we rewrite sync* functions. See also comments in
   /// [ClosureClassMap.useLocal].
-  bool variableIsUsedInTryOrSync(Local variable) => false;
+  bool localIsUsedInTryOrSync(Local variable) => false;
 
   /// Loop through each variable that has been defined in this scope, modified
   /// anywhere (this scope or another scope) and used in another scope. Because
   /// it is used in another scope, these variables need to be "boxed", creating
   /// a thin wrapper around accesses to these variables so that accesses get
-  /// the correct updated value. The variables in variablesUsedInTryOrSync may
+  /// the correct updated value. The variables in localsUsedInTryOrSync may
   /// be included in this set.
   ///
   /// In the case of loops, this is the set of iteration variables (or any
@@ -100,9 +101,6 @@ class ScopeInfo {
 
   /// True if [variable] has been mutated and is also used in another scope.
   bool isBoxed(Local variable) => false;
-
-  /// True if this scope declares any variables that need to be boxed.
-  bool get hasBoxedVariables => false;
 }
 
 /// Class representing the usage of a scope that has been captured in the
@@ -141,6 +139,27 @@ class ClosureScope extends ScopeInfo {
 /// each iteration, by boxing the iteration variable[s].
 class LoopClosureScope extends ClosureScope {
   const LoopClosureScope();
+
+  /// True if this loop scope declares in the first part of the loop
+  /// `for (<here>;...;...)` any variables that need to be boxed.
+  bool get hasBoxedLoopVariables => false;
+
+  /// The set of iteration variables (or variables declared in the for loop
+  /// expression (`for (<here>; ... ; ...)`) that need to be boxed to snapshot
+  /// their value. These variables are also included in the set of
+  /// `forEachBoxedVariable` method. The distinction between these two sets is
+  /// in this example:
+  ///
+  ///     run(f) => f();
+  ///     var a;
+  ///     for (int i = 0; i < 3; i++) {
+  ///       var b = 3;
+  ///       a = () => b = i;
+  ///     }
+  ///
+  /// `i` would be a part of the boxedLoopVariables AND boxedVariables, but b
+  /// would only be a part of boxedVariables.
+  List<Local> get boxedLoopVariables => const <Local>[];
 }
 
 /// Class that describes the actual mechanics of how the converted, rewritten
@@ -597,6 +616,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
         super(name, other.kind, Modifiers.EMPTY, enclosing) {
     asyncMarker = other.asyncMarker;
     functionSignature = other.functionSignature;
+    expression.callMethod = this;
   }
 
   /// Use [closureClass] instead.
@@ -646,18 +666,10 @@ class ClosureScopeImpl implements ClosureScope, LoopClosureScope {
   bool get requiresContextBox => capturedVariables.keys.isNotEmpty;
 
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {
-    if (capturedVariables.isNotEmpty) {
-      capturedVariables.forEach(f);
-    } else {
-      for (Local l in boxedLoopVariables) {
-        // The boxes for loop variables are constructed on-demand per-iteration
-        // in the locals handler.
-        f(l, null);
-      }
-    }
+    capturedVariables.forEach(f);
   }
 
-  bool get hasBoxedVariables => !capturedVariables.isEmpty;
+  bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 
   bool isBoxed(Local variable) {
     return capturedVariables.containsKey(variable);
@@ -669,8 +681,8 @@ class ClosureScopeImpl implements ClosureScope, LoopClosureScope {
   }
 
   // Should not be called. Added to make the new interface happy.
-  bool variableIsUsedInTryOrSync(Local variable) =>
-      throw new UnsupportedError("ClosureScopeImpl.variableIsUsedInTryOrSync");
+  bool localIsUsedInTryOrSync(Local variable) =>
+      throw new UnsupportedError("ClosureScopeImpl.localIsUsedInTryOrSync");
 
   // Should not be called. Added to make the new interface happy.
   Local get thisLocal =>
@@ -740,13 +752,10 @@ class ClosureClassMap implements ClosureRepresentationInfo {
   /// Also parameters to a `sync*` generator must be boxed, because of the way
   /// we rewrite sync* functions. See also comments in [useLocal].
   // TODO(johnniwinther): Add variables to this only if the variable is mutated.
-  final Set<Local> variablesUsedInTryOrSync = new Set<Local>();
+  final Set<Local> localsUsedInTryOrSync = new Set<Local>();
 
   ClosureClassMap(this.closureEntity, this.closureClassEntity, this.callMethod,
       this.thisLocal);
-
-  bool get hasBoxedVariables =>
-      throw new UnsupportedError("ClosureClassMap.hasBoxedVariables");
 
   List<Local> get createdFieldEntities {
     List<Local> fields = <Local>[];
@@ -774,8 +783,8 @@ class ClosureClassMap implements ClosureRepresentationInfo {
 
   FieldEntity get thisFieldEntity => freeVariableMap[thisLocal];
 
-  bool variableIsUsedInTryOrSync(Local variable) =>
-      variablesUsedInTryOrSync.contains(variable);
+  bool localIsUsedInTryOrSync(Local variable) =>
+      localsUsedInTryOrSync.contains(variable);
 
   Local getLocalVariableForClosureField(ClosureFieldElement field) {
     return field.local;
@@ -866,6 +875,8 @@ class ClosureTranslator extends Visitor {
       this.closureMappingCache, this.closureInfo);
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  RuntimeTypesNeed get rtiNeed => closedWorldRefiner.closedWorld.rtiNeed;
 
   /// Generate a unique name for the [id]th closure field, with proposed name
   /// [name].
@@ -1024,13 +1035,13 @@ class ClosureTranslator extends Visitor {
       if (variable != closureData.thisLocal &&
           variable != closureData.closureEntity &&
           variable is! TypeVariableLocal) {
-        closureData.variablesUsedInTryOrSync.add(variable);
+        closureData.localsUsedInTryOrSync.add(variable);
       }
     } else if (variable is LocalParameterElement &&
         variable.functionDeclaration.asyncMarker == AsyncMarker.SYNC_STAR) {
       // Parameters in a sync* function are shared between each Iterator created
       // by the Iterable returned by the function, therefore they must be boxed.
-      closureData.variablesUsedInTryOrSync.add(variable);
+      closureData.localsUsedInTryOrSync.add(variable);
     }
   }
 
@@ -1200,8 +1211,7 @@ class ClosureTranslator extends Visitor {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
-        compiler.backend.rtiNeed
-            .classNeedsRti(outermostElement.enclosingClass)) {
+        rtiNeed.classNeedsRti(outermostElement.enclosingClass)) {
       if (outermostElement.isConstructor || outermostElement.isField) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember) {
@@ -1394,7 +1404,7 @@ class ClosureTranslator extends Visitor {
       closures.add(closure);
       closureData = globalizeClosure(node, closure);
       needsRti = compiler.options.enableTypeAssertions ||
-          compiler.backend.rtiNeed.localFunctionNeedsRti(closure);
+          rtiNeed.localFunctionNeedsRti(closure);
     } else {
       outermostElement = element;
       ThisLocal thisElement = null;
@@ -1405,7 +1415,7 @@ class ClosureTranslator extends Visitor {
       closureData = new ClosureClassMap(null, null, null, thisElement);
       if (element is MethodElement) {
         needsRti = compiler.options.enableTypeAssertions ||
-            compiler.backend.rtiNeed.methodNeedsRti(element);
+            rtiNeed.methodNeedsRti(element);
       }
     }
     closureMappingCache[element] = closureData;

@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef Function2 = <S extends core::Object, T extends core::Object>(S) → T;
+typedef Function2<S extends core::Object, T extends core::Object> = (S) → T;
 static method main() → void {
   {
     (core::int) → core::String l0 = (core::int x) → core::String => null;

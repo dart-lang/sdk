@@ -79,4 +79,21 @@ main() {
     var analysisOptions = compiler.context.analysisOptions;
     expect(analysisOptions.enableStrictCallChecks, isTrue);
   });
+
+  test('custom module name for summary', () {
+    var args = <String>[
+      '-snormal',
+      '-scustom/path:module',
+      '-sanother',
+      '-scustom/path2:module2'
+    ];
+
+    var argResults = ddcArgParser().parse(args);
+    var options = new AnalyzerOptions.fromArguments(argResults);
+    expect(options.summaryPaths,
+        orderedEquals(['normal', 'custom/path', 'another', 'custom/path2']));
+    expect(options.customSummaryModules['custom/path'], equals('module'));
+    expect(options.customSummaryModules['custom/path2'], equals('module2'));
+    expect(options.customSummaryModules.containsKey('normal'), isFalse);
+  });
 }

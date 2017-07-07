@@ -87,12 +87,10 @@ class BlockRewriter extends AstRewriter {
 
 /// Creates and updates the context as [Let] bindings around the initializer
 /// expression.
-class InitializerRewriter extends AstRewriter {
+abstract class InitializerRewriter extends AstRewriter {
   final Expression initializingExpression;
 
-  InitializerRewriter(this.initializingExpression) {
-    assert(initializingExpression.parent is FieldInitializer);
-  }
+  InitializerRewriter(this.initializingExpression);
 
   @override
   BlockRewriter forNestedBlock(Block block) {
@@ -102,11 +100,9 @@ class InitializerRewriter extends AstRewriter {
   @override
   void insertContextDeclaration(Expression accessParent) {
     _createDeclaration();
-    FieldInitializer parent = initializingExpression.parent;
     Let binding = new Let(contextDeclaration, initializingExpression);
+    setInitializerExpression(binding);
     initializingExpression.parent = binding;
-    parent.value = binding;
-    binding.parent = parent;
   }
 
   @override
@@ -116,5 +112,35 @@ class InitializerRewriter extends AstRewriter {
         initializingExpression);
     parent.body = binding;
     binding.parent = parent;
+  }
+
+  void setInitializerExpression(Expression expression);
+}
+
+class FieldInitializerRewriter extends InitializerRewriter {
+  FieldInitializerRewriter(Expression initializingExpression)
+      : super(initializingExpression) {
+    assert(initializingExpression.parent is FieldInitializer);
+  }
+
+  void setInitializerExpression(Expression expression) {
+    assert(initializingExpression.parent is FieldInitializer);
+    FieldInitializer parent = initializingExpression.parent;
+    parent.value = expression;
+    expression.parent = parent;
+  }
+}
+
+class LocalInitializerRewriter extends InitializerRewriter {
+  LocalInitializerRewriter(Expression initializingExpression)
+      : super(initializingExpression) {
+    assert(initializingExpression.parent is LocalInitializer);
+  }
+
+  void setInitializerExpression(Expression expression) {
+    assert(initializingExpression.parent is LocalInitializer);
+    LocalInitializer parent = initializingExpression.parent;
+    parent.variable.initializer = expression;
+    expression.parent = parent;
   }
 }

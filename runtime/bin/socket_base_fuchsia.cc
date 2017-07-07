@@ -9,6 +9,9 @@
 
 #include "bin/socket_base.h"
 
+// TODO(MG-766): If/when Fuchsia adds getifaddrs(), use that instead of the
+// ioctl in netconfig.h.
+#include <apps/netstack/apps/include/netconfig.h>
 #include <errno.h>        // NOLINT
 #include <fcntl.h>        // NOLINT
 #include <ifaddrs.h>      // NOLINT
@@ -282,16 +285,62 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
 }
 
 
+static bool ShouldIncludeIfaAddrs(netc_if_info_t* if_info, int lookup_family) {
+  const int family = if_info->addr.ss_family;
+  return ((lookup_family == family) ||
+          (((lookup_family == AF_UNSPEC) &&
+            ((family == AF_INET) || (family == AF_INET6)))));
+}
+
+
 bool SocketBase::ListInterfacesSupported() {
-  return false;
+  return true;
 }
 
 
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
-  UNIMPLEMENTED();
-  return NULL;
+  // We need a dummy socket.
+  const int fd = socket(AF_INET6, SOCK_STREAM, 0);
+  if (fd < 0) {
+    LOG_ERR("ListInterfaces: socket(AF_INET, SOCK_DGRAM, 0) failed\n");
+    return NULL;
+  }
+
+  // Call the ioctl.
+  netc_get_if_info_t get_if_info;
+  const ssize_t size = ioctl_netc_get_if_info(fd, &get_if_info);
+  if (size < 0) {
+    LOG_ERR("ListInterfaces: ioctl_netc_get_if_info() failed");
+    close(fd);
+    return NULL;
+  }
+
+  // Process the results.
+  const int lookup_family = SocketAddress::FromType(type);
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < get_if_info.n_info; i++) {
+    if (ShouldIncludeIfaAddrs(&get_if_info.info[i], lookup_family)) {
+      count++;
+    }
+  }
+
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  int addresses_idx = 0;
+  for (intptr_t i = 0; i < get_if_info.n_info; i++) {
+    if (ShouldIncludeIfaAddrs(&get_if_info.info[i], lookup_family)) {
+      char* ifa_name = DartUtils::ScopedCopyCString(get_if_info.info[i].name);
+      InterfaceSocketAddress* isa = new InterfaceSocketAddress(
+          reinterpret_cast<struct sockaddr*>(&get_if_info.info[i].addr),
+          ifa_name, if_nametoindex(get_if_info.info[i].name));
+      addresses->SetAt(addresses_idx, isa);
+      addresses_idx++;
+    }
+  }
+  close(fd);
+  return addresses;
 }
 
 

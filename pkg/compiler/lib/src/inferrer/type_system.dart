@@ -5,8 +5,7 @@
 import '../common.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
+import '../elements/types.dart';
 import '../tree/nodes.dart' as ast;
 import '../types/masks.dart';
 import '../universe/selector.dart';
@@ -19,9 +18,17 @@ import 'type_graph_nodes.dart';
 class TypeSystem {
   final ClosedWorld closedWorld;
 
-  /// [ElementTypeInformation]s for elements.
-  final Map<Element, TypeInformation> typeInformations =
-      new Map<Element, TypeInformation>();
+  /// [parameterTypeInformations] and [memberTypeInformations] ordered by
+  /// creation time. This is used as the inference enqueueing order.
+  final List<TypeInformation> _orderedTypeInformations = <TypeInformation>[];
+
+  /// [ParameterTypeInformation]s for parameters.
+  final Map<ParameterElement, TypeInformation> parameterTypeInformations =
+      new Map<ParameterElement, TypeInformation>();
+
+  /// [MemberTypeInformation]s for members.
+  final Map<MemberElement, TypeInformation> memberTypeInformations =
+      new Map<MemberElement, TypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
   final Map<ast.Node, TypeInformation> allocatedLists =
@@ -46,8 +53,14 @@ class TypeSystem {
   /// phis, and containers).
   final List<TypeInformation> allocatedTypes = <TypeInformation>[];
 
+  /// [parameterTypeInformations] and [memberTypeInformations] ordered by
+  /// creation time. This is used as the inference enqueueing order.
+  Iterable<TypeInformation> get orderedTypeInformations =>
+      _orderedTypeInformations;
+
   Iterable<TypeInformation> get allTypes => [
-        typeInformations.values,
+        parameterTypeInformations.values,
+        memberTypeInformations.values,
         allocatedLists.values,
         allocatedMaps.values,
         allocatedClosures,
@@ -70,7 +83,7 @@ class TypeSystem {
   void withMember(MemberElement element, action) {
     assert(_currentMember == null,
         failedAt(element, "Already constructing graph for $_currentMember."));
-    _currentMember = getInferredTypeOf(element);
+    _currentMember = getInferredTypeOfMember(element);
     action();
     _currentMember = null;
   }
@@ -277,26 +290,27 @@ class TypeSystem {
    * [isNullable] indicates whether the annotation implies a null
    * type.
    */
-  TypeInformation narrowType(
-      TypeInformation type, ResolutionDartType annotation,
+  TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return type;
-    if (annotation.element == closedWorld.commonElements.objectClass &&
-        isNullable) {
-      return type;
-    }
     TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
+    if (annotation.isInterfaceType) {
+      InterfaceType interface = annotation;
+      if (interface.element == closedWorld.commonElements.objectClass) {
+        if (isNullable) {
+          return type;
+        }
+        otherType = dynamicType.type.nonNullable();
+      } else {
+        otherType = new TypeMask.nonNullSubtype(interface.element, closedWorld);
+      }
+    } else if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
-    } else if (annotation.isTypeVariable) {
+    } else {
+      assert(annotation.isTypeVariable);
       // TODO(ngeoffray): Narrow to bound.
       return type;
-    } else {
-      ResolutionInterfaceType interface = annotation;
-      otherType = annotation.element == closedWorld.commonElements.objectClass
-          ? dynamicType.type.nonNullable()
-          : new TypeMask.nonNullSubtype(interface.element, closedWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
@@ -322,10 +336,74 @@ class TypeSystem {
     return newType;
   }
 
-  ElementTypeInformation getInferredTypeOf(Element element) {
-    element = element.implementation;
-    return typeInformations[element] ??=
-        new ElementTypeInformation(element, this);
+  ParameterTypeInformation getInferredTypeOfParameter(
+      ParameterElement parameter) {
+    assert(parameter.isImplementation);
+
+    ParameterTypeInformation createTypeInformation() {
+      FunctionTypedElement function = parameter.functionDeclaration.declaration;
+      if (function.isLocal) {
+        LocalFunctionElement localFunction = function;
+        MethodElement callMethod = localFunction.callMethod;
+        return new ParameterTypeInformation.localFunction(
+            getInferredTypeOfMember(callMethod),
+            parameter,
+            parameter.type,
+            callMethod);
+      } else if (function.isInstanceMember) {
+        MethodElement method = function;
+        return new ParameterTypeInformation.instanceMember(
+            getInferredTypeOfMember(method),
+            parameter,
+            parameter.type,
+            method,
+            new ParameterAssignments());
+      } else {
+        MethodElement method = function;
+        return new ParameterTypeInformation.static(
+            getInferredTypeOfMember(method), parameter, parameter.type, method,
+            // TODO(johnniwinther): Is this still valid now that initializing
+            // formals also introduce locals?
+            isInitializingFormal: parameter.isInitializingFormal);
+      }
+    }
+
+    return parameterTypeInformations.putIfAbsent(parameter, () {
+      ParameterTypeInformation typeInformation = createTypeInformation();
+      _orderedTypeInformations.add(typeInformation);
+      return typeInformation;
+    });
+  }
+
+  MemberTypeInformation getInferredTypeOfMember(MemberElement member) {
+    assert(member.isDeclaration);
+    return memberTypeInformations.putIfAbsent(member, () {
+      MemberTypeInformation typeInformation;
+      if (member.isField) {
+        FieldElement field = member;
+        typeInformation = new FieldTypeInformation(field, field.type);
+      } else if (member.isGetter) {
+        GetterElement getter = member;
+        typeInformation = new GetterTypeInformation(getter, getter.type);
+      } else if (member.isSetter) {
+        SetterElement setter = member;
+        typeInformation = new SetterTypeInformation(setter);
+      } else if (member.isFunction) {
+        MethodElement method = member;
+        typeInformation = new MethodTypeInformation(method, method.type);
+      } else {
+        ConstructorElement constructor = member;
+        if (constructor.isFactoryConstructor) {
+          typeInformation = new FactoryConstructorTypeInformation(
+              constructor, constructor.type);
+        } else {
+          typeInformation =
+              new GenerativeConstructorTypeInformation(constructor);
+        }
+      }
+      _orderedTypeInformations.add(typeInformation);
+      return typeInformation;
+    });
   }
 
   /**
@@ -338,13 +416,13 @@ class TypeSystem {
     });
   }
 
-  String getInferredSignatureOf(FunctionElement function) {
-    ElementTypeInformation info = getInferredTypeOf(function);
-    FunctionElement impl = function.implementation;
+  String getInferredSignatureOfMethod(MethodElement function) {
+    ElementTypeInformation info = getInferredTypeOfMember(function);
+    MethodElement impl = function.implementation;
     FunctionSignature signature = impl.functionSignature;
     var res = "";
     signature.forEachParameter((Element parameter) {
-      TypeInformation type = getInferredTypeOf(parameter);
+      TypeInformation type = getInferredTypeOfParameter(parameter);
       res += "${res.isEmpty ? '(' : ', '}${type.type} ${parameter.name}";
     });
     res += ") -> ${info.type}";
@@ -400,7 +478,10 @@ class TypeSystem {
         new ListTypeInformation(currentMember, mask, element, length);
   }
 
-  TypeInformation allocateClosure(ast.Node node, Element element) {
+  /// Creates a [TypeInformation] object either for the closurization of a
+  /// static or top-level method [element] used as a function constant or for
+  /// the synthesized 'call' method [element] created for a local function.
+  TypeInformation allocateClosure(ast.Node node, MethodElement element) {
     TypeInformation result =
         new ClosureTypeInformation(currentMember, node, element);
     allocatedClosures.add(result);

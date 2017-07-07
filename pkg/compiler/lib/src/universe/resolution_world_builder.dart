@@ -336,6 +336,7 @@ abstract class ResolutionWorldBuilderBase
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables =
       new Set<FunctionEntity>();
 
+  final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
   final DartTypes _dartTypes;
   final CommonElements _commonElements;
@@ -345,6 +346,8 @@ abstract class ResolutionWorldBuilderBase
   final NativeDataBuilder _nativeDataBuilder;
   final InterceptorDataBuilder _interceptorDataBuilder;
   final BackendUsageBuilder _backendUsageBuilder;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -354,7 +357,7 @@ abstract class ResolutionWorldBuilderBase
 
   bool _closed = false;
   ClosedWorld _closedWorldCache;
-  FunctionSetBuilder _allFunctions;
+  final Set<MemberEntity> _liveInstanceMembers = new Set<MemberEntity>();
 
   final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
 
@@ -372,6 +375,7 @@ abstract class ResolutionWorldBuilderBase
   bool get isClosed => _closed;
 
   ResolutionWorldBuilderBase(
+      this._options,
       this._elementEnvironment,
       this._dartTypes,
       this._commonElements,
@@ -380,9 +384,9 @@ abstract class ResolutionWorldBuilderBase
       this._nativeDataBuilder,
       this._interceptorDataBuilder,
       this._backendUsageBuilder,
-      this.selectorConstraintsStrategy) {
-    _allFunctions = new FunctionSetBuilder();
-  }
+      this._rtiNeedBuilder,
+      this._nativeResolutionEnqueuer,
+      this.selectorConstraintsStrategy);
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
@@ -787,7 +791,7 @@ abstract class ResolutionWorldBuilderBase
 
   void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember && !element.isAbstract) {
-      _allFunctions.add(element);
+      _liveInstanceMembers.add(element);
     }
   }
 
@@ -930,13 +934,25 @@ abstract class ResolutionWorldBuilderBase
 
     return typesImplementedBySubclasses;
   }
+
+  Iterable<MemberEntity> computeAssignedInstanceMembers() {
+    Set<MemberEntity> assignedInstanceMembers = new Set<MemberEntity>();
+    for (MemberEntity instanceMember in _liveInstanceMembers) {
+      if (hasInvokedSetter(instanceMember)) {
+        assignedInstanceMembers.add(instanceMember);
+      }
+    }
+    assignedInstanceMembers.addAll(fieldSetters);
+    return assignedInstanceMembers;
+  }
 }
 
 abstract class KernelResolutionWorldBuilderBase
     extends ResolutionWorldBuilderBase {
-  KernelToElementMapImpl get elementMap;
+  KernelToElementMapForImpactImpl get elementMap;
 
   KernelResolutionWorldBuilderBase(
+      CompilerOptions options,
       ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
@@ -945,8 +961,11 @@ abstract class KernelResolutionWorldBuilderBase
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
+            options,
             elementEnvironment,
             dartTypes,
             commonElements,
@@ -955,6 +974,8 @@ abstract class KernelResolutionWorldBuilderBase
             nativeDataBuilder,
             interceptorDataBuilder,
             backendUsageBuilder,
+            rtiNeedBuilder,
+            nativeResolutionEnqueuer,
             selectorConstraintsStrategy);
 
   @override
@@ -968,16 +989,20 @@ abstract class KernelResolutionWorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "$_classHierarchyNodes vs $_classSets");
     return _closedWorldCache = new KernelClosedWorld(elementMap,
+        options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
-        constantSystem: _constantSystem,
         resolutionWorldBuilder: this,
+        rtiNeedBuilder: _rtiNeedBuilder,
+        constantSystem: _constantSystem,
         implementedClasses: _implementedClasses,
-        functionSet: _allFunctions.close(),
+        liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
+        liveInstanceMembers: _liveInstanceMembers,
+        assignedInstanceMembers: computeAssignedInstanceMembers(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,

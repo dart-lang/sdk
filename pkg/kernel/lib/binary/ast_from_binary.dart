@@ -68,7 +68,7 @@ class BinaryBuilder {
     }
   }
 
-  int readMagicWord() {
+  int readUint32() {
     return (readByte() << 24) |
         (readByte() << 16) |
         (readByte() << 8) |
@@ -237,7 +237,7 @@ class BinaryBuilder {
     _readOneProgram(program);
     if (_byteIndex < _bytes.length) {
       if (_byteIndex + 3 < _bytes.length) {
-        int magic = readMagicWord();
+        int magic = readUint32();
         if (magic == Tag.ProgramFile) {
           throw 'Concatenated program file given when a single program '
               'was expected.';
@@ -248,7 +248,7 @@ class BinaryBuilder {
   }
 
   void _readOneProgram(Program program) {
-    int magic = readMagicWord();
+    int magic = readUint32();
     if (magic != Tag.ProgramFile) {
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
@@ -264,6 +264,20 @@ class BinaryBuilder {
     }
     var mainMethod = readMemberReference(allowNull: true);
     program.mainMethodName ??= mainMethod;
+
+    // Read the program index.
+    readUint32(); // binary offset for source table.
+    readUint32(); // binary offset for link table.
+    readUint32(); // main
+    for (int i = 0; i < numberOfLibraries; i++) {
+      readUint32(); // binary offset for library #i.
+    }
+    int numberOfLibrariesCheck = readUint32();
+    if (numberOfLibraries != numberOfLibrariesCheck) {
+      throw 'Malformed binary: the program index indicates there are '
+          '$numberOfLibrariesCheck libraries but the binary contains '
+          '$numberOfLibraries.';
+    }
   }
 
   Map<String, Source> readUriToSource() {
@@ -431,6 +445,7 @@ class BinaryBuilder {
       node = new Class(reference: reference)..level = ClassLevel.Temporary;
     }
     node.fileOffset = readOffset();
+    node.fileEndOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     int levelIndex = (flags >> 1) & 0x3;

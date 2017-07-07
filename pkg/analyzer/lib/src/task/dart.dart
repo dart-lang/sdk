@@ -2869,7 +2869,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
           new UsedLocalElements.merge(usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unitElement.accept(visitor);
+      unit.accept(visitor);
     }
     // Dart2js analysis.
     if (analysisOptions.dart2jsHint) {

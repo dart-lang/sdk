@@ -2978,9 +2978,13 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
     const Function& target = *targets.TargetAt(idx)->target;
     if (MethodRecognizer::PolymorphicTarget(target)) continue;
     for (int i = targets[idx].cid_start - 1; i > lower_limit_cid; i--) {
-      if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
+      bool class_is_abstract = false;
+      if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
+                                             &class_is_abstract) &&
           fn.raw() == target.raw()) {
-        targets[idx].cid_start = i;
+        if (!class_is_abstract) {
+          targets[idx].cid_start = i;
+        }
       } else {
         break;
       }
@@ -2994,9 +2998,13 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
     const Function& target = *targets.TargetAt(idx)->target;
     if (MethodRecognizer::PolymorphicTarget(target)) continue;
     for (int i = targets[idx].cid_end + 1; i < upper_limit_cid; i++) {
-      if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn) &&
+      bool class_is_abstract = false;
+      if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
+                                             &class_is_abstract) &&
           fn.raw() == target.raw()) {
-        targets[idx].cid_end = i;
+        if (!class_is_abstract) {
+          targets[idx].cid_end = i;
+        }
       } else {
         break;
       }
@@ -3240,15 +3248,15 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
 }
 
 
-LocationSummary* CurrentContextInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
+LocationSummary* SpecialParameterInstr::MakeLocationSummary(Zone* zone,
+                                                            bool opt) const {
   // Only appears in initial definitions, never in normal code.
   UNREACHABLE();
   return NULL;
 }
 
 
-void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void SpecialParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Only appears in initial definitions, never in normal code.
   UNREACHABLE();
 }

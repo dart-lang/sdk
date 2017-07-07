@@ -1824,22 +1824,6 @@ main() {}''');
     expect(analysisResult.changeNotices, isNotNull);
   }
 
-  void test_handleContentsChanged_incremental_newContentsNull() {
-    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
-    ContentCache contentCache = new ContentCache();
-    context.contentCache = contentCache;
-    // old contents
-    String oldContents = 'foo() {}';
-    Source source = resourceProvider.getFile('/test.dart').createSource();
-    contentCache.setContents(source, oldContents);
-    expect(context.computeLibraryElement(source), isNotNull);
-    // new contents
-    String newContents = null;
-    contentCache.setContents(source, newContents);
-    context.handleContentsChanged(source, oldContents, newContents, true);
-    expect(context.getLibraryElement(source), isNull);
-  }
-
   void test_handleContentsChanged_noOriginal_sameAsFile() {
     ContentCache contentCache = new ContentCache();
     context.contentCache = contentCache;
@@ -2698,7 +2682,6 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
 
   Future test_setChangedContents_libraryWithPart() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.incremental = true;
     context.analysisOptions = options;
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
@@ -2735,7 +2718,6 @@ int ya = 0;''';
   void test_setChangedContents_notResolved() {
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.from(context.analysisOptions);
-    options.incremental = true;
     context.analysisOptions = options;
     String oldCode = r'''
 library lib;

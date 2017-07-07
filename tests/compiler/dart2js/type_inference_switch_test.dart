@@ -140,7 +140,7 @@ Future runTest(String test, checker) {
 
     checkTypeOf(String name, TypeMask type) {
       var element = findElement(compiler, name);
-      var mask = typesInferrer.getReturnTypeOfElement(element);
+      var mask = typesInferrer.getReturnTypeOfMember(element);
       Expect.equals(type, simplify(mask, closedWorld));
     }
 

@@ -17,15 +17,11 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_type_checks);
 
-// Helper function in stacktrace.cc.
-void _printCurrentStackTrace();
-
 DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
   // The dart:async library code entered an unrecoverable state.
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:async: %s\n", msg);
-  _printCurrentStackTrace();
   FATAL(msg);
   return Object::null();
 }
@@ -42,17 +38,25 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
   // Please note that no handle is created for the argument.
   // This is safe since the argument is only used in a tail call.
   // The performance benefit is more than 5% when using hashCode.
+#if defined(HASH_IN_OBJECT_HEADER)
+  return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
+#else
   Heap* heap = isolate->heap();
   ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
   return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+#endif
 }
 
 
 DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
+#if defined(HASH_IN_OBJECT_HEADER)
+  Object::SetCachedHash(arguments->NativeArgAt(0), hash.Value());
+#else
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   Heap* heap = isolate->heap();
   heap->SetHash(instance.raw(), hash.Value());
+#endif
   return Object::null();
 }
 

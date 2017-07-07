@@ -59,32 +59,9 @@ dart/data_uri_spawn_test: Skip
 cc/Read: Fail  # TODO(zra): Investigate
 # Assumes initial thread's stack is the same size as spawned thread stacks.
 cc/StackOverflowStackTraceInfo: Crash
-# The profiler is turned off. Issue MG-430.
-cc/Profiler_AllocationSampleTest: Crash
-cc/Profiler_ArrayAllocation: Crash
-cc/Profiler_BasicSourcePosition: Crash
-cc/Profiler_BasicSourcePositionOptimized: Crash
-cc/Profiler_BinaryOperatorSourcePosition: Crash
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Crash
-cc/Profiler_ChainedSamples: Crash
-cc/Profiler_ClosureAllocation: Crash
-cc/Profiler_CodeTicks: Crash
-cc/Profiler_ContextAllocation: Crash
-cc/Profiler_FunctionInline: Crash
-cc/Profiler_FunctionTicks: Crash
-cc/Profiler_InliningIntervalBoundry: Crash
-cc/Profiler_IntrinsicAllocation: Crash
-cc/Profiler_SampleBufferIterateTest: Crash
-cc/Profiler_SampleBufferWrapTest: Crash
-cc/Profiler_SourcePosition: Crash
-cc/Profiler_SourcePositionOptimized: Crash
-cc/Profiler_StringAllocation: Crash
-cc/Profiler_StringInterpolation: Crash
-cc/Profiler_ToggleRecordAllocation: Crash
-cc/Profiler_TrivialRecordAllocation: Crash
-cc/Profiler_TypedArrayAllocation: Crash
-cc/Profiler_GetSourceReport: Crash
-cc/Service_Profile: Fail
+# TODO(zra): Investigate
+dart/byte_array_test: Crash
+dart/byte_array_optimized_test: Crash
 
 # Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match

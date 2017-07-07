@@ -20,6 +20,7 @@ import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
+import '../sorter.dart' show Sorter;
 import 'model_emitter.dart';
 
 class EmitterFactory implements emitterTask.EmitterFactory {
@@ -27,8 +28,8 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   bool get supportsReflection => false;
 
   @override
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
+  Emitter createEmitter(CodeEmitterTask task, Namer namer,
+      ClosedWorld closedWorld, Sorter sorter) {
     return new Emitter(
         task.compiler, namer, task.nativeEmitter, closedWorld, task);
   }

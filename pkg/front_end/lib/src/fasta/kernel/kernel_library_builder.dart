@@ -32,7 +32,6 @@ import 'kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
-        FunctionTypeAliasBuilder,
         InvalidTypeBuilder,
         KernelConstructorBuilder,
         KernelEnumBuilder,
@@ -107,7 +106,8 @@ class KernelLibraryBuilder
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    var declaration = endNestedDeclaration()..resolveTypes(typeVariables, this);
+    var declaration = endNestedDeclaration(className)
+      ..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
     Map<String, MemberBuilder> constructors = declaration.constructors;
@@ -452,7 +452,7 @@ class KernelLibraryBuilder
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
         metadata: metadata,
         name: name,
@@ -518,7 +518,7 @@ class KernelLibraryBuilder
       {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    endNestedDeclaration(name).resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
     String constructorName =
         isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
@@ -572,7 +572,7 @@ class KernelLibraryBuilder
         currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
-        endNestedDeclaration();
+        endNestedDeclaration("#factory_method");
     String name = constructorNameReference.name;
     String constructorName =
         computeAndValidateConstructorName(name, charOffset);
@@ -612,16 +612,15 @@ class KernelLibraryBuilder
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
-      KernelTypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals,
+      covariant KernelFunctionTypeBuilder type,
       int charOffset) {
-    FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
-        metadata, returnType, name, typeVariables, formals, this, charOffset);
+    KernelFunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
+        metadata, name, typeVariables, type, this, charOffset);
     checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    endNestedDeclaration("#typedef").resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
   }
 
@@ -633,6 +632,9 @@ class KernelLibraryBuilder
     var builder = new KernelFunctionTypeBuilder(
         charOffset, fileUri, returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, builder);
+    // Nested declaration began in `OutlineBuilder.beginFunctionType` or
+    // `OutlineBuilder.beginFunctionTypedFormalParameter`.
+    endNestedDeclaration("#function_type").resolveTypes(typeVariables, this);
     return addType(builder);
   }
 

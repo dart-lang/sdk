@@ -101,6 +101,9 @@ class ProgramBuilder {
   final CodeEmitterTask _task;
   final ClosedWorld _closedWorld;
 
+  /// The [Sorter] used for ordering elements in the generated JavaScript.
+  final Sorter _sorter;
+
   /// Contains the collected information the program builder used to build
   /// the model.
   // The collector will be filled on the first call to `buildProgram`.
@@ -143,6 +146,7 @@ class ProgramBuilder {
       this._namer,
       this._task,
       this._closedWorld,
+      this._sorter,
       Set<ClassEntity> rtiNeededClasses,
       this._mainFunction,
       {bool isMockCompilation})
@@ -163,8 +167,8 @@ class ProgramBuilder {
             _closedWorld,
             rtiNeededClasses,
             _generatedCode,
-            _task.sorter),
-        this._registry = new Registry(_deferredLoadTask, _task.sorter);
+            _sorter),
+        this._registry = new Registry(_deferredLoadTask, _sorter);
 
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -194,8 +198,6 @@ class ProgramBuilder {
   /// Also contains classes that are not tracked by the profile run (like
   /// interceptors, ...).
   Set<ClassElement> _notSoftDeferred;
-
-  Sorter get _sorter => _task.sorter;
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();

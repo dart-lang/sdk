@@ -24,8 +24,13 @@ FLAGS = [
 ]
 
 if __name__ == '__main__':
-  (bot_name, _) = bot.GetBotName()
-  system = bot_utils.GetSystemFromName(bot_name)
-  info = bot.BuildInfo('dartdevc', 'chrome', 'release', system,
-      arch='x64', checked=True)
-  bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)
+  with bot.BuildStep('Build SDK and dartdevc test packages'):
+    bot.RunProcess([sys.executable, './tools/build.py', '--mode=release',
+         '--arch=x64', 'dartdevc_test'])
+
+  with bot.BuildStep('Run tests'):
+    (bot_name, _) = bot.GetBotName()
+    system = bot_utils.GetSystemFromName(bot_name)
+    info = bot.BuildInfo('dartdevc', 'drt', 'release', system,
+        arch='x64', checked=True)
+    bot.RunTest('dartdevc', info, TARGETS, flags=FLAGS)

@@ -21,6 +21,7 @@ import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
 import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
+import 'native/enqueue.dart' show NativeResolutionEnqueuer;
 import 'native/resolver.dart';
 import 'serialization/task.dart';
 import 'patch_parser.dart';
@@ -57,6 +58,8 @@ abstract class FrontendStrategy {
   /// Returns the [AnnotationProcessor] for this strategy.
   AnnotationProcessor get annotationProcesser;
 
+  NativeBasicData get nativeBasicData;
+
   /// Creates the [NativeClassFinder] for this strategy.
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData);
 
@@ -71,6 +74,8 @@ abstract class FrontendStrategy {
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] corresponding to how a resolved model for
@@ -104,12 +109,27 @@ abstract class FrontendStrategy {
 
 /// Class that performs the mechanics to investigate annotations in the code.
 abstract class AnnotationProcessor {
-  void extractNativeAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
+  void extractNativeAnnotations(LibraryEntity library);
 
-  void extractJsInteropAnnotations(
-      LibraryEntity library, NativeBasicDataBuilder nativeBasicDataBuilder);
+  void extractJsInteropAnnotations(LibraryEntity library);
 
   void processJsInteropAnnotations(
       NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder);
+}
+
+abstract class FrontendStrategyBase implements FrontendStrategy {
+  final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
+      new NativeBasicDataBuilderImpl();
+  NativeBasicData _nativeBasicData;
+
+  NativeBasicData get nativeBasicData {
+    if (_nativeBasicData == null) {
+      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+      assert(
+          _nativeBasicData != null,
+          failedAt(NO_LOCATION_SPANNABLE,
+              "NativeBasicData has not been computed yet."));
+    }
+    return _nativeBasicData;
+  }
 }

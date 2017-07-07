@@ -5,6 +5,7 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
+import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/values.dart';
 import 'elements/entities.dart';
@@ -942,15 +943,32 @@ class CommonElements {
   FunctionEntity get throwConcurrentModificationError =>
       _findHelperFunction('throwConcurrentModificationError');
 
-  FunctionEntity _checkInt;
-  FunctionEntity get checkInt => _checkInt ??= _findHelperFunction('checkInt');
+  /// Return `true` if [member] is the 'checkInt' function defined in
+  /// dart:_js_helpers.
+  bool isCheckInt(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkInt';
+  }
 
-  FunctionEntity _checkNum;
-  FunctionEntity get checkNum => _checkNum ??= _findHelperFunction('checkNum');
+  /// Return `true` if [member] is the 'checkNum' function defined in
+  /// dart:_js_helpers.
+  bool isCheckNum(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkNum';
+  }
 
-  FunctionEntity _checkString;
-  FunctionEntity get checkString =>
-      _checkString ??= _findHelperFunction('checkString');
+  /// Return `true` if [member] is the 'checkString' function defined in
+  /// dart:_js_helpers.
+  bool isCheckString(MemberEntity member) {
+    return member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary &&
+        member.name == 'checkString';
+  }
 
   FunctionEntity get stringInterpolationHelper => _findHelperFunction('S');
 
@@ -1143,6 +1161,19 @@ class CommonElements {
   ClassEntity get expectAssumeDynamicClass {
     _ensureExpectAnnotations();
     return _expectAssumeDynamicClass;
+  }
+
+  bool isForeign(MemberEntity element) => element.library == foreignLibrary;
+
+  /// Returns `true` if the implementation of the 'operator ==' [function] is
+  /// known to handle `null` as argument.
+  bool operatorEqHandlesNullArgument(FunctionEntity function) {
+    assert(function.name == '==',
+        failedAt(function, "Unexpected function $function."));
+    ClassEntity cls = function.enclosingClass;
+    return cls == objectClass ||
+        cls == jsInterceptorClass ||
+        cls == jsNullClass;
   }
 }
 

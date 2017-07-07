@@ -29,7 +29,7 @@ main() {
   Expect.equals(1e-2, 1e-2 as double);
   Expect.isTrue(1e+2 is double);
   Expect.equals(1e+2, 1e+2 as double);
-  Expect.throws(() => 1.e+2, //                      //# 05: ok
+  Expect.throws(() => 1.e+2, //                      //# 05: static type warning
                 (e) => e is NoSuchMethodError); //   //# 05: continued
   1d; // //# 06: compile-time error
   1D; // //# 07: compile-time error

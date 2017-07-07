@@ -73,7 +73,7 @@ script:
   - if [[ -z "$TEST" ]]; then ./tool/presubmit.sh ; fi
   - if [[ "$TEST" == coverage ]]; then ./tool/build_sdk.sh && ./tool/coverage.sh ; fi
   - if [[ "$TEST" == node ]]; then ./tool/node_test.sh ; fi
-  - if [[ "$TEST" == package ]]; then ./tool/build_sdk.sh && ./tool/build_pkgs.dart ; fi
+  - if [[ "$TEST" == package ]]; then ./tool/build_sdk.sh && ./tool/build_pkgs.dart gen/codegen_output/pkg travis; fi
 env:
   - ANALYZER=master
   - ANALYZER=master DDC_BROWSERS=Firefox

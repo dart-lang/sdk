@@ -20,9 +20,10 @@ import 'mocks.dart';
 main() {
   AnalysisServer server;
   ServerDomainHandler handler;
+  MockServerChannel serverChannel;
 
   setUp(() {
-    var serverChannel = new MockServerChannel();
+    serverChannel = new MockServerChannel();
     var resourceProvider = new MemoryResourceProvider();
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
@@ -72,12 +73,13 @@ main() {
       });
     });
 
-    test('shutdown', () {
+    test('shutdown', () async {
       expect(server.running, isTrue);
       // send request
       var request = new ServerShutdownParams().toRequest('0');
-      var response = handler.handleRequest(request);
+      var response = await serverChannel.sendRequest(request);
       expect(response, isResponseSuccess('0'));
+
       // server is down
       expect(server.running, isFalse);
     });

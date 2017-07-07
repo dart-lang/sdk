@@ -354,7 +354,8 @@ enum E2 { three, four }''');
           plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
     }
     {
-      analyzer.FieldElement engineElement = findElementInUnit(unit, 'index');
+      analyzer.FieldElement engineElement =
+          unit.element.enums[1].getField('index');
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.FIELD);
@@ -372,7 +373,9 @@ enum E2 { three, four }''');
       expect(element.flags, plugin.Element.FLAG_FINAL);
     }
     {
-      analyzer.FieldElement engineElement = findElementInUnit(unit, 'values');
+      analyzer.FieldElement engineElement =
+          unit.element.enums[1].getField('values');
+
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.FIELD);
@@ -509,9 +512,8 @@ class A {
   set mySetter(String x) {}
 }''');
     analyzer.CompilationUnit unit = await resolveLibraryUnit(source);
-    analyzer.FieldElement engineFieldElement =
-        findElementInUnit(unit, 'mySetter', analyzer.ElementKind.FIELD);
-    analyzer.PropertyAccessorElement engineElement = engineFieldElement.setter;
+    analyzer.PropertyAccessorElement engineElement =
+        findElementInUnit(unit, 'mySetter', analyzer.ElementKind.SETTER);
     // create notification Element
     plugin.Element element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.SETTER);

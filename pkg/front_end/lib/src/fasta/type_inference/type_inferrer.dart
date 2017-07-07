@@ -225,6 +225,35 @@ abstract class TypeInferrer {
   void inferParameterInitializer(Expression initializer, DartType declaredType);
 }
 
+/// Implementation of [TypeInferrer] which doesn't do any type inference.
+///
+/// This is intended for profiling, to ensure that type inference and type
+/// promotion do not slow down compilation too much.
+class TypeInferrerDisabled extends TypeInferrer {
+  @override
+  final typePromoter = new TypePromoterDisabled();
+
+  @override
+  String get uri => null;
+
+  @override
+  void inferFieldInitializer(DartType declaredType, Expression initializer) {}
+
+  @override
+  void inferFunctionBody(
+      DartType returnType, AsyncMarker asyncMarker, Statement body) {}
+
+  @override
+  void inferInitializer(Initializer initializer) {}
+
+  @override
+  void inferMetadata(List<Expression> annotations) {}
+
+  @override
+  void inferParameterInitializer(
+      Expression initializer, DartType declaredType) {}
+}
+
 /// Derived class containing generic implementations of [TypeInferrer].
 ///
 /// This class contains as much of the implementation of type inference as

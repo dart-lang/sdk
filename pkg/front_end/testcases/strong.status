@@ -44,7 +44,6 @@ redirecting_constructor: Fail
 redirecting_factory: Fail
 statements: Fail
 stringliteral: Fail
-super_rasta_copy: Fail
 top_level_accessors: Fail
 type_variable_as_super: Fail
 typedef: Fail
@@ -52,6 +51,7 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void-methods: Fail
 
+inference/abstract_class_instantiation: Fail # Issue #30040
 inference/constructors_too_many_positional_arguments: Fail # Issue #30040
 inference/downwards_inference_annotations_for_loop_variable: Fail # Issue #30035
 inference/downwards_inference_annotations_locals: Fail # Issue #30031 and Issue #30035
@@ -65,7 +65,6 @@ inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/future_then_explicit_future: Fail # Issue #30040
 inference/generic_functions_return_typedef: Fail # Issue #29798
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
-inference/unresolved_super: Fail # Issue #30000
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
@@ -135,14 +134,13 @@ rasta/malformed_const_constructor: Fail
 rasta/malformed_function: Fail
 rasta/malformed_function_type: Fail
 rasta/mandatory_parameter_initializer: Fail
-rasta/mixin_library: Fail
+rasta/mixin_library: RuntimeError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
 rasta/previsit_deferred: Fail
 rasta/static: Fail
-rasta/super: Fail
+rasta/super: RuntimeError
 rasta/super_initializer: Fail
-rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
 rasta/switch_execution_case_t02: Fail

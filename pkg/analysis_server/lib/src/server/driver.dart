@@ -20,38 +20,13 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-
-/**
- * Initializes incremental logger.
- *
- * Supports following formats of [spec]:
- *
- *     "console" - log to the console;
- *     "file:/some/file/name" - log to the file, overwritten on start.
- */
-void _initIncrementalLogger(String spec) {
-  logger = NULL_LOGGER;
-  if (spec == null) {
-    return;
-  }
-  // create logger
-  if (spec == 'console') {
-    logger = new StringSinkLogger(stdout);
-  } else if (spec == 'stderr') {
-    logger = new StringSinkLogger(stderr);
-  } else if (spec.startsWith('file:')) {
-    String fileName = spec.substring('file:'.length);
-    File file = new File(fileName);
-    IOSink sink = file.openWrite();
-    logger = new StringSinkLogger(sink);
-  }
-}
+import 'package:telemetry/crash_reporting.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 
 /// Commandline argument parser. (Copied from analyzer/lib/options.dart)
 /// TODO(pquitslund): replaces with a simple [ArgParser] instance
@@ -152,6 +127,10 @@ class CommandLineParser {
         String arg = args[i];
         if (arg.startsWith('--') && arg.length > 2) {
           String option = arg.substring(2);
+          // remove any leading 'no-'
+          if (option.startsWith('no-')) {
+            option = option.substring(3);
+          }
           // strip the last '=value'
           int equalsOffset = option.lastIndexOf('=');
           if (equalsOffset != -1) {
@@ -207,13 +186,6 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
-   * The name of the option used to enable incremental resolution of API
-   * changes.
-   */
-  static const String ENABLE_INCREMENTAL_RESOLUTION_API =
-      "enable-incremental-resolution-api";
-
-  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -229,16 +201,14 @@ class Driver implements ServerStarter {
   static const String HELP_OPTION = "help";
 
   /**
-   * The name of the option used to describe the incremental resolution logger.
+   * The name of the flag used to configure reporting analytics.
    */
-  static const String INCREMENTAL_RESOLUTION_LOG = "incremental-resolution-log";
+  static const String ANALYTICS_FLAG = "analytics";
 
   /**
-   * The name of the option used to enable validation of incremental resolution
-   * results.
+   * Suppress analytics for this session.
    */
-  static const String INCREMENTAL_RESOLUTION_VALIDATION =
-      "incremental-resolution-validation";
+  static const String SUPPRESS_ANALYTICS_FLAG = "suppress-analytics";
 
   /**
    * The name of the option used to cause instrumentation to also be written to
@@ -278,8 +248,6 @@ class Driver implements ServerStarter {
 
   /**
    * The path to the SDK.
-   * TODO(paulberry): get rid of this once the 'analysis.updateSdks' request is
-   * operational.
    */
   static const String SDK_OPTION = "sdk";
 
@@ -330,8 +298,43 @@ class Driver implements ServerStarter {
   AnalysisServer start(List<String> arguments) {
     CommandLineParser parser = _createArgParser();
     ArgResults results = parser.parse(arguments, <String, String>{});
+
+    AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
+    analysisServerOptions.useAnalysisHighlight2 =
+        results[USE_ANALYSIS_HIGHLIGHT2];
+    analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
+    analysisServerOptions.newAnalysisDriverLog =
+        results[NEW_ANALYSIS_DRIVER_LOG];
+    analysisServerOptions.clientId = results[CLIENT_ID];
+    analysisServerOptions.clientVersion = results[CLIENT_VERSION];
+    analysisServerOptions.enableVerboseFlutterCompletions =
+        results[VERBOSE_FLUTTER_COMPLETIONS];
+
+    telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
+        'UA-26406144-29', 'analysis-server',
+        disableForSession: results[SUPPRESS_ANALYTICS_FLAG]);
+    analysisServerOptions.analytics = analytics;
+
+    if (analysisServerOptions.clientId != null) {
+      // Record the client name as the application installer ID.
+      analytics.setSessionValue('aiid', analysisServerOptions.clientId);
+    }
+    if (analysisServerOptions.clientVersion != null) {
+      analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
+    }
+
+    // TODO(devoncarew): Replace with the real crash product ID.
+    analysisServerOptions.crashReportSender =
+        new CrashReportSender('Dart_analysis_server', analytics);
+
+    if (results.wasParsed(ANALYTICS_FLAG)) {
+      analytics.enabled = results[ANALYTICS_FLAG];
+      print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
+      return null;
+    }
+
     if (results[HELP_OPTION]) {
-      _printUsage(parser.parser);
+      _printUsage(parser.parser, analytics, fromHelp: true);
       return null;
     }
 
@@ -344,30 +347,11 @@ class Driver implements ServerStarter {
       } on FormatException {
         print('Invalid port number: ${results[PORT_OPTION]}');
         print('');
-        _printUsage(parser.parser);
+        _printUsage(parser.parser, analytics);
         exitCode = 1;
         return null;
       }
     }
-
-    AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
-    analysisServerOptions.enableIncrementalResolutionApi =
-        results[ENABLE_INCREMENTAL_RESOLUTION_API];
-    analysisServerOptions.enableIncrementalResolutionValidation =
-        results[INCREMENTAL_RESOLUTION_VALIDATION];
-    analysisServerOptions.useAnalysisHighlight2 =
-        results[USE_ANALYSIS_HIGHLIGHT2];
-    analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
-    analysisServerOptions.newAnalysisDriverLog =
-        results[NEW_ANALYSIS_DRIVER_LOG];
-
-    analysisServerOptions.clientId = results[CLIENT_ID];
-    analysisServerOptions.clientVersion = results[CLIENT_VERSION];
-
-    analysisServerOptions.enableVerboseFlutterCompletions =
-        results[VERBOSE_FLUTTER_COMPLETIONS];
-
-    _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
     //
     // Process all of the plugins so that extensions are registered.
@@ -413,13 +397,16 @@ class Driver implements ServerStarter {
         new InstrumentationService(instrumentationServer);
     instrumentationService.logVersion(
         _readUuid(instrumentationService),
-        results[CLIENT_ID],
-        results[CLIENT_VERSION],
+        analysisServerOptions.clientId,
+        analysisServerOptions.clientVersion,
         AnalysisServer.VERSION,
         defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+
+    // Ping analytics with our initial call.
+    analytics.sendScreenView('home');
 
     //
     // Create the sockets and start listening for requests.
@@ -494,10 +481,6 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
-    parser.addFlag(ENABLE_INCREMENTAL_RESOLUTION_API,
-        help: "enable using incremental resolution for API changes",
-        defaultsTo: false,
-        negatable: false);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
@@ -507,15 +490,8 @@ class Driver implements ServerStarter {
         abbr: 'h',
         defaultsTo: false,
         negatable: false);
-    parser.addOption(INCREMENTAL_RESOLUTION_LOG,
-        help: "set a destination for the incremental resolver's log");
-    parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
-        help: "enable validation of incremental resolution results (slow)",
-        defaultsTo: false,
-        negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
-        help:
-            "the path of the file to which instrumentation data will be written");
+        help: "write instrumentation data to the given file");
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
         defaultsTo: false,
@@ -524,6 +500,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the new analysis driver's log");
     parser.addFlag(VERBOSE_FLUTTER_COMPLETIONS,
         help: "enable verbose code completion for Flutter (experimental)");
+    parser.addFlag(ANALYTICS_FLAG,
+        help: 'enable or disable sending analytics information to Google');
+    parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
+        negatable: false, help: 'suppress analytics for this session');
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"
             " status and performance information");
@@ -559,11 +539,21 @@ class Driver implements ServerStarter {
   /**
    * Print information about how to use the server.
    */
-  void _printUsage(ArgParser parser) {
+  void _printUsage(ArgParser parser, telemetry.Analytics analytics,
+      {bool fromHelp: false}) {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');
     print(parser.usage);
+
+    // Print analytics status and information.
+    if (fromHelp) {
+      print('');
+      print(telemetry.analyticsNotice);
+    }
+    print('');
+    print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
+        command: ANALYTICS_FLAG));
   }
 
   /**

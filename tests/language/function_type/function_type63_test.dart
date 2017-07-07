@@ -19,67 +19,41 @@ import 'package:expect/expect.dart';
 @AssumeDynamic()
 confuse(f) => f;
 
-final bool inCheckedMode = (() {
-  bool result = false;
-  assert(result = true);
-  return result;
-})();
-
-typedef F0<T>
-    = Function Function(int x, [int x2]);
-typedef F1<T>
-    = List<Function> Function(int x, [List<T> x2]);
-typedef F2<T>
-    = List<T> Function(int x1, [core.List<core.int> x2]);
-typedef F3<T>
-    = void Function([List<Function> x1]);
-typedef F4<T>
-    = void Function<A>(List<A> x);
-typedef F5<T>
-    = int Function(int x1, [List<Function> x]) Function<B extends core.int>(
-        int x);
-typedef F6<T>
-    = int Function([List<T> x1]) Function<B extends core.int>(int x);
-typedef F7<T>
-    = Function Function(int x, [Function x1]) Function<B extends core.int>(
-        int x);
-typedef F8<T>
-    = Function Function(int y,
-        {core.List<core.int> x}) Function<B extends core.int>(int x);
-typedef F9<T>
-    = List<Function> Function([Function x]) Function<B extends core.int>(int x);
-typedef F10<T>
-    = List<Function> Function(
-        core.List<core.int> x1) Function<B extends core.int>(int x);
-typedef F11<T>
-    = core.List<core.int> Function(int x2,
-        [int x3]) Function<B extends core.int>(int x);
-typedef F12<T>
-    = core.List<core.int> Function(int x1,
-        {List<Function> x}) Function<B extends core.int>(int x);
-typedef F13<T>
-    = List<T> Function(int x) Function<B extends core.int>(int x);
-typedef F14<T>
-    = List<T> Function(int y, [List<Function> x]) Function<B extends core.int>(
-        int x);
-typedef F15<T>
-    = List<T> Function(int x2, [List<T> x3]) Function<B extends core.int>(
-        int x);
-typedef F16<T>
-    = Function({Function x}) Function<B extends core.int>(int x);
-typedef F17<T>
-    = Function(List<T> x) Function<B extends core.int>(int x);
-typedef F18<T>
-    = void Function(int x1, [Function x]) Function<B extends core.int>(int x);
-typedef F19<T>
-    = void Function([core.List<core.int> x1]) Function<B extends core.int>(
-        int x);
-typedef F20<T>
-    = int Function<A>(List<A> x) Function<B extends core.int>(int x);
-typedef F21<T>
-    = List<T> Function<A>(int x) Function<B extends core.int>(int x);
-typedef F22<T>
-    = List<A> Function<A>(Function x) Function<B extends core.int>(int x);
+typedef F0<T> = Function Function(int x, [int x2]);
+typedef F1<T> = List<Function> Function(int x, [List<T> x2]);
+typedef F2<T> = List<T> Function(int x1, [core.List<core.int> x2]);
+typedef F3<T> = void Function([List<Function> x1]);
+typedef F4<T> = void Function<A>(List<A> x);
+typedef F5<T> = int Function(int x1, [List<Function> x])
+    Function<B extends core.int>(int x);
+typedef F6<T> = int Function([List<T> x1]) Function<B extends core.int>(int x);
+typedef F7<T> = Function Function(int x, [Function x1])
+    Function<B extends core.int>(int x);
+typedef F8<T> = Function Function(int y, {core.List<core.int> x})
+    Function<B extends core.int>(int x);
+typedef F9<T> = List<Function> Function([Function x])
+    Function<B extends core.int>(int x);
+typedef F10<T> = List<Function> Function(core.List<core.int> x1)
+    Function<B extends core.int>(int x);
+typedef F11<T> = core.List<core.int> Function(int x2, [int x3])
+    Function<B extends core.int>(int x);
+typedef F12<T> = core.List<core.int> Function(int x1, {List<Function> x})
+    Function<B extends core.int>(int x);
+typedef F13<T> = List<T> Function(int x) Function<B extends core.int>(int x);
+typedef F14<T> = List<T> Function(int y, [List<Function> x])
+    Function<B extends core.int>(int x);
+typedef F15<T> = List<T> Function(int x2, [List<T> x3])
+    Function<B extends core.int>(int x);
+typedef F16<T> = Function({Function x}) Function<B extends core.int>(int x);
+typedef F17<T> = Function(List<T> x) Function<B extends core.int>(int x);
+typedef F18<T> = void Function(int x1, [Function x])
+    Function<B extends core.int>(int x);
+typedef F19<T> = void Function([core.List<core.int> x1])
+    Function<B extends core.int>(int x);
+typedef F20<T> = int Function<A>(List<A> x) Function<B extends core.int>(int x);
+typedef F21<T> = List<T> Function<A>(int x) Function<B extends core.int>(int x);
+typedef F22<T> = List<A> Function<A>(Function x) Function<B extends core.int>(
+    int x);
 
 Function f0(int x, [int x0]) => null;
 List<Function> f1(int x, [List<int> x0]) => null;
@@ -128,15 +102,15 @@ class U63<T> {
   int Function([List<T> x1]) Function<B extends core.int>(int x) x6;
   Function Function(int x, [Function x1]) Function<B extends core.int>(int x)
       x7;
-  Function Function(int y,
-      {core.List<core.int> x}) Function<B extends core.int>(int x) x8;
+  Function Function(int y, {core.List<core.int> x})
+      Function<B extends core.int>(int x) x8;
   List<Function> Function([Function x]) Function<B extends core.int>(int x) x9;
   List<Function> Function(core.List<core.int> x1) Function<B extends core.int>(
       int x) x10;
   core.List<core.int> Function(int x2, [int x3]) Function<B extends core.int>(
       int x) x11;
-  core.List<core.int> Function(int x1,
-      {List<Function> x}) Function<B extends core.int>(int x) x12;
+  core.List<core.int> Function(int x1, {List<Function> x})
+      Function<B extends core.int>(int x) x12;
   List<T> Function(int x) Function<B extends core.int>(int x) x13;
   List<T> Function(int y, [List<Function> x]) Function<B extends core.int>(
       int x) x14;
@@ -268,7 +242,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m1 is F1<bool>);
       Expect.equals(tIsDynamic, confuse(m1) is F1<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x1 = (f1 as dynamic);
         });
@@ -320,7 +294,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m2 is F2<bool>);
       Expect.equals(tIsDynamic, confuse(m2) is F2<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x2 = (f2 as dynamic);
         });
@@ -406,8 +380,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m5 is F5);
-    Expect.isTrue(m5 is int Function(int x1,
-        [List<Function> x]) Function<B extends core.int>(int x));
+    Expect.isTrue(m5 is int Function(int x1, [List<Function> x])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m5) is F5);
     // In checked mode, verifies the type.
     x5 = m5;
@@ -447,7 +421,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m6 is F6<bool>);
       Expect.equals(tIsDynamic, confuse(m6) is F6<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x6 = (f6 as dynamic);
         });
@@ -485,8 +459,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m7 is F7);
-    Expect.isTrue(m7 is Function Function(int x,
-        [Function x1]) Function<B extends core.int>(int x));
+    Expect.isTrue(m7 is Function Function(int x, [Function x1])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m7) is F7);
     // In checked mode, verifies the type.
     x7 = m7;
@@ -500,8 +474,8 @@ class U63<T> {
     Expect.isTrue(f8 is F8);
     Expect.isTrue(confuse(f8) is F8);
     // In checked mode, verifies the type.
-    Function Function(int y,
-        {core.List<core.int> x}) Function<B extends core.int>(int x) l8;
+    Function Function(int y, {core.List<core.int> x})
+        Function<B extends core.int>(int x) l8;
     // The static function f8 sets `T` to `int`.
     if (!tIsBool) {
       x8 = f8 as dynamic;
@@ -511,8 +485,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m8 is F8);
-    Expect.isTrue(m8 is Function Function(int y,
-        {core.List<core.int> x}) Function<B extends core.int>(int x));
+    Expect.isTrue(m8 is Function Function(int y, {core.List<core.int> x})
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m8) is F8);
     // In checked mode, verifies the type.
     x8 = m8;
@@ -537,8 +511,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m9 is F9);
-    Expect.isTrue(m9 is List<Function> Function(
-        [Function x]) Function<B extends core.int>(int x));
+    Expect.isTrue(m9 is List<Function> Function([Function x])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m9) is F9);
     // In checked mode, verifies the type.
     x9 = m9;
@@ -552,8 +526,8 @@ class U63<T> {
     Expect.isTrue(f10 is F10);
     Expect.isTrue(confuse(f10) is F10);
     // In checked mode, verifies the type.
-    List<Function> Function(
-        core.List<core.int> x1) Function<B extends core.int>(int x) l10;
+    List<Function> Function(core.List<core.int> x1)
+        Function<B extends core.int>(int x) l10;
     // The static function f10 sets `T` to `int`.
     if (!tIsBool) {
       x10 = f10 as dynamic;
@@ -563,8 +537,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m10 is F10);
-    Expect.isTrue(m10 is List<Function> Function(
-        core.List<core.int> x1) Function<B extends core.int>(int x));
+    Expect.isTrue(m10 is List<Function> Function(core.List<core.int> x1)
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m10) is F10);
     // In checked mode, verifies the type.
     x10 = m10;
@@ -589,8 +563,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m11 is F11);
-    Expect.isTrue(m11 is core.List<core.int> Function(int x2,
-        [int x3]) Function<B extends core.int>(int x));
+    Expect.isTrue(m11 is core.List<core.int> Function(int x2, [int x3])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m11) is F11);
     // In checked mode, verifies the type.
     x11 = m11;
@@ -604,8 +578,8 @@ class U63<T> {
     Expect.isTrue(f12 is F12);
     Expect.isTrue(confuse(f12) is F12);
     // In checked mode, verifies the type.
-    core.List<core.int> Function(int x1,
-        {List<Function> x}) Function<B extends core.int>(int x) l12;
+    core.List<core.int> Function(int x1, {List<Function> x})
+        Function<B extends core.int>(int x) l12;
     // The static function f12 sets `T` to `int`.
     if (!tIsBool) {
       x12 = f12 as dynamic;
@@ -616,7 +590,8 @@ class U63<T> {
 
     Expect.isTrue(m12 is F12);
     Expect.isTrue(m12 is core.List<core.int> Function(int x1,
-        {List<Function> x}) Function<B extends core.int>(int x));
+            {List<Function> x})
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m12) is F12);
     // In checked mode, verifies the type.
     x12 = m12;
@@ -656,7 +631,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m13 is F13<bool>);
       Expect.equals(tIsDynamic, confuse(m13) is F13<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x13 = (f13 as dynamic);
         });
@@ -694,8 +669,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m14 is F14);
-    Expect.isTrue(m14 is List<T> Function(int y,
-        [List<Function> x]) Function<B extends core.int>(int x));
+    Expect.isTrue(m14 is List<T> Function(int y, [List<Function> x])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m14) is F14);
     // In checked mode, verifies the type.
     x14 = m14;
@@ -710,15 +685,15 @@ class U63<T> {
       Expect.equals(tIsDynamic, m14 is F14<bool>);
       Expect.equals(tIsDynamic, confuse(m14) is F14<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x14 = (f14 as dynamic);
         });
         Expect.throws(() {
           x14 = confuse(f14);
         });
-        List<T> Function(int y,
-            [List<Function> x]) Function<B extends core.int>(int x) l14;
+        List<T> Function(int y, [List<Function> x])
+            Function<B extends core.int>(int x) l14;
         Expect.throws(() {
           l14 = (f14 as dynamic);
         });
@@ -750,8 +725,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m15 is F15);
-    Expect.isTrue(m15 is List<T> Function(int x2,
-        [List<T> x3]) Function<B extends core.int>(int x));
+    Expect.isTrue(m15 is List<T> Function(int x2, [List<T> x3])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m15) is F15);
     // In checked mode, verifies the type.
     x15 = m15;
@@ -766,7 +741,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m15 is F15<bool>);
       Expect.equals(tIsDynamic, confuse(m15) is F15<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x15 = (f15 as dynamic);
         });
@@ -846,7 +821,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m17 is F17<bool>);
       Expect.equals(tIsDynamic, confuse(m17) is F17<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x17 = (f17 as dynamic);
         });
@@ -883,8 +858,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m18 is F18);
-    Expect.isTrue(m18 is void Function(int x1,
-        [Function x]) Function<B extends core.int>(int x));
+    Expect.isTrue(m18 is void Function(int x1, [Function x])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m18) is F18);
     // In checked mode, verifies the type.
     x18 = m18;
@@ -909,8 +884,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m19 is F19);
-    Expect.isTrue(m19 is void Function(
-        [core.List<core.int> x1]) Function<B extends core.int>(int x));
+    Expect.isTrue(m19 is void Function([core.List<core.int> x1])
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m19) is F19);
     // In checked mode, verifies the type.
     x19 = m19;
@@ -975,7 +950,7 @@ class U63<T> {
       Expect.equals(tIsDynamic, m21 is F21<bool>);
       Expect.equals(tIsDynamic, confuse(m21) is F21<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() {
           x21 = (f21 as dynamic);
         });
@@ -1012,8 +987,8 @@ class U63<T> {
     }
 
     Expect.isTrue(m22 is F22);
-    Expect.isTrue(m22 is List<A> Function<A>(
-        Function x) Function<B extends core.int>(int x));
+    Expect.isTrue(m22 is List<A> Function<A>(Function x)
+        Function<B extends core.int>(int x));
     Expect.isTrue(confuse(m22) is F22);
     // In checked mode, verifies the type.
     x22 = m22;

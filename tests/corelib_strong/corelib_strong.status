@@ -86,10 +86,8 @@ list_insert_test: RuntimeError # Issue 29921
 list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
-list_to_string2_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 map_keys2_test: RuntimeError # Issue 29921
-map_to_string_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test: RuntimeError # Issue 29921
 null_test: RuntimeError # Issue 29921

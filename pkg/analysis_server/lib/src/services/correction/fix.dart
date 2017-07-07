@@ -154,6 +154,8 @@ class DartFixKind {
       const FixKind('IMPORT_LIBRARY_SHOW', 45, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
+  static const INVOKE_CONSTRUCTOR_USING_NEW = const FixKind(
+      'INVOKE_CONSTRUCTOR_USING_NEW', 50, "Invoke constructor using 'new'");
   static const LINT_ADD_OVERRIDE =
       const FixKind('LINT_ADD_OVERRIDE', 50, "Add '@override' annotation");
   static const LINT_REMOVE_INTERPOLATION_BRACES = const FixKind(

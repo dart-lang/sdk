@@ -10,10 +10,12 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelArguments,
         KernelComplexAssignment,
         KernelConditionalExpression,
+        KernelIllegalAssignment,
         KernelMethodInvocation,
         KernelNullAwarePropertyGet,
         KernelPropertyAssign,
         KernelPropertyGet,
+        KernelSuperMethodInvocation,
         KernelSuperPropertyGet,
         KernelThisExpression,
         KernelVariableDeclaration,
@@ -190,9 +192,9 @@ abstract class Accessor {
   }
 
   /// Creates a data structure for tracking the desugaring of a complex
-  /// assignment expression whose right hand side is [rhs], if necessary, or
-  /// returns `null` if not necessary.
-  KernelComplexAssignment startComplexAssignment(Expression rhs) => null;
+  /// assignment expression whose right hand side is [rhs].
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelIllegalAssignment(rhs);
 }
 
 abstract class VariableAccessor extends Accessor {
@@ -280,13 +282,7 @@ class PropertyAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    body = makeLet(_receiverVariable, body);
-    if (complexAssignment != null) {
-      complexAssignment.desugared = body;
-      return complexAssignment;
-    } else {
-      return body;
-    }
+    return super._finish(makeLet(_receiverVariable, body), complexAssignment);
   }
 }
 
@@ -373,7 +369,9 @@ class SuperPropertyAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
-    if (getter == null) return makeInvalidRead();
+    if (getter == null) {
+      helper.warnUnresolvedSuperGet(name, offsetForToken(token));
+    }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
     var read = new KernelSuperPropertyGet(name, getter)
       ..fileOffset = offsetForToken(token);
@@ -383,7 +381,9 @@ class SuperPropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    if (setter == null) return makeInvalidWrite(value);
+    if (setter == null) {
+      helper.warnUnresolvedSuperSet(name, offsetForToken(token));
+    }
     // TODO(ahe): Use [DirectPropertySet] when possible.
     var write = new SuperPropertySet(name, value, setter)
       ..fileOffset = offsetForToken(token);
@@ -489,14 +489,9 @@ class IndexAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    Expression desugared =
-        makeLet(receiverVariable, makeLet(indexVariable, body));
-    if (complexAssignment != null) {
-      complexAssignment.desugared = desugared;
-      return complexAssignment;
-    } else {
-      return desugared;
-    }
+    return super._finish(
+        makeLet(receiverVariable, makeLet(indexVariable, body)),
+        complexAssignment);
   }
 }
 
@@ -571,13 +566,7 @@ class ThisIndexAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    var desugared = makeLet(indexVariable, body);
-    if (complexAssignment != null) {
-      complexAssignment.desugared = desugared;
-      return complexAssignment;
-    } else {
-      return desugared;
-    }
+    return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
 }
 
@@ -595,12 +584,22 @@ class SuperIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  Expression _makeSimpleRead() => new SuperMethodInvocation(
-      indexGetName, new KernelArguments(<Expression>[index]), getter);
+  Expression _makeSimpleRead() {
+    if (getter == null) {
+      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+    }
+    // TODO(ahe): Use [DirectMethodInvocation] when possible.
+    return new KernelSuperMethodInvocation(
+        indexGetName, new KernelArguments(<Expression>[index]), getter)
+      ..fileOffset = offsetForToken(token);
+  }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    if (setter == null) {
+      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+    }
     var write = new SuperMethodInvocation(
         indexSetName, new KernelArguments(<Expression>[index, value]), setter)
       ..fileOffset = offsetForToken(token);
@@ -609,6 +608,9 @@ class SuperIndexAccessor extends Accessor {
   }
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
+    if (getter == null) {
+      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+    }
     var read = new SuperMethodInvocation(
         indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter)
       ..fileOffset = offsetForToken(token);
@@ -619,6 +621,9 @@ class SuperIndexAccessor extends Accessor {
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    if (setter == null) {
+      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+    }
     var write = new SuperMethodInvocation(indexSetName,
         new KernelArguments(<Expression>[indexAccess(), value]), setter)
       ..fileOffset = offsetForToken(token);
@@ -629,6 +634,9 @@ class SuperIndexAccessor extends Accessor {
   _makeWriteAndReturn(
       Expression value, KernelComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
+    if (setter == null) {
+      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+    }
     var write = new SuperMethodInvocation(
         indexSetName,
         new KernelArguments(
@@ -643,13 +651,7 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    var desugared = makeLet(indexVariable, body);
-    if (complexAssignment != null) {
-      complexAssignment.desugared = desugared;
-      return complexAssignment;
-    } else {
-      return desugared;
-    }
+    return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
 }
 
@@ -705,7 +707,7 @@ class ReadOnlyAccessor extends Accessor {
 
   Expression _finish(
           Expression body, KernelComplexAssignment complexAssignment) =>
-      makeLet(value, body);
+      super._finish(makeLet(value, body), complexAssignment);
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

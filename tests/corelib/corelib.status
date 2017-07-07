@@ -122,9 +122,6 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && $runtime == drt ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && $runtime == jsshell ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 string_split_test: RuntimeError # Issue 21431
 
@@ -135,10 +132,6 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
-
-[ $compiler == dart2js && $runtime == jsshell && ! $fast_startup]
-list_test/none: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
-list_test/01: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
 
 [ $compiler == dart2js && $runtime == dartium ]
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.

@@ -11,6 +11,7 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
+import 'package:telemetry/telemetry.dart' as telemetry;
 
 const _binaryName = 'dartanalyzer';
 
@@ -115,7 +116,7 @@ class CommandLineOptions {
   final String perfReport;
 
   /// Batch mode (for unit testing)
-  final bool shouldBatch;
+  final bool batchMode;
 
   /// Whether to show package: warnings
   final bool showPackageWarnings;
@@ -184,7 +185,7 @@ class CommandLineOptions {
         log = args['log'],
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
-        shouldBatch = args['batch'],
+        batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
             args['x-package-warnings-prefix'] != null,
@@ -238,8 +239,14 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
-      [printAndFail(String msg) = printAndFail]) {
+      {printAndFail(String msg) = printAndFail}) {
     CommandLineOptions options = _parse(args);
+
+    /// Only happens in testing.
+    if (options == null) {
+      return null;
+    }
+
     // Check SDK.
     if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
@@ -346,6 +353,8 @@ class CommandLineOptions {
           help: 'Treat non-type warnings as fatal.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag('analytics',
+          help: 'Enable or disable sending analytics information to Google.')
       ..addFlag('help',
           abbr: 'h',
           help:
@@ -528,15 +537,25 @@ class CommandLineOptions {
 
       // Help requests.
       if (results['help']) {
-        _showUsage(parser);
+        _showUsage(parser, analytics, fromHelp: true);
         exitHandler(0);
         return null; // Only reachable in testing.
       }
+
+      // Enable / disable analytics.
+      if (results.wasParsed('analytics')) {
+        analytics.enabled = results['analytics'];
+        outSink
+            .writeln(telemetry.createAnalyticsStatusMessage(analytics.enabled));
+        exitHandler(0);
+        return null; // Only reachable in testing.
+      }
+
       // Batch mode and input files.
       if (results['batch']) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
-          _showUsage(parser);
+          _showUsage(parser, analytics);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -544,7 +563,7 @@ class CommandLineOptions {
         if (results.rest.isNotEmpty) {
           errorSink.writeln(
               'No source files expected in the persistent worker mode.');
-          _showUsage(parser);
+          _showUsage(parser, analytics);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -554,7 +573,7 @@ class CommandLineOptions {
         return null; // Only reachable in testing.
       } else {
         if (results.rest.isEmpty && !results['build-mode']) {
-          _showUsage(parser);
+          _showUsage(parser, analytics, fromHelp: true);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -562,21 +581,46 @@ class CommandLineOptions {
       return new CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
-      _showUsage(parser);
+      _showUsage(parser, null);
       exitHandler(15);
       return null; // Only reachable in testing.
     }
   }
 
-  static _showUsage(ArgParser parser) {
+  static _showUsage(ArgParser parser, telemetry.Analytics analytics,
+      {bool fromHelp: false}) {
+    void printAnalyticsInfo() {
+      if (fromHelp) {
+        errorSink.writeln('');
+        errorSink.writeln(telemetry.analyticsNotice);
+      }
+
+      if (analytics != null) {
+        errorSink.writeln('');
+        errorSink.writeln(telemetry.createAnalyticsStatusMessage(
+            analytics.enabled,
+            command: 'analytics'));
+      }
+    }
+
     errorSink.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
+
+    // If it's our first run, we display the analytics info more prominently.
+    if (analytics != null && analytics.firstRun) {
+      printAnalyticsInfo();
+    }
+
     errorSink.writeln('');
     errorSink.writeln(parser.usage);
+
+    if (analytics != null && !analytics.firstRun) {
+      printAnalyticsInfo();
+    }
+
     errorSink.writeln('');
     errorSink.writeln('''
 Run "dartanalyzer -h -v" for verbose help output, including less commonly used options.
-For more information, see http://www.dartlang.org/tools/analyzer.
-''');
+For more information, see https://www.dartlang.org/tools/analyzer.\n''');
   }
 }

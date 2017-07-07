@@ -25,8 +25,10 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     implements KernelTypeBuilder {
+  final int charOffset;
+
   KernelFunctionTypeBuilder(
-      int charOffset,
+      this.charOffset,
       Uri fileUri,
       KernelTypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
@@ -34,7 +36,37 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       : super(charOffset, fileUri, returnType, typeVariables, formals);
 
   DartType build(LibraryBuilder library) {
-    return buildFunctionType(library, returnType, typeVariables, formals);
+    DartType builtReturnType =
+        returnType?.build(library) ?? const DynamicType();
+    List<DartType> positionalParameters = <DartType>[];
+    List<NamedType> namedParameters;
+    int requiredParameterCount = 0;
+    if (formals != null) {
+      for (KernelFormalParameterBuilder formal in formals) {
+        DartType type = formal.type?.build(library) ?? const DynamicType();
+        if (formal.isPositional) {
+          positionalParameters.add(type);
+          if (formal.isRequired) requiredParameterCount++;
+        } else if (formal.isNamed) {
+          namedParameters ??= <NamedType>[];
+          namedParameters.add(new NamedType(formal.name, type));
+        }
+      }
+      if (namedParameters != null) {
+        namedParameters.sort();
+      }
+    }
+    List<TypeParameter> typeParameters;
+    if (typeVariables != null) {
+      typeParameters = <TypeParameter>[];
+      for (KernelTypeVariableBuilder t in typeVariables) {
+        typeParameters.add(t.parameter);
+      }
+    }
+    return new FunctionType(positionalParameters, builtReturnType,
+        namedParameters: namedParameters ?? const <NamedType>[],
+        typeParameters: typeParameters ?? const <TypeParameter>[],
+        requiredParameterCount: requiredParameterCount);
   }
 
   Supertype buildSupertype(LibraryBuilder library) {
@@ -43,41 +75,4 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         fileUri: fileUri);
     return null;
   }
-}
-
-FunctionType buildFunctionType(
-    LibraryBuilder library,
-    KernelTypeBuilder returnType,
-    List<TypeVariableBuilder> typeVariables,
-    List<FormalParameterBuilder> formals) {
-  DartType builtReturnType = returnType?.build(library) ?? const DynamicType();
-  List<DartType> positionalParameters = <DartType>[];
-  List<NamedType> namedParameters;
-  int requiredParameterCount = 0;
-  if (formals != null) {
-    for (KernelFormalParameterBuilder formal in formals) {
-      DartType type = formal.type?.build(library) ?? const DynamicType();
-      if (formal.isPositional) {
-        positionalParameters.add(type);
-        if (formal.isRequired) requiredParameterCount++;
-      } else if (formal.isNamed) {
-        namedParameters ??= <NamedType>[];
-        namedParameters.add(new NamedType(formal.name, type));
-      }
-    }
-    if (namedParameters != null) {
-      namedParameters.sort();
-    }
-  }
-  List<TypeParameter> typeParameters;
-  if (typeVariables != null) {
-    typeParameters = <TypeParameter>[];
-    for (KernelTypeVariableBuilder t in typeVariables) {
-      typeParameters.add(t.parameter);
-    }
-  }
-  return new FunctionType(positionalParameters, builtReturnType,
-      namedParameters: namedParameters ?? const <NamedType>[],
-      typeParameters: typeParameters ?? const <TypeParameter>[],
-      requiredParameterCount: requiredParameterCount);
 }

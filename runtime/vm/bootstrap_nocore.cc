@@ -93,12 +93,10 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
     dart_name = library.url();
-    for (intptr_t j = 0; j < program->libraries().length(); ++j) {
-      kernel::Library* kernel_library = program->libraries()[j];
-      kernel::StringIndex uri_index = kernel_library->import_uri();
-      const String& kernel_name = reader.DartSymbol(uri_index);
+    for (intptr_t j = 0; j < program->library_count(); ++j) {
+      const String& kernel_name = reader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
-        reader.ReadLibrary(kernel_library->kernel_offset());
+        reader.ReadLibrary(reader.library_offset(j));
         library.SetLoaded();
         break;
       }

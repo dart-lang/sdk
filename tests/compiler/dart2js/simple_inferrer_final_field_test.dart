@@ -38,7 +38,7 @@ void main() {
           dynamic cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(fieldName);
           Expect.equals(type,
-              simplify(typesInferrer.getTypeOfElement(element), closedWorld));
+              simplify(typesInferrer.getTypeOfMember(element), closedWorld));
         }
 
         checkFieldTypeInClass(

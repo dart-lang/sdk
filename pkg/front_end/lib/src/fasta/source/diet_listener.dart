@@ -10,6 +10,9 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
 
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrerDisabled;
+
 import 'package:kernel/ast.dart' show AsyncMarker, Class, InterfaceType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -416,8 +419,9 @@ class DietListener extends StackListener {
       Class cls = builder.parent.target;
       thisType = cls.thisType;
     }
-    var typeInferrer =
-        typeInferenceEngine.createLocalTypeInferrer(uri, listener, thisType);
+    var typeInferrer = library.disableTypeInference
+        ? new TypeInferrerDisabled()
+        : typeInferenceEngine.createLocalTypeInferrer(uri, listener, thisType);
     return new BodyBuilder(library, builder, memberScope, formalParameterScope,
         hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;

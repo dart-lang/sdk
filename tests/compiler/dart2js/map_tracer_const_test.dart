@@ -37,7 +37,7 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
         var commonMasks = closedWorld.commonMasks;
         var element = findElement(compiler, 'closure');
-        var mask = typesInferrer.getReturnTypeOfElement(element);
+        var mask = typesInferrer.getReturnTypeOfMember(element);
         Expect.equals(commonMasks.numType, simplify(mask, closedWorld));
       }));
 }

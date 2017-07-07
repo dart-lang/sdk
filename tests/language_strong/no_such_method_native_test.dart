@@ -30,7 +30,6 @@ main() {
   expectNSME(null);
   expectNSME(777);
   expectNSME('hello');
-  // These fail because of https://github.com/dart-lang/dev_compiler/issues/592.
-  // expectNSME([]);
-  // expectNSME(['a', 'b', 'c']);
+  expectNSME([]);
+  expectNSME(<String>['a', 'b', 'c']);
 }

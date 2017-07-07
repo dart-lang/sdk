@@ -101,6 +101,8 @@ class KernelTarget extends TargetImplementation {
 
   bool get strongMode => backendTarget.strongMode;
 
+  bool get disableTypeInference => backendTarget.disableTypeInference;
+
   KernelTarget(
       this.fileSystem, DillTarget dillTarget, TranslateUri uriTranslator,
       [Map<String, Source> uriToSource])

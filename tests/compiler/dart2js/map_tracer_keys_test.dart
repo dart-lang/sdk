@@ -60,9 +60,9 @@ void doTest(
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
         var commonMasks = typesInferrer.closedWorld.commonMasks;
         var aDoubleType =
-            typesInferrer.getTypeOfElement(findElement(compiler, 'aDouble'));
+            typesInferrer.getTypeOfMember(findElement(compiler, 'aDouble'));
         var aListType =
-            typesInferrer.getTypeOfElement(findElement(compiler, 'aList'));
+            typesInferrer.getTypeOfMember(findElement(compiler, 'aList'));
 
         Expect.equals(aDoubleType, commonMasks.doubleType);
         Expect.isTrue(aListType is ContainerTypeMask);

@@ -1028,9 +1028,6 @@ linter:
     expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
     expect(actual.generateSdkErrors, expected.generateSdkErrors);
     expect(actual.hint, expected.hint);
-    expect(actual.incremental, expected.incremental);
-    expect(actual.incrementalApi, expected.incrementalApi);
-    expect(actual.incrementalValidation, expected.incrementalValidation);
     expect(actual.lint, expected.lint);
     expect(
       actual.lintRules.map((l) => l.name),

@@ -9,6 +9,7 @@ import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' show Random;
+import 'dart:_runtime' show getGenericClass, wrapType;
 
 part 'js_array.dart';
 part 'js_number.dart';

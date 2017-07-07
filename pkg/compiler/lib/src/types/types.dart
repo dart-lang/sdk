@@ -4,7 +4,6 @@
 
 library types;
 
-import '../closure.dart' show SynthesizedCallMethodElementX;
 import '../common.dart' show failedAt;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -33,10 +32,6 @@ export 'masks.dart';
 abstract class GlobalTypeInferenceElementResult {
   /// Whether the method element associated with this result always throws.
   bool get throwsAlways;
-
-  /// Whether the element associated with this result is only called once in one
-  /// location in the entire program.
-  bool get isCalledOnce;
 
   /// The inferred type when this result belongs to a parameter or field
   /// element, null otherwise.
@@ -72,7 +67,14 @@ abstract class GlobalTypeInferenceElementResult {
   TypeMask typeOfIteratorCurrent(ForIn node);
 }
 
-class GlobalTypeInferenceElementResultImpl
+abstract class GlobalTypeInferenceMemberResult
+    extends GlobalTypeInferenceElementResult {
+  /// Whether the member associated with this result is only called once in one
+  /// location in the entire program.
+  bool get isCalledOnce;
+}
+
+abstract class GlobalTypeInferenceElementResultImpl
     implements GlobalTypeInferenceElementResult {
   // TODO(sigmund): delete, store data directly here.
   final Element _owner;
@@ -85,16 +87,8 @@ class GlobalTypeInferenceElementResultImpl
   final bool _isJsInterop;
   final TypeMask _dynamic;
 
-  GlobalTypeInferenceElementResultImpl(this._owner, this._data, this._inferrer,
-      this._isJsInterop, this._dynamic);
-
-  bool get isCalledOnce => _inferrer.isCalledOnce(_owner);
-
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfElement(_owner);
-
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfElement(_owner);
+  GlobalTypeInferenceElementResultImpl.internal(this._owner, this._data,
+      this._inferrer, this._isJsInterop, this._dynamic);
 
   bool get throwsAlways {
     TypeMask mask = this.returnType;
@@ -102,11 +96,10 @@ class GlobalTypeInferenceElementResultImpl
     return mask != null && mask.isEmpty;
   }
 
-  TypeMask typeOfNewList(Send node) =>
-      _inferrer.getTypeForNewList(_owner, node);
+  TypeMask typeOfNewList(Send node) => _inferrer.getTypeForNewList(node);
 
   TypeMask typeOfListLiteral(LiteralList node) =>
-      _inferrer.getTypeForNewList(_owner, node);
+      _inferrer.getTypeForNewList(node);
 
   TypeMask typeOfSend(Send node) => _data?.typeOfSend(node);
   TypeMask typeOfGetter(SendSet node) => _data?.typeOfGetter(node);
@@ -116,6 +109,39 @@ class GlobalTypeInferenceElementResultImpl
       _data?.typeOfIteratorMoveNext(node);
   TypeMask typeOfIteratorCurrent(ForIn node) =>
       _data?.typeOfIteratorCurrent(node);
+}
+
+class GlobalTypeInferenceMemberResultImpl
+    extends GlobalTypeInferenceElementResultImpl
+    implements GlobalTypeInferenceMemberResult {
+  GlobalTypeInferenceMemberResultImpl(
+      MemberElement owner,
+      GlobalTypeInferenceElementData data,
+      TypesInferrer inferrer,
+      bool isJsInterop,
+      TypeMask _dynamic)
+      : super.internal(owner, data, inferrer, isJsInterop, _dynamic);
+
+  bool get isCalledOnce => _inferrer.isMemberCalledOnce(_owner);
+
+  TypeMask get returnType =>
+      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfMember(_owner);
+
+  TypeMask get type =>
+      _isJsInterop ? _dynamic : _inferrer.getTypeOfMember(_owner);
+}
+
+class GlobalTypeInferenceParameterResult
+    extends GlobalTypeInferenceElementResultImpl {
+  GlobalTypeInferenceParameterResult(
+      ParameterElement owner, TypesInferrer inferrer, TypeMask _dynamic)
+      : super.internal(owner, null, inferrer, false, _dynamic);
+
+  TypeMask get returnType =>
+      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfParameter(_owner);
+
+  TypeMask get type =>
+      _isJsInterop ? _dynamic : _inferrer.getTypeOfParameter(_owner);
 }
 
 /// Internal data used during type-inference to store intermediate results about
@@ -173,12 +199,14 @@ class GlobalTypeInferenceElementData {
 /// API to interact with the global type-inference engine.
 abstract class TypesInferrer {
   void analyzeMain(FunctionEntity element);
-  TypeMask getReturnTypeOfElement(Element element);
-  TypeMask getTypeOfElement(Element element);
-  TypeMask getTypeForNewList(Element owner, Node node);
+  TypeMask getReturnTypeOfMember(MemberElement element);
+  TypeMask getReturnTypeOfParameter(ParameterElement element);
+  TypeMask getTypeOfMember(MemberElement element);
+  TypeMask getTypeOfParameter(ParameterElement element);
+  TypeMask getTypeForNewList(Node node);
   TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
   void clear();
-  bool isCalledOnce(Element element);
+  bool isMemberCalledOnce(MemberElement element);
   bool isFixedArrayCheckedForGrowable(Node node);
 }
 
@@ -192,51 +220,43 @@ class GlobalTypeInferenceResults {
   // TODO(sigmund): store relevant data & drop reference to inference engine.
   final TypeGraphInferrer _inferrer;
   final ClosedWorld closedWorld;
-  final Map<Element, GlobalTypeInferenceElementResult> _elementResults = {};
+  final Map<MemberElement, GlobalTypeInferenceMemberResult> _memberResults =
+      <MemberElement, GlobalTypeInferenceMemberResult>{};
+  final Map<ParameterElement, GlobalTypeInferenceParameterResult>
+      _parameterResults =
+      <ParameterElement, GlobalTypeInferenceParameterResult>{};
 
-  GlobalTypeInferenceElementResult resultOfMember(MemberElement element) {
-    return _resultOf(element);
-  }
+  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
+  // error to query for results that don't exist.
+  GlobalTypeInferenceMemberResult resultOfMember(MemberElement member) {
+    assert(
+        !member.isGenerativeConstructorBody,
+        failedAt(
+            member,
+            "unexpected input: ConstructorBodyElements are created"
+            " after global type inference, no data is avaiable for them."));
 
-  GlobalTypeInferenceElementResult resultOfParameter(ParameterElement element) {
-    return _resultOf(element);
-  }
-
-  @deprecated
-  GlobalTypeInferenceElementResult resultOfElement(AstElement element) {
-    return _resultOf(element);
+    bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
+    return _memberResults.putIfAbsent(
+        member,
+        () => new GlobalTypeInferenceMemberResultImpl(
+            member,
+            // We store data in the context of the enclosing method, even
+            // for closure elements.
+            _inferrer.inferrer.lookupDataOfMember(member.memberContext),
+            _inferrer,
+            isJsInterop,
+            dynamicType));
   }
 
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
   // error to query for results that don't exist.
-  GlobalTypeInferenceElementResult _resultOf(AstElement element) {
-    assert(
-        !element.isGenerativeConstructorBody,
-        failedAt(
-            element,
-            "unexpected input: ConstructorBodyElements are created"
-            " after global type inference, no data is avaiable for them."));
-
-    // TODO(sigmund): store closure data directly in the closure element and
-    // not in the context of the enclosing method?
-    var key = (element is SynthesizedCallMethodElementX)
-        ? element.memberContext
-        : element;
-    bool isJsInterop = false;
-    if (element is MemberElement) {
-      isJsInterop = closedWorld.nativeData.isJsInteropMember(element);
-    } else if (element is ClassElement) {
-      // TODO(johnniwinther): Can we meet classes here?
-      isJsInterop = closedWorld.nativeData.isJsInteropClass(element);
-    }
-    return _elementResults.putIfAbsent(
-        element,
-        () => new GlobalTypeInferenceElementResultImpl(
-            element,
-            _inferrer.inferrer.inTreeData[key],
-            _inferrer,
-            isJsInterop,
-            dynamicType));
+  GlobalTypeInferenceElementResult resultOfParameter(
+      ParameterElement parameter) {
+    return _parameterResults.putIfAbsent(
+        parameter,
+        () => new GlobalTypeInferenceParameterResult(
+            parameter, _inferrer, dynamicType));
   }
 
   GlobalTypeInferenceResults(

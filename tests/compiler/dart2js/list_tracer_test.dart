@@ -204,7 +204,7 @@ void doTest(String allocation, {bool nullify}) {
 
         checkType(String name, type) {
           var element = findElement(compiler, name);
-          ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+          ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
           if (nullify) type = type.nullable();
           Expect.equals(type, simplify(mask.elementType, closedWorld), name);
         }

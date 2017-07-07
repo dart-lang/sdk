@@ -5,6 +5,7 @@ library dart2js.inferrer.type_graph_dump;
 
 import '../../compiler_new.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../types/types.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
@@ -62,8 +63,8 @@ class TypeGraphDump {
   /// Dumps the entire graph.
   void afterAnalysis() {
     // Group all the type nodes by their context member.
-    Map<Element, List<TypeInformation>> nodes =
-        <Element, List<TypeInformation>>{};
+    Map<MemberEntity, List<TypeInformation>> nodes =
+        <MemberEntity, List<TypeInformation>>{};
     for (TypeInformation node in inferrer.types.allTypes) {
       if (node.contextMember != null) {
         nodes
@@ -72,7 +73,7 @@ class TypeGraphDump {
       }
     }
     // Print every group separately.
-    for (Element element in nodes.keys) {
+    for (MemberEntity element in nodes.keys) {
       OutputSink output;
       try {
         String name = filenameFromElement(element);
@@ -97,32 +98,30 @@ class TypeGraphDump {
   ///
   /// Will never return the a given filename more than once, even if called with
   /// the same element.
-  String filenameFromElement(Element element) {
+  String filenameFromElement(MemberElement element) {
     // The toString method of elements include characters that are unsuitable
     // for URIs and file systems.
     List<String> parts = <String>[];
     parts.add(element.library?.libraryName);
     parts.add(element.enclosingClass?.name);
-    Element namedElement =
-        element is LocalElement ? element.executableContext : element;
-    if (namedElement.isGetter) {
-      parts.add('get-${namedElement.name}');
-    } else if (namedElement.isSetter) {
-      parts.add('set-${namedElement.name}');
-    } else if (namedElement.isConstructor) {
-      if (namedElement.name.isEmpty) {
+    if (element.isGetter) {
+      parts.add('get-${element.name}');
+    } else if (element.isSetter) {
+      parts.add('set-${element.name}');
+    } else if (element.isConstructor) {
+      if (element.name.isEmpty) {
         parts.add('-constructor');
       } else {
-        parts.add(namedElement.name);
+        parts.add(element.name);
       }
-    } else if (namedElement.isOperator) {
+    } else if (element.isOperator) {
       parts.add(Elements
-          .operatorNameToIdentifier(namedElement.name)
+          .operatorNameToIdentifier(element.name)
           .replaceAll(r'$', '-'));
     } else {
-      parts.add(namedElement.name);
+      parts.add(element.name);
     }
-    if (namedElement != element) {
+    if (element != element) {
       if (element.name.isEmpty) {
         parts.add('anon${element.sourcePosition.begin}');
       } else {
@@ -149,11 +148,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   int usedIds = 0;
   final OutputSink output;
-  final Element element;
+  final MemberElement element;
   TypeInformation returnValue;
 
   _GraphGenerator(this.global, this.element, this.output) {
-    returnValue = global.inferrer.types.getInferredTypeOf(element);
+    returnValue = global.inferrer.types.getInferredTypeOfMember(element);
     getNode(returnValue); // Ensure return value is part of graph.
     append('digraph {');
   }
@@ -401,11 +400,11 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {
-    addNode(info, 'Member\n${info.element}');
+    addNode(info, 'Member\n${info.debugName}');
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    addNode(info, 'Parameter ${info.element?.name ?? ''}');
+    addNode(info, 'Parameter ${info.debugName}');
   }
 
   void visitClosureTypeInformation(ClosureTypeInformation info) {

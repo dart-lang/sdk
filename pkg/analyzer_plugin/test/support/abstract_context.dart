@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -17,6 +18,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 
@@ -61,6 +63,11 @@ class AbstractContextTest {
    */
   bool get enableStrongMode => false;
 
+  /**
+   * Return the analysis session associated with the driver.
+   */
+  AnalysisSession get session => driver.currentSession;
+
   Source addMetaPackageSource() => addPackageSource(
       'meta',
       'meta.dart',
@@ -93,7 +100,9 @@ class Required {
 
   Element findElementInUnit(CompilationUnit unit, String name,
       [ElementKind kind]) {
-    return findChildElement(unit.element, name, kind);
+    return findElementsByName(unit, name)
+        .where((e) => kind == null || e.kind == kind)
+        .single;
   }
 
   File newFile(String path, [String content]) =>

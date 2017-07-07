@@ -21,13 +21,14 @@ class FieldRefElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.FieldRef _field;
   M.ObjectRepository _objects;
+  bool _expandable;
 
   M.IsolateRef get isolate => _isolate;
   M.FieldRef get field => _field;
 
   factory FieldRefElement(
       M.IsolateRef isolate, M.FieldRef field, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue queue, bool expandable: true}) {
     assert(isolate != null);
     assert(field != null);
     assert(objects != null);
@@ -36,6 +37,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._field = field;
     e._objects = objects;
+    e._expandable = expandable;
     return e;
   }
 
@@ -80,7 +82,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
       children = [
         new SpanElement()..text = header,
         new InstanceRefElement(_isolate, _field.declaredType, _objects,
-            queue: _r.queue),
+            queue: _r.queue, expandable: _expandable),
         new SpanElement()..text = ' ',
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
           ..text = _field.name

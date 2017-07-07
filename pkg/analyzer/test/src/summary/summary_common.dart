@@ -715,6 +715,25 @@ abstract class SummaryTest {
   }
 
   /**
+   * Find the parameter with the given [name] in [parameters].
+   */
+  UnlinkedParam findParameter(List<UnlinkedParam> parameters, String name) {
+    UnlinkedParam result;
+    for (UnlinkedParam parameter in parameters) {
+      if (parameter.name == name) {
+        if (result != null) {
+          fail('Duplicate parameter $name');
+        }
+        result = parameter;
+      }
+    }
+    if (result == null) {
+      fail('Parameter $name not found');
+    }
+    return result;
+  }
+
+  /**
    * Find the typedef with the given [typedefName] in the summary, and return
    * its [UnlinkedTypedef] data structure.  If [unit] is not given, the typedef
    * is looked for in the defining compilation unit.
@@ -5378,260 +5397,6 @@ foo({int p}) {}
     expect(labels, isEmpty);
   }
 
-  test_executable_localVariables_catch() {
-    String code = r'''
-var v = (
-  () { // 1
-    try {
-      throw 42;
-    } on int catch (e, st) { // 2
-      print(e);
-      print(st);
-    } // 3
-  } // 4
-);
-''';
-    UnlinkedExecutable executable =
-        serializeVariableText(code).initializer.localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(2));
-    {
-      UnlinkedVariable e = variables.singleWhere((v) => v.name == 'e');
-      _assertVariableVisible(code, e, 'on int catch (', '} // 3');
-      checkTypeRef(e.type, 'dart:core', 'int');
-    }
-    {
-      UnlinkedVariable st = variables.singleWhere((v) => v.name == 'st');
-      _assertVariableVisible(code, st, 'on int catch (', '} // 3');
-    }
-  }
-
-  test_executable_localVariables_catch_noVariables() {
-    String code = r'''
-f() {
-  try {
-    throw 42;
-  } on int {}
-}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_empty() {
-    UnlinkedExecutable executable = serializeExecutableText(r'''
-f() {
-}
-''');
-    expect(executable.localVariables, isEmpty);
-  }
-
-  test_executable_localVariables_forEachLoop() {
-    String code = r'''
-var v = (() {
-  f() { // 1
-    for (int i in <int>[]) { // 2
-      print(i);
-    } // 3
-  } // 4
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(1));
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
-      _assertVariableVisible(code, i, 'for', '} // 3');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_forEachLoop_outside() {
-    String code = r'''
-var v = (() {
-  f() { // 1
-    int i;
-    for (i in <int>[]) {
-      print(i);
-    }
-  } // 4
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(1));
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
-      _assertVariableVisible(code, i, '{ // 1', '} // 4');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_forLoop() {
-    String code = r'''
-var v = (() {
-  f() { // 1
-    for (int i = 0, j = 0; i < 10; i++, j++) { // 2
-      print(i);
-    } // 3
-  } // 4
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(2));
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
-      _assertVariableVisible(code, i, 'for', '} // 3');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'j');
-      _assertVariableVisible(code, i, 'for', '} // 3');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_forLoop_noVariables() {
-    String code = r'''
-var v = (() {
-  f() {
-    for (; true;) {}
-  }
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_inConstructor() {
-    String code = r'''
-class C {
-  C() {
-    int v;
-  }
-}
-''';
-    UnlinkedExecutable executable =
-        findExecutable('', executables: serializeClassText(code).executables);
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_inLocalFunctions() {
-    String code = r'''
-var v = (() {
-  f() {
-    f1() { // 1
-      int v1 = 1;
-    } // 2
-    f2() { // 3
-      int v1 = 1;
-      f3() { // 4
-        int v2 = 1;
-      } // 5
-    } // 6
-  } // 7
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedExecutable> functions = executable.localFunctions;
-    expect(functions, hasLength(2));
-    // f - f1
-    {
-      UnlinkedExecutable f1 = functions.singleWhere((v) => v.name == 'f1');
-      List<UnlinkedVariable> variables = f1.localVariables;
-      expect(variables, hasLength(1));
-      // f1 - v1
-      UnlinkedVariable v1 = variables.singleWhere((v) => v.name == 'v1');
-      _assertVariableVisible(code, v1, '{ // 1', '} // 2');
-      checkTypeRef(v1.type, 'dart:core', 'int');
-    }
-    // f - f2
-    {
-      UnlinkedExecutable f2 = functions.singleWhere((v) => v.name == 'f2');
-      List<UnlinkedVariable> variables2 = f2.localVariables;
-      List<UnlinkedExecutable> functions2 = f2.localFunctions;
-      expect(variables2, hasLength(1));
-      expect(functions2, hasLength(1));
-      // f - f2 - v1
-      UnlinkedVariable v1 = variables2.singleWhere((v) => v.name == 'v1');
-      _assertVariableVisible(code, v1, '{ // 3', '} // 6');
-      checkTypeRef(v1.type, 'dart:core', 'int');
-      // f - f2 - f3
-      UnlinkedExecutable f3 = functions2.singleWhere((v) => v.name == 'f3');
-      _assertExecutableVisible(code, f3, '{ // 3', '} // 6');
-      List<UnlinkedVariable> variables3 = f3.localVariables;
-      List<UnlinkedExecutable> functions3 = f3.localFunctions;
-      expect(variables3, hasLength(1));
-      expect(functions3, hasLength(0));
-      // f - f3 - v2
-      UnlinkedVariable v2 = variables3.singleWhere((v) => v.name == 'v2');
-      _assertVariableVisible(code, v2, '{ // 4', '} // 5');
-      checkTypeRef(v2.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_inMethod() {
-    String code = r'''
-class C {
-  m() {
-    int v;
-    f() {}
-  }
-}
-''';
-    UnlinkedExecutable executable =
-        findExecutable('m', executables: serializeClassText(code).executables);
-    expect(executable.localFunctions, isEmpty);
-    expect(executable.localVariables, isEmpty);
-  }
-
-  test_executable_localVariables_inTopLevelFunction() {
-    String code = r'''
-f() {
-  int v1 = 1;
-  {
-    int v2 = 2;
-  }
-  var v3 = 3;
-}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_inTopLevelGetter() {
-    String code = r'''
-get g { // 1
-  int v;
-  f() {}
-} // 2
-''';
-    UnlinkedExecutable executable =
-        serializeExecutableText(code, executableName: 'g');
-    expect(executable.localFunctions, isEmpty);
-    expect(executable.localVariables, isEmpty);
-  }
-
   test_executable_member_function() {
     UnlinkedExecutable executable = findExecutable('f',
         executables: serializeClassText('class C { f() {} }').executables);
@@ -8712,42 +8477,6 @@ class C {
     expect(definingUnit.references[classIndex].containingReference, 0);
   }
 
-  test_initializer_executable_with_return_type_from_closure_local() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    // The synthetic executable for `v` has type `() => () => int`, where the
-    // `() => int` part refers to the closure declared inside the initializer
-    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
-    // which would complicate the test.
-    UnlinkedExecutable executable = serializeExecutableText(
-        '''
-void f() {
-  int u = 0; // force the variable below to have index 1
-  int v = () => 0;
-}''',
-        allowErrors: true);
-    UnlinkedVariable variable = executable.localVariables[1];
-    EntityRef closureType =
-        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
-    checkLinkedTypeRef(closureType, null, '',
-        expectedKind: ReferenceKind.function);
-    int initializerIndex =
-        definingUnit.references[closureType.reference].containingReference;
-    checkReferenceIndex(initializerIndex, null, '',
-        expectedKind: ReferenceKind.function);
-    int variableIndex =
-        definingUnit.references[initializerIndex].containingReference;
-    checkReferenceIndex(variableIndex, null, 'v',
-        expectedKind: ReferenceKind.variable, localIndex: 1);
-    int topLevelFunctionIndex =
-        definingUnit.references[variableIndex].containingReference;
-    checkReferenceIndex(topLevelFunctionIndex, null, 'f',
-        expectedKind: ReferenceKind.topLevelFunction);
-    expect(
-        definingUnit.references[topLevelFunctionIndex].containingReference, 0);
-  }
-
   test_initializer_executable_with_unimported_return_type() {
     addNamedSource('/a.dart', 'import "b.dart"; class C { D d; }');
     addNamedSource('/b.dart', 'class D {}');
@@ -9436,13 +9165,7 @@ class C {
 var v = (() {
   void f<T, U>() {
     void g<V, W>() {
-      void h<X, Y>() {
-        T t;
-        U u;
-        V v;
-        W w;
-        X x;
-        Y y;
+      void h<X, Y>(T t, U u, V v W w, X x, Y y) {
       }
     }
   }
@@ -9452,14 +9175,14 @@ var v = (() {
     expect(executable.localFunctions[0].typeParameters, hasLength(2));
     expect(executable.localFunctions[0].localFunctions[0].typeParameters,
         hasLength(2));
-    List<UnlinkedVariable> localVariables =
-        executable.localFunctions[0].localFunctions[0].localVariables;
-    checkParamTypeRef(findVariable('t', variables: localVariables).type, 6);
-    checkParamTypeRef(findVariable('u', variables: localVariables).type, 5);
-    checkParamTypeRef(findVariable('v', variables: localVariables).type, 4);
-    checkParamTypeRef(findVariable('w', variables: localVariables).type, 3);
-    checkParamTypeRef(findVariable('x', variables: localVariables).type, 2);
-    checkParamTypeRef(findVariable('y', variables: localVariables).type, 1);
+    List<UnlinkedParam> parameters =
+        executable.localFunctions[0].localFunctions[0].parameters;
+    checkParamTypeRef(findParameter(parameters, 't').type, 6);
+    checkParamTypeRef(findParameter(parameters, 'u').type, 5);
+    checkParamTypeRef(findParameter(parameters, 'v').type, 4);
+    checkParamTypeRef(findParameter(parameters, 'w').type, 3);
+    checkParamTypeRef(findParameter(parameters, 'x').type, 2);
+    checkParamTypeRef(findParameter(parameters, 'y').type, 1);
   }
 
   test_parameter_visibleRange_abstractMethod() {
@@ -9712,32 +9435,6 @@ bool f() => true;
     checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, '*bottom*');
   }
 
-  test_syntheticFunctionType_genericClosure_inGenericFunction() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    if (!strongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
-      return;
-    }
-    UnlinkedVariable variable = serializeExecutableText('''
-void f<T, U>(bool b) {
-  final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
-}
-''').localVariables[0];
-    EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
-    checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
-    expect(inferredType.syntheticParams, hasLength(3));
-    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
-    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-    checkLinkedTypeRef(inferredType.syntheticParams[2].type, null, '*bottom*');
-  }
-
   test_syntheticFunctionType_inGenericClass() {
     if (skipFullyLinkedData) {
       return;
@@ -9748,22 +9445,6 @@ class C<T, U> {
 }
 bool f() => false;
 ''').fields[0];
-    EntityRef inferredType =
-        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
-    checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
-    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
-    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-  }
-
-  test_syntheticFunctionType_inGenericFunction() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    UnlinkedVariable variable = serializeExecutableText('''
-void f<T, U>(bool b) {
-  var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
-}
-''').localVariables[0];
     EntityRef inferredType =
         getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
     checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
@@ -10438,7 +10119,6 @@ var v;''';
     }
     expect(initializer.name, isEmpty);
     expect(initializer.localFunctions, isEmpty);
-    expect(initializer.localVariables, isEmpty);
   }
 
   test_variable_initializer_noInitializer() {
@@ -10470,12 +10150,6 @@ var v;''';
       if (includeInformative) {
         expect(closure.localFunctions[0].nameOffset, text.indexOf('f1()'));
       }
-      // closure - v1
-      expect(closure.localVariables, hasLength(1));
-      expect(closure.localVariables[0].name, 'v1');
-      if (includeInformative) {
-        expect(closure.localVariables[0].nameOffset, text.indexOf('v1;'));
-      }
     }
     // closure: () { f2() {} var v2; }
     {
@@ -10489,12 +10163,6 @@ var v;''';
       expect(closure.localFunctions[0].name, 'f2');
       if (includeInformative) {
         expect(closure.localFunctions[0].nameOffset, text.indexOf('f2()'));
-      }
-      // closure - v1
-      expect(closure.localVariables, hasLength(1));
-      expect(closure.localVariables[0].name, 'v2');
-      if (includeInformative) {
-        expect(closure.localVariables[0].nameOffset, text.indexOf('v2;'));
       }
     }
   }
@@ -10635,15 +10303,6 @@ final v = $expr;
     expect(codeRange.length, length);
   }
 
-  void _assertExecutableVisible(String code, UnlinkedExecutable f,
-      String visibleBegin, String visibleEnd) {
-    int expectedVisibleOffset = code.indexOf(visibleBegin);
-    int expectedVisibleLength =
-        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
-    expect(f.visibleOffset, expectedVisibleOffset);
-    expect(f.visibleLength, expectedVisibleLength);
-  }
-
   void _assertParameterVisible(
       String code, UnlinkedParam p, String visibleBegin, String visibleEnd) {
     int expectedVisibleOffset = code.indexOf(visibleBegin);
@@ -10689,15 +10348,6 @@ final v = $expr;
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
         ]);
-  }
-
-  void _assertVariableVisible(
-      String code, UnlinkedVariable v, String visibleBegin, String visibleEnd) {
-    int expectedVisibleOffset = code.indexOf(visibleBegin);
-    int expectedVisibleLength =
-        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
-    expect(v.visibleOffset, expectedVisibleOffset);
-    expect(v.visibleLength, expectedVisibleLength);
   }
 }
 

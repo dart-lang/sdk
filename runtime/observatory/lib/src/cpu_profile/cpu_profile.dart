@@ -473,15 +473,15 @@ class ProfileCode implements M.ProfileCode {
   final Map<ProfileCode, int> callers = new Map<ProfileCode, int>();
   final Map<ProfileCode, int> callees = new Map<ProfileCode, int>();
 
-  void _processTicks(List<String> profileTicks) {
+  void _processTicks(List<dynamic> profileTicks) {
     assert(profileTicks != null);
     assert((profileTicks.length % 3) == 0);
     for (var i = 0; i < profileTicks.length; i += 3) {
       // TODO(observatory): Address is not necessarily representable as a JS
       // integer.
-      var address = int.parse(profileTicks[i], radix: 16);
-      var exclusive = profileTicks[i + 1];
-      var inclusive = profileTicks[i + 2];
+      var address = int.parse(profileTicks[i] as String, radix: 16);
+      var exclusive = profileTicks[i + 1] as int;
+      var inclusive = profileTicks[i + 2] as int;
       var tick = new CodeTick(exclusive, inclusive);
       addressTicks[address] = tick;
 

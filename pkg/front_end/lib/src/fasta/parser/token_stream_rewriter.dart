@@ -33,11 +33,11 @@ class TokenStreamRewriter {
   Token get firstToken => _head.next;
 
   /// Inserts [newToken] into the token stream just before [insertionPoint], and
-  /// fixes up all "next" and "previous" pointers.
+  /// fixes up all "next" and "previous" pointers. Returns [newToken].
   ///
   /// Caller is required to ensure that [insertionPoint] is actually present in
   /// the token stream.
-  void insertTokenBefore(Token newToken, Token insertionPoint) {
+  Token insertTokenBefore(Token newToken, Token insertionPoint) {
     Token previous = _findPreviousToken(insertionPoint);
     _lastPreviousToken = previous;
     newToken.next = insertionPoint;
@@ -49,6 +49,7 @@ class TokenStreamRewriter {
       insertionPoint.previous = newToken;
       newToken.previous = previous;
     }
+    return newToken;
   }
 
   /// Finds the token that immediately precedes [target].

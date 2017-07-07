@@ -38,7 +38,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld),
               name);
         }
 
@@ -48,7 +48,7 @@ void main() {
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
+                  typesInferrer.getReturnTypeOfMember(element), closedWorld));
         }
 
         checkReturn('bar', commonMasks.uint31Type);

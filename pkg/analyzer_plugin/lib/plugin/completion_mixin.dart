@@ -23,34 +23,24 @@ import 'package:analyzer_plugin/utilities/generator.dart';
 abstract class CompletionMixin implements ServerPlugin {
   /**
    * Return a list containing the completion contributors that should be used to
-   * create completion suggestions when used in the context of the given
-   * analysis [driver].
+   * create completion suggestions for the file with the given [path].
    */
-  List<CompletionContributor> getCompletionContributors(
-      covariant AnalysisDriverGeneric driver);
+  List<CompletionContributor> getCompletionContributors(String path);
 
   /**
    * Return the completion request that should be passes to the contributors
    * returned from [getCompletionContributors].
    */
   Future<CompletionRequest> getCompletionRequest(
-      CompletionGetSuggestionsParams parameters,
-      covariant AnalysisDriverGeneric driver);
+      CompletionGetSuggestionsParams parameters);
 
   @override
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
       CompletionGetSuggestionsParams parameters) async {
     String path = parameters.file;
-    ContextRoot contextRoot = contextRootContaining(path);
-    if (contextRoot == null) {
-      // Return an error from the request.
-      throw new RequestFailure(
-          RequestErrorFactory.pluginError('Failed to analyze $path', null));
-    }
-    AnalysisDriverGeneric driver = driverMap[contextRoot];
-    CompletionRequest request = await getCompletionRequest(parameters, driver);
+    CompletionRequest request = await getCompletionRequest(parameters);
     CompletionGenerator generator =
-        new CompletionGenerator(getCompletionContributors(driver));
+        new CompletionGenerator(getCompletionContributors(path));
     GeneratorResult result =
         await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
@@ -71,8 +61,14 @@ abstract class CompletionMixin implements ServerPlugin {
 abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(
-      CompletionGetSuggestionsParams parameters,
-      covariant AnalysisDriver driver) async {
+      CompletionGetSuggestionsParams parameters) async {
+    String path = parameters.file;
+    AnalysisDriver driver = driverForPath(path);
+    if (driver == null) {
+      // Return an error from the request.
+      throw new RequestFailure(
+          RequestErrorFactory.pluginError('Failed to analyze $path', null));
+    }
     ResolveResult result = await driver.getResult(parameters.file);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);

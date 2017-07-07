@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class C<E extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method sort([(self::C::E, self::C::E) → core::int compare = null]) → void {
+    self::C::sort2<dynamic>(this, let final dynamic #t1 = compare in #t1.==(null) ? self::C::_compareAny : #t1);
+  }
+  static method _compareAny(dynamic a, dynamic b) → core::int {
+    throw "unimplemented";
+  }
+  static method sort2<E extends core::Object>(self::C<self::C::sort2::E> a, (self::C::sort2::E, self::C::sort2::E) → core::int compare) → void {
+    throw "unimplemented";
+  }
+}
+static method main() → dynamic {}

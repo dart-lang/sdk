@@ -184,7 +184,9 @@ abstract class NullableTypeInference {
         var first = args.isNotEmpty ? args.first : null;
         if (first is SimpleStringLiteral) {
           var types = first.stringValue;
-          if (!types.split('|').contains('Null')) {
+          if (types != '' &&
+              types != 'var' &&
+              !types.split('|').contains('Null')) {
             return false;
           }
         }

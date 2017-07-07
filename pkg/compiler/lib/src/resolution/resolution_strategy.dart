@@ -32,6 +32,7 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../library_loader.dart';
+import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../tree/tree.dart' show Node;
 import '../serialization/task.dart';
@@ -45,7 +46,7 @@ import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
-class ResolutionFrontEndStrategy implements FrontendStrategy {
+class ResolutionFrontEndStrategy extends FrontendStrategyBase {
   final Compiler _compiler;
   final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
@@ -89,8 +90,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         measurer);
   }
 
-  AnnotationProcessor get annotationProcesser =>
-      _annotationProcessor ??= new _ElementAnnotationProcessor(_compiler);
+  AnnotationProcessor get annotationProcesser => _annotationProcessor ??=
+      new _ElementAnnotationProcessor(_compiler, nativeBasicDataBuilder);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
@@ -123,6 +124,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new ElementResolutionWorldBuilder(
         _compiler.backend,
@@ -131,6 +134,8 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         nativeDataBuilder,
         interceptorDataBuilder,
         backendUsageBuilder,
+        rtiNeedBuilder,
+        nativeResolutionEnqueuer,
         selectorConstraintsStrategy);
   }
 
@@ -673,39 +678,38 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 /// syntax), and, once resolution completes, it validates that the parsed
 /// annotations correspond to the correct element.
 class _ElementAnnotationProcessor implements AnnotationProcessor {
-  Compiler _compiler;
+  final Compiler _compiler;
+  final NativeBasicDataBuilder _nativeBasicDataBuilder;
 
-  _ElementAnnotationProcessor(this._compiler);
+  _ElementAnnotationProcessor(this._compiler, this._nativeBasicDataBuilder);
 
   CommonElements get _commonElements => _compiler.resolution.commonElements;
 
   /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
   /// native name from the annotation.
-  void extractNativeAnnotations(covariant LibraryElement library,
-      NativeBasicDataBuilder nativeBasicDataBuilder) {
+  void extractNativeAnnotations(covariant LibraryElement library) {
     library.forEachLocalMember((Element element) {
       if (element.isClass) {
         EagerAnnotationHandler.checkAnnotation(_compiler, element,
-            new NativeAnnotationHandler(nativeBasicDataBuilder));
+            new NativeAnnotationHandler(_nativeBasicDataBuilder));
       }
     });
   }
 
-  void extractJsInteropAnnotations(covariant LibraryElement library,
-      NativeBasicDataBuilder nativeBasicDataBuilder) {
+  void extractJsInteropAnnotations(covariant LibraryElement library) {
     bool checkJsInteropAnnotation(Element element) {
       return EagerAnnotationHandler.checkAnnotation(
           _compiler, element, const JsInteropAnnotationHandler());
     }
 
     if (checkJsInteropAnnotation(library)) {
-      nativeBasicDataBuilder.markAsJsInteropLibrary(library);
+      _nativeBasicDataBuilder.markAsJsInteropLibrary(library);
     }
     library.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;
         if (checkJsInteropAnnotation(element)) {
-          nativeBasicDataBuilder.markAsJsInteropClass(cls);
+          _nativeBasicDataBuilder.markAsJsInteropClass(cls);
         }
       }
     });

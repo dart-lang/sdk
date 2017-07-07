@@ -45,7 +45,7 @@ static_library("libdart_platform") {
 
 vm_sources_list = processed_gypis.vm_sources
 
-static_library("libdart_vm_jit") {
+source_set("libdart_vm_jit") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
@@ -62,7 +62,7 @@ static_library("libdart_vm_jit") {
   include_dirs = [ ".." ]
 }
 
-static_library("libdart_vm_precompiled_runtime") {
+source_set("libdart_vm_precompiled_runtime") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
@@ -80,7 +80,7 @@ static_library("libdart_vm_precompiled_runtime") {
   include_dirs = [ ".." ]
 }
 
-static_library("libdart_vm_nosnapshot") {
+source_set("libdart_vm_nosnapshot") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
@@ -98,7 +98,7 @@ static_library("libdart_vm_nosnapshot") {
   include_dirs = [ ".." ]
 }
 
-static_library("libdart_vm_nosnapshot_with_precompiler") {
+source_set("libdart_vm_nosnapshot_with_precompiler") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
@@ -117,7 +117,7 @@ static_library("libdart_vm_nosnapshot_with_precompiler") {
   include_dirs = [ ".." ]
 }
 
-static_library("libdart_vm_with_precompiler") {
+source_set("libdart_vm_with_precompiler") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
@@ -230,7 +230,7 @@ template("generate_core_libraries") {
 
   all_libsources = rebase_path(invoker.allsources, ".", "../lib")
 
-  static_library("libdart_lib_nosnapshot_with_precompiler") {
+  source_set("libdart_lib_nosnapshot_with_precompiler") {
     configs += [
       "..:dart_config",
       "..:dart_maybe_product_config",
@@ -244,7 +244,7 @@ template("generate_core_libraries") {
     include_dirs = [ ".." ]
   }
 
-  static_library("libdart_lib_with_precompiler") {
+  source_set("libdart_lib_with_precompiler") {
     configs += [
       "..:dart_config",
       "..:dart_maybe_product_config",
@@ -258,7 +258,7 @@ template("generate_core_libraries") {
     include_dirs = [ ".." ]
   }
 
-  static_library("libdart_lib_jit") {
+  source_set("libdart_lib_jit") {
     configs += [
       "..:dart_config",
       "..:dart_maybe_product_config",
@@ -270,7 +270,7 @@ template("generate_core_libraries") {
     include_dirs = [ ".." ]
   }
 
-  static_library("libdart_lib_precompiled_runtime") {
+  source_set("libdart_lib_precompiled_runtime") {
     configs += [
       "..:dart_config",
       "..:dart_maybe_product_config",

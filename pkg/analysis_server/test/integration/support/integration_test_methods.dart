@@ -235,37 +235,44 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Return the transitive closure of reachable sources for a given file.
+   * Return a description of all of the elements referenced in a given region
+   * of a given file that come from imported libraries.
    *
-   * If a request is made for a file which does not exist, or which is not
+   * If a request is made for a file that does not exist, or that is not
    * currently subject to analysis (e.g. because it is not associated with any
-   * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+   * analysis root specified via analysis.setAnalysisRoots), an error of type
+   * GET_IMPORTED_ELEMENTS_INVALID_FILE will be generated.
    *
    * Parameters
    *
    * file: FilePath
    *
-   *   The file for which reachable source information is being requested.
+   *   The file in which import information is being requested.
+   *
+   * offset: int
+   *
+   *   The offset of the region for which import information is being
+   *   requested.
+   *
+   * length: int
+   *
+   *   The length of the region for which import information is being
+   *   requested.
    *
    * Returns
    *
-   * sources: Map<String, List<String>>
+   * elements: List<ImportedElements>
    *
-   *   A mapping from source URIs to directly reachable source URIs. For
-   *   example, a file "foo.dart" that imports "bar.dart" would have the
-   *   corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
-   *   "bar.dart" has further imports (or exports) there will be a mapping from
-   *   the URI "file:///bar.dart" to them. To check if a specific URI is
-   *   reachable from a given file, clients can check for its presence in the
-   *   resulting key set.
+   *   The information about the elements that are referenced in the specified
+   *   region of the specified file that come from imported libraries.
    */
-  Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
-      String file) async {
-    var params = new AnalysisGetReachableSourcesParams(file).toJson();
-    var result = await server.send("analysis.getReachableSources", params);
+  Future<AnalysisGetImportedElementsResult> sendAnalysisGetImportedElements(
+      String file, int offset, int length) async {
+    var params =
+        new AnalysisGetImportedElementsParams(file, offset, length).toJson();
+    var result = await server.send("analysis.getImportedElements", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
-    return new AnalysisGetReachableSourcesResult.fromJson(
+    return new AnalysisGetImportedElementsResult.fromJson(
         decoder, 'result', result);
   }
 
@@ -357,6 +364,41 @@ abstract class IntegrationTestMixin {
     var result = await server.send("analysis.getNavigation", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
+   * Return the transitive closure of reachable sources for a given file.
+   *
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file for which reachable source information is being requested.
+   *
+   * Returns
+   *
+   * sources: Map<String, List<String>>
+   *
+   *   A mapping from source URIs to directly reachable source URIs. For
+   *   example, a file "foo.dart" that imports "bar.dart" would have the
+   *   corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+   *   "bar.dart" has further imports (or exports) there will be a mapping from
+   *   the URI "file:///bar.dart" to them. To check if a specific URI is
+   *   reachable from a given file, clients can check for its presence in the
+   *   resulting key set.
+   */
+  Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
+      String file) async {
+    var params = new AnalysisGetReachableSourcesParams(file).toJson();
+    var result = await server.send("analysis.getReachableSources", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetReachableSourcesResult.fromJson(
+        decoder, 'result', result);
   }
 
   /**
@@ -1569,6 +1611,41 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditListPostfixCompletionTemplatesResult.fromJson(
         decoder, 'result', result);
+  }
+
+  /**
+   * Return a list of edits that would need to be applied in order to ensure
+   * that all of the elements in the specified list of imported elements are
+   * accessible within the library.
+   *
+   * If a request is made for a file that does not exist, or that is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified via analysis.setAnalysisRoots), an error of type
+   * IMPORT_ELEMENTS_INVALID_FILE will be generated.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file in which the specified elements are to be made accessible.
+   *
+   * elements: List<ImportedElements>
+   *
+   *   The elements to be made accessible in the specified file.
+   *
+   * Returns
+   *
+   * edits: List<SourceEdit>
+   *
+   *   The edit(s) to be applied in order to make the specified elements
+   *   accessible.
+   */
+  Future<EditImportElementsResult> sendEditImportElements(
+      String file, List<ImportedElements> elements) async {
+    var params = new EditImportElementsParams(file, elements).toJson();
+    var result = await server.send("edit.importElements", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditImportElementsResult.fromJson(decoder, 'result', result);
   }
 
   /**

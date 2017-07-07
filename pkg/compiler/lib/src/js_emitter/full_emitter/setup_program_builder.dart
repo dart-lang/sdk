@@ -129,7 +129,7 @@ jsAst.Statement buildSetupProgram(
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
     'needsNativeSupport': program.needsNativeSupport,
-    'enabledJsInterop': backend.nativeBasicData.isJsInteropUsed,
+    'enabledJsInterop': closedWorld.nativeData.isJsInteropUsed,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
     'isInterceptorClass':
         namer.operatorIs(closedWorld.commonElements.jsInterceptorClass),

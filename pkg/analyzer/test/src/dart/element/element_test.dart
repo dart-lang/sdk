@@ -964,96 +964,6 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
 
 @reflectiveTest
 class CompilationUnitElementImplTest extends EngineTestCase {
-  void test_getElementAt() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    String code = r'''
-class A {
-  int field;
-}
-main() {
-  int localVar = 42;
-}
-''';
-    Source libSource = contextHelper.addSource("/my_lib.dart", code);
-    // prepare library/unit elements
-    LibraryElement libraryElement = context.computeLibraryElement(libSource);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    ClassElement elementA;
-    {
-      int offset = code.indexOf('A {');
-      elementA = unitElement.getElementAt(offset);
-      expect(elementA, isNotNull);
-      expect(elementA.enclosingElement, unitElement);
-      expect(elementA.name, 'A');
-    }
-    // A.field
-    {
-      int offset = code.indexOf('field;');
-      FieldElement element = unitElement.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, elementA);
-      expect(element.name, 'field');
-    }
-    // main
-    FunctionElement mainElement;
-    {
-      int offset = code.indexOf('main() {');
-      mainElement = unitElement.getElementAt(offset);
-      expect(mainElement, isNotNull);
-      expect(mainElement.enclosingElement, unitElement);
-      expect(mainElement.name, 'main');
-    }
-    // main.localVar
-    {
-      int offset = code.indexOf('localVar');
-      LocalVariableElement element = unitElement.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, mainElement);
-      expect(element.name, 'localVar');
-    }
-    // null
-    expect(unitElement.getElementAt(1000), isNull);
-  }
-
-  void test_getElementAt_multipleUnitsInLibrary() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source libSource = contextHelper.addSource(
-        "/my_lib.dart",
-        r'''
-library my_lib;
-part 'unit_a.dart';
-part 'unit_b.dart';
-''');
-    Source unitSourceA =
-        contextHelper.addSource("/unit_a.dart", 'part of my_lib;class A {}');
-    Source unitSourceB =
-        contextHelper.addSource("/unit_b.dart", 'part of my_lib;class B {}');
-    int offset = 'part of my_lib;class A {}'.indexOf('A {}');
-    // prepare library/unit elements
-    context.computeLibraryElement(libSource);
-    CompilationUnitElement unitElementA =
-        context.getCompilationUnitElement(unitSourceA, libSource);
-    CompilationUnitElement unitElementB =
-        context.getCompilationUnitElement(unitSourceB, libSource);
-    // A
-    {
-      ClassElement element = unitElementA.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, unitElementA);
-      expect(element.name, 'A');
-    }
-    // B
-    {
-      ClassElement element = unitElementB.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, unitElementB);
-      expect(element.name, 'B');
-    }
-  }
-
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     CompilationUnitElementImpl unit =
@@ -3926,43 +3836,7 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LocalVariableElementImplTest extends EngineTestCase {
-  void test_computeNode_declaredIdentifier() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  for (int v in <int>[1, 2, 3]) {}
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    DeclaredIdentifier node = element.computeNode() as DeclaredIdentifier;
-    expect(node, isNotNull);
-    expect(node.identifier.name, 'v');
-    expect(node.element, same(element));
-  }
-
-  void test_computeNode_variableDeclaration() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  int v = 0;
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    VariableDeclaration node = element.computeNode() as VariableDeclaration;
-    expect(node, isNotNull);
-    expect(node.name.name, 'v');
-    expect(node.element, same(element));
-  }
-}
+class LocalVariableElementImplTest extends EngineTestCase {}
 
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {

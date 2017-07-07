@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  field self::X foo = null;
+  constructor named(self::X foo) → void
+    : super core::Object::•() {}
+  constructor •(self::X foo) → void
+    : dynamic extracted#0 = () → self::X
+      throw "Calling unconverted closure at pkg/kernel/testcases/closures_initializers/local_initializers.dart:17:26";
+.call(), this self::A::named(extracted#0)
+    ;
+}
+static method main() → dynamic {
+  self::A a = new self::A::•(new self::X::•());
+  a.foo;
+}

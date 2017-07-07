@@ -292,7 +292,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
 
     // Create the runtime type information, if needed.
-    bool hasRtiInput = backend.rtiNeed.classNeedsRtiField(cls);
+    bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
     if (hasRtiInput) {
       // Read the values of the type arguments and create a HTypeInfoExpression
       // to set on the newly create object.
@@ -357,7 +357,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Pass type arguments.
       ir.Class currentClass = body.enclosingClass;
-      if (backend.rtiNeed.classNeedsRti(_elementMap.getClass(currentClass))) {
+      if (closedWorld.rtiNeed
+          .classNeedsRti(_elementMap.getClass(currentClass))) {
         for (ir.DartType typeParameter in currentClass.thisType.typeArguments) {
           HInstruction argument = localsHandler.readLocal(localsHandler
               .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)
@@ -649,7 +650,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         parent.kind == ir.ProcedureKind.Operator &&
         parent.name.name == '==') {
       FunctionEntity method = _elementMap.getMethod(parent);
-      if (!backend.operatorEqHandlesNullArgument(method)) {
+      if (!_commonElements.operatorEqHandlesNullArgument(method)) {
         handleIf(
           visitCondition: () {
             HParameterValue parameter = parameters.values.first;
@@ -1887,9 +1888,38 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitLogicalExpression(ir.LogicalExpression logicalExpression) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this);
-    brancher.handleLogicalBinary(() => logicalExpression.left.accept(this),
-        () => logicalExpression.right.accept(this),
-        isAnd: logicalExpression.operator == '&&');
+    String operator = logicalExpression.operator;
+    // ir.LogicalExpression claims to allow '??' as an operator but currently
+    // that is expanded into a let-tree.
+    assert(operator == '&&' || operator == '||');
+    _handleLogicalExpression(logicalExpression.left,
+        () => logicalExpression.right.accept(this), brancher, operator);
+  }
+
+  /// Optimizes logical binary expression where the left has the same logical
+  /// binary operator.
+  ///
+  /// This method transforms the operator by optimizing the case where [left] is
+  /// a logical "and" or logical "or". Then it uses [branchBuilder] to build the
+  /// graph for the optimized expression.
+  ///
+  /// For example, `(x && y) && z` is transformed into `x && (y && z)`:
+  ///
+  void _handleLogicalExpression(ir.Expression left, void visitRight(),
+      SsaBranchBuilder brancher, String operator) {
+    if (left is ir.LogicalExpression && left.operator == operator) {
+      ir.Expression innerLeft = left.left;
+      ir.Expression middle = left.right;
+      _handleLogicalExpression(
+          innerLeft,
+          () =>
+              _handleLogicalExpression(middle, visitRight, brancher, operator),
+          brancher,
+          operator);
+    } else {
+      brancher.handleLogicalBinary(() => left.accept(this), visitRight,
+          isAnd: operator == '&&');
+    }
   }
 
   @override
@@ -2358,7 +2388,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Factory constructors take type parameters; other static methods ignore
       // them.
-      if (backend.rtiNeed.classNeedsRti(function.enclosingClass)) {
+      if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments);
       }
     }
@@ -3036,7 +3066,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     ConstructorEntity constructor = _elementMap.getConstructor(target);
     ClassEntity cls = constructor.enclosingClass;
-    if (backend.rtiNeed.classNeedsRti(cls)) {
+    if (closedWorld.rtiNeed.classNeedsRti(cls)) {
       _addTypeArguments(arguments, invocation.arguments);
     }
     TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);

@@ -206,26 +206,6 @@ final Matcher isCompletionSuggestionKind =
 ]);
 
 /**
- * ContextBuilderOptions
- *
- * {
- *   "dartSdkSummaryPath": optional FilePath
- *   "defaultAnalysisOptionsFilePath": optional List<FilePath>
- *   "declaredVariables": optional Map<String, String>
- *   "defaultPackageFilePath": optional List<FilePath>
- *   "defaultPackagesDirectoryPath": optional List<FilePath>
- * }
- */
-final Matcher isContextBuilderOptions = new LazyMatcher(
-    () => new MatchesJsonObject("ContextBuilderOptions", null, optionalFields: {
-          "dartSdkSummaryPath": isFilePath,
-          "defaultAnalysisOptionsFilePath": isListOf(isFilePath),
-          "declaredVariables": isMapOf(isString, isString),
-          "defaultPackageFilePath": isListOf(isFilePath),
-          "defaultPackagesDirectoryPath": isListOf(isFilePath)
-        }));
-
-/**
  * ContextRoot
  *
  * {
@@ -1023,22 +1003,6 @@ final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
  * analysis.reanalyze result
  */
 final Matcher isAnalysisReanalyzeResult = isNull;
-
-/**
- * analysis.setContextBuilderOptions params
- *
- * {
- *   "options": ContextBuilderOptions
- * }
- */
-final Matcher isAnalysisSetContextBuilderOptionsParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.setContextBuilderOptions params",
-        {"options": isContextBuilderOptions}));
-
-/**
- * analysis.setContextBuilderOptions result
- */
-final Matcher isAnalysisSetContextBuilderOptionsResult = isNull;
 
 /**
  * analysis.setContextRoots params

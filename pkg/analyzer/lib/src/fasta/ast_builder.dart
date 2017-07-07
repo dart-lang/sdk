@@ -833,21 +833,42 @@ class AstBuilder extends ScopeListener {
     debugEvent("FormalParameter");
     _ParameterDefaultValue defaultValue = pop();
 
-    AstNode nameOrFunctionTypedParameter = pop();
+    SimpleIdentifier name = pop();
+
+    AstNode typeOrFunctionTypedParameter = pop();
+
+    _Modifiers modifiers = pop();
+    Token keyword = modifiers?.finalConstOrVarKeyword;
+    Token covariantKeyword = modifiers?.covariantKeyword;
+    pop(); // TODO(paulberry): Metadata.
+    Comment comment = pop();
 
     FormalParameter node;
-    SimpleIdentifier name;
-    if (nameOrFunctionTypedParameter is FormalParameter) {
-      node = nameOrFunctionTypedParameter;
-      name = nameOrFunctionTypedParameter.identifier;
+    if (typeOrFunctionTypedParameter is FunctionTypedFormalParameter) {
+      // This is a temporary AST node that was constructed in
+      // [endFunctionTypedFormalParameter]. We now deconstruct it and create
+      // the final AST node.
+      if (thisKeyword == null) {
+        node = ast.functionTypedFormalParameter2(
+            identifier: name,
+            comment: comment,
+            covariantKeyword: covariantKeyword,
+            returnType: typeOrFunctionTypedParameter.returnType,
+            typeParameters: typeOrFunctionTypedParameter.typeParameters,
+            parameters: typeOrFunctionTypedParameter.parameters);
+      } else {
+        node = ast.fieldFormalParameter2(
+            identifier: name,
+            comment: comment,
+            covariantKeyword: covariantKeyword,
+            type: typeOrFunctionTypedParameter.returnType,
+            thisKeyword: thisKeyword,
+            period: thisKeyword.next,
+            typeParameters: typeOrFunctionTypedParameter.typeParameters,
+            parameters: typeOrFunctionTypedParameter.parameters);
+      }
     } else {
-      name = nameOrFunctionTypedParameter;
-      TypeAnnotation type = pop();
-      _Modifiers modifiers = pop();
-      Token keyword = modifiers?.finalConstOrVarKeyword;
-      Token covariantKeyword = modifiers?.covariantKeyword;
-      pop(); // TODO(paulberry): Metadata.
-      Comment comment = pop();
+      TypeAnnotation type = typeOrFunctionTypedParameter;
       if (thisKeyword == null) {
         node = ast.simpleFormalParameter2(
             comment: comment,
@@ -856,17 +877,13 @@ class AstBuilder extends ScopeListener {
             type: type,
             identifier: name);
       } else {
-        // TODO(scheglov): Ideally the period token should be passed in.
-        Token period = identical('.', thisKeyword.next?.stringValue)
-            ? thisKeyword.next
-            : null;
         node = ast.fieldFormalParameter2(
             comment: comment,
             covariantKeyword: covariantKeyword,
             keyword: keyword,
             type: type,
             thisKeyword: thisKeyword,
-            period: period,
+            period: thisKeyword.next,
             identifier: name);
       }
     }
@@ -888,52 +905,20 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter() {
     debugEvent("FunctionTypedFormalParameter");
 
     FormalParameterList formalParameters = pop();
-    TypeParameterList typeParameters = pop();
-    SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
+    TypeParameterList typeParameters = pop();
 
-    _Modifiers modifiers = pop();
-    Token covariantKeyword = modifiers?.covariantKeyword;
-
-    pop(); // TODO(paulberry): Metadata.
-    Comment comment = pop();
-
-    FormalParameter node;
-    if (thisKeyword == null) {
-      node = ast.functionTypedFormalParameter2(
-          comment: comment,
-          covariantKeyword: covariantKeyword,
-          returnType: returnType,
-          identifier: name,
-          typeParameters: typeParameters,
-          parameters: formalParameters);
-    } else {
-      // TODO(scheglov): Ideally the period token should be passed in.
-      Token period = identical('.', thisKeyword?.next?.stringValue)
-          ? thisKeyword.next
-          : null;
-      node = ast.fieldFormalParameter2(
-          comment: comment,
-          covariantKeyword: covariantKeyword,
-          type: returnType,
-          thisKeyword: thisKeyword,
-          period: period,
-          identifier: name,
-          typeParameters: typeParameters,
-          parameters: formalParameters);
-    }
-
-    scope.declare(
-        name.name,
-        name.staticElement = new AnalyzerParameterElement(node),
-        name.offset,
-        uri);
-    push(node);
+    // Create a temporary formal parameter that will be dissected later in
+    // [endFormalParameter].
+    push(ast.functionTypedFormalParameter2(
+        identifier: null,
+        returnType: returnType,
+        typeParameters: typeParameters,
+        parameters: formalParameters));
   }
 
   void endFormalParameters(

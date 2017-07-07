@@ -901,35 +901,35 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression toSuperMethodInvocation(MethodInvocation node) {
     Member target = lookupSuperMember(node.name);
-    bool isNoSuchMethod = target == null;
-    if (target is Procedure) {
-      if (!target.isAccessor) {
-        if (areArgumentsCompatible(target.function, node.arguments)) {
-          Expression result = new KernelDirectMethodInvocation(
-              new KernelThisExpression()..fileOffset = node.fileOffset,
-              target,
-              node.arguments)
-            ..fileOffset = node.fileOffset;
-          // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
-          // remove the next line:
-          result =
-              new KernelSuperMethodInvocation(node.name, node.arguments, target)
-                ..fileOffset = node.fileOffset;
-          return result;
-        } else {
-          isNoSuchMethod = true;
-        }
+    if (target == null || (target is Procedure && !target.isAccessor)) {
+      if (target == null) {
+        warnUnresolvedSuperMethod(node.name, node.fileOffset);
+      } else if (!areArgumentsCompatible(target.function, node.arguments)) {
+        target = null;
+        warning(
+            "Super class doesn't have a method named '${node.name.name}' "
+            "with matching arguments.",
+            node.fileOffset);
       }
+      Expression result;
+      if (target != null) {
+        result = new KernelDirectMethodInvocation(
+            new KernelThisExpression()..fileOffset = node.fileOffset,
+            target,
+            node.arguments);
+      }
+      // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
+      // make the next line conditional:
+      result =
+          new KernelSuperMethodInvocation(node.name, node.arguments, target);
+      return result..fileOffset = node.fileOffset;
     }
-    if (isNoSuchMethod) {
-      return invokeSuperNoSuchMethod(
-          node.name.name, node.arguments, node.fileOffset);
-    }
+
     Expression receiver = new KernelDirectPropertyGet(
         new KernelThisExpression()..fileOffset = node.fileOffset, target)
       ..fileOffset = node.fileOffset;
-    // TODO(ahe): Use [DirectPropertyGet] when possible, that is, remove the
-    // next line:
+    // TODO(ahe): Use [DirectPropertyGet] when possible, that is, make the next
+    // line conditional:
     receiver = new KernelSuperPropertyGet(node.name, target)
       ..fileOffset = node.fileOffset;
     return buildMethodInvocation(
@@ -972,56 +972,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
       warning(message, charOffset);
-      return new Throw(error);
+      return new KernelSyntheticExpression(new Throw(error));
     }
   }
 
   @override
-  Expression invokeSuperNoSuchMethod(
-      String name, Arguments arguments, int charOffset,
-      {bool isGetter: false, bool isSetter: false}) {
-    String errorName = "super.$name";
-    String message;
-    if (isGetter) {
-      message = "Getter not found: '$errorName'.";
-      name = "get:$name";
-    } else if (isSetter) {
-      message = "Setter not found: '$errorName'.";
-      name = "set:$name";
-    } else {
-      message = "Method not found: '$errorName'.";
-    }
-    warning(message, charOffset);
-    VariableDeclaration value;
-    if (isSetter) {
-      value = new VariableDeclaration.forValue(arguments.positional.single,
-          isFinal: true)
-        ..fileOffset = charOffset;
-      arguments = new Arguments(<Expression>[
-        new VariableGet(value)..fileOffset = arguments.fileOffset
-      ]);
-    }
-    Expression result = new SuperMethodInvocation(
-        noSuchMethodName,
-        new Arguments(<Expression>[
-          library.loader.instantiateInvocation(
-              new KernelThisExpression()..fileOffset = charOffset,
-              name,
-              arguments,
-              charOffset,
-              true)
-        ])
-          ..fileOffset = arguments.fileOffset);
-    if (isSetter) {
-      result = new Let(
-          value,
-          new Let(
-              new VariableDeclaration.forValue(result, isFinal: true)
-                ..fileOffset = charOffset,
-              new VariableGet(value)..fileOffset = value.fileOffset))
-        ..fileOffset = charOffset;
-    }
-    return result;
+  void warnUnresolvedSuperGet(Name name, int charOffset) {
+    warning("Super class has no getter named '${name.name}'.", charOffset);
+  }
+
+  @override
+  void warnUnresolvedSuperSet(Name name, int charOffset) {
+    warning("Super class has no setter named '${name.name}'.", charOffset);
+  }
+
+  @override
+  void warnUnresolvedSuperMethod(Name name, int charOffset) {
+    warning("Super class has no method named '${name.name}'.", charOffset);
   }
 
   @override
@@ -1527,7 +1494,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Statement result =
         new KernelForStatement(variables, condition, updates, body);
     if (begin != null) {
-      result = new Block(<Statement>[begin, result]);
+      result = new KernelBlock(<Statement>[begin, result]);
     }
     if (breakTarget.hasUsers) {
       result = new KernelLabeledStatement(result);
@@ -1731,12 +1698,41 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginFunctionType(Token beginToken) {
+    debugEvent("beginFunctionType");
+    enterFunctionTypeScope();
+  }
+
+  void enterFunctionTypeScope() {
+    List typeVariables = pop();
+    enterLocalScope(scope.createNestedScope(isModifiable: false));
+    push(typeVariables ?? NullValue.TypeVariables);
+    if (typeVariables != null) {
+      ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
+      for (KernelTypeVariableBuilder builder in typeVariables) {
+        String name = builder.name;
+        KernelTypeVariableBuilder existing = scopeBuilder[name];
+        if (existing == null) {
+          scopeBuilder.addMember(name, builder);
+        } else {
+          addCompileTimeError(
+              builder.charOffset, "'$name' already declared in this scope.");
+          addCompileTimeError(
+              existing.charOffset, "Previous definition of '$name'.");
+        }
+      }
+    }
+  }
+
+  @override
   void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     FormalParameters formals = pop();
     DartType returnType = pop();
-    ignore(Unhandled.TypeVariables);
-    push(formals.toFunctionType(returnType));
+    List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
+    FunctionType type = formals.toFunctionType(returnType, typeVariables);
+    exitLocalScope();
+    push(type);
   }
 
   @override
@@ -1865,21 +1861,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     functionNestingLevel++;
+    enterFunctionTypeScope();
   }
 
   @override
-  void endFunctionTypedFormalParameter(
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter() {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    ignore(Unhandled.TypeVariables);
-    Identifier name = pop();
     DartType returnType = pop();
-    push(formals.toFunctionType(returnType));
-    push(name);
+    List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
+    FunctionType type = formals.toFunctionType(returnType, typeVariables);
+    exitLocalScope();
+    push(type);
     functionNestingLevel--;
   }
 
@@ -2283,10 +2279,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         } else if (b.isConstructor) {
           initialTarget = b.target;
           if (type.isAbstract) {
-            push(evaluateArgumentsBefore(
+            push(new KernelSyntheticExpression(evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
-                    type.name, nameToken.charOffset)));
+                    type.name, nameToken.charOffset))));
             return;
           } else {
             target = initialTarget;
@@ -2436,7 +2432,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    List<TypeParameter> typeParameters = pop();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     push(formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = formals.charOffset
@@ -2480,7 +2476,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     FormalParameters formals = pop();
     exitFunction();
-    List<TypeParameter> typeParameters = pop();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
@@ -2563,8 +2559,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new KernelExpressionStatement(lvalue
-              .buildAssignment(new VariableGet(variable), voidContext: true)),
+          new KernelSyntheticStatement(new ExpressionStatement(lvalue
+              .buildAssignment(new VariableGet(variable), voidContext: true))),
           body);
     } else {
       variable = new VariableDeclaration.forValue(buildCompileTimeError(
@@ -2948,17 +2944,36 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
-    // TODO(ahe): Do not discard these when enabling generic method syntax.
-    pop(); // Bound.
-    pop(); // Name.
+    DartType bound = pop();
+    if (bound != null) {
+      // TODO(ahe): To handle F-bounded types, this needs to be a TypeBuilder.
+      warningNotError("Type variable bounds not implemented yet.",
+          offsetForToken(extendsOrSuper.next));
+    }
+    Identifier name = pop();
+    // TODO(ahe): Do not discard metadata.
     pop(); // Metadata.
+    push(new KernelTypeVariableBuilder(
+        name.name, library, offsetForToken(name.token), null)
+      ..finish(library, library.loader.coreLibrary["Object"]));
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    // TODO(ahe): Implement this when enabling generic method syntax.
-    push(NullValue.TypeVariables);
+    push(popList(count) ?? NullValue.TypeVariables);
+  }
+
+  List<TypeParameter> typeVariableBuildersToKernel(List typeVariableBuilders) {
+    if (typeVariableBuilders == null) return null;
+    List<TypeParameter> typeParameters = new List<TypeParameter>.filled(
+        typeVariableBuilders.length, null,
+        growable: true);
+    int i = 0;
+    for (KernelTypeVariableBuilder builder in typeVariableBuilders) {
+      typeParameters[i++] = builder.target;
+    }
+    return typeParameters;
   }
 
   @override
@@ -3006,9 +3021,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
     addCompileTimeError(charOffset, error, wasHandled: true);
-    return library.loader.throwCompileConstantError(library.loader
-        .buildCompileTimeError(
-            formatUnexpected(uri, charOffset, error), charOffset));
+    return new KernelSyntheticExpression(library.loader
+        .throwCompileConstantError(library.loader.buildCompileTimeError(
+            formatUnexpected(uri, charOffset, error), charOffset)));
   }
 
   Expression wrapInCompileTimeError(Expression expression, String message) {
@@ -3604,8 +3619,10 @@ class FormalParameters {
     return function;
   }
 
-  FunctionType toFunctionType(DartType returnType) {
+  FunctionType toFunctionType(DartType returnType,
+      [List<TypeParameter> typeParameters]) {
     returnType ??= const DynamicType();
+    typeParameters ??= const <TypeParameter>[];
     int requiredParameterCount = required.length;
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType> namedParameters = const <NamedType>[];
@@ -3627,7 +3644,8 @@ class FormalParameters {
     }
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount);
+        requiredParameterCount: requiredParameterCount,
+        typeParameters: typeParameters);
   }
 
   Scope computeFormalParameterScope(

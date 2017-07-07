@@ -1,4 +1,4 @@
-# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -92,6 +92,7 @@
     'lib/src/elements/logging_list.dart',
     'lib/src/elements/megamorphiccache_ref.dart',
     'lib/src/elements/megamorphiccache_view.dart',
+    'lib/src/elements/memory_dashboard.dart',
     'lib/src/elements/metric/details.dart',
     'lib/src/elements/metric/graph.dart',
     'lib/src/elements/metrics.dart',
@@ -194,6 +195,7 @@
     'lib/src/models/repositories/breakpoint.dart',
     'lib/src/models/repositories/class.dart',
     'lib/src/models/repositories/context.dart',
+    'lib/src/models/repositories/editor.dart',
     'lib/src/models/repositories/eval.dart',
     'lib/src/models/repositories/event.dart',
     'lib/src/models/repositories/field.dart',
@@ -229,6 +231,7 @@
     'lib/src/repositories/breakpoint.dart',
     'lib/src/repositories/class.dart',
     'lib/src/repositories/context.dart',
+    'lib/src/repositories/editor.dart',
     'lib/src/repositories/eval.dart',
     'lib/src/repositories/event.dart',
     'lib/src/repositories/field.dart',

@@ -177,6 +177,8 @@ if (is_fuchsia) {
       assert(false, "unable to determine path to magenta's bootdata.bin")
     }
 
+    packages_file = "$mkbootfs_gen/packages"
+
     input = "$target_gen_dir/dart_test_tree.manifest"
     inputs = [
       magenta_bootdata,
@@ -201,5 +203,6 @@ if (is_fuchsia) {
       "--pre-binaries",
       rebase_path(magenta_bootdata),
     ]
+    args += read_file(packages_file, "list lines")
   }
 }

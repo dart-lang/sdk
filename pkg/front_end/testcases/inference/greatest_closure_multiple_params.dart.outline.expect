@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class C<E extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+  method sort([(self::C::E, self::C::E) → core::int compare]) → void
+    ;
+  static method _compareAny(dynamic a, dynamic b) → core::int
+    ;
+  static method sort2<E extends core::Object>(self::C<self::C::sort2::E> a, (self::C::sort2::E, self::C::sort2::E) → core::int compare) → void
+    ;
+}
+static method main() → dynamic
+  ;

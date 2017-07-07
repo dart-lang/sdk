@@ -167,7 +167,7 @@ abstract class TestSuite {
   String get compilerPath {
     var compilerConfiguration = configuration.compilerConfiguration;
     if (!compilerConfiguration.hasCompiler) return null;
-    var name = compilerConfiguration.computeCompilerPath(buildDir);
+    var name = compilerConfiguration.computeCompilerPath();
 
     // TODO(ahe): Only validate this once, in test_options.dart.
     TestUtils.ensureExists(name, configuration);
@@ -882,7 +882,7 @@ class StandardTestSuite extends TestSuite {
 
     CommandArtifact compilationArtifact =
         compilerConfiguration.computeCompilationArtifact(
-            buildDir, tempDir, compileTimeArguments, environmentOverrides);
+            tempDir, compileTimeArguments, environmentOverrides);
     if (!configuration.skipCompilation) {
       commands.addAll(compilationArtifact.commands);
     }
@@ -896,7 +896,6 @@ class StandardTestSuite extends TestSuite {
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             configuration.runtimeConfiguration,
-            buildDir,
             info,
             vmOptions,
             sharedOptions,
@@ -1090,7 +1089,7 @@ class StandardTestSuite extends TestSuite {
         var jsDir = new Path(compilationTempDir)
             .relativeTo(TestUtils.dartDir)
             .toString();
-        content = dartdevcHtml(nameNoExt, jsDir);
+        content = dartdevcHtml(nameNoExt, jsDir, buildDir);
       }
 
       new File(htmlPath).writeAsStringSync(content);
@@ -1107,8 +1106,8 @@ class StandardTestSuite extends TestSuite {
         break;
 
       case Compiler.dartdevc:
-        commands.add(_dartdevcCompileCommand(dartWrapperFilename,
-            '$compilationTempDir/$nameNoExt.js', optionsFromFile));
+        commands.add(configuration.compilerConfiguration.createCommand(
+            dartWrapperFilename, '$compilationTempDir/$nameNoExt.js'));
         break;
 
       case Compiler.none:
@@ -1130,8 +1129,8 @@ class StandardTestSuite extends TestSuite {
           break;
 
         case Compiler.dartdevc:
-          commands.add(_dartdevcCompileCommand(fromPath.toNativePath(),
-              '$tempDir/${namePath.filename}.js', optionsFromFile));
+          commands.add(configuration.compilerConfiguration.createCommand(
+              fromPath.toNativePath(), '$tempDir/${namePath.filename}.js'));
           break;
 
         default:
@@ -1321,33 +1320,6 @@ class StandardTestSuite extends TestSuite {
     return Command.compilation(Compiler.dart2js.name, outputFile,
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
         alwaysCompile: !useSdk);
-  }
-
-  /// Creates a [Command] to compile a single .dart file using dartdevc.
-  Command _dartdevcCompileCommand(String inputFile, String outputFile,
-      Map<String, dynamic> optionsFromFile) {
-    var args = [
-      "--dart-sdk",
-      "$buildDir/dart-sdk",
-      "--library-root",
-      new Path(inputFile).directoryPath.toString(),
-      "-o",
-      outputFile,
-      inputFile
-    ];
-
-    // TODO(29923): This compiles everything imported by the test into the
-    // same generated JS module, including other packages like expect,
-    // stack_trace, etc. Those should be compiled as separate JS modules (by
-    // build.py) and loaded dynamically by the test.
-
-    return Command.compilation(
-        Compiler.dartdevc.name,
-        outputFile,
-        configuration.compilerConfiguration.bootstrapDependencies(buildDir),
-        compilerPath,
-        args,
-        environmentOverrides);
   }
 
   String get scriptType {

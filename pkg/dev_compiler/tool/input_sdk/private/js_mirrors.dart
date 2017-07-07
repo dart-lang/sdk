@@ -341,7 +341,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       // Only get metadata directly embedded on this class, not its
       // superclasses.
       var fn = JS(
-          'Function',
+          'Function|Null',
           'Object.hasOwnProperty.call(#, dart.metadata) ? #[dart.metadata] : null',
           unwrapped,
           unwrapped);

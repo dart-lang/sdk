@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -30,25 +32,29 @@ import 'package:path/path.dart' as path;
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
   /**
-   * The analysis driver in which the files being edited were analyzed.
+   * The analysis session in which the files being edited were analyzed.
    */
-  final AnalysisDriver driver;
+  final AnalysisSession session;
 
   /**
    * Initialize a newly created change builder.
    */
-  DartChangeBuilderImpl(this.driver);
+  DartChangeBuilderImpl(this.session);
 
   @override
-  Future<Null> addFileEdit(String path, int fileStamp,
-          void buildFileEdit(DartFileEditBuilder builder)) =>
-      super.addFileEdit(path, fileStamp, buildFileEdit);
+  Future<Null> addFileEdit(
+          String path, void buildFileEdit(DartFileEditBuilder builder)) =>
+      super.addFileEdit(path, buildFileEdit);
 
   @override
-  Future<DartFileEditBuilderImpl> createFileEditBuilder(
-      String path, int fileStamp) async {
-    AnalysisResult result = await driver.getResult(path);
-    return new DartFileEditBuilderImpl(this, path, fileStamp, result.unit);
+  Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
+    ResolveResult result = await session.getResolvedAst(path);
+    ResultState state = result.state;
+    if (state == ResultState.INVALID_FILE_TYPE) {
+      throw new AnalysisException('Cannot analyze "$path"');
+    }
+    int timeStamp = state == ResultState.VALID ? 0 : -1;
+    return new DartFileEditBuilderImpl(this, path, timeStamp, result.unit);
   }
 }
 
@@ -357,7 +363,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // TO-DO
       write(prefix2);
       writeln('// TODO: implement ${member.displayName}');
-      // REVIEW: Added return statement.
       if (shouldReturn) {
         write(prefix2);
         writeln('return null;');
@@ -487,7 +492,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String typeSource = _getTypeSource(
           type, finder.enclosingClass, finder.enclosingExecutable,
           methodBeingCopied: methodBeingCopied);
-      if (typeSource != 'dynamic') {
+      if (typeSource.isNotEmpty && typeSource != 'dynamic') {
         if (groupName != null) {
           addLinkedEdit(groupName, (LinkedEditBuilder builder) {
             write(typeSource);
@@ -958,6 +963,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           parameterParent == enclosingClass ||
           parameterParent == methodBeingCopied;
     }
+    Element element = type.element;
+    if (element == null) {
+      return true;
+    }
+    LibraryElement definingLibrary = element.library;
+    LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
+    if (definingLibrary != null && definingLibrary != importingLibrary) {
+      if (element.isPrivate) {
+        return false;
+      }
+    }
     return true;
   }
 }
@@ -977,11 +993,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * order to make visible the names used in generated code.
    */
   Set<Source> librariesToImport = new Set<Source>();
-
-//  /**
-//   * The content of the file being edited.
-//   */
-//  String _content;
 
   /**
    * Initialize a newly created builder to build a source file edit within the
@@ -1021,8 +1032,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    _addLibraryImports(
-        changeBuilder.sourceChange, unit.element.library, librariesToImport);
+    CompilationUnitElement unitElement = unit.element;
+    LibraryElement libraryElement = unitElement.library;
+    CompilationUnitElement definingUnitElement =
+        libraryElement.definingCompilationUnit;
+    if (definingUnitElement == unitElement) {
+      _addLibraryImports(libraryElement, librariesToImport);
+    } else {
+      (changeBuilder as DartChangeBuilder).addFileEdit(
+          definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
+        (builder as DartFileEditBuilderImpl)
+            ._addLibraryImports(libraryElement, librariesToImport);
+      });
+    }
   }
 
   @override
@@ -1057,11 +1079,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Adds edits to the given [change] that ensure that all the [libraries] are
-   * imported into the given [targetLibrary].
+   * Adds edits ensure that all the [libraries] are imported into the given
+   * [targetLibrary].
    */
-  void _addLibraryImports(SourceChange change, LibraryElement targetLibrary,
-      Set<Source> libraries) {
+  void _addLibraryImports(LibraryElement targetLibrary, Set<Source> libraries) {
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];
@@ -1273,21 +1294,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         offset, insertEmptyLineBefore, insertEmptyLineAfter);
   }
 
-//  /**
-//   * Return the content of the file being edited.
-//   */
-//  String getContent() {
-//    if (_content == null) {
-//      CompilationUnitElement unitElement = unit.element;
-//      AnalysisContext context = unitElement.context;
-//      if (context == null) {
-//        throw new CancelCorrectionException();
-//      }
-//      _content = context.getContents(unitElement.source).data;
-//    }
-//    return _content;
-//  }
-
   /**
    * Computes the best URI to import [what] into [from].
    */
@@ -1311,20 +1317,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   String _getText(String content, int offset, int length) {
     return content.substring(offset, offset + length);
   }
-
-//  /**
-//   * Returns the text of the given [AstNode] in the unit.
-//   */
-//  String _getNodeText(AstNode node) {
-//    return _getText(node.offset, node.length);
-//  }
-//
-//  /**
-//   * Returns the text of the given range in the unit.
-//   */
-//  String _getText(int offset, int length) {
-//    return getContent().substring(offset, offset + length);
-//  }
 
   /**
    * Create an edit to replace the return type of the innermost function

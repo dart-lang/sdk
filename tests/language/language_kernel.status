@@ -4,12 +4,6 @@
 
 [ !$checked && ($compiler == dartk || $compiler == dartkp) ]
 
-multiline_newline_test/04: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/04r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/05r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/06: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-multiline_newline_test/06r: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -150,9 +144,6 @@ const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instanc
 
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
 
-cyclic_typedef_test/10: MissingCompileTimeError # Fasta bug: Cyclic typedef via type variable.
-cyclic_typedef_test/11: MissingCompileTimeError # Fasta bug: Cyclic typedef via type variable.
-
 const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
 
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
@@ -178,8 +169,6 @@ named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of c
 regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
 
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
-
-generic_function_typedef_test: RuntimeError # Fasta bug: resolution of type variables in typedef.
 
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 
@@ -213,7 +202,6 @@ const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
-disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 hello_dart_test: Crash
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
@@ -406,6 +394,3 @@ regress_26133_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
-
-[ ! $checked && ($compiler == dartk || $compiler == dartkp) ]
-const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

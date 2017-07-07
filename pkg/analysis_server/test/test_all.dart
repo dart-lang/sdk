@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/spec/check_all_test.dart' as check_spec;
 import 'analysis/test_all.dart' as analysis_all;
 import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel/test_all.dart' as channel_test;
@@ -46,5 +47,15 @@ main() {
     services_all.main();
     socket_server_test.main();
     src_all.main();
+    defineReflectiveSuite(() {
+      defineReflectiveTests(SpecTest);
+    }, name: 'spec');
   }, name: 'analysis_server');
+}
+
+@reflectiveTest
+class SpecTest {
+  test_specHasBeenGenerated() {
+    check_spec.main();
+  }
 }

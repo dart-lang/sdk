@@ -33,7 +33,7 @@ main() {
 
     test('resolution', wrap(() async {
       var testDir = path.join(testDirectory, 'data', 'embedder_client');
-      await new Driver().start([
+      await new Driver(isTesting: true).start([
         '--packages',
         path.join(testDir, '_packages'),
         path.join(testDir, 'embedder_yaml_user.dart')
@@ -45,7 +45,7 @@ main() {
 
     test('sdk setup', wrap(() async {
       var testDir = path.join(testDirectory, 'data', 'embedder_client');
-      Driver driver = new Driver();
+      Driver driver = new Driver(isTesting: true);
       await driver.start([
         '--packages',
         path.join(testDir, '_packages'),

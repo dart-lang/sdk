@@ -8,7 +8,7 @@ define(['dart_sdk'], function(dart_sdk) {
   let ListOfStringTovoid = () => (ListOfStringTovoid = dart.constFn(dart.fnType(dart.void, [ListOfString()])))();
   script.main = function(args) {
     let name = args[dartx.join](' ');
-    if (name == '') name = 'world';
+    if (name === '') name = 'world';
     core.print(dart.str`hello ${name}`);
   };
   dart.fn(script.main, ListOfStringTovoid());

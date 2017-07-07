@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.math;
+part of "math.dart";
 
 /**
  * A generator of random bool, int, or double values.

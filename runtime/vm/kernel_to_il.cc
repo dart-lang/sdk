@@ -383,11 +383,6 @@ const dart::String& TranslationHelper::DartSetterName(NameIndex setter) {
 }
 
 
-const dart::String& TranslationHelper::DartSetterName(Name* setter_name) {
-  return DartSetterName(setter_name->library(), setter_name->string_index());
-}
-
-
 const dart::String& TranslationHelper::DartSetterName(NameIndex parent,
                                                       StringIndex setter) {
   // The names flowing into [setter] are coming from the Kernel file:
@@ -422,23 +417,12 @@ const dart::String& TranslationHelper::DartGetterName(NameIndex getter) {
 }
 
 
-const dart::String& TranslationHelper::DartGetterName(Name* getter_name) {
-  return DartGetterName(getter_name->library(), getter_name->string_index());
-}
-
-
 const dart::String& TranslationHelper::DartGetterName(NameIndex parent,
                                                       StringIndex getter) {
   dart::String& name = DartString(getter);
   ManglePrivateName(parent, &name, false);
   name = dart::Field::GetterSymbol(name);
   return name;
-}
-
-
-const dart::String& TranslationHelper::DartFieldName(Name* kernel_name) {
-  dart::String& name = DartString(kernel_name->string_index());
-  return ManglePrivateName(kernel_name->library(), &name);
 }
 
 
@@ -449,23 +433,9 @@ const dart::String& TranslationHelper::DartFieldName(NameIndex parent,
 }
 
 
-const dart::String& TranslationHelper::DartInitializerName(Name* kernel_name) {
-  // The [DartFieldName] will take care of mangling the name.
-  dart::String& name =
-      dart::String::Handle(Z, DartFieldName(kernel_name).raw());
-  name = Symbols::FromConcat(thread_, Symbols::InitPrefix(), name);
-  return name;
-}
-
-
 const dart::String& TranslationHelper::DartMethodName(NameIndex method) {
   return DartMethodName(CanonicalNameParent(method),
                         CanonicalNameString(method));
-}
-
-
-const dart::String& TranslationHelper::DartMethodName(Name* method_name) {
-  return DartMethodName(method_name->library(), method_name->string_index());
 }
 
 
@@ -643,18 +613,6 @@ dart::String& TranslationHelper::ManglePrivateName(NameIndex parent,
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
   }
   return *name_to_modify;
-}
-
-
-const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
-  if (named->length() == 0) return Array::ZoneHandle(Z);
-
-  const Array& names =
-      Array::ZoneHandle(Z, Array::New(named->length(), Heap::kOld));
-  for (intptr_t i = 0; i < named->length(); ++i) {
-    names.SetAt(i, DartSymbol((*named)[i]->name()));
-  }
-  return names;
 }
 
 
@@ -1155,23 +1113,25 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const dart::String& name,
                                         Token::Kind kind,
                                         intptr_t argument_count,
-                                        intptr_t num_args_checked) {
-  return InstanceCall(position, name, kind, argument_count, Array::null_array(),
-                      num_args_checked);
+                                        intptr_t checked_argument_count) {
+  const intptr_t kTypeArgsLen = 0;
+  return InstanceCall(position, name, kind, kTypeArgsLen, argument_count,
+                      Array::null_array(), checked_argument_count);
 }
 
 
 Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const dart::String& name,
                                         Token::Kind kind,
+                                        intptr_t type_args_len,
                                         intptr_t argument_count,
                                         const Array& argument_names,
-                                        intptr_t num_args_checked) {
-  ArgumentArray arguments = GetArguments(argument_count);
-  const intptr_t kTypeArgsLen = 0;  // Generic instance calls not yet supported.
+                                        intptr_t checked_argument_count) {
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      position, name, kind, arguments, kTypeArgsLen, argument_names,
-      num_args_checked, ic_data_array_, GetNextDeoptId());
+      position, name, kind, arguments, type_args_len, argument_names,
+      checked_argument_count, ic_data_array_, GetNextDeoptId());
   Push(call);
   return Fragment(call);
 }
@@ -1667,13 +1627,6 @@ intptr_t FlowGraphBuilder::CurrentTryIndex() {
   } else {
     return try_catch_block_->try_index();
   }
-}
-
-
-LocalVariable* FlowGraphBuilder::LookupVariable(VariableDeclaration* var) {
-  LocalVariable* local = scopes_->locals.Lookup(var->kernel_offset_no_tag());
-  ASSERT(local != NULL);
-  return local;
 }
 
 
@@ -2348,11 +2301,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += ClosureCall(descriptor.TypeArgsLen(), descriptor.Count(),
                         argument_names);
   } else {
-    if (descriptor.TypeArgsLen() > 0) {
-      UNIMPLEMENTED();
-    }
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
-                         Token::kILLEGAL, descriptor.Count(), argument_names);
+                         Token::kILLEGAL, descriptor.TypeArgsLen(),
+                         descriptor.Count(), argument_names);
   }
 
   body += Return(TokenPosition::kNoSource);
@@ -2446,6 +2397,96 @@ RawObject* BuildParameterDescriptor(const Function& function) {
   }
 }
 
+static int LowestFirst(const intptr_t* a, const intptr_t* b) {
+  return *a - *b;
+}
+
+/**
+ * If index exists as sublist in list, sort the sublist from lowest to highest,
+ * then copy it, as Smis and without duplicates,
+ * to a new Array in Heap::kOld which is returned.
+ * Note that the source list is both sorted and de-duplicated as well, but will
+ * possibly contain duplicate and unsorted data at the end.
+ * Otherwise (when sublist doesn't exist in list) return new empty array.
+ */
+static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
+  intptr_t size = source->length();
+  if (size == 0) {
+    return Array::New(0);
+  }
+
+  source->Sort(LowestFirst);
+
+  intptr_t last = 0;
+  for (intptr_t current = 1; current < size; ++current) {
+    if (source->At(last) != source->At(current)) {
+      (*source)[++last] = source->At(current);
+    }
+  }
+  Array& array_object = Array::Handle();
+  array_object = Array::New(last + 1, Heap::kOld);
+  Smi& smi_value = Smi::Handle();
+  for (intptr_t i = 0; i <= last; ++i) {
+    smi_value = Smi::New(source->At(i));
+    array_object.SetAt(i, smi_value);
+  }
+  return array_object.raw();
+}
+
+void CollectTokenPositionsFor(const Script& const_script) {
+  Thread* thread = Thread::Current();
+  Zone* zone_ = thread->zone();
+  Script& script = Script::Handle(Z, const_script.raw());
+  TranslationHelper helper(thread);
+  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
+  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
+  helper.SetCanonicalNames(
+      TypedData::Handle(Z, script.kernel_canonical_names()));
+
+  GrowableArray<intptr_t> token_positions(10);
+  GrowableArray<intptr_t> yield_positions(1);
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      &helper, zone_, script.kernel_data(), script.kernel_data_size());
+  streaming_flow_graph_builder.CollectTokenPositionsFor(
+      script.kernel_script_index(), &token_positions, &yield_positions);
+  Array& array_object = Array::Handle(Z);
+  array_object = AsSortedDuplicateFreeArray(&token_positions);
+  script.set_debug_positions(array_object);
+  array_object = AsSortedDuplicateFreeArray(&yield_positions);
+  script.set_yield_positions(array_object);
+}
+
+String& GetSourceFor(const Script& const_script) {
+  Thread* thread = Thread::Current();
+  Zone* zone_ = thread->zone();
+  Script& script = Script::Handle(Z, const_script.raw());
+  TranslationHelper helper(thread);
+  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
+  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
+  helper.SetCanonicalNames(
+      TypedData::Handle(Z, script.kernel_canonical_names()));
+
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      &helper, zone_, script.kernel_data(), script.kernel_data_size());
+  return streaming_flow_graph_builder.GetSourceFor(
+      script.kernel_script_index());
+}
+
+Array& GetLineStartsFor(const Script& const_script) {
+  Thread* thread = Thread::Current();
+  Zone* zone_ = thread->zone();
+  Script& script = Script::Handle(Z, const_script.raw());
+  TranslationHelper helper(thread);
+  helper.SetStringOffsets(TypedData::Handle(Z, script.kernel_string_offsets()));
+  helper.SetStringData(TypedData::Handle(Z, script.kernel_string_data()));
+  helper.SetCanonicalNames(
+      TypedData::Handle(Z, script.kernel_canonical_names()));
+
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      &helper, zone_, script.kernel_data(), script.kernel_data_size());
+  return streaming_flow_graph_builder.GetLineStartsFor(
+      script.kernel_script_index());
+}
 
 }  // namespace kernel
 }  // namespace dart

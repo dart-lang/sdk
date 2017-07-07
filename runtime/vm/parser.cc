@@ -2151,7 +2151,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // of ParseFormalParameter.
     parameter.type = &Object::void_type();
   }
-  if (parameter.type == NULL) {
+  if ((parameter.type == NULL) || IsFunctionTypeSymbol()) {
     // At this point, we must see an identifier for the type or the
     // function parameter. The identifier may be 'Function'.
     if (!IsIdentifier()) {
@@ -2176,8 +2176,14 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       parameter.has_explicit_type = true;
       // It is too early to resolve the type here, since it can be a result
       // type referring to a not yet declared function type parameter.
-      parameter.type = &AbstractType::ZoneHandle(
-          Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
+      if (parameter.type == NULL) {
+        parameter.type = &AbstractType::ZoneHandle(
+            Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
+      } else {
+        parameter.type = &AbstractType::ZoneHandle(
+            Z,
+            ParseFunctionType(*parameter.type, ClassFinalizer::kDoNotResolve));
+      }
     } else {
       // If this is an initializing formal, its type will be set to the type
       // of the respective field when the constructor is fully parsed.
@@ -5471,24 +5477,27 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   function_type_alias.set_is_synthesized_class();
   function_type_alias.set_is_abstract();
   function_type_alias.set_is_prefinalized();
+  // Make sure the function type alias can be recognized as a typedef class by
+  // setting its signature function. When use_function_type_syntax is true, this
+  // temporary signature function is replaced while parsing the function type.
+  Function& signature_function = Function::Handle(
+      Z, Function::NewSignatureFunction(function_type_alias,
+                                        Function::Handle(Z), alias_name_pos));
+  function_type_alias.set_signature_function(signature_function);
   library_.AddClass(function_type_alias);
+  ASSERT(function_type_alias.IsTypedefClass());
   ASSERT(current_class().IsTopLevel());
   set_current_class(function_type_alias);
   // Parse the type parameters of the typedef class.
   ParseTypeParameters(true);  // Parameterizing current class.
-  Function& signature_function = Function::Handle(Z);
   ASSERT(innermost_function().IsNull());
   if (use_function_type_syntax) {
     ExpectToken(Token::kASSIGN);
     ASSERT(result_type.IsNull());  // Not parsed yet.
-    // Do not resolve types before the function type alias can be recognized as
-    // a typedef class, so that correct promotion of function types can occur.
     const Type& function_type = Type::Handle(
         Z, ParseFunctionType(result_type, ClassFinalizer::kDoNotResolve));
     signature_function = function_type.signature();
   } else {
-    signature_function = Function::NewSignatureFunction(
-        function_type_alias, Function::Handle(Z), alias_name_pos);
     innermost_function_ = signature_function.raw();
     ParamList params;
     // Parse the formal parameters of the function type.
@@ -5511,9 +5520,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   }
   ExpectSemicolon();
   ASSERT(innermost_function().IsNull());
-
-  // Set the signature function in the function type alias class.
-  function_type_alias.set_signature_function(signature_function);
+  ASSERT(function_type_alias.signature_function() == signature_function.raw());
 
   // At this point, all function type parameters have been parsed and the class
   // function_type_alias is recognized as a typedef, so we can resolve all type
@@ -13402,6 +13409,12 @@ RawType* Parser::ParseFunctionType(
                              &params);
     AddFormalParamsToFunction(&params, signature_function);
     innermost_function_ = innermost_function_.parent_function();
+    if (innermost_function().IsNull() && current_class().IsTypedefClass() &&
+        !IsFunctionTypeSymbol()) {
+      // The last parsed signature function is the typedef signature function.
+      // Set it in the typedef class before building the signature type.
+      current_class().set_signature_function(signature_function);
+    }
     type = signature_function.SignatureType();
   } while (IsFunctionTypeSymbol());
   // At this point, all type parameters have been parsed, resolve the type.

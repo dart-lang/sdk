@@ -897,7 +897,7 @@ abstract class AbstractScanner implements Scanner {
     } else {
       // It is the responsibility of the caller to construct the token
       // being appended with preceeding comments if any
-      assert(comments == null || token.isSynthetic);
+      assert(comments == null || token.isSynthetic || token is ErrorToken);
     }
   }
 

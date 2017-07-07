@@ -4,57 +4,57 @@ import "dart:core" as core;
 
 static method main() → void {
   {
-    function f(core::int x) → core::String
+    function f<S extends core::Object>(core::int x) → core::String
       return null;
-    (core::int) → core::String v = f;
-    v = (core::int x) → core::String => null;
-    v = (core::int x) → core::String => "hello";
-    v = (core::String x) → core::String => "hello";
-    v = (core::int x) → core::int => 3;
-    v = (core::int x) → core::String {
+    <S extends core::Object>(core::int) → core::String v = f;
+    v = <T extends core::Object>(core::int x) → core::String => null;
+    v = <T extends core::Object>(core::int x) → core::String => "hello";
+    v = <T extends core::Object>(core::String x) → core::String => "hello";
+    v = <T extends core::Object>(core::int x) → core::int => 3;
+    v = <T extends core::Object>(core::int x) → core::String {
       return 3;
     };
   }
   {
-    function f(core::int x) → core::String
+    function f<S extends core::Object>(core::int x) → core::String
       return null;
-    (core::int) → core::String v = f;
-    v = (core::int x) → core::String => null;
-    v = (core::int x) → core::String => "hello";
-    v = (core::int x) → core::int => 3;
-    v = (core::int x) → core::String {
+    <S extends core::Object>(core::int) → core::String v = f;
+    v = <T extends core::Object>(core::int x) → core::String => null;
+    v = <T extends core::Object>(core::int x) → core::String => "hello";
+    v = <T extends core::Object>(core::int x) → core::int => 3;
+    v = <T extends core::Object>(core::int x) → core::String {
       return 3;
     };
-    v = (core::int x) → core::String {
+    v = <T extends core::Object>(core::int x) → core::String {
       return x;
     };
   }
   {
-    function f(core::int x) → core::List<core::String>
+    function f<S extends core::Object>(core::int x) → core::List<core::String>
       return null;
-    (core::int) → core::List<core::String> v = f;
-    v = (core::int x) → core::List<core::String> => null;
-    v = (core::int x) → core::List<core::String> => <core::String>["hello"];
-    v = (core::String x) → core::List<core::String> => <core::String>["hello"];
-    v = (core::int x) → core::List<core::String> => <core::String>[3];
-    v = (core::int x) → core::List<core::String> {
+    <S extends core::Object>(core::int) → core::List<core::String> v = f;
+    v = <T extends core::Object>(core::int x) → core::List<core::String> => null;
+    v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>["hello"];
+    v = <T extends core::Object>(core::String x) → core::List<core::String> => <core::String>["hello"];
+    v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>[3];
+    v = <T extends core::Object>(core::int x) → core::List<core::String> {
       return <core::String>[3];
     };
   }
   {
-    function int2int(core::int x) → core::int
+    function int2int<S extends core::Object>(core::int x) → core::int
       return null;
-    function int2String(core::int x) → core::String
+    function int2String<T extends core::Object>(core::int x) → core::String
       return null;
-    function string2String(core::String x) → core::String
+    function string2String<T extends core::Object>(core::String x) → core::String
       return null;
-    (core::int) → core::int x = int2int;
-    x = (core::int x) → core::int => x;
-    x = (core::int x) → core::int => x.{core::num::+}(1);
-    (core::int) → core::String y = int2String;
-    y = (core::int x) → core::int => x;
-    y = (core::int x) → core::String => x.substring(3);
-    (core::String) → core::String z = string2String;
-    z = (core::String x) → core::String => x.{core::String::substring}(3);
+    <S extends core::Object>(core::int) → core::int x = int2int;
+    x = <T extends core::Object>(core::int x) → core::int => x;
+    x = <T extends core::Object>(core::int x) → core::int => x.{core::num::+}(1);
+    <T extends core::Object>(core::int) → core::String y = int2String;
+    y = <T extends core::Object>(core::int x) → core::int => x;
+    y = <T extends core::Object>(core::int x) → core::String => x.substring(3);
+    <T extends core::Object>(core::String) → core::String z = string2String;
+    z = <T extends core::Object>(core::String x) → core::String => x.{core::String::substring}(3);
   }
 }

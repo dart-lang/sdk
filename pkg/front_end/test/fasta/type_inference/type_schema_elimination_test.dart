@@ -63,6 +63,18 @@ class TypeSchemaEliminationTest {
         'dart.core::List<dynamic>');
   }
 
+  void test_greatestClosure_function_multipleUnknown() {
+    expect(
+        greatestClosure(new FunctionType(
+            [unknownType, unknownType], unknownType,
+            namedParameters: [
+              new NamedType('a', unknownType),
+              new NamedType('b', unknownType)
+            ])).toString(),
+        '(dart.core::Null, dart.core::Null, {a: dart.core::Null, '
+        'b: dart.core::Null}) → dynamic');
+  }
+
   void test_greatestClosure_simple() {
     expect(greatestClosure(unknownType).toString(), 'dynamic');
   }
@@ -93,6 +105,16 @@ class TypeSchemaEliminationTest {
         leastClosure(new InterfaceType(coreTypes.listClass, [unknownType]))
             .toString(),
         'dart.core::List<dart.core::Null>');
+  }
+
+  void test_leastClosure_function_multipleUnknown() {
+    expect(
+        leastClosure(new FunctionType([unknownType, unknownType], unknownType,
+            namedParameters: [
+              new NamedType('a', unknownType),
+              new NamedType('b', unknownType)
+            ])).toString(),
+        '(dynamic, dynamic, {a: dynamic, b: dynamic}) → dart.core::Null');
   }
 
   void test_leastClosure_simple() {
