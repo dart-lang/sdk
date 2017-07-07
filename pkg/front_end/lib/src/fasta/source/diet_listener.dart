@@ -25,7 +25,8 @@ import '../parser/parser.dart' show MemberKind, Parser, optional;
 
 import '../../scanner/token.dart' show BeginToken, Token;
 
-import '../parser/dart_vm_native.dart' show removeNativeClause;
+import '../parser/native_support.dart'
+    show removeNativeClause, skipNativeClause;
 
 import '../util/link.dart' show Link;
 
@@ -48,6 +49,8 @@ class DietListener extends StackListener {
 
   final bool enableNative;
 
+  final bool stringExpectedAfterNative;
+
   final TypeInferenceEngine typeInferenceEngine;
 
   ClassBuilder currentClass;
@@ -64,7 +67,10 @@ class DietListener extends StackListener {
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
-        enableNative = library.loader.target.enableNative(library);
+        enableNative =
+            library.loader.target.backendTarget.enableNative(library.uri),
+        stringExpectedAfterNative =
+            library.loader.target.backendTarget.nativeExtensionExpectsString;
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
@@ -515,7 +521,7 @@ class DietListener extends StackListener {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
-      Token recover = library.loader.target.skipNativeClause(token);
+      Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) return recover;
     }
     return super.handleUnrecoverableError(token, message);
@@ -524,7 +530,7 @@ class DietListener extends StackListener {
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers);
+    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();

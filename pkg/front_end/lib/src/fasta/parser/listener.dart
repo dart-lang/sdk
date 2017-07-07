@@ -535,7 +535,7 @@ class Listener {
 
   /// This event can be used to support non-compliant (with respect to Dart
   /// Language Specification) Dart VM native clauses. See
-  /// [dart_vm_native.dart].
+  /// [native_support.dart].
   Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
   void beginMethod(Token token, Token name) {}

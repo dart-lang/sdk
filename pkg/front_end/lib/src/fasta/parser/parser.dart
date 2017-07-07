@@ -280,7 +280,7 @@ enum TypeContinuation {
 /// [parseFunctionBody]. This method will report an unrecoverable error to the
 /// listener with the code [fasta.codeExpectedFunctionBody]. The listener can
 /// then look at the error code and the token and use the methods in
-/// [dart_vm_native.dart](dart_vm_native.dart) to parse the native syntax.
+/// [native_support.dart](native_support.dart) to parse the native syntax.
 ///
 /// #### Implementation of Diet Parsing
 ///

@@ -71,8 +71,6 @@ check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in th
 
 uri_retention_test: Fail # Issue 26504
 
-dill_loader_test: Fail # Issue 29856
-
 [ ! $checked ]
 exit_code_test: Skip # This tests requires checked mode.
 serialization*: Slow, Pass

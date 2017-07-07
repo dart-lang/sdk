@@ -6,8 +6,6 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
-
 import 'package:front_end/file_system.dart';
 
 import 'package:kernel/ast.dart'
@@ -78,8 +76,6 @@ import 'kernel_builder.dart'
         TypeVariableBuilder;
 
 import 'verifier.dart' show verifyProgram;
-import 'kernel_outline_shaker.dart'
-    show trimProgram, RetainedDataBuilder, RootsMarker;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
@@ -214,8 +210,7 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(InputError error,
-      {bool isFullProgram, bool trimDependencies: false}) {
+  void handleInputError(InputError error, {bool isFullProgram}) {
     if (error != null) {
       String message = error.format();
       print(message);
@@ -263,20 +258,12 @@ class KernelTarget extends TargetImplementation {
   /// not include method bodies (depending on what was loaded into that target,
   /// an outline or a full kernel program).
   ///
-  /// When [trimDependencies] is true, this also runs a tree-shaker that deletes
-  /// anything from the [DillTarget] that is not needed for the source program,
-  /// this includes function bodies and types that are not reachable. This
-  /// option is currently in flux and the internal implementation might change.
-  /// See [trimDependenciesInProgram] for more details.
-  ///
   /// If [verify], run the default kernel verification on the resulting program.
   @override
-  Future<Program> buildProgram(
-      {bool verify: false, bool trimDependencies: false}) async {
+  Future<Program> buildProgram({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      handleInputError(null,
-          isFullProgram: true, trimDependencies: trimDependencies);
+      handleInputError(null, isFullProgram: true);
       return program;
     }
 
@@ -289,62 +276,15 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) this.verify();
       if (errors.isNotEmpty) {
-        handleInputError(null,
-            isFullProgram: true, trimDependencies: trimDependencies);
+        handleInputError(null, isFullProgram: true);
       }
       handleRecoverableErrors(loader.unhandledErrors);
     } on InputError catch (e) {
-      handleInputError(e,
-          isFullProgram: true, trimDependencies: trimDependencies);
+      handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    if (trimDependencies) trimDependenciesInProgram();
     return program;
-  }
-
-  Future writeDepsFile(Uri output, Uri depsFile,
-      {Iterable<Uri> extraDependencies}) async {
-    String toRelativeFilePath(Uri uri) {
-      // Ninja expects to find file names relative to the current working
-      // directory. We've tried making them relative to the deps file, but that
-      // doesn't work for downstream projects. Making them absolute also
-      // doesn't work.
-      //
-      // We can test if it works by running ninja twice, for example:
-      //
-      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
-      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
-      //
-      // The second time, ninja should say:
-      //
-      //     ninja: Entering directory `xcodebuild/ReleaseX64'
-      //     ninja: no work to do.
-      //
-      // It's broken if it says something like this:
-      //
-      //     ninja explain: expected depfile 'patched_sdk.d' to mention
-      //     'patched_sdk/platform.dill', got
-      //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
-      return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
-    }
-
-    if (loader.first == null) return null;
-    StringBuffer sb = new StringBuffer();
-    sb.write(toRelativeFilePath(output));
-    sb.write(":");
-    Set<String> allDependencies = new Set<String>();
-    allDependencies.addAll(loader.getDependencies().map(toRelativeFilePath));
-    if (extraDependencies != null) {
-      allDependencies.addAll(extraDependencies.map(toRelativeFilePath));
-    }
-    for (String path in allDependencies) {
-      sb.write(" ");
-      sb.write(path);
-    }
-    sb.writeln();
-    await new File.fromUri(depsFile).writeAsString("$sb");
-    ticker.logMs("Wrote deps file");
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains
@@ -688,27 +628,6 @@ class KernelTarget extends TargetImplementation {
     var verifyErrors = verifyProgram(program);
     errors.addAll(verifyErrors.map((error) => '$error'));
     ticker.logMs("Verified program");
-  }
-
-  /// Tree-shakes most code from the [dillTarget] by visiting all other
-  /// libraries in [program] and marking the APIs from the [dillTarget]
-  /// libraries that are in use.
-  ///
-  /// Note: while it's likely we'll do some trimming of programs for modular
-  /// compilation, it is unclear at this time when and how that trimming should
-  /// happen. We are likely going to remove the extra visitor my either marking
-  /// things while code is built, or by handling tree-shaking after the fact
-  /// (e.g. during serialization).
-  trimDependenciesInProgram() {
-    var toShake =
-        dillTarget.loader.libraries.map((lib) => lib.importUri).toSet();
-    var isIncluded = (Uri uri) => !toShake.contains(uri);
-    var data = new RetainedDataBuilder();
-    // TODO(sigmund): replace this step with data that is directly computed from
-    // the builders: we should know the tree-shaking roots without having to do
-    // a second visit over the tree.
-    new RootsMarker(loader.coreTypes, data).run(program, isIncluded);
-    trimProgram(program, data, isIncluded);
   }
 
   /// Return `true` if the given [library] was built by this [KernelTarget]

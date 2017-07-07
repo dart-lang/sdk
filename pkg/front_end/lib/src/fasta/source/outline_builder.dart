@@ -28,7 +28,8 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 
-import '../parser/dart_vm_native.dart' show removeNativeClause;
+import '../parser/native_support.dart'
+    show extractNativeMethodName, removeNativeClause, skipNativeClause;
 
 import '../operator.dart'
     show
@@ -49,6 +50,7 @@ class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
   final bool enableNative;
+  final bool stringExpectedAfterNative;
 
   /// When true, recoverable parser errors are silently ignored. This is
   /// because they will be reported by the BodyBuilder later. However, typedefs
@@ -60,7 +62,10 @@ class OutlineBuilder extends UnhandledListener {
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
-        enableNative = library.loader.target.enableNative(library);
+        enableNative =
+            library.loader.target.backendTarget.enableNative(library.uri),
+        stringExpectedAfterNative =
+            library.loader.target.backendTarget.nativeExtensionExpectsString;
 
   @override
   Uri get uri => library.fileUri;
@@ -849,10 +854,10 @@ class OutlineBuilder extends UnhandledListener {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
-      var target = library.loader.target;
-      Token recover = target.skipNativeClause(token);
+      Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) {
-        nativeMethodName = target.extractNativeMethodName(token);
+        nativeMethodName =
+            stringExpectedAfterNative ? extractNativeMethodName(token) : "";
         return recover;
       }
     }
@@ -868,7 +873,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers);
+    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   @override

@@ -6,15 +6,10 @@ library test.kernel.closures.suite;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
-
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
-    show computePatchedSdk;
+    show Chain, ChainContext, Result, Step, runMe;
 
 import 'package:kernel/ast.dart' show Program, Library;
 
@@ -22,40 +17,25 @@ import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show Print, MatchExpectation, WriteDill, ReadDill, Verify;
-
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
-
-import 'package:front_end/src/fasta/errors.dart' show InputError;
-
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
-
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
-
-import 'package:kernel/target/targets.dart' show TargetFlags;
-
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+    show
+        Print,
+        MatchExpectation,
+        WriteDill,
+        ReadDill,
+        Verify,
+        Compile,
+        CompileContext;
 
 const String STRONG_MODE = " strong mode ";
 
-class ClosureConversionContext extends ChainContext {
+class ClosureConversionContext extends ChainContext implements CompileContext {
   final bool strongMode;
-
-  final TranslateUri uriTranslator;
 
   final List<Step> steps;
 
-  ClosureConversionContext(
-      this.strongMode, bool updateExpectations, this.uriTranslator)
+  ClosureConversionContext(this.strongMode, bool updateExpectations)
       : steps = <Step>[
-          const FastaCompile(),
+          const Compile(),
           const Print(),
           const Verify(true),
           const ClosureConversion(),
@@ -68,21 +48,11 @@ class ClosureConversionContext extends ChainContext {
           // TODO(29143): add `Run` step when Vectors are added to VM.
         ];
 
-  Future<Program> loadPlatform() async {
-    Uri sdk = await computePatchedSdk();
-    return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
-  }
-
   static Future<ClosureConversionContext> create(
       Chain suite, Map<String, String> environment) async {
-    Uri sdk = await computePatchedSdk();
-    Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
-    TranslateUri uriTranslator = await TranslateUri
-        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
-    return new ClosureConversionContext(
-        strongMode, updateExpectations, uriTranslator);
+    return new ClosureConversionContext(strongMode, updateExpectations);
   }
 }
 
@@ -91,36 +61,6 @@ Future<ClosureConversionContext> createContext(
   environment["updateExpectations"] =
       const String.fromEnvironment("updateExpectations");
   return ClosureConversionContext.create(suite, environment);
-}
-
-class FastaCompile
-    extends Step<TestDescription, Program, ClosureConversionContext> {
-  const FastaCompile();
-
-  String get name => "fasta compilation";
-
-  Future<Result<Program>> run(
-      TestDescription description, ClosureConversionContext context) async {
-    Program platform = await context.loadPlatform();
-    Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-        new VmFastaTarget(new TargetFlags(strongMode: context.strongMode)));
-    platform.unbindCanonicalNames();
-    dillTarget.loader.appendLibraries(platform);
-    KernelTarget sourceTarget = new KernelTarget(
-        PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
-
-    Program p;
-    try {
-      sourceTarget.read(description.uri);
-      await dillTarget.buildOutlines();
-      await sourceTarget.buildOutlines();
-      p = await sourceTarget.buildProgram();
-    } on InputError catch (e, s) {
-      return fail(null, e.error, s);
-    }
-    return pass(p);
-  }
 }
 
 class ClosureConversion
