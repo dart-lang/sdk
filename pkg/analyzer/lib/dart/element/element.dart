@@ -1063,11 +1063,7 @@ abstract class ElementVisitor<R> {
 
   R visitImportElement(ImportElement element);
 
-  R visitLabelElement(LabelElement element);
-
   R visitLibraryElement(LibraryElement element);
-
-  R visitLocalVariableElement(LocalVariableElement element);
 
   R visitMethodElement(MethodElement element);
 

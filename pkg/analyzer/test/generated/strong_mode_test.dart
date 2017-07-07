@@ -509,7 +509,6 @@ class E extends D implements C<int> {}
     expect(superCovariantE.toList(), [dAdd.element.parameters[0]]);
   }
 
-  @soloTest
   test_covarianceChecks_returnFunction() async {
     var source = addSource(r'''
 typedef F<T>(T t);

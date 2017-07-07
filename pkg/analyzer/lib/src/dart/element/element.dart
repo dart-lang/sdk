@@ -5561,7 +5561,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   }
 
   @override
-  T accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
+  T accept<T>(ElementVisitor<T> visitor) => throw new UnimplementedError();
 
   /**
    * Create and return [LabelElement]s for the given [unlinkedLabels].
@@ -6382,8 +6382,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
-  T accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitLocalVariableElement(this);
+  T accept<T>(ElementVisitor<T> visitor) => throw new UnimplementedError();
 
   @override
   void appendTo(StringBuffer buffer) {
