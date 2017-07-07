@@ -83,9 +83,9 @@ main() {
   test('custom module name for summary', () {
     var args = <String>[
       '-snormal',
-      '-scustom/path:module',
+      '-scustom/path|module',
       '-sanother',
-      '-scustom/path2:module2'
+      '-scustom/path2|module2'
     ];
 
     var argResults = ddcArgParser().parse(args);
