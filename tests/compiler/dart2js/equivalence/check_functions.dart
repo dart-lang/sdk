@@ -137,8 +137,8 @@ void checkInterceptorData(InterceptorDataImpl data1, InterceptorDataImpl data2,
       data1,
       data2,
       'interceptedElements',
-      data1.interceptedElementsForTesting,
-      data2.interceptedElementsForTesting,
+      data1.interceptedMembers,
+      data2.interceptedMembers,
       equality,
       (a, b) => areSetsEquivalent(a, b, elementEquivalence));
 
@@ -149,8 +149,8 @@ void checkInterceptorData(InterceptorDataImpl data1, InterceptorDataImpl data2,
       data1,
       data2,
       'classesMixedIntoInterceptedClasses',
-      data1.classesMixedIntoInterceptedClassesForTesting,
-      data2.classesMixedIntoInterceptedClassesForTesting,
+      data1.classesMixedIntoInterceptedClasses,
+      data2.classesMixedIntoInterceptedClasses,
       elementEquivalence);
 }
 

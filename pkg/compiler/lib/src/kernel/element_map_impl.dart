@@ -1587,18 +1587,18 @@ class WorldDeconstructionForTesting {
 
   WorldDeconstructionForTesting(this.elementMap);
 
-  KClass getSuperclassForClass(KClass cls) {
+  IndexedClass getSuperclassForClass(IndexedClass cls) {
     ClassEnv env = elementMap._classEnvs[cls.classIndex];
     ir.Supertype supertype = env.cls.supertype;
     if (supertype == null) return null;
     return elementMap.getClass(supertype.classNode);
   }
 
-  bool isUnnamedMixinApplication(KClass cls) {
+  bool isUnnamedMixinApplication(IndexedClass cls) {
     return elementMap._isUnnamedMixinApplication(cls);
   }
 
-  InterfaceType getMixinTypeForClass(KClass cls) {
+  InterfaceType getMixinTypeForClass(IndexedClass cls) {
     ClassEnv env = elementMap._classEnvs[cls.classIndex];
     ir.Supertype mixedInType = env.cls.mixedInType;
     if (mixedInType == null) return null;

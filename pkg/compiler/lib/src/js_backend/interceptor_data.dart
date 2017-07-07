@@ -55,15 +55,15 @@ class InterceptorDataImpl implements InterceptorData {
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
   /// know whether a send must be intercepted or not.
-  final Map<String, Set<MemberEntity>> _interceptedElements;
+  final Map<String, Set<MemberEntity>> interceptedMembers;
 
   /// Set of classes whose methods are intercepted.
-  final Set<ClassEntity> _interceptedClasses;
+  final Set<ClassEntity> interceptedClasses;
 
   /// Set of classes used as mixins on intercepted (native and primitive)
   /// classes. Methods on these classes might also be mixed in to regular Dart
   /// (unintercepted) classes.
-  final Set<ClassEntity> _classesMixedIntoInterceptedClasses;
+  final Set<ClassEntity> classesMixedIntoInterceptedClasses;
 
   /// The members of mixin classes that are mixed into an instantiated
   /// interceptor class.  This is a cached subset of [_interceptedElements].
@@ -85,9 +85,9 @@ class InterceptorDataImpl implements InterceptorData {
   InterceptorDataImpl(
       this._nativeData,
       this._commonElements,
-      this._interceptedElements,
-      this._interceptedClasses,
-      this._classesMixedIntoInterceptedClasses);
+      this.interceptedMembers,
+      this.interceptedClasses,
+      this.classesMixedIntoInterceptedClasses);
 
   bool isInterceptedMethod(MemberEntity element) {
     if (!element.isInstanceMember) return false;
@@ -95,23 +95,23 @@ class InterceptorDataImpl implements InterceptorData {
     if (element is ConstructorBodyElement) {
       return _nativeData.isNativeOrExtendsNative(element.enclosingClass);
     }
-    return _interceptedElements[element.name] != null;
+    return interceptedMembers[element.name] != null;
   }
 
   bool fieldHasInterceptedGetter(FieldEntity element) {
-    return _interceptedElements[element.name] != null;
+    return interceptedMembers[element.name] != null;
   }
 
   bool fieldHasInterceptedSetter(FieldEntity element) {
-    return _interceptedElements[element.name] != null;
+    return interceptedMembers[element.name] != null;
   }
 
   bool isInterceptedName(String name) {
-    return _interceptedElements[name] != null;
+    return interceptedMembers[name] != null;
   }
 
   bool isInterceptedSelector(Selector selector) {
-    return _interceptedElements[selector.name] != null;
+    return interceptedMembers[selector.name] != null;
   }
 
   /// Returns `true` iff [selector] matches an element defined in a class mixed
@@ -121,10 +121,10 @@ class InterceptorDataImpl implements InterceptorData {
       Selector selector, TypeMask mask, ClosedWorld closedWorld) {
     Set<MemberEntity> elements =
         _interceptedMixinElements.putIfAbsent(selector.name, () {
-      Set<MemberEntity> elements = _interceptedElements[selector.name];
+      Set<MemberEntity> elements = interceptedMembers[selector.name];
       if (elements == null) return null;
       return elements
-          .where((element) => _classesMixedIntoInterceptedClasses
+          .where((element) => classesMixedIntoInterceptedClasses
               .contains(element.enclosingClass))
           .toSet();
     });
@@ -154,7 +154,7 @@ class InterceptorDataImpl implements InterceptorData {
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(
       String name, ClosedWorld closedWorld) {
-    Set<MemberEntity> intercepted = _interceptedElements[name];
+    Set<MemberEntity> intercepted = interceptedMembers[name];
     if (intercepted == null) return _noClasses;
     return _interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
@@ -167,7 +167,7 @@ class InterceptorDataImpl implements InterceptorData {
             interceptedClasses.contains(classElement)) {
           result.add(classElement);
         }
-        if (_classesMixedIntoInterceptedClasses.contains(classElement)) {
+        if (classesMixedIntoInterceptedClasses.contains(classElement)) {
           Set<ClassEntity> nativeSubclasses =
               nativeSubclassesOfMixin(classElement, closedWorld);
           if (nativeSubclasses != null) result.addAll(nativeSubclasses);
@@ -196,20 +196,12 @@ class InterceptorDataImpl implements InterceptorData {
     if (element == null) return false;
     if (_nativeData.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
-    if (_classesMixedIntoInterceptedClasses.contains(element)) return true;
+    if (classesMixedIntoInterceptedClasses.contains(element)) return true;
     return false;
   }
 
   bool isMixedIntoInterceptedClass(ClassEntity element) =>
-      _classesMixedIntoInterceptedClasses.contains(element);
-
-  Iterable<ClassEntity> get interceptedClasses => _interceptedClasses;
-
-  Map<String, Set<MemberEntity>> get interceptedElementsForTesting =>
-      _interceptedElements;
-
-  Set<ClassEntity> get classesMixedIntoInterceptedClassesForTesting =>
-      _classesMixedIntoInterceptedClasses;
+      classesMixedIntoInterceptedClasses.contains(element);
 
   bool mayGenerateInstanceofCheck(DartType type, ClosedWorld closedWorld) {
     // We can use an instanceof check for raw types that have no subclass that

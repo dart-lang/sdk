@@ -510,7 +510,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
   String get _kind => 'field';
 }
 
-class JTypeVariable implements TypeVariableEntity {
+class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
   final Entity typeDeclaration;
   final String name;
   final int index;

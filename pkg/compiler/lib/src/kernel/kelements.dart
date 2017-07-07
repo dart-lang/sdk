@@ -228,7 +228,7 @@ class KField extends KMember implements FieldEntity, IndexedField {
   String get _kind => 'field';
 }
 
-class KTypeVariable implements TypeVariableEntity {
+class KTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
   final Entity typeDeclaration;
   final String name;
   final int index;

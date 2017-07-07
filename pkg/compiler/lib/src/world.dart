@@ -414,7 +414,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
 
-  final Map<ClassEntity, Set<ClassEntity>> _typesImplementedBySubclasses;
+  final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
@@ -464,12 +464,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
       this.mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
+      this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets)
       : this._implementedClasses = implementedClasses,
         this._allTypedefs = allTypedefs,
-        this._typesImplementedBySubclasses = typesImplementedBySubclasses,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
     _commonMasks = new CommonMasks(this);
@@ -804,7 +803,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
     assert(checkClass(superclass));
-    Set<ClassEntity> subclasses = _typesImplementedBySubclasses[superclass];
+    Set<ClassEntity> subclasses = typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
     return subclasses.contains(type);
   }

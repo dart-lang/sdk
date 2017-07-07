@@ -186,6 +186,7 @@ Future<ResultKind> runTest(
     bool skipErrors: false,
     bool verbose: false,
     List<String> options: const <String>[],
+    bool expectAstEquivalence: false,
     bool expectIdenticalOutput: true}) async {
   enableDebugMode();
   EnumCreator.matchKernelRepresentationForTesting = true;
@@ -281,8 +282,10 @@ Future<ResultKind> runTest(
       },
       verbose: verbose);
 
-  checkGeneratedCode(compiler1.backend, compiler2.backend,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b));
+  if (expectAstEquivalence) {
+    checkGeneratedCode(compiler1.backend, compiler2.backend,
+        elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b));
+  }
 
   if (expectIdenticalOutput) {
     print('--- checking output------- ---------------------------------------');

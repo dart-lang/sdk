@@ -27,3 +27,6 @@ abstract class IndexedConstructor
     implements IndexedFunction, ConstructorEntity {}
 
 abstract class IndexedField implements IndexedMember, FieldEntity {}
+
+// TODO(johnniwinther): Add and use [typeVariableIndex].
+abstract class IndexedTypeVariable implements TypeVariableEntity {}

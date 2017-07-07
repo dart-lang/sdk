@@ -66,13 +66,21 @@ class JsBackendStrategy implements KernelBackendStrategy {
     _closureDataLookup = new KernelClosureConversionTask(
         _compiler.measurer, _elementMap, _map, _globalLocalsMap);
     NativeData nativeData = new JsNativeData(_map, closedWorld.nativeData);
+    InterceptorDataImpl interceptorDataImpl = closedWorld.interceptorData;
+    Map<String, Set<MemberEntity>> interceptedMembers =
+        <String, Set<MemberEntity>>{};
+    interceptorDataImpl.interceptedMembers
+        .forEach((String name, Set<MemberEntity> members) {
+      interceptedMembers[name] = members.map(_map.toBackendMember).toSet();
+    });
     InterceptorData interceptorData = new InterceptorDataImpl(
         nativeData,
         _commonElements,
-        // TODO(johnniwinther): Convert these.
-        const {},
-        new Set(),
-        new Set());
+        interceptedMembers,
+        interceptorDataImpl.interceptedClasses.map(_map.toBackendClass).toSet(),
+        interceptorDataImpl.classesMixedIntoInterceptedClasses
+            .map(_map.toBackendClass)
+            .toSet());
 
     Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
         <ClassEntity, ClassHierarchyNode>{};
@@ -125,6 +133,14 @@ class JsBackendStrategy implements KernelBackendStrategy {
           uses.map(_map.toBackendClass).toSet();
     });
 
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        <ClassEntity, Set<ClassEntity>>{};
+    closedWorld.typesImplementedBySubclasses
+        .forEach((ClassEntity cls, Set<ClassEntity> uses) {
+      typesImplementedBySubclasses[_map.toBackendClass(cls)] =
+          uses.map(_map.toBackendClass).toSet();
+    });
+
     Iterable<MemberEntity> assignedInstanceMembers =
         closedWorld.assignedInstanceMembers.map(_map.toBackendMember).toList();
 
@@ -142,9 +158,9 @@ class JsBackendStrategy implements KernelBackendStrategy {
         liveInstanceMembers: liveInstanceMembers,
         assignedInstanceMembers: assignedInstanceMembers,
         mixinUses: mixinUses,
-        // TODO(johnniwinther): Support these.
-        allTypedefs: new ImmutableEmptySet<TypedefElement>(),
-        typesImplementedBySubclasses: null);
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        // TODO(johnniwinther): Support this:
+        allTypedefs: new ImmutableEmptySet<TypedefElement>());
   }
 
   @override

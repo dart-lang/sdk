@@ -15,7 +15,9 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/kernel/kelements.dart';
+import 'package:compiler/src/kernel/elements.dart';
+import 'package:compiler/src/kernel/kelements.dart' show KLocalFunction;
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -33,7 +35,7 @@ class KernelEquivalence {
   Set<Pair<ClassEntity, ClassEntity>> assumedMixinApplications =
       new Set<Pair<ClassEntity, ClassEntity>>();
 
-  KernelEquivalence(KernelToElementMapImpl builder)
+  KernelEquivalence(KernelToElementMap builder)
       : testing = new WorldDeconstructionForTesting(builder);
 
   TestStrategy get defaultStrategy => new TestStrategy(
@@ -48,21 +50,21 @@ class KernelEquivalence {
     strategy ??= defaultStrategy;
     switch (a.kind) {
       case ElementKind.GENERATIVE_CONSTRUCTOR:
-        if (b is KGenerativeConstructor) {
+        if (b is IndexedConstructor && b.isGenerativeConstructor) {
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
         }
         return false;
       case ElementKind.FACTORY_CONSTRUCTOR:
-        if (b is KFactoryConstructor) {
+        if (b is IndexedConstructor && b.isFactoryConstructor) {
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
         }
         return false;
       case ElementKind.CLASS:
-        if (b is KClass) {
+        if (b is IndexedClass) {
           List<InterfaceType> aMixinTypes = [];
           List<InterfaceType> bMixinTypes = [];
           ClassElement aClass = a;
@@ -75,7 +77,7 @@ class KernelEquivalence {
               aMixinTypes.add(aMixinApplication.mixinType);
               aClass = aMixinApplication.superclass;
             }
-            KClass bClass = b;
+            IndexedClass bClass = b;
             while (bClass != null) {
               InterfaceType mixinType = testing.getMixinTypeForClass(bClass);
               if (mixinType == null) break;
@@ -105,13 +107,13 @@ class KernelEquivalence {
         }
         return false;
       case ElementKind.LIBRARY:
-        if (b is KLibrary) {
+        if (b is IndexedLibrary) {
           LibraryElement libraryA = a;
           return libraryA.canonicalUri == b.canonicalUri;
         }
         return false;
       case ElementKind.FUNCTION:
-        if (b is KMethod) {
+        if (b is IndexedFunction && b.isFunction) {
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
@@ -126,7 +128,7 @@ class KernelEquivalence {
         }
         return false;
       case ElementKind.GETTER:
-        if (b is KGetter) {
+        if (b is IndexedFunction && b.isGetter) {
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
@@ -134,7 +136,7 @@ class KernelEquivalence {
         }
         return false;
       case ElementKind.SETTER:
-        if (b is KSetter) {
+        if (b is IndexedFunction && b.isSetter) {
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
@@ -142,7 +144,7 @@ class KernelEquivalence {
         }
         return false;
       case ElementKind.FIELD:
-        if (b is KField) {
+        if (b is IndexedField) {
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass) &&
@@ -150,7 +152,7 @@ class KernelEquivalence {
         }
         return false;
       case ElementKind.TYPE_VARIABLE:
-        if (b is KTypeVariable) {
+        if (b is IndexedTypeVariable) {
           TypeVariableElement aElement = a;
           return strategy.test(a, b, 'index', aElement.index, b.index) &&
               strategy.testElements(a, b, 'typeDeclaration',
