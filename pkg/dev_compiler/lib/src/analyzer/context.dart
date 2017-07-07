@@ -113,7 +113,7 @@ class AnalyzerOptions {
     return mappings;
   }
 
-  /// A summary path can contain "|" followed by an explicit module name to
+  /// A summary path can contain "=" followed by an explicit module name to
   /// allow working with summaries whose physical location is outside of the
   /// module root directory.
   ///
@@ -122,7 +122,7 @@ class AnalyzerOptions {
   void _parseCustomSummaryModules() {
     for (var i = 0; i < summaryPaths.length; i++) {
       var summaryPath = summaryPaths[i];
-      var pipe = summaryPath.indexOf("|");
+      var pipe = summaryPath.indexOf("=");
       if (pipe != -1) {
         summaryPaths[i] = summaryPath.substring(0, pipe);
         customSummaryModules[summaryPaths[i]] =
