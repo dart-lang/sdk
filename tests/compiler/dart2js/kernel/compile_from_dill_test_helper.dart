@@ -16,6 +16,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/resolution/enum_creator.dart';
@@ -236,27 +237,27 @@ Future<ResultKind> runTest(
 
   Expect.isFalse(compiler2.compilationFailed);
 
-  KernelEquivalence equivalence = new KernelEquivalence(elementMap);
+  KernelEquivalence equivalence1 = new KernelEquivalence(elementMap);
 
   ClosedWorld closedWorld2 =
       compiler2.resolutionWorldBuilder.closedWorldForTesting;
 
   checkBackendUsage(closedWorld1.backendUsage, closedWorld2.backendUsage,
-      equivalence.defaultStrategy);
+      equivalence1.defaultStrategy);
 
   print('--- checking resolution enqueuers ----------------------------------');
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
       compiler1.enqueuer.resolution, compiler2.enqueuer.resolution,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      elementEquivalence: (a, b) => equivalence1.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
-        return equivalence.typeEquivalence(unalias(a), b);
+        return equivalence1.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
       verbose: verbose);
 
   print('--- checking closed worlds -----------------------------------------');
   checkClosedWorlds(closedWorld1, closedWorld2,
-      strategy: equivalence.defaultStrategy,
+      strategy: equivalence1.defaultStrategy,
       verbose: verbose,
       // TODO(johnniwinther,efortuna): Require closure class equivalence when
       // these are supported.
@@ -266,25 +267,30 @@ Future<ResultKind> runTest(
   // impacts, program model, etc.
 
   print('--- checking codegen enqueuers--------------------------------------');
+
+  KernelBackendStrategy backendStrategy = compiler2.backendStrategy;
+  KernelEquivalence equivalence2 =
+      new KernelEquivalence(backendStrategy.elementMap);
+
   checkCodegenEnqueuers(compiler1.enqueuer.codegenEnqueuerForTesting,
       compiler2.enqueuer.codegenEnqueuerForTesting,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
-        return equivalence.typeEquivalence(unalias(a), b);
+        return equivalence2.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
       verbose: verbose);
 
   checkEmitters(compiler1.backend.emitter, compiler2.backend.emitter,
-      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
-        return equivalence.typeEquivalence(unalias(a), b);
+        return equivalence2.typeEquivalence(unalias(a), b);
       },
       verbose: verbose);
 
   if (expectAstEquivalence) {
     checkGeneratedCode(compiler1.backend, compiler2.backend,
-        elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b));
+        elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b));
   }
 
   if (expectIdenticalOutput) {

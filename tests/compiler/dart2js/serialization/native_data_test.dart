@@ -9,7 +9,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -52,10 +51,10 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
   ClosedWorld closedWorld2 =
       compiler2.closeResolution(elementEnvironment2.mainFunction).closedWorld;
 
-  JavaScriptBackend backend1 = compiler1.backend;
-  JavaScriptBackend backend2 = compiler2.backend;
-  NativeBasicDataImpl nativeBasicData1 = backend1.nativeBasicData;
-  NativeBasicDataImpl nativeBasicData2 = backend2.nativeBasicData;
+  NativeBasicDataImpl nativeBasicData1 =
+      compiler1.frontendStrategy.nativeBasicData;
+  NativeBasicDataImpl nativeBasicData2 =
+      compiler2.frontendStrategy.nativeBasicData;
   NativeDataImpl nativeData1 = closedWorld1.nativeData;
   NativeDataImpl nativeData2 = closedWorld2.nativeData;
 

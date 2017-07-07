@@ -17,6 +17,7 @@ import 'elements/resolution_types.dart';
 import 'elements/types.dart';
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_backend/runtime_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
@@ -875,6 +876,8 @@ class ClosureTranslator extends Visitor {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  RuntimeTypesNeed get rtiNeed => closedWorldRefiner.closedWorld.rtiNeed;
+
   /// Generate a unique name for the [id]th closure field, with proposed name
   /// [name].
   ///
@@ -1208,8 +1211,7 @@ class ClosureTranslator extends Visitor {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
-        compiler.backend.rtiNeed
-            .classNeedsRti(outermostElement.enclosingClass)) {
+        rtiNeed.classNeedsRti(outermostElement.enclosingClass)) {
       if (outermostElement.isConstructor || outermostElement.isField) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember) {
@@ -1402,7 +1404,7 @@ class ClosureTranslator extends Visitor {
       closures.add(closure);
       closureData = globalizeClosure(node, closure);
       needsRti = compiler.options.enableTypeAssertions ||
-          compiler.backend.rtiNeed.localFunctionNeedsRti(closure);
+          rtiNeed.localFunctionNeedsRti(closure);
     } else {
       outermostElement = element;
       ThisLocal thisElement = null;
@@ -1413,7 +1415,7 @@ class ClosureTranslator extends Visitor {
       closureData = new ClosureClassMap(null, null, null, thisElement);
       if (element is MethodElement) {
         needsRti = compiler.options.enableTypeAssertions ||
-            compiler.backend.rtiNeed.methodNeedsRti(element);
+            rtiNeed.methodNeedsRti(element);
       }
     }
     closureMappingCache[element] = closureData;

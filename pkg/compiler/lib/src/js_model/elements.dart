@@ -13,6 +13,7 @@ import '../elements/types.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../kernel/elements.dart';
 import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
@@ -263,7 +264,7 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
   }
 }
 
-const String jsElementPrefix = 'j';
+const String jsElementPrefix = 'j:';
 
 class JLibrary implements LibraryEntity, IndexedLibrary {
   /// Library index used for fast lookup in [JsToFrontendMapImpl].
@@ -510,6 +511,7 @@ class JLocalFunction implements Local {
 
 class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   final JsKernelToElementMap elementMap;
+  final RuntimeTypesNeed rtiNeed;
 
   JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
@@ -519,7 +521,9 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      this.rtiNeed,
       Set<ClassEntity> implementedClasses,
+      Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
@@ -536,6 +540,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             interceptorData,
             backendUsage,
             implementedClasses,
+            liveNativeClasses,
             liveInstanceMembers,
             assignedInstanceMembers,
             allTypedefs,

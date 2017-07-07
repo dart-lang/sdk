@@ -26,7 +26,9 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../library_loader.dart';
+import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
+import '../options.dart';
 import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
@@ -39,13 +41,14 @@ import 'kernel_backend_strategy.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontEndStrategy implements FrontendStrategy {
+class KernelFrontEndStrategy extends FrontendStrategyBase {
+  CompilerOptions _options;
   KernelToElementMapForImpactImpl _elementMap;
 
   KernelAnnotationProcessor _annotationProcesser;
 
   KernelFrontEndStrategy(
-      DiagnosticReporter reporter, env.Environment environment)
+      this._options, DiagnosticReporter reporter, env.Environment environment)
       : _elementMap = useJsStrategyForTesting
             ? new KernelToElementMapForImpactImpl2(reporter, environment)
             : new KernelToElementMapImpl(reporter, environment);
@@ -76,8 +79,8 @@ class KernelFrontEndStrategy implements FrontendStrategy {
   KernelToElementMapForImpact get elementMap => _elementMap;
 
   @override
-  AnnotationProcessor get annotationProcesser =>
-      _annotationProcesser ??= new KernelAnnotationProcessor(elementMap);
+  AnnotationProcessor get annotationProcesser => _annotationProcesser ??=
+      new KernelAnnotationProcessor(elementMap, nativeBasicDataBuilder);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
@@ -115,13 +118,18 @@ class KernelFrontEndStrategy implements FrontendStrategy {
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelResolutionWorldBuilder(
+        _options,
         elementMap,
         nativeBasicData,
         nativeDataBuilder,
         interceptorDataBuilder,
         backendUsageBuilder,
+        rtiNeedBuilder,
+        nativeResolutionEnqueuer,
         selectorConstraintsStrategy);
   }
 

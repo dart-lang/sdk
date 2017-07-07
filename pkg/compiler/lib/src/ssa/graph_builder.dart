@@ -83,7 +83,7 @@ abstract class GraphBuilder {
 
   Namer get namer => backend.namer;
 
-  RuntimeTypesNeed get rtiNeed => backend.rtiNeed;
+  RuntimeTypesNeed get rtiNeed => closedWorld.rtiNeed;
 
   JavaScriptConstantCompiler get constants => backend.constants;
 

@@ -9,7 +9,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import 'elements.dart';
 
-const String kElementPrefix = 'k';
+const String kElementPrefix = 'k:';
 
 class KLibrary implements IndexedLibrary {
   /// Library index used for fast lookup in [KernelWorldBuilder].

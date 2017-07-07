@@ -22,12 +22,16 @@ import 'elements/types.dart';
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
+import 'js_backend/runtime_types.dart'
+    show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
 import 'ordered_typeset.dart';
+import 'options.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
+import 'universe/world_builder.dart';
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -57,6 +61,10 @@ abstract class ClosedWorld implements World {
   CommonMasks get commonMasks;
 
   ConstantSystem get constantSystem;
+
+  RuntimeTypesNeed get rtiNeed;
+
+  Iterable<ClassEntity> get liveNativeClasses;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
@@ -451,6 +459,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
 
+  final Iterable<ClassEntity> liveNativeClasses;
+
   ClosedWorldBase(
       this.elementEnvironment,
       this.dartTypes,
@@ -460,6 +470,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.interceptorData,
       this.backendUsage,
       Set<ClassEntity> implementedClasses,
+      this.liveNativeClasses,
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
@@ -1169,16 +1180,20 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 }
 
-class ClosedWorldImpl extends ClosedWorldBase {
+class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
   ClosedWorldImpl(
-      {ElementEnvironment elementEnvironment,
+      {CompilerOptions options,
+      ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
+      Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
@@ -1195,13 +1210,17 @@ class ClosedWorldImpl extends ClosedWorldBase {
             interceptorData,
             backendUsage,
             implementedClasses,
+            liveNativeClasses,
             liveInstanceMembers,
             assignedInstanceMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,
-            classSets);
+            classSets) {
+    computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
+        enableTypeAssertions: options.enableTypeAssertions);
+  }
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
 
@@ -1316,4 +1335,18 @@ class ClosedWorldImpl extends ClosedWorldBase {
     assert(!element.isField);
     return super.getSideEffectsOfElement(element);
   }
+}
+
+abstract class ClosedWorldRtiNeedMixin implements ClosedWorld {
+  RuntimeTypesNeed _rtiNeed;
+
+  void computeRtiNeed(ResolutionWorldBuilder resolutionWorldBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      {bool enableTypeAssertions}) {
+    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
+        resolutionWorldBuilder, this,
+        enableTypeAssertions: enableTypeAssertions);
+  }
+
+  RuntimeTypesNeed get rtiNeed => _rtiNeed;
 }

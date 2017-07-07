@@ -27,10 +27,13 @@ import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_model/elements.dart';
+import '../native/enqueue.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ordered_typeset.dart';
+import '../options.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -100,6 +103,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     _types = new _KernelDartTypes(this);
   }
 
+  bool checkFamily(Entity entity);
+
   DartTypes get types => _types;
 
   @override
@@ -127,12 +132,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   String _getLibraryName(IndexedLibrary library) {
+    assert(checkFamily(library));
     LibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     return libraryEnv.library.name ?? '';
   }
 
   MemberEntity lookupLibraryMember(IndexedLibrary library, String name,
       {bool setter: false}) {
+    assert(checkFamily(library));
     LibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     ir.Member member = libraryEnv.lookupMember(name, setter: setter);
     return member != null ? getMember(member) : null;
@@ -140,6 +147,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   void _forEachLibraryMember(
       IndexedLibrary library, void f(MemberEntity member)) {
+    assert(checkFamily(library));
     LibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     libraryEnv.forEachMember((ir.Member node) {
       f(getMember(node));
@@ -147,6 +155,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   ClassEntity lookupClass(IndexedLibrary library, String name) {
+    assert(checkFamily(library));
     LibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     ClassEnv classEnv = libraryEnv.lookupClass(name);
     if (classEnv != null) {
@@ -156,6 +165,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   void _forEachClass(IndexedLibrary library, void f(ClassEntity cls)) {
+    assert(checkFamily(library));
     LibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     libraryEnv.forEachClass((ClassEnv classEnv) {
       if (!classEnv.isUnnamedMixinApplication) {
@@ -166,12 +176,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   MemberEntity lookupClassMember(IndexedClass cls, String name,
       {bool setter: false}) {
+    assert(checkFamily(cls));
     ClassEnv classEnv = _classEnvs[cls.classIndex];
     ir.Member member = classEnv.lookupMember(name, setter: setter);
     return member != null ? getMember(member) : null;
   }
 
   ConstructorEntity lookupConstructor(IndexedClass cls, String name) {
+    assert(checkFamily(cls));
     ClassEnv classEnv = _classEnvs[cls.classIndex];
     ir.Member member = classEnv.lookupConstructor(name);
     return member != null ? getConstructor(member) : null;
@@ -193,12 +205,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]);
 
   InterfaceType _getSuperType(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     return data.supertype;
   }
 
   void _ensureThisAndRawType(ClassEntity cls, ClassData data) {
+    assert(checkFamily(cls));
     if (data.thisType == null) {
       ir.Class node = data.cls;
       // TODO(johnniwinther): Add the type argument to the list literal when we
@@ -228,6 +242,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   TypeVariableEntity _getTypeVariable(ir.TypeParameter node);
 
   void _ensureSupertypes(ClassEntity cls, ClassData data) {
+    assert(checkFamily(cls));
     if (data.orderedTypeSet == null) {
       _ensureThisAndRawType(cls, data);
 
@@ -396,46 +411,54 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   InterfaceType _getThisType(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureThisAndRawType(cls, data);
     return data.thisType;
   }
 
   InterfaceType _getRawType(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureThisAndRawType(cls, data);
     return data.rawType;
   }
 
   FunctionType _getFunctionType(IndexedFunction function) {
+    assert(checkFamily(function));
     FunctionData data = _memberData[function.memberIndex];
     return data.getFunctionType(this);
   }
 
   ClassEntity _getAppliedMixin(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     return data.mixedInType?.element;
   }
 
   bool _isMixinApplication(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     return data.isMixinApplication;
   }
 
   bool _isUnnamedMixinApplication(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassEnv env = _classEnvs[cls.classIndex];
     return env.isUnnamedMixinApplication;
   }
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     data.orderedTypeSet.supertypes.forEach(f);
   }
 
   void _forEachMixin(IndexedClass cls, void f(ClassEntity mixin)) {
+    assert(checkFamily(cls));
     while (cls != null) {
       ClassData data = _classData[cls.classIndex];
       _ensureSupertypes(cls, data);
@@ -447,6 +470,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   void _forEachConstructor(IndexedClass cls, void f(ConstructorEntity member)) {
+    assert(checkFamily(cls));
     ClassEnv env = _classEnvs[cls.classIndex];
     env.forEachConstructor((ir.Member member) {
       f(getConstructor(member));
@@ -455,6 +479,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   void _forEachClassMember(
       IndexedClass cls, void f(ClassEntity cls, MemberEntity member)) {
+    assert(checkFamily(cls));
     ClassEnv env = _classEnvs[cls.classIndex];
     env.forEachMember((ir.Member member) {
       f(cls, getMember(member));
@@ -467,16 +492,19 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   ConstantConstructor _getConstructorConstant(IndexedConstructor constructor) {
+    assert(checkFamily(constructor));
     ConstructorData data = _memberData[constructor.memberIndex];
     return data.getConstructorConstant(this, constructor);
   }
 
   ConstantExpression _getFieldConstant(IndexedField field) {
+    assert(checkFamily(field));
     FieldData data = _memberData[field.memberIndex];
     return data.getFieldConstant(this, field);
   }
 
   InterfaceType _asInstanceOf(InterfaceType type, ClassEntity cls) {
+    assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = _getOrderedTypeSet(type.element);
     InterfaceType supertype =
         orderedTypeSet.asInstanceOf(cls, _getHierarchyDepth(cls));
@@ -487,18 +515,21 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   OrderedTypeSet _getOrderedTypeSet(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     return data.orderedTypeSet;
   }
 
   int _getHierarchyDepth(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     return data.orderedTypeSet.maxDepth;
   }
 
   Iterable<InterfaceType> _getInterfaces(IndexedClass cls) {
+    assert(checkFamily(cls));
     ClassData data = _classData[cls.classIndex];
     _ensureSupertypes(cls, data);
     return data.interfaces;
@@ -509,10 +540,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   ir.Member _getMemberNode(covariant IndexedMember member) {
+    assert(checkFamily(member));
     return _memberData[member.memberIndex].node;
   }
 
   ir.Class _getClassNode(covariant IndexedClass cls) {
+    assert(checkFamily(cls));
     return _classEnvs[cls.classIndex].cls;
   }
 }
@@ -980,6 +1013,15 @@ class KernelToElementMapForImpactImpl2 extends KernelToElementMapBase
   KernelToElementMapForImpactImpl2(
       DiagnosticReporter reporter, Environment environment)
       : super(reporter, environment);
+
+  @override
+  bool checkFamily(Entity entity) {
+    assert(
+        '$entity'.startsWith(kElementPrefix),
+        failedAt(entity,
+            "Unexpected entity $entity, expected family $kElementPrefix."));
+    return true;
+  }
 }
 
 /// Mixin for implementing [KernelToElementMapForBuilding] shared between
@@ -1026,6 +1068,15 @@ class KernelToElementMapForBuildingImpl extends KernelToElementMapBase
   KernelToElementMapForBuildingImpl(
       DiagnosticReporter reporter, Environment environment)
       : super(reporter, environment);
+
+  @override
+  bool checkFamily(Entity entity) {
+    assert(
+        '$entity'.startsWith(kElementPrefix),
+        failedAt(entity,
+            "Unexpected entity $entity, expected family $kElementPrefix."));
+    return true;
+  }
 
   ConstantEnvironment get constantEnvironment => _constantEnvironment;
 
@@ -1433,13 +1484,17 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
   final KernelToElementMapForImpactImpl elementMap;
 
   KernelResolutionWorldBuilder(
+      CompilerOptions options,
       this.elementMap,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
+            options,
             elementMap.elementEnvironment,
             elementMap.types,
             elementMap.commonElements,
@@ -1448,6 +1503,8 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             nativeDataBuilder,
             interceptorDataBuilder,
             backendUsageBuilder,
+            rtiNeedBuilder,
+            nativeResolutionEnqueuer,
             selectorConstraintsStrategy);
 
   @override
@@ -1549,18 +1606,23 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   bool checkEntity(Entity element) => true;
 }
 
-class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
+class KernelClosedWorld extends ClosedWorldBase
+    with KernelClosedWorldMixin, ClosedWorldRtiNeedMixin {
   final KernelToElementMapForImpactImpl elementMap;
 
   KernelClosedWorld(this.elementMap,
-      {ElementEnvironment elementEnvironment,
+      {CompilerOptions options,
+      ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
+      Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Set<TypedefElement> allTypedefs,
@@ -1577,13 +1639,17 @@ class KernelClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             interceptorData,
             backendUsage,
             implementedClasses,
+            liveNativeClasses,
             liveInstanceMembers,
             assignedInstanceMembers,
             allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,
-            classSets);
+            classSets) {
+    computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
+        enableTypeAssertions: options.enableTypeAssertions);
+  }
 
   @override
   void registerClosureClass(ClassElement cls) {
@@ -1797,6 +1863,15 @@ class JsKernelToElementMap extends KernelToElementMapBase
           newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
       _typeVariableList.add(newTypeVariable);
     }
+  }
+
+  @override
+  bool checkFamily(Entity entity) {
+    assert(
+        '$entity'.startsWith(jsElementPrefix),
+        failedAt(entity,
+            "Unexpected entity $entity, expected family $jsElementPrefix."));
+    return true;
   }
 
   JsToFrontendMap get jsToFrontendMap => _jsToFrontendMap;

@@ -363,13 +363,13 @@ void checkNativeClasses(
   checkSetEquivalence(compiler1, compiler2, 'nativeClasses', nativeClasses1,
       nativeClasses2, strategy.elementEquivalence);
 
-  Iterable<ClassEntity> registeredClasses1 = compiler1
-      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
-  Iterable<ClassEntity> registeredClasses2 = compiler2
-      .backend.nativeResolutionEnqueuerForTesting.registeredClassesForTesting;
+  Iterable<ClassEntity> liveNativeClasses1 =
+      compiler1.backend.nativeResolutionEnqueuerForTesting.liveNativeClasses;
+  Iterable<ClassEntity> liveNativeClasses2 =
+      compiler2.backend.nativeResolutionEnqueuerForTesting.liveNativeClasses;
 
-  checkSetEquivalence(compiler1, compiler2, 'registeredClasses',
-      registeredClasses1, registeredClasses2, strategy.elementEquivalence);
+  checkSetEquivalence(compiler1, compiler2, 'liveNativeClasses',
+      liveNativeClasses1, liveNativeClasses2, strategy.elementEquivalence);
 }
 
 void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,

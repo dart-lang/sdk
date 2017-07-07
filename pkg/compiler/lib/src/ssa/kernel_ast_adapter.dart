@@ -63,7 +63,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
       this._nodeToAst, this._nodeToElement)
       : nativeBehaviorBuilder = new native.ResolverBehaviorBuilder(
-            _backend.compiler, _backend.nativeBasicData) {
+            _backend.compiler, _backend.frontendStrategy.nativeBasicData) {
     KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {

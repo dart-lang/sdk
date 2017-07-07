@@ -292,7 +292,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
 
     // Create the runtime type information, if needed.
-    bool hasRtiInput = backend.rtiNeed.classNeedsRtiField(cls);
+    bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
     if (hasRtiInput) {
       // Read the values of the type arguments and create a HTypeInfoExpression
       // to set on the newly create object.
@@ -357,7 +357,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Pass type arguments.
       ir.Class currentClass = body.enclosingClass;
-      if (backend.rtiNeed.classNeedsRti(_elementMap.getClass(currentClass))) {
+      if (closedWorld.rtiNeed
+          .classNeedsRti(_elementMap.getClass(currentClass))) {
         for (ir.DartType typeParameter in currentClass.thisType.typeArguments) {
           HInstruction argument = localsHandler.readLocal(localsHandler
               .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)
@@ -2387,7 +2388,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Factory constructors take type parameters; other static methods ignore
       // them.
-      if (backend.rtiNeed.classNeedsRti(function.enclosingClass)) {
+      if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments);
       }
     }
@@ -3065,7 +3066,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
     ConstructorEntity constructor = _elementMap.getConstructor(target);
     ClassEntity cls = constructor.enclosingClass;
-    if (backend.rtiNeed.classNeedsRti(cls)) {
+    if (closedWorld.rtiNeed.classNeedsRti(cls)) {
       _addTypeArguments(arguments, invocation.arguments);
     }
     TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);

@@ -336,6 +336,7 @@ abstract class ResolutionWorldBuilderBase
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables =
       new Set<FunctionEntity>();
 
+  final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
   final DartTypes _dartTypes;
   final CommonElements _commonElements;
@@ -345,6 +346,8 @@ abstract class ResolutionWorldBuilderBase
   final NativeDataBuilder _nativeDataBuilder;
   final InterceptorDataBuilder _interceptorDataBuilder;
   final BackendUsageBuilder _backendUsageBuilder;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -372,6 +375,7 @@ abstract class ResolutionWorldBuilderBase
   bool get isClosed => _closed;
 
   ResolutionWorldBuilderBase(
+      this._options,
       this._elementEnvironment,
       this._dartTypes,
       this._commonElements,
@@ -380,6 +384,8 @@ abstract class ResolutionWorldBuilderBase
       this._nativeDataBuilder,
       this._interceptorDataBuilder,
       this._backendUsageBuilder,
+      this._rtiNeedBuilder,
+      this._nativeResolutionEnqueuer,
       this.selectorConstraintsStrategy);
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
@@ -946,6 +952,7 @@ abstract class KernelResolutionWorldBuilderBase
   KernelToElementMapForImpactImpl get elementMap;
 
   KernelResolutionWorldBuilderBase(
+      CompilerOptions options,
       ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
@@ -954,8 +961,11 @@ abstract class KernelResolutionWorldBuilderBase
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
+      RuntimeTypesNeedBuilder rtiNeedBuilder,
+      NativeResolutionEnqueuer nativeResolutionEnqueuer,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
+            options,
             elementEnvironment,
             dartTypes,
             commonElements,
@@ -964,6 +974,8 @@ abstract class KernelResolutionWorldBuilderBase
             nativeDataBuilder,
             interceptorDataBuilder,
             backendUsageBuilder,
+            rtiNeedBuilder,
+            nativeResolutionEnqueuer,
             selectorConstraintsStrategy);
 
   @override
@@ -977,14 +989,18 @@ abstract class KernelResolutionWorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "$_classHierarchyNodes vs $_classSets");
     return _closedWorldCache = new KernelClosedWorld(elementMap,
+        options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
+        resolutionWorldBuilder: this,
+        rtiNeedBuilder: _rtiNeedBuilder,
         constantSystem: _constantSystem,
         implementedClasses: _implementedClasses,
+        liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,
         assignedInstanceMembers: computeAssignedInstanceMembers(),
         allTypedefs: _allTypedefs,

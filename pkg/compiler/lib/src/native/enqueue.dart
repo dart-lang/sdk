@@ -203,6 +203,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   Iterable<ClassEntity> get registeredClassesForTesting => _registeredClasses;
 
+  Iterable<ClassEntity> get liveNativeClasses => _registeredClasses;
+
   void _registerBackendUse(FunctionEntity element) {
     _backendUsageBuilder.registerBackendFunctionUse(element);
     _backendUsageBuilder.registerGlobalFunctionDependency(element);
@@ -229,7 +231,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
 class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   final CodeEmitterTask _emitter;
-  final NativeResolutionEnqueuer _resolutionEnqueuer;
+  final Iterable<ClassEntity> _nativeClasses;
   final NativeData _nativeData;
 
   final Set<ClassEntity> _doneAddSubtypes = new Set<ClassEntity>();
@@ -240,22 +242,21 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       CommonElements commonElements,
       DartTypes dartTypes,
       this._emitter,
-      this._resolutionEnqueuer,
+      this._nativeClasses,
       this._nativeData)
       : super(options, elementEnvironment, commonElements, dartTypes);
 
   WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    _unusedClasses.addAll(_resolutionEnqueuer._nativeClasses);
+    _unusedClasses.addAll(_nativeClasses);
 
     if (!enableLiveTypeAnalysis) {
-      _registerTypeUses(
-          impactBuilder, _resolutionEnqueuer._nativeClasses, 'forced');
+      _registerTypeUses(impactBuilder, _nativeClasses, 'forced');
     }
 
     // HACK HACK - add all the resolved classes.
     Set<ClassEntity> matchingClasses = new Set<ClassEntity>();
-    for (ClassEntity classElement in _resolutionEnqueuer._registeredClasses) {
+    for (ClassEntity classElement in _nativeClasses) {
       if (_unusedClasses.contains(classElement)) {
         matchingClasses.add(classElement);
       }

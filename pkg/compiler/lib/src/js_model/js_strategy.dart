@@ -19,6 +19,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_backend_strategy.dart';
@@ -144,6 +145,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
     Iterable<MemberEntity> assignedInstanceMembers =
         closedWorld.assignedInstanceMembers.map(_map.toBackendMember).toList();
 
+    Iterable<ClassEntity> liveNativeClasses =
+        closedWorld.liveNativeClasses.map(_map.toBackendClass).toList();
+
+    RuntimeTypesNeed rtiNeed =
+        new JsRuntimeTypesNeed(_map, closedWorld.rtiNeed);
+
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
@@ -152,9 +159,11 @@ class JsBackendStrategy implements KernelBackendStrategy {
         backendUsage: backendUsage,
         nativeData: nativeData,
         interceptorData: interceptorData,
+        rtiNeed: rtiNeed,
         classHierarchyNodes: classHierarchyNodes,
         classSets: classSets,
         implementedClasses: implementedClasses,
+        liveNativeClasses: liveNativeClasses,
         liveInstanceMembers: liveInstanceMembers,
         assignedInstanceMembers: assignedInstanceMembers,
         mixinUses: mixinUses,
@@ -198,5 +207,37 @@ class JsBackendStrategy implements KernelBackendStrategy {
         nativeBasicData,
         closedWorld,
         selectorConstraintsStrategy);
+  }
+}
+
+class JsRuntimeTypesNeed implements RuntimeTypesNeed {
+  final JsToFrontendMap _map;
+  final RuntimeTypesNeed _rtiNeed;
+
+  JsRuntimeTypesNeed(this._map, this._rtiNeed);
+
+  @override
+  bool classNeedsRti(ClassEntity cls) {
+    return _rtiNeed.classNeedsRti(_map.toFrontendClass(cls));
+  }
+
+  @override
+  bool classUsesTypeVariableExpression(ClassEntity cls) {
+    return _rtiNeed.classUsesTypeVariableExpression(_map.toFrontendClass(cls));
+  }
+
+  @override
+  bool localFunctionNeedsRti(Local function) {
+    throw new UnimplementedError('JsRuntimeTypesNeed.localFunctionNeedsRti');
+  }
+
+  @override
+  bool methodNeedsRti(FunctionEntity function) {
+    return _rtiNeed.methodNeedsRti(_map.toFrontendMember(function));
+  }
+
+  @override
+  bool classNeedsRtiField(ClassEntity cls) {
+    return _rtiNeed.classNeedsRtiField(_map.toFrontendClass(cls));
   }
 }

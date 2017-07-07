@@ -65,9 +65,7 @@ abstract class RuntimeTypesNeedBuilder {
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions});
 }
 
@@ -318,12 +316,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
-      DartTypes types,
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions}) {
-    CommonElements commonElements = closedWorld.commonElements;
-
     Set<ClassEntity> classesNeedingRti = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingRti = new Set<FunctionEntity>();
     Set<Local> localFunctionsNeedingRti = new Set<Local>();
@@ -374,9 +368,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // the calls of the list constructor whenever we determine that
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
-    if (commonElements.jsArrayClass != null) {
-      ClassEntity listClass = commonElements.listClass;
-      registerRtiDependency(commonElements.jsArrayClass, listClass);
+    if (closedWorld.commonElements.jsArrayClass != null) {
+      ClassEntity listClass = closedWorld.commonElements.listClass;
+      registerRtiDependency(closedWorld.commonElements.jsArrayClass, listClass);
     }
 
     // Check local functions and closurized members.
@@ -385,7 +379,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         ClassEntity contextClass = DartTypes.getClassContext(functionType);
         if (contextClass != null &&
             (potentialSubtypeOf == null ||
-                types.isPotentialSubtype(functionType, potentialSubtypeOf))) {
+                closedWorld.dartTypes
+                    .isPotentialSubtype(functionType, potentialSubtypeOf))) {
           potentiallyAddForRti(contextClass);
           return true;
         }

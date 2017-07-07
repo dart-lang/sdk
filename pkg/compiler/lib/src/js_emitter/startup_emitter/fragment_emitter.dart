@@ -541,7 +541,7 @@ class FragmentEmitter {
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
-      'jsInteropSupport': backend.nativeBasicData.isJsInteropUsed
+      'jsInteropSupport': _closedWorld.nativeData.isJsInteropUsed
           ? backend.jsInteropAnalysis.buildJsInteropBootstrap()
           : new js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
