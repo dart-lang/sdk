@@ -689,10 +689,6 @@ class JavaScriptBackend {
         !mirrorsData.isMemberAccessibleByReflection(function);
   }
 
-  bool operatorEqHandlesNullArgument(FunctionEntity operatorEqfunction) {
-    return specialOperatorEqClasses.contains(operatorEqfunction.enclosingClass);
-  }
-
   void validateInterceptorImplementsAllObjectMethods(
       ClassEntity interceptorClass) {
     if (interceptorClass == null) return;
@@ -1058,11 +1054,6 @@ class JavaScriptBackend {
       // These methods are overwritten with generated versions.
       inlineCache.markAsNonInlinable(commonElements.getInterceptorMethod,
           insideLoop: true);
-
-      specialOperatorEqClasses
-        ..add(commonElements.objectClass)
-        ..add(commonElements.jsInterceptorClass)
-        ..add(commonElements.jsNullClass);
     }
   }
 

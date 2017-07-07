@@ -229,11 +229,13 @@ class KField extends KMember implements FieldEntity, IndexedField {
 }
 
 class KTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
+  final int typeVariableIndex;
   final Entity typeDeclaration;
   final String name;
   final int index;
 
-  KTypeVariable(this.typeDeclaration, this.name, this.index);
+  KTypeVariable(
+      this.typeVariableIndex, this.typeDeclaration, this.name, this.index);
 
   String toString() =>
       '${kElementPrefix}type_variable(${typeDeclaration.name}.$name)';

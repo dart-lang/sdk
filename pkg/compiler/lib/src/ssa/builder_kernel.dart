@@ -649,7 +649,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         parent.kind == ir.ProcedureKind.Operator &&
         parent.name.name == '==') {
       FunctionEntity method = _elementMap.getMethod(parent);
-      if (!backend.operatorEqHandlesNullArgument(method)) {
+      if (!_commonElements.operatorEqHandlesNullArgument(method)) {
         handleIf(
           visitCondition: () {
             HParameterValue parameter = parameters.values.first;

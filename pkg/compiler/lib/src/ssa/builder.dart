@@ -730,7 +730,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // the beginning of the method. This is to avoid having call sites do the
     // null check.
     if (name == '==') {
-      if (!backend.operatorEqHandlesNullArgument(functionElement)) {
+      if (!commonElements.operatorEqHandlesNullArgument(functionElement)) {
         handleIf(
             node: function,
             visitCondition: () {

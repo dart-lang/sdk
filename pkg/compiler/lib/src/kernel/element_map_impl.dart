@@ -74,6 +74,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   List<LibraryEntity> _libraryList = <LibraryEntity>[];
   List<ClassEntity> _classList = <ClassEntity>[];
   List<MemberEntity> _memberList = <MemberEntity>[];
+  List<TypeVariableEntity> _typeVariableList = <TypeVariableEntity>[];
 
   /// List of library environments by `IndexedLibrary.libraryIndex`. This is
   /// used for fast lookup into library classes and members.
@@ -526,11 +527,12 @@ abstract class ElementCreatorMixin {
   List<ClassData> get _classData;
   List<MemberEntity> get _memberList;
   List<MemberData> get _memberData;
+  List<TypeVariableEntity> get _typeVariableList;
 
   Map<ir.Library, IndexedLibrary> _libraryMap = <ir.Library, IndexedLibrary>{};
   Map<ir.Class, IndexedClass> _classMap = <ir.Class, IndexedClass>{};
-  Map<ir.TypeParameter, TypeVariableEntity> _typeVariableMap =
-      <ir.TypeParameter, TypeVariableEntity>{};
+  Map<ir.TypeParameter, IndexedTypeVariable> _typeVariableMap =
+      <ir.TypeParameter, IndexedTypeVariable>{};
   Map<ir.Member, IndexedConstructor> _constructorMap =
       <ir.Member, IndexedConstructor>{};
   Map<ir.Procedure, IndexedFunction> _methodMap =
@@ -587,9 +589,13 @@ abstract class ElementCreatorMixin {
   TypeVariableEntity _getTypeVariable(ir.TypeParameter node) {
     return _typeVariableMap.putIfAbsent(node, () {
       if (node.parent is ir.Class) {
+        int typeVariableIndex = _typeVariableList.length;
         ir.Class cls = node.parent;
         int index = cls.typeParameters.indexOf(node);
-        return createTypeVariable(_getClass(cls), node.name, index);
+        TypeVariableEntity typeVariable = createTypeVariable(
+            typeVariableIndex, _getClass(cls), node.name, index);
+        _typeVariableList.add(typeVariable);
+        return typeVariable;
       }
       if (node.parent is ir.FunctionNode) {
         ir.FunctionNode func = node.parent;
@@ -605,7 +611,11 @@ abstract class ElementCreatorMixin {
             ir.Class cls = procedure.enclosingClass;
             return _getTypeVariable(cls.typeParameters[index]);
           } else {
-            return createTypeVariable(_getMethod(procedure), node.name, index);
+            int typeVariableIndex = _typeVariableList.length;
+            TypeVariableEntity typeVariable = createTypeVariable(
+                typeVariableIndex, _getMethod(procedure), node.name, index);
+            _typeVariableList.add(typeVariable);
+            return typeVariable;
           }
         }
       }
@@ -787,7 +797,7 @@ abstract class ElementCreatorMixin {
       {bool isAbstract});
 
   TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index);
+      int typeVariableIndex, Entity typeDeclaration, String name, int index);
 
   IndexedConstructor createGenerativeConstructor(
       int memberIndex,
@@ -846,8 +856,8 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
   }
 
   TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index) {
-    return new KTypeVariable(typeDeclaration, name, index);
+      int typeVariableIndex, Entity typeDeclaration, String name, int index) {
+    return new KTypeVariable(typeVariableIndex, typeDeclaration, name, index);
   }
 
   IndexedConstructor createGenerativeConstructor(
@@ -1690,6 +1700,16 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
   MemberEntity toFrontendMember(covariant IndexedMember member) {
     return _frontend._memberList[member.memberIndex];
   }
+
+  TypeVariableEntity toBackendTypeVariable(
+      covariant IndexedTypeVariable typeVariable) {
+    return _backend._typeVariableList[typeVariable.typeVariableIndex];
+  }
+
+  TypeVariableEntity toFrontendTypeVariable(
+      covariant IndexedTypeVariable typeVariable) {
+    return _frontend._typeVariableList[typeVariable.typeVariableIndex];
+  }
 }
 
 class JsKernelToElementMap extends KernelToElementMapBase
@@ -1759,6 +1779,23 @@ class JsKernelToElementMap extends KernelToElementMapBase
       } else {
         _methodMap[data.node] = newMember;
       }
+    }
+    for (int typeVariableIndex = 0;
+        typeVariableIndex < _elementMap._typeVariableList.length;
+        typeVariableIndex++) {
+      TypeVariableEntity oldTypeVariable =
+          _elementMap._typeVariableList[typeVariableIndex];
+      Entity newTypeDeclaration;
+      if (oldTypeVariable.typeDeclaration is ClassEntity) {
+        IndexedClass cls = oldTypeVariable.typeDeclaration;
+        newTypeDeclaration = _classList[cls.classIndex];
+      } else {
+        IndexedMember member = oldTypeVariable.typeDeclaration;
+        newTypeDeclaration = _memberList[member.memberIndex];
+      }
+      TypeVariableEntity newTypeVariable = createTypeVariable(typeVariableIndex,
+          newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
+      _typeVariableList.add(newTypeVariable);
     }
   }
 

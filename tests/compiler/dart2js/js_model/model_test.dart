@@ -40,7 +40,7 @@ Future mainInternal(List<String> args,
         skipWarnings: skipWarnings,
         skipErrors: skipErrors,
         options: options,
-        expectAstEquivalence: false,
+        expectAstEquivalence: true,
         expectIdenticalOutput: false);
   }
 }

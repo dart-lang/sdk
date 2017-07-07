@@ -61,36 +61,8 @@ abstract class JsToFrontendMapBase implements JsToFrontendMap {
     return typeVariable;
   }
 
-  final Map<TypeVariableEntity, TypeVariableEntity> _toBackendTypeVariableMap =
-      <TypeVariableEntity, TypeVariableEntity>{};
-
-  final Map<TypeVariableEntity, TypeVariableEntity> _toFrontendTypeVariableMap =
-      <TypeVariableEntity, TypeVariableEntity>{};
-
-  TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
-    return _toBackendTypeVariableMap.putIfAbsent(typeVariable, () {
-      Entity typeDeclaration;
-      if (typeVariable.typeDeclaration is ClassEntity) {
-        typeDeclaration = toBackendClass(typeVariable.typeDeclaration);
-      } else {
-        typeDeclaration = toBackendMember(typeVariable.typeDeclaration);
-      }
-      TypeVariableEntity newTypeVariable =
-          createTypeVariable(typeDeclaration, typeVariable);
-      _toFrontendTypeVariableMap[newTypeVariable] = typeVariable;
-      return newTypeVariable;
-    });
-  }
-
-  TypeVariableEntity toFrontendTypeVariable(TypeVariableEntity typeVariable) {
-    return _toFrontendTypeVariableMap[typeVariable];
-  }
-
-  TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, TypeVariableEntity typeVariable) {
-    return new JTypeVariable(
-        typeDeclaration, typeVariable.name, typeVariable.index);
-  }
+  TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable);
+  TypeVariableEntity toFrontendTypeVariable(TypeVariableEntity typeVariable);
 }
 
 class JsElementCreatorMixin {
@@ -105,8 +77,8 @@ class JsElementCreatorMixin {
   }
 
   TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index) {
-    return new JTypeVariable(typeDeclaration, name, index);
+      int typeVariableIndex, Entity typeDeclaration, String name, int index) {
+    return new JTypeVariable(typeVariableIndex, typeDeclaration, name, index);
   }
 
   IndexedConstructor createGenerativeConstructor(
@@ -511,11 +483,13 @@ class JField extends JMember implements FieldEntity, IndexedField {
 }
 
 class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
+  final int typeVariableIndex;
   final Entity typeDeclaration;
   final String name;
   final int index;
 
-  JTypeVariable(this.typeDeclaration, this.name, this.index);
+  JTypeVariable(
+      this.typeVariableIndex, this.typeDeclaration, this.name, this.index);
 
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';

@@ -5,6 +5,7 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
+import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/values.dart';
 import 'elements/entities.dart';
@@ -1163,6 +1164,17 @@ class CommonElements {
   }
 
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
+
+  /// Returns `true` if the implementation of the 'operator ==' [function] is
+  /// known to handle `null` as argument.
+  bool operatorEqHandlesNullArgument(FunctionEntity function) {
+    assert(function.name == '==',
+        failedAt(function, "Unexpected function $function."));
+    ClassEntity cls = function.enclosingClass;
+    return cls == objectClass ||
+        cls == jsInterceptorClass ||
+        cls == jsNullClass;
+  }
 }
 
 /// Interface for accessing libraries, classes and members.

@@ -28,5 +28,7 @@ abstract class IndexedConstructor
 
 abstract class IndexedField implements IndexedMember, FieldEntity {}
 
-// TODO(johnniwinther): Add and use [typeVariableIndex].
-abstract class IndexedTypeVariable implements TypeVariableEntity {}
+abstract class IndexedTypeVariable implements TypeVariableEntity {
+  /// Type variable index used for fast lookup in [KernelToElementMapBase].
+  int get typeVariableIndex;
+}
