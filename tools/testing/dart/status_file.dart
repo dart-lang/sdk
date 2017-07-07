@@ -18,7 +18,7 @@ final _sectionPattern = new RegExp(r"^\[(.+?)\]");
 /// like:
 ///
 ///     some/path/to/some_test: Pass || Fail
-final _entryPattern = new RegExp(r"\s*([^: ]*)\s*:(.*)");
+final _entryPattern = new RegExp(r"^([^:#]+):(.*)");
 
 /// Matches an issue number in a comment, like:
 ///

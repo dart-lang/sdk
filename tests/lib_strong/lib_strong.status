@@ -191,10 +191,12 @@ html/custom/created_callback_test: CompileTimeError # Issue 29922
 html/custom/document_register_basic_test: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/constructors: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/createElement with type extension: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/functional: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/namespaces: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/parsing: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
 html/custom/element_upgrade_test: CompileTimeError # Issue 29922
 html/custom/entered_left_view_test/disconnected_subtree: CompileTimeError # Issue 29922
 html/custom/entered_left_view_test/shadow_dom: CompileTimeError # Issue 29922
@@ -355,5 +357,3 @@ typed_data/int32x4_bigint_test: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 typed_data/typed_data_list_test: RuntimeError # Issue 29922
-html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/createElement with type extension: CompileTimeError # Issue 29922
