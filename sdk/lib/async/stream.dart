@@ -987,9 +987,10 @@ abstract class Stream<T> {
   /**
    * Provides at most the first [count] data events of this stream.
    *
-   * Forwards all events of this stream to the returned stream
-   * until [count] data events have been forwarded or this stream ends,
-   * then ends the returned stream with a done event.
+   * Returns a stream that emits the same events that this stream would
+   * if listened to at the same time,
+   * until either this stream ends or it has emitted [count] data events,
+   * at which point the returned stream is done.
    *
    * If this stream produces fewer than [count] data events before it's done,
    * so will the returned stream.
@@ -1011,12 +1012,16 @@ abstract class Stream<T> {
   /**
    * Forwards data events while [test] is successful.
    *
-   * The returned stream provides the same events as this stream as long
-   * as [test] returns `true` for the event data. The stream is done
-   * when either this stream is done, or when this stream first provides
-   * a value that [test] doesn't accept.
+   * Returns a stream that provides the same events as this stream
+   * until [test] fails for a data event.
+   * The returned stream is done when either this stream is done,
+   * or when this stream first emits a data event that fails [test].
    *
-   * Stops listening to the stream after the accepted elements.
+   * The `test` call is considered failing if it returns a non-`true` value
+   * or if it throws. If the `test` call throws, the error is emitted as the
+   * last event on the returned streams.
+   *
+   * Stops listening to this stream after the accepted elements.
    *
    * Internally the method cancels its subscription after these elements. This
    * means that single-subscription (non-broadcast) streams are closed and
@@ -1033,6 +1038,14 @@ abstract class Stream<T> {
   /**
    * Skips the first [count] data events from this stream.
    *
+   * Returns a stream that emits the same events as this stream would
+   * if listened to at the same time, except that the first [count]
+   * data events are not emitted.
+   * The returned stream is done when this stream is.
+   *
+   * If this stream emits fewer than [count] data events
+   * before being done, the returned stream emits no data events.
+   *
    * The returned stream is a broadcast stream if this stream is.
    * For a broadcast stream, the events are only counted from the time
    * the returned stream is listened to.
@@ -1044,10 +1057,16 @@ abstract class Stream<T> {
   /**
    * Skip data events from this stream while they are matched by [test].
    *
-   * Error and done events are provided by the returned stream unmodified.
+   * Returns a stream that emits the same events as this stream,
+   * except that data events are not emitted until a data event fails `test`.
+   * The test fails when called with a data event
+   * if it returns a non-`true` value or if the call to `test` throws.
+   * If the call throws, the error is emitted as an error event
+   * on the returned stream instead of the data event,
+   * otherwise the event that made `test` return non-true is emitted as the
+   * first data event.
    *
-   * Starting with the first data event where [test] returns false for the
-   * event data, the returned stream will have the same events as this stream.
+   * Error and done events are provided by the returned stream unmodified.
    *
    * The returned stream is a broadcast stream if this stream is.
    * For a broadcast stream, the events are only tested from the time
@@ -1071,7 +1090,8 @@ abstract class Stream<T> {
    *
    * If [equals] throws, the data event is replaced by an error event
    * containing the thrown error. The behavior is equivalent to the
-   * original stream emitting the error event.
+   * original stream emitting the error event, and it doesn't change
+   * the what the most recently emitted data event is.
    *
    * The returned stream is a broadcast stream if this stream is.
    * If a broadcast stream is listened to more than once, each subscription
@@ -1381,7 +1401,8 @@ abstract class Stream<T> {
    * Creates a new stream with the same events as this stream.
    *
    * Whenever more than [timeLimit] passes between two events from this stream,
-   * the [onTimeout] function is called.
+   * the [onTimeout] function is called, which can emit further events on
+   * the returned stream.
    *
    * The countdown doesn't start until the returned stream is listened to.
    * The countdown is reset every time an event is forwarded from this stream,
@@ -1389,10 +1410,14 @@ abstract class Stream<T> {
    *
    * The [onTimeout] function is called with one argument: an
    * [EventSink] that allows putting events into the returned stream.
-   * This `EventSink` is only valid during the call to `onTimeout`.
+   * This `EventSink` is only valid during the call to [onTimeout].
+   * Calling [EventSink.close] on the sink passed to [onTimeout] closes the
+   * returned stream, and no futher events are processed.
    *
-   * If `onTimeout` is omitted, a timeout will just put a [TimeoutException]
+   * If [onTimeout] is omitted, a timeout will just put a [TimeoutException]
    * into the error channel of the returned stream.
+   * If the call to [onTimeout] throws, the error is emitted on the returned
+   * stream.
    *
    * The returned stream is a broadcast stream if this stream is.
    * If a broadcast stream is listened to more than once, each subscription
