@@ -47,6 +47,7 @@ class Configuration {
       this.useBlobs,
       this.useSdk,
       this.useFastStartup,
+      this.useEnableAsserts,
       this.useDart2JSWithKernel,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
@@ -109,6 +110,7 @@ class Configuration {
   final bool useBlobs;
   final bool useSdk;
   final bool useFastStartup;
+  final bool useEnableAsserts;
   final bool useDart2JSWithKernel;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
@@ -215,6 +217,7 @@ class Configuration {
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
     if (useFastStartup) args.add("--fast-startup");
+    if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
     return args;
   }

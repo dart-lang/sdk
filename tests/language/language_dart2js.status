@@ -181,7 +181,6 @@ default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && ! $checked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
-assertion_test: RuntimeError # Issue 12748
 generic_test: RuntimeError, OK
 map_literal4_test: RuntimeError, OK # Checked mode required.
 named_parameters_type_test/01: MissingRuntimeError, OK
@@ -190,6 +189,12 @@ named_parameters_type_test/03: MissingRuntimeError, OK
 positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
+
+[ $compiler == dart2js && ! $checked && ! $enable_asserts ]
+assertion_test: RuntimeError # Issue 12748
+
+[ $compiler == dart2js && ! $checked && $enable_asserts ]
+bool_check_test: RuntimeError # Issue 29647
 
 [ $compiler == dart2js && ! $checked && $minified ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605

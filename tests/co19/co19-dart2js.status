@@ -371,6 +371,21 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
 
+[ $compiler == dart2js && ! $checked && $enable_asserts ]
+Language/Statements/Assert/execution_t01: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t02: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t03: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t04: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t05: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t06: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/execution_t11: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/production_mode_t01: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t02: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t03: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t04: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t05: SkipByDesign # Unspec'd feature.
+Language/Statements/Assert/type_t06: SkipByDesign # Unspec'd feature.
+
 [ $compiler == dart2js && $checked && $runtime != d8]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Please triage this failure

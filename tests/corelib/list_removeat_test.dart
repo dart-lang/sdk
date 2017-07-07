@@ -22,9 +22,6 @@ class MyList extends ListBase {
 
 // l1 must be a modifiable list with 5 elements from 0 to 4.
 void testModifiableList(l1) {
-  bool checkedMode = false;
-  assert(checkedMode = true);
-
   // Index must be integer and in range.
   Expect.throws(() {
     l1.removeAt(-1);
@@ -37,10 +34,12 @@ void testModifiableList(l1) {
   }, (e) => e is ArgumentError, "too large");
   Expect.throws(() {
     l1.removeAt("1");
-  }, (e) => (checkedMode ? e is TypeError : e is ArgumentError), "string");
+  }, (e) => (typeAssertionsEnabled ? e is TypeError : e is ArgumentError),
+      "string");
   Expect.throws(() {
     l1.removeAt(1.5);
-  }, (e) => (checkedMode ? e is TypeError : e is ArgumentError), "double");
+  }, (e) => (typeAssertionsEnabled ? e is TypeError : e is ArgumentError),
+      "double");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");
   Expect.equals(1, l1[1], "l1-1[1]");

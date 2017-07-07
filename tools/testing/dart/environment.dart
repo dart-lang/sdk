@@ -19,6 +19,7 @@ final _variables = {
   "csp": new _Variable.bool((c) => c.isCsp),
   "dart2js_with_kernel": new _Variable.bool((c) => c.useDart2JSWithKernel),
   "fast_startup": new _Variable.bool((c) => c.useFastStartup),
+  "enable_asserts": new _Variable.bool((c) => c.useEnableAsserts),
   "host_checked": new _Variable.bool((c) => c.isHostChecked),
   "host_unchecked": new _Variable.bool((c) => !c.isHostChecked),
   "hot_reload": new _Variable.bool((c) => c.hotReload),

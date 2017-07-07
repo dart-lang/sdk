@@ -356,6 +356,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
         (_) => setCheckedMode(Flags.enableCheckedMode)),
+    new OptionHandler(Flags.enableAsserts, passThrough),
     new OptionHandler(Flags.trustTypeAnnotations,
         (_) => setTrustTypeAnnotations(Flags.trustTypeAnnotations)),
     new OptionHandler(Flags.trustPrimitives,
