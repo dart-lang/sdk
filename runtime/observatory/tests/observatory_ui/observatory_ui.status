@@ -18,6 +18,3 @@ heap_snapshot/element_test: RuntimeError # Issue 27925
 
 [ $runtime == ff || $runtime == chrome ]
 heap_snapshot/element_test: RuntimeError # Issue 27925
-
-[ $runtime == ff || $runtime == safari ]
-virtual_tree/element_test: Fail # Issue 30087

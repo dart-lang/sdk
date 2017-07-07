@@ -39,6 +39,8 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// Queue used for rendering operations.
   final RenderingQueue queue;
 
+  final List<Future> _wait = <Future>[];
+
   /// Does the element need a new rendering cycle.
   bool get isDirty => _dirty;
 
@@ -110,6 +112,7 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   void render() {
     if (!_enabled) return;
     _dirty = false;
+    _wait.clear();
     element.render();
     _renderingScheduled = false;
     scheduleNotification();
@@ -123,7 +126,13 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
     _notificationScheduled = true;
   }
 
+  void waitFor(Iterable<Future> it) {
+    _wait.addAll(it);
+  }
+
   Future _notify() async {
+    await Future.wait(_wait);
+    _wait.clear();
     _onRendered.add(new RenderedEvent<T>(element, _dirty));
     _notificationScheduled = false;
   }
