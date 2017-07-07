@@ -235,12 +235,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       <UnlinkedExportNonPublicBuilder>[];
 
   /**
-   * List of objects which should be written to
-   * [UnlinkedExecutable.localLabels].
-   */
-  List<UnlinkedLabelBuilder> labels = <UnlinkedLabelBuilder>[];
-
-  /**
    * List of objects which should be written to [UnlinkedUnit.parts].
    */
   final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
@@ -703,11 +697,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
-    List<UnlinkedLabelBuilder> oldLabels = labels;
     Map<int, int> oldLocalClosureIndexMap = _localClosureIndexMap;
     bool oldSerializeClosureBodyExprs = _serializeClosureBodyExprs;
     executables = <UnlinkedExecutableBuilder>[];
-    labels = <UnlinkedLabelBuilder>[];
     _localClosureIndexMap = <int, int>{};
     _serializeClosureBodyExprs = serializeBodyExpr;
     if (initializers != null) {
@@ -730,10 +722,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     b.localFunctions = executables;
-    b.localLabels = labels;
     Map<int, int> localClosureIndexMap = _localClosureIndexMap;
     executables = oldExecutables;
-    labels = oldLabels;
     _localClosureIndexMap = oldLocalClosureIndexMap;
     _serializeClosureBodyExprs = oldSerializeClosureBodyExprs;
     return localClosureIndexMap;
@@ -1301,19 +1291,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.uriOffset = node.uri.offset;
     b.uriEnd = node.uri.end;
     unlinkedImports.add(b);
-  }
-
-  @override
-  void visitLabel(Label node) {
-    AstNode parent = node.parent;
-    if (parent is! NamedExpression) {
-      labels.add(new UnlinkedLabelBuilder(
-          name: node.label.name,
-          nameOffset: node.offset,
-          isOnSwitchMember: parent is SwitchMember,
-          isOnSwitchStatement: parent is LabeledStatement &&
-              parent.statement is SwitchStatement));
-    }
   }
 
   @override

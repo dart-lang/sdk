@@ -2150,7 +2150,7 @@ table UnlinkedExecutable {
   /**
    * The list of local labels.
    */
-  localLabels:[UnlinkedLabel] (id: 22);
+  localLabels:[string] (id: 22, deprecated);
 
   /**
    * The list of local variables.
@@ -2400,32 +2400,6 @@ table UnlinkedImport {
    * the file.  If [isImplicit] is true, zero.
    */
   uriOffset:uint (id: 3);
-}
-
-/**
- * Unlinked summary information about a label.
- */
-table UnlinkedLabel {
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   */
-  isOnSwitchMember:bool (id: 2);
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   */
-  isOnSwitchStatement:bool (id: 3);
-
-  /**
-   * Name of the label.
-   */
-  name:string (id: 0);
-
-  /**
-   * Offset of the label relative to the beginning of the file.
-   */
-  nameOffset:uint (id: 1);
 }
 
 /**

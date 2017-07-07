@@ -5340,63 +5340,6 @@ f() {
     expect(functions, isEmpty);
   }
 
-  test_executable_localLabels_inMethod() {
-    String code = r'''
-class C {
-  m() {
-    aaa: while (true) {}
-    bbb: while (true) {}
-  }
-}
-''';
-    UnlinkedExecutable executable =
-        findExecutable('m', executables: serializeClassText(code).executables);
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localLabels_inTopLevelFunction() {
-    String code = r'''
-f() {
-  aaa: while (true) {}
-  bbb: switch (42) {
-    ccc: case 0:
-      break;
-    ddd: default:
-      break;
-  }
-}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localLabels_inTopLevelGetter() {
-    String code = r'''
-get g {
-  aaa: while (true) {}
-  bbb: while (true) {}
-}
-''';
-    UnlinkedExecutable executable =
-        serializeExecutableText(code, executableName: 'g');
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localLabels_namedExpressionLabel() {
-    String code = r'''
-f() {
-  foo(p: 42);
-}
-foo({int p}) {}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
   test_executable_member_function() {
     UnlinkedExecutable executable = findExecutable('f',
         executables: serializeClassText('class C { f() {} }').executables);
