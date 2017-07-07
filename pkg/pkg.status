@@ -215,7 +215,7 @@ analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 kernel/test/closures_test: Fail
 
 [ $runtime == vm ]
-analyzer_cli/test/driver_test: Pass, Slow
+analyzer_cli/test/driver_test: Pass, Slow, Timeout
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow
