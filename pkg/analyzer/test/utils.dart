@@ -17,6 +17,18 @@ import 'package:test/test.dart';
  * Search the [unit] for the [LocalVariableElement] with the given [name].
  * Fail if there is not exactly one such variable.
  */
+FunctionElement findLocalFunction(CompilationUnit unit, String name) {
+  List<Element> elements = findElementsByName(unit, name);
+  List<Element> functions =
+      elements.where((e) => e is FunctionElement).toList();
+  expect(functions, hasLength(1));
+  return functions[0];
+}
+
+/**
+ * Search the [unit] for the [LocalVariableElement] with the given [name].
+ * Fail if there is not exactly one such variable.
+ */
 LocalVariableElement findLocalVariable(CompilationUnit unit, String name) {
   List<Element> elements = findElementsByName(unit, name);
   List<Element> localVariables =
