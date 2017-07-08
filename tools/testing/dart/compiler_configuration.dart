@@ -393,7 +393,7 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
       // will tell require.js where to find each package's compiled JS.
       var summary = _configuration.buildDirectory +
           "/gen/utils/dartdevc/pkg/$package.sum";
-      args.add("$summary:$package");
+      args.add("$summary=$package");
     }
 
     return Command.compilation(Compiler.dartdevc.name, outputFile,
