@@ -161,7 +161,8 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
       Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
   await generate.main([
     '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
-    '$entryPoint'
+    '--out=${dillFile.path}',
+    '${entryPoint.path}',
   ]);
   return dillFile;
 }

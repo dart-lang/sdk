@@ -143,7 +143,9 @@ Future _main(List<String> argv) async {
     var program = await kernelForProgram(
         Uri.parse('dart:$vmserviceName'),
         new CompilerOptions()
-          ..sdkSummary = outline
+          // TODO(sigmund): investigate. This should be outline, but it breaks
+          // vm-debug tests. Issue #30111
+          ..sdkSummary = platform
           ..dartLibraries = <String, Uri>{
             '_vmservice': dartDir.resolve('sdk/lib/vmservice/vmservice.dart'),
             'vmservice_io':
@@ -151,6 +153,10 @@ Future _main(List<String> argv) async {
           }
           ..packagesFileUri = packages);
     Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
+    // TODO(sigmund): remove. This is a workaround because in the VM
+    // doesn't support loading vmservice if it contains external libraries
+    // (there is an assertion that only fails in debug builds). Issue #30111
+    program.libraries.forEach((l) => l.isExternal = false);
     await writeProgramToFile(program, vmserviceUri);
   }
 

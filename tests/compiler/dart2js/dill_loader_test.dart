@@ -48,6 +48,7 @@ main() {
     var options = new CompilerOptions()
       ..target = new Dart2jsTarget(new TargetFlags())
       ..packagesFileUri = Platform.script.resolve('../../../.packages')
+      ..compileSdk = true
       ..linkedDependencies = [platform]
       ..verify = true
       ..onError = errorHandler;
