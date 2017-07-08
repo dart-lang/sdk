@@ -42,9 +42,11 @@ main() {
     OutputCollector output = new OutputCollector();
     Uri entryPoint = Uri.parse('memory:main.dill');
 
-    var platform = Uri
-        .parse(Platform.resolvedExecutable)
-        .resolve('patched_dart2js_sdk/platform.dill');
+    String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+    String configuration =
+        Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+    var platform = Platform.script.resolve(
+        '../../../$buildDir/$configuration/patched_dart2js_sdk/platform.dill');
     var options = new CompilerOptions()
       ..target = new Dart2jsTarget(new TargetFlags())
       ..packagesFileUri = Platform.script.resolve('../../../.packages')

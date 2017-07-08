@@ -79,6 +79,8 @@ Future<CompilationResult> _parseScriptInFileSystem(
     // We serialize the program excluding platform.dill because the VM has these
     // sources built-in. Everything loaded as a summary in [kernelForProgram] is
     // marked `external`, so we can use that bit to decide what to excluce.
+    // TODO(sigmund): remove the following line (Issue #30111)
+    program.libraries.forEach((e) => e.isExternal = false);
     return new CompilationResult.ok(
         serializeProgram(program, filter: (lib) => !lib.isExternal));
   } catch (err, stack) {
