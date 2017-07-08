@@ -178,12 +178,12 @@ class _CascadableExpression {
           isCritical: true);
     }
     // setters
-    return new _CascadableExpression._internal(
-        _getPrefixElementFromExpression(node.leftHandSide),
-        [node.rightHandSide],
-        canJoin: true,
-        canReceive: true,
-        canBeCascaded: true);
+    final VariableElement variable =
+        _getPrefixElementFromExpression(node.leftHandSide);
+    final canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
+        !variable.isStatic;
+    return new _CascadableExpression._internal(variable, [node.rightHandSide],
+        canJoin: true, canReceive: canReceive, canBeCascaded: true);
   }
 
   factory _CascadableExpression._fromCascadeExpression(

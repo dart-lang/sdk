@@ -183,3 +183,14 @@ void function701({Bug701 something}) {
   something.foo = 1; // OK
   something.bar = 2; // LINT
 }
+
+// https://github.com/dart-lang/linter/issues/694
+class Bug694 {
+  static int foo = 0;
+  static int bar = 1;
+}
+
+void function694() {
+  Bug694.bar = 2;
+  Bug694.foo = 3; // OK
+}
