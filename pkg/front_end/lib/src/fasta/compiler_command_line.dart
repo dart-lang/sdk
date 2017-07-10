@@ -6,7 +6,7 @@ library fasta.compiler_command_line;
 
 import 'dart:io' show exit;
 
-import 'command_line.dart' show CommandLine, argumentError;
+import 'command_line.dart' show CommandLine, deprecated_argumentError;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -54,26 +54,28 @@ class CompilerCommandLine extends CommandLine {
     }
 
     if (options.containsKey("-o") && options.containsKey("--output")) {
-      return argumentError(usage, "Can't specify both '-o' and '--output'.");
+      return deprecated_argumentError(
+          usage, "Can't specify both '-o' and '--output'.");
     }
     if (options.containsKey("-t") && options.containsKey("--target")) {
-      return argumentError(usage, "Can't specify both '-t' and '--target'.");
+      return deprecated_argumentError(
+          usage, "Can't specify both '-t' and '--target'.");
     }
     if (options.containsKey("--compile-sdk") &&
         options.containsKey("--platform")) {
-      return argumentError(
+      return deprecated_argumentError(
           usage, "Can't specify both '--compile-sdk' and '--platform'.");
     }
     if (programName == "compile_platform" && arguments.length != 3) {
-      return argumentError(usage, "Expected three arguments.");
+      return deprecated_argumentError(usage, "Expected three arguments.");
     } else if (arguments.isEmpty) {
-      return argumentError(usage, "No Dart file specified.");
+      return deprecated_argumentError(usage, "No Dart file specified.");
     }
 
     Target target =
         getTarget(targetName, new TargetFlags(strongMode: strongMode));
     if (target == null) {
-      return argumentError(
+      return deprecated_argumentError(
           usage,
           "Target '${targetName}' not recognized. "
           "Valid targets are:\n  ${targets.keys.join("\n  ")}");

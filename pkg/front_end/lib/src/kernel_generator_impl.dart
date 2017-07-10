@@ -12,7 +12,7 @@ import 'package:kernel/kernel.dart' show Program, CanonicalName;
 
 import 'base/processed_options.dart';
 import 'fasta/dill/dill_target.dart' show DillTarget;
-import 'fasta/errors.dart' show InputError, reportCrash;
+import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
 import 'fasta/kernel/kernel_outline_shaker.dart';
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 import 'fasta/kernel/verifier.dart';
@@ -145,8 +145,8 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         summary: summary,
         program: program,
         deps: kernelTarget.loader.getDependencies());
-  } on InputError catch (e) {
-    options.reportError(e.format());
+  } on deprecated_InputError catch (e) {
+    options.reportError(e.deprecated_format());
     return null;
   } catch (e, t) {
     return reportCrash(e, t);

@@ -18,7 +18,7 @@ import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError;
+import 'deprecated_problems.dart' show deprecated_InputError;
 
 import 'kernel/utils.dart' show writeProgramToFile;
 
@@ -33,9 +33,9 @@ Future mainEntryPoint(List<String> arguments) async {
     }
     try {
       await compilePlatform(arguments);
-    } on InputError catch (e) {
+    } on deprecated_InputError catch (e) {
       exitCode = 1;
-      print(e.format());
+      print(e.deprecated_format());
       return null;
     }
   }

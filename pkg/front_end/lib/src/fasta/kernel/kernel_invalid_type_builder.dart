@@ -26,7 +26,7 @@ class KernelInvalidTypeBuilder
   /// [Arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    library.addWarning(charOffset, message, fileUri: fileUri);
+    library.deprecated_addWarning(charOffset, message, fileUri: fileUri);
     return const InvalidType();
   }
 }

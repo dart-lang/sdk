@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Library, Program, Source;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 import '../loader.dart' show Loader;
 import '../target_implementation.dart' show TargetImplementation;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
@@ -41,7 +41,8 @@ class DillLoader extends Loader<Library> {
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     if (builder.library == null) {
-      internalError("Builder.library for ${builder.uri} should not be null.");
+      deprecated_internalProblem(
+          "Builder.library for ${builder.uri} should not be null.");
     }
     builder.library.classes.forEach(builder.addClass);
     builder.library.procedures.forEach(builder.addMember);

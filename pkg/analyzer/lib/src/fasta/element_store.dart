@@ -16,7 +16,8 @@ import 'package:analyzer/dart/element/element.dart';
 
 import 'package:analyzer/dart/element/type.dart' as analyzer;
 
-import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_internalProblem;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 
@@ -86,14 +87,16 @@ class ElementStoreImplementation implements ElementStore {
             if (member is Field) {} else if (member is Procedure) {
               buildDillFunctionElement(builder, unit, elements);
             } else {
-              internalError("Unhandled $name ${member.runtimeType} in $uri");
+              deprecated_internalProblem(
+                  "Unhandled $name ${member.runtimeType} in $uri");
             }
           } else if (builder is KernelProcedureBuilder) {
             buildKernelFunctionElement(builder, unit, elements);
           } else if (builder is BuiltinTypeBuilder) {
             // TODO(ahe): Set up elements for dynamic and void.
           } else {
-            internalError("Unhandled $name ${builder.runtimeType} in $uri");
+            deprecated_internalProblem(
+                "Unhandled $name ${builder.runtimeType} in $uri");
           }
           builder = builder.next;
         } while (builder != null);
@@ -113,7 +116,7 @@ class ElementStoreImplementation implements ElementStore {
   }
 
   Library getLibraryReference(LibraryElement element) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   Class getClassReference(covariant KernelClassElement cls) => cls.builder.cls;
@@ -122,27 +125,28 @@ class ElementStoreImplementation implements ElementStore {
     if (element is KernelFunctionElement) {
       return element.procedure;
     } else {
-      return internalError("getMemberReference(${element.runtimeType})");
+      return deprecated_internalProblem(
+          "getMemberReference(${element.runtimeType})");
     }
   }
 
-  Class getRootClassReference() => internalError("not supported.");
+  Class getRootClassReference() => deprecated_internalProblem("not supported.");
 
   Constructor getRootClassConstructorReference() {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   Class getCoreClassReference(String className) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   TypeParameter tryGetClassTypeParameter(TypeParameterElement element) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   Class getSharedMixinApplicationClass(
       Library library, Class supertype, Class mixin) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   bool get strongMode => false;
@@ -260,9 +264,9 @@ class AnalyzerLocalVariableElemment extends MockElement
 
   get type => null;
 
-  get constantValue => internalError("not supported.");
+  get constantValue => deprecated_internalProblem("not supported.");
 
-  computeConstantValue() => internalError("not supported.");
+  computeConstantValue() => deprecated_internalProblem("not supported.");
 }
 
 /// Both an [Element] and [Builder] to using memory to store local elements in
@@ -298,17 +302,17 @@ class KernelFunctionTypeAliasElement extends MockFunctionTypeAliasElement {
 
   @override
   analyzer.DartType get returnType {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   analyzer.FunctionType get type {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 }
 

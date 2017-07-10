@@ -6,7 +6,8 @@ library fasta.dill_typedef_builder;
 
 import 'package:kernel/ast.dart' show DartType, Typedef;
 
-import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_internalProblem;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -24,17 +25,17 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
             typedef);
 
   List<MetadataBuilder> get metadata {
-    return internalError('Not implemented.');
+    return deprecated_internalProblem('Not implemented.');
   }
 
   @override
   List<TypeVariableBuilder> get typeVariables {
-    return internalError('Not implemented.');
+    return deprecated_internalProblem('Not implemented.');
   }
 
   @override
   KernelFunctionTypeBuilder get type {
-    return internalError('Not implemented.');
+    return deprecated_internalProblem('Not implemented.');
   }
 
   @override

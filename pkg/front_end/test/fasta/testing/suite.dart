@@ -32,7 +32,8 @@ import 'package:testing/testing.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show MatchExpectation, Print, Verify, WriteDill;
@@ -266,7 +267,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
           }
         }
       }
-    } on InputError catch (e, s) {
+    } on deprecated_InputError catch (e, s) {
       return fail(null, e.error, s);
     }
     context.programToTarget.clear();

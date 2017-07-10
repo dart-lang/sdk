@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_internalProblem;
 import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
 import 'package:front_end/src/fasta/parser/parser.dart';
@@ -157,7 +158,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void addCompileTimeErrorFromMessage(FastaMessage message) {
-    internalError(message.message);
+    deprecated_internalProblem(message.message);
   }
 
   @override
@@ -214,7 +215,8 @@ class MiniAstBuilder extends StackListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
     if (count != 0) {
-      internalError('Conditional URIs are not supported by summary codegen');
+      deprecated_internalProblem(
+          'Conditional URIs are not supported by summary codegen');
     }
   }
 

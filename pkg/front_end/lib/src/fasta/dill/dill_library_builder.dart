@@ -7,7 +7,7 @@ library fasta.dill_library_builder;
 import 'package:kernel/ast.dart'
     show Class, Field, Library, ListLiteral, Member, StaticGet, Typedef;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -94,7 +94,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    internalError("Not implemented yet.");
+    deprecated_internalProblem("Not implemented yet.");
   }
 
   @override

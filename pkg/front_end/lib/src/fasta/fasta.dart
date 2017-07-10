@@ -19,7 +19,8 @@ import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError, inputError;
+import 'deprecated_problems.dart'
+    show deprecated_InputError, deprecated_inputError;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
@@ -75,9 +76,9 @@ Future<KernelTarget> outline(List<String> arguments) async {
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
       return await task.buildOutline(c.options.output);
     });
-  } on InputError catch (e) {
+  } on deprecated_InputError catch (e) {
     exitCode = 1;
-    print(e.format());
+    print(e.deprecated_format());
     return null;
   }
 }
@@ -93,9 +94,9 @@ Future<Uri> compile(List<String> arguments) async {
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
       return await task.compile();
     });
-  } on InputError catch (e) {
+  } on deprecated_InputError catch (e) {
     exitCode = 1;
-    print(e.format());
+    print(e.deprecated_format());
     return null;
   }
 }
@@ -136,7 +137,7 @@ class CompileTask {
     if (path.endsWith(".dart")) {
       kernelTarget.read(uri);
     } else {
-      inputError(uri, -1, "Unexpected input: $uri");
+      deprecated_inputError(uri, -1, "Unexpected input: $uri");
     }
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();

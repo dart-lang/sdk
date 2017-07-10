@@ -36,7 +36,8 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 
@@ -122,7 +123,7 @@ class FastaCompile
       await dillTarget.buildOutlines();
       await sourceTarget.buildOutlines();
       p = await sourceTarget.buildProgram();
-    } on InputError catch (e, s) {
+    } on deprecated_InputError catch (e, s) {
       return fail(null, e.error, s);
     }
     return pass(p);

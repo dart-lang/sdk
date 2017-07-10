@@ -13,7 +13,7 @@ import 'package:front_end/file_system.dart'
 
 import 'package:package_config/packages_file.dart' as packages_file show parse;
 
-import 'errors.dart' show inputError;
+import 'deprecated_problems.dart' show deprecated_inputError;
 
 class TranslateUri {
   final Map<String, Uri> packages;
@@ -75,14 +75,14 @@ class TranslateUri {
     try {
       bytes = await fileSystem.entityForUri(packages).readAsBytes();
     } on FileSystemException catch (e) {
-      inputError(packages, -1, e.message);
+      deprecated_inputError(packages, -1, e.message);
     }
 
     Map<String, Uri> parsedPackages;
     try {
       parsedPackages = packages_file.parse(bytes, packages);
     } on FormatException catch (e) {
-      return inputError(packages, e.offset, e.message);
+      return deprecated_inputError(packages, e.offset, e.message);
     }
     return new TranslateUri(
         parsedPackages,

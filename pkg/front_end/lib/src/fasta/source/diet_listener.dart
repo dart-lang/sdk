@@ -30,7 +30,12 @@ import '../parser/native_support.dart'
 
 import '../util/link.dart' show Link;
 
-import '../errors.dart' show Crash, InputError, inputError, internalError;
+import '../deprecated_problems.dart'
+    show
+        Crash,
+        deprecated_InputError,
+        deprecated_inputError,
+        deprecated_internalProblem;
 
 import 'stack_listener.dart' show NullValue, StackListener;
 
@@ -556,7 +561,7 @@ class DietListener extends StackListener {
       var body = listener.pop();
       listener.checkEmpty(token.charOffset);
       listener.finishFunction(metadataConstants, formals, asyncModifier, body);
-    } on InputError {
+    } on deprecated_InputError {
       rethrow;
     } catch (e, s) {
       throw new Crash(uri, token.charOffset, e, s);
@@ -601,17 +606,19 @@ class DietListener extends StackListener {
       builder = library.scopeBuilder[name];
     }
     if (builder == null) {
-      return internalError("Builder not found: $name", uri, token.charOffset);
+      return deprecated_internalProblem(
+          "Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
-      return inputError(uri, token.charOffset, "Duplicated name: $name");
+      return deprecated_inputError(
+          uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
   }
 
   @override
   void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.addCompileTimeError(message.charOffset, message.message,
+    library.deprecated_addCompileTimeError(message.charOffset, message.message,
         fileUri: message.uri,
         // We assume this error has already been reported by OutlineBuilder.
         silent: true);

@@ -52,7 +52,7 @@ class KernelFunctionTypeAliasBuilder
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (const InvalidType() == thisType) {
-        library.addCompileTimeError(
+        library.deprecated_addCompileTimeError(
             charOffset, "The typedef '$name' has a reference to itself.");
         return const DynamicType();
       }

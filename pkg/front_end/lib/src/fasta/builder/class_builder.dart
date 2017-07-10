@@ -4,7 +4,7 @@
 
 library fasta.class_builder;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import 'builder.dart'
     show
@@ -164,8 +164,10 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         }
         supertype = t.supertype;
       } else {
-        internalError("Superclass not found '${superclass.fullNameForErrors}'.",
-            fileUri, charOffset);
+        deprecated_internalProblem(
+            "Superclass not found '${superclass.fullNameForErrors}'.",
+            fileUri,
+            charOffset);
       }
       if (variables != null) {
         Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
@@ -192,18 +194,20 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// (and isn't a setter).
   MemberBuilder operator [](String name) {
     // TODO(ahe): Rename this to getLocalMember.
-    return scope.local[name] ?? internalError("Not found: '$name'.");
+    return scope.local[name] ??
+        deprecated_internalProblem("Not found: '$name'.");
   }
 
-  void addCompileTimeError(int charOffset, String message) {
-    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+  void deprecated_addCompileTimeError(int charOffset, String message) {
+    library.deprecated_addCompileTimeError(charOffset, message,
+        fileUri: fileUri);
   }
 
-  void addWarning(int charOffset, String message) {
-    library.addWarning(charOffset, message, fileUri: fileUri);
+  void deprecated_addWarning(int charOffset, String message) {
+    library.deprecated_addWarning(charOffset, message, fileUri: fileUri);
   }
 
-  void addNit(int charOffset, String message) {
-    library.addNit(charOffset, message, fileUri: fileUri);
+  void deprecated_addNit(int charOffset, String message) {
+    library.deprecated_addNit(charOffset, message, fileUri: fileUri);
   }
 }

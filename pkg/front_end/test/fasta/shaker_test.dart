@@ -22,7 +22,8 @@ import 'dart:io' show File;
 export 'package:testing/testing.dart' show Chain, runMe;
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 import 'package:front_end/src/fasta/kernel/kernel_outline_shaker.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -118,7 +119,7 @@ class BuildProgram
       bool isIncluded(Uri uri) => !_isTreeShaken(uri);
       trimProgram(program, isIncluded);
       return pass(new _IntermediateData(inputUri, program, showCoreLibraries));
-    } on InputError catch (e, s) {
+    } on deprecated_InputError catch (e, s) {
       return fail(null, e.error, s);
     }
   }
@@ -209,9 +210,7 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
       expectedFile.writeAsStringSync(actualResult);
       return pass(actualResult);
     } else {
-      return fail(
-          actualResult,
-          """
+      return fail(actualResult, """
 Please create file ${expectedFile.path} with this content:
 $buffer""");
     }

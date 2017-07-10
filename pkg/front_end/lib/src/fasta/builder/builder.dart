@@ -4,7 +4,7 @@
 
 library fasta.builder;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 export 'class_builder.dart' show ClassBuilder;
 
@@ -44,7 +44,7 @@ export 'prefix_builder.dart' show PrefixBuilder;
 
 export 'invalid_type_builder.dart' show InvalidTypeBuilder;
 
-export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
+export '../scope.dart' show deprecated_AccessErrorBuilder, Scope, ScopeBuilder;
 
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
 
@@ -124,7 +124,8 @@ abstract class Builder {
 
   bool get isSynthetic => false;
 
-  get target => internalError("Unsupported operation $runtimeType.");
+  get target =>
+      deprecated_internalProblem("Unsupported operation $runtimeType.");
 
   bool get hasProblem => false;
 
@@ -136,7 +137,7 @@ abstract class Builder {
       if (builder is LibraryBuilder) return builder.uri;
       builder = builder.parent;
     } while (builder != null);
-    return internalError("No library parent.");
+    return deprecated_internalProblem("No library parent.");
   }
 
   void prepareInitializerInference(

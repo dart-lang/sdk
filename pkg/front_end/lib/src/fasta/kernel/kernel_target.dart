@@ -52,8 +52,12 @@ import '../translate_uri.dart' show TranslateUri;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../errors.dart'
-    show InputError, internalError, reportCrash, resetCrashReporting;
+import '../deprecated_problems.dart'
+    show
+        deprecated_InputError,
+        deprecated_internalProblem,
+        reportCrash,
+        resetCrashReporting;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -109,10 +113,11 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
-  void addError(file, int charOffset, String message) {
+  void deprecated_addError(file, int charOffset, String message) {
     Uri uri = file is String ? Uri.parse(file) : file;
-    InputError error = new InputError(uri, charOffset, message);
-    String formatterMessage = error.format();
+    deprecated_InputError error =
+        new deprecated_InputError(uri, charOffset, message);
+    String formatterMessage = error.deprecated_format();
     print(formatterMessage);
     errors.add(formatterMessage);
   }
@@ -145,7 +150,7 @@ class KernelTarget extends TargetImplementation {
     if (supertype is NamedTypeBuilder) {
       f(supertype);
     } else if (supertype != null) {
-      internalError("Unhandled: ${supertype.runtimeType}");
+      deprecated_internalProblem("Unhandled: ${supertype.runtimeType}");
     }
     if (cls.interfaces != null) {
       for (NamedTypeBuilder t in cls.interfaces) {
@@ -210,9 +215,9 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(InputError error, {bool isFullProgram}) {
+  void handleInputError(deprecated_InputError error, {bool isFullProgram}) {
     if (error != null) {
-      String message = error.format();
+      String message = error.deprecated_format();
       print(message);
       errors.add(message);
     }
@@ -244,7 +249,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
-    } on InputError catch (e) {
+    } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
@@ -279,7 +284,7 @@ class KernelTarget extends TargetImplementation {
         handleInputError(null, isFullProgram: true);
       }
       handleRecoverableErrors(loader.unhandledErrors);
-    } on InputError catch (e) {
+    } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
@@ -294,7 +299,7 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If there's no main library, this method uses [erroneousProgram] to
   /// replace [program].
-  void handleRecoverableErrors(List<InputError> recoverableErrors) {
+  void handleRecoverableErrors(List<deprecated_InputError> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
     if (mainLibrary == null) {
@@ -302,8 +307,8 @@ class KernelTarget extends TargetImplementation {
       return;
     }
     List<Expression> expressions = <Expression>[];
-    for (InputError error in recoverableErrors) {
-      String message = error.format();
+    for (deprecated_InputError error in recoverableErrors) {
+      String message = error.deprecated_format();
       errors.add(message);
       expressions.add(new StringLiteral(message));
     }
@@ -417,7 +422,7 @@ class KernelTarget extends TargetImplementation {
         if (type is NamedTypeBuilder) {
           supertype = type.builder;
         } else {
-          internalError("Unhandled: ${type.runtimeType}");
+          deprecated_internalProblem("Unhandled: ${type.runtimeType}");
         }
       }
       if (supertype is KernelClassBuilder) {
@@ -437,7 +442,7 @@ class KernelTarget extends TargetImplementation {
       } else if (supertype is InvalidTypeBuilder) {
         builder.addSyntheticConstructor(makeDefaultConstructor());
       } else {
-        internalError("Unhandled: ${supertype.runtimeType}");
+        deprecated_internalProblem("Unhandled: ${supertype.runtimeType}");
       }
     } else {
       /// >Iff no constructor is specified for a class C, it implicitly has a
@@ -543,7 +548,7 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            addError(
+            deprecated_addError(
                 constructor.enclosingClass.fileUri,
                 constructor.fileOffset,
                 "${cls.superclass.name} has no constructor that takes no"
@@ -571,10 +576,14 @@ class KernelTarget extends TargetImplementation {
         }
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          addError(constructor.enclosingClass.fileUri, constructor.fileOffset,
+          deprecated_addError(
+              constructor.enclosingClass.fileUri,
+              constructor.fileOffset,
               "Constructor is marked 'const' so all fields must be final.");
           for (Field field in nonFinalFields) {
-            addError(constructor.enclosingClass.fileUri, field.fileOffset,
+            deprecated_addError(
+                constructor.enclosingClass.fileUri,
+                field.fileOffset,
                 "Field isn't final, but constructor is 'const'.");
           }
           nonFinalFields.clear();

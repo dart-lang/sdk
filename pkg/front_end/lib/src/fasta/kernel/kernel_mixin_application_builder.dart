@@ -6,7 +6,7 @@ library fasta.kernel_mixin_application_builder;
 
 import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -40,10 +40,10 @@ class KernelMixinApplicationBuilder
         super(supertype, mixins, charOffset, fileUri);
 
   InterfaceType build(LibraryBuilder library) {
-    return internalError("Unsupported operation.");
+    return deprecated_internalProblem("Unsupported operation.");
   }
 
   Supertype buildSupertype(LibraryBuilder library) {
-    return internalError("Unsupported operation.");
+    return deprecated_internalProblem("Unsupported operation.");
   }
 }

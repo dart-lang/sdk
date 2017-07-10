@@ -16,7 +16,8 @@ import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
-import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_internalProblem;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         FastaCode,
@@ -167,7 +168,7 @@ class AstBuilder extends ScopeListener {
         } else if (part is Expression) {
           elements.add(ast.interpolationExpression(null, part, null));
         } else {
-          internalError(
+          deprecated_internalProblem(
               "Unexpected part in string interpolation: ${part.runtimeType}");
         }
       }
@@ -307,7 +308,8 @@ class AstBuilder extends ScopeListener {
       ProcedureBuilder builder = member;
       builder.body = kernel;
     } else {
-      internalError("Internal error: expected procedure, but got: $member");
+      deprecated_internalProblem(
+          "Internal error: expected procedure, but got: $member");
     }
   }
 
@@ -371,7 +373,7 @@ class AstBuilder extends ScopeListener {
         ..operator = token;
       push(identifierOrInvoke);
     } else {
-      internalError(
+      deprecated_internalProblem(
           "Unhandled property access: ${identifierOrInvoke.runtimeType}");
     }
   }
@@ -521,7 +523,7 @@ class AstBuilder extends ScopeListener {
     } else if (node is SimpleIdentifier) {
       variable = ast.variableDeclaration(node, null, null);
     } else {
-      internalError("unhandled identifier: ${node.runtimeType}");
+      deprecated_internalProblem("unhandled identifier: ${node.runtimeType}");
     }
     push(variable);
     scope.declare(
@@ -1191,7 +1193,7 @@ class AstBuilder extends ScopeListener {
         } else if (node is CompilationUnitMember) {
           declarations.add(node);
         } else {
-          internalError(
+          deprecated_internalProblem(
               'Unrecognized compilation unit member: ${node.runtimeType}');
         }
       }
@@ -1353,7 +1355,8 @@ class AstBuilder extends ScopeListener {
       extendsClause = ast.extendsClause(extendsKeyword, supertype.supertype);
       withClause = ast.withClause(supertype.withKeyword, supertype.mixinTypes);
     } else {
-      internalError('Unexpected kind of supertype ${supertype.runtimeType}');
+      deprecated_internalProblem(
+          'Unexpected kind of supertype ${supertype.runtimeType}');
     }
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
@@ -1516,7 +1519,8 @@ class AstBuilder extends ScopeListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(semicolon);
     } else {
-      internalError('Unexpected body object: ${bodyObject.runtimeType}');
+      deprecated_internalProblem(
+          'Unexpected body object: ${bodyObject.runtimeType}');
     }
 
     FormalParameterList parameters = pop();
@@ -1921,7 +1925,7 @@ class AstBuilder extends ScopeListener {
       default:
       // fall through
     }
-    library.addCompileTimeError(message.charOffset, message.message,
+    library.deprecated_addCompileTimeError(message.charOffset, message.message,
         fileUri: message.uri);
   }
 }
@@ -2026,7 +2030,7 @@ class _Modifiers {
       } else if (identical('covariant', s)) {
         covariantKeyword = token;
       } else {
-        internalError('Unhandled modifier: $s');
+        deprecated_internalProblem('Unhandled modifier: $s');
       }
     }
   }

@@ -13,7 +13,7 @@ import 'package:front_end/src/fasta/source/source_library_builder.dart'
 import 'package:kernel/ast.dart'
     show Class, Constructor, Supertype, TreeNode, setParents;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -91,7 +91,8 @@ class SourceClassBuilder extends KernelClassBuilder {
         } else if (builder is KernelFunctionBuilder) {
           cls.addMember(builder.build(library));
         } else {
-          internalError("Unhandled builder: ${builder.runtimeType}");
+          deprecated_internalProblem(
+              "Unhandled builder: ${builder.runtimeType}");
         }
         builder = builder.next;
       } while (builder != null);
@@ -118,13 +119,13 @@ class SourceClassBuilder extends KernelClassBuilder {
       Builder member = scopeBuilder[name];
       if (member == null) return;
       // TODO(ahe): charOffset is missing.
-      addCompileTimeError(
+      deprecated_addCompileTimeError(
           constructor.charOffset, "Conflicts with member '${name}'.");
       if (constructor.isFactory) {
-        addCompileTimeError(member.charOffset,
+        deprecated_addCompileTimeError(member.charOffset,
             "Conflicts with factory '${this.name}.${name}'.");
       } else {
-        addCompileTimeError(member.charOffset,
+        deprecated_addCompileTimeError(member.charOffset,
             "Conflicts with constructor '${this.name}.${name}'.");
       }
     });
@@ -134,8 +135,8 @@ class SourceClassBuilder extends KernelClassBuilder {
       if (member == null || !member.isField || member.isFinal) return;
       // TODO(ahe): charOffset is missing.
       var report = member.isInstanceMember != setter.isInstanceMember
-          ? addWarning
-          : addCompileTimeError;
+          ? deprecated_addWarning
+          : deprecated_addCompileTimeError;
       report(setter.charOffset, "Conflicts with member '${name}'.");
       report(member.charOffset, "Conflicts with setter '${name}'.");
     });

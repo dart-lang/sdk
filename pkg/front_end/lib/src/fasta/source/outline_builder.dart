@@ -18,7 +18,7 @@ import '../util/link.dart' show Link;
 
 import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../builder/builder.dart';
 
@@ -206,7 +206,7 @@ class OutlineBuilder extends UnhandledListener {
       push(unescapeString(token.lexeme));
       push(token.charOffset);
     } else {
-      internalError("String interpolation not implemented.");
+      deprecated_internalProblem("String interpolation not implemented.");
     }
   }
 
@@ -295,7 +295,7 @@ class OutlineBuilder extends UnhandledListener {
     if (token == null) return ProcedureKind.Method;
     if (optional("get", token)) return ProcedureKind.Getter;
     if (optional("set", token)) return ProcedureKind.Setter;
-    return internalError("Unhandled: ${token.lexeme}");
+    return deprecated_internalProblem("Unhandled: ${token.lexeme}");
   }
 
   @override
@@ -373,7 +373,7 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        library.addCompileTimeError(
+        library.deprecated_addCompileTimeError(
             charOffset,
             "Operator '$name' must have exactly $requiredArgumentCount "
             "parameters.");
@@ -381,7 +381,7 @@ class OutlineBuilder extends UnhandledListener {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              library.addCompileTimeError(formal.charOffset,
+              library.deprecated_addCompileTimeError(formal.charOffset,
                   "An operator can't have optional parameters.");
             }
           }
@@ -552,9 +552,9 @@ class OutlineBuilder extends UnhandledListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          library.addCompileTimeError(formals[1].charOffset,
+          library.deprecated_addCompileTimeError(formals[1].charOffset,
               "Duplicated parameter name '${formals[1].name}'.");
-          library.addCompileTimeError(formals[0].charOffset,
+          library.deprecated_addCompileTimeError(formals[0].charOffset,
               "Other parameter named '${formals[1].name}'.");
         }
       } else if (formals.length > 2) {
@@ -563,9 +563,10 @@ class OutlineBuilder extends UnhandledListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            library.addCompileTimeError(formal.charOffset,
+            library.deprecated_addCompileTimeError(formal.charOffset,
                 "Duplicated parameter name '${formal.name}'.");
-            library.addCompileTimeError(seenNames[formal.name].charOffset,
+            library.deprecated_addCompileTimeError(
+                seenNames[formal.name].charOffset,
                 "Other parameter named '${formal.name}'.");
           } else {
             seenNames[formal.name] = formal;
@@ -668,7 +669,7 @@ class OutlineBuilder extends UnhandledListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        library.addCompileTimeError(
+        library.deprecated_addCompileTimeError(
             equals.charOffset, "Can't create typedef from non-function type.");
       }
     }
@@ -866,7 +867,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.addCompileTimeError(message.charOffset, message.message,
+    library.deprecated_addCompileTimeError(message.charOffset, message.message,
         fileUri: message.uri);
   }
 

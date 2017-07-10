@@ -9,7 +9,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' show Builder;
-import 'package:front_end/src/fasta/errors.dart' show internalError;
+
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_internalProblem;
 
 abstract class MockElement extends Builder implements Element, LocalElement {
   @override
@@ -18,145 +20,153 @@ abstract class MockElement extends Builder implements Element, LocalElement {
   MockElement(this.kind) : super(null, -1, null);
 
   @override
-  get librarySource => internalError("not supported.");
+  get librarySource => deprecated_internalProblem("not supported.");
 
   @override
-  get source => internalError("not supported.");
+  get source => deprecated_internalProblem("not supported.");
 
   @override
-  get context => internalError("not supported.");
+  get context => deprecated_internalProblem("not supported.");
 
   @override
-  String get displayName => internalError("not supported.");
+  String get displayName => deprecated_internalProblem("not supported.");
 
   @override
-  String get documentationComment => internalError("not supported.");
+  String get documentationComment =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  Element get enclosingElement => internalError("not supported.");
+  Element get enclosingElement => deprecated_internalProblem("not supported.");
 
   @override
-  int get id => internalError("not supported.");
+  int get id => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isDeprecated => internalError("not supported.");
+  bool get isDeprecated => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isFactory => internalError("not supported.");
+  bool get isFactory => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isJS => internalError("not supported.");
+  bool get isJS => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isOverride => internalError("not supported.");
+  bool get isOverride => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isPrivate => internalError("not supported.");
+  bool get isPrivate => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isProtected => internalError("not supported.");
+  bool get isProtected => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isPublic => internalError("not supported.");
+  bool get isPublic => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isRequired => internalError("not supported.");
+  bool get isRequired => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isSynthetic => internalError("not supported.");
+  bool get isSynthetic => deprecated_internalProblem("not supported.");
 
   @override
-  LibraryElement get library => internalError("not supported.");
+  LibraryElement get library => deprecated_internalProblem("not supported.");
 
   @override
-  get location => internalError("not supported.");
+  get location => deprecated_internalProblem("not supported.");
 
   @override
-  get metadata => internalError("not supported.");
+  get metadata => deprecated_internalProblem("not supported.");
 
   @override
-  String get name => internalError("not supported.");
+  String get name => deprecated_internalProblem("not supported.");
 
   @override
   String get fullNameForErrors => name;
 
   @override
-  int get nameLength => internalError("not supported.");
+  int get nameLength => deprecated_internalProblem("not supported.");
 
   @override
   int get nameOffset => -1;
 
   @override
-  get unit => internalError("not supported.");
+  get unit => deprecated_internalProblem("not supported.");
 
   @override
-  accept<T>(visitor) => internalError("not supported.");
+  accept<T>(visitor) => deprecated_internalProblem("not supported.");
 
   @override
-  String computeDocumentationComment() => internalError("not supported.");
+  String computeDocumentationComment() =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  computeNode() => internalError("not supported.");
+  computeNode() => deprecated_internalProblem("not supported.");
 
   @override
-  getAncestor<E>(predicate) => internalError("not supported.");
+  getAncestor<E>(predicate) => deprecated_internalProblem("not supported.");
 
   @override
   String getExtendedDisplayName(String shortName) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   bool isAccessibleIn(LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  void visitChildren(visitor) => internalError("not supported.");
+  void visitChildren(visitor) => deprecated_internalProblem("not supported.");
 
-  String get uri => internalError("not supported.");
+  String get uri => deprecated_internalProblem("not supported.");
 
-  int get uriEnd => internalError("not supported.");
+  int get uriEnd => deprecated_internalProblem("not supported.");
 
-  int get uriOffset => internalError("not supported.");
+  int get uriOffset => deprecated_internalProblem("not supported.");
 
-  List<ParameterElement> get parameters => internalError("not supported.");
+  List<ParameterElement> get parameters =>
+      deprecated_internalProblem("not supported.");
 
-  List<FunctionElement> get functions => internalError("not supported.");
+  List<FunctionElement> get functions =>
+      deprecated_internalProblem("not supported.");
 
-  bool get hasImplicitReturnType => internalError("not supported.");
+  bool get hasImplicitReturnType =>
+      deprecated_internalProblem("not supported.");
 
-  bool get isAbstract => internalError("not supported.");
+  bool get isAbstract => deprecated_internalProblem("not supported.");
 
-  bool get isAsynchronous => internalError("not supported.");
+  bool get isAsynchronous => deprecated_internalProblem("not supported.");
 
-  bool get isExternal => internalError("not supported.");
+  bool get isExternal => deprecated_internalProblem("not supported.");
 
-  bool get isGenerator => internalError("not supported.");
+  bool get isGenerator => deprecated_internalProblem("not supported.");
 
-  bool get isOperator => internalError("not supported.");
-
-  @override
-  bool get isStatic => internalError("not supported.");
-
-  bool get isSynchronous => internalError("not supported.");
+  bool get isOperator => deprecated_internalProblem("not supported.");
 
   @override
-  get visibleRange => internalError("not supported.");
+  bool get isStatic => deprecated_internalProblem("not supported.");
 
-  bool get hasImplicitType => internalError("not supported.");
-
-  FunctionElement get initializer => internalError("not supported.");
+  bool get isSynchronous => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isConst => internalError("not supported.");
+  get visibleRange => deprecated_internalProblem("not supported.");
+
+  bool get hasImplicitType => deprecated_internalProblem("not supported.");
+
+  FunctionElement get initializer =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  bool get isFinal => internalError("not supported.");
+  bool get isConst => deprecated_internalProblem("not supported.");
 
-  bool get isPotentiallyMutatedInClosure => internalError("not supported.");
+  @override
+  bool get isFinal => deprecated_internalProblem("not supported.");
 
-  bool get isPotentiallyMutatedInScope => internalError("not supported.");
+  bool get isPotentiallyMutatedInClosure =>
+      deprecated_internalProblem("not supported.");
+
+  bool get isPotentiallyMutatedInScope =>
+      deprecated_internalProblem("not supported.");
 }
 
 abstract class MockLibraryElement extends MockElement
@@ -165,77 +175,85 @@ abstract class MockLibraryElement extends MockElement
 
   @override
   CompilationUnitElement get definingCompilationUnit {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  FunctionElement get entryPoint => internalError("not supported.");
+  FunctionElement get entryPoint =>
+      deprecated_internalProblem("not supported.");
 
   @override
   List<LibraryElement> get exportedLibraries {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  get exportNamespace => internalError("not supported.");
+  get exportNamespace => deprecated_internalProblem("not supported.");
 
   @override
-  get exports => internalError("not supported.");
+  get exports => deprecated_internalProblem("not supported.");
 
   @override
-  bool get hasExtUri => internalError("not supported.");
+  bool get hasExtUri => deprecated_internalProblem("not supported.");
 
   @override
-  bool get hasLoadLibraryFunction => internalError("not supported.");
+  bool get hasLoadLibraryFunction =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  String get identifier => internalError("not supported.");
+  String get identifier => deprecated_internalProblem("not supported.");
 
   @override
   List<LibraryElement> get importedLibraries {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  get imports => internalError("not supported.");
+  get imports => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isBrowserApplication => internalError("not supported.");
+  bool get isBrowserApplication => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isDartAsync => internalError("not supported.");
+  bool get isDartAsync => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isDartCore => internalError("not supported.");
+  bool get isDartCore => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isInSdk => internalError("not supported.");
+  bool get isInSdk => deprecated_internalProblem("not supported.");
 
   @override
-  List<LibraryElement> get libraryCycle => internalError("not supported.");
+  List<LibraryElement> get libraryCycle =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  FunctionElement get loadLibraryFunction => internalError("not supported.");
+  FunctionElement get loadLibraryFunction =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  List<CompilationUnitElement> get parts => internalError("not supported.");
+  List<CompilationUnitElement> get parts =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  List<PrefixElement> get prefixes => internalError("not supported.");
+  List<PrefixElement> get prefixes =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  get publicNamespace => internalError("not supported.");
+  get publicNamespace => deprecated_internalProblem("not supported.");
 
   @override
-  List<CompilationUnitElement> get units => internalError("not supported.");
+  List<CompilationUnitElement> get units =>
+      deprecated_internalProblem("not supported.");
 
   @override
   getImportsWithPrefix(PrefixElement prefix) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  ClassElement getType(String className) => internalError("not supported.");
+  ClassElement getType(String className) =>
+      deprecated_internalProblem("not supported.");
 }
 
 abstract class MockCompilationUnitElement extends MockElement
@@ -244,186 +262,197 @@ abstract class MockCompilationUnitElement extends MockElement
 
   @override
   List<PropertyAccessorElement> get accessors {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  LibraryElement get enclosingElement => internalError("not supported.");
+  LibraryElement get enclosingElement =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  List<ClassElement> get enums => internalError("not supported.");
+  List<ClassElement> get enums => deprecated_internalProblem("not supported.");
 
   @override
-  List<FunctionElement> get functions => internalError("not supported.");
+  List<FunctionElement> get functions =>
+      deprecated_internalProblem("not supported.");
 
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  bool get hasLoadLibraryFunction => internalError("not supported.");
+  bool get hasLoadLibraryFunction =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  LineInfo get lineInfo => internalError("not supported.");
+  LineInfo get lineInfo => deprecated_internalProblem("not supported.");
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  List<ClassElement> get types => internalError("not supported.");
+  List<ClassElement> get types => deprecated_internalProblem("not supported.");
 
   @override
-  ClassElement getEnum(String name) => internalError("not supported.");
+  ClassElement getEnum(String name) =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  ClassElement getType(String name) => internalError("not supported.");
+  ClassElement getType(String name) =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  CompilationUnit computeNode() => internalError("not supported.");
+  CompilationUnit computeNode() => deprecated_internalProblem("not supported.");
 }
 
 abstract class MockClassElement extends MockElement implements ClassElement {
   MockClassElement() : super(ElementKind.CLASS);
 
   List<PropertyAccessorElement> get accessors {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  get allSupertypes => internalError("not supported.");
+  get allSupertypes => deprecated_internalProblem("not supported.");
 
   @override
-  List<ConstructorElement> get constructors => internalError("not supported.");
+  List<ConstructorElement> get constructors =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  List<FieldElement> get fields => internalError("not supported.");
+  List<FieldElement> get fields => deprecated_internalProblem("not supported.");
 
   @override
-  bool get hasNonFinalField => internalError("not supported.");
+  bool get hasNonFinalField => deprecated_internalProblem("not supported.");
 
   @override
-  bool get hasReferenceToSuper => internalError("not supported.");
+  bool get hasReferenceToSuper => deprecated_internalProblem("not supported.");
 
   @override
-  bool get hasStaticMember => internalError("not supported.");
+  bool get hasStaticMember => deprecated_internalProblem("not supported.");
 
   @override
-  get interfaces => internalError("not supported.");
+  get interfaces => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isAbstract => internalError("not supported.");
+  bool get isAbstract => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isEnum => internalError("not supported.");
+  bool get isEnum => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isMixinApplication => internalError("not supported.");
+  bool get isMixinApplication => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isOrInheritsProxy => internalError("not supported.");
+  bool get isOrInheritsProxy => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isProxy => internalError("not supported.");
+  bool get isProxy => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isValidMixin => internalError("not supported.");
+  bool get isValidMixin => deprecated_internalProblem("not supported.");
 
   @override
-  get typeParameters => internalError("not supported.");
+  get typeParameters => deprecated_internalProblem("not supported.");
 
   @override
-  List<MethodElement> get methods => internalError("not supported.");
+  List<MethodElement> get methods =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  get mixins => internalError("not supported.");
+  get mixins => deprecated_internalProblem("not supported.");
 
   @override
-  get supertype => internalError("not supported.");
+  get supertype => deprecated_internalProblem("not supported.");
 
   @override
-  ConstructorElement get unnamedConstructor => internalError("not supported.");
+  ConstructorElement get unnamedConstructor =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  FieldElement getField(String name) => internalError("not supported.");
+  FieldElement getField(String name) =>
+      deprecated_internalProblem("not supported.");
 
   @override
   PropertyAccessorElement getGetter(String name) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  MethodElement getMethod(String name) => internalError("not supported.");
+  MethodElement getMethod(String name) =>
+      deprecated_internalProblem("not supported.");
 
   @override
   ConstructorElement getNamedConstructor(String name) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   PropertyAccessorElement getSetter(String name) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   MethodElement lookUpConcreteMethod(
       String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   PropertyAccessorElement lookUpGetter(
       String getterName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteGetter(
       String getterName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   MethodElement lookUpInheritedConcreteMethod(
       String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
       String setterName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   MethodElement lookUpInheritedMethod(
       String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
   PropertyAccessorElement lookUpSetter(
       String setterName, LibraryElement library) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  NamedCompilationUnitMember computeNode() => internalError("not supported.");
+  NamedCompilationUnitMember computeNode() =>
+      deprecated_internalProblem("not supported.");
 
   @override
-  InterfaceType get type => internalError("not supported.");
+  InterfaceType get type => deprecated_internalProblem("not supported.");
 }
 
 abstract class MockFunctionElement extends MockElement
@@ -431,19 +460,20 @@ abstract class MockFunctionElement extends MockElement
   MockFunctionElement() : super(ElementKind.FUNCTION);
 
   @override
-  bool get isEntryPoint => internalError("not supported.");
+  bool get isEntryPoint => deprecated_internalProblem("not supported.");
 
   @override
-  get typeParameters => internalError("not supported.");
+  get typeParameters => deprecated_internalProblem("not supported.");
 
   @override
-  FunctionType get type => internalError("not supported.");
+  FunctionType get type => deprecated_internalProblem("not supported.");
 
   @override
-  DartType get returnType => internalError("not supported.");
+  DartType get returnType => deprecated_internalProblem("not supported.");
 
   @override
-  FunctionDeclaration computeNode() => internalError("not supported.");
+  FunctionDeclaration computeNode() =>
+      deprecated_internalProblem("not supported.");
 }
 
 abstract class MockFunctionTypeAliasElement extends MockElement
@@ -452,11 +482,11 @@ abstract class MockFunctionTypeAliasElement extends MockElement
 
   @override
   CompilationUnitElement get enclosingElement {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  TypeAlias computeNode() => internalError("not supported.");
+  TypeAlias computeNode() => deprecated_internalProblem("not supported.");
 }
 
 abstract class MockParameterElement extends MockElement
@@ -464,37 +494,38 @@ abstract class MockParameterElement extends MockElement
   MockParameterElement() : super(ElementKind.PARAMETER);
 
   @override
-  String get defaultValueCode => internalError("not supported.");
+  String get defaultValueCode => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isCovariant => internalError("not supported.");
+  bool get isCovariant => deprecated_internalProblem("not supported.");
 
   @override
-  bool get isInitializingFormal => internalError("not supported.");
+  bool get isInitializingFormal => deprecated_internalProblem("not supported.");
 
   @override
-  get parameterKind => internalError("not supported.");
+  get parameterKind => deprecated_internalProblem("not supported.");
 
   @override
-  List<ParameterElement> get parameters => internalError("not supported.");
+  List<ParameterElement> get parameters =>
+      deprecated_internalProblem("not supported.");
 
   @override
   get type => null;
 
   @override
-  get typeParameters => internalError("not supported.");
+  get typeParameters => deprecated_internalProblem("not supported.");
 
   @override
-  get constantValue => internalError("not supported.");
+  get constantValue => deprecated_internalProblem("not supported.");
 
   @override
-  computeConstantValue() => internalError("not supported.");
+  computeConstantValue() => deprecated_internalProblem("not supported.");
 
   @override
   void appendToWithoutDelimiters(StringBuffer buffer) {
-    return internalError("not supported.");
+    return deprecated_internalProblem("not supported.");
   }
 
   @override
-  FormalParameter computeNode() => internalError("not supported.");
+  FormalParameter computeNode() => deprecated_internalProblem("not supported.");
 }

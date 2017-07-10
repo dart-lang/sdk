@@ -4,7 +4,8 @@
 
 library fasta.quote;
 
-import 'errors.dart' show inputError, internalError;
+import 'deprecated_problems.dart'
+    show deprecated_inputError, deprecated_internalProblem;
 
 import 'scanner/characters.dart'
     show
@@ -49,7 +50,7 @@ Quote analyzeQuote(String first) {
   if (first.startsWith('r"')) return Quote.RawDouble;
   if (first.startsWith("'")) return Quote.Single;
   if (first.startsWith("r'")) return Quote.RawSingle;
-  return internalError("Unexpected string literal: $first");
+  return deprecated_internalProblem("Unexpected string literal: $first");
 }
 
 // Note: based on [StringValidator.quotingFromString]
@@ -99,7 +100,7 @@ int firstQuoteLength(String first, Quote quote) {
     case Quote.RawMultiLineDouble:
       return lengthOfOptionalWhitespacePrefix(first, 4);
   }
-  return internalError("Unhandled string quote: $quote");
+  return deprecated_internalProblem("Unhandled string quote: $quote");
 }
 
 int lastQuoteLength(Quote quote) {
@@ -116,7 +117,7 @@ int lastQuoteLength(Quote quote) {
     case Quote.RawMultiLineDouble:
       return 3;
   }
-  return internalError("Unhandled string quote: $quote");
+  return deprecated_internalProblem("Unhandled string quote: $quote");
 }
 
 String unescapeFirstStringPart(String first, Quote quote) {
@@ -160,7 +161,8 @@ String unescape(String string, Quote quote) {
           ? string
           : unescapeCodeUnits(string.codeUnits, true);
   }
-  return internalError("Internal error: Unexpected quote: $quote.");
+  return deprecated_internalProblem(
+      "Internal error: Unexpected quote: $quote.");
 }
 
 const String incompleteSequence = "Incomplete escape sequence.";
@@ -176,7 +178,7 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
   List<int> result = new List<int>(codeUnits.length);
   int resultOffset = 0;
   error(int offset, String message) {
-    inputError(null, null, message);
+    deprecated_inputError(null, null, message);
   }
 
   for (int i = 0; i < codeUnits.length; i++) {

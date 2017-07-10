@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
 import 'package:kernel/ast.dart'
     show DartType, Expression, Field, Name, NullLiteral;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
@@ -52,7 +52,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
-      internalError("Attempt to set initializer on field without initializer.");
+      deprecated_internalProblem(
+          "Attempt to set initializer on field without initializer.");
     }
     field.initializer = value..parent = field;
   }

@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_internalProblem;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
@@ -368,7 +369,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw internalError(
+      throw deprecated_internalProblem(
           'Unexpected invocation type: ${methodInvocation.runtimeType}');
     }
   }
@@ -396,7 +397,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw internalError(
+      throw deprecated_internalProblem(
           'Unexpected propertyGet type: ${propertyGet.runtimeType}');
     }
   }
@@ -422,7 +423,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw internalError(
+      throw deprecated_internalProblem(
           'Unexpected propertySet type: ${propertySet.runtimeType}');
     }
   }
@@ -752,9 +753,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // If the match is not successful because  `K` is `_`, let all `Si`, all
       // `Qi`, and `N` all be `_`.
 
-      // If the match is not successful for any other reason, this will result in
-      // a type error, so the implementation is free to choose the best error
-      // recovery path.
+      // If the match is not successful for any other reason, this will result
+      // in a type error, so the implementation is free to choose the best
+      // error recovery path.
       substitution = Substitution.empty;
     }
 
@@ -794,11 +795,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     this.closureContext = closureContext;
     inferStatement(function.body);
 
-    // If the closure is declared with `async*` or `sync*`, let `M` be the least
-    // upper bound of the types of the `yield` expressions in `B’`, or `void` if
-    // `B’` contains no `yield` expressions.  Otherwise, let `M` be the least
-    // upper bound of the types of the `return` expressions in `B’`, or `void`
-    // if `B’` contains no `return` expressions.
+    // If the closure is declared with `async*` or `sync*`, let `M` be the
+    // least upper bound of the types of the `yield` expressions in `B’`, or
+    // `void` if `B’` contains no `yield` expressions.  Otherwise, let `M` be
+    // the least upper bound of the types of the `return` expressions in `B’`,
+    // or `void` if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType || typeNeeded) {
       inferredReturnType =

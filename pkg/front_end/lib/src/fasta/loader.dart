@@ -10,7 +10,8 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'errors.dart' show InputError, firstSourceUri, printUnexpected;
+import 'deprecated_problems.dart'
+    show deprecated_InputError, firstSourceUri, deprecated_printUnexpected;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -30,14 +31,14 @@ abstract class Loader<L> {
   ///
   /// A handled error is an error that has been added to the generated AST
   /// already, for example, as a throw expression.
-  final List<InputError> handledErrors = <InputError>[];
+  final List<deprecated_InputError> handledErrors = <deprecated_InputError>[];
 
   /// List of all unhandled compile-time errors seen so far by libraries loaded
   /// by this loader.
   ///
   /// An unhandled error is an error that hasn't been handled, see
   /// [handledErrors].
-  final List<InputError> unhandledErrors = <InputError>[];
+  final List<deprecated_InputError> unhandledErrors = <deprecated_InputError>[];
 
   LibraryBuilder coreLibrary;
 
@@ -100,7 +101,7 @@ abstract class Loader<L> {
         uri.scheme == "dart" &&
         uri.path.startsWith("_") &&
         accessor.uri.scheme != "dart") {
-      accessor.addCompileTimeError(
+      accessor.deprecated_addCompileTimeError(
           charOffset, "Can't access platform private library.");
     }
     return builder;
@@ -167,13 +168,14 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   ///
   /// If [wasHandled] is true, this error is added to [handledErrors],
   /// otherwise it is added to [unhandledErrors].
-  void addCompileTimeError(Uri fileUri, int charOffset, Object message,
+  void deprecated_addCompileTimeError(
+      Uri fileUri, int charOffset, Object message,
       {bool silent: false, bool wasHandled: false}) {
     if (!silent) {
-      printUnexpected(fileUri, charOffset, message);
+      deprecated_printUnexpected(fileUri, charOffset, message);
     }
     (wasHandled ? handledErrors : unhandledErrors)
-        .add(new InputError(fileUri, charOffset, message));
+        .add(new deprecated_InputError(fileUri, charOffset, message));
   }
 
   Builder getAbstractClassInstantiationError() {

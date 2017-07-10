@@ -6,7 +6,7 @@ library fasta.dill_class_builder;
 
 import 'package:kernel/ast.dart' show Class, Member;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../kernel/kernel_builder.dart'
     show MemberBuilder, KernelClassBuilder, KernelTypeBuilder, Scope;
@@ -52,10 +52,11 @@ class DillClassBuilder extends KernelClassBuilder {
   /// superclass.
   bool get isMixinApplication => cls.isMixinApplication;
 
-  KernelTypeBuilder get mixedInType => internalError("Not implemented.");
+  KernelTypeBuilder get mixedInType =>
+      deprecated_internalProblem("Not implemented.");
 
   void set mixedInType(KernelTypeBuilder mixin) {
-    internalError("Not implemented.");
+    deprecated_internalProblem("Not implemented.");
   }
 }
 

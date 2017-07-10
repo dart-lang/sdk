@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../loader.dart' show Loader;
 
@@ -26,7 +26,7 @@ import '../util/relativize.dart' show relativizeUri;
 
 import 'kernel_builder.dart'
     show
-        AccessErrorBuilder,
+        deprecated_AccessErrorBuilder,
         Builder,
         BuiltinTypeBuilder,
         ClassBuilder,
@@ -148,9 +148,10 @@ class KernelLibraryBuilder
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.addCompileTimeError(
+          cls.deprecated_addCompileTimeError(
               member.charOffset, "Conflict with type variable '$name'.");
-          cls.addCompileTimeError(tv.charOffset, "This is the type variable.");
+          cls.deprecated_addCompileTimeError(
+              tv.charOffset, "This is the type variable.");
         }
       }
       setParent(name, member);
@@ -172,9 +173,9 @@ class KernelLibraryBuilder
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        addCompileTimeError(tv.charOffset,
+        deprecated_addCompileTimeError(tv.charOffset,
             "A type variable can't have the same name as another.");
-        addCompileTimeError(
+        deprecated_addCompileTimeError(
             existing.charOffset, "The other type variable named '${tv.name}'.");
       } else {
         typeVariablesByName[tv.name] = tv;
@@ -182,7 +183,7 @@ class KernelLibraryBuilder
           // Only classes and type variables can't have the same name. See
           // [#29555](https://github.com/dart-lang/sdk/issues/29555).
           if (tv.name == owner.name) {
-            addCompileTimeError(
+            deprecated_addCompileTimeError(
                 tv.charOffset,
                 "A type variable can't have the same name as its enclosing "
                 "declaration.");
@@ -496,7 +497,7 @@ class KernelLibraryBuilder
       return null;
     }
     String suffix = name.substring(index + 1);
-    addCompileTimeError(
+    deprecated_addCompileTimeError(
         charOffset,
         "'$name' isn't a legal method name.\n"
         "Did you mean '$className.$suffix'?");
@@ -674,7 +675,7 @@ class KernelLibraryBuilder
     } else if (builder is BuiltinTypeBuilder) {
       // Nothing needed.
     } else {
-      internalError("Unhandled builder: ${builder.runtimeType}");
+      deprecated_internalProblem("Unhandled builder: ${builder.runtimeType}");
     }
   }
 
@@ -694,12 +695,12 @@ class KernelLibraryBuilder
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
     if (other is InvalidTypeBuilder) return other;
-    if (builder is AccessErrorBuilder) {
-      AccessErrorBuilder error = builder;
+    if (builder is deprecated_AccessErrorBuilder) {
+      deprecated_AccessErrorBuilder error = builder;
       builder = error.builder;
     }
-    if (other is AccessErrorBuilder) {
-      AccessErrorBuilder error = other;
+    if (other is deprecated_AccessErrorBuilder) {
+      deprecated_AccessErrorBuilder error = other;
       other = error.builder;
     }
     bool isLocal = false;
@@ -728,20 +729,20 @@ class KernelLibraryBuilder
     if (preferred != null) {
       if (isLocal) {
         if (isExport) {
-          addNit(charOffset,
+          deprecated_addNit(charOffset,
               "Local definition of '$name' hides export from '${hiddenUri}'.");
         } else {
-          addNit(charOffset,
+          deprecated_addNit(charOffset,
               "Local definition of '$name' hides import from '${hiddenUri}'.");
         }
       } else {
         if (isExport) {
-          addNit(
+          deprecated_addNit(
               charOffset,
               "Export of '$name' (from '${preferredUri}') hides export from "
               "'${hiddenUri}'.");
         } else {
-          addNit(
+          deprecated_addNit(
               charOffset,
               "Import of '$name' (from '${preferredUri}') hides import from "
               "'${hiddenUri}'.");
@@ -764,7 +765,7 @@ class KernelLibraryBuilder
     String message = isExport
         ? "'$name' is exported from both '${uri}' and '${otherUri}'."
         : "'$name' is imported from both '${uri}' and '${otherUri}'.";
-    addNit(charOffset, message);
+    deprecated_addNit(charOffset, message);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
   }
 

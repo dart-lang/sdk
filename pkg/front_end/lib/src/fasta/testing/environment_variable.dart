@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:io' show Directory, File, Platform;
 
-import '../errors.dart' show inputError;
+import '../deprecated_problems.dart' show deprecated_inputError;
 
 class EnvironmentVariable {
   final String name;
@@ -27,7 +27,7 @@ class EnvironmentVariable {
   Future<Null> validate(String value) => new Future<Null>.value();
 
   variableNotDefined() {
-    inputError(
+    deprecated_inputError(
         null, null, "The environment variable '$name' isn't defined. $what");
   }
 }
@@ -41,7 +41,7 @@ class EnvironmentVariableFile extends EnvironmentVariable {
   }
 
   notFound(String value) {
-    inputError(
+    deprecated_inputError(
         null,
         null,
         "The environment variable '$name' has the value "
@@ -59,7 +59,7 @@ class EnvironmentVariableDirectory extends EnvironmentVariable {
   }
 
   notFound(String value) {
-    inputError(
+    deprecated_inputError(
         null,
         null,
         "The environment variable '$name' has the value "
