@@ -349,8 +349,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
-      ClosureScope scopeData = closureDataLookup
-          .getClosureScope(constructorElement.resolvedAst.node);
+      ClosureScope scopeData =
+          closureDataLookup.getClosureScope(constructorElement);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -614,8 +614,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ResolvedAst resolvedAst = astElement.resolvedAst;
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(
-            closureDataLookup.getClosureScope(resolvedAst.node),
+        localsHandler.enterScope(closureDataLookup.getClosureScope(astElement),
             forGenerativeConstructorBody:
                 astElement.isGenerativeConstructorBody);
       }
@@ -707,7 +706,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     localsHandler.startFunction(
         targetElement,
         closureDataLookup.getScopeInfo(targetElement),
-        closureDataLookup.getClosureScope(functionNode),
+        closureDataLookup.getClosureScope(targetElement),
         parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);

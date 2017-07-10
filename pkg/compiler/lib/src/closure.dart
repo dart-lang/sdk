@@ -56,7 +56,7 @@ abstract class ClosureDataLookup<T> {
   LoopClosureScope getLoopClosureScope(T loopNode);
 
   /// Accessor to the information about closures that the SSA builder will use.
-  ClosureScope getClosureScope(T node);
+  ClosureScope getClosureScope(MemberEntity entity);
 }
 
 /// Class that represents one level of scoping information, whether this scope
@@ -268,9 +268,15 @@ class ClosureTask extends ClosureConversionTask<Node> {
     createClosureClasses(closedWorldRefiner);
   }
 
-  ClosureScope getClosureScope(Node node) {
+  ClosureScope _getClosureScope(Node node) {
     var value = _closureInfoMap[node];
     return value == null ? const ClosureScope() : value;
+  }
+
+  ClosureScope getClosureScope(covariant MemberElement member) {
+    ResolvedAst resolvedAst = member.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) return const ClosureScope();
+    return _getClosureScope(resolvedAst.node);
   }
 
   ScopeInfo getScopeInfo(Element member) {

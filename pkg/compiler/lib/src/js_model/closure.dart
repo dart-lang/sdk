@@ -126,11 +126,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     return getClosureRepresentationInfo(entity);
   }
 
-  @override
   // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
   // and we should just test that with an assert.
-  ClosureScope getClosureScope(ir.Node node) =>
+  ClosureScope _getClosureScope(ir.Node node) =>
       _closureScopeMap[node] ?? const ClosureScope();
+
+  @override
+  ClosureScope getClosureScope(MemberEntity entity) {
+    return _getClosureScope(_elementMap.getMemberNode(entity));
+  }
 
   @override
   // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,

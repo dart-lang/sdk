@@ -1011,8 +1011,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(callee);
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(
-            closureDataLookup.getClosureScope(resolvedAst.node),
+        localsHandler.enterScope(closureDataLookup.getClosureScope(callee),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1352,7 +1351,6 @@ class SsaAstGraphBuilder extends ast.Visitor
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      ast.Node node = constructorResolvedAst.node;
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -1368,7 +1366,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // If there are locals that escape (ie mutated in closures), we
       // pass the box to the constructor.
       // The box must be passed before any type variable.
-      ClosureScope scopeData = closureDataLookup.getClosureScope(node);
+      ClosureScope scopeData = closureDataLookup.getClosureScope(constructor);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -1429,7 +1427,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     localsHandler.startFunction(
         element,
         closureDataLookup.getScopeInfo(element),
-        closureDataLookup.getClosureScope(node),
+        closureDataLookup.getClosureScope(element),
         parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
@@ -1463,7 +1461,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
-              .getClosureScope(node)
+              .getClosureScope(element)
               .isBoxed(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
