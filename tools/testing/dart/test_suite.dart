@@ -1106,8 +1106,10 @@ class StandardTestSuite extends TestSuite {
         break;
 
       case Compiler.dartdevc:
+        var toPath = new Path('$compilationTempDir/$nameNoExt.js')
+            .toNativePath();
         commands.add(configuration.compilerConfiguration.createCommand(
-            dartWrapperFilename, '$compilationTempDir/$nameNoExt.js'));
+            dartWrapperFilename, toPath));
         break;
 
       case Compiler.none:
@@ -1121,16 +1123,17 @@ class StandardTestSuite extends TestSuite {
     for (var name in optionsFromFile['otherScripts'] as List<String>) {
       var namePath = new Path(name);
       var fromPath = filePath.directoryPath.join(namePath);
+      var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
 
       switch (configuration.compiler) {
         case Compiler.dart2js:
           commands.add(_dart2jsCompileCommand(fromPath.toNativePath(),
-              '$tempDir/${namePath.filename}.js', tempDir, optionsFromFile));
+              toPath, tempDir, optionsFromFile));
           break;
 
         case Compiler.dartdevc:
           commands.add(configuration.compilerConfiguration.createCommand(
-              fromPath.toNativePath(), '$tempDir/${namePath.filename}.js'));
+              fromPath.toNativePath(), toPath));
           break;
 
         default:
