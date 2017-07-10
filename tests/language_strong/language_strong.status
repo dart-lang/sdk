@@ -747,8 +747,6 @@ const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 constructor12_test: RuntimeError # Issue 29920
 covariant_subtyping_test: RuntimeError # Issue 29920
-covariant_subtyping_unsafe_call2_test: RuntimeError # Issue 29920
-covariant_subtyping_unsafe_call3_test: RuntimeError # Issue 29920
 custom_await_stack_trace_test: RuntimeError # Issue 29920
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
