@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 
@@ -451,3 +452,8 @@ part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
+
+[$compiler == dart2analyzer && $runtime == none && !$checked]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: CompileTimeError

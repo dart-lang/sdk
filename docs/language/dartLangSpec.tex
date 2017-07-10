@@ -29,6 +29,7 @@
 % - The Null type is now considered a subtype of all types in most cases.
 % - Specify what NEWLINE means in multiline strings.
 % - Specified the FutureOf type.
+% - Asserts can occur in initializer lists.
 %
 % 1.14
 % - The call "C()" where "C" is a class name, is a now compile-time error.
@@ -1404,13 +1405,14 @@ An initializer list begins with a colon, and consists of a comma-separated list 
 
 \begin{grammar}
 {\bf initializers:}
-      `{\escapegrammar :}' superCallOrFieldInitializer (`,' superCallOrFieldInitializer)*
+      `{\escapegrammar :}' initializerListEntry (`,' initializerListEntry)*
     .
 
 
-{\bf superCallOrFieldInitializer:}\SUPER{} arguments;
+{\bf initializerListEntry:}\SUPER{} arguments;
       \SUPER{} `{\escapegrammar .}' identifier arguments;
-     fieldInitializer
+     fieldInitializer;
+     assertion
     .
 
    {\bf  fieldInitializer:}
@@ -1518,6 +1520,9 @@ In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interf
 
 \LMHash{}
 An initializer of the form \code{$v$ = $e$} is equivalent to an initializer of the form \code{\THIS{}.$v$ = $e$}.
+
+\LMHash{}
+Execution of an initializer that is an assertion proceeds by executing the assertion (\ref{assert}).
 
 \LMHash{}
 Execution of a superinitializer of the form
@@ -2623,6 +2628,7 @@ A constant expression is one of the following:
 
 \LMHash{}
 It is a compile-time error if an expression is required to be a constant expression but its evaluation would throw an exception.
+It is a compile-time error if an assertion is part of a compile-time constant constructor invocation and the assertion would throw an exception.
 
 % so, checked mode? analyzers? editor/development compilers?
 \commentary{
@@ -6739,24 +6745,41 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' expression ( `,' expression )? `,'? `)' `{\escapegrammar ;}'
-      .
+    assertion `{\escapegrammar ;}'
+    .
+{\bf assertion:}
+    \ASSERT{} `(' expression ( `,' expression )? `,'? `)'
+    .
 \end{grammar}
 
 \LMHash{}
 The grammar allows a trailing comma before the closing parenthesis,
 similarly to an argument list. That comma, if present, has no effect.
-An assert statement with a trailing comme is equivalent to one with that
+An assertion with a trailing comme is equivalent to one with that
 comma removed.
 
 \LMHash{}
-An assert statement on the form \code{\ASSERT($e$);)} is equivalent to a statment on the form \code{\ASSERT($e$, null);}.
+An assertion on the form \code{\ASSERT($e$))} is equivalent to an assertion
+on the form \code{\ASSERT($e$, null)}.
 
 \LMHash{}
-The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($c$, $e$);} proceeds as follows:
+Execution of an assert statement executes the assertion as described below
+and completes in the same way as the assertion.
 
 \LMHash{}
-The expression $c$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
+In production mode the assertion has no effect
+and its execution immediately completes normally (\ref{completion}).
+In checked mode,
+execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
+
+\LMHash{}
+The expression $c$ is evaluated to an object $o$.
+If the class of $o$ is not a subtype of \code{Function} then
+let $r$ be $o$.
+Otherwise,
+if the assertion occurs in the initializer list of a \CONST{} constructor,
+then we say that the assertion failed,
+otherwise let $r$ be the result of invoking $o$ with no arguments.
 It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.
 If $r$ is \FALSE{}, we say that the assertion failed.
 If $r$ is \TRUE{}, we say that the assertion succeeded.
@@ -6765,7 +6788,9 @@ If the assertion failed, $e$ is evaluated to an object $m$.
 Then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
 
 \LMHash{}
-It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.
+It is a static type warning if the type of $e$ may not be assigned to either
+\code{bool} or $() \rightarrow$ \code{bool}.
+If the assertion occurs in a \CONST{} constructor initializer list, it is a static type warning if the type of $e$ may not be assigned to \code{bool}.
 
 \rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that).  It cannot be viewed as a function call that is being optimized away because the argument might have side effects.
 }

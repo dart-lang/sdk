@@ -2,6 +2,35 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[$compiler == dartk && $runtime == vm]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_test: CompileTimeError
+
+[$compiler == dartk && $runtime == vm && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+
+[$compiler == dartk && $runtime == vm && $checked]
+assertion_initializer_const_function_test/01: RuntimeError
+assertion_initializer_const_function_test/none: RuntimeError
+
+[$compiler == dartkp && $runtime == dart_precompiled]
+assertion_initializer_const_error2_test/none: CompileTimeError
+
+[$compiler == dartkp && $runtime == dart_precompiled && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_test: CompileTimeError
+
+[$compiler == dartkp && $runtime == dart_precompiled && $checked]
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error_test/none: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_error_test/none: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_const_function_test/none: Crash
+assertion_initializer_test: CompileTimeError
+
 [ !$checked && ($compiler == dartk || $compiler == dartkp) ]
 
 deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
