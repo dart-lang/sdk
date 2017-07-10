@@ -15,6 +15,7 @@ part 'list.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
+part 'linked_list.dart';
 
 // Powers of 10 up to 10^22 are representable as doubles.
 // Powers of 10 above that are only approximate due to lack of precission.

@@ -197,14 +197,7 @@ library dart.io;
 import 'dart:async';
 import 'dart:_internal' hide Symbol;
 import 'dart:collection'
-    show
-        HashMap,
-        HashSet,
-        Queue,
-        ListQueue,
-        LinkedList,
-        LinkedListEntry,
-        UnmodifiableMapView;
+    show HashMap, HashSet, Queue, ListQueue, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
 import 'dart:isolate';
