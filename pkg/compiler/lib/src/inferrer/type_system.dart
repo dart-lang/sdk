@@ -453,7 +453,7 @@ class TypeSystem {
   }
 
   TypeInformation allocateList(
-      TypeInformation type, ast.Node node, Element enclosing,
+      TypeInformation type, ast.Node node, MemberElement enclosing,
       [TypeInformation elementType, int length]) {
     ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
@@ -489,7 +489,7 @@ class TypeSystem {
   }
 
   TypeInformation allocateMap(
-      ConcreteTypeInformation type, ast.Node node, Element element,
+      ConcreteTypeInformation type, ast.Node node, MemberElement element,
       [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
     assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == commonMasks.constMapType);
