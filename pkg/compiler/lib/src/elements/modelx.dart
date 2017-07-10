@@ -341,6 +341,16 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
+  get _asyncMarker {
+    throw new UnsupportedError("_asyncMarker");
+  }
+
+  @override
+  set _asyncMarker(_) {
+    throw new UnsupportedError("_asyncMarker=");
+  }
+
+  @override
   get effectiveTargetInternal {
     throw new UnsupportedError("effectiveTargetInternal");
   }
@@ -2045,12 +2055,28 @@ abstract class BaseFunctionElementX extends ElementX
 
   FunctionSignature _functionSignatureCache;
 
-  AsyncMarker asyncMarker = AsyncMarker.SYNC;
+  AsyncMarker _asyncMarker = AsyncMarker.SYNC;
 
   BaseFunctionElementX(String name, ElementKind kind, Modifiers this.modifiers,
       Element enclosing)
       : super(name, kind, enclosing) {
     assert(modifiers != null);
+  }
+
+  AsyncMarker get asyncMarker {
+    if (isPatched) {
+      return patch.asyncMarker;
+    }
+    return _asyncMarker;
+  }
+
+  void set asyncMarker(AsyncMarker value) {
+    if (isPatched) {
+      BaseFunctionElementX function = patch;
+      function.asyncMarker = value;
+    } else {
+      _asyncMarker = value;
+    }
   }
 
   bool get isExternal => modifiers.isExternal;
