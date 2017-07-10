@@ -26,6 +26,7 @@ class ProcessedSample;
 class ProcessedSampleBuffer;
 
 class Sample;
+class AllocationSampleBuffer;
 class SampleBuffer;
 class ProfileTrieNode;
 
@@ -51,12 +52,16 @@ struct ProfilerCounters {
 class Profiler : public AllStatic {
  public:
   static void InitOnce();
+  static void InitAllocationSampleBuffer();
   static void Shutdown();
 
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
+  static AllocationSampleBuffer* allocation_sample_buffer() {
+    return allocation_sample_buffer_;
+  }
 
   static void DumpStackTrace(void* context);
   static void DumpStackTrace(bool for_crash = true);
@@ -89,6 +94,7 @@ class Profiler : public AllStatic {
   static bool initialized_;
 
   static SampleBuffer* sample_buffer_;
+  static AllocationSampleBuffer* allocation_sample_buffer_;
 
   static ProfilerCounters counters_;
 
@@ -192,6 +198,7 @@ class Sample {
     native_allocation_address_ = 0;
     native_allocation_size_bytes_ = 0;
     continuation_index_ = -1;
+    next_free_ = NULL;
     uword* pcs = GetPCArray();
     for (intptr_t i = 0; i < pcs_length_; i++) {
       pcs[i] = 0;
@@ -293,20 +300,11 @@ class Sample {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
   }
 
-  bool is_native_allocation_sample() const {
-    return NativeAllocationSampleBit::decode(state_);
-  }
-
-  void set_is_native_allocation_sample(bool native_allocation_sample) {
-    state_ =
-        NativeAllocationSampleBit::update(native_allocation_sample, state_);
-  }
+  uword native_allocation_address() const { return native_allocation_address_; }
 
   void set_native_allocation_address(uword address) {
     native_allocation_address_ = address;
   }
-
-  uword native_allocation_address() const { return native_allocation_address_; }
 
   uintptr_t native_allocation_size_bytes() const {
     return native_allocation_size_bytes_;
@@ -315,6 +313,9 @@ class Sample {
   void set_native_allocation_size_bytes(uintptr_t size) {
     native_allocation_size_bytes_ = size;
   }
+
+  Sample* next_free() const { return next_free_; }
+  void set_next_free(Sample* next_free) { next_free_ = next_free; }
 
   Thread::TaskKind thread_task() const { return ThreadTaskBit::decode(state_); }
 
@@ -379,8 +380,7 @@ class Sample {
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
     kThreadTaskBit = 8,  // 5 bits.
-    kNativeAllocationSampleBit = 13,
-    kNextFreeBit = 14,
+    kNextFreeBit = 13,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart : public BitField<uword, bool, kLeafFrameIsDartBit, 1> {
@@ -397,8 +397,6 @@ class Sample {
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
   class ThreadTaskBit
       : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 5> {};
-  class NativeAllocationSampleBit
-      : public BitField<uword, bool, kNativeAllocationSampleBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -413,10 +411,10 @@ class Sample {
   uword native_allocation_address_;
   uintptr_t native_allocation_size_bytes_;
   intptr_t continuation_index_;
+  Sample* next_free_;
 
   /* There are a variable number of words that follow, the words hold the
    * sampled pc values. Access via GetPCArray() */
-
   DISALLOW_COPY_AND_ASSIGN(Sample);
 };
 
@@ -431,14 +429,12 @@ class NativeAllocationSampleFilter : public SampleFilter {
                      time_extent_micros) {}
 
   bool FilterSample(Sample* sample) {
-    if (!sample->is_native_allocation_sample()) {
-      return false;
-    }
     // If the sample is an allocation sample, we need to check that the
     // memory at the address hasn't been freed, and if the address associated
     // with the allocation has been freed and then reissued.
     void* alloc_address =
         reinterpret_cast<void*>(sample->native_allocation_address());
+    ASSERT(alloc_address != NULL);
     Sample* recorded_sample = MallocHooks::GetSample(alloc_address);
     return (sample == recorded_sample);
   }
@@ -521,14 +517,14 @@ class SampleBuffer {
   static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
   explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
-  ~SampleBuffer();
+  virtual ~SampleBuffer();
 
   intptr_t capacity() const { return capacity_; }
 
   Sample* At(intptr_t idx) const;
   intptr_t ReserveSampleSlot();
-  Sample* ReserveSample();
-  Sample* ReserveSampleAndLink(Sample* previous);
+  virtual Sample* ReserveSample();
+  virtual Sample* ReserveSampleAndLink(Sample* previous);
 
   void VisitSamples(SampleVisitor* visitor) {
     ASSERT(visitor != NULL);
@@ -562,7 +558,7 @@ class SampleBuffer {
 
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(SampleFilter* filter);
 
- private:
+ protected:
   ProcessedSample* BuildProcessedSample(Sample* sample,
                                         const CodeLookupTable& clt);
   Sample* Next(Sample* sample);
@@ -572,7 +568,26 @@ class SampleBuffer {
   intptr_t capacity_;
   uintptr_t cursor_;
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);
+};
+
+
+class AllocationSampleBuffer : public SampleBuffer {
+ public:
+  explicit AllocationSampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
+  virtual ~AllocationSampleBuffer();
+
+  intptr_t ReserveSampleSlotLocked();
+  virtual Sample* ReserveSample();
+  virtual Sample* ReserveSampleAndLink(Sample* previous);
+  void FreeAllocationSample(Sample* sample);
+
+ private:
+  Mutex* mutex_;
+  Sample* free_sample_list_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocationSampleBuffer);
 };
 
 

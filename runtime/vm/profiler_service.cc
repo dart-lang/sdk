@@ -1217,12 +1217,14 @@ class ProfileBuilder : public ValueObject {
 
   ProfileBuilder(Thread* thread,
                  SampleFilter* filter,
+                 SampleBuffer* sample_buffer,
                  Profile::TagOrder tag_order,
                  intptr_t extra_tags,
                  Profile* profile)
       : thread_(thread),
         vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
+        sample_buffer_(sample_buffer),
         tag_order_(tag_order),
         extra_tags_(extra_tags),
         profile_(profile),
@@ -1233,6 +1235,8 @@ class ProfileBuilder : public ValueObject {
         inclusive_tree_(false),
         samples_(NULL),
         info_kind_(kNone) {
+    ASSERT((sample_buffer_ == Profiler::sample_buffer()) ||
+           (sample_buffer_ == Profiler::allocation_sample_buffer()));
     ASSERT(profile_ != NULL);
   }
 
@@ -1284,11 +1288,8 @@ class ProfileBuilder : public ValueObject {
 
   bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    SampleBuffer* sample_buffer = Profiler::sample_buffer();
-    if (sample_buffer == NULL) {
-      return false;
-    }
-    samples_ = sample_buffer->BuildProcessedSampleBuffer(filter_);
+    ASSERT(sample_buffer_ != NULL);
+    samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
     return true;
@@ -2330,6 +2331,7 @@ class ProfileBuilder : public ValueObject {
   Thread* thread_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
+  SampleBuffer* sample_buffer_;
   Profile::TagOrder tag_order_;
   intptr_t extra_tags_;
   Profile* profile_;
@@ -2365,9 +2367,11 @@ Profile::Profile(Isolate* isolate)
 
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
+                    SampleBuffer* sample_buffer,
                     TagOrder tag_order,
                     intptr_t extra_tags) {
-  ProfileBuilder builder(thread, filter, tag_order, extra_tags, this);
+  ProfileBuilder builder(thread, filter, sample_buffer, tag_order, extra_tags,
+                         this);
   builder.Build();
 }
 
@@ -2748,12 +2752,12 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
                                     Profile::TagOrder tag_order,
                                     intptr_t extra_tags,
                                     SampleFilter* filter,
+                                    SampleBuffer* sample_buffer,
                                     bool as_timeline) {
   Isolate* isolate = thread->isolate();
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
 
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
   if (sample_buffer == NULL) {
     stream->PrintError(kFeatureDisabled, NULL);
     return;
@@ -2763,7 +2767,7 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    profile.Build(thread, filter, tag_order, extra_tags);
+    profile.Build(thread, filter, sample_buffer, tag_order, extra_tags);
     if (as_timeline) {
       profile.PrintTimelineJSON(stream);
     } else {
@@ -2784,10 +2788,7 @@ class NoAllocationSampleFilter : public SampleFilter {
                      time_origin_micros,
                      time_extent_micros) {}
 
-  bool FilterSample(Sample* sample) {
-    return !sample->is_allocation_sample() &&
-           !sample->is_native_allocation_sample();
-  }
+  bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
 };
 
 
@@ -2801,7 +2802,8 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                   time_origin_micros, time_extent_micros);
   const bool as_timeline = false;
-  PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter,
+                Profiler::sample_buffer(), as_timeline);
 }
 
 
@@ -2841,7 +2843,8 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                      Thread::kMutatorTask, time_origin_micros,
                                      time_extent_micros);
   const bool as_timeline = false;
-  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
+                Profiler::sample_buffer(), as_timeline);
 }
 
 
@@ -2852,7 +2855,8 @@ void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
   Thread* thread = Thread::Current();
   NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
   const bool as_timeline = false;
-  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
+                Profiler::allocation_sample_buffer(), as_timeline);
 }
 
 
@@ -2868,7 +2872,8 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
   NoAllocationSampleFilter filter(isolate->main_port(), thread_task_mask,
                                   time_origin_micros, time_extent_micros);
   const bool as_timeline = true;
-  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
+                Profiler::sample_buffer(), as_timeline);
 }
 
 

@@ -375,6 +375,7 @@ class Profile : public ValueObject {
   // Build a filtered model using |filter| with the specified |tag_order|.
   void Build(Thread* thread,
              SampleFilter* filter,
+             SampleBuffer* sample_buffer,
              TagOrder tag_order,
              intptr_t extra_tags = 0);
 
@@ -500,6 +501,7 @@ class ProfilerService : public AllStatic {
                             Profile::TagOrder tag_order,
                             intptr_t extra_tags,
                             SampleFilter* filter,
+                            SampleBuffer* sample_buffer,
                             bool as_timline);
 };
 

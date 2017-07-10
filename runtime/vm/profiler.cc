@@ -57,6 +57,7 @@ DEFINE_FLAG(bool, profile_vm, false, "Always collect native stack traces.");
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
+AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
 ProfilerCounters Profiler::counters_;
 
 void Profiler::InitOnce() {
@@ -69,12 +70,21 @@ void Profiler::InitOnce() {
   }
   ASSERT(!initialized_);
   sample_buffer_ = new SampleBuffer();
+  Profiler::InitAllocationSampleBuffer();
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
+}
+
+
+void Profiler::InitAllocationSampleBuffer() {
+  if (FLAG_profiler_native_memory &&
+      (Profiler::allocation_sample_buffer_ == NULL)) {
+    Profiler::allocation_sample_buffer_ = new AllocationSampleBuffer();
+  }
 }
 
 
@@ -150,8 +160,17 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
 }
 
 
+AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity)
+    : SampleBuffer(capacity), mutex_(new Mutex()) {}
+
+
 SampleBuffer::~SampleBuffer() {
   delete memory_;
+}
+
+
+AllocationSampleBuffer::~AllocationSampleBuffer() {
+  delete mutex_;
 }
 
 
@@ -172,6 +191,7 @@ intptr_t SampleBuffer::ReserveSampleSlot() {
   return cursor;
 }
 
+
 Sample* SampleBuffer::ReserveSample() {
   return At(ReserveSampleSlot());
 }
@@ -186,6 +206,73 @@ Sample* SampleBuffer::ReserveSampleAndLink(Sample* previous) {
   // Mark that previous continues at next.
   previous->SetContinuationIndex(next_index);
   return next;
+}
+
+
+void AllocationSampleBuffer::FreeAllocationSample(Sample* sample) {
+  MutexLocker ml(mutex_);
+  while (sample != NULL) {
+    intptr_t continuation_index = -1;
+    if (sample->is_continuation_sample()) {
+      continuation_index = sample->continuation_index();
+    }
+    sample->Clear();
+    sample->set_next_free(free_sample_list_);
+    free_sample_list_ = sample;
+
+    if (continuation_index != -1) {
+      sample = At(continuation_index);
+    } else {
+      sample = NULL;
+    }
+  }
+}
+
+
+intptr_t AllocationSampleBuffer::ReserveSampleSlotLocked() {
+  if (free_sample_list_ != NULL) {
+    Sample* free_sample = free_sample_list_;
+    free_sample_list_ = free_sample->next_free();
+    free_sample->set_next_free(NULL);
+    uint8_t* samples_array_ptr = reinterpret_cast<uint8_t*>(samples_);
+    uint8_t* free_sample_ptr = reinterpret_cast<uint8_t*>(free_sample);
+    return static_cast<intptr_t>((free_sample_ptr - samples_array_ptr) /
+                                 Sample::instance_size());
+  } else if (cursor_ < static_cast<uintptr_t>(capacity_ - 1)) {
+    return cursor_++;
+  } else {
+    return -1;
+  }
+}
+
+
+Sample* AllocationSampleBuffer::ReserveSampleAndLink(Sample* previous) {
+  MutexLocker ml(mutex_);
+  ASSERT(previous != NULL);
+  intptr_t next_index = ReserveSampleSlotLocked();
+  if (next_index < 0) {
+    // Could not find a free sample.
+    return NULL;
+  }
+  Sample* next = At(next_index);
+  next->Init(previous->port(), previous->timestamp(), previous->tid());
+  next->set_native_allocation_address(previous->native_allocation_address());
+  next->set_native_allocation_size_bytes(
+      previous->native_allocation_size_bytes());
+  next->set_head_sample(false);
+  // Mark that previous continues at next.
+  previous->SetContinuationIndex(next_index);
+  return next;
+}
+
+
+Sample* AllocationSampleBuffer::ReserveSample() {
+  MutexLocker ml(mutex_);
+  intptr_t index = ReserveSampleSlotLocked();
+  if (index < 0) {
+    return NULL;
+  }
+  return At(index);
 }
 
 
@@ -956,8 +1043,10 @@ static Sample* SetupSample(Thread* thread,
 
 static Sample* SetupSampleNative(SampleBuffer* sample_buffer, ThreadId tid) {
   Sample* sample = sample_buffer->ReserveSample();
+  if (sample == NULL) {
+    return NULL;
+  }
   sample->Init(ILLEGAL_PORT, OS::GetCurrentMonotonicMicros(), tid);
-  sample->set_is_native_allocation_sample(true);
   Thread* thread = Thread::Current();
 
   // Note: setting thread task in order to be consistent with other samples. The
@@ -1116,7 +1205,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
                                          uword address,
                                          uintptr_t allocation_size) {
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  AllocationSampleBuffer* sample_buffer = Profiler::allocation_sample_buffer();
   if (sample_buffer == NULL) {
     return NULL;
   }
@@ -1145,6 +1234,16 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
 
   OSThread* os_thread = OSThread::Current();
   Sample* sample = SetupSampleNative(sample_buffer, os_thread->trace_id());
+  if (sample == NULL) {
+    OS::PrintErr(
+        "Native memory profile sample buffer is full because there are more "
+        "than %" Pd
+        " outstanding allocations. Not recording allocation "
+        "0x%" Px " with size: %" Pu " bytes.\n",
+        sample_buffer->capacity(), address, allocation_size);
+    return NULL;
+  }
+
   sample->set_native_allocation_address(address);
   sample->set_native_allocation_size_bytes(allocation_size);
 
@@ -1153,6 +1252,7 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
       skip_count);
 
   native_stack_walker.walk();
+
   return sample;
 }
 
