@@ -64,7 +64,7 @@ assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
 
-[$compiler == dart2js && $runtime == d8 && $checked]
+[$compiler == dart2js && $checked]
 assertion_initializer_const_function_test/none: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
@@ -321,6 +321,8 @@ abstract_beats_arguments_test: RuntimeError # Issue 27394
 abstract_runtime_error_test/01: RuntimeError # Issue 27394
 abstract_runtime_error_test/02: RuntimeError # Issue 27394
 arithmetic_canonicalization_test: RuntimeError # Issue 27394
+assertion_initializer_const_error_test/01: Crash
+assertion_initializer_const_function_test/01: Crash
 assign_top_method_test/01: Crash # Issue 27394
 async_await_syntax_test/a04b: Crash # Issue 27394
 async_await_syntax_test/a06a: RuntimeError # Issue 27394
@@ -568,6 +570,9 @@ function_type/function_type98_test: Crash # Issue 27394
 function_type/function_type99_test: Crash # Issue 27394
 generic_function_typedef_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel ]
+assertion_initializer_const_function_error_test/none: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 conditional_method_invocation_test/02: Crash # Issue 27394
