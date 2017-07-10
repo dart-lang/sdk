@@ -1033,7 +1033,7 @@ class StandardTestSuite extends TestSuite {
     // TODO(Issue 14651): If we're on dartium, we need to pass [packageRoot]
     // on to the browser (it may be test specific).
     var filePath = info.filePath;
-    var fileName = filePath.toString();
+    var fileName = filePath.toNativePath();
 
     var optionsFromFile = info.optionsFromFile;
     var compilationTempDir = createCompilationOutputDirectory(info.filePath);
