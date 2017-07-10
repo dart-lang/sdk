@@ -11,6 +11,7 @@ import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;
 import 'package:kernel/target/targets.dart';
@@ -283,10 +284,16 @@ class ProcessedOptions {
 
   /// Create a [FileSystem] specific to the current options.
   ///
-  /// If [chaseDependencies] is false, the resulting file system will be
-  /// hermetic.
+  /// If `_raw.multiRoots` is not empty, the file-system will implement the
+  /// semantics of multiple roots. If [chaseDependencies] is false, the
+  /// resulting file system will be hermetic.
   FileSystem _createFileSystem() {
     var result = _raw.fileSystem;
+    // Note: hermetic checks are done before translating multi-root URIs, so
+    // the order in which we create the file systems below is relevant.
+    if (!_raw.multiRoots.isEmpty) {
+      result = new MultiRootFileSystem('multi-root', _raw.multiRoots, result);
+    }
     if (!chaseDependencies) {
       var allInputs = inputs.toSet();
       allInputs.addAll(_raw.inputSummaries);
@@ -306,8 +313,6 @@ class ProcessedOptions {
       if (_raw.packagesFileUri != null) allInputs.add(_raw.packagesFileUri);
       result = new HermeticFileSystem(allInputs, result);
     }
-    // TODO(paulberry): support multiRoots.
-    assert(_raw.multiRoots.isEmpty);
     return result;
   }
 }

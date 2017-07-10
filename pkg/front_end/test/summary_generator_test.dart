@@ -111,6 +111,27 @@ main() {
     expect(errors, isEmpty);
   });
 
+  test('summarization with multi-roots can work hermetically', () async {
+    var errors = [];
+    var options = new CompilerOptions()
+      ..onError = ((e) => errors.add(e))
+      ..multiRoots = [toTestUri('rootA/'), toTestUri('rootB/')];
+
+    var multiRootSources = <String, String>{
+      'rootA/a.dart': allSources['a.dart'],
+      'rootB/b.dart': allSources['b.dart'],
+    };
+
+    await summarize(['multi-root:/b.dart'], multiRootSources, options: options);
+    expect(errors.first.toString(), contains('Invalid access'));
+    errors.clear();
+
+    await summarize(
+        ['multi-root:/a.dart', 'multi-root:/b.dart'], multiRootSources,
+        options: options);
+    expect(errors, isEmpty);
+  });
+
   // TODO(sigmund): test trimDependencies when it is part of the public API.
 }
 

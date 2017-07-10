@@ -80,7 +80,9 @@ class SourceLoader<L> extends Loader<L> {
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
-    if (uri == null || uri.scheme != "file") {
+    // TODO(sigmund): source-loader shouldn't check schemes, but defer to the
+    // underlying file system to decide whether it is supported.
+    if (uri == null || uri.scheme != "file" && uri.scheme != "multi-root") {
       return deprecated_inputError(
           library.uri, -1, "Not found: ${library.uri}.");
     }
