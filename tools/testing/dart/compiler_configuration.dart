@@ -367,13 +367,13 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile) {
     var moduleRoot =
-        new Path(outputFile).directoryPath.directoryPath.toString();
+        new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
     var args = [
       "--dart-sdk",
       "${_configuration.buildDirectory}/dart-sdk",
       "--library-root",
-      new Path(inputFile).directoryPath.toString(),
+      new Path(inputFile).directoryPath.toNativePath(),
       "--module-root",
       moduleRoot,
       "--no-summarize",
