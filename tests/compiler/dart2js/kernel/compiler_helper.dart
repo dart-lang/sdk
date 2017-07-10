@@ -16,6 +16,7 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
@@ -161,7 +162,7 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
       Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
   await generate.main([
     '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
-    '--out=${dillFile.path}',
+    '--out=${uriPathToNative(dillFile.path)}',
     '${entryPoint.path}',
   ]);
   return dillFile;
