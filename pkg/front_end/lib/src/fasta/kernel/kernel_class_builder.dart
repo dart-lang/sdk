@@ -29,6 +29,8 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import '../deprecated_problems.dart' show deprecated_internalProblem;
 
+import '../fasta_codes.dart' show templateRedirectionTargetNotFound;
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import 'kernel_builder.dart'
@@ -131,12 +133,12 @@ abstract class KernelClassBuilder
             } else if (targetBuilder is DillMemberBuilder) {
               builder.body = new RedirectingFactoryBody(targetBuilder.member);
             } else {
-              String message = "Redirection constructor target not found: "
-                  "${redirectionTarget.fullNameForErrors}";
+              var message = templateRedirectionTargetNotFound
+                  .withArguments(redirectionTarget.fullNameForErrors);
               if (builder.isConst) {
-                deprecated_addCompileTimeError(builder.charOffset, message);
+                addCompileTimeError(message, builder.charOffset);
               } else {
-                deprecated_addWarning(builder.charOffset, message);
+                addWarning(message, builder.charOffset);
               }
               // CoreTypes aren't computed yet, and this is the outline
               // phase. So we can't and shouldn't create a method body.

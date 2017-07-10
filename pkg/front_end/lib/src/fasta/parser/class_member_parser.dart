@@ -6,7 +6,7 @@ library fasta.parser.class_member_parser;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show FastaMessage;
+import '../fasta_codes.dart' show Message;
 
 import 'listener.dart' show Listener;
 
@@ -29,7 +29,8 @@ class ClassMemberParser extends Parser {
     }
   }
 
-  Token parseRecoverExpression(Token token, FastaMessage message) {
+  @override
+  Token parseRecoverExpression(Token token, Message message) {
     Token begin = token;
     token = skipExpression(token);
     listener.handleRecoverExpression(begin, message);

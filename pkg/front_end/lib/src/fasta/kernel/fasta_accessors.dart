@@ -4,7 +4,23 @@
 
 library fasta.fasta_accessors;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+import 'package:kernel/ast.dart'
+    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+
+import '../../scanner/token.dart' show Token;
+
+import '../deprecated_problems.dart' show deprecated_internalProblem;
+
+import '../messages.dart' show Message;
+
+import '../names.dart' show callName, lengthName;
+
+import '../scope.dart'
+    show deprecated_AccessErrorBuilder, ProblemBuilder, Scope;
+
+import '../type_inference/type_promotion.dart' show TypePromoter;
+
+import 'kernel_shadow_ast.dart'
     show
         KernelArguments,
         KernelComplexAssignment,
@@ -16,22 +32,9 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelTypeLiteral,
         KernelVariableAssignment;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
-
-import 'package:front_end/src/scanner/token.dart' show Token;
+import 'utils.dart' show offsetForToken;
 
 import 'frontend_accessors.dart' show Accessor;
-
-import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
-    show TypePromoter;
-
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
-
-import '../deprecated_problems.dart' show deprecated_internalProblem;
-
-import '../scope.dart'
-    show deprecated_AccessErrorBuilder, ProblemBuilder, Scope;
 
 import 'frontend_accessors.dart' as kernel
     show
@@ -54,8 +57,6 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
-
-import '../names.dart' show callName, lengthName;
 
 abstract class BuilderHelper {
   LibraryBuilder get library;
@@ -81,7 +82,9 @@ abstract class BuilderHelper {
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
-  Expression deprecated_buildCompileTimeError(error, [int offset]);
+  Expression buildCompileTimeError(Message message, int charOffset);
+
+  Expression deprecated_buildCompileTimeError(String error, [int offset]);
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 

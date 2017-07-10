@@ -450,3 +450,102 @@ FinalFieldWithoutInitializer:
 MetadataTypeArguments:
   template: "An annotation (metadata) can't use type arguments."
   dart2jsCode: FASTA_IGNORED
+
+ConstructorNotFound:
+  template: "Couldn't find constructor '#name'."
+
+RedirectionTargetNotFound:
+  template: "Redirection constructor target not found: '#name'"
+
+CyclicTypedef:
+  template: "The typedef '#name' has a reference to itself."
+
+TypeNotFound:
+  template: "Type '#name' not found."
+
+NonInstanceTypeVariableUse:
+  template: "Can only use type variables in instance methods."
+
+GetterNotFound:
+  template: "Getter not found: '#name'."
+
+SetterNotFound:
+  template: "Setter not found: '#name'."
+
+MethodNotFound:
+  template: "Method not found: '#name'."
+
+AbstractClassInstantiation:
+  template: "The class '#name' is abstract and can't be instantiated."
+
+ListLiteralTooManyTypeArguments:
+  template: "Too many type arguments on List literal."
+
+ListLiteralTypeArgumentMismatch:
+  template: "Map literal requires two type arguments."
+
+NotAType:
+  template: "'#name' isn't a type."
+
+FastaUsageShort:
+  template: >-
+    Frequently used options:
+
+      -o <file> Generate the output into <file>.
+      -h        Display this message (add -v for information about all options).
+
+FastaUsageLong:
+  template: >-
+    Supported options:
+
+      -o <file>, --output=<file>
+        Generate the output into <file>.
+
+      -h, /h, /?, --help
+        Display this message (add -v for information about all options).
+
+      -v, --verbose
+        Display verbose information.
+
+      --
+        Stop option parsing, the rest of the command line is assumed to be
+        file names or arguments to the Dart program.
+
+      --packages=<file>
+        Use package resolution configuration <file>, which should contain a mapping
+        of package names to paths.
+
+      --platform=<file>
+        Read the SDK platform from <file>, which should be in Dill/Kernel IR format
+        and contain the Dart SDK.
+
+      --target=none|vm|vmcc|vmreify|flutter
+        Specify the target configuration.
+
+      --verify
+        Check that the generated output is free of various problems. This is mostly
+        useful for developers of this compiler or Kernel transformations.
+
+      --dump-ir
+        Print compiled libraries in Kernel source notation.
+
+      --exclude-source
+        Do not include source code in the dill file.
+
+      --compile-sdk=<patched_sdk>
+        Compile the SDK from scratch instead of reading it from 'platform.dill'.
+
+      --sdk=<patched_sdk>
+        Location of the SDK sources for use when compiling additional platform
+        libraries.
+
+      --fatal=errors
+      --fatal=warnings
+      --fatal=nits
+        Makes messages of the given kinds fatal, that is, immediately stop the
+        compiler with a non-zero exit-code. In --verbose mode, also display an
+        internal stack trace from the compiler. Multiple kinds can be separated by
+        commas, for example, --fatal=errors,warnings.
+
+FastaCLIArgumentRequired:
+  template: "Expected value after '#name'."

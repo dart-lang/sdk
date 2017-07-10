@@ -14,6 +14,10 @@ import 'deprecated_problems.dart' show deprecated_InputError;
 
 import 'colors.dart' show cyan, magenta;
 
+import 'fasta_codes.dart' show Message;
+
+export 'fasta_codes.dart';
+
 const bool hideWarnings = false;
 
 bool get errorsAreFatal => CompilerContext.current.options.errorsAreFatal;
@@ -25,6 +29,28 @@ bool get warningsAreFatal => CompilerContext.current.options.warningsAreFatal;
 bool get isVerbose => CompilerContext.current.options.verbose;
 
 bool get hideNits => !isVerbose;
+
+void warning(Message message, int charOffset, Uri uri) {
+  if (hideWarnings) return;
+  print(deprecated_format(
+      uri, charOffset, colorWarning("Warning: ${message.message}")));
+  if (warningsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
+    throw new deprecated_InputError(
+        uri, charOffset, "Compilation aborted due to fatal warnings.");
+  }
+}
+
+void nit(Message message, int charOffset, Uri uri) {
+  if (hideNits) return;
+  print(
+      deprecated_format(uri, charOffset, colorNit("Nit: ${message.message}")));
+  if (nitsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
+    throw new deprecated_InputError(
+        uri, charOffset, "Compilation aborted due to fatal nits.");
+  }
+}
 
 void deprecated_warning(Uri uri, int charOffset, String message) {
   if (hideWarnings) return;

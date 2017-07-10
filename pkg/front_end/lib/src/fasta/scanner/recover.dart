@@ -8,7 +8,7 @@ import '../../scanner/token.dart' show TokenType;
 
 import '../fasta_codes.dart'
     show
-        FastaCode,
+        Code,
         codeAsciiControlCharacter,
         codeEncoding,
         codeExpectedHexDigit,
@@ -172,7 +172,7 @@ Token defaultRecoveryStrategy(
         next = next.next;
       } while (next is ErrorToken && first.errorCode == next.errorCode);
 
-      FastaCode code = first.errorCode;
+      Code code = first.errorCode;
       if (code == codeEncoding ||
           code == codeNonAsciiWhitespace ||
           code == codeAsciiControlCharacter) {

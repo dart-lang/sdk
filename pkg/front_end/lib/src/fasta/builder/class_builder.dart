@@ -21,6 +21,8 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
+import '../fasta_codes.dart' show Message;
+
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   final List<TypeVariableBuilder> typeVariables;
@@ -196,6 +198,18 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     // TODO(ahe): Rename this to getLocalMember.
     return scope.local[name] ??
         deprecated_internalProblem("Not found: '$name'.");
+  }
+
+  void addCompileTimeError(Message message, int charOffset) {
+    library.addCompileTimeError(message, charOffset, fileUri);
+  }
+
+  void addWarning(Message message, int charOffset) {
+    library.addWarning(message, charOffset, fileUri);
+  }
+
+  void addNit(Message message, int charOffset) {
+    library.addNit(message, charOffset, fileUri);
   }
 
   void deprecated_addCompileTimeError(int charOffset, String message) {

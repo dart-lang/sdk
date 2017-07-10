@@ -4,13 +4,9 @@
 
 library fasta.body_builder;
 
-import '../fasta_codes.dart'
-    show
-        FastaMessage,
-        codeConstFieldWithoutInitializer,
-        codeExpectedButGot,
-        codeExpectedFunctionBody,
-        codeFinalFieldWithoutInitializer;
+import '../fasta_codes.dart' show Message;
+
+import '../fasta_codes.dart' as fasta;
 
 import '../parser/parser.dart'
     show Assert, FormalParameterType, MemberKind, optional;
@@ -962,19 +958,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       bool isSetter: false,
       bool isStatic: false}) {
     String errorName = isSuper ? "super.$name" : name;
-    String message;
+    Message message;
     if (isGetter) {
-      message = "Getter not found: '$errorName'.";
+      message = fasta.templateGetterNotFound.withArguments(errorName);
     } else if (isSetter) {
-      message = "Setter not found: '$errorName'.";
+      message = fasta.templateSetterNotFound.withArguments(errorName);
     } else {
-      message = "Method not found: '$errorName'.";
+      message = fasta.templateMethodNotFound.withArguments(errorName);
     }
     if (constantExpressionRequired) {
       // TODO(ahe): Use error below instead of building a compile-time error,
       // should be:
       //    return library.loader.throwCompileConstantError(error, charOffset);
-      return deprecated_buildCompileTimeError(message, charOffset);
+      return buildCompileTimeError(message, charOffset);
     } else {
       Expression error = library.loader.instantiateNoSuchMethodError(
           receiver, name, arguments, charOffset,
@@ -983,7 +979,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isSetter: isSetter,
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
-      deprecated_warning(message, charOffset);
+      warning(message, charOffset);
       return new KernelSyntheticExpression(new Throw(error));
     }
   }
@@ -1546,8 +1542,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       typeArgument = typeArguments.first;
       if (typeArguments.length > 1) {
         typeArgument = null;
-        deprecated_warningNotError(
-            "Too many type arguments on List literal.", beginToken.charOffset);
+        warningNotError(fasta.messageListLiteralTooManyTypeArguments,
+            beginToken.charOffset);
       }
     }
     push(new KernelListLiteral(expressions,
@@ -1588,8 +1584,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (typeArguments.length != 2) {
         keyType = null;
         valueType = null;
-        deprecated_warningNotError(
-            "Map literal requires two type arguments.", beginToken.charOffset);
+        warningNotError(fasta.messageListLiteralTypeArgumentMismatch,
+            beginToken.charOffset);
       } else {
         keyType = typeArguments[0];
         valueType = typeArguments[1];
@@ -1655,8 +1651,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ProblemBuilder problem = builder;
       deprecated_addCompileTimeError(charOffset, problem.deprecated_message);
     } else {
-      deprecated_warningNotError(
-          "Not a type: '${builder.fullNameForErrors}'.", charOffset);
+      warningNotError(
+          fasta.templateNotAType.withArguments(builder.fullNameForErrors),
+          charOffset);
     }
     // TODO(ahe): Create an error somehow.
     return const InvalidType();
@@ -1702,8 +1699,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (name is TypeDeclarationAccessor) {
       push(name.buildType(arguments));
     } else if (name is FastaAccessor) {
-      deprecated_warningNotError(
-          "'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
+      warningNotError(fasta.templateNotAType.withArguments(beginToken.lexeme),
+          beginToken.charOffset);
       push(const InvalidType());
     } else if (name is TypeBuilder) {
       push(name.build(library));
@@ -1714,6 +1711,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       deprecated_internalProblem("Unhandled: '${name.runtimeType}'.");
     }
+    // TODO(ahe): Unused code fasta.messageNonInstanceTypeVariableUse.
   }
 
   @override
@@ -3028,20 +3026,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     bool silent = hasParserError ||
-        message.code == codeFinalFieldWithoutInitializer ||
-        message.code == codeConstFieldWithoutInitializer;
-    deprecated_addCompileTimeError(message.charOffset, message.message,
+        message.code == fasta.codeFinalFieldWithoutInitializer ||
+        message.code == fasta.codeConstFieldWithoutInitializer;
+    deprecated_addCompileTimeError(offsetForToken(token), message.message,
         silent: silent);
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (enableNative && message.code == codeExpectedFunctionBody) {
+  Token handleUnrecoverableError(Token token, Message message) {
+    if (enableNative && message.code == fasta.codeExpectedFunctionBody) {
       Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) return recover;
-    } else if (message.code == codeExpectedButGot) {
+    } else if (message.code == fasta.codeExpectedButGot) {
       String expected = message.arguments["string"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
@@ -3053,7 +3051,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression deprecated_buildCompileTimeError(error, [int charOffset = -1]) {
+  Expression deprecated_buildCompileTimeError(String error,
+      [int charOffset = -1]) {
     // TODO(ahe): This method should be passed the erroneous expression, wrap
     // it in a class (TBD) from which the erroneous expression can be easily
     // extracted. Similar for statements and initializers. See also [issue
@@ -3063,6 +3062,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         .throwCompileConstantError(library.loader
             .deprecated_buildCompileTimeError(
                 deprecated_formatUnexpected(uri, charOffset, error),
+                charOffset)));
+  }
+
+  @override
+  Expression buildCompileTimeError(Message message, int charOffset) {
+    // TODO(ahe): This method should be passed the erroneous expression, wrap
+    // it in a class (TBD) from which the erroneous expression can be easily
+    // extracted. Similar for statements and initializers. See also [issue
+    // 29717](https://github.com/dart-lang/sdk/issues/29717)
+    deprecated_addCompileTimeError(charOffset, message.message,
+        wasHandled: true);
+    return new KernelSyntheticExpression(library.loader
+        .throwCompileConstantError(library.loader
+            .deprecated_buildCompileTimeError(
+                deprecated_formatUnexpected(uri, charOffset, message.message),
                 charOffset)));
   }
 
@@ -3092,8 +3106,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   Expression buildAbstractClassInstantiationError(String className,
       [int charOffset = -1]) {
-    deprecated_warning(
-        "The class '$className' is abstract and can't be instantiated.",
+    warning(fasta.templateAbstractClassInstantiation.withArguments(className),
         charOffset);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
@@ -3240,6 +3253,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     super.deprecated_warning(message, charOffset);
   }
 
+  void warningNotError(Message message, int charOffset) {
+    super.warning(message, charOffset);
+  }
+
   @override
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError) {
@@ -3309,9 +3326,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.deprecated_addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri);
+  void addCompileTimeError(Message message, int charOffset) {
+    library.deprecated_addCompileTimeError(charOffset, message.message,
+        fileUri: uri);
   }
 
   @override

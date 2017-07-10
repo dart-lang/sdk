@@ -6,6 +6,8 @@ library fasta.kernel_invalid_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, InvalidType;
 
+import '../fasta_codes.dart' show templateTypeNotFound;
+
 import 'kernel_builder.dart'
     show InvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
 
@@ -26,7 +28,8 @@ class KernelInvalidTypeBuilder
   /// [Arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    library.deprecated_addWarning(charOffset, message, fileUri: fileUri);
+    library.addWarning(
+        templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return const InvalidType();
   }
 }

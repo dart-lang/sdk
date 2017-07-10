@@ -12,7 +12,8 @@ import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
-import '../messages.dart' show deprecated_nit, deprecated_warning;
+import '../messages.dart'
+    show Message, deprecated_nit, deprecated_warning, nit, warning;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -77,6 +78,26 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     loader.deprecated_addCompileTimeError(
         fileUri ?? this.fileUri, charOffset, message,
         silent: silent, wasHandled: wasHandled);
+  }
+
+  void addCompileTimeError(Message message, int charOffset, Uri uri,
+      {bool silent: false, bool wasHandled: false}) {
+    hasCompileTimeErrors = true;
+    loader.addCompileTimeError(message, charOffset, uri,
+        silent: silent, wasHandled: wasHandled);
+  }
+
+  void addWarning(Message message, int charOffset, Uri uri,
+      {bool silent: false}) {
+    if (!silent) {
+      warning(message, charOffset, uri);
+    }
+  }
+
+  void addNit(Message message, int charOffset, Uri uri, {bool silent: false}) {
+    if (!silent) {
+      nit(message, charOffset, uri);
+    }
   }
 
   void deprecated_addWarning(int charOffset, Object message,

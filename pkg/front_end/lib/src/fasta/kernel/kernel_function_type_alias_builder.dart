@@ -15,6 +15,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
+import '../fasta_codes.dart' show templateCyclicTypedef;
+
 import 'kernel_builder.dart'
     show
         FunctionTypeAliasBuilder,
@@ -52,8 +54,8 @@ class KernelFunctionTypeAliasBuilder
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (const InvalidType() == thisType) {
-        library.deprecated_addCompileTimeError(
-            charOffset, "The typedef '$name' has a reference to itself.");
+        library.addCompileTimeError(
+            templateCyclicTypedef.withArguments(name), charOffset, fileUri);
         return const DynamicType();
       }
       return thisType;

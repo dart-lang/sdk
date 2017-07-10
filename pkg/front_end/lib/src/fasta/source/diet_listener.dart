@@ -19,7 +19,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show MemberKind, Parser, optional;
 
@@ -524,7 +524,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
       Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) return recover;
@@ -617,9 +617,9 @@ class DietListener extends StackListener {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.deprecated_addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri,
+  void addCompileTimeError(Message message, int charOffset) {
+    library.deprecated_addCompileTimeError(charOffset, message.message,
+        fileUri: uri,
         // We assume this error has already been reported by OutlineBuilder.
         silent: true);
   }

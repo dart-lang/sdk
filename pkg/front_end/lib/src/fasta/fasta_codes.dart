@@ -8,42 +8,78 @@ import 'package:front_end/src/scanner/token.dart' show Token;
 
 part 'fasta_codes_generated.dart';
 
-class FastaCode<T> {
+class Code<T> {
   final String name;
 
-  final String template;
-
-  final String tip;
+  final Template<T> template;
 
   final String analyzerCode;
 
   final String dart2jsCode;
 
-  final T format;
-
-  const FastaCode(this.name,
-      {this.template,
-      this.tip,
-      this.analyzerCode,
-      this.dart2jsCode,
-      this.format});
+  const Code(this.name, this.template, {this.analyzerCode, this.dart2jsCode});
 
   String toString() => name;
 }
 
-class FastaMessage {
-  final Uri uri;
-
-  final int charOffset;
+class Message {
+  final Code code;
 
   final String message;
 
   final String tip;
 
-  final FastaCode code;
-
   final Map<String, dynamic> arguments;
 
-  const FastaMessage(this.uri, this.charOffset, this.code,
-      {this.message, this.tip, this.arguments});
+  const Message(this.code, {this.message, this.tip, this.arguments});
+
+  LocatedMessage withLocation(Uri uri, int charOffset) {
+    return new LocatedMessage(uri, charOffset, this);
+  }
+}
+
+class MessageCode extends Code<Null> implements Message {
+  final String message;
+
+  final String tip;
+
+  const MessageCode(String name,
+      {String analyzerCode, String dart2jsCode, this.message, this.tip})
+      : super(name, null, analyzerCode: analyzerCode, dart2jsCode: dart2jsCode);
+
+  Map<String, dynamic> get arguments => const <String, dynamic>{};
+
+  Code get code => this;
+
+  LocatedMessage withLocation(Uri uri, int charOffset) {
+    return new LocatedMessage(uri, charOffset, this);
+  }
+}
+
+class Template<T> {
+  final String messageTemplate;
+
+  final String tipTemplate;
+
+  final T withArguments;
+
+  const Template({this.messageTemplate, this.tipTemplate, this.withArguments});
+}
+
+class LocatedMessage {
+  final Uri uri;
+
+  final int charOffset;
+
+  final Message messageObject;
+
+  const LocatedMessage(this.uri, this.charOffset, this.messageObject);
+
+  Code get code => messageObject.code;
+
+  String get message => messageObject.message;
+
+  String get tip => messageObject.tip;
+
+  Map<String, dynamic> get arguments => messageObject.arguments;
 }

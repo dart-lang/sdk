@@ -54,10 +54,13 @@ import '../dill/dill_target.dart' show DillTarget;
 
 import '../deprecated_problems.dart'
     show
+        deprecated_formatUnexpected,
         deprecated_InputError,
         deprecated_internalProblem,
         reportCrash,
         resetCrashReporting;
+
+import '../messages.dart' show LocatedMessage;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -299,7 +302,7 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If there's no main library, this method uses [erroneousProgram] to
   /// replace [program].
-  void handleRecoverableErrors(List<deprecated_InputError> recoverableErrors) {
+  void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
     if (mainLibrary == null) {
@@ -307,8 +310,9 @@ class KernelTarget extends TargetImplementation {
       return;
     }
     List<Expression> expressions = <Expression>[];
-    for (deprecated_InputError error in recoverableErrors) {
-      String message = error.deprecated_format();
+    for (LocatedMessage error in recoverableErrors) {
+      String message = deprecated_formatUnexpected(
+          error.uri, error.charOffset, error.message);
       errors.add(message);
       expressions.add(new StringLiteral(message));
     }

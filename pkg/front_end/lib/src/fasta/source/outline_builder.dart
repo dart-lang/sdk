@@ -6,7 +6,7 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
 
@@ -161,7 +161,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     debugEvent("RecoverExpression");
     push(NullValue.Expression);
     push(token.charOffset);
@@ -844,7 +844,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     if (silenceParserErrors) {
       debugEvent("RecoverableError");
     } else {
@@ -853,7 +853,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
       Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) {
@@ -866,9 +866,9 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.deprecated_addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri);
+  void addCompileTimeError(Message message, int charOffset) {
+    library.deprecated_addCompileTimeError(charOffset, message.message,
+        fileUri: uri);
   }
 
   @override

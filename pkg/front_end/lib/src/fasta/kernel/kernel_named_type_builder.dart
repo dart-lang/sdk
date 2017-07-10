@@ -6,7 +6,7 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, DynamicType, Supertype;
 
-import '../messages.dart' show deprecated_warning;
+import '../messages.dart' show templateTypeNotFound, warning;
 
 import 'kernel_builder.dart'
     show
@@ -27,18 +27,18 @@ class KernelNamedTypeBuilder
 
   KernelInvalidTypeBuilder buildInvalidType(String name) {
     // TODO(ahe): Record error instead of printing.
-    deprecated_warning(fileUri, charOffset, "Type not found: '$name'.");
+    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
   DartType handleMissingType() {
     // TODO(ahe): Record error instead of printing.
-    deprecated_warning(fileUri, charOffset, "No type for: '$name'.");
+    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return const DynamicType();
   }
 
   Supertype handleMissingSupertype() {
-    deprecated_warning(fileUri, charOffset, "No type for: '$name'.");
+    warning(templateTypeNotFound.withArguments(name), charOffset, fileUri);
     return null;
   }
 

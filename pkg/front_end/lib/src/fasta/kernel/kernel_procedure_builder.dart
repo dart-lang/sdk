@@ -46,7 +46,7 @@ import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
 import '../deprecated_problems.dart' show deprecated_internalProblem;
 
-import '../messages.dart' show deprecated_warning;
+import '../messages.dart' show messageNonInstanceTypeVariableUse, warning;
 
 import '../loader.dart' show Loader;
 
@@ -151,8 +151,7 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          deprecated_warning(fileUri, charOffset,
-              "Can only use type variables in instance methods.");
+          warning(messageNonInstanceTypeVariableUse, charOffset, fileUri);
           return substitute(type, substitution);
         }
 

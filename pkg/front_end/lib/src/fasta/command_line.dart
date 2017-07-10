@@ -4,12 +4,19 @@
 
 library fasta.command_line;
 
+import 'fasta_codes.dart' show Message, templateFastaCLIArgumentRequired;
+
 import 'deprecated_problems.dart'
     show deprecated_inputError, deprecated_internalProblem;
 
-deprecated_argumentError(String usage, String message) {
-  if (usage != null) print(usage);
+deprecated_argumentError(Message usage, String message) {
+  if (usage != null) print(usage.message);
   deprecated_inputError(null, null, message);
+}
+
+argumentError(Message usage, Message message) {
+  if (usage != null) print(usage.message);
+  deprecated_inputError(null, null, message.message);
 }
 
 class ParsedArguments {
@@ -24,7 +31,7 @@ class CommandLine {
 
   final List<String> arguments;
 
-  final String usage;
+  final Message usage;
 
   CommandLine.parsed(ParsedArguments p, this.usage)
       : this.options = p.options,
@@ -36,7 +43,7 @@ class CommandLine {
   }
 
   CommandLine(List<String> arguments,
-      {Map<String, dynamic> specification, String usage})
+      {Map<String, dynamic> specification, Message usage})
       : this.parsed(parse(arguments, specification, usage), usage);
 
   bool get verbose {
@@ -72,7 +79,7 @@ class CommandLine {
   /// This method performs only a limited amount of validation, but if an error
   /// occurs, it will print [usage] along with a specific error message.
   static ParsedArguments parse(List<String> arguments,
-      Map<String, dynamic> specification, String usage) {
+      Map<String, dynamic> specification, Message usage) {
     specification ??= const <String, dynamic>{};
     ParsedArguments result = new ParsedArguments();
     int index = arguments.indexOf("--");
@@ -89,8 +96,8 @@ class CommandLine {
         String value;
         if (valueSpecification != null) {
           if (!iterator.moveNext()) {
-            return deprecated_argumentError(
-                usage, "Expected value after '$argument'.");
+            return argumentError(usage,
+                templateFastaCLIArgumentRequired.withArguments(argument));
           }
           value = iterator.current;
         } else {

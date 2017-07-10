@@ -4,7 +4,7 @@
 
 library fasta.diet_parser;
 
-import '../fasta_codes.dart' show codeExpectedOpenParens;
+import '../fasta_codes.dart' show messageExpectedOpenParens;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
@@ -26,7 +26,7 @@ class DietParser extends ClassMemberParser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        reportRecoverableErrorCode(token, codeExpectedOpenParens);
+        reportRecoverableError(token, messageExpectedOpenParens);
         return token;
       }
       return reportUnexpectedToken(token).next;

@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_internalProblem;
-import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
+import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
 import 'package:front_end/src/fasta/parser/parser.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
@@ -157,8 +157,8 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    deprecated_internalProblem(message.message);
+  void addCompileTimeError(Message message, int charOffset) {
+    deprecated_internalProblem(message.message, uri, charOffset);
   }
 
   @override

@@ -18,12 +18,8 @@ import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_internalProblem;
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show
-        FastaCode,
-        FastaMessage,
-        codeExpectedExpression,
-        codeExpectedFunctionBody;
+import 'package:front_end/src/fasta/messages.dart'
+    show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -1086,7 +1082,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (message.code == codeExpectedFunctionBody) {
       if (identical('native', token.stringValue) && parser != null) {
         Token nativeKeyword = token;
@@ -1915,18 +1911,18 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    FastaCode code = message.code;
+  void addCompileTimeError(Message message, int charOffset) {
+    Code code = message.code;
     switch (code.analyzerCode) {
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, message.charOffset, 1);
+            ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
       default:
       // fall through
     }
-    library.deprecated_addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri);
+    library.deprecated_addCompileTimeError(charOffset, message.message,
+        fileUri: uri);
   }
 }
 

@@ -4,7 +4,7 @@
 
 library fasta.stack_listener;
 
-import '../fasta_codes.dart' show FastaMessage;
+import '../fasta_codes.dart' show Message;
 
 import '../parser.dart' show Listener, MemberKind;
 
@@ -238,11 +238,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     debugEvent("RecoverExpression");
   }
 
-  void handleExtraneousExpression(Token token, FastaMessage message) {
+  void handleExtraneousExpression(Token token, Message message) {
     debugEvent("ExtraneousExpression");
     pop(); // Discard the extraneous expression.
   }
@@ -258,15 +258,15 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     debugEvent("Error: ${message.message}");
-    addCompileTimeErrorFromMessage(message);
+    addCompileTimeError(message, token.offset);
   }
 
-  void addCompileTimeErrorFromMessage(FastaMessage message);
+  void addCompileTimeError(Message message, int charOffset);
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     throw deprecated_inputError(uri, token.charOffset, message.message);
   }
 
@@ -276,6 +276,10 @@ abstract class StackListener extends Listener {
 
   void deprecated_warning(String message, [int charOffset = -1]) {
     messages.deprecated_warning(uri, charOffset, message);
+  }
+
+  void warning(Message message, int charOffset) {
+    messages.warning(message, charOffset, uri);
   }
 }
 

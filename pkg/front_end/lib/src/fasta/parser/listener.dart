@@ -4,7 +4,7 @@
 
 library fasta.parser.listener;
 
-import '../fasta_codes.dart' show FastaMessage;
+import '../fasta_codes.dart' show Message;
 
 import '../../scanner/token.dart' show BeginToken, Token, TokenType;
 
@@ -173,14 +173,14 @@ class Listener {
   /// Called by [ClassMemberParser] after skipping an expression as error
   /// recovery. For a stack-based listener, the suggested action is to push
   /// `null` or a synthetic erroneous expression.
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     logEvent("RecoverExpression");
   }
 
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.
-  void handleExtraneousExpression(Token token, FastaMessage message) {
+  void handleExtraneousExpression(Token token, Message message) {
     logEvent("ExtraneousExpression");
   }
 
@@ -1033,12 +1033,12 @@ class Listener {
   /// `null`. In the latter case, the parser simply skips to EOF which will
   /// often result in additional parser errors as the parser returns from its
   /// recursive state.
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     throw new ParserError.fromTokens(token, token, message);
   }
 
   /// The parser noticed a syntax error, but was able to recover from it.
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     recoverableErrors.add(new ParserError.fromTokens(token, token, message));
   }
 
@@ -1089,11 +1089,11 @@ class ParserError {
   /// Character offset from the beginning of file where this error ends.
   final int endOffset;
 
-  final FastaMessage message;
+  final Message message;
 
   ParserError(this.beginOffset, this.endOffset, this.message);
 
-  ParserError.fromTokens(Token begin, Token end, FastaMessage message)
+  ParserError.fromTokens(Token begin, Token end, Message message)
       : this(begin.charOffset, end.charOffset + end.charCount, message);
 
   String toString() => "@${beginOffset}: ${message.message}\n${message.tip}";
