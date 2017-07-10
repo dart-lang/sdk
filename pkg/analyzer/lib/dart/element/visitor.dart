@@ -129,6 +129,9 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitImportElement(ImportElement element) => visitElement(element);
 
   @override
+  R visitLabelElement(LabelElement element) => visitElement(element);
+
+  @override
   R visitLibraryElement(LibraryElement element) => visitElement(element);
 
   R visitLocalElement(LocalElement element) {
@@ -141,6 +144,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     }
     return null;
   }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) =>
+      visitLocalElement(element);
 
   @override
   R visitMethodElement(MethodElement element) =>
@@ -250,7 +257,19 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R visitLabelElement(LabelElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitLibraryElement(LibraryElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -339,7 +358,13 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitImportElement(ImportElement element) => null;
 
   @override
+  R visitLabelElement(LabelElement element) => null;
+
+  @override
   R visitLibraryElement(LibraryElement element) => null;
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) => null;
 
   @override
   R visitMethodElement(MethodElement element) => null;
@@ -408,7 +433,13 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   R visitImportElement(ImportElement element) => _throw(element);
 
   @override
+  R visitLabelElement(LabelElement element) => _throw(element);
+
+  @override
   R visitLibraryElement(LibraryElement element) => _throw(element);
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement element) => _throw(element);
 
   @override
   R visitMethodElement(MethodElement element) => _throw(element);

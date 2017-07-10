@@ -5524,7 +5524,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   ElementKind get kind => ElementKind.LABEL;
 
   @override
-  T accept<T>(ElementVisitor<T> visitor) => throw new UnimplementedError();
+  T accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
 }
 
 /**
@@ -6326,7 +6326,8 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
-  T accept<T>(ElementVisitor<T> visitor) => throw new UnimplementedError();
+  T accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitLocalVariableElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
