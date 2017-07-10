@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "dart:collection" show LinkedList, LinkedListEntry;
 import 'dart:convert' show ASCII, JSON;
 import "dart:isolate";
 import "dart:math";
