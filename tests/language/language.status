@@ -61,6 +61,11 @@ assertion_initializer_const_function_test/01: RuntimeError
 assertion_initializer_const_function_test/none: RuntimeError
 assertion_initializer_test: RuntimeError
 
+[$compiler == app_jit && $runtime == vm && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
