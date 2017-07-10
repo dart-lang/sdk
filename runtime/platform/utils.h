@@ -184,6 +184,45 @@ class Utils {
   }
 
 
+  // Adds two int64_t values with wrapping around
+  // (two's complement arithmetic).
+  static inline int64_t AddWithWrapAround(int64_t a, int64_t b) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) +
+                                static_cast<uint64_t>(b));
+  }
+
+
+  // Subtracts two int64_t values with wrapping around
+  // (two's complement arithmetic).
+  static inline int64_t SubWithWrapAround(int64_t a, int64_t b) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) -
+                                static_cast<uint64_t>(b));
+  }
+
+
+  // Multiplies two int64_t values with wrapping around
+  // (two's complement arithmetic).
+  static inline int64_t MulWithWrapAround(int64_t a, int64_t b) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) *
+                                static_cast<uint64_t>(b));
+  }
+
+
+  // Shifts int64_t value left. Supports any non-negative number of bits and
+  // silently discards shifted out bits.
+  static inline int64_t ShiftLeftWithTruncation(int64_t a, int64_t b) {
+    ASSERT(b >= 0);
+    if (b >= kBitsPerInt64) {
+      return 0;
+    }
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) << b);
+  }
+
+
   // Utility functions for converting values from host endianness to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);

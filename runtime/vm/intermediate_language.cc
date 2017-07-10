@@ -1818,7 +1818,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     if (is_truncating()) {
       int64_t truncated = result.AsTruncatedInt64Value();
       truncated &= RepresentationMask(representation());
-      result = Integer::New(truncated);
+      result = Integer::New(truncated, Heap::kOld);
       ASSERT(IsRepresentable(result, representation()));
     } else if (!IsRepresentable(result, representation())) {
       // If this operation is not truncating it would deoptimize on overflow.

@@ -79,6 +79,19 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
     args.SetAt(0, String::Handle(String::New(error_msg)));
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
+  if (FLAG_limit_ints_to_64_bits) {
+    // TODO(alexmarkov): decide on the double-to-integer conversion semantics
+    // in truncating mode.
+    int64_t ival = 0;
+    if (val <= static_cast<double>(kMinInt64)) {
+      ival = kMinInt64;
+    } else if (val >= static_cast<double>(kMaxInt64)) {
+      ival = kMaxInt64;
+    } else {  // Representable in int64_t.
+      ival = static_cast<int64_t>(val);
+    }
+    return Integer::New(ival);
+  }
   if ((-1.0 < val) && (val < 1.0)) {
     return Smi::New(0);
   }

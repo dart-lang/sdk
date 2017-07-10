@@ -18998,7 +18998,11 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
         Bigint::Handle(Bigint::NewFromCString(str.ToCString(), space));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    if (!FLAG_limit_ints_to_64_bits) {
+      return big.raw();
+    }
+    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+    value = big.AsTruncatedInt64Value();
   }
   return Integer::New(value, space);
 }
@@ -19012,7 +19016,11 @@ RawInteger* Integer::NewCanonical(const String& str) {
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    if (!FLAG_limit_ints_to_64_bits) {
+      return big.raw();
+    }
+    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+    value = big.AsTruncatedInt64Value();
   }
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
@@ -19032,7 +19040,12 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    return Bigint::NewFromUint64(value, space);
+    if (FLAG_limit_ints_to_64_bits) {
+      // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+      return Integer::New(static_cast<int64_t>(value), space);
+    } else {
+      return Bigint::NewFromUint64(value, space);
+    }
   } else {
     return Integer::New(value, space);
   }
@@ -19141,13 +19154,18 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
                                   static_cast<int64_t>(right_value),
                               space);
         } else {
-          // In 64-bit mode, the product of two signed integers fits in a
-          // 64-bit result if the sum of the highest bits of their absolute
-          // values is smaller than 62.
           ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
-              62) {
-            return Integer::New(left_value * right_value, space);
+          if (FLAG_limit_ints_to_64_bits) {
+            return Integer::New(
+                Utils::MulWithWrapAround(left_value, right_value), space);
+          } else {
+            // In 64-bit mode, the product of two signed integers fits in a
+            // 64-bit result if the sum of the highest bits of their absolute
+            // values is smaller than 62.
+            if ((Utils::HighestBit(left_value) +
+                 Utils::HighestBit(right_value)) < 62) {
+              return Integer::New(left_value * right_value, space);
+            }
           }
         }
         // Perform a Bigint multiplication below.
@@ -19175,26 +19193,47 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
     const int64_t right_value = other.AsInt64Value();
     switch (operation) {
       case Token::kADD: {
-        if (!Utils::WillAddOverflow(left_value, right_value)) {
-          return Integer::New(left_value + right_value, space);
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(Utils::AddWithWrapAround(left_value, right_value),
+                              space);
+        } else {
+          if (!Utils::WillAddOverflow(left_value, right_value)) {
+            return Integer::New(left_value + right_value, space);
+          }
         }
         break;
       }
       case Token::kSUB: {
-        if (!Utils::WillSubOverflow(left_value, right_value)) {
-          return Integer::New(left_value - right_value, space);
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(Utils::SubWithWrapAround(left_value, right_value),
+                              space);
+        } else {
+          if (!Utils::WillSubOverflow(left_value, right_value)) {
+            return Integer::New(left_value - right_value, space);
+          }
         }
         break;
       }
       case Token::kMUL: {
-        if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
-            62) {
-          return Integer::New(left_value * right_value, space);
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
+                              space);
+        } else {
+          if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
+              62) {
+            return Integer::New(left_value * right_value, space);
+          }
         }
         break;
       }
       case Token::kTRUNCDIV: {
-        if ((left_value != Mint::kMinValue) || (right_value != -1)) {
+        if ((left_value == Mint::kMinValue) && (right_value == -1)) {
+          // Division special case: overflow in int64_t.
+          if (FLAG_limit_ints_to_64_bits) {
+            // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
+            return Integer::New(Mint::kMinValue, space);
+          }
+        } else {
           return Integer::New(left_value / right_value, space);
         }
         break;
@@ -19214,6 +19253,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -19259,6 +19299,7 @@ RawInteger* Integer::BitOp(Token::Kind kind,
         UNIMPLEMENTED();
     }
   }
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -19278,12 +19319,18 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
       }
       {  // Check for overflow.
         int cnt = Utils::BitLength(left_value);
-        if ((cnt + right_value) > Smi::kBits) {
-          if ((cnt + right_value) > Mint::kBits) {
-            return Bigint::NewFromShiftedInt64(left_value, right_value, space);
+        if (right_value > (Smi::kBits - cnt)) {
+          if (FLAG_limit_ints_to_64_bits) {
+            return Integer::New(
+                Utils::ShiftLeftWithTruncation(left_value, right_value), space);
           } else {
-            int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value, space);
+            if (right_value > (Mint::kBits - cnt)) {
+              return Bigint::NewFromShiftedInt64(left_value, right_value,
+                                                 space);
+            } else {
+              int64_t left_64 = left_value;
+              return Integer::New(left_64 << right_value, space);
+            }
           }
         }
       }
@@ -19705,6 +19752,7 @@ bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
 
 
 RawBigint* Bigint::New(Heap::Space space) {
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -19728,6 +19776,7 @@ RawBigint* Bigint::New(bool neg,
                        intptr_t used,
                        const TypedData& digits,
                        Heap::Space space) {
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   ASSERT((used == 0) ||
          (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
   Thread* thread = Thread::Current();
@@ -19767,6 +19816,7 @@ RawBigint* Bigint::New(bool neg,
 RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
   // Currently only used to convert Smi or Mint to hex String, therefore do
   // not throw RangeError if --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   bool neg;
   uint64_t abs_value;
@@ -19784,10 +19834,9 @@ RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
 
 
 RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
-  if (FLAG_limit_ints_to_64_bits) {
-    Exceptions::ThrowRangeErrorMsg(
-        "Integer operand requires conversion to Bigint");
-  }
+  // TODO(alexmarkov): Revise this assertion if this factory method is used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   SetDigitAt(digits, 0, static_cast<uint32_t>(value));
   SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
@@ -19798,12 +19847,9 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
                                        intptr_t shift,
                                        Heap::Space space) {
-  if (FLAG_limit_ints_to_64_bits) {
-    // The allocated Bigint value is not necessarily out of range, but it may
-    // be used as an operand in an operation resulting in a Bigint.
-    Exceptions::ThrowRangeErrorMsg(
-        "Integer operand requires conversion to Bigint");
-  }
+  // TODO(alexmarkov): Revise this assertion if this factory method is used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const intptr_t digit_shift = shift / kBitsPerDigit;
@@ -19835,6 +19881,7 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   ASSERT(str != NULL);
   bool neg = false;
   TypedData& digits = TypedData::Handle();
@@ -19857,6 +19904,7 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 
 RawBigint* Bigint::NewCanonical(const String& str) {
   // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
