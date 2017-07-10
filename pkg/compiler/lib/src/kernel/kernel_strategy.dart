@@ -37,7 +37,6 @@ import '../universe/world_impact.dart';
 import '../world.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
-import 'kernel_backend_strategy.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
@@ -49,9 +48,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   KernelFrontEndStrategy(
       this._options, DiagnosticReporter reporter, env.Environment environment)
-      : _elementMap = useJsStrategyForTesting
-            ? new KernelToElementMapForImpactImpl2(reporter, environment)
-            : new KernelToElementMapImpl(reporter, environment);
+      : _elementMap =
+            new KernelToElementMapForImpactImpl(reporter, environment);
 
   @override
   LibraryLoaderTask createLibraryLoader(

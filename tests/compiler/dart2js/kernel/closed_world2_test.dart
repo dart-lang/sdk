@@ -16,7 +16,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -128,7 +128,7 @@ Future<ResultKind> mainInternal(List<String> args,
 
   Compiler compiler2 = compilers.b;
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+  KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
   Expect.isFalse(compiler2.compilationFailed);
 
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
