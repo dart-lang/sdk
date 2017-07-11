@@ -283,6 +283,9 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
     field.set_has_initializer(builder_.PeekTag() == kSomething);
     GenerateFieldAccessors(toplevel_class, field, &field_helper, field_offset);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+    if (FLAG_enable_mirrors) {
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+    }
     fields_.Add(&field);
     library.AddObject(field, name);
   }
@@ -445,6 +448,10 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
       field_helper.SetJustRead(FieldHelper::kType);
       const Object& script_class =
           ClassForScriptAt(klass, field_helper.source_uri_index_);
+
+      const bool is_reflectable =
+          field_helper.position_.IsReal() &&
+          !(library.is_dart_scheme() && library.IsPrivate(name));
       dart::Field& field = dart::Field::Handle(
           Z,
           dart::Field::New(name, field_helper.IsStatic(),
@@ -452,14 +459,16 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                            // whereas in Kernel they are not final because they
                            // are not explicitly declared that way.
                            field_helper.IsFinal() || field_helper.IsConst(),
-                           field_helper.IsConst(),
-                           false,  // is_reflectable
-                           script_class, type, field_helper.position_));
+                           field_helper.IsConst(), is_reflectable, script_class,
+                           type, field_helper.position_));
       field.set_kernel_offset(field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       field.set_has_initializer(builder_.PeekTag() == kSomething);
       GenerateFieldAccessors(klass, field, &field_helper, field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+      if (FLAG_enable_mirrors) {
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+      }
       fields_.Add(&field);
     }
     klass.AddFields(fields_);
