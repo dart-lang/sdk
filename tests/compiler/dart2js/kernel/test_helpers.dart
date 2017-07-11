@@ -63,6 +63,12 @@ class KernelEquivalence {
                   a, b, 'enclosingClass', a.enclosingClass, b.enclosingClass);
         }
         return false;
+      case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
+        ConstructorBodyElement aConstructorBody = a;
+        if (b is ConstructorBodyEntity) {
+          return entityEquivalence(aConstructorBody.constructor, b.constructor);
+        }
+        return false;
       case ElementKind.CLASS:
         if (b is IndexedClass) {
           List<InterfaceType> aMixinTypes = [];

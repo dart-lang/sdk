@@ -17,13 +17,9 @@ import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart'
     show
         ClassElement,
-        ConstructorBodyElement,
         Element,
         Elements,
         FieldElement,
-        FormalElement,
-        FunctionElement,
-        FunctionSignature,
         MemberElement,
         TypeDeclarationElement,
         MixinApplicationElement,
@@ -769,26 +765,26 @@ class Namer {
     }
   }
 
-  String _proposeNameForConstructorBody(ConstructorBodyElement method) {
+  String _proposeNameForConstructorBody(ConstructorBodyEntity method) {
     String name = Elements.reconstructConstructorNameSourceString(method);
     // We include the method suffix on constructor bodies. It has no purpose,
     // but this way it produces the same names as previous versions of the
     // Namer class did.
-    List<String> suffix = callSuffixForSignature(method.functionSignature);
+    List<String> suffix = callSuffixForSignature(method.parameterStructure);
     return '$name\$${suffix.join(r'$')}';
   }
 
   /// Name for a constructor body.
-  jsAst.Name constructorBodyName(ConstructorBodyElement ctor) {
+  jsAst.Name constructorBodyName(ConstructorBodyEntity ctor) {
     return _disambiguateInternalMember(
         ctor, () => _proposeNameForConstructorBody(ctor));
   }
 
   /// Annotated name for [method] encoding arity and named parameters.
   jsAst.Name instanceMethodName(FunctionEntity method) {
-    // TODO(redemption): Avoid the use of [ConstructorBodyElement]. The
+    // TODO(johnniwinther): Avoid the use of [ConstructorBodyEntity]. The
     // codegen model should be explicit about its constructor body elements.
-    if (method is ConstructorBodyElement) {
+    if (method is ConstructorBodyEntity) {
       return constructorBodyName(method);
     }
     return invocationName(new Selector.fromElement(method));
@@ -824,13 +820,9 @@ class Namer {
   ///
   /// This is used for the annotated names of `call`, and for the proposed name
   /// for other instance methods.
-  List<String> callSuffixForSignature(FunctionSignature sig) {
-    List<String> suffixes = ['${sig.parameterCount}'];
-    if (sig.optionalParametersAreNamed) {
-      for (FormalElement param in sig.orderedOptionalParameters) {
-        suffixes.add(param.name);
-      }
-    }
+  List<String> callSuffixForSignature(ParameterStructure parameterStructure) {
+    List<String> suffixes = ['${parameterStructure.totalParameters}'];
+    suffixes.addAll(parameterStructure.namedParameters);
     return suffixes;
   }
 

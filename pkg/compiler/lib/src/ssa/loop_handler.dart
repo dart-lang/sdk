@@ -13,7 +13,6 @@ import 'builder.dart';
 import 'builder_kernel.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
-import 'kernel_ast_adapter.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -346,8 +345,6 @@ class _SsaLoopTypeVisitor extends ast.Visitor {
 // rewrite the loop handler from scratch to account for the simplified structure
 class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
   final KernelSsaGraphBuilder builder;
-
-  KernelAstAdapter get astAdapter => builder.astAdapter;
 
   KernelLoopHandler(KernelSsaGraphBuilder builder)
       : this.builder = builder,

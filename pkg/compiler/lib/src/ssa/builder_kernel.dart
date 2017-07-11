@@ -16,10 +16,11 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/elements.dart';
+import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
-import '../elements/resolution_types.dart';
+import '../elements/resolution_types.dart'
+    show MalformedType, MethodTypeVariableType;
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
@@ -49,7 +50,6 @@ import 'type_builder.dart';
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
   final ir.Node target;
-  final bool _targetIsConstructorBody;
   final MemberEntity targetElement;
 
   /// The root node of [targetElement]. This is used as the key into the
@@ -84,7 +84,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   JavaScriptBackend get backend => compiler.backend;
 
   @override
-  TreeElements get elements => astAdapter.elements;
+  TreeElements get elements =>
+      throw new UnsupportedError('KernelSsaGraphBuilder.elements');
 
   SourceInformationBuilder sourceInformationBuilder;
   final KernelToElementMapForBuilding _elementMap;
@@ -114,9 +115,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.closureDataLookup,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
-      this.functionNode,
-      {bool targetIsConstructorBody: false})
-      : this._targetIsConstructorBody = targetIsConstructorBody {
+      this.functionNode) {
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;
@@ -126,9 +125,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
         contextClass, null, nativeData, interceptorData);
     _targetStack.add(targetElement);
   }
-
-  @deprecated // Use [_elementMap] instead.
-  KernelAstAdapter get astAdapter => _elementMap;
 
   CommonElements get _commonElements => _elementMap.commonElements;
 
@@ -149,7 +145,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         }
         buildField(target);
       } else if (target is ir.Constructor) {
-        if (_targetIsConstructorBody) {
+        if (targetElement is ConstructorBodyEntity) {
           buildConstructorBody(target);
         } else {
           buildConstructor(target);
@@ -203,7 +199,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      ResolutionInterfaceType type = commonElements.boolType;
+      InterfaceType type = commonElements.boolType;
       return typeBuilder.potentiallyCheckOrTrustType(value, type,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
@@ -330,7 +326,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Pass uncaptured arguments first, captured arguments in a box, then type
       // arguments.
 
-      ConstructorElement constructorElement = _elementMap.getConstructor(body);
+      ConstructorEntity constructorElement = _elementMap.getConstructor(body);
 
       void handleParameter(ir.VariableDeclaration node) {
         Local parameter = localsMap.getLocal(node);
@@ -361,8 +357,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           .classNeedsRti(_elementMap.getClass(currentClass))) {
         for (ir.DartType typeParameter in currentClass.thisType.typeArguments) {
           HInstruction argument = localsHandler.readLocal(localsHandler
-              .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)
-                  as ResolutionTypeVariableType));
+              .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
           bodyCallInputs.add(argument);
         }
       }
@@ -383,8 +378,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _invokeConstructorBody(
       ir.Constructor constructor, List<HInstruction> inputs) {
     // TODO(sra): Inline the constructor body.
-    MemberEntity constructorBody =
-        astAdapter.getConstructorBodyEntity(constructor);
+    MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
     HInvokeConstructorBody invoke = new HInvokeConstructorBody(
         constructorBody, inputs, commonMasks.nonNullType);
     add(invoke);
@@ -438,7 +432,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Constructor constructor,
       List<ir.Constructor> constructorChain,
       Map<FieldEntity, HInstruction> fieldValues) {
-    assert(_elementMap.getConstructor(constructor) == localsMap.currentMember);
+    assert(
+        _elementMap.getConstructor(constructor) == localsMap.currentMember,
+        failedAt(
+            localsMap.currentMember,
+            'Expected ${localsMap.currentMember} '
+            'but found ${_elementMap.getConstructor(constructor)}.'));
     constructorChain.add(constructor);
 
     var foundSuperOrRedirectCall = false;
@@ -605,21 +604,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..forEach(handleParameter);
 
     // Set the locals handler state as if we were inlining the constructor.
-    ConstructorEntity astElement = _elementMap.getConstructor(constructor);
+    ConstructorEntity element = _elementMap.getConstructor(constructor);
     ClosureRepresentationInfo oldScopeInfo = localsHandler.scopeInfo;
     ClosureRepresentationInfo newScopeInfo =
-        closureDataLookup.getScopeInfo(astElement);
-    if (astElement is ConstructorElement) {
-      // TODO(redemption): Support constructor (body) entities.
-      ResolvedAst resolvedAst = astElement.resolvedAst;
-      localsHandler.scopeInfo = newScopeInfo;
-      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(closureDataLookup.getClosureScope(astElement),
-            forGenerativeConstructorBody:
-                astElement.isGenerativeConstructorBody);
-      }
-    }
-    inlinedFrom(astElement, () {
+        closureDataLookup.getScopeInfo(element);
+    localsHandler.scopeInfo = newScopeInfo;
+    localsHandler.enterScope(closureDataLookup.getClosureScope(element));
+    inlinedFrom(element, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
     localsHandler.scopeInfo = oldScopeInfo;
@@ -708,7 +699,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         closureDataLookup.getScopeInfo(targetElement),
         closureDataLookup.getClosureScope(targetElement),
         parameterMap,
-        isGenerativeConstructorBody: _targetIsConstructorBody);
+        isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -749,7 +740,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   // TODO(sra): Re-implement type builder using Kernel types and the
   // `target` for context.
   @override
-  MemberElement get sourceElement => _targetStack.last;
+  MemberEntity get sourceElement => _targetStack.last;
 
   List<MemberEntity> _targetStack = <MemberEntity>[];
 
@@ -757,9 +748,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
     HInstruction prefixConstant =
         graph.addConstantString(checkLoad.import.name, closedWorld);
-    PrefixElement prefixElement = astAdapter.getElement(checkLoad.import);
-    HInstruction uriConstant = graph.addConstantString(
-        prefixElement.deferredImport.uri.toString(), closedWorld);
+    String uri = _elementMap.getDeferredUri(checkLoad.import);
+    HInstruction uriConstant = graph.addConstantString(uri, closedWorld);
     _pushStaticInvocation(
         _commonElements.checkDeferredIsLoaded,
         [prefixConstant, uriConstant],
@@ -1364,7 +1354,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    ResolutionDartType type = _elementMap.getDartType(asExpression.type);
+    DartType type = _elementMap.getDartType(asExpression.type);
     if (type.isMalformed) {
       if (type is MalformedType) {
         ErroneousElement element = type.element;
@@ -2095,8 +2085,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // typedefs), look-up or construct a reified type representation and convert
     // to a RuntimeType.
 
-    // TODO(sra): Convert the type logic here to use ir.DartType.
-    ResolutionDartType dartType = _elementMap.getDartType(type);
+    DartType dartType = _elementMap.getDartType(type);
     dartType = localsHandler.substInContext(dartType);
     HInstruction value = typeBuilder
         .analyzeTypeArgument(dartType, sourceElement, sourceInformation: null);
@@ -3440,7 +3429,7 @@ class TryCatchFinallyBuilder {
       ir.Catch catchBlock = tryCatch.catches[catchesIndex];
       catchesIndex++;
       if (catchBlock.exception != null) {
-        LocalVariableElement exceptionVariable =
+        Local exceptionVariable =
             kernelBuilder.localsMap.getLocal(catchBlock.exception);
         kernelBuilder.localsHandler
             .updateLocal(exceptionVariable, unwrappedException);
@@ -3452,7 +3441,7 @@ class TryCatchFinallyBuilder {
             kernelBuilder._typeInferenceMap.getReturnTypeOf(
                 kernelBuilder._commonElements.traceFromException));
         HInstruction traceInstruction = kernelBuilder.pop();
-        LocalVariableElement traceVariable =
+        Local traceVariable =
             kernelBuilder.localsMap.getLocal(catchBlock.stackTrace);
         kernelBuilder.localsHandler
             .updateLocal(traceVariable, traceInstruction);

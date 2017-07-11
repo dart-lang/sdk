@@ -477,6 +477,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     });
   }
 
+  void _forEachConstructorBody(
+      IndexedClass cls, void f(ConstructorBodyEntity member)) {
+    throw new UnsupportedError(
+        'KernelToElementMapBase._forEachConstructorBody');
+  }
+
   void _forEachClassMember(
       IndexedClass cls, void f(ClassEntity cls, MemberEntity member)) {
     assert(checkFamily(cls));
@@ -659,8 +665,8 @@ abstract class ElementCreatorMixin {
   ConstructorEntity _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
       int memberIndex = _memberData.length;
-      KConstructor constructor;
-      KClass enclosingClass = _getClass(node.enclosingClass);
+      ConstructorEntity constructor;
+      ClassEntity enclosingClass = _getClass(node.enclosingClass);
       Name name = getName(node.name);
       bool isExternal = node.isExternal;
 
@@ -1150,6 +1156,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor)) {
     elementMap._forEachConstructor(cls, f);
+  }
+
+  @override
+  void forEachConstructorBody(
+      ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
+    elementMap._forEachConstructorBody(cls, f);
   }
 
   @override
@@ -1817,6 +1829,26 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return constructor;
   }
 
+  FunctionEntity getConstructorBody(ir.Constructor node) {
+    ConstructorEntity constructor = getConstructor(node);
+    return _getConstructorBody(node, constructor);
+  }
+
+  FunctionEntity _getConstructorBody(
+      ir.Constructor node, covariant IndexedConstructor constructor) {
+    ConstructorData data = _memberData[constructor.memberIndex];
+    if (data.constructorBody == null) {
+      data.constructorBody =
+          createConstructorBody(_memberList.length, constructor);
+      _memberList.add(data.constructorBody);
+      _memberData.add(new FunctionData(node, node.function));
+    }
+    return data.constructorBody;
+  }
+
+  ConstructorBodyEntity createConstructorBody(
+      int memberIndex, ConstructorEntity constructor);
+
   @override
   ir.Member getMemberNode(MemberEntity member) {
     return _getMemberNode(member);
@@ -1851,5 +1883,25 @@ class JsKernelToElementMap extends KernelToElementMapBase
       void f(DartType type, String name, ConstantValue defaultValue)) {
     FunctionData data = _memberData[function.memberIndex];
     data.forEachParameter(this, f);
+  }
+
+  void _forEachConstructorBody(
+      IndexedClass cls, void f(ConstructorBodyEntity member)) {
+    ClassEnv env = _classEnvs[cls.classIndex];
+    env.forEachConstructor((ir.Member member) {
+      IndexedConstructor constructor = _constructorMap[member];
+      if (constructor == null) {
+        // The constructor is not live.
+        return;
+      }
+      ConstructorData data = _memberData[constructor.memberIndex];
+      if (data.constructorBody != null) {
+        f(data.constructorBody);
+      }
+    });
+  }
+
+  String getDeferredUri(ir.LibraryDependency node) {
+    throw new UnimplementedError('JsKernelToElementMap.getDeferredUri');
   }
 }

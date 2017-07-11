@@ -625,7 +625,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   bool isFunctionCalledOnce(MethodElement element) {
     // ConstructorBodyElements are not in the type inference graph.
-    if (element is ConstructorBodyElement) return false;
+    if (element is ConstructorBodyEntity) return false;
     return globalInferenceResults.resultOfMember(element).isCalledOnce;
   }
 

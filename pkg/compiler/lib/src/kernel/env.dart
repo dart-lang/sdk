@@ -383,6 +383,7 @@ class FunctionData extends MemberData {
 
 class ConstructorData extends FunctionData {
   ConstantConstructor _constantConstructor;
+  ConstructorBodyEntity constructorBody;
 
   ConstructorData(ir.Member node, ir.FunctionNode functionNode)
       : super(node, functionNode);

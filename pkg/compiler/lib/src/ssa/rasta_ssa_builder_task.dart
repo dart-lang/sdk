@@ -50,8 +50,7 @@ class RastaSsaBuilder extends SsaAstBuilderBase {
           work.registry,
           backend.compiler.backendStrategy.closureDataLookup,
           sourceInformationFactory.createBuilderForContext(work.element),
-          resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null,
-          targetIsConstructorBody: element is ConstructorBodyElement);
+          resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null);
       HGraph graph = builder.build();
 
       if (backend.tracer.isEnabled) {

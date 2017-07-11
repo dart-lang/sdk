@@ -58,7 +58,9 @@ class Class {
   static var staticField;
 
   Class();
-  Class.named(this.field);
+  Class.named(this.field) {
+    staticField = 42;
+  } 
 
   method() {}
 }

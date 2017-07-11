@@ -188,6 +188,14 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
   Spannable getSpannable(MemberEntity member, ir.Node node);
+
+  /// Returns the constructor body entity corresponding to [constructor].
+  FunctionEntity getConstructorBody(ir.Constructor node);
+
+  /// Returns the uri for the deferred import [node].
+  // TODO(johnniwinther): Avoid this method by deriving the uri directly from
+  // the node.
+  String getDeferredUri(ir.LibraryDependency node);
 }
 
 /// Kinds of foreign functions.

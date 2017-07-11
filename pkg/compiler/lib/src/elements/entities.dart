@@ -206,6 +206,17 @@ abstract class ConstructorEntity extends FunctionEntity {
   bool get isFromEnvironmentConstructor;
 }
 
+/// The constructor body for a [ConstructorEntity].
+///
+/// This is used only in the backend to split encoding of a Dart constructor
+/// into two JavaScript functions; the constructor and the constructor body.
+// TODO(johnniwinther): Remove this when modelx is removed. Constructor bodies
+// should then be created directly with the J-model.
+abstract class ConstructorBodyEntity extends FunctionEntity {
+  /// The constructor for which this constructor body was created.
+  ConstructorEntity get constructor;
+}
+
 /// An entity that defines a local entity (memory slot) in generated code.
 ///
 /// Parameters, local variables and local functions (can) define local entity

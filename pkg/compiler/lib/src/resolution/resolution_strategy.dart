@@ -520,6 +520,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  void forEachConstructorBody(
+      covariant ClassElement cls, void f(ConstructorBodyEntity constructor)) {
+    cls.forEachConstructorBody(f);
+  }
+
+  @override
   ClassEntity getSuperClass(covariant ClassElement cls,
       {bool skipUnnamedMixinApplications: false}) {
     cls.ensureResolved(_resolution);

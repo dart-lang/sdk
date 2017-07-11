@@ -20,7 +20,7 @@ import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
-import '../elements/elements.dart' show ConstructorBodyElement, Element;
+import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
@@ -246,7 +246,7 @@ class StaticUse {
   /// Invocation of a constructor (body) [element] through a this or super
   /// constructor call with the given [callStructure].
   factory StaticUse.constructorBodyInvoke(
-      ConstructorBodyElement element, CallStructure callStructure) {
+      ConstructorBodyEntity element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }

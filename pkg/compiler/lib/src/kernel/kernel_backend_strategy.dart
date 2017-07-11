@@ -105,8 +105,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _compiler.backendStrategy.closureDataLookup,
         // TODO(redemption): Support these:
         const SourceInformationBuilder(),
-        null, // Function node used as capture scope id.
-        targetIsConstructorBody: false);
+        null); // Function node used as capture scope id.
     return builder.build();
   }
 }

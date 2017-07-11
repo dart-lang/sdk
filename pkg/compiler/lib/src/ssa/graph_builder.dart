@@ -243,7 +243,7 @@ abstract class GraphBuilder {
   /// Returns the current source element.
   ///
   /// The returned element is a declaration element.
-  Element get sourceElement;
+  MemberEntity get sourceElement;
 
   // TODO(karlklose): this is needed to avoid a bug where the resolved type is
   // not stored on a type annotation in the closure translator. Remove when

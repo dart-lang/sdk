@@ -350,7 +350,7 @@ class _ConstructorBodyNamingScope {
     });
   }
 
-  String constructorBodyKeyFor(ConstructorBodyElement body) {
+  String constructorBodyKeyFor(ConstructorBodyEntity body) {
     int position = _constructors.indexOf(body.constructor);
     assert(position >= 0, failedAt(body, "constructor body missing"));
     return "@constructorBody@${_startIndex + position}";
@@ -362,7 +362,7 @@ abstract class _MinifyConstructorBodyNamer implements Namer {
       new Map<ClassElement, _ConstructorBodyNamingScope>();
 
   @override
-  jsAst.Name constructorBodyName(FunctionElement method) {
+  jsAst.Name constructorBodyName(ConstructorBodyEntity method) {
     _ConstructorBodyNamingScope scope = new _ConstructorBodyNamingScope(
         method.enclosingClass, _constructorBodyScopes);
     String key = scope.constructorBodyKeyFor(method);
