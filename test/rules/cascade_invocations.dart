@@ -172,3 +172,14 @@ class Bug661 {
     parent.practicioner.bar(3);
   }
 }
+
+class Bug701 {
+  int foo;
+  int bar;
+}
+
+void function701({Bug701 something}) {
+  something ??= new Bug701();
+  something.foo = 1; // OK
+  something.bar = 2; // LINT
+}
