@@ -2745,8 +2745,6 @@ abstract class ElementImpl implements Element {
 
   /**
    * Set the enclosing element of this element to the given [element].
-   *
-   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
@@ -2895,8 +2893,6 @@ abstract class ElementImpl implements Element {
 
   /**
    * Changes the name of this element.
-   *
-   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set name(String name) {
     this._name = name;
@@ -2911,8 +2907,6 @@ abstract class ElementImpl implements Element {
   /**
    * Sets the offset of the name of this element in the file that contains the
    * declaration of this element.
-   *
-   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
