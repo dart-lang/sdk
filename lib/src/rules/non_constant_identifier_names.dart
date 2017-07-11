@@ -11,8 +11,8 @@ const desc = r'Name non-constant identifiers using lowerCamelCase.';
 const details = r'''
 **DO** name non-constant identifiers using lowerCamelCase.
 
-Class members, top-level definitions, variables, parameters, and
-named parameters should capitalize the first letter of each word
+Class members, top-level definitions, variables, parameters, named parameters
+and named constructors should capitalize the first letter of each word
 except the first word, and use no separators.
 
 **GOOD:**
@@ -82,5 +82,12 @@ class Visitor extends SimpleAstVisitor {
         checkIdentifier(v.name);
       }
     });
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.name != null) {
+      checkIdentifier(node.name);
+    }
   }
 }
