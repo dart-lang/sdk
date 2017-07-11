@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -33,6 +34,9 @@ class FileState {
   /// The absolute URI of the file.
   final Uri uri;
 
+  /// The UTF8 bytes of the [uri].
+  final List<int> uriBytes;
+
   /// The resolved URI of the file in the file system.
   final Uri fileUri;
 
@@ -55,7 +59,8 @@ class FileState {
   /// and set back to `false` for survived instances.
   bool _gcMarked = false;
 
-  FileState._(this._fsState, this.uri, this.fileUri);
+  FileState._(this._fsState, this.uri, this.fileUri)
+      : uriBytes = UTF8.encode(uri.toString());
 
   /// The MD5 signature of the file API as a byte array.
   /// It depends on all non-comment tokens outside the block bodies.
@@ -108,7 +113,7 @@ class FileState {
   /// directly or indirectly referenced files.
   Set<FileState> get transitiveFiles {
     if (_transitiveFiles == null) {
-      _transitiveFiles = new Set<FileState>();
+      _transitiveFiles = new Set<FileState>.identity();
 
       void appendReferenced(FileState file) {
         if (_transitiveFiles.add(file)) {

@@ -317,7 +317,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
     // Append API signatures of transitive files.
     for (var file in transitiveFiles) {
-      signatureBuilder.addString(file.uri.toString());
+      signatureBuilder.addBytes(file.uriBytes);
       // TODO(scheglov): Stop using content hashes here, when Kernel stops
       // copying methods of mixed-in classes.
       // https://github.com/dart-lang/sdk/issues/29881
