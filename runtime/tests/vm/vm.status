@@ -117,12 +117,16 @@ cc/Profiler_SourcePositionOptimized: Skip
 cc/Profiler_BinaryOperatorSourcePosition: Skip
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 
+[ $compiler == none && ($runtime == dartium || $runtime == drt)]
+dart/truncating_ints_test: Skip # Issue 14651
+
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
 dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
+dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
 
 [ $compiler == dart2js ]
 # The source positions do not match with dart2js.
