@@ -1478,12 +1478,13 @@ class AstBuilder extends ScopeListener {
         comment, metadata, partKeyword, ofKeyword, uri, name, semicolon));
   }
 
-  void endUnnamedFunction(Token beginToken, Token token) {
+  @override
+  void endFunctionExpression(Token beginToken, Token token) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.  Note that this is tricky due to the handling of initializers
     // in constructors, so the logic should be shared with BodyBuilder as much
     // as possible.
-    debugEvent("UnnamedFunction");
+    debugEvent("FunctionExpression");
     FunctionBody body = pop();
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
@@ -1562,21 +1563,20 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFunction(Token getOrSet, Token endToken) {
-    debugEvent("Function");
+  void endNamedFunctionExpression(Token endToken) {
+    logEvent("NamedFunctionExpression");
+  }
+
+  @override
+  void endFunctionDeclaration(Token endToken) {
+    debugEvent("FunctionDeclaration");
     FunctionBody body = pop();
     pop(); // constructor initializers
     pop(); // separator before constructor initializers
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
-    // TODO(scheglov) It is an error if "getOrSet" is not null.
-    push(ast.functionExpression(typeParameters, parameters, body));
-  }
-
-  @override
-  void endFunctionDeclaration(Token token) {
-    debugEvent("FunctionDeclaration");
-    FunctionExpression functionExpression = pop();
+    FunctionExpression functionExpression =
+        ast.functionExpression(typeParameters, parameters, body);
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
     pop(); // modifiers

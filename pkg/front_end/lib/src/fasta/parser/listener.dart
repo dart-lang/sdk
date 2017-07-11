@@ -254,15 +254,40 @@ class Listener {
     logEvent("ForInBody");
   }
 
-  void beginFunction(Token token) {}
+  void beginNamedFunctionExpression(Token token) {}
 
-  void endFunction(Token getOrSet, Token endToken) {
-    logEvent("Function");
+  /// A named function expression which isn't legal syntax in Dart.
+  /// Useful for recovering from Javascript code being pasted into a Dart
+  /// proram, as it will interpret `function foo() {}` as a named function
+  /// expression with return type `function` and name `foo`.
+  ///
+  /// Substructures:
+  /// - Modifiers
+  /// - Return type
+  /// - Name
+  /// - Type variables
+  /// - Formals
+  /// - Initializers
+  /// - Async modifier
+  /// - Function body (block or arrow expression).
+  void endNamedFunctionExpression(Token endToken) {
+    logEvent("NamedFunctionExpression");
   }
 
   void beginFunctionDeclaration(Token token) {}
 
-  void endFunctionDeclaration(Token token) {
+  /// A function declaration.
+  ///
+  /// Substructures:
+  /// - Modifiers
+  /// - Return type
+  /// - Name
+  /// - Type variables
+  /// - Formals
+  /// - Initializers
+  /// - Async modifier
+  /// - Function body (block or arrow expression).
+  void endFunctionDeclaration(Token endToken) {
     logEvent("FunctionDeclaration");
   }
 
@@ -776,7 +801,7 @@ class Listener {
     logEvent("TypeVariables");
   }
 
-  void beginUnnamedFunction(Token token) {}
+  void beginFunctionExpression(Token token) {}
 
   /// Handle the end of a function expression (e.g. "() { ... }").
   /// Substructures:
@@ -784,8 +809,8 @@ class Listener {
   /// - Formal parameters
   /// - Async marker
   /// - Body
-  void endUnnamedFunction(Token beginToken, Token token) {
-    logEvent("UnnamedFunction");
+  void endFunctionExpression(Token beginToken, Token token) {
+    logEvent("FunctionExpression");
   }
 
   void beginVariablesDeclaration(Token token) {}

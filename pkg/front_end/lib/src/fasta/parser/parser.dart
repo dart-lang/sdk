@@ -1389,9 +1389,9 @@ class Parser {
         if (looksLikeType &&
             token.isIdentifier &&
             isFunctionDeclaration(token.next)) {
-          return parseFunctionExpression(begin);
+          return parseNamedFunctionExpression(begin);
         } else if (isFunctionDeclaration(begin.next)) {
-          return parseFunctionExpression(begin);
+          return parseNamedFunctionExpression(begin);
         }
         return parseSend(begin, continuationContext);
 
@@ -2447,9 +2447,22 @@ class Parser {
     }
   }
 
-  Token parseFunction(Token token) {
+  Token parseFunctionExpression(Token token) {
     Token beginToken = token;
-    listener.beginFunction(token);
+    listener.beginFunctionExpression(token);
+    token = parseFormalParameters(token, MemberKind.Local);
+    AsyncModifier savedAsyncModifier = asyncState;
+    token = parseAsyncModifier(token);
+    bool isBlock = optional('{', token);
+    token = parseFunctionBody(token, true, false);
+    asyncState = savedAsyncModifier;
+    listener.endFunctionExpression(beginToken, token);
+    return isBlock ? token.next : token;
+  }
+
+  Token parseFunctionDeclaration(Token token) {
+    listener.beginFunctionDeclaration(token);
+    Token beginToken = token;
     token = parseModifiers(token, MemberKind.Local);
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.localFunctionDeclaration);
@@ -2463,37 +2476,27 @@ class Parser {
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, true);
     asyncState = savedAsyncModifier;
-    listener.endFunction(null, token);
-    return token.next;
-  }
-
-  Token parseUnnamedFunction(Token token) {
-    Token beginToken = token;
-    listener.beginUnnamedFunction(token);
-    token = parseFormalParameters(token, MemberKind.Local);
-    AsyncModifier savedAsyncModifier = asyncState;
-    token = parseAsyncModifier(token);
-    bool isBlock = optional('{', token);
-    token = parseFunctionBody(token, true, false);
-    asyncState = savedAsyncModifier;
-    listener.endUnnamedFunction(beginToken, token);
-    return isBlock ? token.next : token;
-  }
-
-  Token parseFunctionDeclaration(Token token) {
-    listener.beginFunctionDeclaration(token);
-    token = parseFunction(token);
+    token = token.next;
     listener.endFunctionDeclaration(token);
     return token;
   }
 
-  Token parseFunctionExpression(Token token) {
+  /// Parses a named function expression which isn't legal syntax in Dart.
+  /// Useful for recovering from Javascript code being pasted into a Dart
+  /// proram, as it will interpret `function foo() {}` as a named function
+  /// expression with return type `function` and name `foo`.
+  Token parseNamedFunctionExpression(Token token) {
     Token beginToken = token;
-    listener.beginFunction(token);
+    listener.beginNamedFunctionExpression(token);
     listener.handleModifiers(0);
     token = parseType(token, TypeContinuation.Optional);
+    if (token != beginToken) {
+      reportRecoverableError(token, fasta.messageReturnTypeFunctionExpression);
+    }
     listener.beginFunctionName(token);
+    Token nameToken = token;
     token = parseIdentifier(token, IdentifierContext.functionExpressionName);
+    reportRecoverableError(nameToken, fasta.messageNamedFunctionExpression);
     listener.endFunctionName(beginToken, token);
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token, MemberKind.Local);
@@ -2503,7 +2506,7 @@ class Parser {
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
     asyncState = savedAsyncModifier;
-    listener.endFunction(null, token);
+    listener.endNamedFunctionExpression(token);
     return isBlock ? token.next : token;
   }
 
@@ -3115,7 +3118,7 @@ class Parser {
       } else if (identical(value, "const")) {
         return parseConstExpression(token);
       } else if (identical(value, "void")) {
-        return parseFunctionExpression(token);
+        return parseNamedFunctionExpression(token);
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
@@ -3160,7 +3163,7 @@ class Parser {
                 (optional('async', nextToken) ||
                     optional('sync', nextToken))))) {
       listener.handleNoTypeVariables(token);
-      return parseUnnamedFunction(token);
+      return parseFunctionExpression(token);
     } else {
       bool old = mayParseFunctionExpressions;
       mayParseFunctionExpressions = true;
@@ -3280,7 +3283,7 @@ class Parser {
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
           (identical(kind, KEYWORD_TOKEN) &&
               (optional('async', nextToken) || optional('sync', nextToken)))) {
-        return parseUnnamedFunction(token);
+        return parseFunctionExpression(token);
       }
       // Fall through.
     }

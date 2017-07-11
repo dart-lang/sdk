@@ -569,3 +569,11 @@ Unexpected:
 
 Unsupported:
   template: "Unsupported operation: '#name'."
+
+NamedFunctionExpression:
+  template: "A function expression can't have a name."
+  dart2jsCode: "*ignored*"
+
+ReturnTypeFunctionExpression:
+  template: "A function expression can't have a return type."
+  dart2jsCode: "*ignored*"

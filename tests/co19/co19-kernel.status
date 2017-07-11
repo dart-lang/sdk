@@ -144,7 +144,6 @@ Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Reference/Lexical_Rules/Reserved_Words/void_t05: DartkCrash
 Language/Statements/Continue/label_t06: MissingCompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
 Language/Statements/Continue/label_t08: MissingCompileTimeError

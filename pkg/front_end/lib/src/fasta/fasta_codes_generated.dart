@@ -169,6 +169,16 @@ const MessageCode messageYieldNotGenerator = const MessageCode(
     message: r"""'yield' can only be used in 'sync*' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeReturnTypeFunctionExpression =
+    messageReturnTypeFunctionExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
+    "ReturnTypeFunctionExpression",
+    dart2jsCode: "*ignored*",
+    message: r"""A function expression can't have a return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSetterNotSync = messageSetterNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -893,6 +903,15 @@ Message _withArgumentsExpectedButGot(String string) {
       tip: """DONT_KNOW_HOW_TO_FIX,""",
       arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNamedFunctionExpression = const MessageCode(
+    "NamedFunctionExpression",
+    dart2jsCode: "*ignored*",
+    message: r"""A function expression can't have a name.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstFieldWithoutInitializer =

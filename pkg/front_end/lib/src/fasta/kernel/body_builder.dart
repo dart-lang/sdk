@@ -2437,20 +2437,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void beginFunction(Token token) {
-    debugEvent("beginFunction");
+  void beginFunctionDeclaration(Token token) {
+    debugEvent("beginNamedFunctionExpression");
     enterFunction();
   }
 
   @override
-  void beginUnnamedFunction(Token token) {
-    debugEvent("beginUnnamedFunction");
+  void beginNamedFunctionExpression(Token token) {
+    debugEvent("beginNamedFunctionExpression");
     enterFunction();
   }
 
   @override
-  void endFunction(Token getOrSet, Token endToken) {
-    debugEvent("Function");
+  void beginFunctionExpression(Token token) {
+    debugEvent("beginFunctionExpression");
+    enterFunction();
+  }
+
+  @override
+  void endNamedFunctionExpression(Token endToken) {
+    debugEvent("NamedFunctionExpression");
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     if (functionNestingLevel != 0) {
@@ -2458,16 +2464,39 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     FormalParameters formals = pop();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-    push(formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier)
-      ..fileOffset = formals.charOffset
-      ..fileEndOffset = endToken.charOffset));
+
+    exitLocalScope();
+    KernelFunctionDeclaration declaration = pop();
+    VariableDeclaration variable = declaration.variable;
+    var returnType = pop();
+    returnType ??= const DynamicType();
+    pop(); // Modifiers.
+    exitFunction();
+
+    variable.initializer = new KernelFunctionExpression(formals.addToFunction(
+        new FunctionNode(body,
+            typeParameters: typeParameters, asyncMarker: asyncModifier)
+          ..fileOffset = formals.charOffset
+          ..fileEndOffset = endToken.charOffset))
+      ..parent = variable
+      ..fileOffset = formals.charOffset;
+    push(new Let(variable, new VariableGet(variable)));
   }
 
   @override
-  void endFunctionDeclaration(Token token) {
+  void endFunctionDeclaration(Token endToken) {
     debugEvent("FunctionDeclaration");
-    FunctionNode function = pop();
+    Statement body = popStatement();
+    AsyncMarker asyncModifier = pop();
+    if (functionNestingLevel != 0) {
+      exitLocalScope();
+    }
+    FormalParameters formals = pop();
+    List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
+    FunctionNode function = formals.addToFunction(new FunctionNode(body,
+        typeParameters: typeParameters, asyncMarker: asyncModifier)
+      ..fileOffset = formals.charOffset
+      ..fileEndOffset = endToken.charOffset);
     exitLocalScope();
     var declaration = pop();
     var returnType = pop();
@@ -2494,8 +2523,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endUnnamedFunction(Token beginToken, Token token) {
-    debugEvent("UnnamedFunction");
+  void endFunctionExpression(Token beginToken, Token token) {
+    debugEvent("FunctionExpression");
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
