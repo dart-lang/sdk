@@ -235,12 +235,6 @@ class Driver implements ServerStarter {
   static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
 
   /**
-   * The name of the option used to enable verbose Flutter completion code generation.
-   */
-  static const String VERBOSE_FLUTTER_COMPLETIONS =
-      'verbose-flutter-completions';
-
-  /**
    * The name of the flag used to enable version 2 of semantic highlight
    * notification.
    */
@@ -314,8 +308,6 @@ class Driver implements ServerStarter {
         results[NEW_ANALYSIS_DRIVER_LOG];
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
-    analysisServerOptions.enableVerboseFlutterCompletions =
-        results[VERBOSE_FLUTTER_COMPLETIONS];
 
     ContextBuilderOptions.flutterRepo = results[FLUTTER_REPO];
 
@@ -511,8 +503,6 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
         help: "set a destination for the new analysis driver's log");
-    parser.addFlag(VERBOSE_FLUTTER_COMPLETIONS,
-        help: "enable verbose code completion for Flutter (experimental)");
     parser.addFlag(ANALYTICS_FLAG,
         help: 'enable or disable sending analytics information to Google');
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
