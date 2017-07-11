@@ -333,7 +333,6 @@ mirrors/reflected_type_function_type_test: RuntimeError # Issue 29922
 mirrors/reflected_type_special_types_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 29922
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
-mirrors/reflectively_instantiate_uninstantiated_class_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
 mirrors/regress_26187_test: RuntimeError # Issue 29922
 mirrors/relation_assignable_test: RuntimeError # Issue 29922
