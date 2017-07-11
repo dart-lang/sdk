@@ -283,7 +283,7 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
     field.set_has_initializer(builder_.PeekTag() == kSomething);
     GenerateFieldAccessors(toplevel_class, field, &field_helper, field_offset);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-    if (FLAG_enable_mirrors) {
+    if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
       library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
     }
     fields_.Add(&field);
@@ -466,7 +466,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
       field.set_has_initializer(builder_.PeekTag() == kSomething);
       GenerateFieldAccessors(klass, field, &field_helper, field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-      if (FLAG_enable_mirrors) {
+      if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
         library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
       }
       fields_.Add(&field);
@@ -509,7 +509,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
 
-    if (FLAG_enable_mirrors) {
+    if (FLAG_enable_mirrors && constructor_helper.annotation_count_ > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
                                   constructor_offset);
     }
@@ -529,7 +529,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     klass.set_is_marked_for_parsing();
   }
 
-  if (FLAG_enable_mirrors) {
+  if (FLAG_enable_mirrors && class_helper.annotation_count_ > 0) {
     library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
                              class_offset);
   }
@@ -565,11 +565,12 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
   dart::String* native_name = NULL;
+  intptr_t annotation_count;
   if (is_external) {
     // Maybe it has a native implementation, which is not external as far as
     // the VM is concerned because it does have an implementation.  Check for
     // an ExternalName annotation and extract the string from it.
-    intptr_t annotation_count = builder_.ReadListLength();  // read list length.
+    annotation_count = builder_.ReadListLength();  // read list length.
     for (int i = 0; i < annotation_count; ++i) {
       if (builder_.PeekTag() != kConstructorInvocation &&
           builder_.PeekTag() != kConstConstructorInvocation) {
@@ -619,6 +620,9 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       break;
     }
     procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
+  } else {
+    procedure_helper.ReadUntilIncluding(ProcedureHelper::kAnnotations);
+    annotation_count = procedure_helper.annotation_count_;
   }
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
@@ -677,7 +681,7 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        H.DartProcedureName(procedure_helper.canonical_name_)))
                 .IsNull());
   }
-  if (FLAG_enable_mirrors) {
+  if (FLAG_enable_mirrors && annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
                                 procedure_offset);
   }
