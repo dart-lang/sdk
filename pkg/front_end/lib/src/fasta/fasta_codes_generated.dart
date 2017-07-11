@@ -19,7 +19,7 @@ const Template<Message Function(Token token)> templateExpectedClassBodyToSkip =
 const Code<Message Function(Token token)> codeExpectedClassBodyToSkip =
     const Code<Message Function(Token token)>(
         "ExpectedClassBodyToSkip", templateExpectedClassBodyToSkip,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedClassBodyToSkip(Token token) {
@@ -35,7 +35,7 @@ const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
     "FunctionTypeDefaultValue",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""Can't have a default value in a function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -80,7 +80,7 @@ const Code<Null> codeAssertExtraneousArgument = messageAssertExtraneousArgument;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAssertExtraneousArgument = const MessageCode(
     "AssertExtraneousArgument",
-    dart2jsCode: "FASTA_FATAL",
+    dart2jsCode: "*fatal*",
     message: r"""`assert` can't have more than two arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -93,7 +93,7 @@ const Template<Message Function(Token token)> templateUnexpectedToken =
 const Code<Message Function(Token token)> codeUnexpectedToken =
     const Code<Message Function(Token token)>(
         "UnexpectedToken", templateUnexpectedToken,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnexpectedToken(Token token) {
@@ -108,7 +108,7 @@ const Code<Null> codeAwaitAsIdentifier = messageAwaitAsIdentifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitAsIdentifier = const MessageCode(
     "AwaitAsIdentifier",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message:
         r"""'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
 
@@ -117,7 +117,7 @@ const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -146,7 +146,7 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""'super' can't be null.""",
     tip: r"""Try replacing '?.' with '.'""");
 
@@ -156,7 +156,7 @@ const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""An optional named parameter can't start with '_'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -165,7 +165,7 @@ const Code<Null> codeYieldNotGenerator = messageYieldNotGenerator;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageYieldNotGenerator = const MessageCode(
     "YieldNotGenerator",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""'yield' can only be used in 'sync*' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -173,7 +173,7 @@ const Code<Null> codeSetterNotSync = messageSetterNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSetterNotSync = const MessageCode("SetterNotSync",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""Setters can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -306,7 +306,7 @@ const Code<Null> codeFinalFieldWithoutInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalFieldWithoutInitializer = const MessageCode(
     "FinalFieldWithoutInitializer",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""A 'final' field must be initialized.""",
     tip: r"""Try adding '= <initializer>'.""");
 
@@ -387,7 +387,7 @@ const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -489,7 +489,7 @@ const Template<Message Function(Token token)> templateExpectedString =
 const Code<Message Function(Token token)> codeExpectedString =
     const Code<Message Function(Token token)>(
         "ExpectedString", templateExpectedString,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedString(Token token) {
@@ -545,7 +545,7 @@ const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -586,7 +586,7 @@ const Template<Message Function(Token token)> templateExpectedDeclaration =
 const Code<Message Function(Token token)> codeExpectedDeclaration =
     const Code<Message Function(Token token)>(
         "ExpectedDeclaration", templateExpectedDeclaration,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedDeclaration(Token token) {
@@ -697,7 +697,7 @@ const Code<Null> codeGetterWithFormals = messageGetterWithFormals;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGetterWithFormals = const MessageCode(
     "GetterWithFormals",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""A getter can't have formal parameters.""",
     tip: r"""Try removing '(...)'.""");
 
@@ -713,7 +713,7 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Token token)> codeNoFormals =
     const Code<Message Function(Token token)>("NoFormals", templateNoFormals,
-        dart2jsCode: "FASTA_IGNORED");
+        dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNoFormals(Token token) {
@@ -749,7 +749,7 @@ const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message:
         r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
     tip:
@@ -765,7 +765,7 @@ const Template<Message Function(Token token)> templateExpectedClassBody =
 const Code<Message Function(Token token)> codeExpectedClassBody =
     const Code<Message Function(Token token)>(
         "ExpectedClassBody", templateExpectedClassBody,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedClassBody(Token token) {
@@ -804,7 +804,7 @@ const Template<Message Function(Token token)> templateExpectedExpression =
 const Code<Message Function(Token token)> codeExpectedExpression =
     const Code<Message Function(Token token)>(
         "ExpectedExpression", templateExpectedExpression,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedExpression(Token token) {
@@ -835,7 +835,7 @@ const Template<Message Function(Token token)> templateExpectedType =
 const Code<Message Function(Token token)> codeExpectedType =
     const Code<Message Function(Token token)>(
         "ExpectedType", templateExpectedType,
-        dart2jsCode: "FASTA_FATAL");
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedType(Token token) {
@@ -901,7 +901,7 @@ const Code<Null> codeConstFieldWithoutInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstFieldWithoutInitializer = const MessageCode(
     "ConstFieldWithoutInitializer",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""A 'const' field must be initialized.""",
     tip: r"""Try adding '= <initializer>'.""");
 
@@ -967,7 +967,7 @@ const Code<Null> codeAwaitForNotAsync = messageAwaitForNotAsync;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitForNotAsync = const MessageCode(
     "AwaitForNotAsync",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message:
         r"""Asynchronous for-loop can only be used in 'async' or 'async*' methods.""");
 
@@ -976,8 +976,7 @@ const Code<Null> codeEncoding = messageEncoding;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEncoding = const MessageCode("Encoding",
-    dart2jsCode: "FASTA_FATAL",
-    message: r"""Unable to decode bytes as UTF-8.""");
+    dart2jsCode: "*fatal*", message: r"""Unable to decode bytes as UTF-8.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAsyncAsIdentifier = messageAsyncAsIdentifier;
@@ -996,7 +995,7 @@ const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageYieldAsIdentifier = const MessageCode(
     "YieldAsIdentifier",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message:
         r"""'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
 
@@ -1006,7 +1005,7 @@ const Code<Null> codeAssertAsExpression = messageAssertAsExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAssertAsExpression = const MessageCode(
     "AssertAsExpression",
-    dart2jsCode: "FASTA_FATAL",
+    dart2jsCode: "*fatal*",
     message: r"""`assert` can't be used as an expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1014,7 +1013,7 @@ const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message:
         r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
     tip: r"""Did you forget to add a 'finally' block?""");
@@ -1037,7 +1036,7 @@ const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMetadataTypeArguments = const MessageCode(
     "MetadataTypeArguments",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""An annotation (metadata) can't use type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1094,7 +1093,7 @@ const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGeneratorReturnsValue = const MessageCode(
     "GeneratorReturnsValue",
-    dart2jsCode: "FASTA_IGNORED",
+    dart2jsCode: "*ignored*",
     message: r"""'sync*' and 'async*' can't return a value.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

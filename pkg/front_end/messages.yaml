@@ -15,6 +15,14 @@
 # In addition, an entry can contain an analyzer error code (analyzerCode) and a
 # dart2js error code (dart2jsCode).
 #
+# For dart2js, there's a few special error codes:
+#
+# - `*ignored*` this error is ignored by dart2js (normally a recoverable parser
+#   error that dart2js reports in later phase for historical reasons).
+#
+# - `*fatal*` this is an error that is considered fatal by dart2js (normally a
+#   recoverable parser error that dart2js can't reliably recover from).
+#
 # ## Parameter Substitution in Template and Tip
 #
 # The fields `template` and `tip` are subject to parameter substitution. When
@@ -53,7 +61,7 @@ NonAsciiWhitespace:
 
 Encoding:
   template: "Unable to decode bytes as UTF-8."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
   bytes: [255]
 
 EmptyNamedParameterList:
@@ -105,17 +113,17 @@ ExpectedButGot:
 
 ExpectedClassBody:
   template: "Expected a class body, but got '#lexeme'."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 ExpectedClassBodyToSkip: ExpectedClassBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 ExpectedExpression:
   template: "Expected an expression, but got '#lexeme'."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 ExpectedFunctionBody:
   template: "Expected a function body, but got '#lexeme'."
@@ -143,11 +151,11 @@ ExpectedOpenParens:
 
 ExpectedString:
   template: "Expected a String, but got '#lexeme'."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
@@ -262,7 +270,7 @@ UnexpectedDollarInString:
 
 UnexpectedToken:
   template: "Unexpected token '#lexeme'."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 UnmatchedToken:
   template: "Can't find '#string' to match '#lexeme'."
@@ -332,7 +340,7 @@ Unspecified:
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 AsyncAsIdentifier:
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
@@ -341,11 +349,11 @@ AsyncAsIdentifier:
 
 AwaitAsIdentifier:
   template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 AwaitNotAsync:
   template: "'await' can only be used in 'async' or 'async*' methods."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 BuiltInIdentifierAsType:
   template: "Can't use '#lexeme' as a type."
@@ -358,15 +366,15 @@ BuiltInIdentifierInDeclaration:
 
 AwaitForNotAsync:
   template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 FactoryNotSync:
   template: "Factories can't use 'async', 'async*', or 'sync*'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 GeneratorReturnsValue:
   template: "'sync*' and 'async*' can't return a value."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 InvalidInlineFunctionType:
   template: "Invalid inline function type."
@@ -376,21 +384,21 @@ InvalidInlineFunctionType:
 
 SetterNotSync:
   template: "Setters can't use 'async', 'async*', or 'sync*'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 YieldAsIdentifier:
   template: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 YieldNotGenerator:
   template: "'yield' can only be used in 'sync*' or 'async*' methods."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 OnlyTry:
   template: "Try block should be followed by 'on', 'catch', or 'finally' block."
   tip: "Did you forget to add a 'finally' block?"
   statement: "try {}"
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 TypeAfterVar:
   template: "Can't have both a type and 'var'."
@@ -403,53 +411,53 @@ TypeRequired:
 
 AssertExtraneousArgument:
   template: "`assert` can't have more than two arguments."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 AssertAsExpression:
   template: "`assert` can't be used as an expression."
-  dart2jsCode: FASTA_FATAL
+  dart2jsCode: "*fatal*"
 
 FunctionTypeDefaultValue:
   template: "Can't have a default value in a function type."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 PrivateNamedParameter:
   template: "An optional named parameter can't start with '_'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 NoFormals:
   template: "A function should have formal parameters."
   tip: "Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 GetterWithFormals:
   template: "A getter can't have formal parameters."
   tip: "Try removing '(...)'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 CatchSyntax:
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 SuperNullAware:
   template: "'super' can't be null."
   tip: "Try replacing '?.' with '.'"
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 ConstFieldWithoutInitializer:
   template: "A 'const' field must be initialized."
   tip: "Try adding '= <initializer>'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 FinalFieldWithoutInitializer:
   template: "A 'final' field must be initialized."
   tip: "Try adding '= <initializer>'."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 MetadataTypeArguments:
   template: "An annotation (metadata) can't use type arguments."
-  dart2jsCode: FASTA_IGNORED
+  dart2jsCode: "*ignored*"
 
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."

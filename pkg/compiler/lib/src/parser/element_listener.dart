@@ -582,10 +582,6 @@ class ElementListener extends Listener {
         }
         return newSyntheticToken(token);
 
-      case "FASTA_FATAL":
-        reportFatalError(reporter.spanFromToken(token), message.message);
-        return null;
-
       case "NATIVE_OR_BODY_EXPECTED":
         if (optional("native", token)) {
           return newSyntheticToken(native.handleNativeBlockToSkip(this, token));
@@ -705,8 +701,17 @@ class ElementListener extends Listener {
         errorCode = MessageKind.UNTERMINATED_TOKEN;
         break;
 
-      case "FASTA_IGNORED":
-        return null; // Ignored. This error is already implemented elsewhere.
+      case "*fatal*":
+        // This is an error that Fasta can recover from, but dart2js can't.
+        reportFatalError(reporter.spanFromToken(token), message.message);
+        return null;
+
+      case "*ignored*":
+        // This is an error that Fasta reports as a recoverable error during
+        // parsing. For historical reasons, dart2js implements this in a later
+        // phase already, so we just ignore it. Another possibilty is that we
+        // wan't to avoid introducing a breaking change to dart2js.
+        return null;
 
       default:
         throw "Unexpected message code: ${message.code}";
