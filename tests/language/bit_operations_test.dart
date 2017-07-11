@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing bitwise operations.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation --enable-inlining-annotations
 
 import "package:expect/expect.dart";
+
+const neverInline = "NeverInline";
 
 void main() {
   for (int i = 0; i < 4; i++) {
@@ -70,6 +72,9 @@ void test() {
   testPrecedence(4, 5, 3, 1);
   testPrecedence(3, 4, 5, 9);
   testPrecedence(0x5c71, 0x6b92, 0x7654, 0x7d28);
+
+  // Test more special cases.
+  testRightShift65();
 }
 
 void testCornerCasesRightShifts() {
@@ -197,4 +202,17 @@ void testPrecedence(int a, int b, int c, int d) {
   // Binds weaker than shift operators.
   Expect.equals((a & (b << c)) ^ d, a & b << c ^ d);
   Expect.notEquals((a & b) << (c ^ d), a & b << c ^ d);
+}
+
+@neverInline
+rightShift65Noinline(a) => a >> 65;
+
+testRightShift65() {
+  var a = 0x5f22334455667788;
+  var b = -0x5f22334455667788;
+
+  for (var i = 0; i < 20; ++i) {
+    Expect.equals(0, rightShift65Noinline(a));
+    Expect.equals(-1, rightShift65Noinline(b));
+  }
 }

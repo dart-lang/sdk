@@ -6072,14 +6072,14 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).constant().IsSmi());
     const int64_t shift =
         reinterpret_cast<int64_t>(locs()->in(1).constant().raw()) >> 1;
-    // TODO(alexmarkov): revise and uncomment the following assertions
-    // ASSERT(!has_shift_count_check());
-    // ASSERT((0 <= shift) && (shift < 64));
+    ASSERT(shift >= 0);
     switch (op_kind()) {
       case Token::kSHR:
-        __ sarq(left, Immediate(shift));
+        __ sarq(left,
+                Immediate(Utils::Minimum<int64_t>(shift, kBitsPerWord - 1)));
         break;
       case Token::kSHL: {
+        ASSERT(shift < 64);
         if (can_overflow()) {
           // Check for overflow.
           Register temp = locs()->temp(0).reg();
@@ -6098,11 +6098,10 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     // Code for a variable shift amount.
-    // Deoptimize if shift count is > 63.
-    // sarl operation masks the count to 5 bits and
-    // shrd is undefined with count > operand size (32)
+    // Deoptimize if shift count is > 63 or negative.
+    // Sarq and shlq instructions mask the count to 6 bits.
     __ SmiUntag(RCX);
-    if (has_shift_count_check()) {
+    if (!IsShiftCountInRange()) {
       __ cmpq(RCX, Immediate(kMintShiftCountLimit));
       __ j(ABOVE, deopt);
     }

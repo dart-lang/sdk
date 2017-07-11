@@ -1440,8 +1440,8 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
 }
 
 
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
+bool ShiftMintOpInstr::IsShiftCountInRange() const {
+  return RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
 }
 
 

@@ -7244,7 +7244,7 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
   Range* shift_range() const { return shift_range_; }
 
   virtual bool ComputeCanDeoptimize() const {
-    return has_shift_count_check() ||
+    return (!IsShiftCountInRange()) ||
            (can_overflow() && (op_kind() == Token::kSHL));
   }
 
@@ -7262,7 +7262,10 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
 
  private:
   static const intptr_t kMintShiftCountLimit = 63;
-  bool has_shift_count_check() const;
+
+  // Returns true if the shift amount is guranteed to be in
+  // [0..kMintShiftCountLimit] range.
+  bool IsShiftCountInRange() const;
 
   Range* shift_range_;
 
