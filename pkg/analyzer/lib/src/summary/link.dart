@@ -224,21 +224,13 @@ EntityRefBuilder _createLinkedType(
     if (element is FunctionElement && element.enclosingElement == null) {
       // Element is a synthetic function element that was generated on the fly
       // to represent a type that has no associated source code location.
-      result.syntheticReturnType = _createLinkedType(
-          element.returnType, compilationUnit, typeParameterContext);
-      result.entityKind =
-          element.returnType?.element is GenericFunctionTypeElement
-              ? EntityRefKind.genericFunctionType
-              : EntityRefKind.syntheticFunction;
-      result.syntheticParams = element.parameters
-          .map((ParameterElement param) => _serializeSyntheticParam(
-              param, compilationUnit, typeParameterContext))
-          .toList();
+      _storeFunctionElementByValue(result, element, compilationUnit);
       return result;
     }
     if (element is FunctionElement) {
       // Element is a local function inside another executable.
       result.reference = compilationUnit.addReference(element);
+      _storeFunctionElementByValue(result, element, compilationUnit);
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
@@ -304,6 +296,55 @@ UnlinkedParamBuilder _serializeSyntheticParam(
     }
   }
   return b;
+}
+
+/**
+ * Create an [UnlinkedTypeParamBuilder] representing the given [typeParameter],
+ * which should be a type parameter of a synthetic function type (e.g. one
+ * produced during type inference as a result of computing the least upper
+ * bound of two function types).
+ */
+UnlinkedTypeParamBuilder _serializeSyntheticTypeParameter(
+    TypeParameterElement typeParameter,
+    CompilationUnitElementInBuildUnit compilationUnit,
+    TypeParameterizedElementMixin typeParameterContext) {
+  TypeParameterElementImpl impl = typeParameter as TypeParameterElementImpl;
+  EntityRefBuilder boundBuilder = typeParameter.bound != null
+      ? _createLinkedType(
+          typeParameter.bound, compilationUnit, typeParameterContext)
+      : null;
+  CodeRangeBuilder codeRangeBuilder =
+      new CodeRangeBuilder(offset: impl.codeOffset, length: impl.codeLength);
+  return new UnlinkedTypeParamBuilder(
+      name: typeParameter.name,
+      nameOffset: typeParameter.nameOffset,
+      bound: boundBuilder,
+      codeRange: codeRangeBuilder);
+}
+
+/**
+ * Store the given function [element] into the [entity] by value.
+ */
+void _storeFunctionElementByValue(
+    EntityRefBuilder entity,
+    FunctionElement element,
+    CompilationUnitElementInBuildUnit compilationUnit) {
+  // Element is a local function, or a synthetic function element that was
+  // generated on the fly to represent a type that has no associated source
+  // code location. Store it as value.
+  if (element is FunctionElementImpl) {
+    entity.syntheticReturnType =
+        _createLinkedType(element.returnType, compilationUnit, element);
+    entity.entityKind = EntityRefKind.syntheticFunction;
+    entity.syntheticParams = element.parameters
+        .map((ParameterElement param) =>
+            _serializeSyntheticParam(param, compilationUnit, element))
+        .toList();
+    entity.typeParameters = element.typeParameters
+        .map((TypeParameterElement e) =>
+            _serializeSyntheticTypeParameter(e, compilationUnit, element))
+        .toList();
+  }
 }
 
 /**
@@ -1103,7 +1144,11 @@ abstract class CompilationUnitElementForLink
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
       return new GenericFunctionTypeElementForLink(this, context, entity).type;
-    } else if (entity.syntheticReturnType != null) {
+    } else if (entity.syntheticReturnType != null && entity.reference == 0) {
+      // TODO(scheglov): Remove "&& entity.reference == 0" condition after
+      // rolling SDK with this change internally, so that we always store
+      // synthetic and local function types by value.
+
       // TODO(paulberry): implement.
       throw new UnimplementedError();
     } else if (entity.implicitFunctionTypeIndices.isNotEmpty) {
@@ -2894,6 +2939,9 @@ class FunctionElementForLink_FunctionTypedParam extends Object
     }
     return _implicitFunctionTypeIndices;
   }
+
+  @override
+  bool get isSynthetic => true;
 
   @override
   DartType get returnType {

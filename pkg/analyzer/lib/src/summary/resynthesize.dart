@@ -1655,7 +1655,7 @@ class _UnitResynthesizer {
       GenericFunctionTypeElement element =
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
       return element.type;
-    } else if (type.syntheticReturnType != null) {
+    } else if (type.syntheticReturnType != null && type.reference == 0) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(context, type);
       return element.type;
