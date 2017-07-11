@@ -734,7 +734,6 @@ bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
 branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
-call_through_null_getter_test: RuntimeError # Issue 29920
 call_with_no_such_method_test: RuntimeError # Function.apply not really implemented.
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
@@ -850,7 +849,6 @@ main_test/03: MissingRuntimeError # Issue 29920
 many_generic_instanceof_test: RuntimeError # Issue 29920
 map_literal10_test: RuntimeError # Issue 29920
 map_literal7_test: RuntimeError # Issue 29920
-method_invocation_test: RuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
@@ -868,7 +866,6 @@ reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
-string_interpolate_null_test: RuntimeError # Issue 29920
 switch_label2_test: RuntimeError # Issue 29920
 switch_label_test: RuntimeError # Issue 29920
 switch_try_catch_test: RuntimeError # Issue 29920
