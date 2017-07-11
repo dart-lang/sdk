@@ -173,7 +173,7 @@ class _CascadableExpression {
           DartTypeUtilities.getCanonicalElement(leftExpression.bestElement),
           [node.rightHandSide],
           canJoin: false,
-          canReceive: true,
+          canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
           canBeCascaded: false,
           isCritical: true);
     }
