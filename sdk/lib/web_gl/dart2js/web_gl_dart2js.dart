@@ -3068,9 +3068,10 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DocsEditable()
   void polygonOffset(num factor, num units) native;
 
+  @JSName('readPixels')
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
-  void readPixels(int x, int y, int width, int height, int format, int type,
+  void _readPixels(int x, int y, int width, int height, int format, int type,
       TypedData pixels) native;
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
@@ -3501,6 +3502,13 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DocsEditable()
   void viewport(int x, int y, int width, int height) native;
 
+  @DomName('WebGLRenderingContext.readPixels')
+  @DocsEditable()
+  void readPixels(int x, int y, int width, int height, int format, int type,
+      TypedData pixels) {
+    _readPixels(x, y, width, height, format, type, pixels);
+  }
+
   /**
    * Sets the currently bound texture to [data].
    *
@@ -3577,7 +3585,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
     bufferSubData(target, offset, data);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6227,10 +6235,11 @@ class RenderingContext2 extends Interceptor
   @Experimental() // untriaged
   void polygonOffset(num factor, num units) native;
 
+  @JSName('readPixels')
   @DomName('WebGL2RenderingContext.readPixels')
   @DocsEditable()
   @Experimental() // untriaged
-  void readPixels(int x, int y, int width, int height, int format, int type,
+  void _readPixels(int x, int y, int width, int height, int format, int type,
       TypedData pixels) native;
 
   @DomName('WebGL2RenderingContext.renderbufferStorage')
@@ -6717,7 +6726,15 @@ class RenderingContext2 extends Interceptor
   @DocsEditable()
   @Experimental() // untriaged
   void viewport(int x, int y, int width, int height) native;
+
+  @DomName('WebGLRenderingContext2.readPixels')
+  @DocsEditable()
+  void readPixels(int x, int y, int width, int height, int format, int type,
+      TypedData pixels) {
+    _readPixels(x, y, width, height, format, type, pixels);
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

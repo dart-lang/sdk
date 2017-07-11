@@ -406,6 +406,8 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'KeyboardEvent.keyCode',
   'KeyboardEvent.which',
 
+  'WebGLRenderingContext.readPixels',
+  'WebGL2RenderingContext.readPixels',  
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
