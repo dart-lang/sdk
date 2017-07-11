@@ -273,6 +273,7 @@ cc/Debug_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInFunctionLiteralFieldInitializers: Crash
+cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/ErrorHandleBasics: Fail
 cc/EvalExpression: Crash
 cc/ExternalUint8ClampedArrayAccess: Fail
