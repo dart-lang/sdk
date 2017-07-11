@@ -1639,7 +1639,7 @@ void Isolate::LowLevelShutdown() {
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
 
-  // Fail fast if anybody tries to post any more messsages to this isolate.
+  // Fail fast if anybody tries to post any more messages to this isolate.
   delete message_handler();
   set_message_handler(NULL);
   if (FLAG_support_timeline) {
