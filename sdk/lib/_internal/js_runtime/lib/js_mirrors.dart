@@ -147,7 +147,7 @@ class JsMirrorSystem implements MirrorSystem {
       String uriString = data[1];
       Uri uri;
       // The Uri has been compiled out. Create a URI from the simple name.
-      if (uriString != "") {
+      if (uriString != '') {
         uri = Uri.parse(uriString);
       } else {
         uri = new Uri(
@@ -303,7 +303,7 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   bool get hasReflectedType => false;
   Type get reflectedType {
-    throw new UnsupportedError("This type does not support reflectedType");
+    throw new UnsupportedError('This type does not support reflectedType');
   }
 
   List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
@@ -408,9 +408,9 @@ class JsLibraryMirror extends JsDeclarationMirror
     JsMethodMirror methodMirror = mirror;
     if (methodMirror.isGetter) return reflect(mirror._getField(this));
     assert(methodMirror.isRegularMethod);
-    var getter = JS("", "#['\$getter']", methodMirror._jsFunction);
+    var getter = JS('', "#['\$getter']", methodMirror._jsFunction);
     if (getter == null) throw new UnimplementedError();
-    return reflect(JS("", "#()", getter));
+    return reflect(JS('', '#()', getter));
   }
 
   InstanceMirror invoke(Symbol memberName, List positionalArguments,
@@ -576,7 +576,7 @@ Symbol s(String name) {
   return new _symbol_dev.Symbol.unvalidated(name);
 }
 
-Symbol setterSymbol(Symbol symbol) => s("${n(symbol)}=");
+Symbol setterSymbol(Symbol symbol) => s('${n(symbol)}=');
 
 final JsMirrorSystem currentJsMirrorSystem = new JsMirrorSystem();
 
@@ -628,7 +628,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   var mirror = JsCache.fetch(classMirrors, mangledName);
   if (mirror != null) return mirror;
   disableTreeShaking();
-  int typeArgIndex = mangledName.indexOf("<");
+  int typeArgIndex = mangledName.indexOf('<');
   if (typeArgIndex != -1) {
     TypeMirror originalDeclaration =
         reflectClassByMangledName(mangledName.substring(0, typeArgIndex))
@@ -1043,9 +1043,9 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
       case JSInvocationMirror.METHOD:
         if (namedArguments.isNotEmpty) return '$name*';
         int nbArgs = positionalArguments.length as int;
-        return "$name:$nbArgs";
+        return '$name:$nbArgs';
     }
-    throw new RuntimeError("Could not compute reflective name for $name");
+    throw new RuntimeError('Could not compute reflective name for $name');
   }
 
   /**
@@ -1109,7 +1109,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
       if (type == JSInvocationMirror.SETTER) {
         // For setters we report the setter name "field=".
-        name = s("${n(name)}=");
+        name = s('${n(name)}=');
       }
 
       if (!cacheEntry.isNoSuchMethod) {
@@ -1138,7 +1138,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   static bool isMissingCache(x) => JS('bool', 'typeof # == "number"', x);
   static bool isMissingProbe(Symbol symbol) =>
       JS('bool', 'typeof #.\$p == "undefined"', symbol);
-  static bool isEvalAllowed() => !JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
+  static bool isEvalAllowed() => !JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
 
   /// The getter cache is lazily allocated after a couple
   /// of invocations of [InstanceMirror.getField]. The delay is
@@ -1232,7 +1232,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   _newProbeFn(String id, bool useEval) {
     if (useEval) {
-      String body = "return c.$id;";
+      String body = 'return c.$id;';
       return JS('', 'new Function("c", #)', body);
     } else {
       return JS('', '(function(n){return(function(c){return c[n]})})(#)', id);
@@ -1248,7 +1248,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // generated call to the getter - e.g. o.get$foo() - much more likely
     // to be monomorphic and inlineable.
     String className = JS('String', '#.constructor.name', reflectee);
-    String body = "/* $className */ return o.$name();";
+    String body = '/* $className */ return o.$name();';
     return JS('', 'new Function("o", #)', body);
   }
 
@@ -1928,9 +1928,9 @@ class JsClassMirror extends JsTypeMirror
       // We invoke the same getter that Dart code would execute. During
       // initialization we have stored that getter on the function (so that
       // we can find it more easily here).
-      var getter = JS("", "#['\$getter']", method._jsFunction);
+      var getter = JS('', "#['\$getter']", method._jsFunction);
       if (getter == null) throw new UnimplementedError();
-      return reflect(JS("", "#()", getter));
+      return reflect(JS('', '#()', getter));
     }
     throw new NoSuchStaticMethodError.method(null, fieldName, null, null);
   }
@@ -2090,7 +2090,7 @@ class JsClassMirror extends JsTypeMirror
   Type get reflectedType {
     if (!hasReflectedType) {
       throw new UnsupportedError(
-          "Declarations of generics have no reflected type");
+          'Declarations of generics have no reflected type');
     }
     return createRuntimeType(_mangledName);
   }
@@ -2237,7 +2237,7 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     if (cachedFunction != null) return cachedFunction;
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
-    String callPrefix = "${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$";
+    String callPrefix = '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$';
 
     String callName = JS(
         'String|Null',
@@ -3067,13 +3067,13 @@ Symbol getSymbol(String name, LibraryMirror library) {
     return new _symbol_dev.Symbol.validated(name);
   }
   if (library == null) {
-    throw new ArgumentError("Library required for private symbol name: $name");
+    throw new ArgumentError('Library required for private symbol name: $name');
   }
   if (!_symbol_dev.Symbol.isValidSymbol(name)) {
-    throw new ArgumentError("Not a valid symbol name: $name");
+    throw new ArgumentError('Not a valid symbol name: $name');
   }
   throw new UnimplementedError(
-      "MirrorSystem.getSymbol not implemented for private names");
+      'MirrorSystem.getSymbol not implemented for private names');
 }
 
 bool _isPublicSymbol(String name) {
