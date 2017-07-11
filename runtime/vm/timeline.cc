@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
 #ifndef PRODUCT
 
 #include <errno.h>
 #include <fcntl.h>
 #include <cstdlib>
+
+#if defined(HOST_OS_FUCHSIA)
+#include "apps/tracing/lib/trace/event.h"
+#endif
 
 #include "vm/atomic.h"
 #include "vm/isolate.h"
@@ -22,7 +27,11 @@ namespace dart {
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
-DEFINE_FLAG(bool, systrace_timeline, false, "Record the timeline to systrace");
+DEFINE_FLAG(
+    bool,
+    systrace_timeline,
+    false,
+    "Record the timeline to the platform's tracing service if there is one");
 DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
 DEFINE_FLAG(bool,
             trace_timeline_analysis,
@@ -107,7 +116,11 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
       if (FLAG_trace_timeline) {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
+#if defined(HOST_OS_FUCHSIA)
+      return new TimelineEventFuchsiaRecorder();
+#else
       return new TimelineEventSystraceRecorder();
+#endif
     }
   }
 
@@ -516,6 +529,94 @@ void TimelineEvent::StealArguments(intptr_t arguments_length,
 }
 
 
+#if defined(HOST_OS_FUCHSIA)
+
+// TODO(zra): The functions below emit Dart's timeline events all as category
+// "dart". Instead, we could have finer-grained categories that make use of
+// the name of the timeline stream, e.g. "VM", "GC", etc.
+
+#define FUCHSIA_EVENT_ARGS_LIST(V)                                             \
+  V(Begin, TRACE_DURATION_BEGIN)                                               \
+  V(End, TRACE_DURATION_END)
+
+#define EMIT_FUCHSIA_EVENT(__name, __macro)                                    \
+  static void EmitFuchsia##__name##Event(const char* label,                    \
+                                         TimelineEventArgument* arguments,     \
+                                         intptr_t arguments_length) {          \
+    if (arguments_length == 0) {                                               \
+      __macro("dart", label);                                                  \
+    } else if (arguments_length == 1) {                                        \
+      __macro("dart", label, arguments[0].name,                                \
+              const_cast<const char*>(arguments[0].value));                    \
+    } else {                                                                   \
+      __macro("dart", label, arguments[0].name,                                \
+              const_cast<const char*>(arguments[0].value), arguments[1].name,  \
+              const_cast<const char*>(arguments[1].value));                    \
+    }                                                                          \
+  }
+
+FUCHSIA_EVENT_ARGS_LIST(EMIT_FUCHSIA_EVENT)
+#undef EMIT_FUCHSIA_EVENT
+
+#define FUCHSIA_EVENT_ID_ARGS_LIST(V)                                          \
+  V(Instant, TRACE_INSTANT, ::tracing::EventScope)                             \
+  V(AsyncBegin, TRACE_ASYNC_BEGIN, int64_t)                                    \
+  V(AsyncEnd, TRACE_ASYNC_END, int64_t)                                        \
+  V(AsyncInstant, TRACE_ASYNC_INSTANT, int64_t)
+
+#define EMIT_FUCHSIA_EVENT(__name, __macro, __id_typ)                          \
+  static void EmitFuchsia##__name##Event(const char* label, __id_typ id,       \
+                                         TimelineEventArgument* arguments,     \
+                                         intptr_t arguments_length) {          \
+    if (arguments_length == 0) {                                               \
+      __macro("dart", label, id);                                              \
+    } else if (arguments_length == 1) {                                        \
+      __macro("dart", label, id, arguments[0].name,                            \
+              const_cast<const char*>(arguments[0].value));                    \
+    } else {                                                                   \
+      __macro("dart", label, id, arguments[0].name,                            \
+              const_cast<const char*>(arguments[0].value), arguments[1].name,  \
+              const_cast<const char*>(arguments[1].value));                    \
+    }                                                                          \
+  }
+
+FUCHSIA_EVENT_ID_ARGS_LIST(EMIT_FUCHSIA_EVENT)
+#undef EMIT_FUCHSIA_EVENT
+
+
+void TimelineEvent::EmitFuchsiaEvent() {
+  switch (event_type()) {
+    case kBegin:
+      EmitFuchsiaBeginEvent(label_, arguments_, arguments_length_);
+      break;
+    case kEnd:
+      EmitFuchsiaEndEvent(label_, arguments_, arguments_length_);
+      break;
+    case kInstant:
+      EmitFuchsiaInstantEvent(label_, TRACE_SCOPE_THREAD, arguments_,
+                              arguments_length_);
+      break;
+    case kAsyncBegin:
+      EmitFuchsiaAsyncBeginEvent(label_, AsyncId(), arguments_,
+                                 arguments_length_);
+      break;
+    case kAsyncEnd:
+      EmitFuchsiaAsyncEndEvent(label_, AsyncId(), arguments_,
+                               arguments_length_);
+      break;
+    case kAsyncInstant:
+      EmitFuchsiaAsyncInstantEvent(label_, AsyncId(), arguments_,
+                                   arguments_length_);
+      break;
+    default:
+      // TODO(zra): Figure out what to do with kDuration, kCounter, and
+      // kMetadata.
+      break;
+  }
+}
+#endif
+
+
 intptr_t TimelineEvent::PrintSystrace(char* buffer, intptr_t buffer_size) {
   ASSERT(buffer != NULL);
   ASSERT(buffer_size > 0);
@@ -913,8 +1014,12 @@ TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
   if (!FLAG_support_timeline || !enabled()) {
     return;
   }
+#if defined(HOST_OS_FUCHSIA)
+  TRACE_DURATION_BEGIN("dart", label);
+#else
   timestamp_ = OS::GetCurrentMonotonicMicros();
   thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
+#endif
 }
 
 
@@ -925,8 +1030,12 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
   if (!FLAG_support_timeline || !enabled()) {
     return;
   }
+#if defined(HOST_OS_FUCHSIA)
+  TRACE_DURATION_BEGIN("dart", label);
+#else
   timestamp_ = OS::GetCurrentMonotonicMicros();
   thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
+#endif
 }
 
 
@@ -937,6 +1046,9 @@ TimelineDurationScope::~TimelineDurationScope() {
   if (!ShouldEmitEvent()) {
     return;
   }
+#if defined(HOST_OS_FUCHSIA)
+  EmitFuchsiaEndEvent(label(), arguments(), arguments_length());
+#else
   TimelineEvent* event = stream()->StartEvent();
   if (event == NULL) {
     // Stream is now disabled.
@@ -948,6 +1060,7 @@ TimelineDurationScope::~TimelineDurationScope() {
                   thread_timestamp_, OS::GetCurrentThreadCPUMicros());
   StealArguments(event);
   event->Complete();
+#endif
 }
 
 
@@ -1434,6 +1547,34 @@ void TimelineEventSystraceRecorder::CompleteEvent(TimelineEvent* event) {
 #endif
   ThreadBlockCompleteEvent(event);
 }
+
+
+#if defined(HOST_OS_FUCHSIA)
+TimelineEventFuchsiaRecorder::TimelineEventFuchsiaRecorder(intptr_t capacity)
+    : TimelineEventFixedBufferRecorder(capacity) {}
+
+
+TimelineEventBlock* TimelineEventFuchsiaRecorder::GetNewBlockLocked() {
+  // TODO(johnmccutchan): This function should only hand out blocks
+  // which have been marked as finished.
+  if (block_cursor_ == num_blocks_) {
+    block_cursor_ = 0;
+  }
+  TimelineEventBlock* block = blocks_[block_cursor_++];
+  block->Reset();
+  block->Open();
+  return block;
+}
+
+
+void TimelineEventFuchsiaRecorder::CompleteEvent(TimelineEvent* event) {
+  if (event == NULL) {
+    return;
+  }
+  event->EmitFuchsiaEvent();
+  ThreadBlockCompleteEvent(event);
+}
+#endif  // defined(HOST_OS_FUCHSIA)
 
 
 TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
