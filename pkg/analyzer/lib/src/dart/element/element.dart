@@ -6306,13 +6306,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   SourceRange get visibleRange {
-    if (_unlinkedVariable != null) {
-      if (_unlinkedVariable.visibleLength == 0) {
-        return null;
-      }
-      return new SourceRange(
-          _unlinkedVariable.visibleOffset, _unlinkedVariable.visibleLength);
-    }
     if (_visibleRangeLength < 0) {
       return null;
     }
@@ -6339,7 +6332,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
-    _assertNotResynthesized(_unlinkedVariable);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }

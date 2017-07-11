@@ -3348,6 +3348,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
+  @deprecated
   @informative
   @Id(11)
   int get visibleLength;
@@ -3355,6 +3356,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
+  @deprecated
   @informative
   @Id(12)
   int get visibleOffset;

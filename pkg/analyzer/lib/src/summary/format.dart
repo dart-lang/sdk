@@ -12150,8 +12150,6 @@ class UnlinkedVariableBuilder extends Object
   int _nameOffset;
   int _propagatedTypeSlot;
   EntityRefBuilder _type;
-  int _visibleLength;
-  int _visibleOffset;
 
   @override
   List<UnlinkedExprBuilder> get annotations =>
@@ -12320,26 +12318,12 @@ class UnlinkedVariableBuilder extends Object
   }
 
   @override
-  int get visibleLength => _visibleLength ??= 0;
-
-  /**
-   * If a local variable, the length of the visible range; zero otherwise.
-   */
-  void set visibleLength(int value) {
-    assert(value == null || value >= 0);
-    this._visibleLength = value;
-  }
+  int get visibleLength =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get visibleOffset => _visibleOffset ??= 0;
-
-  /**
-   * If a local variable, the beginning of the visible range; zero otherwise.
-   */
-  void set visibleOffset(int value) {
-    assert(value == null || value >= 0);
-    this._visibleOffset = value;
-  }
+  int get visibleOffset =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   UnlinkedVariableBuilder(
       {List<UnlinkedExprBuilder> annotations,
@@ -12355,9 +12339,7 @@ class UnlinkedVariableBuilder extends Object
       String name,
       int nameOffset,
       int propagatedTypeSlot,
-      EntityRefBuilder type,
-      int visibleLength,
-      int visibleOffset})
+      EntityRefBuilder type})
       : _annotations = annotations,
         _codeRange = codeRange,
         _documentationComment = documentationComment,
@@ -12371,9 +12353,7 @@ class UnlinkedVariableBuilder extends Object
         _name = name,
         _nameOffset = nameOffset,
         _propagatedTypeSlot = propagatedTypeSlot,
-        _type = type,
-        _visibleLength = visibleLength,
-        _visibleOffset = visibleOffset;
+        _type = type;
 
   /**
    * Flush [informative] data recursively.
@@ -12385,8 +12365,6 @@ class UnlinkedVariableBuilder extends Object
     _initializer?.flushInformative();
     _nameOffset = null;
     _type?.flushInformative();
-    _visibleLength = null;
-    _visibleOffset = null;
   }
 
   /**
@@ -12484,12 +12462,6 @@ class UnlinkedVariableBuilder extends Object
     if (offset_type != null) {
       fbBuilder.addOffset(3, offset_type);
     }
-    if (_visibleLength != null && _visibleLength != 0) {
-      fbBuilder.addUint32(11, _visibleLength);
-    }
-    if (_visibleOffset != null && _visibleOffset != 0) {
-      fbBuilder.addUint32(12, _visibleOffset);
-    }
     return fbBuilder.endTable();
   }
 }
@@ -12524,8 +12496,6 @@ class _UnlinkedVariableImpl extends Object
   int _nameOffset;
   int _propagatedTypeSlot;
   idl.EntityRef _type;
-  int _visibleLength;
-  int _visibleOffset;
 
   @override
   List<idl.UnlinkedExpr> get annotations {
@@ -12619,16 +12589,12 @@ class _UnlinkedVariableImpl extends Object
   }
 
   @override
-  int get visibleLength {
-    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
-    return _visibleLength;
-  }
+  int get visibleLength =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get visibleOffset {
-    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
-    return _visibleOffset;
-  }
+  int get visibleOffset =>
+      throw new UnimplementedError('attempt to access deprecated field');
 }
 
 abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
@@ -12654,8 +12620,6 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     if (propagatedTypeSlot != 0)
       _result["propagatedTypeSlot"] = propagatedTypeSlot;
     if (type != null) _result["type"] = type.toJson();
-    if (visibleLength != 0) _result["visibleLength"] = visibleLength;
-    if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
     return _result;
   }
 
@@ -12675,8 +12639,6 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
         "nameOffset": nameOffset,
         "propagatedTypeSlot": propagatedTypeSlot,
         "type": type,
-        "visibleLength": visibleLength,
-        "visibleOffset": visibleOffset,
       };
 
   @override
