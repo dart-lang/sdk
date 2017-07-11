@@ -6737,7 +6737,7 @@ It is a compile-time error if a yield-each statement appears in a function that 
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if $T$ may not be assigned to the declared return type of $f$.  If $f$ is synchronous it is a static  type warning if $T$ may not be assigned to \code{Iterable}.  If $f$ is asynchronous it is a static  type warning if $T$ may not be assigned to \code{Stream}.
 
 
-\subsection{ Assert}
+\subsection{Assert}
 \LMLabel{assert}
 
 \LMHash{}
@@ -6774,18 +6774,15 @@ execution of an assertion \code{\ASSERT{}($c$, $e$)} proceeds as follows:
 
 \LMHash{}
 The expression $c$ is evaluated to an object $o$.
-If the class of $o$ is not a subtype of \code{Function} then
-let $r$ be $o$.
-Otherwise,
-if the assertion occurs in the initializer list of a \CONST{} constructor,
-then we say that the assertion failed,
-otherwise let $r$ be the result of invoking $o$ with no arguments.
-It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.
-If $r$ is \FALSE{}, we say that the assertion failed.
-If $r$ is \TRUE{}, we say that the assertion succeeded.
-If the assertion succeeded, execution of the assert statement completes normally (\ref{completion}).
-If the assertion failed, $e$ is evaluated to an object $m$.
-Then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
+If the class of $o$ is a subtype of \code{Function}
+and the assertion does not occur in the initializer list of a \CONST{} constructor,
+then let $r$ be the result of invoking $o$ with no arguments.
+Otherwise let $r$ be $o$.
+It is a dynamic type error if $r$ is not of type \code{bool}.
+\commentary{Hence it is a compile-time error if that situation arises during evaluation of an assertion in a \CONST{} constructor invocation.}
+If $r$ is \TRUE{}, execution of the assert statement completes normally (\ref{completion}).
+Otherwise, $e$ is evaluated to an object $m$
+and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the \ASSERT{} statement.
 
 \LMHash{}
 It is a static type warning if the type of $e$ may not be assigned to either
