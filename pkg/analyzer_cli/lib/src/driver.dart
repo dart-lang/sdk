@@ -584,6 +584,11 @@ class Driver implements CommandLineStarter {
       return;
     }
 
+    // Set up logging.
+    if (options.log) {
+      AnalysisEngine.instance.logger = new StdLogger();
+    }
+
     // Save stats from previous context before clobbering it.
     if (_context != null) {
       _analyzedFileCount += _context.sources.length;
@@ -626,8 +631,9 @@ class Driver implements CommandLineStarter {
 
     // Create a context.
     _context = AnalysisEngine.instance.createAnalysisContext();
-    setupAnalysisContext(_context, options, analysisOptions);
+    _context.analysisOptions = analysisOptions;
     _context.sourceFactory = sourceFactory;
+    declareVariables(context.declaredVariables, options);
 
     if (options.enableNewAnalysisDriver) {
       PerformanceLog log = new PerformanceLog(null);
@@ -861,31 +867,15 @@ class Driver implements CommandLineStarter {
     return contextOptions;
   }
 
-  static void setAnalysisContextOptions(
-      file_system.ResourceProvider resourceProvider,
-      AnalysisContext context,
-      CommandLineOptions options) {
-    AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
-    setupAnalysisContext(context, options, analysisOptions);
-  }
-
-  static void setupAnalysisContext(AnalysisContext context,
-      CommandLineOptions options, AnalysisOptionsImpl analysisOptions) {
+  /// Copy variables defined in the [options] into [declaredVariables].
+  static void declareVariables(
+      DeclaredVariables declaredVariables, CommandLineOptions options) {
     Map<String, String> definedVariables = options.definedVariables;
     if (definedVariables.isNotEmpty) {
-      DeclaredVariables declaredVariables = context.declaredVariables;
       definedVariables.forEach((String variableName, String value) {
         declaredVariables.define(variableName, value);
       });
     }
-
-    if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
-    }
-
-    // Set context options.
-    context.analysisOptions = analysisOptions;
   }
 
   /// Return whether the [newOptions] are equal to the [previous].
