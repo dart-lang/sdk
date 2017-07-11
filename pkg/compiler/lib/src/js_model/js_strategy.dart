@@ -5,6 +5,7 @@
 library dart2js.js_model.strategy;
 
 import '../closure.dart' show ClosureConversionTask;
+import '../common.dart';
 import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
@@ -207,6 +208,11 @@ class JsBackendStrategy implements KernelBackendStrategy {
         nativeBasicData,
         closedWorld,
         selectorConstraintsStrategy);
+  }
+
+  @override
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+    return _elementMap.getSourceSpan(spannable, currentElement);
   }
 }
 

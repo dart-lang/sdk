@@ -46,7 +46,8 @@ import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
-class ResolutionFrontEndStrategy extends FrontendStrategyBase {
+class ResolutionFrontEndStrategy extends FrontendStrategyBase
+    with ComputeSpannableMixin {
   final Compiler _compiler;
   final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
@@ -222,7 +223,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase {
     _elementEnvironment._mainFunction = mainMethod;
     return mainMethod;
   }
+}
 
+class ComputeSpannableMixin {
   SourceSpan spanFromToken(Element currentElement, Token token) =>
       _spanFromTokens(currentElement, token, token);
 

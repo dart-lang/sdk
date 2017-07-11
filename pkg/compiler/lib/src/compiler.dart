@@ -1140,8 +1140,14 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   /// Using [frontendStrategy] to compute a [SourceSpan] from spannable using
   /// the [currentElement] as context.
   SourceSpan _spanFromStrategy(Spannable spannable) {
-    SourceSpan span =
-        compiler.frontendStrategy.spanFromSpannable(spannable, currentElement);
+    SourceSpan span;
+    if (compiler.phase == Compiler.PHASE_COMPILING) {
+      span =
+          compiler.backendStrategy.spanFromSpannable(spannable, currentElement);
+    } else {
+      span = compiler.frontendStrategy
+          .spanFromSpannable(spannable, currentElement);
+    }
     if (span != null) return span;
     throw 'No error location.';
   }

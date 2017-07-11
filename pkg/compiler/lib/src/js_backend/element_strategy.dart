@@ -22,6 +22,7 @@ import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
+import '../resolution/resolution_strategy.dart';
 import '../ssa/builder.dart';
 import '../ssa/rasta_ssa_builder_task.dart';
 import '../ssa/ssa.dart';
@@ -32,7 +33,8 @@ import '../world.dart';
 
 /// Strategy for using the [Element] model from the resolver as the backend
 /// model.
-class ElementBackendStrategy implements BackendStrategy {
+class ElementBackendStrategy extends ComputeSpannableMixin
+    implements BackendStrategy {
   final Compiler _compiler;
   final ClosureConversionTask closureDataLookup;
   SourceInformationStrategy _sourceInformationStrategy;

@@ -88,7 +88,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
-            base,
+            base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
@@ -103,7 +103,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
-            base,
+            base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
@@ -137,7 +137,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
-            base,
+            base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
@@ -155,7 +155,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
-            base,
+            base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);

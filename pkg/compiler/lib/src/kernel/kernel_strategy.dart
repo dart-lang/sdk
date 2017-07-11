@@ -141,8 +141,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
-    // TODO(redemption): Compute source spans from kernel elements.
-    return new SourceSpan(null, null, null);
+    return _elementMap.getSourceSpan(spannable, currentElement);
   }
 }
 

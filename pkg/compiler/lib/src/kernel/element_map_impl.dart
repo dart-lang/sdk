@@ -125,6 +125,47 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   Iterable<LibraryEntity> get _libraries;
 
+  SourceSpan _getSourceSpanFromTreeNode(ir.TreeNode node) {
+    // TODO(johnniwinther): Use [ir.Location] directly as a [SourceSpan].
+    Uri uri;
+    int offset;
+    while (node != null) {
+      if (node.fileOffset != ir.TreeNode.noOffset) {
+        offset = node.fileOffset;
+        uri = Uri.parse(node.location.file);
+        break;
+      }
+      node = node.parent;
+    }
+    if (uri != null) {
+      return new SourceSpan(uri, offset, offset + 1);
+    }
+    return null;
+  }
+
+  SourceSpan getSourceSpan(Spannable spannable, Entity currentElement) {
+    SourceSpan fromSpannable(Spannable spannable) {
+      if (spannable is IndexedLibrary &&
+          spannable.libraryIndex < _libraryEnvs.length) {
+        LibraryEnv env = _libraryEnvs[spannable.libraryIndex];
+        return _getSourceSpanFromTreeNode(env.library);
+      } else if (spannable is IndexedClass &&
+          spannable.classIndex < _classEnvs.length) {
+        ClassEnv env = _classEnvs[spannable.classIndex];
+        return _getSourceSpanFromTreeNode(env.cls);
+      } else if (spannable is IndexedMember &&
+          spannable.memberIndex < _memberData.length) {
+        MemberData data = _memberData[spannable.memberIndex];
+        return _getSourceSpanFromTreeNode(data.node);
+      }
+      return null;
+    }
+
+    SourceSpan sourceSpan = fromSpannable(spannable);
+    sourceSpan ??= fromSpannable(currentElement);
+    return sourceSpan;
+  }
+
   LibraryEntity lookupLibrary(Uri uri) {
     LibraryEnv libraryEnv = _env.lookupLibrary(uri);
     if (libraryEnv == null) return null;
@@ -542,7 +583,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   Spannable _getSpannable(MemberEntity member, ir.Node node) {
-    return member;
+    SourceSpan sourceSpan;
+    if (node is ir.TreeNode) {
+      sourceSpan = _getSourceSpanFromTreeNode(node);
+    }
+    sourceSpan ??= getSourceSpan(member, null);
+    return sourceSpan;
   }
 
   ir.Member _getMemberNode(covariant IndexedMember member) {
