@@ -16,8 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import 'package:analyzer/dart/element/type.dart' as analyzer;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_internalProblem;
+import 'package:front_end/src/fasta/problems.dart' show unhandled, unsupported;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 
@@ -87,16 +86,16 @@ class ElementStoreImplementation implements ElementStore {
             if (member is Field) {} else if (member is Procedure) {
               buildDillFunctionElement(builder, unit, elements);
             } else {
-              deprecated_internalProblem(
-                  "Unhandled $name ${member.runtimeType} in $uri");
+              unhandled("'$name' (${member.runtimeType})", "element store",
+                  builder.charOffset, uri);
             }
           } else if (builder is KernelProcedureBuilder) {
             buildKernelFunctionElement(builder, unit, elements);
           } else if (builder is BuiltinTypeBuilder) {
             // TODO(ahe): Set up elements for dynamic and void.
           } else {
-            deprecated_internalProblem(
-                "Unhandled $name ${builder.runtimeType} in $uri");
+            unhandled("'$name' (${builder.runtimeType})", "element store",
+                builder.charOffset, uri);
           }
           builder = builder.next;
         } while (builder != null);
@@ -116,7 +115,7 @@ class ElementStoreImplementation implements ElementStore {
   }
 
   Library getLibraryReference(LibraryElement element) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("getLibraryReference", -1, null);
   }
 
   Class getClassReference(covariant KernelClassElement cls) => cls.builder.cls;
@@ -125,28 +124,29 @@ class ElementStoreImplementation implements ElementStore {
     if (element is KernelFunctionElement) {
       return element.procedure;
     } else {
-      return deprecated_internalProblem(
-          "getMemberReference(${element.runtimeType})");
+      return unhandled(
+          "${element.runtimeType}", "getMemberReference", -1, null);
     }
   }
 
-  Class getRootClassReference() => deprecated_internalProblem("not supported.");
+  Class getRootClassReference() =>
+      unsupported("getRootClassReference", -1, null);
 
   Constructor getRootClassConstructorReference() {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("getRootClassConstructorReference", -1, null);
   }
 
   Class getCoreClassReference(String className) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("getCoreClassReference", -1, null);
   }
 
   TypeParameter tryGetClassTypeParameter(TypeParameterElement element) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("tryGetClassTypeParameter", -1, null);
   }
 
   Class getSharedMixinApplicationClass(
       Library library, Class supertype, Class mixin) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("getSharedMixinApplicationClass", -1, null);
   }
 
   bool get strongMode => false;
@@ -264,9 +264,10 @@ class AnalyzerLocalVariableElemment extends MockElement
 
   get type => null;
 
-  get constantValue => deprecated_internalProblem("not supported.");
+  get constantValue => unsupported("constantValue", charOffset, fileUri);
 
-  computeConstantValue() => deprecated_internalProblem("not supported.");
+  computeConstantValue() =>
+      unsupported("computeConstantValue", charOffset, fileUri);
 }
 
 /// Both an [Element] and [Builder] to using memory to store local elements in
@@ -302,17 +303,17 @@ class KernelFunctionTypeAliasElement extends MockFunctionTypeAliasElement {
 
   @override
   analyzer.DartType get returnType {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("returnType", charOffset, fileUri);
   }
 
   @override
   analyzer.FunctionType get type {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("type", charOffset, fileUri);
   }
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("typeParameters", charOffset, fileUri);
   }
 }
 

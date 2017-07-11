@@ -10,164 +10,171 @@ import 'package:analyzer/dart/element/type.dart';
 
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_internalProblem;
+import 'package:front_end/src/fasta/problems.dart' show unsupported;
 
 abstract class MockType extends DartType {
-  String get displayName => deprecated_internalProblem("not supported.");
+  String get displayName => unsupported("displayName", -1, null);
 
-  Element get element => deprecated_internalProblem("not supported.");
+  Element get element => unsupported("element", -1, null);
 
-  bool get isBottom => deprecated_internalProblem("not supported.");
+  bool get isBottom => unsupported("isBottom", -1, null);
 
-  bool get isDartAsyncFuture => deprecated_internalProblem("not supported.");
+  bool get isDartAsyncFuture => unsupported("isDartAsyncFuture", -1, null);
 
-  bool get isDartAsyncFutureOr => deprecated_internalProblem("not supported.");
+  bool get isDartAsyncFutureOr => unsupported("isDartAsyncFutureOr", -1, null);
 
-  bool get isDartCoreFunction => deprecated_internalProblem("not supported.");
+  bool get isDartCoreFunction => unsupported("isDartCoreFunction", -1, null);
 
-  bool get isDynamic => deprecated_internalProblem("not supported.");
+  bool get isDynamic => unsupported("isDynamic", -1, null);
 
-  bool get isObject => deprecated_internalProblem("not supported.");
+  bool get isObject => unsupported("isObject", -1, null);
 
-  bool get isUndefined => deprecated_internalProblem("not supported.");
+  bool get isUndefined => unsupported("isUndefined", -1, null);
 
-  bool get isVoid => deprecated_internalProblem("not supported.");
+  bool get isVoid => unsupported("isVoid", -1, null);
 
-  String get name => deprecated_internalProblem("not supported.");
+  String get name => unsupported("name", -1, null);
 
   DartType flattenFutures(TypeSystem typeSystem) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("flattenFutures", -1, null);
   }
 
-  bool isAssignableTo(DartType type) =>
-      deprecated_internalProblem("not supported.");
+  bool isAssignableTo(DartType type) => unsupported("isAssignableTo", -1, null);
 
   bool isMoreSpecificThan(DartType type) =>
-      deprecated_internalProblem("not supported.");
+      unsupported("isMoreSpecificThan", -1, null);
 
-  bool isSubtypeOf(DartType type) =>
-      deprecated_internalProblem("not supported.");
+  bool isSubtypeOf(DartType type) => unsupported("isSubtypeOf", -1, null);
 
-  bool isSupertypeOf(DartType type) =>
-      deprecated_internalProblem("not supported.");
+  bool isSupertypeOf(DartType type) => unsupported("isSupertypeOf", -1, null);
 
   DartType resolveToBound(DartType objectType) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("resolveToBound", -1, null);
   }
 
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("substitute2", -1, null);
   }
 
-  List<DartType> get typeArguments =>
-      deprecated_internalProblem("not supported.");
+  List<DartType> get typeArguments {
+    return unsupported("typeArguments", -1, null);
+  }
 
   List<TypeParameterElement> get typeParameters {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("typeParameters", -1, null);
   }
 
   ParameterizedType instantiate(List<DartType> argumentTypes) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("instantiate", -1, null);
   }
 }
 
 abstract class MockInterfaceType extends MockType implements InterfaceType {
-  ClassElement get element => deprecated_internalProblem("not supported.");
+  ClassElement get element => unsupported("element", -1, null);
 
   List<PropertyAccessorElement> get accessors {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("accessors", -1, null);
   }
 
-  List<ConstructorElement> get constructors =>
-      deprecated_internalProblem("not supported.");
+  List<ConstructorElement> get constructors {
+    return unsupported("constructors", -1, null);
+  }
 
-  List<InterfaceType> get interfaces =>
-      deprecated_internalProblem("not supported.");
+  List<InterfaceType> get interfaces {
+    return unsupported("interfaces", -1, null);
+  }
 
-  List<MethodElement> get methods =>
-      deprecated_internalProblem("not supported.");
+  List<MethodElement> get methods {
+    return unsupported("methods", -1, null);
+  }
 
-  List<InterfaceType> get mixins =>
-      deprecated_internalProblem("not supported.");
+  List<InterfaceType> get mixins {
+    return unsupported("mixins", -1, null);
+  }
 
-  InterfaceType get superclass => deprecated_internalProblem("not supported.");
+  InterfaceType get superclass => unsupported("superclass", -1, null);
 
   PropertyAccessorElement getGetter(String name) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" PropertyAccessorElement getGetter", -1, null);
   }
 
-  MethodElement getMethod(String name) =>
-      deprecated_internalProblem("not supported.");
+  MethodElement getMethod(String name) {
+    return unsupported("getMethod", -1, null);
+  }
 
   PropertyAccessorElement getSetter(String name) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" PropertyAccessorElement getSetter", -1, null);
   }
 
   bool isDirectSupertypeOf(InterfaceType type) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("isDirectSupertypeOf", -1, null);
   }
 
   ConstructorElement lookUpConstructor(String name, LibraryElement library) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" ConstructorElement lookUpConstructor", -1, null);
   }
 
   PropertyAccessorElement lookUpGetter(String name, LibraryElement library) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" PropertyAccessorElement lookUpGetter", -1, null);
   }
 
   PropertyAccessorElement lookUpGetterInSuperclass(
-          String name, LibraryElement library) =>
-      deprecated_internalProblem("not supported.");
+      String name, LibraryElement library) {
+    return unsupported("lookUpGetterInSuperclass", -1, null);
+  }
 
   PropertyAccessorElement lookUpInheritedGetter(String name,
       {LibraryElement library, bool thisType: true}) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(
+        " PropertyAccessorElement lookUpInheritedGetter", -1, null);
   }
 
   ExecutableElement lookUpInheritedGetterOrMethod(String name,
-          {LibraryElement library}) =>
-      deprecated_internalProblem("not supported.");
+      {LibraryElement library}) {
+    return unsupported("lookUpInheritedGetterOrMethod", -1, null);
+  }
 
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType: true}) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" MethodElement lookUpInheritedMethod", -1, null);
   }
 
   PropertyAccessorElement lookUpInheritedSetter(String name,
       {LibraryElement library, bool thisType: true}) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(
+        " PropertyAccessorElement lookUpInheritedSetter", -1, null);
   }
 
   MethodElement lookUpMethod(String name, LibraryElement library) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("lookUpMethod", -1, null);
   }
 
   MethodElement lookUpMethodInSuperclass(String name, LibraryElement library) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" MethodElement lookUpMethodInSuperclass", -1, null);
   }
 
   PropertyAccessorElement lookUpSetter(String name, LibraryElement library) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported(" PropertyAccessorElement lookUpSetter", -1, null);
   }
 
   PropertyAccessorElement lookUpSetterInSuperclass(
-          String name, LibraryElement library) =>
-      deprecated_internalProblem("not supported.");
+      String name, LibraryElement library) {
+    return unsupported("lookUpSetterInSuperclass", -1, null);
+  }
 
   InterfaceType instantiate(List<DartType> argumentTypes) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("instantiate", -1, null);
   }
 
   InterfaceType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("substitute2", -1, null);
   }
 
   InterfaceType substitute4(List<DartType> argumentTypes) {
-    return deprecated_internalProblem("not supported.");
+    return unsupported("substitute4", -1, null);
   }
 
-  get isDartCoreNull => deprecated_internalProblem("not supported.");
+  get isDartCoreNull => unsupported("isDartCoreNull", -1, null);
 }

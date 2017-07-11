@@ -121,6 +121,27 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)>
+    templateUnexpected =
+    const Template<Message Function(String string, String name)>(
+        messageTemplate: r"""Expected '#string', but got '#name'.""",
+        withArguments: _withArgumentsUnexpected);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)> codeUnexpected =
+    const Code<Message Function(String string, String name)>(
+  "Unexpected",
+  templateUnexpected,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnexpected(String string, String name) {
+  return new Message(codeUnexpected,
+      message: """Expected '$string', but got '$name'.""",
+      arguments: {'string': string, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -368,6 +389,45 @@ const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
 const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     dart2jsCode: "FASTA_IGNORED",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateUnimplemented =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Unimplemented: #string.""",
+        withArguments: _withArgumentsUnimplemented);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeUnimplemented =
+    const Code<Message Function(String string)>(
+  "Unimplemented",
+  templateUnimplemented,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnimplemented(String string) {
+  return new Message(codeUnimplemented,
+      message: """Unimplemented: $string.""", arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)> templateUnhandled =
+    const Template<Message Function(String string, String name)>(
+        messageTemplate: r"""Unhandled: #string in #name.""",
+        withArguments: _withArgumentsUnhandled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)> codeUnhandled =
+    const Code<Message Function(String string, String name)>(
+  "Unhandled",
+  templateUnhandled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnhandled(String string, String name) {
+  return new Message(codeUnhandled,
+      message: """Unhandled: $string in $name.""",
+      arguments: {'string': string, 'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
@@ -1063,6 +1123,26 @@ const Code<Message Function(String name)> codeMethodNotFound =
 Message _withArgumentsMethodNotFound(String name) {
   return new Message(codeMethodNotFound,
       message: """Method not found: '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateUnsupported =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Unsupported operation: '#name'.""",
+        withArguments: _withArgumentsUnsupported);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnsupported =
+    const Code<Message Function(String name)>(
+  "Unsupported",
+  templateUnsupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnsupported(String name) {
+  return new Message(codeUnsupported,
+      message: """Unsupported operation: '$name'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

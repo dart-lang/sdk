@@ -549,3 +549,15 @@ FastaUsageLong:
 
 FastaCLIArgumentRequired:
   template: "Expected value after '#name'."
+
+Unhandled:
+  template: "Unhandled: #string in #name."
+
+Unimplemented:
+  template: "Unimplemented: #string."
+
+Unexpected:
+  template: "Expected '#string', but got '#name'."
+
+Unsupported:
+  template: "Unsupported operation: '#name'."

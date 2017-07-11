@@ -16,8 +16,7 @@ import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_internalProblem;
+import 'package:front_end/src/fasta/problems.dart' show unexpected, unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
@@ -164,8 +163,8 @@ class AstBuilder extends ScopeListener {
         } else if (part is Expression) {
           elements.add(ast.interpolationExpression(null, part, null));
         } else {
-          deprecated_internalProblem(
-              "Unexpected part in string interpolation: ${part.runtimeType}");
+          unhandled("${part.runtimeType}", "string interpolation",
+              first.charOffset, uri);
         }
       }
       elements.add(ast.interpolationString(
@@ -304,8 +303,7 @@ class AstBuilder extends ScopeListener {
       ProcedureBuilder builder = member;
       builder.body = kernel;
     } else {
-      deprecated_internalProblem(
-          "Internal error: expected procedure, but got: $member");
+      unexpected("procedure", "${member.runtimeType}", member.charOffset, uri);
     }
   }
 
@@ -369,8 +367,8 @@ class AstBuilder extends ScopeListener {
         ..operator = token;
       push(identifierOrInvoke);
     } else {
-      deprecated_internalProblem(
-          "Unhandled property access: ${identifierOrInvoke.runtimeType}");
+      unhandled("${identifierOrInvoke.runtimeType}", "property access",
+          token.charOffset, uri);
     }
   }
 
@@ -519,7 +517,7 @@ class AstBuilder extends ScopeListener {
     } else if (node is SimpleIdentifier) {
       variable = ast.variableDeclaration(node, null, null);
     } else {
-      deprecated_internalProblem("unhandled identifier: ${node.runtimeType}");
+      unhandled("${node.runtimeType}", "identifier", nameToken.charOffset, uri);
     }
     push(variable);
     scope.declare(
@@ -1189,8 +1187,8 @@ class AstBuilder extends ScopeListener {
         } else if (node is CompilationUnitMember) {
           declarations.add(node);
         } else {
-          deprecated_internalProblem(
-              'Unrecognized compilation unit member: ${node.runtimeType}');
+          unhandled(
+              "${node.runtimeType}", "compilation unit", node.offset, uri);
         }
       }
     }
@@ -1351,8 +1349,8 @@ class AstBuilder extends ScopeListener {
       extendsClause = ast.extendsClause(extendsKeyword, supertype.supertype);
       withClause = ast.withClause(supertype.withKeyword, supertype.mixinTypes);
     } else {
-      deprecated_internalProblem(
-          'Unexpected kind of supertype ${supertype.runtimeType}');
+      unhandled("${supertype.runtimeType}", "supertype",
+          extendsKeyword.charOffset, uri);
     }
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
@@ -1515,8 +1513,8 @@ class AstBuilder extends ScopeListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(semicolon);
     } else {
-      deprecated_internalProblem(
-          'Unexpected body object: ${bodyObject.runtimeType}');
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
     }
 
     FormalParameterList parameters = pop();
@@ -1921,8 +1919,7 @@ class AstBuilder extends ScopeListener {
       default:
       // fall through
     }
-    library.deprecated_addCompileTimeError(charOffset, message.message,
-        fileUri: uri);
+    library.addCompileTimeError(message, charOffset, uri);
   }
 }
 
@@ -2026,7 +2023,7 @@ class _Modifiers {
       } else if (identical('covariant', s)) {
         covariantKeyword = token;
       } else {
-        deprecated_internalProblem('Unhandled modifier: $s');
+        unhandled("$s", "modifier", token.charOffset, null);
       }
     }
   }

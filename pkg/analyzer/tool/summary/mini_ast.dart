@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_internalProblem;
+import 'package:front_end/src/fasta/problems.dart'
+    show internalProblem, unsupported;
 import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
 import 'package:front_end/src/fasta/parser/parser.dart';
@@ -158,7 +158,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
-    deprecated_internalProblem(message.message, uri, charOffset);
+    internalProblem(message, charOffset, uri);
   }
 
   @override
@@ -215,8 +215,7 @@ class MiniAstBuilder extends StackListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
     if (count != 0) {
-      deprecated_internalProblem(
-          'Conditional URIs are not supported by summary codegen');
+      unsupported("Conditional URIs", -1, null);
     }
   }
 
