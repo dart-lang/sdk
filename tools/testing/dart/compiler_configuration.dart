@@ -367,13 +367,13 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile) {
     var moduleRoot =
-        new Path(outputFile).directoryPath.directoryPath.toString();
+        new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
     var args = [
       "--dart-sdk",
       "${_configuration.buildDirectory}/dart-sdk",
       "--library-root",
-      new Path(inputFile).directoryPath.toString(),
+      new Path(inputFile).directoryPath.toNativePath(),
       "--module-root",
       moduleRoot,
       "--no-summarize",
@@ -393,7 +393,7 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
       // will tell require.js where to find each package's compiled JS.
       var summary = _configuration.buildDirectory +
           "/gen/utils/dartdevc/pkg/$package.sum";
-      args.add("$summary:$package");
+      args.add("$summary=$package");
     }
 
     return Command.compilation(Compiler.dartdevc.name, outputFile,

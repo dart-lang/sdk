@@ -30,7 +30,11 @@ class AnalysisOptionsProvider {
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root, {bool crawlUp: false}) {
-    return getOptionsFromFile(getOptionsFile(root, crawlUp: crawlUp));
+    File optionsFile = getOptionsFile(root, crawlUp: crawlUp);
+    if (optionsFile == null) {
+      return const <String, YamlNode>{};
+    }
+    return getOptionsFromFile(optionsFile);
   }
 
   /// Return the analysis options file from which options should be read, or
@@ -50,7 +54,10 @@ class AnalysisOptionsProvider {
         break;
       }
     }
-    return resource is File ? resource : null;
+    if (resource is File && resource.exists) {
+      return resource;
+    }
+    return null;
   }
 
   /// Provide the options found in [file].

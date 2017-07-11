@@ -165,10 +165,10 @@ void startRootIsolate(entry, args) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the chance to break the isolate abstraction.
-_Manager get _globalState => JS("_Manager", "init.globalState");
+_Manager get _globalState => JS('_Manager', 'init.globalState');
 
 set _globalState(_Manager val) {
-  JS("void", "init.globalState = #", val);
+  JS('void', 'init.globalState = #', val);
 }
 
 /** State associated with the current manager. See [globalState]. */
@@ -255,10 +255,10 @@ class _Manager {
   void _nativeInitWorkerMessageHandler() {
     var function = JS(
         '',
-        "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
+        '(function (f, a) { return function (e) { f(a, e); }})(#, #)',
         DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
         mainManager);
-    JS("void", r"self.onmessage = #", function);
+    JS('void', r'self.onmessage = #', function);
     // We ensure dartPrint is defined so that the implementation of the Dart
     // print method knows what to call.
     JS(
@@ -276,7 +276,7 @@ class _Manager {
   }
 
   static _serializePrintMessage(object) {
-    return _serializeMessage({"command": "print", "msg": object});
+    return _serializeMessage({'command': 'print', 'msg': object});
   }
 
   /**
@@ -304,7 +304,7 @@ class _IsolateContext implements IsolateContext {
   /** Holds isolate globals (statics and top-level properties). */
   // native object containing all globals of an isolate.
   final isolateStatics =
-      JS('', "#()", JS_EMBEDDED_GLOBAL('', CREATE_NEW_ISOLATE));
+      JS('', '#()', JS_EMBEDDED_GLOBAL('', CREATE_NEW_ISOLATE));
 
   final RawReceivePortImpl controlPort = new RawReceivePortImpl._controlPort();
 
@@ -507,10 +507,10 @@ class _IsolateContext implements IsolateContext {
    */
   void handleControlMessage(message) {
     switch (message[0]) {
-      case "pause":
+      case 'pause':
         addPause(message[1], message[2]);
         break;
-      case "resume":
+      case 'resume':
         removePause(message[1]);
         break;
       case 'add-ondone':
@@ -522,16 +522,16 @@ class _IsolateContext implements IsolateContext {
       case 'set-errors-fatal':
         setErrorsFatal(message[1], message[2]);
         break;
-      case "ping":
+      case 'ping':
         handlePing(message[1], message[2], message[3]);
         break;
-      case "kill":
+      case 'kill':
         handleKill(message[1], message[2]);
         break;
-      case "getErrors":
+      case 'getErrors':
         addErrorListener(message[1]);
         break;
-      case "stopErrors":
+      case 'stopErrors':
         removeErrorListener(message[1]);
         break;
       default:
@@ -543,7 +543,7 @@ class _IsolateContext implements IsolateContext {
 
   void _addRegistration(int portId, RawReceivePortImpl port) {
     if (ports.containsKey(portId)) {
-      throw new Exception("Registry: ports must be registered only once.");
+      throw new Exception('Registry: ports must be registered only once.');
     }
     ports[portId] = port;
   }
@@ -645,7 +645,7 @@ class _EventLoop {
       // into the event queue once it's empty.  Node has setTimeout
       // so this presumption is incorrect there.  We think(?) that
       // in d8 this assumption is valid.
-      throw new Exception("Program exited with open ReceivePorts.");
+      throw new Exception('Program exited with open ReceivePorts.');
     }
   }
 
@@ -724,26 +724,26 @@ class _MainManagerStub {
     // See: http://www.w3.org/TR/workers/#the-global-scope
     // and: http://www.w3.org/TR/Window/#dfn-self-attribute
     requiresPreamble();
-    JS("void", r"self.postMessage(#)", msg);
+    JS('void', r'self.postMessage(#)', msg);
   }
 }
 
-const String _SPAWNED_SIGNAL = "spawned";
-const String _SPAWN_FAILED_SIGNAL = "spawn failed";
+const String _SPAWNED_SIGNAL = 'spawned';
+const String _SPAWN_FAILED_SIGNAL = 'spawn failed';
 
 get globalWindow {
   requiresPreamble();
-  return JS('', "self.window");
+  return JS('', 'self.window');
 }
 
 get globalWorker {
   requiresPreamble();
-  return JS('', "self.Worker");
+  return JS('', 'self.Worker');
 }
 
 bool get globalPostMessageDefined {
   requiresPreamble();
-  return JS('bool', "!!self.postMessage");
+  return JS('bool', '!!self.postMessage');
 }
 
 typedef _MainFunction();
@@ -832,7 +832,7 @@ class IsolateNatives {
    * We don't import the dom explicitly so, when workers are disabled, this
    * library can also run on top of nodejs.
    */
-  static _getEventData(e) => JS("", "#.data", e);
+  static _getEventData(e) => JS('', '#.data', e);
 
   /**
    * Process messages on a worker, either to control the worker instance or to
@@ -924,7 +924,7 @@ class IsolateNatives {
 
   static void _consoleLog(msg) {
     requiresPreamble();
-    JS("void", r"self.console.log(#)", msg);
+    JS('void', r'self.console.log(#)', msg);
   }
 
   static _getJSFunctionFromName(String functionName) {
@@ -938,13 +938,13 @@ class IsolateNatives {
    */
   static String _getJSFunctionName(Function f) {
     return (f is Closure)
-        ? JS("String|Null", r'#[#]', f, STATIC_FUNCTION_NAME_PROPERTY_NAME)
+        ? JS('String|Null', r'#[#]', f, STATIC_FUNCTION_NAME_PROPERTY_NAME)
         : null;
   }
 
   /** Create a new JavaScript object instance given its constructor. */
   static dynamic _allocate(var ctor) {
-    return JS("", "new #()", ctor);
+    return JS('', 'new #()', ctor);
   }
 
   static Future<List> spawnFunction(
@@ -952,7 +952,7 @@ class IsolateNatives {
     IsolateNatives.enableSpawnWorker = true;
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
-      throw new UnsupportedError("only top-level functions can be spawned.");
+      throw new UnsupportedError('only top-level functions can be spawned.');
     }
     bool isLight = false;
     bool isSpawnUri = false;
@@ -976,7 +976,7 @@ class IsolateNatives {
     // Assume that the compiled version of the Dart file lives just next to the
     // dart file.
     // TODO(floitsch): support precompiled version of dart2js output.
-    if (uri != null && uri.endsWith(".dart")) uri += ".js";
+    if (uri != null && uri.endsWith('.dart')) uri += '.js';
 
     ReceivePort port = new ReceivePort();
     Completer<List> completer = new Completer();
@@ -1042,7 +1042,7 @@ class IsolateNatives {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) {
       throw new UnsupportedError(
-          "Currently spawnUri is not supported without web workers.");
+          'Currently spawnUri is not supported without web workers.');
     }
     // Clone the message to enforce the restrictions we have on isolate
     // messages.
@@ -1204,7 +1204,7 @@ abstract class _BaseSendPort implements SendPort {
     if (replyTo != null &&
         replyTo is! _NativeJsSendPort &&
         replyTo is! _WorkerSendPort) {
-      throw new Exception("SendPort.send: Illegal replyTo port type");
+      throw new Exception('SendPort.send: Illegal replyTo port type');
     }
   }
 
@@ -1399,7 +1399,7 @@ class TimerImpl implements Timer {
           convertDartClosureToJS(internalCallback, 0), milliseconds);
     } else {
       assert(milliseconds > 0);
-      throw new UnsupportedError("Timer greater than 0.");
+      throw new UnsupportedError('Timer greater than 0.');
     }
   }
 
@@ -1415,14 +1415,14 @@ class TimerImpl implements Timer {
           }, 0),
           milliseconds);
     } else {
-      throw new UnsupportedError("Periodic timer.");
+      throw new UnsupportedError('Periodic timer.');
     }
   }
 
   void cancel() {
     if (hasTimer()) {
       if (_inEventLoop) {
-        throw new UnsupportedError("Timer in event loop cannot be canceled.");
+        throw new UnsupportedError('Timer in event loop cannot be canceled.');
       }
       if (_handle == null) return;
       leaveJsAsync();
@@ -1433,7 +1433,7 @@ class TimerImpl implements Timer {
       }
       _handle = null;
     } else {
-      throw new UnsupportedError("Canceling a timer.");
+      throw new UnsupportedError('Canceling a timer.');
     }
   }
 

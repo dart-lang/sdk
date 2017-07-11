@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "js_helper.dart";
+part of _js_helper;
 
 class ConstantMapView<K, V> extends UnmodifiableMapView implements ConstantMap {
   ConstantMapView(Map base) : super(base);
@@ -26,9 +26,9 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
       int length = 0;
       for (var k in keys) {
         var v = other[k];
-        if (k != "__proto__") {
+        if (k != '__proto__') {
           if (!jsHasOwnProperty(object, k)) length++;
-          JS("void", "#[#] = #", object, k, v);
+          JS('void', '#[#] = #', object, k, v);
         } else {
           containsProto = true;
           protoValue = v;
@@ -53,7 +53,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   String toString() => Maps.mapToString(this);
 
   static _throwUnmodifiable() {
-    throw new UnsupportedError("Cannot modify unmodifiable Map");
+    throw new UnsupportedError('Cannot modify unmodifiable Map');
   }
 
   void operator []=(K key, V val) => _throwUnmodifiable();

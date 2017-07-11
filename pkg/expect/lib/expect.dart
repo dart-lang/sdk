@@ -507,7 +507,7 @@ class AssumeDynamic {
 /// Is true iff type assertions are enabled.
 final bool typeAssertionsEnabled = (() {
   try {
-    var i = 42;
+    dynamic i = 42;
     String s = i;
   } on TypeError catch (e) {
     return true;

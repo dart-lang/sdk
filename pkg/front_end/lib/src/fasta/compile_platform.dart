@@ -6,23 +6,23 @@ library fasta.compile_platform;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exitCode;
+import 'dart:io' show exitCode, File;
+
+import '../../compiler_options.dart' show CompilerOptions;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../kernel_generator_impl.dart' show generateKernel;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'dill/dill_target.dart' show DillTarget;
+import 'deprecated_problems.dart' show deprecated_InputError;
 
-import 'errors.dart' show InputError;
-
-import 'kernel/kernel_target.dart' show KernelTarget;
-
-import 'kernel/utils.dart' show printProgramText, writeProgramToFile;
+import 'kernel/utils.dart' show writeProgramToFile;
 
 import 'ticker.dart' show Ticker;
-
-import 'translate_uri.dart' show TranslateUri;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
@@ -33,9 +33,9 @@ Future mainEntryPoint(List<String> arguments) async {
     }
     try {
       await compilePlatform(arguments);
-    } on InputError catch (e) {
+    } on deprecated_InputError catch (e) {
       exitCode = 1;
-      print(e.format());
+      print(e.deprecated_format());
       return null;
     }
   }
@@ -56,38 +56,31 @@ Future compilePlatform(List<String> arguments) async {
 
 Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
     Uri fullOutput, Uri outlineOutput) async {
-  if (c.options.strongMode) {
+  var options = new CompilerOptions()
+    ..strongMode = c.options.strongMode
+    ..sdkRoot = patchedSdk
+    ..packagesFileUri = c.options.packages
+    ..compileSdk = true
+    ..chaseDependencies = true
+    ..target = c.options.target
+    ..debugDump = c.options.dumpIr
+    ..verify = c.options.verify
+    ..verbose = c.options.verbose;
+
+  if (options.strongMode) {
     print("Note: strong mode support is preliminary and may not work.");
   }
-  ticker.isVerbose = c.options.verbose;
-  Uri deps = Uri.base.resolveUri(new Uri.file("${fullOutput.toFilePath()}.d"));
-  ticker.logMs("Parsed arguments");
-  if (ticker.isVerbose) {
+  if (options.verbose) {
     print("Generating outline of $patchedSdk into $outlineOutput");
     print("Compiling $patchedSdk to $fullOutput");
   }
 
-  TranslateUri uriTranslator = await TranslateUri
-      .parse(c.fileSystem, patchedSdk, packages: c.options.packages);
-  ticker.logMs("Read packages file");
-
-  DillTarget dillTarget =
-      new DillTarget(ticker, uriTranslator, c.options.target);
-  KernelTarget kernelTarget =
-      new KernelTarget(c.fileSystem, dillTarget, uriTranslator, c.uriToSource);
-
-  kernelTarget.read(Uri.parse("dart:core"));
-  await dillTarget.buildOutlines();
-  var outline = await kernelTarget.buildOutlines();
-
-  await writeProgramToFile(outline, outlineOutput);
+  var result = await generateKernel(
+      new ProcessedOptions(options, false, [Uri.parse('dart:core')]),
+      buildSummary: true,
+      buildProgram: true);
+  new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
-
-  if (exitCode != 0) return null;
-
-  var program = await kernelTarget.buildProgram(verify: c.options.verify);
-  if (c.options.dumpIr) printProgramText(program);
-  await writeProgramToFile(program, fullOutput);
+  await writeProgramToFile(result.program, fullOutput);
   ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
-  await kernelTarget.writeDepsFile(fullOutput, deps);
 }

@@ -73,7 +73,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         scavenger_(scavenger),
         from_(from),
         heap_(scavenger->heap_),
-        vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(scavenger->heap_->old_space()),
         bytes_promoted_(0),
         visiting_old_object_(NULL) {}
@@ -184,7 +183,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Scavenger* scavenger_;
   SemiSpace* from_;
   Heap* heap_;
-  Heap* vm_heap_;
   PageSpace* page_space_;
   RawWeakProperty* delayed_weak_properties_;
   intptr_t bytes_promoted_;

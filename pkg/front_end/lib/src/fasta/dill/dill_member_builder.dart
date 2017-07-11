@@ -7,7 +7,7 @@ library fasta.dill_member_builder;
 import 'package:kernel/ast.dart'
     show Constructor, Field, Member, Procedure, ProcedureKind;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -77,7 +77,7 @@ int computeModifiers(Member member) {
   } else if (member is Constructor) {
     modifier |= member.isConst ? constMask : 0;
   } else {
-    internalError("Unhandled: ${member.runtimeType}");
+    deprecated_internalProblem("Unhandled: ${member.runtimeType}");
   }
   return modifier;
 }

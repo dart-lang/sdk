@@ -143,6 +143,12 @@ class AllocationInfo {
     }
   }
 
+  ~AllocationInfo() {
+    if (sample_ != NULL) {
+      Profiler::allocation_sample_buffer()->FreeAllocationSample(sample_);
+    }
+  }
+
   Sample* sample() const { return sample_; }
   intptr_t allocation_size() const { return allocation_size_; }
 

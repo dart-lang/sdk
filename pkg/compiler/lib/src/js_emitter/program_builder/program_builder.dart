@@ -17,7 +17,6 @@ import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show
         ClassElement,
-        ConstructorBodyElement,
         Elements,
         FieldElement,
         FunctionSignature,
@@ -759,11 +758,10 @@ class ProgramBuilder {
     // only interested in direct members.
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       _elementEnvironment.forEachClassMember(cls, visitMember);
-      if (cls is ClassElement) {
-        // TODO(redemption): Support constructor bodies for entities.
-        cls.forEachConstructorBody((ConstructorBodyElement constructorBody) =>
-            visitMember(cls, constructorBody));
-      }
+      _elementEnvironment.forEachConstructorBody(
+          cls,
+          (ConstructorBodyEntity constructorBody) =>
+              visitMember(cls, constructorBody));
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForRti
@@ -932,7 +930,7 @@ class ProgramBuilder {
 
     if (canTearOff) {
       assert(element is! ConstructorEntity, failedAt(element));
-      assert(element is! ConstructorBodyElement, failedAt(element));
+      assert(element is! ConstructorBodyEntity, failedAt(element));
     }
 
     js.Name callName = null;

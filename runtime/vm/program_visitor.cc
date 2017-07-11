@@ -281,6 +281,7 @@ class TypedDataKeyValueTrait {
 typedef DirectChainedHashMap<TypedDataKeyValueTrait> TypedDataSet;
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::DedupDeoptEntries() {
   class DedupDeoptEntriesVisitor : public FunctionVisitor {
    public:
@@ -337,6 +338,7 @@ void ProgramVisitor::DedupDeoptEntries() {
   DedupDeoptEntriesVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 class CodeSourceMapKeyValueTrait {
@@ -607,7 +609,7 @@ void ProgramVisitor::Dedup() {
   ShareMegamorphicBuckets();
   DedupStackMaps();
   DedupPcDescriptors();
-  DedupDeoptEntries();
+  NOT_IN_PRECOMPILED(DedupDeoptEntries());
   DedupCodeSourceMaps();
   DedupLists();
 

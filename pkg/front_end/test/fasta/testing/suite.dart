@@ -32,7 +32,8 @@ import 'package:testing/testing.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show MatchExpectation, Print, Verify, WriteDill;
@@ -98,7 +99,7 @@ class FastaContext extends ChainContext {
   Uri sdk;
   Uri platformUri;
   Uri outlineUri;
-  List<int> outlineBytes;
+  Program outline;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
@@ -139,15 +140,12 @@ class FastaContext extends ChainContext {
   }
 
   Future<Program> loadPlatformOutline() async {
-    if (outlineBytes == null) {
+    if (outline == null) {
       await ensurePlatformUris();
-      outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
+      outline =
+          loadProgramFromBytes(new File.fromUri(outlineUri).readAsBytesSync());
     }
-    // Note: we rebuild the platform outline on every test because the compiler
-    // currently mutates the in-memory representation of the program without
-    // cloning it.
-    // TODO(sigmund): investigate alternatives to this approach.
-    return loadProgramFromBytes(outlineBytes);
+    return outline;
   }
 
   static Future<FastaContext> create(
@@ -259,7 +257,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       }
       p = await sourceTarget.buildOutlines();
       if (fullCompile) {
-        p = await sourceTarget.buildProgram(trimDependencies: true);
+        p = await sourceTarget.buildProgram();
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {
@@ -269,7 +267,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
           }
         }
       }
-    } on InputError catch (e, s) {
+    } on deprecated_InputError catch (e, s) {
       return fail(null, e.error, s);
     }
     context.programToTarget.clear();

@@ -19,17 +19,23 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show MemberKind, Parser, optional;
 
 import '../../scanner/token.dart' show BeginToken, Token;
 
-import '../parser/dart_vm_native.dart' show removeNativeClause;
+import '../parser/native_support.dart'
+    show removeNativeClause, skipNativeClause;
 
 import '../util/link.dart' show Link;
 
-import '../errors.dart' show Crash, InputError, inputError, internalError;
+import '../deprecated_problems.dart'
+    show
+        Crash,
+        deprecated_InputError,
+        deprecated_inputError,
+        deprecated_internalProblem;
 
 import 'stack_listener.dart' show NullValue, StackListener;
 
@@ -48,6 +54,8 @@ class DietListener extends StackListener {
 
   final bool enableNative;
 
+  final bool stringExpectedAfterNative;
+
   final TypeInferenceEngine typeInferenceEngine;
 
   ClassBuilder currentClass;
@@ -64,7 +72,10 @@ class DietListener extends StackListener {
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
-        enableNative = library.loader.target.enableNative(library);
+        enableNative =
+            library.loader.target.backendTarget.enableNative(library.uri),
+        stringExpectedAfterNative =
+            library.loader.target.backendTarget.nativeExtensionExpectsString;
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
@@ -513,9 +524,9 @@ class DietListener extends StackListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
-      Token recover = library.loader.target.skipNativeClause(token);
+      Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) return recover;
     }
     return super.handleUnrecoverableError(token, message);
@@ -524,7 +535,7 @@ class DietListener extends StackListener {
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers);
+    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
@@ -550,7 +561,7 @@ class DietListener extends StackListener {
       var body = listener.pop();
       listener.checkEmpty(token.charOffset);
       listener.finishFunction(metadataConstants, formals, asyncModifier, body);
-    } on InputError {
+    } on deprecated_InputError {
       rethrow;
     } catch (e, s) {
       throw new Crash(uri, token.charOffset, e, s);
@@ -595,18 +606,20 @@ class DietListener extends StackListener {
       builder = library.scopeBuilder[name];
     }
     if (builder == null) {
-      return internalError("Builder not found: $name", uri, token.charOffset);
+      return deprecated_internalProblem(
+          "Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
-      return inputError(uri, token.charOffset, "Duplicated name: $name");
+      return deprecated_inputError(
+          uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri,
+  void addCompileTimeError(Message message, int charOffset) {
+    library.deprecated_addCompileTimeError(charOffset, message.message,
+        fileUri: uri,
         // We assume this error has already been reported by OutlineBuilder.
         silent: true);
   }

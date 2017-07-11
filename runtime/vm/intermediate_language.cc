@@ -1440,8 +1440,8 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
 }
 
 
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
+bool ShiftMintOpInstr::IsShiftCountInRange() const {
+  return RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
 }
 
 
@@ -1818,7 +1818,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     if (is_truncating()) {
       int64_t truncated = result.AsTruncatedInt64Value();
       truncated &= RepresentationMask(representation());
-      result = Integer::New(truncated);
+      result = Integer::New(truncated, Heap::kOld);
       ASSERT(IsRepresentable(result, representation()));
     } else if (!IsRepresentable(result, representation())) {
       // If this operation is not truncating it would deoptimize on overflow.
@@ -4216,90 +4216,6 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
   }
   return 0;
 }
-
-// Use expected function signatures to help MSVC compiler resolve overloading.
-typedef double (*UnaryMathCFunction)(double x);
-typedef double (*BinaryMathCFunction)(double x, double y);
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcPow,
-    2,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<BinaryMathCFunction>(&pow)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    DartModulo,
-    2,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&DartModulo)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcAtan2,
-    2,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&atan2_ieee)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcFloor,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&floor)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcCeil,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&ceil)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcTrunc,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&trunc)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcRound,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&round)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcCos,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&cos)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcSin,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&sin)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcAsin,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&asin)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcAcos,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&acos)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcTan,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&tan)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    LibcAtan,
-    1,
-    true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
 
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {

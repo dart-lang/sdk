@@ -19,7 +19,8 @@ import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/fasta.dart' show CompileTask;
 
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
@@ -38,9 +39,9 @@ Future<Uri> compile(List<String> arguments) async {
           new AnalyzerCompileTask(c, new Ticker(isVerbose: c.options.verbose));
       return await task.compile();
     });
-  } on InputError catch (e) {
+  } on deprecated_InputError catch (e) {
     exitCode = 1;
-    print(e.format());
+    print(e.deprecated_format());
     return null;
   }
 }

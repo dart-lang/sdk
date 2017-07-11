@@ -32,9 +32,12 @@ class Isolate {
   static Uri _packageBase = Uri.base.resolve(IsolateNatives.packagesBase);
 
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) async {
-    if (packageUri.scheme != 'package') return packageUri;
-    return _packageBase.resolveUri(packageUri.replace(scheme: ''));
+  static Future<Uri> resolvePackageUri(Uri packageUri) {
+    if (packageUri.scheme != 'package') {
+      return new Future<Uri>.value(packageUri);
+    }
+    return new Future<Uri>.value(
+        _packageBase.resolveUri(packageUri.replace(scheme: '')));
   }
 
   @patch

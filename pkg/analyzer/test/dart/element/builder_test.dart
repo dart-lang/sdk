@@ -17,6 +17,8 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
+import 'package:analyzer/src/generated/testing/node_search.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
@@ -79,26 +81,52 @@ class C {
       expect(method.parameters[1].displayName, 'b');
       expect(method.parameters[1].initializer, isNull);
     }
-    expect(method.functions, isEmpty);
+    expect(
+        findDeclaredIdentifiersByName(compilationUnit, 'v')
+            .single
+            .staticElement,
+        isNull);
+    expect(
+        findDeclaredIdentifiersByName(compilationUnit, 'localFunction')
+            .single
+            .staticElement,
+        isNull);
   }
 
   void test_api_topLevelFunction_blockBody() {
-    FunctionElement function = buildElementsForText(r'''
+    FunctionElement topLevelFunction = buildElementsForText(r'''
 void topLevelFunction() {
   int v = 0;
   localFunction() {}
 }
 ''').functions[0];
-    expect(function.functions, isEmpty);
+    expect(topLevelFunction, isNotNull);
+    expect(topLevelFunction.name, 'topLevelFunction');
+    expect(
+        findDeclaredIdentifiersByName(compilationUnit, 'v')
+            .single
+            .staticElement,
+        isNull);
+    expect(
+        findDeclaredIdentifiersByName(compilationUnit, 'localFunction')
+            .single
+            .staticElement,
+        isNull);
   }
 
   void test_api_topLevelFunction_expressionBody() {
-    FunctionElement function = buildElementsForText(r'''
+    FunctionElement topLevelFunction = buildElementsForText(r'''
 topLevelFunction() => () {
   int localVar = 0;
 };
 ''').functions[0];
-    expect(function.functions, isEmpty);
+    expect(topLevelFunction, isNotNull);
+    expect(topLevelFunction.name, 'topLevelFunction');
+    expect(
+        findDeclaredIdentifiersByName(compilationUnit, 'localVar')
+            .single
+            .staticElement,
+        isNull);
   }
 
   void test_api_topLevelFunction_parameters() {
@@ -364,10 +392,12 @@ class C {
   }
 
   void test_visitFunctionExpression_inBlockBody() {
-    List<FunctionElement> functions =
-        buildElementsForText('f() { return () => 42; }').functions[0].functions;
-    expect(functions, hasLength(1));
-    FunctionElement function = functions[0];
+    buildElementsForText('f() { return () => 42; }');
+    FunctionDeclaration f = compilationUnit.declarations[0];
+    BlockFunctionBody fBody = f.functionExpression.body;
+    ReturnStatement returnStatement = fBody.block.statements[0];
+    FunctionExpression closure = returnStatement.expression;
+    FunctionElement function = closure.element;
     expect(function, isNotNull);
     expect(function.hasImplicitReturnType, isTrue);
     expect(function.isSynthetic, isFalse);
@@ -375,10 +405,11 @@ class C {
   }
 
   void test_visitFunctionExpression_inExpressionBody() {
-    List<FunctionElement> functions =
-        buildElementsForText('f() => () => 42;').functions[0].functions;
-    expect(functions, hasLength(1));
-    FunctionElement function = functions[0];
+    buildElementsForText('f() => () => 42;');
+    FunctionDeclaration f = compilationUnit.declarations[0];
+    ExpressionFunctionBody fBody = f.functionExpression.body;
+    FunctionExpression closure = fBody.expression;
+    FunctionElement function = closure.element;
     expect(function, isNotNull);
     expect(function.hasImplicitReturnType, isTrue);
     expect(function.isSynthetic, isFalse);
@@ -821,7 +852,7 @@ class C {
         AstTestFactory.variableDeclaration2(variableName, null);
     Statement statement =
         AstTestFactory.variableDeclarationStatement2(null, [variable]);
-    Expression initializer = AstTestFactory.functionExpression2(
+    FunctionExpression initializer = AstTestFactory.functionExpression2(
         AstTestFactory.formalParameterList(),
         AstTestFactory.blockFunctionBody2([statement]));
     String fieldName = "f";
@@ -838,8 +869,7 @@ class C {
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
     expect(initializerElement.hasImplicitReturnType, isTrue);
-    List<FunctionElement> functionElements = initializerElement.functions;
-    expect(functionElements, hasLength(1));
+    expect(initializer.element, new isInstanceOf<FunctionElement>());
     LocalVariableElement variableElement = variable.element;
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.isConst, isFalse);
@@ -1011,31 +1041,27 @@ main() {
           .accept(new ApiElementBuilder(holder, compilationUnitElement));
       main = holder.functions.single as FunctionElementImpl;
     }
-    expect(main.functions, isEmpty);
 
     // Build local elements in body.
     ElementHolder holder = new ElementHolder();
     FunctionBody mainBody = mainAst.functionExpression.body;
     mainBody.accept(new LocalElementBuilder(holder, compilationUnitElement));
-    main.functions = holder.functions;
+    main.encloseElements(holder.functions);
     main.encloseElements(holder.localVariables);
 
+    var f1 = findLocalFunction(code, 'f1() {');
+    var f2 = findLocalFunction(code, 'f2() {');
     var v1 = findLocalVariable(code, 'v1;');
     var v2 = findLocalVariable(code, 'v2;');
     var v3 = findLocalVariable(code, 'v3;');
 
     expect(v1.enclosingElement, main);
-    expect(main.functions, hasLength(1));
     {
-      FunctionElement f1 = main.functions[0];
       expect(f1.name, 'f1');
       expect(v2.enclosingElement, f1);
-      expect(f1.functions, hasLength(1));
       {
-        FunctionElement f2 = f1.functions[0];
         expect(f2.name, 'f2');
         expect(v3.enclosingElement, f2);
-        expect(f2.functions, isEmpty);
       }
     }
   }
@@ -1111,9 +1137,11 @@ main() {
     ElementHolder holder = new ElementHolder();
     FunctionBody mainBody = mainAst.functionExpression.body;
     mainBody.accept(new LocalElementBuilder(holder, compilationUnitElement));
-    main.functions = holder.functions;
-    expect(main.functions, hasLength(1));
-    FunctionElement f = main.functions[0];
+
+    List<FunctionElement> functions = holder.functions;
+    main.encloseElements(functions);
+
+    FunctionElement f = findElementsByName(unit, 'f').single;
     expect(f.parameters, hasLength(1));
     expect(f.parameters[0].initializer, isNotNull);
   }
@@ -1425,7 +1453,6 @@ class C {
     expect(elementC, isNotNull);
     MethodElement methodM = elementC.methods[0];
     expect(methodM, isNotNull);
-    expect(methodM.functions, isEmpty);
   }
 
   void test_visitClassDeclaration_minimal() {
@@ -1636,7 +1663,6 @@ class C {
     expect(constructor.isExternal, isTrue);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
     expect(constructor.parameters, hasLength(0));
   }
 
@@ -1660,7 +1686,6 @@ class C {
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isTrue);
     expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
     expect(constructor.parameters, hasLength(0));
   }
 
@@ -1690,7 +1715,6 @@ class C {
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
     expect(constructor.parameters, hasLength(0));
   }
 
@@ -1715,7 +1739,6 @@ class C {
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, constructorName);
-    expect(constructor.functions, hasLength(0));
     expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.name.staticElement, same(constructor));
     expect(constructorDeclaration.element, same(constructor));
@@ -1741,7 +1764,6 @@ class C {
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
     expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.element, same(constructor));
   }
@@ -2030,7 +2052,6 @@ class C {
     expect(method, isNotNull);
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isTrue);
@@ -2097,7 +2118,6 @@ class A {
     expect(method, isNotNull);
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2141,7 +2161,6 @@ class A {
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
     expect(getter.variable, field);
-    expect(getter.functions, hasLength(0));
     expect(getter.parameters, hasLength(0));
   }
 
@@ -2174,7 +2193,6 @@ class A {
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
     expect(getter.variable, field);
-    expect(getter.functions, hasLength(0));
     expect(getter.parameters, hasLength(0));
   }
 
@@ -2208,7 +2226,6 @@ class A {
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
     expect(getter.variable, field);
-    expect(getter.functions, hasLength(0));
     expect(getter.parameters, hasLength(0));
   }
 
@@ -2237,7 +2254,6 @@ class A {
     expect(method.documentationComment, '/// aaa');
     expect(method.hasImplicitReturnType, isFalse);
     expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2266,7 +2282,6 @@ class A {
     expect(method, isNotNull);
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
     expect(method.parameters, hasLength(1));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2312,7 +2327,6 @@ class A {
     expect(setter.name, "$methodName=");
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
-    expect(setter.functions, hasLength(0));
     expect(setter.parameters, hasLength(0));
   }
 
@@ -2346,7 +2360,6 @@ class A {
     expect(setter.name, "$methodName=");
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
-    expect(setter.functions, hasLength(0));
     expect(setter.parameters, hasLength(0));
   }
 
@@ -2381,7 +2394,6 @@ class A {
     expect(setter.name, "$methodName=");
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
-    expect(setter.functions, hasLength(0));
     expect(setter.parameters, hasLength(0));
   }
 
@@ -2403,7 +2415,6 @@ class A {
     expect(method, isNotNull);
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -2432,7 +2443,6 @@ class A {
     expect(method, isNotNull);
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.typeParameters, hasLength(1));
     expect(method.isAbstract, isFalse);
@@ -2596,11 +2606,15 @@ abstract class _BaseTest extends ParserTestCase {
     return EngineTestCase.findSimpleIdentifier(compilationUnit, code, prefix);
   }
 
-  LocalVariableElement findLocalVariable(String code, String prefix) {
+  LabelElement findLabel(String code, String prefix) {
     return findIdentifier(code, prefix).staticElement;
   }
 
-  LabelElement findLabel(String code, String prefix) {
+  FunctionElement findLocalFunction(String code, String prefix) {
+    return findIdentifier(code, prefix).staticElement;
+  }
+
+  LocalVariableElement findLocalVariable(String code, String prefix) {
     return findIdentifier(code, prefix).staticElement;
   }
 

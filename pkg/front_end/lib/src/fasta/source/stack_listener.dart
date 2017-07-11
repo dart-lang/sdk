@@ -4,7 +4,7 @@
 
 library fasta.stack_listener;
 
-import '../fasta_codes.dart' show FastaMessage;
+import '../fasta_codes.dart' show Message;
 
 import '../parser.dart' show Listener, MemberKind;
 
@@ -16,7 +16,8 @@ import '../../scanner/token.dart' show BeginToken;
 
 import 'package:kernel/ast.dart' show AsyncMarker, Expression;
 
-import '../errors.dart' show inputError, internalError;
+import '../deprecated_problems.dart'
+    show deprecated_inputError, deprecated_internalProblem;
 
 import '../quote.dart' show unescapeString;
 
@@ -64,21 +65,21 @@ abstract class StackListener extends Listener {
   // and ast_builder.dart.
   void finishFunction(List annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
-    return internalError("Unsupported operation");
+    return deprecated_internalProblem("Unsupported operation");
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
   List<Expression> finishMetadata() {
-    return internalError("Unsupported operation");
+    return deprecated_internalProblem("Unsupported operation");
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void exitLocalScope() => internalError("Unsupported operation");
+  void exitLocalScope() => deprecated_internalProblem("Unsupported operation");
 
   void push(Object node) {
-    if (node == null) internalError("null not allowed.");
+    if (node == null) deprecated_internalProblem("null not allowed.");
     stack.push(node);
   }
 
@@ -113,7 +114,7 @@ abstract class StackListener extends Listener {
 
   @override
   void logEvent(String name) {
-    internalError("Unhandled event: $name in $runtimeType $uri:\n"
+    deprecated_internalProblem("Unhandled event: $name in $runtimeType $uri:\n"
         "  ${stack.values.join('\n  ')}");
   }
 
@@ -136,7 +137,7 @@ abstract class StackListener extends Listener {
 
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      internalError(
+      deprecated_internalProblem(
           "${runtimeType}: Stack not empty:\n"
           "  ${stack.values.join('\n  ')}",
           uri,
@@ -144,7 +145,8 @@ abstract class StackListener extends Listener {
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
-      inputError(uri, recoverableErrors.first.beginOffset, recoverableErrors);
+      deprecated_inputError(
+          uri, recoverableErrors.first.beginOffset, recoverableErrors);
     }
   }
 
@@ -225,7 +227,7 @@ abstract class StackListener extends Listener {
       Token token = pop();
       push(unescapeString(token.lexeme));
     } else {
-      internalError("String interpolation not implemented.");
+      deprecated_internalProblem("String interpolation not implemented.");
     }
   }
 
@@ -236,11 +238,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     debugEvent("RecoverExpression");
   }
 
-  void handleExtraneousExpression(Token token, FastaMessage message) {
+  void handleExtraneousExpression(Token token, Message message) {
     debugEvent("ExtraneousExpression");
     pop(); // Discard the extraneous expression.
   }
@@ -256,24 +258,28 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     debugEvent("Error: ${message.message}");
-    addCompileTimeErrorFromMessage(message);
+    addCompileTimeError(message, token.offset);
   }
 
-  void addCompileTimeErrorFromMessage(FastaMessage message);
+  void addCompileTimeError(Message message, int charOffset);
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
-    throw inputError(uri, token.charOffset, message.message);
+  Token handleUnrecoverableError(Token token, Message message) {
+    throw deprecated_inputError(uri, token.charOffset, message.message);
   }
 
-  void nit(String message, [int charOffset = -1]) {
-    messages.nit(uri, charOffset, message);
+  void deprecated_nit(String message, [int charOffset = -1]) {
+    messages.deprecated_nit(uri, charOffset, message);
   }
 
-  void warning(String message, [int charOffset = -1]) {
-    messages.warning(uri, charOffset, message);
+  void deprecated_warning(String message, [int charOffset = -1]) {
+    messages.deprecated_warning(uri, charOffset, message);
+  }
+
+  void warning(Message message, int charOffset) {
+    messages.warning(message, charOffset, uri);
   }
 }
 

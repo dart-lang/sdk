@@ -1064,7 +1064,6 @@ class AnalysisServer {
  */
 class AnalysisServerOptions {
   bool useAnalysisHighlight2 = false;
-  bool enableVerboseFlutterCompletions = false;
 
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;

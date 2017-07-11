@@ -7,7 +7,6 @@ library dart2js.kernel.backend_strategy;
 import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
-import '../closure.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
@@ -15,15 +14,11 @@ import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
 import '../io/source_information.dart';
-import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
-import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
-import '../js_model/closure.dart';
 import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
-import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../ssa/builder_kernel.dart';
@@ -32,14 +27,8 @@ import '../ssa/ssa.dart';
 import '../ssa/types.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
-import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
-import 'element_map_impl.dart';
-import 'kernel_strategy.dart';
-
-/// If `true` the [JsStrategy] is used as the backend strategy.
-bool useJsStrategyForTesting = false;
 
 /// A backend strategy based on Kernel IR nodes.
 abstract class KernelBackendStrategy implements BackendStrategy {
@@ -47,78 +36,8 @@ abstract class KernelBackendStrategy implements BackendStrategy {
   GlobalLocalsMap get globalLocalsMapForTesting;
 
   factory KernelBackendStrategy(Compiler compiler) {
-    return useJsStrategyForTesting
-        ? new JsBackendStrategy(compiler)
-        : new KernelBackendStrategyImpl(compiler);
+    return new JsBackendStrategy(compiler);
   }
-}
-
-/// Backend strategy that uses the kernel elements as the backend model.
-// TODO(redemption): Replace this with a strategy based on the J-element
-// model.
-class KernelBackendStrategyImpl implements KernelBackendStrategy {
-  final Compiler _compiler;
-  Sorter _sorter;
-  ClosureConversionTask _closureDataLookup;
-  final GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
-
-  KernelBackendStrategyImpl(this._compiler);
-
-  KernelToElementMapForBuilding get elementMap {
-    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
-    return elementMap;
-  }
-
-  GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
-
-  @override
-  ClosedWorldRefiner createClosedWorldRefiner(
-      covariant KernelClosedWorld closedWorld) {
-    return closedWorld;
-  }
-
-  @override
-  Sorter get sorter {
-    if (_sorter == null) {
-      _sorter = new KernelSorter(elementMap);
-    }
-    return _sorter;
-  }
-
-  @override
-  ClosureConversionTask get closureDataLookup =>
-      _closureDataLookup ??= new KernelClosureConversionTask(
-          _compiler.measurer, elementMap, null, _globalLocalsMap);
-
-  @override
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
-    return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
-  }
-
-  @override
-  CodegenWorldBuilder createCodegenWorldBuilder(
-      NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(
-        elementMap,
-        closedWorld.elementEnvironment,
-        nativeBasicData,
-        closedWorld,
-        selectorConstraintsStrategy);
-  }
-
-  @override
-  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
-      SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilder(
-        task, backend.compiler, elementMap, _globalLocalsMap);
-  }
-
-  @override
-  SourceInformationStrategy get sourceInformationStrategy =>
-      const JavaScriptSourceInformationStrategy();
 }
 
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
@@ -186,8 +105,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _compiler.backendStrategy.closureDataLookup,
         // TODO(redemption): Support these:
         const SourceInformationBuilder(),
-        null, // Function node used as capture scope id.
-        targetIsConstructorBody: false);
+        null); // Function node used as capture scope id.
     return builder.build();
   }
 }

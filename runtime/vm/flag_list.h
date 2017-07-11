@@ -94,8 +94,7 @@
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
-  R(limit_ints_to_64_bits, false, bool, false,                                 \
-    "Throw a RangeError on 64-bit integer overflow");                          \
+  P(limit_ints_to_64_bits, bool, false, "Truncate integers to 64 bits")        \
   C(load_deferred_eagerly, true, true, bool, false,                            \
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
@@ -156,6 +155,7 @@
   R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   D(trace_field_guards, bool, false, "Trace changes in field's cids.")         \
+  C(trace_irregexp, false, false, bool, false, "Trace irregexps.")             \
   D(trace_isolates, bool, false, "Trace isolate creation and shut down.")      \
   D(trace_handles, bool, false, "Traces allocation of handles.")               \
   D(trace_kernel_binary, bool, false, "Trace Kernel reader/writer.")           \

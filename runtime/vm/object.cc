@@ -11941,6 +11941,10 @@ void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
 
 
 RawObject* Namespace::GetMetadata() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  COMPILE_ASSERT(!FLAG_enable_mirrors);
+  return Object::empty_array().raw();
+#else
   Field& field = Field::Handle(metadata_field());
   if (field.IsNull()) {
     // There is no metadata for this object.
@@ -11956,6 +11960,7 @@ RawObject* Namespace::GetMetadata() const {
     }
   }
   return metadata.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
@@ -13077,111 +13082,6 @@ const char* ExceptionHandlers::ToCString() const {
   return buffer;
 #undef FORMAT1
 #undef FORMAT2
-}
-
-
-intptr_t DeoptInfo::FrameSize(const TypedData& packed) {
-  NoSafepointScope no_safepoint;
-  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
-  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
-                         packed.LengthInBytes());
-  return Reader::Read(&read_stream);
-}
-
-
-intptr_t DeoptInfo::NumMaterializations(
-    const GrowableArray<DeoptInstr*>& unpacked) {
-  intptr_t num = 0;
-  while (unpacked[num]->kind() == DeoptInstr::kMaterializeObject) {
-    num++;
-  }
-  return num;
-}
-
-
-void DeoptInfo::UnpackInto(const Array& table,
-                           const TypedData& packed,
-                           GrowableArray<DeoptInstr*>* unpacked,
-                           intptr_t length) {
-  NoSafepointScope no_safepoint;
-  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
-  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
-                         packed.LengthInBytes());
-  const intptr_t frame_size = Reader::Read(&read_stream);  // Skip frame size.
-  USE(frame_size);
-
-  const intptr_t suffix_length = Reader::Read(&read_stream);
-  if (suffix_length != 0) {
-    ASSERT(suffix_length > 1);
-    const intptr_t info_number = Reader::Read(&read_stream);
-
-    TypedData& suffix = TypedData::Handle();
-    Smi& offset = Smi::Handle();
-    Smi& reason_and_flags = Smi::Handle();
-    DeoptTable::GetEntry(table, info_number, &offset, &suffix,
-                         &reason_and_flags);
-    UnpackInto(table, suffix, unpacked, suffix_length);
-  }
-
-  while ((read_stream.PendingBytes() > 0) && (unpacked->length() < length)) {
-    const intptr_t instruction = Reader::Read(&read_stream);
-    const intptr_t from_index = Reader::Read(&read_stream);
-    unpacked->Add(DeoptInstr::Create(instruction, from_index));
-  }
-}
-
-
-void DeoptInfo::Unpack(const Array& table,
-                       const TypedData& packed,
-                       GrowableArray<DeoptInstr*>* unpacked) {
-  ASSERT(unpacked->is_empty());
-
-  // Pass kMaxInt32 as the length to unpack all instructions from the
-  // packed stream.
-  UnpackInto(table, packed, unpacked, kMaxInt32);
-
-  unpacked->Reverse();
-}
-
-
-const char* DeoptInfo::ToCString(const Array& deopt_table,
-                                 const TypedData& packed) {
-#define FORMAT "[%s]"
-  GrowableArray<DeoptInstr*> deopt_instrs;
-  Unpack(deopt_table, packed, &deopt_instrs);
-
-  // Compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
-  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    len += OS::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
-  }
-
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-
-  // Layout the fields in the buffer.
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    index += OS::SNPrint((buffer + index), (len - index), FORMAT,
-                         deopt_instrs[i]->ToCString());
-  }
-
-  return buffer;
-#undef FORMAT
-}
-
-
-// Returns a bool so it can be asserted.
-bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
-                                    const Array& deopt_table,
-                                    const TypedData& packed) {
-  GrowableArray<DeoptInstr*> unpacked;
-  Unpack(deopt_table, packed, &unpacked);
-  ASSERT(unpacked.length() == original.length());
-  for (intptr_t i = 0; i < unpacked.length(); ++i) {
-    ASSERT(unpacked[i]->Equals(*original[i]));
-  }
-  return true;
 }
 
 
@@ -14454,6 +14354,10 @@ bool Code::HasBreakpoint() const {
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      ICData::DeoptReasonId* deopt_reason,
                                      uint32_t* deopt_flags) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
+  return TypedData::null();
+#else
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.PayloadStart();
@@ -14478,6 +14382,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   }
   *deopt_reason = ICData::kDeoptUnknown;
   return TypedData::null();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
@@ -18998,7 +18903,11 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
         Bigint::Handle(Bigint::NewFromCString(str.ToCString(), space));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    if (!FLAG_limit_ints_to_64_bits) {
+      return big.raw();
+    }
+    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+    value = big.AsTruncatedInt64Value();
   }
   return Integer::New(value, space);
 }
@@ -19012,7 +18921,11 @@ RawInteger* Integer::NewCanonical(const String& str) {
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    if (!FLAG_limit_ints_to_64_bits) {
+      return big.raw();
+    }
+    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+    value = big.AsTruncatedInt64Value();
   }
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
@@ -19032,7 +18945,12 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    return Bigint::NewFromUint64(value, space);
+    if (FLAG_limit_ints_to_64_bits) {
+      // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+      return Integer::New(static_cast<int64_t>(value), space);
+    } else {
+      return Bigint::NewFromUint64(value, space);
+    }
   } else {
     return Integer::New(value, space);
   }
@@ -19141,13 +19059,18 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
                                   static_cast<int64_t>(right_value),
                               space);
         } else {
-          // In 64-bit mode, the product of two signed integers fits in a
-          // 64-bit result if the sum of the highest bits of their absolute
-          // values is smaller than 62.
           ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
-              62) {
-            return Integer::New(left_value * right_value, space);
+          if (FLAG_limit_ints_to_64_bits) {
+            return Integer::New(
+                Utils::MulWithWrapAround(left_value, right_value), space);
+          } else {
+            // In 64-bit mode, the product of two signed integers fits in a
+            // 64-bit result if the sum of the highest bits of their absolute
+            // values is smaller than 62.
+            if ((Utils::HighestBit(left_value) +
+                 Utils::HighestBit(right_value)) < 62) {
+              return Integer::New(left_value * right_value, space);
+            }
           }
         }
         // Perform a Bigint multiplication below.
@@ -19175,26 +19098,47 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
     const int64_t right_value = other.AsInt64Value();
     switch (operation) {
       case Token::kADD: {
-        if (!Utils::WillAddOverflow(left_value, right_value)) {
-          return Integer::New(left_value + right_value, space);
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(Utils::AddWithWrapAround(left_value, right_value),
+                              space);
+        } else {
+          if (!Utils::WillAddOverflow(left_value, right_value)) {
+            return Integer::New(left_value + right_value, space);
+          }
         }
         break;
       }
       case Token::kSUB: {
-        if (!Utils::WillSubOverflow(left_value, right_value)) {
-          return Integer::New(left_value - right_value, space);
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(Utils::SubWithWrapAround(left_value, right_value),
+                              space);
+        } else {
+          if (!Utils::WillSubOverflow(left_value, right_value)) {
+            return Integer::New(left_value - right_value, space);
+          }
         }
         break;
       }
       case Token::kMUL: {
-        if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
-            62) {
-          return Integer::New(left_value * right_value, space);
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
+                              space);
+        } else {
+          if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
+              62) {
+            return Integer::New(left_value * right_value, space);
+          }
         }
         break;
       }
       case Token::kTRUNCDIV: {
-        if ((left_value != Mint::kMinValue) || (right_value != -1)) {
+        if ((left_value == Mint::kMinValue) && (right_value == -1)) {
+          // Division special case: overflow in int64_t.
+          if (FLAG_limit_ints_to_64_bits) {
+            // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
+            return Integer::New(Mint::kMinValue, space);
+          }
+        } else {
           return Integer::New(left_value / right_value, space);
         }
         break;
@@ -19214,6 +19158,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -19259,6 +19204,7 @@ RawInteger* Integer::BitOp(Token::Kind kind,
         UNIMPLEMENTED();
     }
   }
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -19278,12 +19224,18 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
       }
       {  // Check for overflow.
         int cnt = Utils::BitLength(left_value);
-        if ((cnt + right_value) > Smi::kBits) {
-          if ((cnt + right_value) > Mint::kBits) {
-            return Bigint::NewFromShiftedInt64(left_value, right_value, space);
+        if (right_value > (Smi::kBits - cnt)) {
+          if (FLAG_limit_ints_to_64_bits) {
+            return Integer::New(
+                Utils::ShiftLeftWithTruncation(left_value, right_value), space);
           } else {
-            int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value, space);
+            if (right_value > (Mint::kBits - cnt)) {
+              return Bigint::NewFromShiftedInt64(left_value, right_value,
+                                                 space);
+            } else {
+              int64_t left_64 = left_value;
+              return Integer::New(left_64 << right_value, space);
+            }
           }
         }
       }
@@ -19705,6 +19657,7 @@ bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
 
 
 RawBigint* Bigint::New(Heap::Space space) {
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -19728,6 +19681,7 @@ RawBigint* Bigint::New(bool neg,
                        intptr_t used,
                        const TypedData& digits,
                        Heap::Space space) {
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   ASSERT((used == 0) ||
          (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
   Thread* thread = Thread::Current();
@@ -19767,6 +19721,7 @@ RawBigint* Bigint::New(bool neg,
 RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
   // Currently only used to convert Smi or Mint to hex String, therefore do
   // not throw RangeError if --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   bool neg;
   uint64_t abs_value;
@@ -19784,10 +19739,9 @@ RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
 
 
 RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
-  if (FLAG_limit_ints_to_64_bits) {
-    Exceptions::ThrowRangeErrorMsg(
-        "Integer operand requires conversion to Bigint");
-  }
+  // TODO(alexmarkov): Revise this assertion if this factory method is used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   SetDigitAt(digits, 0, static_cast<uint32_t>(value));
   SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
@@ -19798,12 +19752,9 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
                                        intptr_t shift,
                                        Heap::Space space) {
-  if (FLAG_limit_ints_to_64_bits) {
-    // The allocated Bigint value is not necessarily out of range, but it may
-    // be used as an operand in an operation resulting in a Bigint.
-    Exceptions::ThrowRangeErrorMsg(
-        "Integer operand requires conversion to Bigint");
-  }
+  // TODO(alexmarkov): Revise this assertion if this factory method is used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const intptr_t digit_shift = shift / kBitsPerDigit;
@@ -19835,6 +19786,7 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
   // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   ASSERT(str != NULL);
   bool neg = false;
   TypedData& digits = TypedData::Handle();
@@ -19857,6 +19809,7 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 
 RawBigint* Bigint::NewCanonical(const String& str) {
   // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();

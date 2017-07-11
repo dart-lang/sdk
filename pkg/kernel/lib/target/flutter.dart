@@ -87,4 +87,12 @@ class FlutterTarget extends Target {
     // TODO(ahe): This should probably return the same as VmTarget does.
     return new InvalidExpression();
   }
+
+  // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
+  // https://github.com/dart-lang/sdk/issues/29763).
+  @override
+  bool enableNative(Uri uri) => true;
+
+  @override
+  bool get nativeExtensionExpectsString => true;
 }

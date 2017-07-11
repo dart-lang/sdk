@@ -2745,8 +2745,6 @@ abstract class ElementImpl implements Element {
 
   /**
    * Set the enclosing element of this element to the given [element].
-   *
-   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
@@ -2895,8 +2893,6 @@ abstract class ElementImpl implements Element {
 
   /**
    * Changes the name of this element.
-   *
-   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set name(String name) {
     this._name = name;
@@ -2911,8 +2907,6 @@ abstract class ElementImpl implements Element {
   /**
    * Sets the offset of the name of this element in the file that contains the
    * declaration of this element.
-   *
-   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
@@ -3913,7 +3907,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(functions, visitor);
   }
 }
 
@@ -5470,11 +5463,6 @@ class ImportElementImpl extends UriReferencedElementImpl
  */
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
-   * The unlinked representation of the label in the summary.
-   */
-  final UnlinkedLabel _unlinkedLabel;
-
-  /**
    * A flag indicating whether this label is associated with a `switch`
    * statement.
    */
@@ -5496,8 +5484,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    */
   LabelElementImpl(String name, int nameOffset, this._onSwitchStatement,
       this._onSwitchMember)
-      : _unlinkedLabel = null,
-        super(name, nameOffset);
+      : super(name, nameOffset);
 
   /**
    * Initialize a newly created label element to have the given [name].
@@ -5507,18 +5494,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    */
   LabelElementImpl.forNode(
       Identifier name, this._onSwitchStatement, this._onSwitchMember)
-      : _unlinkedLabel = null,
-        super.forNode(name);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  LabelElementImpl.forSerialized(
-      UnlinkedLabel unlinkedLabel, ExecutableElementImpl enclosingExecutable)
-      : _unlinkedLabel = unlinkedLabel,
-        _onSwitchStatement = unlinkedLabel.isOnSwitchStatement,
-        _onSwitchMember = unlinkedLabel.isOnSwitchMember,
-        super.forSerialized(enclosingExecutable);
+      : super.forNode(name);
 
   @override
   String get displayName => name;
@@ -5542,45 +5518,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   ElementKind get kind => ElementKind.LABEL;
 
   @override
-  String get name {
-    if (_unlinkedLabel != null) {
-      return _unlinkedLabel.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    int offset = super.nameOffset;
-    if (offset == 0 &&
-        _unlinkedLabel != null &&
-        _unlinkedLabel.nameOffset != 0) {
-      return _unlinkedLabel.nameOffset;
-    }
-    return offset;
-  }
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitLabelElement(this);
-
-  /**
-   * Create and return [LabelElement]s for the given [unlinkedLabels].
-   */
-  static List<LabelElement> resynthesizeList(
-      ExecutableElementImpl enclosingExecutable,
-      List<UnlinkedLabel> unlinkedLabels) {
-    int length = unlinkedLabels.length;
-    if (length != 0) {
-      List<LabelElement> elements = new List<LabelElement>(length);
-      for (int i = 0; i < length; i++) {
-        elements[i] = new LabelElementImpl.forSerialized(
-            unlinkedLabels[i], enclosingExecutable);
-      }
-      return elements;
-    } else {
-      return const <LabelElement>[];
-    }
-  }
 }
 
 /**

@@ -13,7 +13,7 @@ import 'dart:io'
 
 import 'colors.dart' show red;
 
-import 'messages.dart' show errorsAreFatal, format, isVerbose;
+import 'messages.dart' show errorsAreFatal, deprecated_format, isVerbose;
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -33,43 +33,46 @@ Uri firstSourceUri;
 /// error: " and a short description that may help a developer debug the issue.
 /// This method should be called instead of using `throw`, as this allows us to
 /// ensure that there are no throws anywhere in the codebase.
-dynamic internalError(Object error, [Uri uri, int charOffset = -1]) {
+dynamic deprecated_internalProblem(Object error,
+    [Uri uri, int charOffset = -1]) {
   if (uri == null && charOffset == -1) {
     throw error;
   } else {
-    throw format(uri, charOffset, "Internal error: ${safeToString(error)}");
+    throw deprecated_format(
+        uri, charOffset, "Internal error: ${safeToString(error)}");
   }
 }
 
 /// Used to report an error in input.
 ///
 /// Avoid using this for reporting compile-time errors, instead use
-/// `LibraryBuilder.addCompileTimeError` for those.
+/// `LibraryBuilder.deprecated_addCompileTimeError` for those.
 ///
 /// An input error is any error that isn't an internal error. We use the term
 /// "input error" in favor of "user error". This way, if an input error isn't
 /// handled correctly, the user will never see a stack trace that says "user
 /// error".
-dynamic inputError(Uri uri, int charOffset, Object error) {
+dynamic deprecated_inputError(Uri uri, int charOffset, Object error) {
   if (errorsAreFatal && isVerbose) {
     print(StackTrace.current);
   }
-  throw new InputError(uri, charOffset, error);
+  throw new deprecated_InputError(uri, charOffset, error);
 }
 
-String printUnexpected(Uri uri, int charOffset, String message) {
-  String formattedMessage = formatUnexpected(uri, charOffset, message);
+String deprecated_printUnexpected(Uri uri, int charOffset, String message) {
+  String formattedMessage =
+      deprecated_formatUnexpected(uri, charOffset, message);
   if (errorsAreFatal) {
     print(formattedMessage);
     if (isVerbose) print(StackTrace.current);
-    throw new InputError(uri, charOffset, message);
+    throw new deprecated_InputError(uri, charOffset, message);
   }
   print(formattedMessage);
   return formattedMessage;
 }
 
-String formatUnexpected(Uri uri, int charOffset, String message) {
-  return format(uri, charOffset, colorError("Error: $message"));
+String deprecated_formatUnexpected(Uri uri, int charOffset, String message) {
+  return deprecated_format(uri, charOffset, colorError("Error: $message"));
 }
 
 String colorError(String message) {
@@ -78,19 +81,20 @@ String colorError(String message) {
   return red(message);
 }
 
-class InputError {
+class deprecated_InputError {
   final Uri uri;
 
   final int charOffset;
 
   final Object error;
 
-  InputError(this.uri, int charOffset, this.error)
+  deprecated_InputError(this.uri, int charOffset, this.error)
       : this.charOffset = charOffset ?? -1;
 
-  toString() => "InputError: $error";
+  toString() => "deprecated_InputError: $error";
 
-  String format() => formatUnexpected(uri, charOffset, safeToString(error));
+  String deprecated_format() =>
+      deprecated_formatUnexpected(uri, charOffset, safeToString(error));
 }
 
 class Crash {

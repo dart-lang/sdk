@@ -132,8 +132,8 @@ class FunctionInlineCache {
     if (decision == null) {
       // These synthetic elements are not yet present when we initially compute
       // this cache from metadata annotations, so look for their parent.
-      if (element is ConstructorBodyElement) {
-        ConstructorBodyElement body = element;
+      if (element is ConstructorBodyEntity) {
+        ConstructorBodyEntity body = element;
         decision = _cachedDecisions[body.constructor];
       }
       if (decision == null) {

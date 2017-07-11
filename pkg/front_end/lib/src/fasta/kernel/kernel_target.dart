@@ -6,8 +6,6 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
-
 import 'package:front_end/file_system.dart';
 
 import 'package:kernel/ast.dart'
@@ -54,8 +52,15 @@ import '../translate_uri.dart' show TranslateUri;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../errors.dart'
-    show InputError, internalError, reportCrash, resetCrashReporting;
+import '../deprecated_problems.dart'
+    show
+        deprecated_formatUnexpected,
+        deprecated_InputError,
+        deprecated_internalProblem,
+        reportCrash,
+        resetCrashReporting;
+
+import '../messages.dart' show LocatedMessage;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -78,8 +83,6 @@ import 'kernel_builder.dart'
         TypeVariableBuilder;
 
 import 'verifier.dart' show verifyProgram;
-import 'kernel_outline_shaker.dart'
-    show trimProgram, RetainedDataBuilder, RootsMarker;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
@@ -113,10 +116,11 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
-  void addError(file, int charOffset, String message) {
+  void deprecated_addError(file, int charOffset, String message) {
     Uri uri = file is String ? Uri.parse(file) : file;
-    InputError error = new InputError(uri, charOffset, message);
-    String formatterMessage = error.format();
+    deprecated_InputError error =
+        new deprecated_InputError(uri, charOffset, message);
+    String formatterMessage = error.deprecated_format();
     print(formatterMessage);
     errors.add(formatterMessage);
   }
@@ -149,7 +153,7 @@ class KernelTarget extends TargetImplementation {
     if (supertype is NamedTypeBuilder) {
       f(supertype);
     } else if (supertype != null) {
-      internalError("Unhandled: ${supertype.runtimeType}");
+      deprecated_internalProblem("Unhandled: ${supertype.runtimeType}");
     }
     if (cls.interfaces != null) {
       for (NamedTypeBuilder t in cls.interfaces) {
@@ -214,10 +218,9 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(InputError error,
-      {bool isFullProgram, bool trimDependencies: false}) {
+  void handleInputError(deprecated_InputError error, {bool isFullProgram}) {
     if (error != null) {
-      String message = error.format();
+      String message = error.deprecated_format();
       print(message);
       errors.add(message);
     }
@@ -249,7 +252,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
-    } on InputError catch (e) {
+    } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
@@ -263,20 +266,12 @@ class KernelTarget extends TargetImplementation {
   /// not include method bodies (depending on what was loaded into that target,
   /// an outline or a full kernel program).
   ///
-  /// When [trimDependencies] is true, this also runs a tree-shaker that deletes
-  /// anything from the [DillTarget] that is not needed for the source program,
-  /// this includes function bodies and types that are not reachable. This
-  /// option is currently in flux and the internal implementation might change.
-  /// See [trimDependenciesInProgram] for more details.
-  ///
   /// If [verify], run the default kernel verification on the resulting program.
   @override
-  Future<Program> buildProgram(
-      {bool verify: false, bool trimDependencies: false}) async {
+  Future<Program> buildProgram({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      handleInputError(null,
-          isFullProgram: true, trimDependencies: trimDependencies);
+      handleInputError(null, isFullProgram: true);
       return program;
     }
 
@@ -289,62 +284,15 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) this.verify();
       if (errors.isNotEmpty) {
-        handleInputError(null,
-            isFullProgram: true, trimDependencies: trimDependencies);
+        handleInputError(null, isFullProgram: true);
       }
       handleRecoverableErrors(loader.unhandledErrors);
-    } on InputError catch (e) {
-      handleInputError(e,
-          isFullProgram: true, trimDependencies: trimDependencies);
+    } on deprecated_InputError catch (e) {
+      handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    if (trimDependencies) trimDependenciesInProgram();
     return program;
-  }
-
-  Future writeDepsFile(Uri output, Uri depsFile,
-      {Iterable<Uri> extraDependencies}) async {
-    String toRelativeFilePath(Uri uri) {
-      // Ninja expects to find file names relative to the current working
-      // directory. We've tried making them relative to the deps file, but that
-      // doesn't work for downstream projects. Making them absolute also
-      // doesn't work.
-      //
-      // We can test if it works by running ninja twice, for example:
-      //
-      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
-      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
-      //
-      // The second time, ninja should say:
-      //
-      //     ninja: Entering directory `xcodebuild/ReleaseX64'
-      //     ninja: no work to do.
-      //
-      // It's broken if it says something like this:
-      //
-      //     ninja explain: expected depfile 'patched_sdk.d' to mention
-      //     'patched_sdk/platform.dill', got
-      //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
-      return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
-    }
-
-    if (loader.first == null) return null;
-    StringBuffer sb = new StringBuffer();
-    sb.write(toRelativeFilePath(output));
-    sb.write(":");
-    Set<String> allDependencies = new Set<String>();
-    allDependencies.addAll(loader.getDependencies().map(toRelativeFilePath));
-    if (extraDependencies != null) {
-      allDependencies.addAll(extraDependencies.map(toRelativeFilePath));
-    }
-    for (String path in allDependencies) {
-      sb.write(" ");
-      sb.write(path);
-    }
-    sb.writeln();
-    await new File.fromUri(depsFile).writeAsString("$sb");
-    ticker.logMs("Wrote deps file");
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains
@@ -354,7 +302,7 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If there's no main library, this method uses [erroneousProgram] to
   /// replace [program].
-  void handleRecoverableErrors(List<InputError> recoverableErrors) {
+  void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
     if (mainLibrary == null) {
@@ -362,8 +310,9 @@ class KernelTarget extends TargetImplementation {
       return;
     }
     List<Expression> expressions = <Expression>[];
-    for (InputError error in recoverableErrors) {
-      String message = error.format();
+    for (LocatedMessage error in recoverableErrors) {
+      String message = deprecated_formatUnexpected(
+          error.uri, error.charOffset, error.message);
       errors.add(message);
       expressions.add(new StringLiteral(message));
     }
@@ -477,7 +426,7 @@ class KernelTarget extends TargetImplementation {
         if (type is NamedTypeBuilder) {
           supertype = type.builder;
         } else {
-          internalError("Unhandled: ${type.runtimeType}");
+          deprecated_internalProblem("Unhandled: ${type.runtimeType}");
         }
       }
       if (supertype is KernelClassBuilder) {
@@ -497,7 +446,7 @@ class KernelTarget extends TargetImplementation {
       } else if (supertype is InvalidTypeBuilder) {
         builder.addSyntheticConstructor(makeDefaultConstructor());
       } else {
-        internalError("Unhandled: ${supertype.runtimeType}");
+        deprecated_internalProblem("Unhandled: ${supertype.runtimeType}");
       }
     } else {
       /// >Iff no constructor is specified for a class C, it implicitly has a
@@ -603,7 +552,7 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            addError(
+            deprecated_addError(
                 constructor.enclosingClass.fileUri,
                 constructor.fileOffset,
                 "${cls.superclass.name} has no constructor that takes no"
@@ -631,10 +580,14 @@ class KernelTarget extends TargetImplementation {
         }
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          addError(constructor.enclosingClass.fileUri, constructor.fileOffset,
+          deprecated_addError(
+              constructor.enclosingClass.fileUri,
+              constructor.fileOffset,
               "Constructor is marked 'const' so all fields must be final.");
           for (Field field in nonFinalFields) {
-            addError(constructor.enclosingClass.fileUri, field.fileOffset,
+            deprecated_addError(
+                constructor.enclosingClass.fileUri,
+                field.fileOffset,
                 "Field isn't final, but constructor is 'const'.");
           }
           nonFinalFields.clear();
@@ -688,27 +641,6 @@ class KernelTarget extends TargetImplementation {
     var verifyErrors = verifyProgram(program);
     errors.addAll(verifyErrors.map((error) => '$error'));
     ticker.logMs("Verified program");
-  }
-
-  /// Tree-shakes most code from the [dillTarget] by visiting all other
-  /// libraries in [program] and marking the APIs from the [dillTarget]
-  /// libraries that are in use.
-  ///
-  /// Note: while it's likely we'll do some trimming of programs for modular
-  /// compilation, it is unclear at this time when and how that trimming should
-  /// happen. We are likely going to remove the extra visitor my either marking
-  /// things while code is built, or by handling tree-shaking after the fact
-  /// (e.g. during serialization).
-  trimDependenciesInProgram() {
-    var toShake =
-        dillTarget.loader.libraries.map((lib) => lib.importUri).toSet();
-    var isIncluded = (Uri uri) => !toShake.contains(uri);
-    var data = new RetainedDataBuilder();
-    // TODO(sigmund): replace this step with data that is directly computed from
-    // the builders: we should know the tree-shaking roots without having to do
-    // a second visit over the tree.
-    new RootsMarker(loader.coreTypes, data).run(program, isIncluded);
-    trimProgram(program, data, isIncluded);
   }
 
   /// Return `true` if the given [library] was built by this [KernelTarget]

@@ -157,12 +157,13 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name = constantNamesAndOffsets[i];
       int charOffset = constantNamesAndOffsets[i + 1];
       if (members.containsKey(name)) {
-        parent.addCompileTimeError(charOffset, "Duplicated name: '$name'.");
+        parent.deprecated_addCompileTimeError(
+            charOffset, "Duplicated name: '$name'.");
         constantNamesAndOffsets[i] = null;
         continue;
       }
       if (name == className) {
-        parent.addCompileTimeError(
+        parent.deprecated_addCompileTimeError(
             charOffset,
             "Name of enum constant '$name' can't be the same as the enum's "
             "own name.");
@@ -213,7 +214,7 @@ class KernelEnumBuilder extends SourceClassBuilder
   @override
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     if (constantNamesAndOffsets.isEmpty) {
-      libraryBuilder.addCompileTimeError(
+      libraryBuilder.deprecated_addCompileTimeError(
           -1, "An enum declaration can't be empty.");
     }
     intType.resolveIn(coreLibrary.scope);
@@ -258,7 +259,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       // unnamed constructor requires no arguments. But that information isn't
       // always available at this point, and it's not really a situation that
       // can happen unless you start modifying the SDK sources.
-      addCompileTimeError(-1, "'Object' has no unnamed constructor.");
+      deprecated_addCompileTimeError(
+          -1, "'Object' has no unnamed constructor.");
     } else {
       constructor.initializers.add(
           new SuperInitializer(superConstructor.target, new Arguments.empty())

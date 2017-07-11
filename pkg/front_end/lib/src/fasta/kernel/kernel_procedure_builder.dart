@@ -44,9 +44,9 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
-import '../messages.dart' show warning;
+import '../messages.dart' show messageNonInstanceTypeVariableUse, warning;
 
 import '../loader.dart' show Loader;
 
@@ -65,7 +65,7 @@ import 'kernel_builder.dart'
         ProcedureBuilder,
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation,
-        memberError;
+        deprecated_memberError;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -91,14 +91,15 @@ abstract class KernelFunctionBuilder
   void set body(Statement newBody) {
     if (newBody != null) {
       if (isAbstract) {
-        return internalError("Attempting to set body on abstract method.");
+        return deprecated_internalProblem(
+            "Attempting to set body on abstract method.");
       }
       if (isExternal) {
-        return library.addCompileTimeError(
+        return library.deprecated_addCompileTimeError(
             newBody.fileOffset, "An external method can't have a body.");
       }
       if (isConstructor && isConst) {
-        return library.addCompileTimeError(
+        return library.deprecated_addCompileTimeError(
             newBody.fileOffset, "A const constructor can't have a body.");
       }
     }
@@ -150,8 +151,7 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          warning(fileUri, charOffset,
-              "Can only use type variables in instance methods.");
+          warning(messageNonInstanceTypeVariableUse, charOffset, fileUri);
           return substitute(type, substitution);
         }
 
@@ -353,7 +353,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   void checkSuperOrThisInitializer(Initializer initializer) {
     if (superInitializer != null || redirectingInitializer != null) {
-      memberError(
+      deprecated_memberError(
           target,
           "Can't have more than one 'super' or 'this' initializer.",
           initializer.fileOffset);
@@ -369,11 +369,15 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       checkSuperOrThisInitializer(initializer);
       redirectingInitializer = initializer;
       if (constructor.initializers.isNotEmpty) {
-        memberError(target, "'this' initializer must be the only initializer.",
+        deprecated_memberError(
+            target,
+            "'this' initializer must be the only initializer.",
             initializer.fileOffset);
       }
     } else if (redirectingInitializer != null) {
-      memberError(target, "'this' initializer must be the only initializer.",
+      deprecated_memberError(
+          target,
+          "'this' initializer must be the only initializer.",
           initializer.fileOffset);
     } else if (superInitializer != null) {
       // If there is a super initializer ([initializer] isn't it), we need to

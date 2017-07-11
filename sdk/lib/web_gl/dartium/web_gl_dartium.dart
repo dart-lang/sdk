@@ -3537,7 +3537,7 @@ class RenderingContext extends DartHtmlDomObject
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
-  void readPixels(int x, int y, int width, int height, int format, int type,
+  void _readPixels(int x, int y, int width, int height, int format, int type,
           TypedData pixels) =>
       _blink.BlinkWebGLRenderingContext.instance.readPixels_Callback_7_(
           this, x, y, width, height, format, type, pixels);
@@ -4213,6 +4213,17 @@ class RenderingContext extends DartHtmlDomObject
       _blink.BlinkWebGLRenderingContext.instance
           .viewport_Callback_4_(this, x, y, width, height);
 
+  @DomName('WebGLRenderingContext.readPixels')
+  @DocsEditable()
+  void readPixels(int x, int y, int width, int height, int format, int type,
+      TypedData pixels) {
+    var data = js.toArrayBufferView(pixels);
+    _readPixels(x, y, width, height, format, type, data);
+    for (var i = 0; i < data.length; i++) {
+      pixels[i] = data[i];
+    }
+  }
+
   /**
    * Sets the currently bound texture to [data].
    *
@@ -4289,11 +4300,9 @@ class RenderingContext extends DartHtmlDomObject
     bufferSubData(target, offset, data);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 @DocsEditable()
 @DomName('WebGL2RenderingContext')
@@ -7478,7 +7487,7 @@ class RenderingContext2 extends DartHtmlDomObject
   @DomName('WebGL2RenderingContext.readPixels')
   @DocsEditable()
   @Experimental() // untriaged
-  void readPixels(int x, int y, int width, int height, int format, int type,
+  void _readPixels(int x, int y, int width, int height, int format, int type,
           TypedData pixels) =>
       _blink.BlinkWebGL2RenderingContext.instance.readPixels_Callback_7_(
           this, x, y, width, height, format, type, pixels);
@@ -8182,7 +8191,19 @@ class RenderingContext2 extends DartHtmlDomObject
   void viewport(int x, int y, int width, int height) =>
       _blink.BlinkWebGL2RenderingContext.instance
           .viewport_Callback_4_(this, x, y, width, height);
+
+  @DomName('WebGLRenderingContext2.readPixels')
+  @DocsEditable()
+  void readPixels(int x, int y, int width, int height, int format, int type,
+      TypedData pixels) {
+    var data = js.toArrayBufferView(pixels);
+    _readPixels(x, y, width, height, format, type, data);
+    for (var i = 0; i < data.length; i++) {
+      pixels[i] = data[i];
+    }
+  }
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

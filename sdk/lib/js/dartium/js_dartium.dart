@@ -112,6 +112,9 @@ final String _DART_RESERVED_NAME_PREFIX = r'JS$';
 // library.
 final String escapePrivateClassPrefix = r'$JSImplClass23402893498';
 
+// Exposed to return ArrayBufferView from a TypedArray passed to readPixels.
+toArrayBufferView(TypedData data) native "Dart_TypedArray_ArrayBufferView";
+
 String _stripReservedNamePrefix(String name) =>
     name.startsWith(_DART_RESERVED_NAME_PREFIX)
         ? name.substring(_DART_RESERVED_NAME_PREFIX.length)

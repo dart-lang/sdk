@@ -7,6 +7,21 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
+  @DomName('WebGLRenderingContext.readPixels')
+  @DocsEditable()
+  void readPixels(int x, int y, int width, int height, int format, int type,
+          TypedData pixels) {
+$if DART2JS
+      _readPixels(x, y, width, height, format, type, pixels);
+$else
+      var data = js.toArrayBufferView(pixels);
+      _readPixels(x, y, width, height, format, type, data);
+      for (var i = 0; i < data.length; i++) {
+        pixels[i] = data[i];
+      }
+$endif
+  }
+
   /**
    * Sets the currently bound texture to [data].
    *

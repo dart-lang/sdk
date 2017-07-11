@@ -593,7 +593,7 @@ class NoSuchMethodError {
 
 class _CompileTimeError extends Error {
   final String _errorMsg;
-  // TODO(sigmund): consider calling `JS("", "debugger")`.
+  // TODO(sigmund): consider calling `JS('', 'debugger')`.
   _CompileTimeError(this._errorMsg);
   String toString() => _errorMsg;
 }

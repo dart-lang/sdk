@@ -22,7 +22,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/verifier.dart' show VerificationError, VerifyingVisitor;
 
-import '../errors.dart' show printUnexpected;
+import '../deprecated_problems.dart' show deprecated_printUnexpected;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -47,7 +47,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   problem(TreeNode node, String details, {TreeNode context}) {
     context ??= this.context;
     VerificationError error = new VerificationError(context, node, details);
-    printUnexpected(Uri.parse(fileUri), node?.fileOffset ?? -1, "$error");
+    deprecated_printUnexpected(
+        Uri.parse(fileUri), node?.fileOffset ?? -1, "$error");
     errors.add(error);
   }
 

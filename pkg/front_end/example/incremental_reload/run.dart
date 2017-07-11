@@ -50,7 +50,7 @@ import '../../tool/vm/reload.dart';
 
 import 'compiler_with_invalidation.dart';
 
-VmReloader reloader = new VmReloader();
+RemoteVm remoteVm = new RemoteVm();
 AnsiTerminal terminal = new AnsiTerminal();
 
 main(List<String> args) async {
@@ -64,7 +64,7 @@ main(List<String> args) async {
 
   showHeader();
   listenOnKeyPress(compiler, outputUri)
-      .whenComplete(() => reloader.disconnect());
+      .whenComplete(() => remoteVm.disconnect());
 }
 
 /// Implements the interactive UI by listening for input keys from the user.
@@ -122,7 +122,7 @@ Future listenOnKeyPress(IncrementalCompiler compiler, Uri outputUri) {
 Future<ReloadResult> reload(outputUri) async {
   var result = new ReloadResult();
   var reloadTimer = new Stopwatch()..start();
-  var reloadResult = await reloader.reload(outputUri);
+  var reloadResult = await remoteVm.reload(outputUri);
   reloadTimer.stop();
   result.reloadTime = reloadTimer.elapsedMilliseconds;
   result.errorSeen = false;

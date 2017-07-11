@@ -368,7 +368,7 @@ class JSInvocationMirror implements Invocation {
     var name = _internalName;
     var arguments = _arguments;
     var interceptedNames = JS_EMBEDDED_GLOBAL('', INTERCEPTED_NAMES);
-    bool isIntercepted = JS("bool",
+    bool isIntercepted = JS('bool',
         'Object.prototype.hasOwnProperty.call(#, #)', interceptedNames, name);
     if (isIntercepted) {
       receiver = interceptor;
@@ -443,7 +443,7 @@ class CachedInvocation {
       this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
-  bool get isGetterStub => JS("bool", "!!#.\$getterStub", jsFunction);
+  bool get isGetterStub => JS('bool', '!!#.\$getterStub', jsFunction);
 
   /// Applies [jsFunction] to [victim] with [arguments].
   /// Users of this class must take care to check the arguments first.
@@ -455,7 +455,7 @@ class CachedInvocation {
       arguments = [victim]..addAll(arguments);
       if (cachedInterceptor != null) receiver = cachedInterceptor;
     }
-    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+    return JS('var', '#.apply(#, #)', jsFunction, receiver, arguments);
   }
 }
 
@@ -508,7 +508,7 @@ class CachedCatchAllInvocation extends CachedInvocation {
     for (int i = providedArgumentCount; i < fullParameterCount; i++) {
       arguments.add(getMetadata(info.defaultValue(i)));
     }
-    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+    return JS('var', '#.apply(#, #)', jsFunction, receiver, arguments);
   }
 }
 
@@ -1050,7 +1050,7 @@ class Primitives {
 
   static String flattenString(String str) {
     return JS('returns:String;depends:none;effects:none;throws:never;gvn:true',
-        "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+        '#.charCodeAt(0) == 0 ? # : #', str, str, str);
   }
 
   static String getTimeZoneName(DateTime receiver) {
@@ -1085,7 +1085,7 @@ class Primitives {
     //       (Opera): Wed Nov 20 2013 11:03:38 GMT+0100
     match = JS('JSArray|Null', r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())', d);
     if (match != null) return match[0];
-    return "";
+    return '';
   }
 
   static int getTimeZoneOffsetInMinutes(DateTime receiver) {
@@ -1436,7 +1436,7 @@ class Primitives {
         return functionNoSuchMethod(function, arguments, namedArguments);
       }
 
-      int defaultsLength = JS('int', "#.length", defaultValues);
+      int defaultsLength = JS('int', '#.length', defaultValues);
       int maxArguments = requiredParameterCount + defaultsLength;
       if (argumentCount > maxArguments) {
         // The function expects fewer arguments.
@@ -1722,7 +1722,7 @@ Error diagnoseRangeError(start, end, length) {
     }
   }
   // The above should always match, but if it does not, use the following.
-  return new ArgumentError.value(end, "end");
+  return new ArgumentError.value(end, 'end');
 }
 
 stringLastIndexOfUnchecked(receiver, element, start) =>
@@ -2013,7 +2013,7 @@ class TypeErrorDecoder {
     // have been escaped already), as we will soon be inserting
     // regular expression syntax that we want interpreted by RegExp.
     List<String> match =
-        JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
+        JS('JSExtendableArray|Null', r'#.match(/\\\$[a-zA-Z]+\\\$/g)', message);
     if (match == null) match = [];
 
     // Find the positions within the substring matches of the error message
@@ -2420,7 +2420,7 @@ class _StackTrace implements StackTrace {
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
-      trace = JS("String|Null", r"#.stack", _exception);
+      trace = JS('String|Null', r'#.stack', _exception);
     }
     return _trace = (trace == null) ? '' : trace;
   }
@@ -2780,13 +2780,13 @@ abstract class Closure implements Function {
     }
   }
 
-  static bool get isCsp => JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
+  static bool get isCsp => JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
 
   static forwardCallTo(receiver, function, bool isIntercepted) {
     if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    var lookedUpFunction = JS('', '#[#]', receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
     // forward to a super-method. Especially when we create a bound closure
     // of a super-call we need to make sure that we don't forward back to the
@@ -2918,8 +2918,8 @@ abstract class Closure implements Function {
     String receiverField = BoundClosure.receiverFieldName();
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    bool isCsp = JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
-    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    bool isCsp = JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
+    var lookedUpFunction = JS('', '#[#]', receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
     // forward to a super-method. Especially when we create a bound closure
     // of a super-call we need to make sure that we don't forward back to the
@@ -2989,7 +2989,7 @@ class StaticClosure extends TearOffClosure {
   String toString() {
     String name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
-    if (name == null) return "Closure of unknown static method";
+    if (name == null) return 'Closure of unknown static method';
     return "Closure '$name'";
   }
 }
@@ -3528,7 +3528,7 @@ class CastErrorImplementation extends Error implements CastError {
 
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();
-  String toString() => "Switch case fall-through.";
+  String toString() => 'Switch case fall-through.';
 }
 
 /**
@@ -3586,7 +3586,7 @@ void throwCyclicInit(String staticName) {
 class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
-  String toString() => "RuntimeError: $message";
+  String toString() => 'RuntimeError: $message';
 }
 
 class DeferredNotLoadedError extends Error implements NoSuchMethodError {
@@ -3595,7 +3595,7 @@ class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   DeferredNotLoadedError(this.libraryName);
 
   String toString() {
-    return "Deferred library $libraryName was not loaded.";
+    return 'Deferred library $libraryName was not loaded.';
   }
 }
 
@@ -3606,7 +3606,7 @@ class UnimplementedNoSuchMethodError extends Error
 
   UnimplementedNoSuchMethodError(this._message);
 
-  String toString() => "Unsupported operation: $_message";
+  String toString() => 'Unsupported operation: $_message';
 }
 
 /**
@@ -3616,13 +3616,13 @@ class UnimplementedNoSuchMethodError extends Error
  */
 int random64() {
   // TODO(lrn): Use a secure random source.
-  int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
-  int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
+  int int32a = JS('int', '(Math.random() * 0x100000000) >>> 0');
+  int int32b = JS('int', '(Math.random() * 0x100000000) >>> 0');
   return int32a + int32b * 0x100000000;
 }
 
 String jsonEncodeNative(String string) {
-  return JS("String", "JSON.stringify(#)", string);
+  return JS('String', 'JSON.stringify(#)', string);
 }
 
 /**
@@ -3712,7 +3712,7 @@ Future<Null> _loadHunk(String hunkName) {
   void failure([error, StackTrace stackTrace]) {
     _loadingLibraries[hunkName] = null;
     completer.completeError(
-        new DeferredLoadException("Loading $uri failed: $error"), stackTrace);
+        new DeferredLoadException('Loading $uri failed: $error'), stackTrace);
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
@@ -3744,7 +3744,7 @@ Future<Null> _loadHunk(String hunkName) {
         xhr,
         convertDartClosureToJS((event) {
           if (JS('int', '#.status', xhr) != 200) {
-            failure("");
+            failure('');
           }
           String code = JS('String', '#.responseText', xhr);
           try {
@@ -3805,7 +3805,7 @@ class _AssertionError extends AssertionError {
 // unneeded code.
 class _UnreachableError extends AssertionError {
   _UnreachableError();
-  String toString() => "Assertion failed: Reached dead code";
+  String toString() => 'Assertion failed: Reached dead code';
 }
 
 @NoInline()

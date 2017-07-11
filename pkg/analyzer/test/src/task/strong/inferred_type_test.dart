@@ -3023,7 +3023,7 @@ main() {
 
   test_inferLocalFunctionReturnType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26414
-    var unit = await checkFileElement(r'''
+    var unit = await checkFile(r'''
 main() {
   f0() => 42;
   f1() async => 42;
@@ -3040,21 +3040,20 @@ main() {
   f9() => f5();
 }
 ''');
-    var fns = unit.functions[0].functions;
-    expect(fns[0].type.toString(), '() → int');
-    expect(fns[1].type.toString(), '() → Future<int>');
+    expect(findLocalFunction(unit, 'f0').type.toString(), '() → int');
+    expect(findLocalFunction(unit, 'f1').type.toString(), '() → Future<int>');
 
-    expect(fns[2].type.toString(), '() → int');
-    expect(fns[3].type.toString(), '() → Future<int>');
-    expect(fns[4].type.toString(), '() → Iterable<int>');
-    expect(fns[5].type.toString(), '() → Stream<int>');
+    expect(findLocalFunction(unit, 'f2').type.toString(), '() → int');
+    expect(findLocalFunction(unit, 'f3').type.toString(), '() → Future<int>');
+    expect(findLocalFunction(unit, 'f4').type.toString(), '() → Iterable<int>');
+    expect(findLocalFunction(unit, 'f5').type.toString(), '() → Stream<int>');
 
-    expect(fns[6].type.toString(), '() → num');
+    expect(findLocalFunction(unit, 'f6').type.toString(), '() → num');
 
     // Recursive cases: these infer in declaration order.
-    expect(fns[7].type.toString(), '() → dynamic');
-    expect(fns[8].type.toString(), '() → dynamic');
-    expect(fns[9].type.toString(), '() → Stream<int>');
+    expect(findLocalFunction(unit, 'f7').type.toString(), '() → dynamic');
+    expect(findLocalFunction(unit, 'f8').type.toString(), '() → dynamic');
+    expect(findLocalFunction(unit, 'f9').type.toString(), '() → Stream<int>');
   }
 
   test_inferParameterType_setter_fromField() async {

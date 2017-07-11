@@ -53,8 +53,6 @@ class RegExpParser : public ValueObject {
  public:
   RegExpParser(const String& in, String* error, bool multiline_mode);
 
-  static bool ParseFunction(ParsedFunction* parsed_function);
-
   static bool ParseRegExp(const String& input,
                           bool multiline,
                           RegExpCompileData* result);

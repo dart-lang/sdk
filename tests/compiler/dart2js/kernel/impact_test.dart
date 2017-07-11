@@ -15,6 +15,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
@@ -744,8 +745,9 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
-    KernelToElementMapImpl kernelElementMap =
-        new KernelToElementMapImpl(compiler.reporter, compiler.environment);
+    KernelToElementMapForImpact kernelElementMap =
+        new KernelToElementMapForImpactImpl(
+            compiler.reporter, compiler.environment);
     kernelElementMap.addProgram(backend.kernelTask.program);
 
     LibraryElement mainApp =
@@ -758,7 +760,7 @@ main(List<String> args) {
   });
 }
 
-void checkLibrary(Compiler compiler, KernelToElementMapImpl elementMap,
+void checkLibrary(Compiler compiler, KernelToElementMapForImpact elementMap,
     LibraryElement library,
     {bool fullTest: false}) {
   library.forEachLocalMember((_element) {
@@ -777,8 +779,8 @@ void checkLibrary(Compiler compiler, KernelToElementMapImpl elementMap,
   });
 }
 
-void checkElement(
-    Compiler compiler, KernelToElementMapImpl elementMap, AstElement element,
+void checkElement(Compiler compiler, KernelToElementMapForImpact elementMap,
+    AstElement element,
     {bool fullTest: false}) {
   if (!fullTest && element.library.isPlatformLibrary) {
     return;

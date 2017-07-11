@@ -10,1122 +10,1228 @@
 part of fasta.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedClassBodyToSkip> codeExpectedClassBodyToSkip =
-    const FastaCode<_ExpectedClassBodyToSkip>("ExpectedClassBodyToSkip",
-        template: r"Expected a class body, but got '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatExpectedClassBodyToSkip);
-
-typedef FastaMessage _ExpectedClassBodyToSkip(
-    Uri uri, int charOffset, Token token);
+const Template<Message Function(Token token)> templateExpectedClassBodyToSkip =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected a class body, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedClassBodyToSkip);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedClassBodyToSkip(
-    Uri uri, int charOffset, Token token) {
+const Code<Message Function(Token token)> codeExpectedClassBodyToSkip =
+    const Code<Message Function(Token token)>(
+        "ExpectedClassBodyToSkip", templateExpectedClassBodyToSkip,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedClassBodyToSkip(Token token) {
   String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedClassBodyToSkip,
-      message: "Expected a class body, but got '$lexeme'.",
+  return new Message(codeExpectedClassBodyToSkip,
+      message: """Expected a class body, but got '$lexeme'.""",
       arguments: {'token': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_FunctionTypeDefaultValue> codeFunctionTypeDefaultValue =
-    const FastaCode<_FunctionTypeDefaultValue>("FunctionTypeDefaultValue",
-        template: r"Can't have a default value in a function type.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatFunctionTypeDefaultValue);
-
-typedef FastaMessage _FunctionTypeDefaultValue(Uri uri, int charOffset);
+const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatFunctionTypeDefaultValue(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeFunctionTypeDefaultValue,
-      message: "Can't have a default value in a function type.", arguments: {});
+const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
+    "FunctionTypeDefaultValue",
+    dart2jsCode: "*ignored*",
+    message: r"""Can't have a default value in a function type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonInstanceTypeVariableUse =
+    messageNonInstanceTypeVariableUse;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
+    "NonInstanceTypeVariableUse",
+    message: r"""Can only use type variables in instance methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStackOverflow = messageStackOverflow;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
+    dart2jsCode: "GENERIC", message: r"""Stack overflow.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateCyclicTypedef =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""The typedef '#name' has a reference to itself.""",
+        withArguments: _withArgumentsCyclicTypedef);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeCyclicTypedef =
+    const Code<Message Function(String name)>(
+  "CyclicTypedef",
+  templateCyclicTypedef,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCyclicTypedef(String name) {
+  return new Message(codeCyclicTypedef,
+      message: """The typedef '$name' has a reference to itself.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_StackOverflow> codeStackOverflow =
-    const FastaCode<_StackOverflow>("StackOverflow",
-        template: r"Stack overflow.",
-        dart2jsCode: "GENERIC",
-        format: _formatStackOverflow);
-
-typedef FastaMessage _StackOverflow(Uri uri, int charOffset);
+const Code<Null> codeAssertExtraneousArgument = messageAssertExtraneousArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatStackOverflow(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeStackOverflow,
-      message: "Stack overflow.", arguments: {});
-}
+const MessageCode messageAssertExtraneousArgument = const MessageCode(
+    "AssertExtraneousArgument",
+    dart2jsCode: "*fatal*",
+    message: r"""`assert` can't have more than two arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AssertExtraneousArgument> codeAssertExtraneousArgument =
-    const FastaCode<_AssertExtraneousArgument>("AssertExtraneousArgument",
-        template: r"`assert` can't have more than two arguments.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatAssertExtraneousArgument);
-
-typedef FastaMessage _AssertExtraneousArgument(Uri uri, int charOffset);
+const Template<Message Function(Token token)> templateUnexpectedToken =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Unexpected token '#lexeme'.""",
+        withArguments: _withArgumentsUnexpectedToken);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAssertExtraneousArgument(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAssertExtraneousArgument,
-      message: "`assert` can't have more than two arguments.", arguments: {});
-}
+const Code<Message Function(Token token)> codeUnexpectedToken =
+    const Code<Message Function(Token token)>(
+        "UnexpectedToken", templateUnexpectedToken,
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_UnexpectedToken> codeUnexpectedToken =
-    const FastaCode<_UnexpectedToken>("UnexpectedToken",
-        template: r"Unexpected token '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatUnexpectedToken);
-
-typedef FastaMessage _UnexpectedToken(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnexpectedToken(Uri uri, int charOffset, Token token) {
+Message _withArgumentsUnexpectedToken(Token token) {
   String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeUnexpectedToken,
-      message: "Unexpected token '$lexeme'.", arguments: {'token': token});
+  return new Message(codeUnexpectedToken,
+      message: """Unexpected token '$lexeme'.""", arguments: {'token': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AwaitAsIdentifier> codeAwaitAsIdentifier = const FastaCode<
-        _AwaitAsIdentifier>("AwaitAsIdentifier",
-    template:
-        r"'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-    dart2jsCode: "FASTA_IGNORED",
-    format: _formatAwaitAsIdentifier);
-
-typedef FastaMessage _AwaitAsIdentifier(Uri uri, int charOffset);
+const Code<Null> codeAwaitAsIdentifier = messageAwaitAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAwaitAsIdentifier(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAwaitAsIdentifier,
-      message:
-          "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-      arguments: {});
+const MessageCode messageAwaitAsIdentifier = const MessageCode(
+    "AwaitAsIdentifier",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
+    dart2jsCode: "*ignored*",
+    message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name)>
+    templateUnexpected =
+    const Template<Message Function(String string, String name)>(
+        messageTemplate: r"""Expected '#string', but got '#name'.""",
+        withArguments: _withArgumentsUnexpected);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name)> codeUnexpected =
+    const Code<Message Function(String string, String name)>(
+  "Unexpected",
+  templateUnexpected,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnexpected(String string, String name) {
+  return new Message(codeUnexpected,
+      message: """Expected '$string', but got '$name'.""",
+      arguments: {'string': string, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_FactoryNotSync> codeFactoryNotSync =
-    const FastaCode<_FactoryNotSync>("FactoryNotSync",
-        template: r"Factories can't use 'async', 'async*', or 'sync*'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatFactoryNotSync);
-
-typedef FastaMessage _FactoryNotSync(Uri uri, int charOffset);
+const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatFactoryNotSync(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeFactoryNotSync,
-      message: "Factories can't use 'async', 'async*', or 'sync*'.",
-      arguments: {});
-}
+const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
+    dart2jsCode: "*ignored*",
+    message: r"""'super' can't be null.""",
+    tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_SuperNullAware> codeSuperNullAware =
-    const FastaCode<_SuperNullAware>("SuperNullAware",
-        template: r"'super' can't be null.",
-        tip: r"Try replacing '?.' with '.'",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatSuperNullAware);
-
-typedef FastaMessage _SuperNullAware(Uri uri, int charOffset);
+const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatSuperNullAware(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeSuperNullAware,
-      message: "'super' can't be null.",
-      tip: "Try replacing '?.' with '.'",
-      arguments: {});
-}
+const MessageCode messagePrivateNamedParameter = const MessageCode(
+    "PrivateNamedParameter",
+    dart2jsCode: "*ignored*",
+    message: r"""An optional named parameter can't start with '_'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_PrivateNamedParameter> codePrivateNamedParameter =
-    const FastaCode<_PrivateNamedParameter>("PrivateNamedParameter",
-        template: r"An optional named parameter can't start with '_'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatPrivateNamedParameter);
-
-typedef FastaMessage _PrivateNamedParameter(Uri uri, int charOffset);
+const Code<Null> codeYieldNotGenerator = messageYieldNotGenerator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatPrivateNamedParameter(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codePrivateNamedParameter,
-      message: "An optional named parameter can't start with '_'.",
-      arguments: {});
-}
+const MessageCode messageYieldNotGenerator = const MessageCode(
+    "YieldNotGenerator",
+    dart2jsCode: "*ignored*",
+    message: r"""'yield' can only be used in 'sync*' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_YieldNotGenerator> codeYieldNotGenerator =
-    const FastaCode<_YieldNotGenerator>("YieldNotGenerator",
-        template: r"'yield' can only be used in 'sync*' or 'async*' methods.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatYieldNotGenerator);
-
-typedef FastaMessage _YieldNotGenerator(Uri uri, int charOffset);
+const Code<Null> codeReturnTypeFunctionExpression =
+    messageReturnTypeFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatYieldNotGenerator(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeYieldNotGenerator,
-      message: "'yield' can only be used in 'sync*' or 'async*' methods.",
-      arguments: {});
-}
+const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
+    "ReturnTypeFunctionExpression",
+    dart2jsCode: "*ignored*",
+    message: r"""A function expression can't have a return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_SetterNotSync> codeSetterNotSync =
-    const FastaCode<_SetterNotSync>("SetterNotSync",
-        template: r"Setters can't use 'async', 'async*', or 'sync*'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatSetterNotSync);
-
-typedef FastaMessage _SetterNotSync(Uri uri, int charOffset);
+const Code<Null> codeSetterNotSync = messageSetterNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatSetterNotSync(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeSetterNotSync,
-      message: "Setters can't use 'async', 'async*', or 'sync*'.",
-      arguments: {});
-}
+const MessageCode messageSetterNotSync = const MessageCode("SetterNotSync",
+    dart2jsCode: "*ignored*",
+    message: r"""Setters can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_NonAsciiWhitespace> codeNonAsciiWhitespace = const FastaCode<
-        _NonAsciiWhitespace>("NonAsciiWhitespace",
-    template:
-        r"The non-ASCII space character #unicode can only be used in strings and comments.",
-    analyzerCode: "ILLEGAL_CHARACTER",
-    dart2jsCode: "BAD_INPUT_CHARACTER",
-    format: _formatNonAsciiWhitespace);
-
-typedef FastaMessage _NonAsciiWhitespace(
-    Uri uri, int charOffset, int codePoint);
+const Template<
+    Message Function(
+        int
+            codePoint)> templateNonAsciiWhitespace = const Template<
+        Message Function(int codePoint)>(
+    messageTemplate:
+        r"""The non-ASCII space character #unicode can only be used in strings and comments.""",
+    withArguments: _withArgumentsNonAsciiWhitespace);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatNonAsciiWhitespace(Uri uri, int charOffset, int codePoint) {
+const Code<Message Function(int codePoint)> codeNonAsciiWhitespace =
+    const Code<Message Function(int codePoint)>(
+        "NonAsciiWhitespace", templateNonAsciiWhitespace,
+        analyzerCode: "ILLEGAL_CHARACTER", dart2jsCode: "BAD_INPUT_CHARACTER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAsciiWhitespace(int codePoint) {
   String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
-  return new FastaMessage(uri, charOffset, codeNonAsciiWhitespace,
+  return new Message(codeNonAsciiWhitespace,
       message:
-          "The non-ASCII space character $unicode can only be used in strings and comments.",
+          """The non-ASCII space character $unicode can only be used in strings and comments.""",
       arguments: {'codePoint': codePoint});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedIdentifier> codeExpectedIdentifier =
-    const FastaCode<_ExpectedIdentifier>("ExpectedIdentifier",
-        template: r"'#lexeme' is a reserved word and can't be used here.",
-        tip: r"Try using a different name.",
-        dart2jsCode: "EXPECTED_IDENTIFIER",
-        format: _formatExpectedIdentifier);
-
-typedef FastaMessage _ExpectedIdentifier(Uri uri, int charOffset, Token token);
+const Template<Message Function(Token token)> templateExpectedIdentifier =
+    const Template<Message Function(Token token)>(
+        messageTemplate:
+            r"""'#lexeme' is a reserved word and can't be used here.""",
+        tipTemplate: r"""Try using a different name.""",
+        withArguments: _withArgumentsExpectedIdentifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedIdentifier(Uri uri, int charOffset, Token token) {
+const Code<Message Function(Token token)> codeExpectedIdentifier =
+    const Code<Message Function(Token token)>(
+        "ExpectedIdentifier", templateExpectedIdentifier,
+        dart2jsCode: "EXPECTED_IDENTIFIER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedIdentifier(Token token) {
   String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedIdentifier,
-      message: "'$lexeme' is a reserved word and can't be used here.",
-      tip: "Try using a different name.",
+  return new Message(codeExpectedIdentifier,
+      message: """'$lexeme' is a reserved word and can't be used here.""",
+      tip: """Try using a different name.""",
       arguments: {'token': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedBlockToSkip> codeExpectedBlockToSkip =
-    const FastaCode<_ExpectedBlockToSkip>("ExpectedBlockToSkip",
-        template: r"Expected a function body or '=>'.",
-        tip: r"Try adding {}.",
-        dart2jsCode: "NATIVE_OR_BODY_EXPECTED",
-        format: _formatExpectedBlockToSkip);
-
-typedef FastaMessage _ExpectedBlockToSkip(Uri uri, int charOffset);
+const Code<Null> codeExpectedBlockToSkip = messageExpectedBlockToSkip;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedBlockToSkip(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeExpectedBlockToSkip,
-      message: "Expected a function body or '=>'.",
-      tip: "Try adding {}.",
-      arguments: {});
-}
+const MessageCode messageExpectedBlockToSkip = const MessageCode(
+    "ExpectedBlockToSkip",
+    dart2jsCode: "NATIVE_OR_BODY_EXPECTED",
+    message: r"""Expected a function body or '=>'.""",
+    tip: r"""Try adding {}.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<
-        _RequiredParameterWithDefault> codeRequiredParameterWithDefault =
-    const FastaCode<_RequiredParameterWithDefault>(
-        "RequiredParameterWithDefault",
-        template: r"Non-optional parameters can't have a default value.",
-        tip:
-            r"Try removing the default value or making the parameter optional.",
-        dart2jsCode: "REQUIRED_PARAMETER_WITH_DEFAULT",
-        format: _formatRequiredParameterWithDefault);
-
-typedef FastaMessage _RequiredParameterWithDefault(Uri uri, int charOffset);
+const Code<Null> codeRequiredParameterWithDefault =
+    messageRequiredParameterWithDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatRequiredParameterWithDefault(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeRequiredParameterWithDefault,
-      message: "Non-optional parameters can't have a default value.",
-      tip: "Try removing the default value or making the parameter optional.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_Unspecified> codeUnspecified = const FastaCode<_Unspecified>(
-    "Unspecified",
-    template: r"#string",
-    dart2jsCode: "GENERIC",
-    format: _formatUnspecified);
-
-typedef FastaMessage _Unspecified(Uri uri, int charOffset, String string);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnspecified(Uri uri, int charOffset, String string) {
-  return new FastaMessage(uri, charOffset, codeUnspecified,
-      message: "$string", arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_MissingExponent> codeMissingExponent = const FastaCode<
-        _MissingExponent>("MissingExponent",
-    template:
-        r"Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).",
+const MessageCode messageRequiredParameterWithDefault = const MessageCode(
+    "RequiredParameterWithDefault",
+    dart2jsCode: "REQUIRED_PARAMETER_WITH_DEFAULT",
+    message: r"""Non-optional parameters can't have a default value.""",
     tip:
-        r"Make sure there is an exponent, and remove any whitespace before it.",
+        r"""Try removing the default value or making the parameter optional.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateUnspecified =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""#string""",
+        withArguments: _withArgumentsUnspecified);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeUnspecified =
+    const Code<Message Function(String string)>(
+        "Unspecified", templateUnspecified,
+        dart2jsCode: "GENERIC");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnspecified(String string) {
+  return new Message(codeUnspecified,
+      message: """$string""", arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingExponent = messageMissingExponent;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
     analyzerCode: "MISSING_DIGIT",
     dart2jsCode: "EXPONENT_MISSING",
-    format: _formatMissingExponent);
-
-typedef FastaMessage _MissingExponent(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatMissingExponent(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeMissingExponent,
-      message:
-          "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).",
-      tip:
-          "Make sure there is an exponent, and remove any whitespace before it.",
-      arguments: {});
-}
+    message:
+        r"""Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
+    tip:
+        r"""Make sure there is an exponent, and remove any whitespace before it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_PositionalParameterWithEquals>
-    codePositionalParameterWithEquals =
-    const FastaCode<_PositionalParameterWithEquals>(
-        "PositionalParameterWithEquals",
-        template:
-            r"Positional optional parameters can't use ':' to specify a default value.",
-        tip: r"Try replacing ':' with '='.",
-        dart2jsCode: "POSITIONAL_PARAMETER_WITH_EQUALS",
-        format: _formatPositionalParameterWithEquals);
-
-typedef FastaMessage _PositionalParameterWithEquals(Uri uri, int charOffset);
+const Code<Null> codePositionalParameterWithEquals =
+    messagePositionalParameterWithEquals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatPositionalParameterWithEquals(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codePositionalParameterWithEquals,
-      message:
-          "Positional optional parameters can't use ':' to specify a default value.",
-      tip: "Try replacing ':' with '='.",
-      arguments: {});
-}
+const MessageCode messagePositionalParameterWithEquals = const MessageCode(
+    "PositionalParameterWithEquals",
+    dart2jsCode: "POSITIONAL_PARAMETER_WITH_EQUALS",
+    message:
+        r"""Positional optional parameters can't use ':' to specify a default value.""",
+    tip: r"""Try replacing ':' with '='.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<
-    _UnexpectedDollarInString> codeUnexpectedDollarInString = const FastaCode<
-        _UnexpectedDollarInString>("UnexpectedDollarInString",
-    template:
-        r"A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).",
-    tip: r"Try adding a backslash (\) to escape the '$'.",
+const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedDollarInString = const MessageCode(
+    "UnexpectedDollarInString",
     dart2jsCode: "MALFORMED_STRING_LITERAL",
-    format: _formatUnexpectedDollarInString);
-
-typedef FastaMessage _UnexpectedDollarInString(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnexpectedDollarInString(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeUnexpectedDollarInString,
-      message:
-          "A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).",
-      tip: "Try adding a backslash (\) to escape the '\$'.",
-      arguments: {});
-}
+    message:
+        r"""A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",
+    tip: r"""Try adding a backslash (\) to escape the '$'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_FinalFieldWithoutInitializer>
-    codeFinalFieldWithoutInitializer =
-    const FastaCode<_FinalFieldWithoutInitializer>(
-        "FinalFieldWithoutInitializer",
-        template: r"A 'final' field must be initialized.",
-        tip: r"Try adding '= <initializer>'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatFinalFieldWithoutInitializer);
-
-typedef FastaMessage _FinalFieldWithoutInitializer(Uri uri, int charOffset);
+const Code<Null> codeFinalFieldWithoutInitializer =
+    messageFinalFieldWithoutInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatFinalFieldWithoutInitializer(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeFinalFieldWithoutInitializer,
-      message: "A 'final' field must be initialized.",
-      tip: "Try adding '= <initializer>'.",
-      arguments: {});
-}
+const MessageCode messageFinalFieldWithoutInitializer = const MessageCode(
+    "FinalFieldWithoutInitializer",
+    dart2jsCode: "*ignored*",
+    message: r"""A 'final' field must be initialized.""",
+    tip: r"""Try adding '= <initializer>'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExtraneousModifier> codeExtraneousModifier =
-    const FastaCode<_ExtraneousModifier>("ExtraneousModifier",
-        template: r"Can't have modifier '#lexeme' here.",
-        tip: r"Try removing '#lexeme'.",
-        dart2jsCode: "EXTRANEOUS_MODIFIER",
-        format: _formatExtraneousModifier);
-
-typedef FastaMessage _ExtraneousModifier(Uri uri, int charOffset, Token token);
+const Template<Message Function(Token token)> templateExtraneousModifier =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Can't have modifier '#lexeme' here.""",
+        tipTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExtraneousModifier(Uri uri, int charOffset, Token token) {
+const Code<Message Function(Token token)> codeExtraneousModifier =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifier", templateExtraneousModifier,
+        dart2jsCode: "EXTRANEOUS_MODIFIER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifier(Token token) {
   String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExtraneousModifier,
-      message: "Can't have modifier '$lexeme' here.",
-      tip: "Try removing '$lexeme'.",
+  return new Message(codeExtraneousModifier,
+      message: """Can't have modifier '$lexeme' here.""",
+      tip: """Try removing '$lexeme'.""",
       arguments: {'token': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_EmptyOptionalParameterList> codeEmptyOptionalParameterList =
-    const FastaCode<_EmptyOptionalParameterList>("EmptyOptionalParameterList",
-        template: r"Optional parameter lists cannot be empty.",
-        tip: r"Try adding an optional parameter to the list.",
-        dart2jsCode: "EMPTY_OPTIONAL_PARAMETER_LIST",
-        format: _formatEmptyOptionalParameterList);
-
-typedef FastaMessage _EmptyOptionalParameterList(Uri uri, int charOffset);
+const Code<Null> codeEmptyOptionalParameterList =
+    messageEmptyOptionalParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatEmptyOptionalParameterList(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeEmptyOptionalParameterList,
-      message: "Optional parameter lists cannot be empty.",
-      tip: "Try adding an optional parameter to the list.",
-      arguments: {});
+const MessageCode messageEmptyOptionalParameterList = const MessageCode(
+    "EmptyOptionalParameterList",
+    dart2jsCode: "EMPTY_OPTIONAL_PARAMETER_LIST",
+    message: r"""Optional parameter lists cannot be empty.""",
+    tip: r"""Try adding an optional parameter to the list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateTypeNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Type '#name' not found.""",
+        withArguments: _withArgumentsTypeNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeTypeNotFound =
+    const Code<Message Function(String name)>(
+  "TypeNotFound",
+  templateTypeNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeNotFound(String name) {
+  return new Message(codeTypeNotFound,
+      message: """Type '$name' not found.""", arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_UnterminatedString> codeUnterminatedString =
-    const FastaCode<_UnterminatedString>("UnterminatedString",
-        template: r"String must end with #string.",
+const Template<Message Function(String string)> templateUnterminatedString =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""String must end with #string.""",
+        withArguments: _withArgumentsUnterminatedString);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeUnterminatedString =
+    const Code<Message Function(String string)>(
+        "UnterminatedString", templateUnterminatedString,
         analyzerCode: "UNTERMINATED_STRING_LITERAL",
-        dart2jsCode: "UNTERMINATED_STRING",
-        format: _formatUnterminatedString);
-
-typedef FastaMessage _UnterminatedString(
-    Uri uri, int charOffset, String string);
+        dart2jsCode: "UNTERMINATED_STRING");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnterminatedString(Uri uri, int charOffset, String string) {
-  return new FastaMessage(uri, charOffset, codeUnterminatedString,
-      message: "String must end with $string.", arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AwaitNotAsync> codeAwaitNotAsync =
-    const FastaCode<_AwaitNotAsync>("AwaitNotAsync",
-        template: r"'await' can only be used in 'async' or 'async*' methods.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatAwaitNotAsync);
-
-typedef FastaMessage _AwaitNotAsync(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAwaitNotAsync(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAwaitNotAsync,
-      message: "'await' can only be used in 'async' or 'async*' methods.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedFunctionBody> codeExpectedFunctionBody =
-    const FastaCode<_ExpectedFunctionBody>("ExpectedFunctionBody",
-        template: r"Expected a function body, but got '#lexeme'.",
-        dart2jsCode: "NATIVE_OR_FATAL",
-        format: _formatExpectedFunctionBody);
-
-typedef FastaMessage _ExpectedFunctionBody(
-    Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedFunctionBody(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedFunctionBody,
-      message: "Expected a function body, but got '$lexeme'.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedHexDigit> codeExpectedHexDigit =
-    const FastaCode<_ExpectedHexDigit>("ExpectedHexDigit",
-        template: r"A hex digit (0-9 or A-F) must follow '0x'.",
-        analyzerCode: "MISSING_HEX_DIGIT",
-        dart2jsCode: "HEX_DIGIT_EXPECTED",
-        format: _formatExpectedHexDigit);
-
-typedef FastaMessage _ExpectedHexDigit(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedHexDigit(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeExpectedHexDigit,
-      message: "A hex digit (0-9 or A-F) must follow '0x'.", arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_EmptyNamedParameterList> codeEmptyNamedParameterList =
-    const FastaCode<_EmptyNamedParameterList>("EmptyNamedParameterList",
-        template: r"Named parameter lists cannot be empty.",
-        tip: r"Try adding a named parameter to the list.",
-        dart2jsCode: "EMPTY_NAMED_PARAMETER_LIST",
-        format: _formatEmptyNamedParameterList);
-
-typedef FastaMessage _EmptyNamedParameterList(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatEmptyNamedParameterList(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeEmptyNamedParameterList,
-      message: "Named parameter lists cannot be empty.",
-      tip: "Try adding a named parameter to the list.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_UnsupportedPrefixPlus> codeUnsupportedPrefixPlus =
-    const FastaCode<_UnsupportedPrefixPlus>("UnsupportedPrefixPlus",
-        template: r"'+' is not a prefix operator. ",
-        tip: r"Try removing '+'.",
-        dart2jsCode: "UNSUPPORTED_PREFIX_PLUS",
-        format: _formatUnsupportedPrefixPlus);
-
-typedef FastaMessage _UnsupportedPrefixPlus(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnsupportedPrefixPlus(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeUnsupportedPrefixPlus,
-      message: "'+' is not a prefix operator. ",
-      tip: "Try removing '+'.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedString> codeExpectedString =
-    const FastaCode<_ExpectedString>("ExpectedString",
-        template: r"Expected a String, but got '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatExpectedString);
-
-typedef FastaMessage _ExpectedString(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedString(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedString,
-      message: "Expected a String, but got '$lexeme'.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_TypeAfterVar> codeTypeAfterVar =
-    const FastaCode<_TypeAfterVar>("TypeAfterVar",
-        template: r"Can't have both a type and 'var'.",
-        tip: r"Try removing 'var.'",
-        dart2jsCode: "EXTRANEOUS_MODIFIER",
-        format: _formatTypeAfterVar);
-
-typedef FastaMessage _TypeAfterVar(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatTypeAfterVar(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeTypeAfterVar,
-      message: "Can't have both a type and 'var'.",
-      tip: "Try removing 'var.'",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AbstractNotSync> codeAbstractNotSync =
-    const FastaCode<_AbstractNotSync>("AbstractNotSync",
-        template: r"Abstract methods can't use 'async', 'async*', or 'sync*'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatAbstractNotSync);
-
-typedef FastaMessage _AbstractNotSync(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAbstractNotSync(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAbstractNotSync,
-      message: "Abstract methods can't use 'async', 'async*', or 'sync*'.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedDeclaration> codeExpectedDeclaration =
-    const FastaCode<_ExpectedDeclaration>("ExpectedDeclaration",
-        template: r"Expected a declaration, but got '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatExpectedDeclaration);
-
-typedef FastaMessage _ExpectedDeclaration(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedDeclaration(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedDeclaration,
-      message: "Expected a declaration, but got '$lexeme'.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<
-    _AsciiControlCharacter> codeAsciiControlCharacter = const FastaCode<
-        _AsciiControlCharacter>("AsciiControlCharacter",
-    template:
-        r"The control character #unicode can only be used in strings and comments.",
-    analyzerCode: "ILLEGAL_CHARACTER",
-    dart2jsCode: "BAD_INPUT_CHARACTER",
-    format: _formatAsciiControlCharacter);
-
-typedef FastaMessage _AsciiControlCharacter(
-    Uri uri, int charOffset, int codePoint);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAsciiControlCharacter(
-    Uri uri, int charOffset, int codePoint) {
-  String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
-  return new FastaMessage(uri, charOffset, codeAsciiControlCharacter,
-      message:
-          "The control character $unicode can only be used in strings and comments.",
-      arguments: {'codePoint': codePoint});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_UnmatchedToken> codeUnmatchedToken =
-    const FastaCode<_UnmatchedToken>("UnmatchedToken",
-        template: r"Can't find '#string' to match '#lexeme'.",
-        dart2jsCode: "UNMATCHED_TOKEN",
-        format: _formatUnmatchedToken);
-
-typedef FastaMessage _UnmatchedToken(
-    Uri uri, int charOffset, String string, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnmatchedToken(
-    Uri uri, int charOffset, String string, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeUnmatchedToken,
-      message: "Can't find '$string' to match '$lexeme'.",
-      arguments: {'string': string, 'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_InvalidSyncModifier> codeInvalidSyncModifier =
-    const FastaCode<_InvalidSyncModifier>("InvalidSyncModifier",
-        template: r"Invalid modifier 'sync'.",
-        tip: r"Try replacing 'sync' with 'sync*'.",
-        dart2jsCode: "INVALID_SYNC_MODIFIER",
-        format: _formatInvalidSyncModifier);
-
-typedef FastaMessage _InvalidSyncModifier(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatInvalidSyncModifier(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeInvalidSyncModifier,
-      message: "Invalid modifier 'sync'.",
-      tip: "Try replacing 'sync' with 'sync*'.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_GetterWithFormals> codeGetterWithFormals =
-    const FastaCode<_GetterWithFormals>("GetterWithFormals",
-        template: r"A getter can't have formal parameters.",
-        tip: r"Try removing '(...)'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatGetterWithFormals);
-
-typedef FastaMessage _GetterWithFormals(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatGetterWithFormals(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeGetterWithFormals,
-      message: "A getter can't have formal parameters.",
-      tip: "Try removing '(...)'.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_NoFormals> codeNoFormals = const FastaCode<_NoFormals>(
-    "NoFormals",
-    template: r"A function should have formal parameters.",
-    tip:
-        r"Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.",
-    dart2jsCode: "FASTA_IGNORED",
-    format: _formatNoFormals);
-
-typedef FastaMessage _NoFormals(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatNoFormals(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeNoFormals,
-      message: "A function should have formal parameters.",
-      tip:
-          "Try adding '()' after '$lexeme', or add 'get' before '$lexeme' to declare a getter.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedOpenParens> codeExpectedOpenParens =
-    const FastaCode<_ExpectedOpenParens>("ExpectedOpenParens",
-        template: r"Expected '('.",
-        dart2jsCode: "GENERIC",
-        format: _formatExpectedOpenParens);
-
-typedef FastaMessage _ExpectedOpenParens(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedOpenParens(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeExpectedOpenParens,
-      message: "Expected '('.", arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_UnterminatedComment> codeUnterminatedComment =
-    const FastaCode<_UnterminatedComment>("UnterminatedComment",
-        template: r"Comment starting with '/*' must end with '*/'.",
-        analyzerCode: "UNTERMINATED_MULTI_LINE_COMMENT",
-        dart2jsCode: "UNTERMINATED_COMMENT",
-        format: _formatUnterminatedComment);
-
-typedef FastaMessage _UnterminatedComment(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnterminatedComment(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeUnterminatedComment,
-      message: "Comment starting with '/*' must end with '*/'.", arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_CatchSyntax> codeCatchSyntax = const FastaCode<_CatchSyntax>(
-    "CatchSyntax",
-    template:
-        r"'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
-    tip:
-        r"No types are needed, the first is given by 'on', the second is always 'StackTrace'.",
-    dart2jsCode: "FASTA_IGNORED",
-    format: _formatCatchSyntax);
-
-typedef FastaMessage _CatchSyntax(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatCatchSyntax(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeCatchSyntax,
-      message:
-          "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
-      tip:
-          "No types are needed, the first is given by 'on', the second is always 'StackTrace'.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedClassBody> codeExpectedClassBody =
-    const FastaCode<_ExpectedClassBody>("ExpectedClassBody",
-        template: r"Expected a class body, but got '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatExpectedClassBody);
-
-typedef FastaMessage _ExpectedClassBody(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedClassBody(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedClassBody,
-      message: "Expected a class body, but got '$lexeme'.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedExpression> codeExpectedExpression =
-    const FastaCode<_ExpectedExpression>("ExpectedExpression",
-        template: r"Expected an expression, but got '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatExpectedExpression);
-
-typedef FastaMessage _ExpectedExpression(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedExpression(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedExpression,
-      message: "Expected an expression, but got '$lexeme'.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_InvalidAwaitFor> codeInvalidAwaitFor = const FastaCode<
-        _InvalidAwaitFor>("InvalidAwaitFor",
-    template:
-        r"'await' is only supported in methods with an 'async' or 'async*' body modifier.",
-    tip:
-        r"Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.",
-    dart2jsCode: "INVALID_AWAIT_FOR",
-    format: _formatInvalidAwaitFor);
-
-typedef FastaMessage _InvalidAwaitFor(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatInvalidAwaitFor(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeInvalidAwaitFor,
-      message:
-          "'await' is only supported in methods with an 'async' or 'async*' body modifier.",
-      tip:
-          "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedType> codeExpectedType =
-    const FastaCode<_ExpectedType>("ExpectedType",
-        template: r"Expected a type, but got '#lexeme'.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatExpectedType);
-
-typedef FastaMessage _ExpectedType(Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedType(Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeExpectedType,
-      message: "Expected a type, but got '$lexeme'.",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_UnterminatedToken> codeUnterminatedToken =
-    const FastaCode<_UnterminatedToken>("UnterminatedToken",
-        template: r"Incomplete token.",
-        dart2jsCode: "UNTERMINATED_TOKEN",
-        format: _formatUnterminatedToken);
-
-typedef FastaMessage _UnterminatedToken(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatUnterminatedToken(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeUnterminatedToken,
-      message: "Incomplete token.", arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedButGot> codeExpectedButGot =
-    const FastaCode<_ExpectedButGot>("ExpectedButGot",
-        template: r"Expected '#string' before this.",
-        tip: r"DONT_KNOW_HOW_TO_FIX,",
-        dart2jsCode: "MISSING_TOKEN_BEFORE_THIS",
-        format: _formatExpectedButGot);
-
-typedef FastaMessage _ExpectedButGot(Uri uri, int charOffset, String string);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedButGot(Uri uri, int charOffset, String string) {
-  return new FastaMessage(uri, charOffset, codeExpectedButGot,
-      message: "Expected '$string' before this.",
-      tip: "DONT_KNOW_HOW_TO_FIX,",
+Message _withArgumentsUnterminatedString(String string) {
+  return new Message(codeUnterminatedString,
+      message: """String must end with $string.""",
       arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ConstFieldWithoutInitializer>
-    codeConstFieldWithoutInitializer =
-    const FastaCode<_ConstFieldWithoutInitializer>(
-        "ConstFieldWithoutInitializer",
-        template: r"A 'const' field must be initialized.",
-        tip: r"Try adding '= <initializer>'.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatConstFieldWithoutInitializer);
-
-typedef FastaMessage _ConstFieldWithoutInitializer(Uri uri, int charOffset);
+const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatConstFieldWithoutInitializer(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeConstFieldWithoutInitializer,
-      message: "A 'const' field must be initialized.",
-      tip: "Try adding '= <initializer>'.",
-      arguments: {});
+const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
+    dart2jsCode: "*ignored*",
+    message: r"""'await' can only be used in 'async' or 'async*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateUnimplemented =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Unimplemented: #string.""",
+        withArguments: _withArgumentsUnimplemented);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeUnimplemented =
+    const Code<Message Function(String string)>(
+  "Unimplemented",
+  templateUnimplemented,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnimplemented(String string) {
+  return new Message(codeUnimplemented,
+      message: """Unimplemented: $string.""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AwaitForNotAsync> codeAwaitForNotAsync = const FastaCode<
-        _AwaitForNotAsync>("AwaitForNotAsync",
-    template:
-        r"Asynchronous for-loop can only be used in 'async' or 'async*' methods.",
-    dart2jsCode: "FASTA_IGNORED",
-    format: _formatAwaitForNotAsync);
-
-typedef FastaMessage _AwaitForNotAsync(Uri uri, int charOffset);
+const Template<Message Function(String string, String name)> templateUnhandled =
+    const Template<Message Function(String string, String name)>(
+        messageTemplate: r"""Unhandled: #string in #name.""",
+        withArguments: _withArgumentsUnhandled);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAwaitForNotAsync(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAwaitForNotAsync,
-      message:
-          "Asynchronous for-loop can only be used in 'async' or 'async*' methods.",
-      arguments: {});
+const Code<Message Function(String string, String name)> codeUnhandled =
+    const Code<Message Function(String string, String name)>(
+  "Unhandled",
+  templateUnhandled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnhandled(String string, String name) {
+  return new Message(codeUnhandled,
+      message: """Unhandled: $string in $name.""",
+      arguments: {'string': string, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_Encoding> codeEncoding = const FastaCode<_Encoding>("Encoding",
-    template: r"Unable to decode bytes as UTF-8.",
-    dart2jsCode: "FASTA_FATAL",
-    format: _formatEncoding);
-
-typedef FastaMessage _Encoding(Uri uri, int charOffset);
+const Template<Message Function(Token token)> templateExpectedFunctionBody =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected a function body, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedFunctionBody);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatEncoding(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeEncoding,
-      message: "Unable to decode bytes as UTF-8.", arguments: {});
-}
+const Code<Message Function(Token token)> codeExpectedFunctionBody =
+    const Code<Message Function(Token token)>(
+        "ExpectedFunctionBody", templateExpectedFunctionBody,
+        dart2jsCode: "NATIVE_OR_FATAL");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AsyncAsIdentifier> codeAsyncAsIdentifier = const FastaCode<
-        _AsyncAsIdentifier>("AsyncAsIdentifier",
-    template:
-        r"'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-    analyzerCode: "ASYNC_KEYWORD_USED_AS_IDENTIFIER",
-    dart2jsCode: "GENERIC",
-    format: _formatAsyncAsIdentifier);
-
-typedef FastaMessage _AsyncAsIdentifier(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAsyncAsIdentifier(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAsyncAsIdentifier,
-      message:
-          "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_YieldAsIdentifier> codeYieldAsIdentifier = const FastaCode<
-        _YieldAsIdentifier>("YieldAsIdentifier",
-    template:
-        r"'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-    dart2jsCode: "FASTA_IGNORED",
-    format: _formatYieldAsIdentifier);
-
-typedef FastaMessage _YieldAsIdentifier(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatYieldAsIdentifier(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeYieldAsIdentifier,
-      message:
-          "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_AssertAsExpression> codeAssertAsExpression =
-    const FastaCode<_AssertAsExpression>("AssertAsExpression",
-        template: r"`assert` can't be used as an expression.",
-        dart2jsCode: "FASTA_FATAL",
-        format: _formatAssertAsExpression);
-
-typedef FastaMessage _AssertAsExpression(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatAssertAsExpression(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeAssertAsExpression,
-      message: "`assert` can't be used as an expression.", arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_OnlyTry> codeOnlyTry = const FastaCode<_OnlyTry>("OnlyTry",
-    template:
-        r"Try block should be followed by 'on', 'catch', or 'finally' block.",
-    tip: r"Did you forget to add a 'finally' block?",
-    dart2jsCode: "FASTA_IGNORED",
-    format: _formatOnlyTry);
-
-typedef FastaMessage _OnlyTry(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatOnlyTry(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeOnlyTry,
-      message:
-          "Try block should be followed by 'on', 'catch', or 'finally' block.",
-      tip: "Did you forget to add a 'finally' block?",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<
-    _InvalidInlineFunctionType> codeInvalidInlineFunctionType = const FastaCode<
-        _InvalidInlineFunctionType>("InvalidInlineFunctionType",
-    template: r"Invalid inline function type.",
-    tip:
-        r"Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').",
-    dart2jsCode: "INVALID_INLINE_FUNCTION_TYPE",
-    format: _formatInvalidInlineFunctionType);
-
-typedef FastaMessage _InvalidInlineFunctionType(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatInvalidInlineFunctionType(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeInvalidInlineFunctionType,
-      message: "Invalid inline function type.",
-      tip:
-          "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_MetadataTypeArguments> codeMetadataTypeArguments =
-    const FastaCode<_MetadataTypeArguments>("MetadataTypeArguments",
-        template: r"An annotation (metadata) can't use type arguments.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatMetadataTypeArguments);
-
-typedef FastaMessage _MetadataTypeArguments(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatMetadataTypeArguments(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeMetadataTypeArguments,
-      message: "An annotation (metadata) can't use type arguments.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_ExpectedBody> codeExpectedBody =
-    const FastaCode<_ExpectedBody>("ExpectedBody",
-        template: r"Expected a function body or '=>'.",
-        tip: r"Try adding {}.",
-        dart2jsCode: "BODY_EXPECTED",
-        format: _formatExpectedBody);
-
-typedef FastaMessage _ExpectedBody(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatExpectedBody(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeExpectedBody,
-      message: "Expected a function body or '=>'.",
-      tip: "Try adding {}.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_TypeRequired> codeTypeRequired =
-    const FastaCode<_TypeRequired>("TypeRequired",
-        template: r"A type or modifier is required here.",
-        tip: r"Try adding a type, 'var', 'const', or 'final'.",
-        format: _formatTypeRequired);
-
-typedef FastaMessage _TypeRequired(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatTypeRequired(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeTypeRequired,
-      message: "A type or modifier is required here.",
-      tip: "Try adding a type, 'var', 'const', or 'final'.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_InvalidVoid> codeInvalidVoid = const FastaCode<_InvalidVoid>(
-    "InvalidVoid",
-    template: r"Type 'void' can't be used here because it isn't a return type.",
-    tip:
-        r"Try removing 'void' keyword or replace it with 'var', 'final', or a type.",
-    dart2jsCode: "VOID_NOT_ALLOWED",
-    format: _formatInvalidVoid);
-
-typedef FastaMessage _InvalidVoid(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatInvalidVoid(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeInvalidVoid,
-      message: "Type 'void' can't be used here because it isn't a return type.",
-      tip:
-          "Try removing 'void' keyword or replace it with 'var', 'final', or a type.",
-      arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_BuiltInIdentifierAsType> codeBuiltInIdentifierAsType =
-    const FastaCode<_BuiltInIdentifierAsType>("BuiltInIdentifierAsType",
-        template: r"Can't use '#lexeme' as a type.",
-        analyzerCode: "EXPECTED_TYPE_NAME",
-        dart2jsCode: "EXTRANEOUS_MODIFIER",
-        format: _formatBuiltInIdentifierAsType);
-
-typedef FastaMessage _BuiltInIdentifierAsType(
-    Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatBuiltInIdentifierAsType(
-    Uri uri, int charOffset, Token token) {
+Message _withArgumentsExpectedFunctionBody(Token token) {
   String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeBuiltInIdentifierAsType,
-      message: "Can't use '$lexeme' as a type.", arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_GeneratorReturnsValue> codeGeneratorReturnsValue =
-    const FastaCode<_GeneratorReturnsValue>("GeneratorReturnsValue",
-        template: r"'sync*' and 'async*' can't return a value.",
-        dart2jsCode: "FASTA_IGNORED",
-        format: _formatGeneratorReturnsValue);
-
-typedef FastaMessage _GeneratorReturnsValue(Uri uri, int charOffset);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatGeneratorReturnsValue(Uri uri, int charOffset) {
-  return new FastaMessage(uri, charOffset, codeGeneratorReturnsValue,
-      message: "'sync*' and 'async*' can't return a value.", arguments: {});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_BuiltInIdentifierInDeclaration>
-    codeBuiltInIdentifierInDeclaration =
-    const FastaCode<_BuiltInIdentifierInDeclaration>(
-        "BuiltInIdentifierInDeclaration",
-        template: r"Can't use '#lexeme' as a name here.",
-        dart2jsCode: "GENERIC",
-        format: _formatBuiltInIdentifierInDeclaration);
-
-typedef FastaMessage _BuiltInIdentifierInDeclaration(
-    Uri uri, int charOffset, Token token);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatBuiltInIdentifierInDeclaration(
-    Uri uri, int charOffset, Token token) {
-  String lexeme = token.lexeme;
-  return new FastaMessage(uri, charOffset, codeBuiltInIdentifierInDeclaration,
-      message: "Can't use '$lexeme' as a name here.",
+  return new Message(codeExpectedFunctionBody,
+      message: """Expected a function body, but got '$lexeme'.""",
       arguments: {'token': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const FastaCode<_NonAsciiIdentifier> codeNonAsciiIdentifier = const FastaCode<
-        _NonAsciiIdentifier>("NonAsciiIdentifier",
-    template:
-        r"The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments.",
-    tip:
-        r"Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).",
-    analyzerCode: "ILLEGAL_CHARACTER",
-    dart2jsCode: "BAD_INPUT_CHARACTER",
-    format: _formatNonAsciiIdentifier);
-
-typedef FastaMessage _NonAsciiIdentifier(
-    Uri uri, int charOffset, String character, int codePoint);
+const Code<Null> codeExpectedHexDigit = messageExpectedHexDigit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-FastaMessage _formatNonAsciiIdentifier(
-    Uri uri, int charOffset, String character, int codePoint) {
+const MessageCode messageExpectedHexDigit = const MessageCode(
+    "ExpectedHexDigit",
+    analyzerCode: "MISSING_HEX_DIGIT",
+    dart2jsCode: "HEX_DIGIT_EXPECTED",
+    message: r"""A hex digit (0-9 or A-F) must follow '0x'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEmptyNamedParameterList = const MessageCode(
+    "EmptyNamedParameterList",
+    dart2jsCode: "EMPTY_NAMED_PARAMETER_LIST",
+    message: r"""Named parameter lists cannot be empty.""",
+    tip: r"""Try adding a named parameter to the list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
+    "UnsupportedPrefixPlus",
+    dart2jsCode: "UNSUPPORTED_PREFIX_PLUS",
+    message: r"""'+' is not a prefix operator. """,
+    tip: r"""Try removing '+'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateExpectedString =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected a String, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedString);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedString =
+    const Code<Message Function(Token token)>(
+        "ExpectedString", templateExpectedString,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedString(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedString,
+      message: """Expected a String, but got '$lexeme'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFastaUsageShort = messageFastaUsageShort;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFastaUsageShort =
+    const MessageCode("FastaUsageShort", message: r"""Frequently used options:
+
+  -o <file> Generate the output into <file>.
+  -h        Display this message (add -v for information about all options).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypeAfterVar = messageTypeAfterVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
+    dart2jsCode: "EXTRANEOUS_MODIFIER",
+    message: r"""Can't have both a type and 'var'.""",
+    tip: r"""Try removing 'var.'""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateAbstractClassInstantiation =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""The class '#name' is abstract and can't be instantiated.""",
+        withArguments: _withArgumentsAbstractClassInstantiation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeAbstractClassInstantiation =
+    const Code<Message Function(String name)>(
+  "AbstractClassInstantiation",
+  templateAbstractClassInstantiation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAbstractClassInstantiation(String name) {
+  return new Message(codeAbstractClassInstantiation,
+      message: """The class '$name' is abstract and can't be instantiated.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
+    dart2jsCode: "*ignored*",
+    message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateGetterNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Getter not found: '#name'.""",
+        withArguments: _withArgumentsGetterNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeGetterNotFound =
+    const Code<Message Function(String name)>(
+  "GetterNotFound",
+  templateGetterNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsGetterNotFound(String name) {
+  return new Message(codeGetterNotFound,
+      message: """Getter not found: '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeListLiteralTooManyTypeArguments =
+    messageListLiteralTooManyTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
+    "ListLiteralTooManyTypeArguments",
+    message: r"""Too many type arguments on List literal.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateExpectedDeclaration =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected a declaration, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedDeclaration =
+    const Code<Message Function(Token token)>(
+        "ExpectedDeclaration", templateExpectedDeclaration,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedDeclaration(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedDeclaration,
+      message: """Expected a declaration, but got '$lexeme'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateConstructorNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Couldn't find constructor '#name'.""",
+        withArguments: _withArgumentsConstructorNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConstructorNotFound =
+    const Code<Message Function(String name)>(
+  "ConstructorNotFound",
+  templateConstructorNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstructorNotFound(String name) {
+  return new Message(codeConstructorNotFound,
+      message: """Couldn't find constructor '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int
+            codePoint)> templateAsciiControlCharacter = const Template<
+        Message Function(int codePoint)>(
+    messageTemplate:
+        r"""The control character #unicode can only be used in strings and comments.""",
+    withArguments: _withArgumentsAsciiControlCharacter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int codePoint)> codeAsciiControlCharacter =
+    const Code<Message Function(int codePoint)>(
+        "AsciiControlCharacter", templateAsciiControlCharacter,
+        analyzerCode: "ILLEGAL_CHARACTER", dart2jsCode: "BAD_INPUT_CHARACTER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAsciiControlCharacter(int codePoint) {
   String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
-  return new FastaMessage(uri, charOffset, codeNonAsciiIdentifier,
+  return new Message(codeAsciiControlCharacter,
       message:
-          "The non-ASCII character '$character' ($unicode) can't be used in identifiers, only in strings and comments.",
-      tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).",
+          """The control character $unicode can only be used in strings and comments.""",
+      arguments: {'codePoint': codePoint});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, Token token)>
+    templateUnmatchedToken =
+    const Template<Message Function(String string, Token token)>(
+        messageTemplate: r"""Can't find '#string' to match '#lexeme'.""",
+        withArguments: _withArgumentsUnmatchedToken);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, Token token)> codeUnmatchedToken =
+    const Code<Message Function(String string, Token token)>(
+        "UnmatchedToken", templateUnmatchedToken,
+        dart2jsCode: "UNMATCHED_TOKEN");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedToken(String string, Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeUnmatchedToken,
+      message: """Can't find '$string' to match '$lexeme'.""",
+      arguments: {'string': string, 'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidSyncModifier = messageInvalidSyncModifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidSyncModifier = const MessageCode(
+    "InvalidSyncModifier",
+    dart2jsCode: "INVALID_SYNC_MODIFIER",
+    message: r"""Invalid modifier 'sync'.""",
+    tip: r"""Try replacing 'sync' with 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateFastaCLIArgumentRequired =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Expected value after '#name'.""",
+        withArguments: _withArgumentsFastaCLIArgumentRequired);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFastaCLIArgumentRequired =
+    const Code<Message Function(String name)>(
+  "FastaCLIArgumentRequired",
+  templateFastaCLIArgumentRequired,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFastaCLIArgumentRequired(String name) {
+  return new Message(codeFastaCLIArgumentRequired,
+      message: """Expected value after '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGetterWithFormals = messageGetterWithFormals;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGetterWithFormals = const MessageCode(
+    "GetterWithFormals",
+    dart2jsCode: "*ignored*",
+    message: r"""A getter can't have formal parameters.""",
+    tip: r"""Try removing '(...)'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(Token token)> templateNoFormals = const Template<
+        Message Function(Token token)>(
+    messageTemplate: r"""A function should have formal parameters.""",
+    tipTemplate:
+        r"""Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.""",
+    withArguments: _withArgumentsNoFormals);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeNoFormals =
+    const Code<Message Function(Token token)>("NoFormals", templateNoFormals,
+        dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNoFormals(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeNoFormals,
+      message: """A function should have formal parameters.""",
+      tip:
+          """Try adding '()' after '$lexeme', or add 'get' before '$lexeme' to declare a getter.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedOpenParens = messageExpectedOpenParens;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedOpenParens = const MessageCode(
+    "ExpectedOpenParens",
+    dart2jsCode: "GENERIC",
+    message: r"""Expected '('.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnterminatedComment = messageUnterminatedComment;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnterminatedComment = const MessageCode(
+    "UnterminatedComment",
+    analyzerCode: "UNTERMINATED_MULTI_LINE_COMMENT",
+    dart2jsCode: "UNTERMINATED_COMMENT",
+    message: r"""Comment starting with '/*' must end with '*/'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCatchSyntax = messageCatchSyntax;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
+    tip:
+        r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateExpectedClassBody =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected a class body, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedClassBody);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedClassBody =
+    const Code<Message Function(Token token)>(
+        "ExpectedClassBody", templateExpectedClassBody,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedClassBody(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedClassBody,
+      message: """Expected a class body, but got '$lexeme'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNotAType =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' isn't a type.""",
+        withArguments: _withArgumentsNotAType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNotAType =
+    const Code<Message Function(String name)>(
+  "NotAType",
+  templateNotAType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotAType(String name) {
+  return new Message(codeNotAType,
+      message: """'$name' isn't a type.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateExpectedExpression =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected an expression, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedExpression);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedExpression =
+    const Code<Message Function(Token token)>(
+        "ExpectedExpression", templateExpectedExpression,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedExpression(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedExpression,
+      message: """Expected an expression, but got '$lexeme'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
+    dart2jsCode: "INVALID_AWAIT_FOR",
+    message:
+        r"""'await' is only supported in methods with an 'async' or 'async*' body modifier.""",
+    tip:
+        r"""Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateExpectedType =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Expected a type, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedType =
+    const Code<Message Function(Token token)>(
+        "ExpectedType", templateExpectedType,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedType(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedType,
+      message: """Expected a type, but got '$lexeme'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnterminatedToken = messageUnterminatedToken;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnterminatedToken = const MessageCode(
+    "UnterminatedToken",
+    dart2jsCode: "UNTERMINATED_TOKEN",
+    message: r"""Incomplete token.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateSetterNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Setter not found: '#name'.""",
+        withArguments: _withArgumentsSetterNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSetterNotFound =
+    const Code<Message Function(String name)>(
+  "SetterNotFound",
+  templateSetterNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSetterNotFound(String name) {
+  return new Message(codeSetterNotFound,
+      message: """Setter not found: '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateExpectedButGot =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Expected '#string' before this.""",
+        tipTemplate: r"""DONT_KNOW_HOW_TO_FIX,""",
+        withArguments: _withArgumentsExpectedButGot);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExpectedButGot =
+    const Code<Message Function(String string)>(
+        "ExpectedButGot", templateExpectedButGot,
+        dart2jsCode: "MISSING_TOKEN_BEFORE_THIS");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedButGot(String string) {
+  return new Message(codeExpectedButGot,
+      message: """Expected '$string' before this.""",
+      tip: """DONT_KNOW_HOW_TO_FIX,""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNamedFunctionExpression = const MessageCode(
+    "NamedFunctionExpression",
+    dart2jsCode: "*ignored*",
+    message: r"""A function expression can't have a name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstFieldWithoutInitializer =
+    messageConstFieldWithoutInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstFieldWithoutInitializer = const MessageCode(
+    "ConstFieldWithoutInitializer",
+    dart2jsCode: "*ignored*",
+    message: r"""A 'const' field must be initialized.""",
+    tip: r"""Try adding '= <initializer>'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFastaUsageLong = messageFastaUsageLong;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFastaUsageLong =
+    const MessageCode("FastaUsageLong", message: r"""Supported options:
+
+  -o <file>, --output=<file>
+    Generate the output into <file>.
+
+  -h, /h, /?, --help
+    Display this message (add -v for information about all options).
+
+  -v, --verbose
+    Display verbose information.
+
+  --
+    Stop option parsing, the rest of the command line is assumed to be
+    file names or arguments to the Dart program.
+
+  --packages=<file>
+    Use package resolution configuration <file>, which should contain a mapping
+    of package names to paths.
+
+  --platform=<file>
+    Read the SDK platform from <file>, which should be in Dill/Kernel IR format
+    and contain the Dart SDK.
+
+  --target=none|vm|vmcc|vmreify|flutter
+    Specify the target configuration.
+
+  --verify
+    Check that the generated output is free of various problems. This is mostly
+    useful for developers of this compiler or Kernel transformations.
+
+  --dump-ir
+    Print compiled libraries in Kernel source notation.
+
+  --exclude-source
+    Do not include source code in the dill file.
+
+  --compile-sdk=<patched_sdk>
+    Compile the SDK from scratch instead of reading it from 'platform.dill'.
+
+  --sdk=<patched_sdk>
+    Location of the SDK sources for use when compiling additional platform
+    libraries.
+
+  --fatal=errors
+  --fatal=warnings
+  --fatal=nits
+    Makes messages of the given kinds fatal, that is, immediately stop the
+    compiler with a non-zero exit-code. In --verbose mode, also display an
+    internal stack trace from the compiler. Multiple kinds can be separated by
+    commas, for example, --fatal=errors,warnings.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAwaitForNotAsync = messageAwaitForNotAsync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAwaitForNotAsync = const MessageCode(
+    "AwaitForNotAsync",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Asynchronous for-loop can only be used in 'async' or 'async*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEncoding = messageEncoding;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEncoding = const MessageCode("Encoding",
+    dart2jsCode: "*fatal*", message: r"""Unable to decode bytes as UTF-8.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAsyncAsIdentifier = messageAsyncAsIdentifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAsyncAsIdentifier = const MessageCode(
+    "AsyncAsIdentifier",
+    analyzerCode: "ASYNC_KEYWORD_USED_AS_IDENTIFIER",
+    dart2jsCode: "GENERIC",
+    message:
+        r"""'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeYieldAsIdentifier = messageYieldAsIdentifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageYieldAsIdentifier = const MessageCode(
+    "YieldAsIdentifier",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAssertAsExpression = messageAssertAsExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAssertAsExpression = const MessageCode(
+    "AssertAsExpression",
+    dart2jsCode: "*fatal*",
+    message: r"""`assert` can't be used as an expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeOnlyTry = messageOnlyTry;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
+    tip: r"""Did you forget to add a 'finally' block?""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidInlineFunctionType =
+    messageInvalidInlineFunctionType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidInlineFunctionType = const MessageCode(
+    "InvalidInlineFunctionType",
+    dart2jsCode: "INVALID_INLINE_FUNCTION_TYPE",
+    message: r"""Invalid inline function type.""",
+    tip:
+        r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMetadataTypeArguments = const MessageCode(
+    "MetadataTypeArguments",
+    dart2jsCode: "*ignored*",
+    message: r"""An annotation (metadata) can't use type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedBody = messageExpectedBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedBody = const MessageCode("ExpectedBody",
+    dart2jsCode: "BODY_EXPECTED",
+    message: r"""Expected a function body or '=>'.""",
+    tip: r"""Try adding {}.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypeRequired = messageTypeRequired;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypeRequired = const MessageCode("TypeRequired",
+    message: r"""A type or modifier is required here.""",
+    tip: r"""Try adding a type, 'var', 'const', or 'final'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidVoid = messageInvalidVoid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
+    dart2jsCode: "VOID_NOT_ALLOWED",
+    message:
+        r"""Type 'void' can't be used here because it isn't a return type.""",
+    tip:
+        r"""Try removing 'void' keyword or replace it with 'var', 'final', or a type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Can't use '#lexeme' as a type.""",
+        withArguments: _withArgumentsBuiltInIdentifierAsType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeBuiltInIdentifierAsType =
+    const Code<Message Function(Token token)>(
+        "BuiltInIdentifierAsType", templateBuiltInIdentifierAsType,
+        analyzerCode: "EXPECTED_TYPE_NAME", dart2jsCode: "EXTRANEOUS_MODIFIER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBuiltInIdentifierAsType(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeBuiltInIdentifierAsType,
+      message: """Can't use '$lexeme' as a type.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGeneratorReturnsValue = const MessageCode(
+    "GeneratorReturnsValue",
+    dart2jsCode: "*ignored*",
+    message: r"""'sync*' and 'async*' can't return a value.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeListLiteralTypeArgumentMismatch =
+    messageListLiteralTypeArgumentMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageListLiteralTypeArgumentMismatch = const MessageCode(
+    "ListLiteralTypeArgumentMismatch",
+    message: r"""Map literal requires two type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateMethodNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Method not found: '#name'.""",
+        withArguments: _withArgumentsMethodNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMethodNotFound =
+    const Code<Message Function(String name)>(
+  "MethodNotFound",
+  templateMethodNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMethodNotFound(String name) {
+  return new Message(codeMethodNotFound,
+      message: """Method not found: '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateUnsupported =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Unsupported operation: '#name'.""",
+        withArguments: _withArgumentsUnsupported);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnsupported =
+    const Code<Message Function(String name)>(
+  "Unsupported",
+  templateUnsupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnsupported(String name) {
+  return new Message(codeUnsupported,
+      message: """Unsupported operation: '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateBuiltInIdentifierInDeclaration =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Can't use '#lexeme' as a name here.""",
+        withArguments: _withArgumentsBuiltInIdentifierInDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeBuiltInIdentifierInDeclaration =
+    const Code<Message Function(Token token)>("BuiltInIdentifierInDeclaration",
+        templateBuiltInIdentifierInDeclaration,
+        dart2jsCode: "GENERIC");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeBuiltInIdentifierInDeclaration,
+      message: """Can't use '$lexeme' as a name here.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateRedirectionTargetNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Redirection constructor target not found: '#name'""",
+        withArguments: _withArgumentsRedirectionTargetNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeRedirectionTargetNotFound =
+    const Code<Message Function(String name)>(
+  "RedirectionTargetNotFound",
+  templateRedirectionTargetNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRedirectionTargetNotFound(String name) {
+  return new Message(codeRedirectionTargetNotFound,
+      message: """Redirection constructor target not found: '$name'""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String character,
+        int
+            codePoint)> templateNonAsciiIdentifier = const Template<
+        Message Function(String character, int codePoint)>(
+    messageTemplate:
+        r"""The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments.""",
+    tipTemplate:
+        r"""Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).""",
+    withArguments: _withArgumentsNonAsciiIdentifier);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String character, int codePoint)>
+    codeNonAsciiIdentifier =
+    const Code<Message Function(String character, int codePoint)>(
+        "NonAsciiIdentifier", templateNonAsciiIdentifier,
+        analyzerCode: "ILLEGAL_CHARACTER", dart2jsCode: "BAD_INPUT_CHARACTER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAsciiIdentifier(String character, int codePoint) {
+  String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
+  return new Message(codeNonAsciiIdentifier,
+      message:
+          """The non-ASCII character '$character' ($unicode) can't be used in identifiers, only in strings and comments.""",
+      tip: """Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).""",
       arguments: {'character': character, 'codePoint': codePoint});
 }

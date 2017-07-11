@@ -7,7 +7,7 @@
 library front_end.src.fasta.source.directive_listener;
 
 import '../../scanner/token.dart' show Token;
-import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
 import '../parser/identifier_context.dart';
 import '../parser/listener.dart';
 import '../quote.dart';
@@ -113,7 +113,7 @@ class DirectiveListener extends Listener {
   Token handleNativeClause(Token token) => null;
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (message.code == codeExpectedBlockToSkip) {
       Token recover = handleNativeClause(token);
       if (recover != null) return recover;

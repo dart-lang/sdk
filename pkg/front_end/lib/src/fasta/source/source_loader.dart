@@ -40,7 +40,7 @@ import '../builder/builder.dart'
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../errors.dart' show inputError;
+import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
 
@@ -80,8 +80,11 @@ class SourceLoader<L> extends Loader<L> {
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
-    if (uri == null || uri.scheme != "file") {
-      return inputError(library.uri, -1, "Not found: ${library.uri}.");
+    // TODO(sigmund): source-loader shouldn't check schemes, but defer to the
+    // underlying file system to decide whether it is supported.
+    if (uri == null || uri.scheme != "file" && uri.scheme != "multi-root") {
+      return deprecated_inputError(
+          library.uri, -1, "Not found: ${library.uri}.");
     }
 
     // Get the library text from the cache, or read from the file system.
@@ -94,7 +97,7 @@ class SourceLoader<L> extends Loader<L> {
         bytes = zeroTerminatedBytes;
         sourceBytes[uri] = bytes;
       } on FileSystemException catch (e) {
-        return inputError(uri, -1, e.message);
+        return deprecated_inputError(uri, -1, e.message);
       }
     }
 
@@ -108,7 +111,8 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.addCompileTimeError(token.charOffset, error.assertionMessage,
+        library.deprecated_addCompileTimeError(
+            token.charOffset, error.assertionMessage,
             fileUri: uri);
       }
       token = token.next;
@@ -339,14 +343,6 @@ class SourceLoader<L> extends Loader<L> {
     return output;
   }
 
-  /// Whether [library] is allowed to define classes that extend or implement
-  /// restricted types, such as `bool`, `int`, `double`, `num`, and `String`. By
-  /// default this is only allowed within the implementation of `dart:core`, but
-  /// some target implementations may need to override this to allow doing this
-  /// in other internal platform libraries.
-  bool canImplementRestrictedTypes(LibraryBuilder library) =>
-      library == coreLibrary;
-
   void checkSemantics() {
     List<ClassBuilder> allClasses = target.collectAllClasses();
     Iterable<ClassBuilder> candidates = cyclicCandidates(allClasses);
@@ -371,7 +367,7 @@ class SourceLoader<L> extends Loader<L> {
         }
         String involvedString =
             involved.map((c) => c.fullNameForErrors).join("', '");
-        cls.addCompileTimeError(
+        cls.deprecated_addCompileTimeError(
             cls.charOffset,
             "'${cls.fullNameForErrors}' is a supertype of itself via "
             "'$involvedString'.");
@@ -391,13 +387,13 @@ class SourceLoader<L> extends Loader<L> {
       target.addDirectSupertype(cls, directSupertypes);
       for (ClassBuilder supertype in directSupertypes) {
         if (supertype is EnumBuilder) {
-          cls.addCompileTimeError(
+          cls.deprecated_addCompileTimeError(
               cls.charOffset,
               "'${supertype.name}' is an enum and can't be extended or "
               "implemented.");
-        } else if (!canImplementRestrictedTypes(cls.library) &&
+        } else if (!cls.library.mayImplementRestrictedTypes &&
             blackListedClasses.contains(supertype)) {
-          cls.addCompileTimeError(
+          cls.deprecated_addCompileTimeError(
               cls.charOffset,
               "'${supertype.name}' is restricted and can't be extended or "
               "implemented.");
@@ -412,11 +408,11 @@ class SourceLoader<L> extends Loader<L> {
             isClassBuilder = true;
             for (Builder constructory in builder.constructors.local.values) {
               if (constructory.isConstructor && !constructory.isSynthetic) {
-                cls.addCompileTimeError(
+                cls.deprecated_addCompileTimeError(
                     cls.charOffset,
                     "Can't use '${builder.fullNameForErrors}' as a mixin "
                     "because it has constructors.");
-                builder.addCompileTimeError(
+                builder.deprecated_addCompileTimeError(
                     constructory.charOffset,
                     "This constructor prevents using "
                     "'${builder.fullNameForErrors}' as a mixin.");
@@ -425,7 +421,7 @@ class SourceLoader<L> extends Loader<L> {
           }
         }
         if (!isClassBuilder) {
-          cls.addCompileTimeError(cls.charOffset,
+          cls.deprecated_addCompileTimeError(cls.charOffset,
               "The type '${mixedInType.fullNameForErrors}' can't be mixed in.");
         }
       }
@@ -522,7 +518,7 @@ class SourceLoader<L> extends Loader<L> {
     return target.backendTarget.throwCompileConstantError(coreTypes, error);
   }
 
-  Expression buildCompileTimeError(String message, int offset) {
+  Expression deprecated_buildCompileTimeError(String message, int offset) {
     return target.backendTarget
         .buildCompileTimeError(coreTypes, message, offset);
   }

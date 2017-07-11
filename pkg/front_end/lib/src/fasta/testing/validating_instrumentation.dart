@@ -200,7 +200,7 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _formatProblem(
       Uri uri, int offset, String desc, StackTrace stackTrace) {
-    return format(
+    return deprecated_format(
         uri, offset, '$desc${stackTrace == null ? '' : '\n$stackTrace'}');
   }
 

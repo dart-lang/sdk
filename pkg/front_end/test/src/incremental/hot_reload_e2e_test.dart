@@ -48,12 +48,27 @@ main() {
     lines = null;
   });
 
+  Future<int> computeVmPort() async {
+    var portLine = await lines[0];
+    expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
+    var match = observatoryPortRegExp.firstMatch(portLine);
+    return int.parse(match.group(1));
+  }
+
+  /// Request vm to resume execution
+  Future resume() async {
+    var port = await computeVmPort();
+    var remoteVm = new RemoteVm(port);
+    await remoteVm.resume();
+  }
+
   /// Start the VM with the first version of the program compiled by the
   /// incremental compiler.
   startProgram(int reloadCount) async {
     var vmArgs = [
       '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
-      '--platform=${platformFile.toFilePath()}',
+      '--pause_isolates_on_start',
+      '--kernel-binaries=${sdkRoot.toFilePath()}',
       outputUri.toFilePath()
     ];
     vmArgs.add('$reloadCount');
@@ -81,24 +96,22 @@ main() {
     });
 
     programIsDone = vm.exitCode;
+    await resume();
   }
 
   /// Request a hot reload on the running program.
   Future hotReload() async {
-    var portLine = await lines[0];
-    expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
-    var match = observatoryPortRegExp.firstMatch(portLine);
-    var port = int.parse(match.group(1));
-    var reloader = new VmReloader(port);
-    var reloadResult = await reloader.reload(outputUri);
+    var port = await computeVmPort();
+    var remoteVm = new RemoteVm(port);
+    var reloadResult = await remoteVm.reload(outputUri);
     expect(reloadResult['success'], isTrue);
-    await reloader.disconnect();
+    await remoteVm.disconnect();
   }
 
   test('initial program is valid', () async {
     await startProgram(0);
     await programIsDone;
-    expect(await lines.skip(1).first, "part1 part2");
+    expect(await lines[1], "part1 part2");
   });
 
   test('reload after leaf library modification', () async {
@@ -156,7 +169,6 @@ main() {
 
 var dartVm = Uri.base.resolve(Platform.resolvedExecutable);
 var sdkRoot = dartVm.resolve("patched_sdk/");
-var platformFile = sdkRoot.resolve('platform.dill');
 
 Future<IncrementalKernelGenerator> createIncrementalCompiler(
     String entry, FileSystem fs) {
@@ -197,7 +209,7 @@ Future<Null> writeProgram(Program program, Uri outputUri) async {
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
   new LimitedBinaryPrinter(
-          sink, (library) => library.importUri.scheme != 'dart')
+          sink, (library) => library.importUri.scheme != 'dart', false)
       .writeProgramFile(program);
   await sink.close();
 }

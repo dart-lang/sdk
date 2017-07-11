@@ -4,7 +4,7 @@
 
 library fasta.mixin_application_builder;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import 'builder.dart'
     show Scope, TypeBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
@@ -38,7 +38,8 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
   }
 
   void bind(TypeDeclarationBuilder builder) {
-    internalError("Internal error: can't bind a mixin application.");
+    deprecated_internalProblem(
+        "Internal error: can't bind a mixin application.");
   }
 
   String get debugName => "MixinApplicationBuilder";

@@ -7,11 +7,11 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
@@ -506,11 +506,8 @@ main() {
       Library initialLibrary = _getLibrary(program, bUri);
       initialKernelText = _getLibraryText(initialLibrary);
 
-      var byteSink = new ByteSink();
-      var printer = new LimitedBinaryPrinter(
-          byteSink, (library) => library.importUri == bUri);
-      printer.writeProgramFile(program);
-      bytes = byteSink.builder.takeBytes();
+      bytes = serializeProgram(program,
+          filter: (library) => library.importUri == bUri);
 
       // Remove b.dart from the program.
       // So, the program is now ready for re-adding the library.

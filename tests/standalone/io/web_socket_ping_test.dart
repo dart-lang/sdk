@@ -11,11 +11,10 @@ library dart.io;
 
 import "package:expect/expect.dart";
 import "dart:async";
-import "dart:convert" show BASE64;
 import "dart:io";
 import "dart:math";
 
-import "hash_utils.dart";
+part "../../../sdk/lib/io/crypto.dart";
 
 const String webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -28,9 +27,9 @@ void testPing(int totalConnections) {
       response.headers.set(HttpHeaders.CONNECTION, "upgrade");
       response.headers.set(HttpHeaders.UPGRADE, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
-      var sha1 = new SHA1();
+      _SHA1 sha1 = new _SHA1();
       sha1.add("$key$webSocketGUID".codeUnits);
-      String accept = BASE64.encode(sha1.close());
+      String accept = _CryptoUtils.bytesToBase64(sha1.close());
       response.headers.add("Sec-WebSocket-Accept", accept);
       response.headers.contentLength = 0;
       response.detachSocket().then((socket) {

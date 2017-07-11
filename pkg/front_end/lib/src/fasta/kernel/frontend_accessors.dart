@@ -32,7 +32,7 @@ import 'package:kernel/ast.dart' hide MethodInvocation, InvalidExpression;
 
 import '../names.dart' show equalsName, indexGetName, indexSetName;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
@@ -178,7 +178,7 @@ abstract class Accessor {
   ///
   /// At runtime, an exception will be thrown.
   makeInvalidRead() {
-    return internalError(
+    return deprecated_internalProblem(
         "Unhandled compile-time error.", null, offsetForToken(token));
   }
 
@@ -187,7 +187,7 @@ abstract class Accessor {
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
   makeInvalidWrite(Expression value) {
-    return internalError(
+    return deprecated_internalProblem(
         "Unhandled compile-time error.", null, offsetForToken(token));
   }
 

@@ -902,9 +902,13 @@ class FieldHelper {
         builder_->record_token_position(position_);
         builder_->record_token_position(end_position_);
         if (++next_read_ == field) return;
-      case kAnnotations:
-        builder_->SkipListOfExpressions();  // read annotations.
+      case kAnnotations: {
+        annotation_count_ = builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < annotation_count_; ++i) {
+          builder_->SkipExpression();  // read ith expression.
+        }
         if (++next_read_ == field) return;
+      }
       case kType:
         builder_->SkipDartType();  // read type.
         if (++next_read_ == field) return;
@@ -935,6 +939,7 @@ class FieldHelper {
   word flags_;
   intptr_t parent_class_binary_offset_;
   intptr_t source_uri_index_;
+  intptr_t annotation_count_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -1015,9 +1020,13 @@ class ProcedureHelper {
         builder_->record_token_position(position_);
         builder_->record_token_position(end_position_);
         if (++next_read_ == field) return;
-      case kAnnotations:
-        builder_->SkipListOfExpressions();  // read annotations.
+      case kAnnotations: {
+        annotation_count_ = builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < annotation_count_; ++i) {
+          builder_->SkipExpression();  // read ith expression.
+        }
         if (++next_read_ == field) return;
+      }
       case kFunction:
         if (builder_->ReadTag() == kSomething)
           builder_->SkipFunctionNode();  // read function node.
@@ -1053,6 +1062,7 @@ class ProcedureHelper {
   word flags_;
   intptr_t parent_class_binary_offset_;
   intptr_t source_uri_index_;
+  intptr_t annotation_count_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -1121,9 +1131,13 @@ class ConstructorHelper {
       case kName:
         builder_->SkipName();  // read name.
         if (++next_read_ == field) return;
-      case kAnnotations:
-        builder_->SkipListOfExpressions();  // read annotations.
+      case kAnnotations: {
+        annotation_count_ = builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < annotation_count_; ++i) {
+          builder_->SkipExpression();  // read ith expression.
+        }
         if (++next_read_ == field) return;
+      }
       case kFunction:
         builder_->SkipFunctionNode();  // read function.
         if (++next_read_ == field) return;
@@ -1179,6 +1193,7 @@ class ConstructorHelper {
   TokenPosition end_position_;
   word flags_;
   intptr_t parent_class_binary_offset_;
+  intptr_t annotation_count_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -1253,9 +1268,13 @@ class ClassHelper {
         builder_->current_script_id_ = source_uri_index_;
         builder_->record_token_position(position_);
         if (++next_read_ == field) return;
-      case kAnnotations:
-        builder_->SkipListOfExpressions();  // read annotations.
+      case kAnnotations: {
+        annotation_count_ = builder_->ReadListLength();  // read list length.
+        for (intptr_t i = 0; i < annotation_count_; ++i) {
+          builder_->SkipExpression();  // read ith expression.
+        }
         if (++next_read_ == field) return;
+      }
       case kTypeParameters:
         builder_->SkipTypeParametersList();  // read type parameters.
         if (++next_read_ == field) return;
@@ -1322,6 +1341,7 @@ class ClassHelper {
   bool is_abstract_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
+  intptr_t annotation_count_;
 
  private:
   StreamingFlowGraphBuilder* builder_;

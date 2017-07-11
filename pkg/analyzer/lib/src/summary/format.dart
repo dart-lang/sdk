@@ -7383,7 +7383,6 @@ class UnlinkedExecutableBuilder extends Object
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
   List<UnlinkedExecutableBuilder> _localFunctions;
-  List<UnlinkedLabelBuilder> _localLabels;
   String _name;
   int _nameEnd;
   int _nameOffset;
@@ -7593,15 +7592,8 @@ class UnlinkedExecutableBuilder extends Object
   }
 
   @override
-  List<UnlinkedLabelBuilder> get localLabels =>
-      _localLabels ??= <UnlinkedLabelBuilder>[];
-
-  /**
-   * The list of local labels.
-   */
-  void set localLabels(List<UnlinkedLabelBuilder> value) {
-    this._localLabels = value;
-  }
+  List<String> get localLabels =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<UnlinkedVariableBuilder> get localVariables =>
@@ -7759,7 +7751,6 @@ class UnlinkedExecutableBuilder extends Object
       bool isStatic,
       idl.UnlinkedExecutableKind kind,
       List<UnlinkedExecutableBuilder> localFunctions,
-      List<UnlinkedLabelBuilder> localLabels,
       String name,
       int nameEnd,
       int nameOffset,
@@ -7788,7 +7779,6 @@ class UnlinkedExecutableBuilder extends Object
         _isStatic = isStatic,
         _kind = kind,
         _localFunctions = localFunctions,
-        _localLabels = localLabels,
         _name = name,
         _nameEnd = nameEnd,
         _nameOffset = nameOffset,
@@ -7813,7 +7803,6 @@ class UnlinkedExecutableBuilder extends Object
     _isAsynchronous = null;
     _isGenerator = null;
     _localFunctions?.forEach((b) => b.flushInformative());
-    _localLabels = null;
     _nameEnd = null;
     _nameOffset = null;
     _parameters?.forEach((b) => b.flushInformative());
@@ -7895,7 +7884,6 @@ class UnlinkedExecutableBuilder extends Object
     fb.Offset offset_constantInitializers;
     fb.Offset offset_documentationComment;
     fb.Offset offset_localFunctions;
-    fb.Offset offset_localLabels;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
     fb.Offset offset_redirectedConstructor;
@@ -7922,10 +7910,6 @@ class UnlinkedExecutableBuilder extends Object
     if (!(_localFunctions == null || _localFunctions.isEmpty)) {
       offset_localFunctions = fbBuilder
           .writeList(_localFunctions.map((b) => b.finish(fbBuilder)).toList());
-    }
-    if (!(_localLabels == null || _localLabels.isEmpty)) {
-      offset_localLabels = fbBuilder
-          .writeList(_localLabels.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -8000,9 +7984,6 @@ class UnlinkedExecutableBuilder extends Object
     if (offset_localFunctions != null) {
       fbBuilder.addOffset(18, offset_localFunctions);
     }
-    if (offset_localLabels != null) {
-      fbBuilder.addOffset(22, offset_localLabels);
-    }
     if (offset_name != null) {
       fbBuilder.addOffset(1, offset_name);
     }
@@ -8074,7 +8055,6 @@ class _UnlinkedExecutableImpl extends Object
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
   List<idl.UnlinkedExecutable> _localFunctions;
-  List<idl.UnlinkedLabel> _localLabels;
   String _name;
   int _nameEnd;
   int _nameOffset;
@@ -8205,12 +8185,8 @@ class _UnlinkedExecutableImpl extends Object
   }
 
   @override
-  List<idl.UnlinkedLabel> get localLabels {
-    _localLabels ??=
-        const fb.ListReader<idl.UnlinkedLabel>(const _UnlinkedLabelReader())
-            .vTableGet(_bc, _bcOffset, 22, const <idl.UnlinkedLabel>[]);
-    return _localLabels;
-  }
+  List<String> get localLabels =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.UnlinkedVariable> get localVariables =>
@@ -8320,9 +8296,6 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     if (localFunctions.isNotEmpty)
       _result["localFunctions"] =
           localFunctions.map((_value) => _value.toJson()).toList();
-    if (localLabels.isNotEmpty)
-      _result["localLabels"] =
-          localLabels.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
     if (nameEnd != 0) _result["nameEnd"] = nameEnd;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
@@ -8362,7 +8335,6 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
         "isStatic": isStatic,
         "kind": kind,
         "localFunctions": localFunctions,
-        "localLabels": localLabels,
         "name": name,
         "nameEnd": nameEnd,
         "nameOffset": nameOffset,
@@ -9493,177 +9465,6 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
         "uri": uri,
         "uriEnd": uriEnd,
         "uriOffset": uriOffset,
-      };
-
-  @override
-  String toString() => convert.JSON.encode(toJson());
-}
-
-class UnlinkedLabelBuilder extends Object
-    with _UnlinkedLabelMixin
-    implements idl.UnlinkedLabel {
-  bool _isOnSwitchMember;
-  bool _isOnSwitchStatement;
-  String _name;
-  int _nameOffset;
-
-  @override
-  bool get isOnSwitchMember => _isOnSwitchMember ??= false;
-
-  /**
-   * Return `true` if this label is associated with a `switch` member (`case` or
-   * `default`).
-   */
-  void set isOnSwitchMember(bool value) {
-    this._isOnSwitchMember = value;
-  }
-
-  @override
-  bool get isOnSwitchStatement => _isOnSwitchStatement ??= false;
-
-  /**
-   * Return `true` if this label is associated with a `switch` statement.
-   */
-  void set isOnSwitchStatement(bool value) {
-    this._isOnSwitchStatement = value;
-  }
-
-  @override
-  String get name => _name ??= '';
-
-  /**
-   * Name of the label.
-   */
-  void set name(String value) {
-    this._name = value;
-  }
-
-  @override
-  int get nameOffset => _nameOffset ??= 0;
-
-  /**
-   * Offset of the label relative to the beginning of the file.
-   */
-  void set nameOffset(int value) {
-    assert(value == null || value >= 0);
-    this._nameOffset = value;
-  }
-
-  UnlinkedLabelBuilder(
-      {bool isOnSwitchMember,
-      bool isOnSwitchStatement,
-      String name,
-      int nameOffset})
-      : _isOnSwitchMember = isOnSwitchMember,
-        _isOnSwitchStatement = isOnSwitchStatement,
-        _name = name,
-        _nameOffset = nameOffset;
-
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {
-    _nameOffset = null;
-  }
-
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._name ?? '');
-    signature.addBool(this._isOnSwitchMember == true);
-    signature.addBool(this._isOnSwitchStatement == true);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_name;
-    if (_name != null) {
-      offset_name = fbBuilder.writeString(_name);
-    }
-    fbBuilder.startTable();
-    if (_isOnSwitchMember == true) {
-      fbBuilder.addBool(2, true);
-    }
-    if (_isOnSwitchStatement == true) {
-      fbBuilder.addBool(3, true);
-    }
-    if (offset_name != null) {
-      fbBuilder.addOffset(0, offset_name);
-    }
-    if (_nameOffset != null && _nameOffset != 0) {
-      fbBuilder.addUint32(1, _nameOffset);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _UnlinkedLabelReader extends fb.TableReader<_UnlinkedLabelImpl> {
-  const _UnlinkedLabelReader();
-
-  @override
-  _UnlinkedLabelImpl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedLabelImpl(bc, offset);
-}
-
-class _UnlinkedLabelImpl extends Object
-    with _UnlinkedLabelMixin
-    implements idl.UnlinkedLabel {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _UnlinkedLabelImpl(this._bc, this._bcOffset);
-
-  bool _isOnSwitchMember;
-  bool _isOnSwitchStatement;
-  String _name;
-  int _nameOffset;
-
-  @override
-  bool get isOnSwitchMember {
-    _isOnSwitchMember ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
-    return _isOnSwitchMember;
-  }
-
-  @override
-  bool get isOnSwitchStatement {
-    _isOnSwitchStatement ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
-    return _isOnSwitchStatement;
-  }
-
-  @override
-  String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
-    return _name;
-  }
-
-  @override
-  int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
-    return _nameOffset;
-  }
-}
-
-abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (isOnSwitchMember != false)
-      _result["isOnSwitchMember"] = isOnSwitchMember;
-    if (isOnSwitchStatement != false)
-      _result["isOnSwitchStatement"] = isOnSwitchStatement;
-    if (name != '') _result["name"] = name;
-    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "isOnSwitchMember": isOnSwitchMember,
-        "isOnSwitchStatement": isOnSwitchStatement,
-        "name": name,
-        "nameOffset": nameOffset,
       };
 
   @override

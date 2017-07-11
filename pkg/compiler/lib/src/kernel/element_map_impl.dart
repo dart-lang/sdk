@@ -125,6 +125,47 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   Iterable<LibraryEntity> get _libraries;
 
+  SourceSpan _getSourceSpanFromTreeNode(ir.TreeNode node) {
+    // TODO(johnniwinther): Use [ir.Location] directly as a [SourceSpan].
+    Uri uri;
+    int offset;
+    while (node != null) {
+      if (node.fileOffset != ir.TreeNode.noOffset) {
+        offset = node.fileOffset;
+        uri = Uri.parse(node.location.file);
+        break;
+      }
+      node = node.parent;
+    }
+    if (uri != null) {
+      return new SourceSpan(uri, offset, offset + 1);
+    }
+    return null;
+  }
+
+  SourceSpan getSourceSpan(Spannable spannable, Entity currentElement) {
+    SourceSpan fromSpannable(Spannable spannable) {
+      if (spannable is IndexedLibrary &&
+          spannable.libraryIndex < _libraryEnvs.length) {
+        LibraryEnv env = _libraryEnvs[spannable.libraryIndex];
+        return _getSourceSpanFromTreeNode(env.library);
+      } else if (spannable is IndexedClass &&
+          spannable.classIndex < _classEnvs.length) {
+        ClassEnv env = _classEnvs[spannable.classIndex];
+        return _getSourceSpanFromTreeNode(env.cls);
+      } else if (spannable is IndexedMember &&
+          spannable.memberIndex < _memberData.length) {
+        MemberData data = _memberData[spannable.memberIndex];
+        return _getSourceSpanFromTreeNode(data.node);
+      }
+      return null;
+    }
+
+    SourceSpan sourceSpan = fromSpannable(spannable);
+    sourceSpan ??= fromSpannable(currentElement);
+    return sourceSpan;
+  }
+
   LibraryEntity lookupLibrary(Uri uri) {
     LibraryEnv libraryEnv = _env.lookupLibrary(uri);
     if (libraryEnv == null) return null;
@@ -477,6 +518,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     });
   }
 
+  void _forEachConstructorBody(
+      IndexedClass cls, void f(ConstructorBodyEntity member)) {
+    throw new UnsupportedError(
+        'KernelToElementMapBase._forEachConstructorBody');
+  }
+
   void _forEachClassMember(
       IndexedClass cls, void f(ClassEntity cls, MemberEntity member)) {
     assert(checkFamily(cls));
@@ -536,7 +583,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   }
 
   Spannable _getSpannable(MemberEntity member, ir.Node node) {
-    return member;
+    SourceSpan sourceSpan;
+    if (node is ir.TreeNode) {
+      sourceSpan = _getSourceSpanFromTreeNode(node);
+    }
+    sourceSpan ??= getSourceSpan(member, null);
+    return sourceSpan;
   }
 
   ir.Member _getMemberNode(covariant IndexedMember member) {
@@ -659,8 +711,8 @@ abstract class ElementCreatorMixin {
   ConstructorEntity _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
       int memberIndex = _memberData.length;
-      KConstructor constructor;
-      KClass enclosingClass = _getClass(node.enclosingClass);
+      ConstructorEntity constructor;
+      ClassEntity enclosingClass = _getClass(node.enclosingClass);
       Name name = getName(node.name);
       bool isExternal = node.isExternal;
 
@@ -965,14 +1017,25 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
 
 /// Implementation of [KernelToElementMapForImpact] that only supports world
 /// impact computation.
-// TODO(johnniwinther): Merge this with [KernelToElementMapForImpactImpl] when
-// [JsStrategy] is the default.
-abstract class KernelToElementMapForImpactImpl
-    implements
-        KernelToElementMapBase,
-        KernelToElementMapForImpact,
-        KernelToElementMapForImpactMixin {
+class KernelToElementMapForImpactImpl extends KernelToElementMapBase
+    with
+        KernelToElementMapForImpactMixin,
+        ElementCreatorMixin,
+        KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
+
+  KernelToElementMapForImpactImpl(
+      DiagnosticReporter reporter, Environment environment)
+      : super(reporter, environment);
+
+  @override
+  bool checkFamily(Entity entity) {
+    assert(
+        '$entity'.startsWith(kElementPrefix),
+        failedAt(entity,
+            "Unexpected entity $entity, expected family $kElementPrefix."));
+    return true;
+  }
 
   /// Adds libraries in [program] to the set of libraries.
   ///
@@ -998,121 +1061,6 @@ abstract class KernelToElementMapForImpactImpl
   Iterable<ConstantValue> _getClassMetadata(KClass cls) {
     return _classData[cls.classIndex].getMetadata(this);
   }
-}
-
-/// Implementation of [KernelToElementMapForImpact] that only supports world
-/// impact computation.
-// TODO(johnniwinther): Merge this with [KernelToElementMapForImpactImpl] when
-// [JsStrategy] is the default.
-class KernelToElementMapForImpactImpl2 extends KernelToElementMapBase
-    with
-        KernelToElementMapForImpactMixin,
-        KernelToElementMapForImpactImpl,
-        ElementCreatorMixin,
-        KElementCreatorMixin {
-  KernelToElementMapForImpactImpl2(
-      DiagnosticReporter reporter, Environment environment)
-      : super(reporter, environment);
-
-  @override
-  bool checkFamily(Entity entity) {
-    assert(
-        '$entity'.startsWith(kElementPrefix),
-        failedAt(entity,
-            "Unexpected entity $entity, expected family $kElementPrefix."));
-    return true;
-  }
-}
-
-/// Mixin for implementing [KernelToElementMapForBuilding] shared between
-/// classes that extend [KernelToElementMapBase], i.e. not [KernelAstAdapter].
-abstract class KernelToElementMapForBuildingFromBaseMixin
-    implements KernelToElementMapForBuilding, KernelToElementMapBase {
-  @override
-  ConstantValue getFieldConstantValue(ir.Field field) {
-    // TODO(johnniwinther): Cache the result in [FieldData].
-    return getConstantValue(field.initializer,
-        requireConstant: field.isConst, implicitNull: !field.isConst);
-  }
-
-  bool hasConstantFieldInitializer(covariant IndexedField field) {
-    FieldData data = _memberData[field.memberIndex];
-    return getFieldConstantValue(data.node) != null;
-  }
-
-  ConstantValue getConstantFieldInitializer(covariant IndexedField field) {
-    FieldData data = _memberData[field.memberIndex];
-    ConstantValue value = getFieldConstantValue(data.node);
-    assert(value != null,
-        failedAt(field, "Field $field doesn't have a constant initial value."));
-    return value;
-  }
-
-  void forEachParameter(covariant IndexedFunction function,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    FunctionData data = _memberData[function.memberIndex];
-    data.forEachParameter(this, f);
-  }
-}
-
-/// Element builder used for creating elements and types corresponding to Kernel
-/// IR nodes.
-// TODO(johnniwinther): Use this in the JsStrategy
-class KernelToElementMapForBuildingImpl extends KernelToElementMapBase
-    with
-        KernelToElementMapForBuildingMixin,
-        KernelToElementMapForBuildingFromBaseMixin,
-        ElementCreatorMixin,
-        KElementCreatorMixin
-    implements KernelToWorldBuilder {
-  KernelToElementMapForBuildingImpl(
-      DiagnosticReporter reporter, Environment environment)
-      : super(reporter, environment);
-
-  @override
-  bool checkFamily(Entity entity) {
-    assert(
-        '$entity'.startsWith(kElementPrefix),
-        failedAt(entity,
-            "Unexpected entity $entity, expected family $kElementPrefix."));
-    return true;
-  }
-
-  ConstantEnvironment get constantEnvironment => _constantEnvironment;
-
-  ir.Library getKernelLibrary(KLibrary entity) =>
-      _libraryEnvs[entity.libraryIndex].library;
-
-  ir.Class getKernelClass(KClass entity) => _classEnvs[entity.classIndex].cls;
-
-  @override
-  Spannable getSpannable(MemberEntity member, ir.Node node) {
-    return _getSpannable(member, node);
-  }
-
-  @override
-  ir.Member getMemberNode(MemberEntity member) {
-    return _getMemberNode(member);
-  }
-
-  @override
-  ir.Class getClassNode(ClassEntity cls) {
-    return _getClassNode(cls);
-  }
-}
-
-/// [KernelToElementMap] implementation used for both world impact computation
-/// and SSA building.
-// TODO(johnniwinther): Remove this when [JsStrategy] is the default.
-class KernelToElementMapImpl extends KernelToElementMapForBuildingImpl
-    with
-        KernelToElementMapForImpactMixin,
-        KernelToElementMapForImpactImpl,
-        ElementCreatorMixin,
-        KElementCreatorMixin
-    implements KernelToElementMapForImpactImpl2 {
-  KernelToElementMapImpl(DiagnosticReporter reporter, Environment environment)
-      : super(reporter, environment);
 }
 
 class KernelElementEnvironment implements ElementEnvironment {
@@ -1254,6 +1202,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor)) {
     elementMap._forEachConstructor(cls, f);
+  }
+
+  @override
+  void forEachConstructorBody(
+      ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
+    elementMap._forEachConstructorBody(cls, f);
   }
 
   @override
@@ -1781,7 +1735,6 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
 class JsKernelToElementMap extends KernelToElementMapBase
     with
         KernelToElementMapForBuildingMixin,
-        KernelToElementMapForBuildingFromBaseMixin,
         JsElementCreatorMixin,
         // TODO(johnniwinther): Avoid mixin in [ElementCreatorMixin]. The
         // codegen world should be a strict subset of the resolution world and
@@ -1922,6 +1875,26 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return constructor;
   }
 
+  FunctionEntity getConstructorBody(ir.Constructor node) {
+    ConstructorEntity constructor = getConstructor(node);
+    return _getConstructorBody(node, constructor);
+  }
+
+  FunctionEntity _getConstructorBody(
+      ir.Constructor node, covariant IndexedConstructor constructor) {
+    ConstructorData data = _memberData[constructor.memberIndex];
+    if (data.constructorBody == null) {
+      data.constructorBody =
+          createConstructorBody(_memberList.length, constructor);
+      _memberList.add(data.constructorBody);
+      _memberData.add(new FunctionData(node, node.function));
+    }
+    return data.constructorBody;
+  }
+
+  ConstructorBodyEntity createConstructorBody(
+      int memberIndex, ConstructorEntity constructor);
+
   @override
   ir.Member getMemberNode(MemberEntity member) {
     return _getMemberNode(member);
@@ -1930,5 +1903,51 @@ class JsKernelToElementMap extends KernelToElementMapBase
   @override
   ir.Class getClassNode(ClassEntity cls) {
     return _getClassNode(cls);
+  }
+
+  @override
+  ConstantValue getFieldConstantValue(ir.Field field) {
+    // TODO(johnniwinther): Cache the result in [FieldData].
+    return getConstantValue(field.initializer,
+        requireConstant: field.isConst, implicitNull: !field.isConst);
+  }
+
+  bool hasConstantFieldInitializer(covariant IndexedField field) {
+    FieldData data = _memberData[field.memberIndex];
+    return getFieldConstantValue(data.node) != null;
+  }
+
+  ConstantValue getConstantFieldInitializer(covariant IndexedField field) {
+    FieldData data = _memberData[field.memberIndex];
+    ConstantValue value = getFieldConstantValue(data.node);
+    assert(value != null,
+        failedAt(field, "Field $field doesn't have a constant initial value."));
+    return value;
+  }
+
+  void forEachParameter(covariant IndexedFunction function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    FunctionData data = _memberData[function.memberIndex];
+    data.forEachParameter(this, f);
+  }
+
+  void _forEachConstructorBody(
+      IndexedClass cls, void f(ConstructorBodyEntity member)) {
+    ClassEnv env = _classEnvs[cls.classIndex];
+    env.forEachConstructor((ir.Member member) {
+      IndexedConstructor constructor = _constructorMap[member];
+      if (constructor == null) {
+        // The constructor is not live.
+        return;
+      }
+      ConstructorData data = _memberData[constructor.memberIndex];
+      if (data.constructorBody != null) {
+        f(data.constructorBody);
+      }
+    });
+  }
+
+  String getDeferredUri(ir.LibraryDependency node) {
+    throw new UnimplementedError('JsKernelToElementMap.getDeferredUri');
   }
 }

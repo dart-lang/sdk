@@ -29,6 +29,7 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
 UNIT_TEST_CASE(BasicMallocHookTest) {
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
+  Profiler::InitAllocationSampleBuffer();
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -54,6 +55,7 @@ UNIT_TEST_CASE(BasicMallocHookTest) {
 UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
+  Profiler::InitAllocationSampleBuffer();
 
   MallocHooks::InitOnce();
   const intptr_t pre_hook_buffer_size = 3;
@@ -90,6 +92,7 @@ UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
 VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
+  Profiler::InitAllocationSampleBuffer();
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -121,6 +124,7 @@ static char* DART_NOINLINE StackTraceLengthHelper(uintptr_t* end_address) {
 VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
+  Profiler::InitAllocationSampleBuffer();
 
   uintptr_t test_start_address =
       reinterpret_cast<uintptr_t>(Dart_TestStackTraceMallocHookLengthTest);
@@ -175,6 +179,7 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
 ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
+  Profiler::InitAllocationSampleBuffer();
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();

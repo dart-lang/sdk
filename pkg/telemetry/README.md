@@ -9,7 +9,7 @@ information and crash reports. The tools share a common setting to configure
 sending analytics data. To use this library for a specific tool:
 
 ```
-import 'package:telemtry/telemtry.dart';
+import 'package:telemetry/telemetry.dart';
 import 'package:usage/usage.dart';
 
 main() async {
@@ -34,7 +34,7 @@ To use the crash reporting functionality, import `crash_reporting.dart`, and
 create a new `CrashReportSender` instance:
 
 ```dart
-import 'package:telemtry/crash_reporting.dart';
+import 'package:telemetry/crash_reporting.dart';
 
 main() {
   Analytics analytics = ...;

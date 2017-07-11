@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "internal.dart";
+part of dart._internal;
 
 /**
  * Marker interface for [Iterable] subclasses that have an efficient

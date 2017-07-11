@@ -4,7 +4,7 @@
 
 import 'dart:collection' show IterableMixin;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show PLUS_TOKEN;
@@ -3177,13 +3177,13 @@ class IsInterpolationVisitor extends Visitor<bool> {
 class ErrorNode extends Node
     implements FunctionExpression, VariableDefinitions, Typedef {
   final Token token;
-  final FastaMessage message;
+  final Message message;
   final Identifier name;
   final NodeList definitions;
 
   ErrorNode.internal(this.token, this.message, this.name, this.definitions);
 
-  factory ErrorNode(Token token, FastaMessage message) {
+  factory ErrorNode(Token token, Message message) {
     Identifier name = new Identifier(token);
     NodeList definitions =
         new NodeList(null, const Link<Node>().prepend(name), null, null);

@@ -16,7 +16,8 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -70,7 +71,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
       KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+      KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
       ir.Program program = new ir.Program(
           libraries:
               compiler.backend.kernelTask.kernel.libraryDependencies(uri));
@@ -116,7 +117,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
-  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+  KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
   compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
       elementMap,
       compiler2.reporter,
@@ -129,7 +130,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
 class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
   final ir.Program program;
 
-  MemoryDillLibraryLoaderTask(KernelToElementMapImpl elementMap,
+  MemoryDillLibraryLoaderTask(KernelToElementMapForImpact elementMap,
       DiagnosticReporter reporter, Measurer measurer, this.program)
       : super(elementMap, null, null, reporter, measurer);
 
@@ -161,7 +162,8 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
       Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
   await generate.main([
     '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
-    '$entryPoint'
+    '--out=${uriPathToNative(dillFile.path)}',
+    '${entryPoint.path}',
   ]);
   return dillFile;
 }

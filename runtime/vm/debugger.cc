@@ -2710,6 +2710,8 @@ bool Debugger::FindBestFit(const Script& script,
                            Function* best_fit) {
   Zone* zone = Thread::Current()->zone();
   Class& cls = Class::Handle(zone);
+  Library& lib = Library::Handle(zone, script.FindLibrary());
+  ASSERT(!lib.IsNull());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       zone, isolate_->object_store()->closure_functions());
   Array& functions = Array::Handle(zone);
@@ -2740,7 +2742,9 @@ bool Debugger::FindBestFit(const Script& script,
       continue;
     }
     cls = class_table.At(i);
-    if (cls.script() != script.raw()) {
+    // This class is relevant to us only if it belongs to the
+    // library to which |script| belongs.
+    if (cls.library() != lib.raw()) {
       continue;
     }
     // Parse class definition if not done yet.
@@ -2786,6 +2790,11 @@ bool Debugger::FindBestFit(const Script& script,
         TokenPosition end;
         field ^= fields.At(pos);
         ASSERT(!field.IsNull());
+        if (field.Script() != script.raw()) {
+          // The field should be defined in the script we want to set
+          // the breakpoint in.
+          continue;
+        }
         if (Parser::FieldHasFunctionLiteralInitializer(field, &start, &end)) {
           if ((start <= token_pos && token_pos <= end) ||
               (token_pos <= start && start <= last_token_pos)) {

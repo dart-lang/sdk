@@ -137,8 +137,6 @@ Language/Metadata/before_param_t07: RuntimeError  # Issue 28434: Kernel IR misse
 Language/Metadata/before_param_t08: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_param_t09: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_typedef_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_variable_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
-Language/Metadata/before_variable_t02: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/compilation_t03: MissingCompileTimeError
 Language/Metadata/compilation_t08: Crash
 Language/Metadata/compilation_t10: Crash
@@ -146,7 +144,6 @@ Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Reference/Lexical_Rules/Reserved_Words/void_t05: DartkCrash
 Language/Statements/Continue/label_t06: MissingCompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
 Language/Statements/Continue/label_t08: MissingCompileTimeError

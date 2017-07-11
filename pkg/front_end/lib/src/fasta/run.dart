@@ -19,7 +19,7 @@ import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'fasta.dart' show CompileTask;
 
-import 'errors.dart' show InputError;
+import 'deprecated_problems.dart' show deprecated_InputError;
 
 import 'ticker.dart' show Ticker;
 
@@ -37,8 +37,8 @@ mainEntryPoint(List<String> arguments) async {
         CompileTask task =
             new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
         uri = await task.compile();
-      } on InputError catch (e) {
-        print(e.format());
+      } on deprecated_InputError catch (e) {
+        print(e.deprecated_format());
         exit(1);
       }
       if (exitCode != 0) exit(exitCode);

@@ -56,7 +56,7 @@ import 'package:kernel/ast.dart'
         RedirectingInitializer,
         TypeParameter;
 
-import '../errors.dart' show inputError;
+import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../builder/builder.dart' show LibraryBuilder;
 
@@ -79,7 +79,7 @@ List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
   return arguments;
 }
 
-dynamic memberError(Member member, Object error, [int charOffset]) {
+dynamic deprecated_memberError(Member member, Object error, [int charOffset]) {
   String name = member.name?.name;
   if (name == "") {
     name = Printer.emptyNameString;
@@ -104,7 +104,7 @@ dynamic memberError(Member member, Object error, [int charOffset]) {
     charOffset = cls?.fileOffset ?? -1;
   }
   name = (cls == null ? "" : "${cls.name}::") + name;
-  return inputError(uri, charOffset, "Error in $name: $error");
+  return deprecated_inputError(uri, charOffset, "Error in $name: $error");
 }
 
 int compareProcedures(Procedure a, Procedure b) {

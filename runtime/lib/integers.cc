@@ -27,6 +27,7 @@ DEFINE_FLAG(bool,
 // when it could have been a Smi.
 static bool CheckInteger(const Integer& i) {
   if (i.IsBigint()) {
+    ASSERT(!FLAG_limit_ints_to_64_bits);
     const Bigint& bigint = Bigint::Cast(i);
     return !bigint.FitsIntoSmi() && !bigint.FitsIntoInt64();
   }
@@ -260,29 +261,32 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   }
   if (value.IsMint()) {
     const int64_t mint_value = value.AsInt64Value();
-    const int count = Utils::HighestBit(mint_value);
     intptr_t shift_count = amount.Value();
-    if (kind == Token::kSHR) {
-      shift_count = -shift_count;
-    }
-    if ((count + shift_count) < Mint::kBits) {
-      switch (kind) {
-        case Token::kSHL:
-          return Integer::New(mint_value << shift_count, Heap::kNew);
-        case Token::kSHR:
-          shift_count =
-              (-shift_count > Mint::kBits) ? Mint::kBits : -shift_count;
-          return Integer::New(mint_value >> shift_count, Heap::kNew);
-        default:
-          UNIMPLEMENTED();
-      }
-    } else {
-      // Overflow in shift, use Bigints
-      return Integer::null();
+    switch (kind) {
+      case Token::kSHL:
+        if (FLAG_limit_ints_to_64_bits) {
+          return Integer::New(
+              Utils::ShiftLeftWithTruncation(mint_value, shift_count),
+              Heap::kNew);
+        } else {
+          const int count = Utils::HighestBit(mint_value);
+          if (shift_count < (Mint::kBits - count)) {
+            return Integer::New(mint_value << shift_count, Heap::kNew);
+          } else {
+            // Overflow in shift, use Bigints
+            return Integer::null();
+          }
+        }
+      case Token::kSHR:
+        shift_count = Utils::Minimum(shift_count, Mint::kBits);
+        return Integer::New(mint_value >> shift_count, Heap::kNew);
+      default:
+        UNIMPLEMENTED();
     }
   } else {
     ASSERT(value.IsBigint());
   }
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();
 }
 
@@ -409,12 +413,9 @@ DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Bigint_allocate, 4) {
-  if (FLAG_limit_ints_to_64_bits) {
-    // The allocated Bigint value is not necessarily out of range, but it may
-    // be used as an operand in an operation resulting in a Bigint.
-    Exceptions::ThrowRangeErrorMsg(
-        "Integer operand requires conversion to Bigint");
-  }
+  // TODO(alexmarkov): Revise this assertion if this native method can be used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   // First arg is null type arguments, since class Bigint is not parameterized.
   const Bool& neg = Bool::CheckedHandle(arguments->NativeArgAt(1));
   const Smi& used = Smi::CheckedHandle(arguments->NativeArgAt(2));

@@ -211,6 +211,12 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
 
   LocalFunctionElement getLocalFunction(ir.TreeNode node) => getElement(node);
 
+  /// Returns the uri for the deferred import [node].
+  String getDeferredUri(ir.LibraryDependency node) {
+    PrefixElement prefixElement = getElement(node);
+    return prefixElement.deferredImport.uri.toString();
+  }
+
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
     assert(result != null,
@@ -340,7 +346,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
         getClass(cls), getDartTypes(typeArguments));
   }
 
-  MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {
+  MemberEntity getConstructorBody(ir.Constructor constructor) {
     AstElement element = getElement(constructor);
     MemberEntity constructorBody =
         ConstructorBodyElementX.createFromResolvedAst(element.resolvedAst);

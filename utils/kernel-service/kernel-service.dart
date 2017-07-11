@@ -20,20 +20,92 @@
 ///
 library runtime.tools.kernel_service;
 
-import 'dart:async';
-import 'dart:io' hide FileSystemEntity;
+import 'dart:async' show Future;
+import 'dart:io' show File, Platform hide FileSystemEntity;
 import 'dart:isolate';
+import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/file_system.dart';
+import 'package:front_end/front_end.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
-import 'package:front_end/src/fasta/vm.dart'
-    show CompilationResult, Status, parseScriptInFileSystem;
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
+import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 
 const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
+
+Future<CompilationResult> _parseScriptInFileSystem(
+    Uri script, FileSystem fileSystem,
+    {bool verbose: false, bool strongMode: false}) async {
+  final Uri packagesUri = (Platform.packageConfig != null)
+      ? Uri.parse(Platform.packageConfig)
+      : await _findPackagesFile(fileSystem, script);
+  if (packagesUri == null) {
+    throw "Could not find .packages";
+  }
+
+  final Uri patchedSdk = Uri.base
+      .resolveUri(new Uri.file(Platform.resolvedExecutable))
+      .resolveUri(new Uri.directory("patched_sdk"));
+
+  if (verbose) {
+    print("""DFE: Requesting compilation {
+  scriptUri: ${script}
+  packagesUri: ${packagesUri}
+  patchedSdk: ${patchedSdk}
+}""");
+  }
+
+  try {
+    var errors = <String>[];
+    var options = new CompilerOptions()
+      ..strongMode = strongMode
+      ..fileSystem = fileSystem
+      ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
+      ..packagesFileUri = packagesUri
+      // TODO(sigmund): use outline.dill when the mixin transformer is modular.
+      ..sdkSummary = patchedSdk.resolve('platform.dill')
+      ..verbose = verbose
+      ..onError = (CompilationError e) => errors.add(e.message);
+
+    Program program = await kernelForProgram(script, options);
+    if (errors.isNotEmpty) return new CompilationResult.errors(errors);
+
+    // We serialize the program excluding platform.dill because the VM has these
+    // sources built-in. Everything loaded as a summary in [kernelForProgram] is
+    // marked `external`, so we can use that bit to decide what to excluce.
+    // TODO(sigmund): remove the following line (Issue #30111)
+    program.libraries.forEach((e) => e.isExternal = false);
+    return new CompilationResult.ok(
+        serializeProgram(program, filter: (lib) => !lib.isExternal));
+  } catch (err, stack) {
+    return new CompilationResult.crash(err, stack);
+  }
+}
+
+/// This duplicates functionality from the Loader which we can't easily
+/// access from here.
+// TODO(sigmund): delete, this should be supported by the default options in
+// package:front_end.
+Future<Uri> _findPackagesFile(FileSystem fileSystem, Uri base) async {
+  var dir = new File.fromUri(base).parent;
+  while (true) {
+    final packagesFile = dir.uri.resolve(".packages");
+    if (await fileSystem.entityForUri(packagesFile).exists()) {
+      return packagesFile;
+    }
+    if (dir.parent.path == dir.path) {
+      break;
+    }
+    dir = dir.parent;
+  }
+  return null;
+}
 
 Future<CompilationResult> _processLoadRequestImpl(
     String inputFilePathOrUri, FileSystem fileSystem) {
@@ -50,10 +122,10 @@ Future<CompilationResult> _processLoadRequestImpl(
 
   if (!scriptUri.isScheme('file')) {
     // TODO(vegorov): Reuse loader code to support other schemes.
-    return new Future<CompilationResult>.value(new CompilationResult.error(
-        "Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"));
+    return new Future<CompilationResult>.value(new CompilationResult.errors(
+        ["Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"]));
   }
-  return parseScriptInFileSystem(scriptUri, fileSystem,
+  return _parseScriptInFileSystem(scriptUri, fileSystem,
       verbose: verbose, strongMode: strongMode);
 }
 
@@ -145,4 +217,89 @@ main([args]) {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;
   }
+}
+
+/// Compilation status codes.
+///
+/// Note: The [index] property of these constants must match
+/// `Dart_KernelCompilationStatus` in
+/// [dart_api.h](../../../../runtime/include/dart_api.h).
+enum Status {
+  /// Compilation was successful.
+  ok,
+
+  /// Compilation failed with a compile time error.
+  error,
+
+  /// Compiler crashed.
+  crash,
+}
+
+abstract class CompilationResult {
+  CompilationResult._();
+
+  factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
+
+  factory CompilationResult.errors(List<String> errors) = _CompilationError;
+
+  factory CompilationResult.crash(Object exception, StackTrace stack) =
+      _CompilationCrash;
+
+  Status get status;
+
+  get payload;
+
+  List toResponse() => [status.index, payload];
+}
+
+class _CompilationOk extends CompilationResult {
+  final Uint8List bytes;
+
+  _CompilationOk(this.bytes) : super._();
+
+  @override
+  Status get status => Status.ok;
+
+  @override
+  get payload => bytes;
+
+  String toString() => "_CompilationOk(${bytes.length} bytes)";
+}
+
+abstract class _CompilationFail extends CompilationResult {
+  _CompilationFail() : super._();
+
+  String get errorString;
+
+  @override
+  get payload => errorString;
+}
+
+class _CompilationError extends _CompilationFail {
+  final List<String> errors;
+
+  _CompilationError(this.errors);
+
+  @override
+  Status get status => Status.error;
+
+  @override
+  String get errorString => errors.take(10).join('\n');
+
+  String toString() => "_CompilationError(${errorString})";
+}
+
+class _CompilationCrash extends _CompilationFail {
+  final Object exception;
+  final StackTrace stack;
+
+  _CompilationCrash(this.exception, this.stack);
+
+  @override
+  Status get status => Status.crash;
+
+  @override
+  String get errorString => "${exception}\n${stack}";
+
+  String toString() => "_CompilationCrash(${errorString})";
 }

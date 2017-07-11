@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/errors.dart';
+import 'package:front_end/src/fasta/deprecated_problems.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
 
@@ -217,7 +217,7 @@ abstract class TypePromoterImpl extends TypePromoter {
   void finished() {
     debugEvent('finished');
     if (_currentScope is! _TopLevelScope) {
-      internalError('Stack not empty');
+      deprecated_internalProblem('Stack not empty');
     }
   }
 

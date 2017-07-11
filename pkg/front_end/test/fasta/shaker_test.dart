@@ -22,7 +22,9 @@ import 'dart:io' show File;
 export 'package:testing/testing.dart' show Chain, runMe;
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
+import 'package:front_end/src/fasta/kernel/kernel_outline_shaker.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyProgram;
@@ -65,8 +67,8 @@ class TreeShakerContext extends ChainContext {
         ];
 
   Program loadPlatformOutline() {
-    // Note: we rebuild the platform outline on every test because the compiler
-    // currently mutates the in-memory representation of the program without
+    // Note: we rebuild the platform outline on every test because the
+    // tree-shaker mutates the in-memory representation of the program without
     // cloning it.
     return loadProgramFromBytes(outlineBytes);
   }
@@ -107,33 +109,17 @@ class BuildProgram
       await dillTarget.buildOutlines();
 
       var inputUri = description.uri;
-
-      /// We treat the lib.dart library as a special dependency that was
-      /// previously built. To do so, we build it and append it back to the
-      /// dillTarget before building the actual test.
       var libUri = inputUri.resolve('lib/lib.dart');
       sourceTarget.read(libUri);
-      dillTarget.loader.appendLibraries(
-          await sourceTarget.buildOutlines(), (uri) => uri == libUri);
-
-      /// This new KernelTarget contains only sources from the test without
-      /// lib.dart.
-      sourceTarget = new KernelTarget(
-          PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
-
-      await dillTarget.buildOutlines();
       sourceTarget.read(inputUri);
       var contents = new File.fromUri(inputUri).readAsStringSync();
       var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
-
       await sourceTarget.buildOutlines();
-      // Note: We run the tree-shaker as a separate step on this suite to be
-      // able to specify what libraries to tree shake (by default only the code
-      // in the dillTarget gets tree-shaken). We could apply the tree-shaker
-      // twice, but that seems unnecessary.
-      var program = await sourceTarget.buildProgram(trimDependencies: true);
+      var program = await sourceTarget.buildProgram();
+      bool isIncluded(Uri uri) => !_isTreeShaken(uri);
+      trimProgram(program, isIncluded);
       return pass(new _IntermediateData(inputUri, program, showCoreLibraries));
-    } on InputError catch (e, s) {
+    } on deprecated_InputError catch (e, s) {
       return fail(null, e.error, s);
     }
   }
@@ -163,18 +149,10 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
 
   String get name => "match shaker expectation";
 
-  /// Tree-shake dart:* libraries and the library under [_specialLibraryPath].
-  bool _isTreeShaken(Uri uri) =>
-      uri.isScheme('dart') ||
-      Uri.base.resolveUri(uri).path.endsWith(_specialLibraryPath);
-
   Future<Result<String>> run(
       _IntermediateData data, ChainContext context) async {
     String actualResult;
-    var entryUri = data.program.libraries
-        .firstWhere((l) => !l.importUri.isScheme('dart'))
-        .importUri;
-
+    var entryUri = data.uri;
     var program = data.program;
 
     var errors = verifyProgram(program, isOutline: false);
@@ -232,9 +210,7 @@ class CheckShaker extends Step<_IntermediateData, String, ChainContext> {
       expectedFile.writeAsStringSync(actualResult);
       return pass(actualResult);
     } else {
-      return fail(
-          actualResult,
-          """
+      return fail(actualResult, """
 Please create file ${expectedFile.path} with this content:
 $buffer""");
     }
@@ -244,3 +220,8 @@ $buffer""");
 /// A special library used only to test the shaker. The suite above will
 /// tree-shake the contents of this library.
 const _specialLibraryPath = 'pkg/front_end/testcases/shaker/lib/lib.dart';
+
+/// Tree-shake dart:* libraries and the library under [_specialLibraryPath].
+bool _isTreeShaken(Uri uri) =>
+    uri.isScheme('dart') ||
+    Uri.base.resolveUri(uri).path.endsWith(_specialLibraryPath);

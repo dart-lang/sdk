@@ -7,7 +7,6 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M show Target;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class TargetEvent {
   final M.Target target;
@@ -71,7 +70,7 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new AnchorElement(href: Uris.vm())
+      new AnchorElement()
         ..text = current ? '${target.name} (Connected)' : '${target.name}'
         ..onClick.where(_filter).map(_toEvent).listen(_connect),
       new ButtonElement()

@@ -66,6 +66,7 @@ abstract class JsToFrontendMapBase implements JsToFrontendMap {
   TypeVariableEntity toFrontendTypeVariable(TypeVariableEntity typeVariable);
 }
 
+// TODO(johnniwinther): Merge this with [JsKernelToElementMap].
 class JsElementCreatorMixin {
   IndexedLibrary createLibrary(
       int libraryIndex, String name, Uri canonicalUri) {
@@ -107,6 +108,11 @@ class JsElementCreatorMixin {
         isExternal: isExternal,
         isConst: isConst,
         isFromEnvironmentConstructor: isFromEnvironmentConstructor);
+  }
+
+  ConstructorBodyEntity createConstructorBody(
+      int memberIndex, ConstructorEntity constructor) {
+    return new JConstructorBody(memberIndex, constructor);
   }
 
   IndexedFunction createGetter(int memberIndex, LibraryEntity library,
@@ -417,6 +423,26 @@ class JFactoryConstructor extends JConstructor {
 
   @override
   bool get isGenerativeConstructor => false;
+}
+
+class JConstructorBody extends JFunction implements ConstructorBodyEntity {
+  final ConstructorEntity constructor;
+
+  JConstructorBody(int memberIndex, this.constructor)
+      : super(
+            memberIndex,
+            constructor.library,
+            constructor.enclosingClass,
+            constructor.memberName,
+            constructor.parameterStructure,
+            AsyncMarker.SYNC,
+            isStatic: false,
+            isExternal: false);
+
+  @override
+  bool get isFunction => true;
+
+  String get _kind => 'constructor_body';
 }
 
 class JMethod extends JFunction {

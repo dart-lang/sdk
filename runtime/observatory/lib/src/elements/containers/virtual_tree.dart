@@ -177,5 +177,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
 
     _depths = depths;
     _collection.items = items;
+
+    _r.waitFor([_collection.onRendered.first]);
   }
 }

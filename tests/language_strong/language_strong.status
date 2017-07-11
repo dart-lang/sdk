@@ -732,10 +732,8 @@ bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
-bool_condition_check_test/01: RuntimeError # Issue 29920
 branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
-call_through_null_getter_test: RuntimeError # Issue 29920
 call_with_no_such_method_test: RuntimeError # Function.apply not really implemented.
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.
@@ -747,18 +745,14 @@ const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 constructor12_test: RuntimeError # Issue 29920
-covariant_subtyping_tearoff2_test: RuntimeError # Issue 29920
-covariant_subtyping_tearoff3_test: RuntimeError # Issue 29920
-covariant_subtyping_unsafe_call2_test: RuntimeError # Issue 29920
-covariant_subtyping_unsafe_call3_test: RuntimeError # Issue 29920
+covariant_subtyping_test: RuntimeError # Issue 29920
 custom_await_stack_trace_test: RuntimeError # Issue 29920
 cyclic_type2_test: RuntimeError # Issue 29920
 cyclic_type_test/02: RuntimeError # Issue 29920
 cyclic_type_test/03: RuntimeError # Issue 29920
 cyclic_type_test/04: RuntimeError # Issue 29920
 deferred_call_empty_before_load_test: RuntimeError # Issue 27777
-deferred_load_library_wrong_args_test/01: MissingRuntimeError # Issue 29920
-deferred_load_library_wrong_args_test/01: RuntimeError # Issue 27777
+deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 deferred_not_loaded_check_test: RuntimeError # Issue 27777
 deferred_redirecting_factory_test: RuntimeError # Issue 27777
 deferred_regression_22995_test: RuntimeError # Issue 29920
@@ -772,7 +766,6 @@ export_private_test/01: MissingCompileTimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
-field_type_check2_test/01: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
@@ -856,7 +849,6 @@ main_test/03: MissingRuntimeError # Issue 29920
 many_generic_instanceof_test: RuntimeError # Issue 29920
 map_literal10_test: RuntimeError # Issue 29920
 map_literal7_test: RuntimeError # Issue 29920
-method_invocation_test: RuntimeError # Issue 29920
 mint_arithmetic_test: RuntimeError # Issue 29920
 modulo_test: RuntimeError # Issue 29920
 named_parameter_clash_test: RuntimeError # Issue 29920
@@ -874,7 +866,6 @@ reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
-string_interpolate_null_test: RuntimeError # Issue 29920
 switch_label2_test: RuntimeError # Issue 29920
 switch_label_test: RuntimeError # Issue 29920
 switch_try_catch_test: RuntimeError # Issue 29920

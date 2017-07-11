@@ -10,10 +10,9 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../elements/elements.dart';
+import '../elements/elements.dart'
+    show ConstructorElement, LocalElement, MemberElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/types.dart';
 import '../tree/tree.dart' as ast show Node, Send;
 import '../types/masks.dart'
@@ -404,7 +403,6 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   String get debugName => '$member';
 
   void addCall(MemberEntity caller, Spannable node) {
-    assert(node is ast.Node || node is Element);
     _callers ??= <MemberEntity, Setlet<Spannable>>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
@@ -819,7 +817,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     return visitor.visitParameterTypeInformation(this);
   }
 
-  String toString() => 'ParameterElement $_parameter $type';
+  String toString() => 'Parameter $_parameter $type';
 
   @override
   String getInferredSignature(TypeSystem types) {
@@ -850,6 +848,9 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.selector, this.mask, this.arguments, this.inLoop)
       : super.noAssignments(context) {
     assert(_checkCaller(caller));
+    // [call] is either an AST node or a constructor element in case of a
+    // a forwarding constructor call.
+    assert(call is ast.Node || call is ConstructorElement);
   }
 
   bool _checkCaller(MemberEntity caller) {
@@ -1016,8 +1017,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, InferrerEngine inferrer) {
     ClosedWorld closedWorld = inferrer.closedWorld;
-    ClassElement intClass = closedWorld.commonElements.jsIntClass;
-    if (!intClass.isResolved) return null;
     if (mask == null) return null;
     if (!mask.containsOnlyInt(closedWorld)) {
       return null;
@@ -1026,8 +1025,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassElement uint31Implementation =
-        closedWorld.commonElements.jsUInt31Class;
+    ClassEntity uint31Implementation = closedWorld.commonElements.jsUInt31Class;
     bool isInt(info) => info.type.containsOnlyInt(closedWorld);
     bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
@@ -1163,8 +1161,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
-    TypeMask result = inferrer.types.joinTypeMasks(targets.map((_element) {
-      MemberElement element = _element;
+    TypeMask result =
+        inferrer.types.joinTypeMasks(targets.map((MemberEntity element) {
       // If [canReachAll] is true, then we are iterating over all
       // targets that satisfy the untyped selector. We skip the return
       // type of the targets that can only be reached through
@@ -1779,7 +1777,7 @@ class PhiElementTypeInformation extends TypeInformation {
 class ClosureTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
   final ast.Node node;
-  final MethodElement _element;
+  final FunctionEntity _element;
 
   ClosureTypeInformation(
       MemberTypeInformation context, this.node, this._element)
@@ -1898,20 +1896,25 @@ abstract class TypeInformationVisitor<T> {
 }
 
 TypeMask _narrowType(
-    ClosedWorld closedWorld, TypeMask type, ResolutionDartType annotation,
+    ClosedWorld closedWorld, TypeMask type, DartType annotation,
     {bool isNullable: true}) {
-  if (annotation.treatAsDynamic) return type;
-  if (annotation.isObject) return type;
-  if (annotation.isVoid) return type;
   TypeMask otherType;
-  if (annotation.isTypedef || annotation.isFunctionType) {
+  if (annotation.treatAsDynamic) {
+    return type;
+  } else if (annotation.isInterfaceType) {
+    InterfaceType interfaceType = annotation;
+    if (interfaceType.element == closedWorld.commonElements.objectClass) {
+      return type;
+    }
+    otherType = new TypeMask.nonNullSubtype(interfaceType.element, closedWorld);
+  } else if (annotation.isVoid) {
+    return type;
+  } else if (annotation.isTypedef || annotation.isFunctionType) {
     otherType = closedWorld.commonMasks.functionType;
-  } else if (annotation.isTypeVariable) {
+  } else {
+    assert(annotation.isTypeVariable);
     // TODO(ngeoffray): Narrow to bound.
     return type;
-  } else {
-    ResolutionInterfaceType interfaceType = annotation;
-    otherType = new TypeMask.nonNullSubtype(interfaceType.element, closedWorld);
   }
   if (isNullable) otherType = otherType.nullable();
   if (type == null) return otherType;

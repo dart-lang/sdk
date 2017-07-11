@@ -17,4 +17,5 @@ abstract class TargetRepository {
   void setCurrent(Target);
   void delete(Target);
   Target find(String networkAddress);
+  bool isConnectedVMTarget(Target target);
 }

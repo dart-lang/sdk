@@ -10,7 +10,10 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'errors.dart' show InputError, firstSourceUri, printUnexpected;
+import 'deprecated_problems.dart'
+    show firstSourceUri, deprecated_printUnexpected;
+
+import 'messages.dart' show LocatedMessage, Message, templateUnspecified;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -30,14 +33,14 @@ abstract class Loader<L> {
   ///
   /// A handled error is an error that has been added to the generated AST
   /// already, for example, as a throw expression.
-  final List<InputError> handledErrors = <InputError>[];
+  final List<LocatedMessage> handledErrors = <LocatedMessage>[];
 
   /// List of all unhandled compile-time errors seen so far by libraries loaded
   /// by this loader.
   ///
   /// An unhandled error is an error that hasn't been handled, see
   /// [handledErrors].
-  final List<InputError> unhandledErrors = <InputError>[];
+  final List<LocatedMessage> unhandledErrors = <LocatedMessage>[];
 
   LibraryBuilder coreLibrary;
 
@@ -84,6 +87,9 @@ abstract class Loader<L> {
         coreLibrary = library;
         target.loadExtraRequiredLibraries(this);
       }
+      if (target.backendTarget.mayDefineRestrictedType(uri)) {
+        library.mayImplementRestrictedTypes = true;
+      }
       if (uri.scheme == "dart") {
         target.readPatchFiles(library);
       }
@@ -97,7 +103,7 @@ abstract class Loader<L> {
         uri.scheme == "dart" &&
         uri.path.startsWith("_") &&
         accessor.uri.scheme != "dart") {
-      accessor.addCompileTimeError(
+      accessor.deprecated_addCompileTimeError(
           charOffset, "Can't access platform private library.");
     }
     return builder;
@@ -164,13 +170,24 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   ///
   /// If [wasHandled] is true, this error is added to [handledErrors],
   /// otherwise it is added to [unhandledErrors].
-  void addCompileTimeError(Uri fileUri, int charOffset, Object message,
+  void addCompileTimeError(Message message, int charOffset, Uri fileUri,
       {bool silent: false, bool wasHandled: false}) {
     if (!silent) {
-      printUnexpected(fileUri, charOffset, message);
+      deprecated_printUnexpected(fileUri, charOffset, message.message);
     }
     (wasHandled ? handledErrors : unhandledErrors)
-        .add(new InputError(fileUri, charOffset, message));
+        .add(message.withLocation(fileUri, charOffset));
+  }
+
+  void deprecated_addCompileTimeError(
+      Uri fileUri, int charOffset, String message,
+      {bool silent: false, bool wasHandled: false}) {
+    if (!silent) {
+      deprecated_printUnexpected(fileUri, charOffset, message);
+    }
+    (wasHandled ? handledErrors : unhandledErrors).add(templateUnspecified
+        .withArguments(message)
+        .withLocation(fileUri, charOffset));
   }
 
   Builder getAbstractClassInstantiationError() {

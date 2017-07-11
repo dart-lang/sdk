@@ -10,9 +10,13 @@ import 'util/relativize.dart' show relativizeUri;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError;
+import 'deprecated_problems.dart' show deprecated_InputError;
 
 import 'colors.dart' show cyan, magenta;
+
+import 'fasta_codes.dart' show Message;
+
+export 'fasta_codes.dart';
 
 const bool hideWarnings = false;
 
@@ -26,22 +30,44 @@ bool get isVerbose => CompilerContext.current.options.verbose;
 
 bool get hideNits => !isVerbose;
 
-void warning(Uri uri, int charOffset, String message) {
+void warning(Message message, int charOffset, Uri uri) {
   if (hideWarnings) return;
-  print(format(uri, charOffset, colorWarning("Warning: $message")));
+  print(deprecated_format(
+      uri, charOffset, colorWarning("Warning: ${message.message}")));
   if (warningsAreFatal) {
     if (isVerbose) print(StackTrace.current);
-    throw new InputError(
+    throw new deprecated_InputError(
         uri, charOffset, "Compilation aborted due to fatal warnings.");
   }
 }
 
-void nit(Uri uri, int charOffset, String message) {
+void nit(Message message, int charOffset, Uri uri) {
   if (hideNits) return;
-  print(format(uri, charOffset, colorNit("Nit: $message")));
+  print(
+      deprecated_format(uri, charOffset, colorNit("Nit: ${message.message}")));
   if (nitsAreFatal) {
     if (isVerbose) print(StackTrace.current);
-    throw new InputError(
+    throw new deprecated_InputError(
+        uri, charOffset, "Compilation aborted due to fatal nits.");
+  }
+}
+
+void deprecated_warning(Uri uri, int charOffset, String message) {
+  if (hideWarnings) return;
+  print(deprecated_format(uri, charOffset, colorWarning("Warning: $message")));
+  if (warningsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
+    throw new deprecated_InputError(
+        uri, charOffset, "Compilation aborted due to fatal warnings.");
+  }
+}
+
+void deprecated_nit(Uri uri, int charOffset, String message) {
+  if (hideNits) return;
+  print(deprecated_format(uri, charOffset, colorNit("Nit: $message")));
+  if (nitsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
+    throw new deprecated_InputError(
         uri, charOffset, "Compilation aborted due to fatal nits.");
   }
 }
@@ -58,7 +84,7 @@ String colorNit(String message) {
   return cyan(message);
 }
 
-String format(Uri uri, int charOffset, String message) {
+String deprecated_format(Uri uri, int charOffset, String message) {
   if (uri != null) {
     String path = relativizeUri(uri);
     Location location = charOffset == -1 ? null : getLocation(path, charOffset);

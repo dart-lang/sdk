@@ -1242,6 +1242,10 @@ abstract class ElementEnvironment {
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor));
 
+  /// Calls [f] for every constructor body in [cls].
+  void forEachConstructorBody(
+      ClassEntity cls, void f(ConstructorBodyEntity constructorBody));
+
   /// Returns the superclass of [cls].
   ///
   /// If [skipUnnamedMixinApplications] is `true`, unnamed mixin applications

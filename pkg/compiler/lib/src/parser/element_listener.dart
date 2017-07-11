@@ -4,7 +4,7 @@
 
 library dart2js.parser.element_listener;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
 
@@ -507,7 +507,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     Token next = handleError(token, message);
     if (next == null &&
         message.code != codes.codeUnterminatedComment &&
@@ -519,7 +519,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     handleError(token, message);
   }
 
@@ -538,7 +538,7 @@ class ElementListener extends Listener {
     pushNode(null);
   }
 
-  Token handleError(Token token, FastaMessage message) {
+  Token handleError(Token token, Message message) {
     MessageKind errorCode;
     Map<String, dynamic> arguments = message.arguments;
 
@@ -581,10 +581,6 @@ class ElementListener extends Listener {
               "Expected identifier, but got '${token.lexeme}'.");
         }
         return newSyntheticToken(token);
-
-      case "FASTA_FATAL":
-        reportFatalError(reporter.spanFromToken(token), message.message);
-        return null;
 
       case "NATIVE_OR_BODY_EXPECTED":
         if (optional("native", token)) {
@@ -705,8 +701,17 @@ class ElementListener extends Listener {
         errorCode = MessageKind.UNTERMINATED_TOKEN;
         break;
 
-      case "FASTA_IGNORED":
-        return null; // Ignored. This error is already implemented elsewhere.
+      case "*fatal*":
+        // This is an error that Fasta can recover from, but dart2js can't.
+        reportFatalError(reporter.spanFromToken(token), message.message);
+        return null;
+
+      case "*ignored*":
+        // This is an error that Fasta reports as a recoverable error during
+        // parsing. For historical reasons, dart2js implements this in a later
+        // phase already, so we just ignore it. Another possibilty is that we
+        // wan't to avoid introducing a breaking change to dart2js.
+        return null;
 
       default:
         throw "Unexpected message code: ${message.code}";
@@ -927,8 +932,8 @@ class ElementListener extends Listener {
     reportError(spannable, MessageKind.GENERIC, {'text': message});
     // Some parse errors are infeasible to recover from, so we throw an error.
     SourceSpan span = reporter.spanFromSpannable(spannable);
-    throw new ParserError(span.begin, span.end,
-        codes.codeUnspecified.format(uri, span.begin, message));
+    throw new ParserError(
+        span.begin, span.end, codes.templateUnspecified.withArguments(message));
   }
 
   void reportError(Spannable spannable, MessageKind errorCode,

@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/ast.h"
+#include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"
@@ -730,7 +731,7 @@ class Instruction : public ZoneAllocated {
   }
   inline Definition* ArgumentAt(intptr_t index) const;
 
-  // Returns true, if this instruction can deoptimize with its current imputs.
+  // Returns true, if this instruction can deoptimize with its current inputs.
   // This property can change if we add or remove redefinitions that constrain
   // the type or the range of input operands during compilation.
   virtual bool ComputeCanDeoptimize() const = 0;
@@ -7184,12 +7185,29 @@ class BinaryMintOpInstr : public BinaryIntegerOpInstr {
                     Value* left,
                     Value* right,
                     intptr_t deopt_id)
-      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {}
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+    if (FLAG_limit_ints_to_64_bits) {
+      mark_truncating();
+    }
+  }
 
   virtual bool ComputeCanDeoptimize() const {
-    return (can_overflow() &&
-            ((op_kind() == Token::kADD) || (op_kind() == Token::kSUB))) ||
-           (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
+    switch (op_kind()) {
+      case Token::kADD:
+      case Token::kSUB:
+        return can_overflow();
+      case Token::kMUL:
+// Note that ARM64 does not support operations with unboxed mints,
+// so it is not handled here.
+#if defined(TARGET_ARCH_X64)
+        return can_overflow();  // Deopt if overflow.
+#else
+        // IA32, ARM
+        return true;  // Deopt if inputs are not int32.
+#endif
+      default:
+        return false;
+    }
   }
 
   virtual Representation representation() const { return kUnboxedMint; }
@@ -7218,12 +7236,15 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         shift_range_(NULL) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
+    if (FLAG_limit_ints_to_64_bits) {
+      mark_truncating();
+    }
   }
 
   Range* shift_range() const { return shift_range_; }
 
   virtual bool ComputeCanDeoptimize() const {
-    return has_shift_count_check() ||
+    return (!IsShiftCountInRange()) ||
            (can_overflow() && (op_kind() == Token::kSHL));
   }
 
@@ -7241,7 +7262,10 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
 
  private:
   static const intptr_t kMintShiftCountLimit = 63;
-  bool has_shift_count_check() const;
+
+  // Returns true if the shift amount is guranteed to be in
+  // [0..kMintShiftCountLimit] range.
+  bool IsShiftCountInRange() const;
 
   Range* shift_range_;
 

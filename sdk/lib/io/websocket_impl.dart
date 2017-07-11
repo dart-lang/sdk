@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "io.dart";
+part of dart.io;
 
 const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String _clientNoContextTakeover = "client_no_context_takeover";

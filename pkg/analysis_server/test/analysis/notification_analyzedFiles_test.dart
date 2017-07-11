@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,6 +28,11 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
   void assertHasFile(String filePath) {
     expect(analyzedFilesReceived, isTrue);
     expect(analyzedFiles, contains(filePath));
+  }
+
+  void assertHasNoFile(String filePath) {
+    expect(analyzedFilesReceived, isTrue);
+    expect(analyzedFiles, isNot(contains(filePath)));
   }
 
   Future<Null> prepareAnalyzedFiles() async {
@@ -64,6 +70,19 @@ class A {}
 ''');
     await prepareAnalyzedFiles();
     assertHasFile(testFile);
+  }
+
+  test_beforeAnalysis_excludeYamlFiles() async {
+    File yamlFile = resourceProvider
+        .getFolder(projectPath)
+        .getChildAssumingFile('sample.yaml');
+    yamlFile.writeAsStringSync('');
+    addTestFile('''
+class A {}
+''');
+    await prepareAnalyzedFiles();
+    assertHasFile(testFile);
+    assertHasNoFile(yamlFile.path);
   }
 
   test_insignificant_change() async {

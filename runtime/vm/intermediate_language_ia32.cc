@@ -6085,6 +6085,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).constant().IsSmi());
     const int32_t shift =
         reinterpret_cast<int32_t>(locs()->in(1).constant().raw()) >> 1;
+    ASSERT(shift >= 0);
     switch (op_kind()) {
       case Token::kSHR: {
         if (shift > 31) {
@@ -6158,7 +6159,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // sarl operation masks the count to 5 bits and
     // shrdl is undefined with count > operand size (32)
     __ SmiUntag(ECX);
-    if (has_shift_count_check()) {
+    if (!IsShiftCountInRange()) {
       __ cmpl(ECX, Immediate(kMintShiftCountLimit));
       __ j(ABOVE, deopt);
     }

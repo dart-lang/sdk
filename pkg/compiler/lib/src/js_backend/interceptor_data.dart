@@ -6,7 +6,6 @@ library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/elements.dart' show ConstructorBodyElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -92,7 +91,7 @@ class InterceptorDataImpl implements InterceptorData {
   bool isInterceptedMethod(MemberEntity element) {
     if (!element.isInstanceMember) return false;
     // TODO(johnniwinther): Avoid this hack.
-    if (element is ConstructorBodyElement) {
+    if (element is ConstructorBodyEntity) {
       return _nativeData.isNativeOrExtendsNative(element.enclosingClass);
     }
     return interceptedMembers[element.name] != null;

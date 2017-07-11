@@ -493,7 +493,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunction(Token getOrSet, Token endToken) {
+  void endNamedFunctionExpression(Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
@@ -504,12 +504,22 @@ class NodeListener extends ElementListener {
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, typeVariables, formals, body, type,
-        modifiers, initializers, getOrSet, asyncModifier));
+        modifiers, initializers, null, asyncModifier));
   }
 
   @override
   void endFunctionDeclaration(Token endToken) {
-    pushNode(new FunctionDeclaration(popNode()));
+    Statement body = popNode();
+    AsyncModifier asyncModifier = popNode();
+    NodeList initializers = popNode();
+    NodeList formals = popNode();
+    NodeList typeVariables = popNode();
+    // The name can be an identifier or a send in case of named constructors.
+    Expression name = popNode();
+    TypeAnnotation type = popNode();
+    Modifiers modifiers = popNode();
+    pushNode(new FunctionDeclaration(new FunctionExpression(name, typeVariables,
+        formals, body, type, modifiers, initializers, null, asyncModifier)));
   }
 
   @override
@@ -997,7 +1007,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endUnnamedFunction(Token beginToken, Token token) {
+  void endFunctionExpression(Token beginToken, Token token) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();

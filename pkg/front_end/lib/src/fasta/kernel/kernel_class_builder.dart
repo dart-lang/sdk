@@ -27,7 +27,9 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
+
+import '../fasta_codes.dart' show templateRedirectionTargetNotFound;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -82,7 +84,7 @@ abstract class KernelClassBuilder
     for (KernelTypeBuilder builder in arguments) {
       DartType type = builder.build(library);
       if (type == null) {
-        internalError("Bad type: ${builder.runtimeType}");
+        deprecated_internalProblem("Bad type: ${builder.runtimeType}");
       }
       typeArguments.add(type);
     }
@@ -131,12 +133,12 @@ abstract class KernelClassBuilder
             } else if (targetBuilder is DillMemberBuilder) {
               builder.body = new RedirectingFactoryBody(targetBuilder.member);
             } else {
-              String message = "Redirection constructor target not found: "
-                  "${redirectionTarget.fullNameForErrors}";
+              var message = templateRedirectionTargetNotFound
+                  .withArguments(redirectionTarget.fullNameForErrors);
               if (builder.isConst) {
-                addCompileTimeError(builder.charOffset, message);
+                addCompileTimeError(message, builder.charOffset);
               } else {
-                addWarning(builder.charOffset, message);
+                addWarning(message, builder.charOffset);
               }
               // CoreTypes aren't computed yet, and this is the outline
               // phase. So we can't and shouldn't create a method body.
@@ -188,7 +190,7 @@ abstract class KernelClassBuilder
   void checkOverride(
       Member declaredMember, Member interfaceMember, bool isSetter) {
     if (declaredMember is Constructor || interfaceMember is Constructor) {
-      internalError(
+      deprecated_internalProblem(
           "Constructor in override check.", fileUri, declaredMember.fileOffset);
     }
     if (declaredMember is Procedure && interfaceMember is Procedure) {
@@ -232,7 +234,7 @@ abstract class KernelClassBuilder
     FunctionNode interfaceFunction = interfaceMember.function;
     if (declaredFunction.typeParameters?.length !=
         interfaceFunction.typeParameters?.length) {
-      addWarning(
+      deprecated_addWarning(
           declaredMember.fileOffset,
           "Declared type variables of '$name::${declaredMember.name.name}' "
           "doesn't match those on overridden method "
@@ -243,7 +245,7 @@ abstract class KernelClassBuilder
             interfaceFunction.requiredParameterCount ||
         declaredFunction.positionalParameters.length <
             interfaceFunction.positionalParameters.length) {
-      addWarning(
+      deprecated_addWarning(
           declaredMember.fileOffset,
           "The method '$name::${declaredMember.name.name}' has fewer "
           "positional arguments than those of overridden method "
@@ -252,7 +254,7 @@ abstract class KernelClassBuilder
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
-      addWarning(
+      deprecated_addWarning(
           declaredMember.fileOffset,
           "The method '$name::${declaredMember.name.name}' has more "
           "required arguments than those of overridden method "
@@ -265,7 +267,7 @@ abstract class KernelClassBuilder
     }
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
-      addWarning(
+      deprecated_addWarning(
           declaredMember.fileOffset,
           "The method '$name::${declaredMember.name.name}' has fewer named "
           "arguments than those of overridden method "
@@ -282,7 +284,7 @@ abstract class KernelClassBuilder
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
-          addWarning(
+          deprecated_addWarning(
               declaredMember.fileOffset,
               "The method '$name::${declaredMember.name.name}' doesn't have "
               "the named parameter '${interfaceNamedParameters.current.name}' "

@@ -126,11 +126,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     return getClosureRepresentationInfo(entity);
   }
 
-  @override
   // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
   // and we should just test that with an assert.
-  ClosureScope getClosureScope(ir.Node node) =>
+  ClosureScope _getClosureScope(ir.Node node) =>
       _closureScopeMap[node] ?? const ClosureScope();
+
+  @override
+  ClosureScope getClosureScope(MemberEntity entity) {
+    return _getClosureScope(_elementMap.getMemberNode(entity));
+  }
 
   @override
   // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
@@ -141,8 +145,17 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
   // non-null, and we should just test that with an assert.
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) =>
-      _closureRepresentationMap[entity] ?? const ClosureRepresentationInfo();
+  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
+    // TODO(johnniwinther): Remove this check when constructor bodies a created
+    // eagerly with the J-model; a constructor body should have it's own
+    // [ClosureRepresentationInfo].
+    if (entity is ConstructorBodyEntity) {
+      ConstructorBodyEntity constructorBody = entity;
+      entity = constructorBody.constructor;
+    }
+    return _closureRepresentationMap[entity] ??
+        const ClosureRepresentationInfo();
+  }
 }
 
 class KernelScopeInfo extends ScopeInfo {

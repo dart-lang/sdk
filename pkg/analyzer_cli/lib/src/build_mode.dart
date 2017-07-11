@@ -325,12 +325,10 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(resourceProvider, context, options,
-        (AnalysisOptionsImpl contextOptions) {
-      if (options.buildSummaryOnlyDiet) {
-        contextOptions.analyzeFunctionBodies = false;
-      }
-    });
+    Driver.declareVariables(context.declaredVariables, options);
+    AnalysisOptionsImpl analysisOptions = Driver
+        .createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
+    context.analysisOptions = analysisOptions;
 
     if (!options.buildSummaryOnly) {
       // Configure using summaries.

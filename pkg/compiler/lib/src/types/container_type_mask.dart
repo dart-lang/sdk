@@ -14,7 +14,7 @@ class ContainerTypeMask extends ForwardingTypeMask {
   final Node allocationNode;
 
   // The [Entity] where this type mask was created.
-  final Entity allocationElement;
+  final MemberEntity allocationElement;
 
   // The element type of this container.
   final TypeMask elementType;

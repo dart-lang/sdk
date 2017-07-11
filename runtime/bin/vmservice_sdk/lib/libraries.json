@@ -1,6 +1,0 @@
-{
-  "libraries": {
-    "vmservice_io": "../../vmservice/vmservice_io.dart",
-    "_vmservice": "../../../../sdk/lib/vmservice/vmservice.dart"
-  }
-}

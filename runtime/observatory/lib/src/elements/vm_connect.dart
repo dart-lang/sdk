@@ -8,11 +8,9 @@ import 'dart:html';
 import 'dart:async';
 import 'dart:convert';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
@@ -97,11 +95,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
                   new BRElement(),
                   new UListElement()
                     ..children = _targets.list().map((target) {
-                      final ObservatoryApplication app =
-                          ObservatoryApplication.app;
-                      final bool current = (app != null)
-                          ? app.isConnectedVMTarget(target)
-                          : false;
+                      final bool current = _targets.isConnectedVMTarget(target);
                       return new LIElement()
                         ..children = [
                           new VMConnectTargetElement(target,
@@ -185,7 +179,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     var target = _targets.find(normalizedNetworkAddress);
     assert(target != null);
     _targets.setCurrent(target);
-    ObservatoryApplication.app.locationManager.go(Uris.vm());
+    // the navigation to the VM page is done in the ObservatoryApplication
   }
 
   void _connect(TargetEvent e) {
@@ -201,7 +195,10 @@ class VMConnectElement extends HtmlElement implements Renderable {
     }
     try {
       Uri uri = Uri.parse(networkAddress);
-      return 'ws://${uri.authority}${uri.path}ws';
+      if (uri.path.endsWith('/ws')) {
+        return 'ws://${uri.authority}${uri.path}';
+      }
+      return 'ws://${uri.authority}${uri.path}/ws';
     } catch (e) {
       print('caught exception with: $networkAddress -- $e');
       return networkAddress;

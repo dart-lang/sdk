@@ -1350,51 +1350,61 @@ class RegExpEngine : public AllStatic {
  public:
   struct CompilationResult {
     explicit CompilationResult(const char* error_message)
-        : backtrack_goto(NULL),
+        : error_message(error_message),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+          backtrack_goto(NULL),
           graph_entry(NULL),
           num_blocks(-1),
           num_stack_locals(-1),
-          error_message(error_message),
+#endif
           bytecode(NULL),
-          num_registers(-1) {}
+          num_registers(-1) {
+    }
 
     CompilationResult(TypedData* bytecode, intptr_t num_registers)
-        : backtrack_goto(NULL),
+        : error_message(NULL),
+#if !defined(DART_PRECOMPILED_RUNTIME)
+          backtrack_goto(NULL),
           graph_entry(NULL),
           num_blocks(-1),
           num_stack_locals(-1),
-          error_message(NULL),
+#endif
           bytecode(bytecode),
-          num_registers(num_registers) {}
+          num_registers(num_registers) {
+    }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     CompilationResult(IndirectGotoInstr* backtrack_goto,
                       GraphEntryInstr* graph_entry,
                       intptr_t num_blocks,
                       intptr_t num_stack_locals,
                       intptr_t num_registers)
-        : backtrack_goto(backtrack_goto),
+        : error_message(NULL),
+          backtrack_goto(backtrack_goto),
           graph_entry(graph_entry),
           num_blocks(num_blocks),
           num_stack_locals(num_stack_locals),
-          error_message(NULL),
           bytecode(NULL) {}
-
-    IndirectGotoInstr* backtrack_goto;
-    GraphEntryInstr* graph_entry;
-    const intptr_t num_blocks;
-    const intptr_t num_stack_locals;
+#endif
 
     const char* error_message;
+
+    NOT_IN_PRECOMPILED(IndirectGotoInstr* backtrack_goto);
+    NOT_IN_PRECOMPILED(GraphEntryInstr* graph_entry);
+    NOT_IN_PRECOMPILED(const intptr_t num_blocks);
+    NOT_IN_PRECOMPILED(const intptr_t num_stack_locals);
 
     TypedData* bytecode;
     intptr_t num_registers;
   };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static CompilationResult CompileIR(
       RegExpCompileData* input,
       const ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
+#endif
 
   static CompilationResult CompileBytecode(RegExpCompileData* data,
                                            const RegExp& regexp,

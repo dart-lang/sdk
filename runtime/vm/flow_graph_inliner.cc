@@ -517,21 +517,15 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
 }
 
 
-static void InlineCall(Zone* zone,
-                       FlowGraph* caller_graph,
-                       InlinedCallData* call_data,
-                       const TargetInfo* target_info) {
+static void ReplaceParameterStubs(Zone* zone,
+                                  FlowGraph* caller_graph,
+                                  InlinedCallData* call_data,
+                                  const TargetInfo* target_info) {
   CSTAT_TIMER_SCOPE(Thread::Current(), graphinliner_subst_timer);
   const bool is_polymorphic = call_data->call->IsPolymorphicInstanceCall();
   ASSERT(is_polymorphic == (target_info != NULL));
   FlowGraph* callee_graph = call_data->callee_graph;
   TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
-  if (!is_polymorphic) {
-    // Plug result in the caller graph.
-    InlineExitCollector* exit_collector = call_data->exit_collector;
-    exit_collector->PrepareGraphs(callee_graph);
-    exit_collector->ReplaceCall(callee_entry);
-  }
 
   // Replace each stub with the actual argument or the caller's constant.
   // Nulls denote optional parameters for which no actual was given.
@@ -567,16 +561,6 @@ static void InlineCall(Zone* zone,
     if (defn != NULL) {
       call_data->parameter_stubs->At(first_arg_stub_index + i)
           ->ReplaceUsesWith(defn);
-    }
-  }
-
-  if (!is_polymorphic) {
-    // Remove push arguments of the call.
-    Definition* call = call_data->call;
-    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
     }
   }
 
@@ -1238,6 +1222,27 @@ class CallSiteInliner : public ValueObject {
     }
   }
 
+  void InlineCall(InlinedCallData* call_data) {
+    CSTAT_TIMER_SCOPE(Thread::Current(), graphinliner_subst_timer);
+    FlowGraph* callee_graph = call_data->callee_graph;
+    TargetEntryInstr* callee_entry =
+        callee_graph->graph_entry()->normal_entry();
+    // Plug result in the caller graph.
+    InlineExitCollector* exit_collector = call_data->exit_collector;
+    exit_collector->PrepareGraphs(callee_graph);
+    exit_collector->ReplaceCall(callee_entry);
+
+    ReplaceParameterStubs(zone(), caller_graph_, call_data, NULL);
+
+    // Remove push arguments of the call.
+    Definition* call = call_data->call;
+    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+      PushArgumentInstr* push = call->PushArgumentAt(i);
+      push->ReplaceUsesWith(push->value()->definition());
+      push->RemoveFromGraph();
+    }
+  }
+
   static intptr_t CountConstants(const GrowableArray<Value*>& arguments) {
     intptr_t count = 0;
     for (intptr_t i = 0; i < arguments.length(); i++) {
@@ -1294,7 +1299,7 @@ class CallSiteInliner : public ValueObject {
           call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
-        InlineCall(zone(), caller_graph_, &call_data, NULL);
+        InlineCall(&call_data);
       }
     }
   }
@@ -1341,7 +1346,7 @@ class CallSiteInliner : public ValueObject {
           call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target, call->argument_names(), &call_data)) {
-        InlineCall(zone(), caller_graph_, &call_data, NULL);
+        InlineCall(&call_data);
       }
     }
   }
@@ -1610,7 +1615,8 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   inlined_entries_.Add(callee_graph->graph_entry());
   exit_collector_->Union(call_data.exit_collector);
 
-  InlineCall(zone(), owner_->caller_graph(), &call_data, &target_info);
+  ReplaceParameterStubs(zone(), owner_->caller_graph(), &call_data,
+                        &target_info);
   return true;
 }
 

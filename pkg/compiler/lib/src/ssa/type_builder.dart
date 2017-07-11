@@ -71,7 +71,7 @@ class TypeBuilder {
 
   /// Helper to create an instruction that gets the value of a type variable.
   HInstruction addTypeVariableReference(
-      ResolutionTypeVariableType type, Element member,
+      ResolutionTypeVariableType type, MemberElement member,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(type));
     if (type is MethodTypeVariableType) {
@@ -80,8 +80,8 @@ class TypeBuilder {
     bool isClosure = member.enclosingElement.isClosure;
     if (isClosure) {
       ClosureClassElement closureClass = member.enclosingElement;
-      member = closureClass.methodElement;
-      member = member.outermostEnclosingMemberOrTopLevel;
+      LocalFunctionElement localFunction = closureClass.methodElement;
+      member = localFunction.outermostEnclosingMemberOrTopLevel;
     }
     bool isInConstructorContext =
         member.isConstructor || member.isGenerativeConstructorBody;
@@ -144,7 +144,7 @@ class TypeBuilder {
   }
 
   HInstruction buildTypeArgumentRepresentations(
-      ResolutionDartType type, Element sourceElement) {
+      ResolutionDartType type, MemberElement sourceElement) {
     assert(!type.isTypeVariable);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
@@ -178,7 +178,7 @@ class TypeBuilder {
   }
 
   HInstruction analyzeTypeArgument(
-      ResolutionDartType argument, Element sourceElement,
+      ResolutionDartType argument, MemberElement sourceElement,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(argument));
     argument = argument.unaliased;

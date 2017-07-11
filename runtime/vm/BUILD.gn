@@ -35,6 +35,9 @@ static_library("libdart_platform") {
   ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
+    deps = [
+      "//apps/tracing/lib/trace",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
 
@@ -52,6 +55,9 @@ source_set("libdart_vm_jit") {
   ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
+    deps = [
+      "//apps/tracing/lib/trace",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -70,6 +76,9 @@ source_set("libdart_vm_precompiled_runtime") {
   ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
+    deps = [
+      "//apps/tracing/lib/trace",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -88,6 +97,9 @@ source_set("libdart_vm_nosnapshot") {
   ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
+    deps = [
+      "//apps/tracing/lib/trace",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -107,6 +119,9 @@ source_set("libdart_vm_nosnapshot_with_precompiler") {
   ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
+    deps = [
+      "//apps/tracing/lib/trace",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -125,6 +140,9 @@ source_set("libdart_vm_with_precompiler") {
   ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
+    deps = [
+      "//apps/tracing/lib/trace",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([

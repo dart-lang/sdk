@@ -16,13 +16,9 @@ import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
-import 'package:front_end/src/fasta/errors.dart' show internalError;
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show
-        FastaCode,
-        FastaMessage,
-        codeExpectedExpression,
-        codeExpectedFunctionBody;
+import 'package:front_end/src/fasta/problems.dart' show unexpected, unhandled;
+import 'package:front_end/src/fasta/messages.dart'
+    show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -167,8 +163,8 @@ class AstBuilder extends ScopeListener {
         } else if (part is Expression) {
           elements.add(ast.interpolationExpression(null, part, null));
         } else {
-          internalError(
-              "Unexpected part in string interpolation: ${part.runtimeType}");
+          unhandled("${part.runtimeType}", "string interpolation",
+              first.charOffset, uri);
         }
       }
       elements.add(ast.interpolationString(
@@ -307,7 +303,7 @@ class AstBuilder extends ScopeListener {
       ProcedureBuilder builder = member;
       builder.body = kernel;
     } else {
-      internalError("Internal error: expected procedure, but got: $member");
+      unexpected("procedure", "${member.runtimeType}", member.charOffset, uri);
     }
   }
 
@@ -371,8 +367,8 @@ class AstBuilder extends ScopeListener {
         ..operator = token;
       push(identifierOrInvoke);
     } else {
-      internalError(
-          "Unhandled property access: ${identifierOrInvoke.runtimeType}");
+      unhandled("${identifierOrInvoke.runtimeType}", "property access",
+          token.charOffset, uri);
     }
   }
 
@@ -521,7 +517,7 @@ class AstBuilder extends ScopeListener {
     } else if (node is SimpleIdentifier) {
       variable = ast.variableDeclaration(node, null, null);
     } else {
-      internalError("unhandled identifier: ${node.runtimeType}");
+      unhandled("${node.runtimeType}", "identifier", nameToken.charOffset, uri);
     }
     push(variable);
     scope.declare(
@@ -1084,7 +1080,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (message.code == codeExpectedFunctionBody) {
       if (identical('native', token.stringValue) && parser != null) {
         Token nativeKeyword = token;
@@ -1191,8 +1187,8 @@ class AstBuilder extends ScopeListener {
         } else if (node is CompilationUnitMember) {
           declarations.add(node);
         } else {
-          internalError(
-              'Unrecognized compilation unit member: ${node.runtimeType}');
+          unhandled(
+              "${node.runtimeType}", "compilation unit", node.offset, uri);
         }
       }
     }
@@ -1353,7 +1349,8 @@ class AstBuilder extends ScopeListener {
       extendsClause = ast.extendsClause(extendsKeyword, supertype.supertype);
       withClause = ast.withClause(supertype.withKeyword, supertype.mixinTypes);
     } else {
-      internalError('Unexpected kind of supertype ${supertype.runtimeType}');
+      unhandled("${supertype.runtimeType}", "supertype",
+          extendsKeyword.charOffset, uri);
     }
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
@@ -1481,12 +1478,13 @@ class AstBuilder extends ScopeListener {
         comment, metadata, partKeyword, ofKeyword, uri, name, semicolon));
   }
 
-  void endUnnamedFunction(Token beginToken, Token token) {
+  @override
+  void endFunctionExpression(Token beginToken, Token token) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.  Note that this is tricky due to the handling of initializers
     // in constructors, so the logic should be shared with BodyBuilder as much
     // as possible.
-    debugEvent("UnnamedFunction");
+    debugEvent("FunctionExpression");
     FunctionBody body = pop();
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
@@ -1516,7 +1514,8 @@ class AstBuilder extends ScopeListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(semicolon);
     } else {
-      internalError('Unexpected body object: ${bodyObject.runtimeType}');
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
     }
 
     FormalParameterList parameters = pop();
@@ -1564,21 +1563,20 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFunction(Token getOrSet, Token endToken) {
-    debugEvent("Function");
+  void endNamedFunctionExpression(Token endToken) {
+    logEvent("NamedFunctionExpression");
+  }
+
+  @override
+  void endFunctionDeclaration(Token endToken) {
+    debugEvent("FunctionDeclaration");
     FunctionBody body = pop();
     pop(); // constructor initializers
     pop(); // separator before constructor initializers
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
-    // TODO(scheglov) It is an error if "getOrSet" is not null.
-    push(ast.functionExpression(typeParameters, parameters, body));
-  }
-
-  @override
-  void endFunctionDeclaration(Token token) {
-    debugEvent("FunctionDeclaration");
-    FunctionExpression functionExpression = pop();
+    FunctionExpression functionExpression =
+        ast.functionExpression(typeParameters, parameters, body);
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
     pop(); // modifiers
@@ -1911,18 +1909,17 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    FastaCode code = message.code;
+  void addCompileTimeError(Message message, int charOffset) {
+    Code code = message.code;
     switch (code.analyzerCode) {
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, message.charOffset, 1);
+            ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
         return;
       default:
       // fall through
     }
-    library.addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri);
+    library.addCompileTimeError(message, charOffset, uri);
   }
 }
 
@@ -2026,7 +2023,7 @@ class _Modifiers {
       } else if (identical('covariant', s)) {
         covariantKeyword = token;
       } else {
-        internalError('Unhandled modifier: $s');
+        unhandled("$s", "modifier", token.charOffset, null);
       }
     }
   }

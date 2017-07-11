@@ -156,7 +156,6 @@ rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 rasta/unsupported_platform_library: Fail
 
-regress/issue_29937: Crash # Issue 29937.
 regress/issue_29940: Crash # Issue 29940.
 regress/issue_29941: Crash # Issue 29941.
 regress/issue_29942: Crash # Issue 29942.
@@ -166,8 +165,6 @@ regress/issue_29945: Crash # Issue 29945.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: Crash # Issue 29976.
 regress/issue_29977: Crash # Issue 29977.
-regress/issue_29978: Crash # Issue 29978.
-regress/issue_29979: Crash # Issue 29979.
 regress/issue_29980: Crash # Issue 29980.
 regress/issue_29981: Crash # Issue 29981.
 regress/issue_29982: Crash # Issue 29982.

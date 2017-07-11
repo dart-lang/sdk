@@ -80,6 +80,37 @@ static void PausedInClosuresHandler(Dart_IsolateId isolate_id,
   closure_hit_count++;
 }
 
+TEST_CASE(Debugger_SetBreakpointInPartOfLibrary) {
+  const char* kMainScript = "main() {}\n";
+  const char* kLib = "library test_lib;\n";
+  const char* kLibPart =
+      "part of test_lib;\n"
+      "void func(int a, int b) {\n"
+      "  return a + b;\n"
+      "}\n";
+  SetFlagScope<bool> sfs(&FLAG_remove_script_timestamps_for_test, true);
+  Dart_Handle root_lib = TestCase::LoadTestScript(kMainScript, NULL);
+  EXPECT_VALID(root_lib);
+
+  Dart_Handle url = NewString("test_lib_url");
+  Dart_Handle lib_source = NewString(kLib);
+  Dart_Handle lib = Dart_LoadLibrary(url, Dart_Null(), lib_source, 0, 0);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+
+  Dart_Handle part_url = NewString("part_url");
+  Dart_Handle part_source = NewString(kLibPart);
+  Dart_Handle result =
+      Dart_LoadSource(lib, part_url, Dart_Null(), part_source, 0, 0);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsLibrary(result));
+  EXPECT(Dart_IdentityEquals(lib, result));
+
+  result = Dart_SetBreakpoint(part_url, 3);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+}
+
 TEST_CASE(Debugger_SetBreakpointInFunctionLiteralFieldInitializers) {
   const char* kScriptChars =
       "main() {\n"

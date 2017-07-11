@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "io.dart";
+part of dart.io;
 
 // Constants used when working with native ports.
 // These must match the constants in runtime/bin/dartutils.h class CObject.

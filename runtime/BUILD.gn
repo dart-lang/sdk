@@ -106,7 +106,10 @@ config("dart_config") {
 
   if (is_fuchsia) {
     defines += [ "DART_USE_JEMALLOC" ]
-    include_dirs += [ "//magenta/third_party/ulib/jemalloc/include" ]
+    include_dirs += [
+      "//magenta/system/ulib/mx/include",
+      "//magenta/third_party/ulib/jemalloc/include",
+    ]
   }
 
   if (!is_win) {

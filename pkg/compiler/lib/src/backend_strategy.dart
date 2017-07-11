@@ -5,8 +5,10 @@
 library dart2js.backend_strategy;
 
 import 'closure.dart' show ClosureConversionTask;
+import 'common.dart';
 import 'common/tasks.dart';
 import 'enqueue.dart';
+import 'elements/entities.dart';
 import 'io/source_information.dart';
 import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
@@ -43,4 +45,7 @@ abstract class BackendStrategy {
 
   /// Returns the [SourceInformationStrategy] use for the element model.
   SourceInformationStrategy get sourceInformationStrategy;
+
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 }

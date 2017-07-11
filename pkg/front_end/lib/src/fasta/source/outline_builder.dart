@@ -6,7 +6,7 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
 
@@ -18,7 +18,7 @@ import '../util/link.dart' show Link;
 
 import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show internalError;
+import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../builder/builder.dart';
 
@@ -28,7 +28,8 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 
-import '../parser/dart_vm_native.dart' show removeNativeClause;
+import '../parser/native_support.dart'
+    show extractNativeMethodName, removeNativeClause, skipNativeClause;
 
 import '../operator.dart'
     show
@@ -49,6 +50,7 @@ class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
   final bool enableNative;
+  final bool stringExpectedAfterNative;
 
   /// When true, recoverable parser errors are silently ignored. This is
   /// because they will be reported by the BodyBuilder later. However, typedefs
@@ -60,7 +62,10 @@ class OutlineBuilder extends UnhandledListener {
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
-        enableNative = library.loader.target.enableNative(library);
+        enableNative =
+            library.loader.target.backendTarget.enableNative(library.uri),
+        stringExpectedAfterNative =
+            library.loader.target.backendTarget.nativeExtensionExpectsString;
 
   @override
   Uri get uri => library.fileUri;
@@ -156,7 +161,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverExpression(Token token, FastaMessage message) {
+  void handleRecoverExpression(Token token, Message message) {
     debugEvent("RecoverExpression");
     push(NullValue.Expression);
     push(token.charOffset);
@@ -201,7 +206,7 @@ class OutlineBuilder extends UnhandledListener {
       push(unescapeString(token.lexeme));
       push(token.charOffset);
     } else {
-      internalError("String interpolation not implemented.");
+      deprecated_internalProblem("String interpolation not implemented.");
     }
   }
 
@@ -290,7 +295,7 @@ class OutlineBuilder extends UnhandledListener {
     if (token == null) return ProcedureKind.Method;
     if (optional("get", token)) return ProcedureKind.Getter;
     if (optional("set", token)) return ProcedureKind.Setter;
-    return internalError("Unhandled: ${token.lexeme}");
+    return deprecated_internalProblem("Unhandled: ${token.lexeme}");
   }
 
   @override
@@ -368,7 +373,7 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        library.addCompileTimeError(
+        library.deprecated_addCompileTimeError(
             charOffset,
             "Operator '$name' must have exactly $requiredArgumentCount "
             "parameters.");
@@ -376,7 +381,7 @@ class OutlineBuilder extends UnhandledListener {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              library.addCompileTimeError(formal.charOffset,
+              library.deprecated_addCompileTimeError(formal.charOffset,
                   "An operator can't have optional parameters.");
             }
           }
@@ -547,9 +552,9 @@ class OutlineBuilder extends UnhandledListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          library.addCompileTimeError(formals[1].charOffset,
+          library.deprecated_addCompileTimeError(formals[1].charOffset,
               "Duplicated parameter name '${formals[1].name}'.");
-          library.addCompileTimeError(formals[0].charOffset,
+          library.deprecated_addCompileTimeError(formals[0].charOffset,
               "Other parameter named '${formals[1].name}'.");
         }
       } else if (formals.length > 2) {
@@ -558,9 +563,10 @@ class OutlineBuilder extends UnhandledListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            library.addCompileTimeError(formal.charOffset,
+            library.deprecated_addCompileTimeError(formal.charOffset,
                 "Duplicated parameter name '${formal.name}'.");
-            library.addCompileTimeError(seenNames[formal.name].charOffset,
+            library.deprecated_addCompileTimeError(
+                seenNames[formal.name].charOffset,
                 "Other parameter named '${formal.name}'.");
           } else {
             seenNames[formal.name] = formal;
@@ -663,7 +669,7 @@ class OutlineBuilder extends UnhandledListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        library.addCompileTimeError(
+        library.deprecated_addCompileTimeError(
             equals.charOffset, "Can't create typedef from non-function type.");
       }
     }
@@ -838,7 +844,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(Token token, Message message) {
     if (silenceParserErrors) {
       debugEvent("RecoverableError");
     } else {
@@ -847,12 +853,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
+  Token handleUnrecoverableError(Token token, Message message) {
     if (enableNative && message.code == codeExpectedBlockToSkip) {
-      var target = library.loader.target;
-      Token recover = target.skipNativeClause(token);
+      Token recover = skipNativeClause(token, stringExpectedAfterNative);
       if (recover != null) {
-        nativeMethodName = target.extractNativeMethodName(token);
+        nativeMethodName =
+            stringExpectedAfterNative ? extractNativeMethodName(token) : "";
         return recover;
       }
     }
@@ -860,15 +866,15 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    library.addCompileTimeError(message.charOffset, message.message,
-        fileUri: message.uri);
+  void addCompileTimeError(Message message, int charOffset) {
+    library.deprecated_addCompileTimeError(charOffset, message.message,
+        fileUri: uri);
   }
 
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!enableNative || identifiers.isEmpty) return identifiers;
-    return removeNativeClause(identifiers);
+    return removeNativeClause(identifiers, stringExpectedAfterNative);
   }
 
   @override

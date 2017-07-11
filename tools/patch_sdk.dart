@@ -16,11 +16,18 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:front_end/src/fasta/fasta.dart' as fasta
-    show compile, compilePlatform, writeDepsFile;
+import 'package:front_end/front_end.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/kernel_generator_impl.dart';
+import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
-import 'package:compiler/src/kernel/fasta_support.dart' as dart2js
-    show compilePlatform;
+import 'package:front_end/src/fasta/fasta.dart' as fasta show getDependencies;
+import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
+
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/target/vm_fasta.dart';
+import 'package:kernel/target/flutter_fasta.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
 /// We will dump it out into the depfile for ninja to use.
@@ -119,34 +126,38 @@ Future _main(List<String> argv) async {
   await _writeSync(
       librariesJson.toFilePath(), JSON.encode({"libraries": locations}));
 
-  if (forVm || forFlutter) {
-    await fasta.compilePlatform(outDirUri, platform,
-        packages: packages,
-        outlineOutput: outline,
-        backendTarget: forVm ? 'vm_fasta' : 'flutter_fasta');
-  } else {
-    await dart2js.compilePlatform(outDirUri, platform,
-        packages: packages, outlineOutput: outline);
-  }
+  var flags = new TargetFlags();
+  var target = forVm
+      ? new VmFastaTarget(flags)
+      : (forFlutter ? new FlutterFastaTarget(flags) : new Dart2jsTarget(flags));
+  var platformDeps =
+      await compilePlatform(outDirUri, target, packages, platform, outline);
+  deps.addAll(platformDeps);
 
   if (forVm) {
-    var base = path.fromUri(Platform.script);
-    Uri repositoryDir =
-        new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
+    // TODO(sigmund): add support for the flutter vmservice_sky as well.
     var vmserviceName = 'vmservice_io';
-    Uri vmserviceSdk = repositoryDir.resolve('runtime/bin/vmservice_sdk/');
+    var base = path.fromUri(Platform.script);
+    Uri dartDir =
+        new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
+    var program = await kernelForProgram(
+        Uri.parse('dart:$vmserviceName'),
+        new CompilerOptions()
+          // TODO(sigmund): investigate. This should be outline, but it breaks
+          // vm-debug tests. Issue #30111
+          ..sdkSummary = platform
+          ..dartLibraries = <String, Uri>{
+            '_vmservice': dartDir.resolve('sdk/lib/vmservice/vmservice.dart'),
+            'vmservice_io':
+                dartDir.resolve('runtime/bin/vmservice/vmservice_io.dart'),
+          }
+          ..packagesFileUri = packages);
     Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
-    // TODO(sigmundch): Specify libraries.json directly instead of "--sdk"
-    // after #29882 is fixed.
-    await fasta.compile([
-      "--sdk=$vmserviceSdk",
-      "--platform=$outline",
-      "--target=vm_fasta",
-      "--packages=$packages",
-      "dart:$vmserviceName",
-      "-o",
-      "$vmserviceUri",
-    ]);
+    // TODO(sigmund): remove. This is a workaround because in the VM
+    // doesn't support loading vmservice if it contains external libraries
+    // (there is an assertion that only fails in debug builds). Issue #30111
+    program.libraries.forEach((l) => l.isExternal = false);
+    await writeProgramToFile(program, vmserviceUri);
   }
 
   Uri platformFinalLocation = outDirUri.resolve('platform.dill');
@@ -167,18 +178,8 @@ Future _main(List<String> argv) async {
   //    sdk library used by this script indirectly depends on a VM-specific
   //    patch file.
   //
-  //    These set of files is discovered by `writeDepsFile` below, and the
+  //    These set of files is discovered by `getDependencies` below, and the
   //    [platformForDeps] is always the VM-specific `platform.dill` file.
-  //
-  //    TODO(sigmund): we should change this:
-  //      - we should rewrite writeDepsFile: fasta could provide an API to crawl
-  //        the dependencies, but anything that is GN specific, should be on
-  //        this file instead.
-  //
-  //      - We don't need to include sdk dependencies of the script because
-  //        those are already included indirectly (either in [deps] when
-  //        building the sdk for the VM, or via the .GN dependencies in the
-  //        build files for dart2js and flutter).
   var platformForDeps = platform;
   var sdkDir = outDirUri;
   if (forDart2js || forFlutter) {
@@ -188,14 +189,78 @@ Future _main(List<String> argv) async {
     platformForDeps = outDirUri.resolve('../patched_sdk/platform.dill');
     sdkDir = outDirUri.resolve('../patched_sdk/');
   }
-  await fasta.writeDepsFile(Platform.script,
-      Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
-      sdk: sdkDir,
-      packages: packages,
-      platform: platformForDeps,
-      extraDependencies: deps);
-
+  deps.addAll(await fasta.getDependencies(Platform.script,
+      sdk: sdkDir, packages: packages, platform: platformForDeps));
+  await writeDepsFile(Uri.base.resolveUri(new Uri.file("$outDir.d")),
+      platformFinalLocation, deps);
   await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
+}
+
+/// Generates an outline.dill and platform.dill file containing the result of
+/// compiling a platform's SDK.
+///
+/// Returns a list of dependencies read by the compiler. This list can be used
+/// to create GN dependency files.
+Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
+    Uri fullOutput, Uri outlineOutput) async {
+  var options = new CompilerOptions()
+    ..strongMode = false
+    ..compileSdk = true
+    ..sdkRoot = patchedSdk
+    ..packagesFileUri = packages
+    ..chaseDependencies = true
+    ..target = target;
+
+  var result = await generateKernel(
+      new ProcessedOptions(
+          options,
+          // TODO(sigmund): pass all sdk libraries needed here, and make this
+          // hermetic.
+          false,
+          [Uri.parse('dart:core')]),
+      buildSummary: true,
+      buildProgram: true);
+  new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
+  await writeProgramToFile(result.program, fullOutput);
+  return result.deps;
+}
+
+Future writeDepsFile(
+    Uri output, Uri depsFile, Iterable<Uri> allDependencies) async {
+  if (allDependencies.isEmpty) return;
+  String toRelativeFilePath(Uri uri) {
+    // Ninja expects to find file names relative to the current working
+    // directory. We've tried making them relative to the deps file, but that
+    // doesn't work for downstream projects. Making them absolute also
+    // doesn't work.
+    //
+    // We can test if it works by running ninja twice, for example:
+    //
+    //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+    //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+    //
+    // The second time, ninja should say:
+    //
+    //     ninja: Entering directory `xcodebuild/ReleaseX64'
+    //     ninja: no work to do.
+    //
+    // It's broken if it says something like this:
+    //
+    //     ninja explain: expected depfile 'patched_sdk.d' to mention
+    //     'patched_sdk/platform.dill', got
+    //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
+    return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
+  }
+
+  StringBuffer sb = new StringBuffer();
+  sb.write(toRelativeFilePath(output));
+  sb.write(":");
+  for (Uri uri in allDependencies) {
+    sb.write(" ");
+    sb.write(toRelativeFilePath(uri));
+  }
+  sb.writeln();
+  await new File.fromUri(depsFile).writeAsString("$sb");
 }
 
 /// Updates the contents of

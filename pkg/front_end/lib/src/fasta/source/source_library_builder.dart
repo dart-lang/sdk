@@ -12,7 +12,8 @@ import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
 import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show inputError, internalError;
+import '../deprecated_problems.dart'
+    show deprecated_inputError, deprecated_internalProblem;
 
 import '../export.dart' show Export;
 
@@ -282,7 +283,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       } else if (builder is PrefixBuilder) {
         assert(builder.parent == this);
       } else {
-        return internalError("Unhandled: ${builder.runtimeType}");
+        return deprecated_internalProblem("Unhandled: ${builder.runtimeType}");
       }
     } else {
       assert(currentDeclaration.parent == libraryDeclaration);
@@ -308,11 +309,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         other = builder;
       }
       if (deferred != null) {
-        addCompileTimeError(
+        deprecated_addCompileTimeError(
             deferred.charOffset,
             "Can't use the name '$name' for a deferred library, "
             "as the name is used elsewhere.");
-        addCompileTimeError(other.charOffset, "'$name' is used here.");
+        deprecated_addCompileTimeError(
+            other.charOffset, "'$name' is used here.");
       }
       return existing
         ..exports.merge(builder.exports,
@@ -320,7 +322,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           return buildAmbiguousBuilder(name, existing, member, charOffset);
         });
     } else if (isDuplicatedDefinition(existing, builder)) {
-      addCompileTimeError(charOffset, "Duplicated definition of '$name'.");
+      deprecated_addCompileTimeError(
+          charOffset, "Duplicated definition of '$name'.");
     }
     return members[name] = builder;
   }
@@ -368,9 +371,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Builder member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
       // TODO(ahe): charOffset is missing.
-      addCompileTimeError(
+      deprecated_addCompileTimeError(
           setter.charOffset, "Conflicts with member '${name}'.");
-      addCompileTimeError(
+      deprecated_addCompileTimeError(
           member.charOffset, "Conflicts with setter '${name}'.");
     });
 
@@ -388,12 +391,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void validatePart() {
     if (parts.isNotEmpty) {
-      inputError(fileUri, -1,
+      deprecated_inputError(fileUri, -1,
           "A file that's a part of a library can't have parts itself.");
     }
     if (exporters.isNotEmpty) {
       Export export = exporters.first;
-      inputError(
+      deprecated_inputError(
           export.fileUri, export.charOffset, "A part can't be exported.");
     }
   }
@@ -402,11 +405,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       if (part == this) {
-        addCompileTimeError(-1, "A file can't be a part of itself.");
+        deprecated_addCompileTimeError(-1, "A file can't be a part of itself.");
       } else if (seenParts.add(part.fileUri)) {
         includePart(part);
       } else {
-        addCompileTimeError(
+        deprecated_addCompileTimeError(
             -1, "Can't use '${part.fileUri}' as a part more than once.");
       }
     }
@@ -416,26 +419,27 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     if (part.partOfUri != null) {
       if (uri.resolve(part.partOfUri) != uri) {
         // This is a warning, but the part is still included.
-        addWarning(
+        deprecated_addWarning(
             -1,
             "Using '${part.relativeFileUri}' as part of '$uri' but its "
             "'part of' declaration says '${part.partOfUri}'.");
         if (uri.scheme == "dart" && relativeFileUri.endsWith(part.partOfUri)) {
-          addWarning(-1, "See https://github.com/dart-lang/sdk/issues/30072.");
+          deprecated_addWarning(
+              -1, "See https://github.com/dart-lang/sdk/issues/30072.");
         }
       }
     } else if (part.partOfName != null) {
       if (name != null) {
         if (part.partOfName != name) {
           // This is a warning, but the part is still included.
-          addWarning(
+          deprecated_addWarning(
               -1,
               "Using '${part.relativeFileUri}' as part of '$name' but its "
               "'part of' declaration says '${part.partOfName}'.");
         }
       } else {
         // This is a warning, but the part is still included.
-        addWarning(
+        deprecated_addWarning(
             -1,
             "Using '${part.relativeFileUri}' as part of '${relativeFileUri}' "
             "but its 'part of' declaration says '${part.partOfName}'.\n"
@@ -445,7 +449,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     } else if (name != null) {
       // This is an error, and the part isn't included.
       assert(!part.isPart);
-      addCompileTimeError(
+      deprecated_addCompileTimeError(
           -1,
           "Can't use ${part.fileUri} as a part, because it has no 'part of'"
           " declaration.");

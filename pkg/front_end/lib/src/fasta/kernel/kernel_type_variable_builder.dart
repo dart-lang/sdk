@@ -7,7 +7,7 @@ library fasta.kernel_type_variable_builder;
 import 'package:kernel/ast.dart'
     show DartType, TypeParameter, TypeParameterType;
 
-import '../errors.dart' show inputError;
+import '../deprecated_problems.dart' show deprecated_inputError;
 
 import 'kernel_builder.dart'
     show
@@ -33,7 +33,7 @@ class KernelTypeVariableBuilder
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
-      library.addWarning(arguments.first.charOffset,
+      library.deprecated_addWarning(arguments.first.charOffset,
           "Can't use type arguments with type parameter $parameter",
           fileUri: fileUri);
     }
@@ -43,7 +43,7 @@ class KernelTypeVariableBuilder
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
     if (arguments != null) {
-      return inputError(null, null,
+      return deprecated_inputError(null, null,
           "Can't use type arguments with type parameter $parameter");
     } else {
       return buildType(library, null);

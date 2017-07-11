@@ -70,7 +70,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   Supertype buildSupertype(LibraryBuilder library) {
-    library.addCompileTimeError(
+    library.deprecated_addCompileTimeError(
         charOffset, "Can't use a function type as supertype.",
         fileUri: fileUri);
     return null;

@@ -642,6 +642,10 @@ template("dart_executable") {
       deps += [ "//third_party/tcmalloc" ]
     }
 
+    if (is_fuchsia) {
+      deps += [ "//apps/tracing/lib/trace" ]
+    }
+
     sources = [
                 "error_exit.cc",
                 "error_exit.h",
@@ -883,6 +887,10 @@ executable("run_vm_tests") {
   if (dart_use_tcmalloc) {
     deps += [ "//third_party/tcmalloc" ]
     defines += [ "DART_USE_TCMALLOC" ]
+  }
+
+  if (is_fuchsia) {
+    deps += [ "//apps/tracing/lib/trace" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in
