@@ -1872,10 +1872,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(PRODUCT)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for deoptimization.
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
+#endif
 
   VisitStackPointers(visitor, validate_frames);
 }

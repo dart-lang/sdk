@@ -11941,6 +11941,10 @@ void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
 
 
 RawObject* Namespace::GetMetadata() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  COMPILE_ASSERT(!FLAG_enable_mirrors);
+  return Object::empty_array().raw();
+#else
   Field& field = Field::Handle(metadata_field());
   if (field.IsNull()) {
     // There is no metadata for this object.
@@ -11956,6 +11960,7 @@ RawObject* Namespace::GetMetadata() const {
     }
   }
   return metadata.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
@@ -13077,111 +13082,6 @@ const char* ExceptionHandlers::ToCString() const {
   return buffer;
 #undef FORMAT1
 #undef FORMAT2
-}
-
-
-intptr_t DeoptInfo::FrameSize(const TypedData& packed) {
-  NoSafepointScope no_safepoint;
-  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
-  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
-                         packed.LengthInBytes());
-  return Reader::Read(&read_stream);
-}
-
-
-intptr_t DeoptInfo::NumMaterializations(
-    const GrowableArray<DeoptInstr*>& unpacked) {
-  intptr_t num = 0;
-  while (unpacked[num]->kind() == DeoptInstr::kMaterializeObject) {
-    num++;
-  }
-  return num;
-}
-
-
-void DeoptInfo::UnpackInto(const Array& table,
-                           const TypedData& packed,
-                           GrowableArray<DeoptInstr*>* unpacked,
-                           intptr_t length) {
-  NoSafepointScope no_safepoint;
-  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
-  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
-                         packed.LengthInBytes());
-  const intptr_t frame_size = Reader::Read(&read_stream);  // Skip frame size.
-  USE(frame_size);
-
-  const intptr_t suffix_length = Reader::Read(&read_stream);
-  if (suffix_length != 0) {
-    ASSERT(suffix_length > 1);
-    const intptr_t info_number = Reader::Read(&read_stream);
-
-    TypedData& suffix = TypedData::Handle();
-    Smi& offset = Smi::Handle();
-    Smi& reason_and_flags = Smi::Handle();
-    DeoptTable::GetEntry(table, info_number, &offset, &suffix,
-                         &reason_and_flags);
-    UnpackInto(table, suffix, unpacked, suffix_length);
-  }
-
-  while ((read_stream.PendingBytes() > 0) && (unpacked->length() < length)) {
-    const intptr_t instruction = Reader::Read(&read_stream);
-    const intptr_t from_index = Reader::Read(&read_stream);
-    unpacked->Add(DeoptInstr::Create(instruction, from_index));
-  }
-}
-
-
-void DeoptInfo::Unpack(const Array& table,
-                       const TypedData& packed,
-                       GrowableArray<DeoptInstr*>* unpacked) {
-  ASSERT(unpacked->is_empty());
-
-  // Pass kMaxInt32 as the length to unpack all instructions from the
-  // packed stream.
-  UnpackInto(table, packed, unpacked, kMaxInt32);
-
-  unpacked->Reverse();
-}
-
-
-const char* DeoptInfo::ToCString(const Array& deopt_table,
-                                 const TypedData& packed) {
-#define FORMAT "[%s]"
-  GrowableArray<DeoptInstr*> deopt_instrs;
-  Unpack(deopt_table, packed, &deopt_instrs);
-
-  // Compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
-  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    len += OS::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
-  }
-
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-
-  // Layout the fields in the buffer.
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    index += OS::SNPrint((buffer + index), (len - index), FORMAT,
-                         deopt_instrs[i]->ToCString());
-  }
-
-  return buffer;
-#undef FORMAT
-}
-
-
-// Returns a bool so it can be asserted.
-bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
-                                    const Array& deopt_table,
-                                    const TypedData& packed) {
-  GrowableArray<DeoptInstr*> unpacked;
-  Unpack(deopt_table, packed, &unpacked);
-  ASSERT(unpacked.length() == original.length());
-  for (intptr_t i = 0; i < unpacked.length(); ++i) {
-    ASSERT(unpacked[i]->Equals(*original[i]));
-  }
-  return true;
 }
 
 
@@ -14454,6 +14354,10 @@ bool Code::HasBreakpoint() const {
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      ICData::DeoptReasonId* deopt_reason,
                                      uint32_t* deopt_flags) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
+  return TypedData::null();
+#else
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.PayloadStart();
@@ -14478,6 +14382,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   }
   *deopt_reason = ICData::kDeoptUnknown;
   return TypedData::null();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 

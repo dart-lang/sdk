@@ -14,7 +14,6 @@
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/unibrow-inl.h"
 #include "vm/unicode.h"
 
 #define Z zone()
@@ -38,18 +37,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_irregexp, false, "Trace irregexps");
-
-
 static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
 static const intptr_t kMinStackSize = 512;
-
-
-void PrintUtf16(uint16_t c) {
-  const char* format =
-      (0x20 <= c && c <= 0x7F) ? "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
-  OS::Print(format, c);
-}
 
 
 /*
@@ -353,45 +342,6 @@ RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
   ASSERT(retval.IsArray());
   return Array::Cast(retval).raw();
 }
-
-
-static RawBool* CaseInsensitiveCompareUC16(RawString* str_raw,
-                                           RawSmi* lhs_index_raw,
-                                           RawSmi* rhs_index_raw,
-                                           RawSmi* length_raw) {
-  const String& str = String::Handle(str_raw);
-  const Smi& lhs_index = Smi::Handle(lhs_index_raw);
-  const Smi& rhs_index = Smi::Handle(rhs_index_raw);
-  const Smi& length = Smi::Handle(length_raw);
-
-  // TODO(zerny): Optimize as single instance. V8 has this as an
-  // isolate member.
-  unibrow::Mapping<unibrow::Ecma262Canonicalize> canonicalize;
-
-  for (intptr_t i = 0; i < length.Value(); i++) {
-    int32_t c1 = str.CharAt(lhs_index.Value() + i);
-    int32_t c2 = str.CharAt(rhs_index.Value() + i);
-    if (c1 != c2) {
-      int32_t s1[1] = {c1};
-      canonicalize.get(c1, '\0', s1);
-      if (s1[0] != c2) {
-        int32_t s2[1] = {c2};
-        canonicalize.get(c2, '\0', s2);
-        if (s1[0] != s2[0]) {
-          return Bool::False().raw();
-        }
-      }
-    }
-  }
-  return Bool::True().raw();
-}
-
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    CaseInsensitiveCompareUC16,
-    4,
-    false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUC16));
 
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,

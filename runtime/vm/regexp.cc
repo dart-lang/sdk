@@ -18,8 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_irregexp);
-
 // Default to generating optimized regexp code.
 static const bool kRegexpOptimization = true;
 
@@ -298,10 +296,12 @@ class RegExpCompiler : public ValueObject {
 
   intptr_t AllocateRegister() { return next_register_++; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   RegExpEngine::CompilationResult Assemble(IRRegExpMacroAssembler* assembler,
                                            RegExpNode* start,
                                            intptr_t capture_count,
                                            const String& pattern);
+#endif
 
   RegExpEngine::CompilationResult Assemble(
       BytecodeRegExpMacroAssembler* assembler,
@@ -387,6 +387,7 @@ RegExpCompiler::RegExpCompiler(intptr_t capture_count,
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RegExpEngine::CompilationResult RegExpCompiler::Assemble(
     IRRegExpMacroAssembler* macro_assembler,
     RegExpNode* start,
@@ -416,6 +417,7 @@ RegExpEngine::CompilationResult RegExpCompiler::Assemble(
       macro_assembler->num_blocks(), macro_assembler->num_stack_locals(),
       next_register_);
 }
+#endif
 
 
 RegExpEngine::CompilationResult RegExpCompiler::Assemble(
@@ -4817,6 +4819,7 @@ void TextNode::FillInBMInfo(intptr_t initial_offset,
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RegExpEngine::CompilationResult RegExpEngine::CompileIR(
     RegExpCompileData* data,
     const ParsedFunction* parsed_function,
@@ -4925,6 +4928,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
   return result;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(

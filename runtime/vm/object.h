@@ -4651,51 +4651,6 @@ class ExceptionHandlers : public Object {
 };
 
 
-// Holds deopt information at one deoptimization point. The information consists
-// of two parts:
-//  - first a prefix consisting of kMaterializeObject instructions describing
-//    objects which had their allocation removed as part of AllocationSinking
-//    pass and have to be materialized;
-//  - followed by a list of DeoptInstr objects, specifying transformation
-//    information for each slot in unoptimized frame(s).
-// Arguments for object materialization (class of instance to be allocated and
-// field-value pairs) are added as artificial slots to the expression stack
-// of the bottom-most frame. They are removed from the stack at the very end
-// of deoptimization by the deoptimization stub.
-class DeoptInfo : public AllStatic {
- public:
-  // Size of the frame part of the translation not counting kMaterializeObject
-  // instructions in the prefix.
-  static intptr_t FrameSize(const TypedData& packed);
-
-  // Returns the number of kMaterializeObject instructions in the prefix.
-  static intptr_t NumMaterializations(const GrowableArray<DeoptInstr*>&);
-
-  // Unpack the entire translation into an array of deoptimization
-  // instructions.  This copies any shared suffixes into the array.
-  static void Unpack(const Array& table,
-                     const TypedData& packed,
-                     GrowableArray<DeoptInstr*>* instructions);
-
-  // Size of the frame part of the translation not counting kMaterializeObject
-  // instructions in the prefix.
-  static const char* ToCString(const Array& table, const TypedData& packed);
-
-  // Returns true iff decompression yields the same instructions as the
-  // original.
-  static bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
-                                  const Array& deopt_table,
-                                  const TypedData& packed);
-
-
- private:
-  static void UnpackInto(const Array& table,
-                         const TypedData& packed,
-                         GrowableArray<DeoptInstr*>* instructions,
-                         intptr_t length);
-};
-
-
 class Code : public Object {
  public:
   RawInstructions* active_instructions() const {

@@ -107,7 +107,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-DECLARE_FLAG(bool, trace_irregexp);
 
 
 #ifndef DART_PRECOMPILED_RUNTIME
@@ -157,7 +156,29 @@ void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {}
 
 void IrregexpCompilationPipeline::ParseFunction(
     ParsedFunction* parsed_function) {
-  RegExpParser::ParseFunction(parsed_function);
+  VMTagScope tagScope(parsed_function->thread(),
+                      VMTag::kCompileParseRegExpTagId);
+  Zone* zone = parsed_function->zone();
+  RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
+
+  const String& pattern = String::Handle(regexp.pattern());
+  const bool multiline = regexp.is_multi_line();
+
+  RegExpCompileData* compile_data = new (zone) RegExpCompileData();
+  if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
+    // Parsing failures are handled in the RegExp factory constructor.
+    UNREACHABLE();
+  }
+
+  regexp.set_num_bracket_expressions(compile_data->capture_count);
+  if (compile_data->simple) {
+    regexp.set_is_simple();
+  } else {
+    regexp.set_is_complex();
+  }
+
+  parsed_function->SetRegExpCompileData(compile_data);
+
   // Variables are allocated after compilation.
 }
 

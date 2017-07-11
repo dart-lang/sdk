@@ -14,9 +14,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_irregexp);
-
-
 DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
@@ -86,13 +83,14 @@ static RawObject* ExecuteMatch(Zone* zone,
   GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
 
-  if (FLAG_interpret_irregexp) {
-    return BytecodeRegExpMacroAssembler::Interpret(regexp, subject, start_index,
-                                                   /*sticky=*/sticky, zone);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!FLAG_interpret_irregexp) {
+    return IRRegExpMacroAssembler::Execute(regexp, subject, start_index,
+                                           /*sticky=*/sticky, zone);
   }
-
-  return IRRegExpMacroAssembler::Execute(regexp, subject, start_index,
-                                         /*sticky=*/sticky, zone);
+#endif
+  return BytecodeRegExpMacroAssembler::Interpret(regexp, subject, start_index,
+                                                 /*sticky=*/sticky, zone);
 }
 
 

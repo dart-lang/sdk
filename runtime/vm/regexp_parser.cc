@@ -216,34 +216,6 @@ RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
 }
 
 
-bool RegExpParser::ParseFunction(ParsedFunction* parsed_function) {
-  VMTagScope tagScope(parsed_function->thread(),
-                      VMTag::kCompileParseRegExpTagId);
-  Zone* zone = parsed_function->zone();
-  RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
-
-  const String& pattern = String::Handle(regexp.pattern());
-  const bool multiline = regexp.is_multi_line();
-
-  RegExpCompileData* compile_data = new (zone) RegExpCompileData();
-  if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-    // Parsing failures are handled in the RegExp factory constructor.
-    UNREACHABLE();
-  }
-
-  regexp.set_num_bracket_expressions(compile_data->capture_count);
-  if (compile_data->simple) {
-    regexp.set_is_simple();
-  } else {
-    regexp.set_is_complex();
-  }
-
-  parsed_function->SetRegExpCompileData(compile_data);
-
-  return true;
-}
-
-
 uint32_t RegExpParser::Next() {
   if (has_next()) {
     return in().CharAt(next_pos_);

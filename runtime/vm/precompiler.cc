@@ -78,7 +78,6 @@ DECLARE_FLAG(bool, verify_compiler);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
-DECLARE_FLAG(bool, trace_irregexp);
 DECLARE_FLAG(int, inlining_hotness);
 DECLARE_FLAG(int, inlining_size_threshold);
 DECLARE_FLAG(int, inlining_callee_size_threshold);

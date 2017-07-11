@@ -511,6 +511,10 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   ASSERT(code_.is_optimized());
   ASSERT(pc_ != 0);
   ASSERT(code.ContainsInstructionAt(pc));
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(deopt_info_.IsNull());
+  function_ = code_.function();
+#else
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
   uint32_t deopt_flags = 0;
   deopt_info_ = code_.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags);
@@ -529,6 +533,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     object_table_ = code_.GetObjectPool();
     Advance();
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
@@ -537,6 +542,11 @@ void InlinedFunctionsIterator::Advance() {
   // functions if any and iterate over them.
   ASSERT(!Done());
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(deopt_info_.IsNull());
+  SetDone();
+  return;
+#else
   if (deopt_info_.IsNull()) {
     SetDone();
     return;
@@ -552,6 +562,7 @@ void InlinedFunctionsIterator::Advance() {
     }
   }
   SetDone();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 
