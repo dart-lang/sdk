@@ -122,9 +122,6 @@ LayoutTests/fast/canvas/webgl/css-webkit-canvas_t01: Pass, RuntimeError # Issue 
 LayoutTests/fast/canvas/webgl/css-webkit-canvas-repaint_t01: Pass, RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/error-reporting_t01: Pass, RuntimeError # Issue 22026
-LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Issue 22026
-LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-test_t01: Pass, RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/framebuffer-test_t01: RuntimeError # Issue 20, 22026
 LayoutTests/fast/canvas/webgl/functions-returning-strings_t01: Pass, RuntimeError # Issue 22026
@@ -141,8 +138,6 @@ LayoutTests/fast/canvas/webgl/is-object_t01: RuntimeError, Pass # co19-roll r761
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: Pass, RuntimeError # Issue 20, 22026
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: RuntimeError # Issue 22026
-LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Issue 25653
-LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/renderbuffer-initialization_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: Pass, RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/shader-precision-format_t01: Pass, RuntimeError # Issue 22026
@@ -1176,17 +1171,20 @@ LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: Pass, RuntimeErr
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: Skip # WebGL not supported on Linux
-LayoutTests/fast/canvas/webgl/context-lost-restored_t0: Skip # WebGL not supported on Linux
+LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: Skip # WebGL not supported on Linux
+LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/gl-bind-attrib-location-test_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/gl-pixelstorei_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/gl-teximage_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/point-size_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: Skip # WebGL not supported on Linux
+LayoutTests/fast/canvas/webgl/read-pixels-test_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: Skip # WebGL not supported on Linux
+LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgb565_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba4444_t01: Skip # WebGL not supported on Linux
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Skip # WebGL not supported on Linux
