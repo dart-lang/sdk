@@ -391,6 +391,9 @@ class InferrerEngine {
           assert(calledElement.isGenerativeConstructor);
           ClassElement cls = calledElement.enclosingClass;
           MethodElement callMethod = cls.lookupMember(Identifiers.call);
+          if (callMethod == null) {
+            callMethod = cls.lookupMember(Identifiers.noSuchMethod_);
+          }
           assert(callMethod != null, failedAt(cls));
           Iterable<FunctionEntity> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
