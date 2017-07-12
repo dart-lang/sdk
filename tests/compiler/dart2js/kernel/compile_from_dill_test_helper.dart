@@ -157,6 +157,22 @@ main() {
 } 
 '''
   }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
+class A<U,V> {
+  var a = U;
+  var b = V;
+}
+class B<Q, R> extends A<R, W<Q>> {
+}
+class C<Y> extends B<Y, W<Y>> {
+}
+class W<Z> {}
+main() {
+  print(new C<String>().a);
+}
+'''
+  }, expectIdenticalOutput: true),
 ];
 
 enum ResultKind { crashes, errors, warnings, success, failure }

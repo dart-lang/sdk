@@ -88,7 +88,7 @@ class LocalsHandler {
   /// [contextClass].
   DartType substInContext(DartType type) {
     if (contextClass != null) {
-      ClassElement typeContext = DartTypes.getClassContext(type);
+      ClassEntity typeContext = DartTypes.getClassContext(type);
       if (typeContext != null) {
         type = builder.types.substByContext(
             type,
