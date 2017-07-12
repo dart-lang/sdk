@@ -5,33 +5,48 @@
 library fasta.translate_uri;
 
 import 'dart:async' show Future;
-
 import 'dart:convert' show JSON;
 
 import 'package:front_end/file_system.dart'
     show FileSystem, FileSystemException;
-
 import 'package:package_config/packages_file.dart' as packages_file show parse;
 
 import 'deprecated_problems.dart' show deprecated_inputError;
 
+/// Instances of [TranslateUri] translate absolute `dart` and `package` URIs
+/// into corresponding file URIs in a [FileSystem]. Translated URIs are
+/// typically `file:` URIs, but may use a different scheme if the compiler is
+/// invoked with the `multiRoot` option or in unit tests that use a custom file
+/// system.
 class TranslateUri {
-  final Map<String, Uri> packages;
+  /// Mapping from Dart library names (e.g. `math`) to file URIs.
   final Map<String, Uri> dartLibraries;
 
   // TODO(ahe): We probably want this to be `Map<String, Uri>`, that is, just
   // one patch library (with parts).
-  final Map<String, List<Uri>> patches;
+  /// Mapping from Dart library names to the file URIs of patches to apply.
+  final Map<String, List<Uri>> dartPatches;
 
-  TranslateUri(this.packages, this.dartLibraries, this.patches);
+  /// Mapping from package names (e.g. `angular`) to the file URIs.
+  final Map<String, Uri> packages;
 
+  TranslateUri(this.dartLibraries, this.dartPatches, this.packages);
+
+  /// If the given [uri] is a `dart` or `package` URI, return the corresponding
+  /// file URI (possibly `null` if there is no corresponding file URI);
+  /// otherwise (e.g. when the [uri] is already a file URI) return `null`.
+  ///
+  /// This is the URIs only transformation, there is no guarantee that the
+  /// corresponding file exists in the file system.
   Uri translate(Uri uri) {
-    if (uri.scheme == "dart") return translateDartUri(uri);
-    if (uri.scheme == "package") return translatePackageUri(uri);
+    if (uri.scheme == "dart") return _translateDartUri(uri);
+    if (uri.scheme == "package") return _translatePackageUri(uri);
     return null;
   }
 
-  Uri translateDartUri(Uri uri) {
+  /// Return the file URI that corresponds to the given `dart` URI, or `null`
+  /// if there is no corresponding Dart library registered.
+  Uri _translateDartUri(Uri uri) {
     if (!uri.isScheme('dart')) return null;
     String path = uri.path;
 
@@ -44,7 +59,10 @@ class TranslateUri {
     return libraryFileUri?.resolve(relativePath);
   }
 
-  Uri translatePackageUri(Uri uri) {
+  /// Return the file URI that corresponds to the given `package` URI, or
+  /// `null` if the `package` [uri] format is invalid, or there is no
+  /// corresponding package registered.
+  Uri _translatePackageUri(Uri uri) {
     int index = uri.path.indexOf("/");
     if (index == -1) return null;
     String name = uri.path.substring(0, index);
@@ -54,8 +72,8 @@ class TranslateUri {
     return root.resolve(path);
   }
 
-  /// Returns true if [uri] is private to the platform libraries (and thus not
-  /// accessible from user code).
+  /// Returns `true` if [uri] is private to the platform libraries (and thus
+  /// not accessible from user code).
   bool isPlatformImplementation(Uri uri) {
     if (uri.scheme != "dart") return false;
     String path = uri.path;
@@ -84,14 +102,17 @@ class TranslateUri {
     } on FormatException catch (e) {
       return deprecated_inputError(packages, e.offset, e.message);
     }
-    return new TranslateUri(
-        parsedPackages,
-        await computeLibraries(fileSystem, librariesJson),
-        await computePatches(fileSystem, patches));
+
+    var dartLibraries = await computeDartLibraries(fileSystem, librariesJson);
+    return new TranslateUri(dartLibraries,
+        await computeDartPatches(fileSystem, patches), parsedPackages);
   }
 }
 
-Future<Map<String, Uri>> computeLibraries(
+/// Read the JSON file with defined SDK libraries from the given [uri] in the
+/// [fileSystem] and return the mapping from parsed Dart library names (e.g.
+/// `math`) to file URIs.
+Future<Map<String, Uri>> computeDartLibraries(
     FileSystem fileSystem, Uri uri) async {
   if (uri == null) return const <String, Uri>{};
   Map<String, String> libraries = JSON
@@ -103,7 +124,7 @@ Future<Map<String, Uri>> computeLibraries(
   return result;
 }
 
-Future<Map<String, List<Uri>>> computePatches(
+Future<Map<String, List<Uri>>> computeDartPatches(
     FileSystem fileSystem, Uri uri) async {
   // TODO(ahe): Read patch information.
   return const <String, List<Uri>>{};

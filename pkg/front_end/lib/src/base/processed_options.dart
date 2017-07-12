@@ -223,17 +223,17 @@ class ProcessedOptions {
       await _getPackages();
       // TODO(scheglov) Load SDK libraries from whatever format we decide.
       // TODO(scheglov) Remove the field "_raw.dartLibraries".
-      var libraries = _raw.dartLibraries ?? await _parseLibraries();
+      var libraries = _raw.dartLibraries ?? await _parseDartLibraries();
       _uriTranslator =
-          new TranslateUri(_packages, libraries, const <String, List<Uri>>{});
+          new TranslateUri(libraries, const <String, List<Uri>>{}, _packages);
       ticker.logMs("Read packages file");
     }
     return _uriTranslator;
   }
 
-  Future<Map<String, Uri>> _parseLibraries() async {
+  Future<Map<String, Uri>> _parseDartLibraries() async {
     Uri librariesJson = _raw.sdkRoot?.resolve("lib/libraries.json");
-    return await computeLibraries(fileSystem, librariesJson);
+    return await computeDartLibraries(fileSystem, librariesJson);
   }
 
   /// Get the package map which maps package names to URIs.

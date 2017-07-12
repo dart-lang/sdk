@@ -234,12 +234,10 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
-    // We create a new URI translator to avoid reading plaform libraries from
+    // We create a new URI translator to avoid reading platform libraries from
     // file system.
-    TranslateUri uriTranslator = new TranslateUri(
-        context.uriTranslator.packages,
-        const <String, Uri>{},
-        const <String, List<Uri>>{});
+    TranslateUri uriTranslator = new TranslateUri(const <String, Uri>{},
+        const <String, List<Uri>>{}, context.uriTranslator.packages);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
         : new KernelTarget(

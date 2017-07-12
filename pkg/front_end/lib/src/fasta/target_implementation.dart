@@ -101,7 +101,7 @@ abstract class TargetImplementation extends Target {
 
   void readPatchFiles(LibraryBuilder library) {
     assert(library.uri.scheme == "dart");
-    List<Uri> patches = uriTranslator.patches[library.uri.path];
+    List<Uri> patches = uriTranslator.dartPatches[library.uri.path];
     if (patches != null) {
       for (Uri patch in patches) {
         library.loader.read(patch, -1, fileUri: patch, isPatch: true);

@@ -14,11 +14,28 @@ main() {
 
 @reflectiveTest
 class TranslateUriTest {
-  void test_translate_dart() {
-    var translator = new TranslateUri({}, {
+  void test_isPlatformImplementation() {
+    var translator = new TranslateUri({
       'core': Uri.parse('file:///sdk/core/core.dart'),
       'math': Uri.parse('file:///sdk/math/math.dart')
-    }, {});
+    }, {}, {});
+
+    bool isPlatform(String uriStr) {
+      var uri = Uri.parse(uriStr);
+      return translator.isPlatformImplementation(uri);
+    }
+
+    expect(isPlatform('dart:core/string.dart'), isTrue);
+    expect(isPlatform('dart:core'), isFalse);
+    expect(isPlatform('dart:_builtin'), isTrue);
+    expect(isPlatform('file:///sdk/math/math.dart'), isFalse);
+  }
+
+  void test_translate_dart() {
+    var translator = new TranslateUri({
+      'core': Uri.parse('file:///sdk/core/core.dart'),
+      'math': Uri.parse('file:///sdk/math/math.dart')
+    }, {}, {});
 
     expect(translator.translate(Uri.parse('dart:core')),
         Uri.parse('file:///sdk/core/core.dart'));
@@ -27,19 +44,5 @@ class TranslateUriTest {
 
     expect(translator.translate(Uri.parse('dart:math')),
         Uri.parse('file:///sdk/math/math.dart'));
-
-    expect(translator.translate(Uri.parse('dart:unknown')), isNull);
-
-    expect(
-        translator.isPlatformImplementation(Uri.parse('dart:core/string.dart')),
-        isTrue);
-    expect(
-        translator.isPlatformImplementation(Uri.parse('dart:core')), isFalse);
-    expect(translator.isPlatformImplementation(Uri.parse('dart:_builtin')),
-        isTrue);
-    expect(
-        translator
-            .isPlatformImplementation(Uri.parse('file:///sdk/math/math.dart')),
-        isFalse);
   }
 }
