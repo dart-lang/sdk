@@ -135,10 +135,6 @@ class Heap {
     old_space_.WriteProtectCode(read_only);
   }
 
-  // Accessors for inlined allocation in generated code.
-  static intptr_t TopOffset(Space space);
-  static intptr_t EndOffset(Space space);
-
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
                    intptr_t max_new_gen_words,
@@ -343,7 +339,7 @@ class Heap {
   Isolate* isolate_;
 
   // The different spaces used for allocation.
-  ALIGN8 Scavenger new_space_;
+  Scavenger new_space_;
   PageSpace old_space_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];

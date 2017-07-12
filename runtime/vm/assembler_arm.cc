@@ -3450,22 +3450,20 @@ void Assembler::TryAllocate(const Class& cls,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
-    Heap::Space space = Heap::kNew;
-    ldr(temp_reg, Address(THR, Thread::heap_offset()));
-    ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+    ldr(instance_reg, Address(THR, Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    ldr(IP, Address(temp_reg, Heap::EndOffset(space)));
+    ldr(IP, Address(THR, Thread::end_offset()));
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
-
+    str(instance_reg, Address(THR, Thread::top_offset()));
     NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
 
     ASSERT(instance_size >= kHeapObjectTag);
@@ -3497,17 +3495,16 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
-    Heap::Space space = Heap::kNew;
-    ldr(temp1, Address(THR, Thread::heap_offset()));
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     // Potential new object start.
-    ldr(instance, Address(temp1, Heap::TopOffset(space)));
+    ldr(instance, Address(THR, Thread::top_offset()));
     AddImmediateSetFlags(end_address, instance, instance_size);
     b(failure, CS);  // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    ldr(temp2, Address(temp1, Heap::EndOffset(space)));
+    ldr(temp2, Address(THR, Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
@@ -3515,7 +3512,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    str(end_address, Address(temp1, Heap::TopOffset(space)));
+    str(end_address, Address(THR, Thread::top_offset()));
     add(instance, instance, Operand(kHeapObjectTag));
 
     // Initialize the tags.

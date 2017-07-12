@@ -3420,16 +3420,15 @@ void Assembler::TryAllocate(const Class& cls,
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), failure, near_jump));
     const intptr_t instance_size = cls.instance_size();
-    Heap::Space space = Heap::kNew;
-    movq(temp, Address(THR, Thread::heap_offset()));
-    movq(instance_reg, Address(temp, Heap::TopOffset(space)));
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+    movq(instance_reg, Address(THR, Thread::top_offset()));
     addq(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
-    cmpq(instance_reg, Address(temp, Heap::EndOffset(space)));
+    cmpq(instance_reg, Address(THR, Thread::end_offset()));
     j(ABOVE_EQUAL, failure, near_jump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    movq(Address(temp, Heap::TopOffset(space)), instance_reg);
+    movq(Address(THR, Thread::top_offset()), instance_reg);
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size));
@@ -3460,9 +3459,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, near_jump));
-    Heap::Space space = Heap::kNew;
-    movq(temp, Address(THR, Thread::heap_offset()));
-    movq(instance, Address(temp, Heap::TopOffset(space)));
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+    movq(instance, Address(THR, Thread::top_offset()));
     movq(end_address, instance);
 
     addq(end_address, Immediate(instance_size));
@@ -3471,12 +3469,12 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    cmpq(end_address, Address(temp, Heap::EndOffset(space)));
+    cmpq(end_address, Address(THR, Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    movq(Address(temp, Heap::TopOffset(space)), end_address);
+    movq(Address(THR, Thread::top_offset()), end_address);
     addq(instance, Immediate(kHeapObjectTag));
     NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, instance_size, space));
 

@@ -65,6 +65,8 @@ Thread::Thread(Isolate* isolate)
       stack_overflow_flags_(0),
       isolate_(NULL),
       heap_(NULL),
+      top_(0),
+      end_(0),
       top_exit_frame_info_(0),
       store_buffer_block_(NULL),
       vm_tag_(0),

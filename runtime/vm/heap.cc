@@ -63,13 +63,14 @@ uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   // Currently, only the Dart thread may allocate in new space.
   isolate()->AssertCurrentThreadIsMutator();
-  uword addr = new_space_.TryAllocate(size);
+  Thread* thread = Thread::Current();
+  uword addr = new_space_.TryAllocateInTLAB(thread, size);
   if (addr == 0) {
     // This call to CollectGarbage might end up "reusing" a collection spawned
     // from a different thread and will be racing to allocate the requested
     // memory with other threads being released after the collection.
     CollectGarbage(kNew);
-    addr = new_space_.TryAllocate(size);
+    addr = new_space_.TryAllocateInTLAB(thread, size);
     if (addr == 0) {
       return AllocateOld(size, HeapPage::kData);
     }
@@ -509,26 +510,6 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 
-intptr_t Heap::TopOffset(Heap::Space space) {
-  if (space == kNew) {
-    return OFFSET_OF(Heap, new_space_) + Scavenger::top_offset();
-  } else {
-    ASSERT(space == kOld);
-    return OFFSET_OF(Heap, old_space_) + PageSpace::top_offset();
-  }
-}
-
-
-intptr_t Heap::EndOffset(Heap::Space space) {
-  if (space == kNew) {
-    return OFFSET_OF(Heap, new_space_) + Scavenger::end_offset();
-  } else {
-    ASSERT(space == kOld);
-    return OFFSET_OF(Heap, old_space_) + PageSpace::end_offset();
-  }
-}
-
-
 void Heap::Init(Isolate* isolate,
                 intptr_t max_new_gen_words,
                 intptr_t max_old_gen_words,
@@ -607,6 +588,10 @@ bool Heap::Verify(MarkExpectation mark_expectation) const {
 
 bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   StackZone stack_zone(Thread::Current());
+
+  // Change the new space's top_ with the more up-to-date thread's view of top_
+  new_space_.FlushTLS();
+
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
