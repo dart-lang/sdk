@@ -36,9 +36,15 @@
 #
 # `#name` a name (a string).
 #
+# `#name2` another name (a string).
+#
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string` a string.
+#
+# `#string2` another string.
+#
+# `#uri` a Uri.
 
 AsciiControlCharacter:
   template: "The control character #unicode can only be used in strings and comments."
@@ -558,18 +564,6 @@ FastaUsageLong:
 FastaCLIArgumentRequired:
   template: "Expected value after '#name'."
 
-Unhandled:
-  template: "Unhandled: #string in #name."
-
-Unimplemented:
-  template: "Unimplemented: #string."
-
-Unexpected:
-  template: "Expected '#string', but got '#name'."
-
-Unsupported:
-  template: "Unsupported operation: '#name'."
-
 NamedFunctionExpression:
   template: "A function expression can't have a name."
   dart2jsCode: "*ignored*"
@@ -577,3 +571,15 @@ NamedFunctionExpression:
 ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
   dart2jsCode: "*ignored*"
+
+Unhandled:
+  template: "Internal error: Unhandled #string in #string2."
+
+Unimplemented:
+  template: "Internal error: Unimplemented #string."
+
+Unexpected:
+  template: "Internal error: Expected '#string', but got '#string2'."
+
+Unsupported:
+  template: "Internal error: Unsupported operation: '#name'."

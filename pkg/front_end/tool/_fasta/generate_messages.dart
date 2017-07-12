@@ -73,6 +73,11 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'name': name");
         break;
 
+      case "#name2":
+        parameters.add("String name2");
+        arguments.add("'name2': name2");
+        break;
+
       case "#lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
@@ -82,6 +87,23 @@ String compileTemplate(String name, String template, String tip,
       case "#string":
         parameters.add("String string");
         arguments.add("'string': string");
+        break;
+
+      case "#string2":
+        parameters.add("String string2");
+        arguments.add("'string2': string2");
+        break;
+
+      case "#uri":
+        parameters.add("Uri uri_");
+        conversions.add("String uri = relativizeUri(uri_);");
+        arguments.add("'uri': uri_");
+        break;
+
+      case "#uri2":
+        parameters.add("Uri uri2_");
+        conversions.add("String uri2 = relativizeUri(uri2_);");
+        arguments.add("'uri': uri2_");
         break;
 
       default:

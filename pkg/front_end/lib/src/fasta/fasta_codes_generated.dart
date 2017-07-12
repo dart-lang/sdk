@@ -121,24 +121,25 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name)>
+const Template<Message Function(String string, String string2)>
     templateUnexpected =
-    const Template<Message Function(String string, String name)>(
-        messageTemplate: r"""Expected '#string', but got '#name'.""",
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate:
+            r"""Internal error: Expected '#string', but got '#string2'.""",
         withArguments: _withArgumentsUnexpected);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String name)> codeUnexpected =
-    const Code<Message Function(String string, String name)>(
+const Code<Message Function(String string, String string2)> codeUnexpected =
+    const Code<Message Function(String string, String string2)>(
   "Unexpected",
   templateUnexpected,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnexpected(String string, String name) {
+Message _withArgumentsUnexpected(String string, String string2) {
   return new Message(codeUnexpected,
-      message: """Expected '$string', but got '$name'.""",
-      arguments: {'string': string, 'name': name});
+      message: """Internal error: Expected '$string', but got '$string2'.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -403,7 +404,7 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateUnimplemented =
     const Template<Message Function(String string)>(
-        messageTemplate: r"""Unimplemented: #string.""",
+        messageTemplate: r"""Internal error: Unimplemented #string.""",
         withArguments: _withArgumentsUnimplemented);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -416,27 +417,29 @@ const Code<Message Function(String string)> codeUnimplemented =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnimplemented(String string) {
   return new Message(codeUnimplemented,
-      message: """Unimplemented: $string.""", arguments: {'string': string});
+      message: """Internal error: Unimplemented $string.""",
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String name)> templateUnhandled =
-    const Template<Message Function(String string, String name)>(
-        messageTemplate: r"""Unhandled: #string in #name.""",
+const Template<Message Function(String string, String string2)>
+    templateUnhandled =
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate: r"""Internal error: Unhandled #string in #string2.""",
         withArguments: _withArgumentsUnhandled);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String name)> codeUnhandled =
-    const Code<Message Function(String string, String name)>(
+const Code<Message Function(String string, String string2)> codeUnhandled =
+    const Code<Message Function(String string, String string2)>(
   "Unhandled",
   templateUnhandled,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnhandled(String string, String name) {
+Message _withArgumentsUnhandled(String string, String string2) {
   return new Message(codeUnhandled,
-      message: """Unhandled: $string in $name.""",
-      arguments: {'string': string, 'name': name});
+      message: """Internal error: Unhandled $string in $string2.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1146,7 +1149,7 @@ Message _withArgumentsMethodNotFound(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateUnsupported =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""Unsupported operation: '#name'.""",
+        messageTemplate: r"""Internal error: Unsupported operation: '#name'.""",
         withArguments: _withArgumentsUnsupported);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1159,7 +1162,7 @@ const Code<Message Function(String name)> codeUnsupported =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnsupported(String name) {
   return new Message(codeUnsupported,
-      message: """Unsupported operation: '$name'.""",
+      message: """Internal error: Unsupported operation: '$name'.""",
       arguments: {'name': name});
 }
 
