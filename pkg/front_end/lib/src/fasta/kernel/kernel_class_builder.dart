@@ -26,7 +26,14 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
-import '../fasta_codes.dart' show templateRedirectionTargetNotFound;
+import '../fasta_codes.dart'
+    show
+        templateOverrideFewerNamedArguments,
+        templateOverrideFewerPositionalArguments,
+        templateOverrideMismatchNamedParameter,
+        templateOverrideMoreRequiredArguments,
+        templateOverrideTypeVariablesMismatch,
+        templateRedirectionTargetNotFound;
 
 import '../problems.dart' show unhandled, unimplemented;
 
@@ -233,32 +240,32 @@ abstract class KernelClassBuilder
     FunctionNode interfaceFunction = interfaceMember.function;
     if (declaredFunction.typeParameters?.length !=
         interfaceFunction.typeParameters?.length) {
-      deprecated_addWarning(
-          declaredMember.fileOffset,
-          "Declared type variables of '$name::${declaredMember.name.name}' "
-          "doesn't match those on overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+      addWarning(
+          templateOverrideTypeVariablesMismatch.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     if (declaredFunction.positionalParameters.length <
             interfaceFunction.requiredParameterCount ||
         declaredFunction.positionalParameters.length <
             interfaceFunction.positionalParameters.length) {
-      deprecated_addWarning(
-          declaredMember.fileOffset,
-          "The method '$name::${declaredMember.name.name}' has fewer "
-          "positional arguments than those of overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+      addWarning(
+          templateOverrideFewerPositionalArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
-      deprecated_addWarning(
-          declaredMember.fileOffset,
-          "The method '$name::${declaredMember.name.name}' has more "
-          "required arguments than those of overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+      addWarning(
+          templateOverrideMoreRequiredArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     if (declaredFunction.namedParameters.isEmpty &&
         interfaceFunction.namedParameters.isEmpty) {
@@ -266,12 +273,12 @@ abstract class KernelClassBuilder
     }
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
-      deprecated_addWarning(
-          declaredMember.fileOffset,
-          "The method '$name::${declaredMember.name.name}' has fewer named "
-          "arguments than those of overridden method "
-          "'${interfaceMember.enclosingClass.name}::"
-          "${interfaceMember.name.name}'.");
+      addWarning(
+          templateOverrideFewerNamedArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset);
     }
     Iterator<VariableDeclaration> declaredNamedParameters =
         declaredFunction.namedParameters.iterator;
@@ -283,12 +290,13 @@ abstract class KernelClassBuilder
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
-          deprecated_addWarning(
-              declaredMember.fileOffset,
-              "The method '$name::${declaredMember.name.name}' doesn't have "
-              "the named parameter '${interfaceNamedParameters.current.name}' "
-              "of overriden method '${interfaceMember.enclosingClass.name}::"
-              "${interfaceMember.name.name}'.");
+          addWarning(
+              templateOverrideMismatchNamedParameter.withArguments(
+                  "$name::${declaredMember.name.name}",
+                  interfaceNamedParameters.current.name,
+                  "${interfaceMember.enclosingClass.name}::"
+                  "${interfaceMember.name.name}"),
+              declaredMember.fileOffset);
           break outer;
         }
       }

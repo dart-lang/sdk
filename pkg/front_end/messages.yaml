@@ -639,3 +639,57 @@ DuplicatedExport:
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
+
+CyclicClassHierarchy:
+  template: "'#name' is a supertype of itself via '#string'."
+
+ExtendingEnum:
+  template: "'#name' is an enum and can't be extended or implemented."
+
+ExtendingRestricted:
+  template: "'#name' is restricted and can't be extended or implemented."
+
+NoUnnamedConstructorInObject:
+  template: "'Object' has no unnamed constructor."
+
+IllegalMixinDueToConstructors:
+  template: "Can't use '#name' as a mixin because it has constructors."
+
+IllegalMixinDueToConstructorsCause:
+  template: "This constructor prevents using '#name' as a mixin."
+
+ConflictsWithConstructor:
+  template: "Conflicts with constructor '#name'."
+
+ConflictsWithFactory:
+  template: "Conflicts with factory '#name'."
+
+ConflictsWithMember:
+  template: "Conflicts with member '#name'."
+
+ConflictsWithSetter:
+  template: "Conflicts with setter '#name'."
+
+ConflictsWithTypeVariable:
+  template: "Conflicts with type variable '#name'."
+
+ConflictsWithTypeVariableCause:
+  template:  "This is the type variable."
+
+IllegalMixin:
+  template: "The type '#name' can't be mixed in."
+
+OverrideTypeVariablesMismatch:
+  template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
+
+OverrideMismatchNamedParameter:
+  template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
+
+OverrideFewerNamedArguments:
+  template: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
+
+OverrideFewerPositionalArguments:
+  template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
+
+OverrideMoreRequiredArguments:
+  template: "The method '#name' has more required arguments than those of overridden method '#name2'."

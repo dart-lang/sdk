@@ -13,6 +13,8 @@ import '../../scanner/token.dart' show Token;
 import '../fasta_codes.dart'
     show
         Message,
+        messageConflictsWithTypeVariableCause,
+        templateConflictsWithTypeVariable,
         templateDuplicatedExport,
         templateDuplicatedImport,
         templateExportHidesExport,
@@ -158,10 +160,11 @@ class KernelLibraryBuilder
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.deprecated_addCompileTimeError(
-              member.charOffset, "Conflict with type variable '$name'.");
-          cls.deprecated_addCompileTimeError(
-              tv.charOffset, "This is the type variable.");
+          cls.addCompileTimeError(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset);
+          cls.addCompileTimeError(
+              messageConflictsWithTypeVariableCause, tv.charOffset);
         }
       }
       setParent(name, member);

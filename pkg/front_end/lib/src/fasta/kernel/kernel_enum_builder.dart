@@ -28,6 +28,8 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         VariableGet;
 
+import '../fasta_codes.dart' show messageNoUnnamedConstructorInObject;
+
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
 import '../names.dart' show indexGetName;
@@ -259,8 +261,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       // unnamed constructor requires no arguments. But that information isn't
       // always available at this point, and it's not really a situation that
       // can happen unless you start modifying the SDK sources.
-      deprecated_addCompileTimeError(
-          -1, "'Object' has no unnamed constructor.");
+      addCompileTimeError(messageNoUnnamedConstructorInObject, -1);
     } else {
       constructor.initializers.add(
           new SuperInitializer(superConstructor.target, new Arguments.empty())

@@ -174,6 +174,114 @@ const MessageCode messageCatchSyntax = const MessageCode("CatchSyntax",
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateConflictsWithConstructor =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with constructor '#name'.""",
+        withArguments: _withArgumentsConflictsWithConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithConstructor =
+    const Code<Message Function(String name)>(
+  "ConflictsWithConstructor",
+  templateConflictsWithConstructor,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithConstructor(String name) {
+  return new Message(codeConflictsWithConstructor,
+      message: """Conflicts with constructor '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateConflictsWithFactory =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with factory '#name'.""",
+        withArguments: _withArgumentsConflictsWithFactory);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithFactory =
+    const Code<Message Function(String name)>(
+  "ConflictsWithFactory",
+  templateConflictsWithFactory,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithFactory(String name) {
+  return new Message(codeConflictsWithFactory,
+      message: """Conflicts with factory '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateConflictsWithMember =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with member '#name'.""",
+        withArguments: _withArgumentsConflictsWithMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithMember =
+    const Code<Message Function(String name)>(
+  "ConflictsWithMember",
+  templateConflictsWithMember,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithMember(String name) {
+  return new Message(codeConflictsWithMember,
+      message: """Conflicts with member '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateConflictsWithSetter =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with setter '#name'.""",
+        withArguments: _withArgumentsConflictsWithSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithSetter =
+    const Code<Message Function(String name)>(
+  "ConflictsWithSetter",
+  templateConflictsWithSetter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithSetter(String name) {
+  return new Message(codeConflictsWithSetter,
+      message: """Conflicts with setter '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateConflictsWithTypeVariable =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with type variable '#name'.""",
+        withArguments: _withArgumentsConflictsWithTypeVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithTypeVariable =
+    const Code<Message Function(String name)>(
+  "ConflictsWithTypeVariable",
+  templateConflictsWithTypeVariable,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithTypeVariable(String name) {
+  return new Message(codeConflictsWithTypeVariable,
+      message: """Conflicts with type variable '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConflictsWithTypeVariableCause =
+    messageConflictsWithTypeVariableCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
+    "ConflictsWithTypeVariableCause",
+    message: r"""This is the type variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstFieldWithoutInitializer =
     messageConstFieldWithoutInitializer;
 
@@ -202,6 +310,28 @@ Message _withArgumentsConstructorNotFound(String name) {
   return new Message(codeConstructorNotFound,
       message: """Couldn't find constructor '$name'.""",
       arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateCyclicClassHierarchy =
+    const Template<Message Function(String name, String string)>(
+        messageTemplate: r"""'#name' is a supertype of itself via '#string'.""",
+        withArguments: _withArgumentsCyclicClassHierarchy);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeCyclicClassHierarchy =
+    const Code<Message Function(String name, String string)>(
+  "CyclicClassHierarchy",
+  templateCyclicClassHierarchy,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCyclicClassHierarchy(String name, String string) {
+  return new Message(codeCyclicClassHierarchy,
+      message: """'$name' is a supertype of itself via '$string'.""",
+      arguments: {'name': name, 'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -550,6 +680,49 @@ Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateExtendingEnum =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""'#name' is an enum and can't be extended or implemented.""",
+        withArguments: _withArgumentsExtendingEnum);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExtendingEnum =
+    const Code<Message Function(String name)>(
+  "ExtendingEnum",
+  templateExtendingEnum,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtendingEnum(String name) {
+  return new Message(codeExtendingEnum,
+      message: """'$name' is an enum and can't be extended or implemented.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateExtendingRestricted =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""'#name' is restricted and can't be extended or implemented.""",
+        withArguments: _withArgumentsExtendingRestricted);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExtendingRestricted =
+    const Code<Message Function(String name)>(
+  "ExtendingRestricted",
+  templateExtendingRestricted,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtendingRestricted(String name) {
+  return new Message(codeExtendingRestricted,
+      message:
+          """'$name' is restricted and can't be extended or implemented.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExtraneousModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Can't have modifier '#lexeme' here.""",
@@ -721,6 +894,71 @@ const MessageCode messageGetterWithFormals = const MessageCode(
     dart2jsCode: "*ignored*",
     message: r"""A getter can't have formal parameters.""",
     tip: r"""Try removing '(...)'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateIllegalMixin =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""The type '#name' can't be mixed in.""",
+        withArguments: _withArgumentsIllegalMixin);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeIllegalMixin =
+    const Code<Message Function(String name)>(
+  "IllegalMixin",
+  templateIllegalMixin,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalMixin(String name) {
+  return new Message(codeIllegalMixin,
+      message: """The type '$name' can't be mixed in.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateIllegalMixinDueToConstructors =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't use '#name' as a mixin because it has constructors.""",
+        withArguments: _withArgumentsIllegalMixinDueToConstructors);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeIllegalMixinDueToConstructors =
+    const Code<Message Function(String name)>(
+  "IllegalMixinDueToConstructors",
+  templateIllegalMixinDueToConstructors,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalMixinDueToConstructors(String name) {
+  return new Message(codeIllegalMixinDueToConstructors,
+      message: """Can't use '$name' as a mixin because it has constructors.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateIllegalMixinDueToConstructorsCause =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""This constructor prevents using '#name' as a mixin.""",
+        withArguments: _withArgumentsIllegalMixinDueToConstructorsCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeIllegalMixinDueToConstructorsCause =
+    const Code<Message Function(String name)>(
+  "IllegalMixinDueToConstructorsCause",
+  templateIllegalMixinDueToConstructorsCause,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
+  return new Message(codeIllegalMixinDueToConstructorsCause,
+      message: """This constructor prevents using '$name' as a mixin.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
@@ -1182,6 +1420,15 @@ Message _withArgumentsNoFormals(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoUnnamedConstructorInObject =
+    messageNoUnnamedConstructorInObject;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoUnnamedConstructorInObject = const MessageCode(
+    "NoUnnamedConstructorInObject",
+    message: r"""'Object' has no unnamed constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String character,
@@ -1273,6 +1520,144 @@ const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
     message:
         r"""Try block should be followed by 'on', 'catch', or 'finally' block.""",
     tip: r"""Did you forget to add a 'finally' block?""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateOverrideFewerNamedArguments = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""The method '#name' has fewer named arguments than those of overridden method '#name2'.""",
+    withArguments: _withArgumentsOverrideFewerNamedArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeOverrideFewerNamedArguments =
+    const Code<Message Function(String name, String name2)>(
+  "OverrideFewerNamedArguments",
+  templateOverrideFewerNamedArguments,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideFewerNamedArguments(String name, String name2) {
+  return new Message(codeOverrideFewerNamedArguments,
+      message:
+          """The method '$name' has fewer named arguments than those of overridden method '$name2'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateOverrideFewerPositionalArguments = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""The method '#name' has fewer positional arguments than those of overridden method '#name2'.""",
+    withArguments: _withArgumentsOverrideFewerPositionalArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeOverrideFewerPositionalArguments =
+    const Code<Message Function(String name, String name2)>(
+  "OverrideFewerPositionalArguments",
+  templateOverrideFewerPositionalArguments,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideFewerPositionalArguments(
+    String name, String name2) {
+  return new Message(codeOverrideFewerPositionalArguments,
+      message:
+          """The method '$name' has fewer positional arguments than those of overridden method '$name2'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String name2,
+        String
+            name3)> templateOverrideMismatchNamedParameter = const Template<
+        Message Function(String name, String name2, String name3)>(
+    messageTemplate:
+        r"""The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'.""",
+    withArguments: _withArgumentsOverrideMismatchNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String name3)>
+    codeOverrideMismatchNamedParameter =
+    const Code<Message Function(String name, String name2, String name3)>(
+  "OverrideMismatchNamedParameter",
+  templateOverrideMismatchNamedParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideMismatchNamedParameter(
+    String name, String name2, String name3) {
+  return new Message(codeOverrideMismatchNamedParameter,
+      message:
+          """The method '$name' doesn't have the named parameter '$name2' of overriden method '$name3'.""",
+      arguments: {'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateOverrideMoreRequiredArguments = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""The method '#name' has more required arguments than those of overridden method '#name2'.""",
+    withArguments: _withArgumentsOverrideMoreRequiredArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeOverrideMoreRequiredArguments =
+    const Code<Message Function(String name, String name2)>(
+  "OverrideMoreRequiredArguments",
+  templateOverrideMoreRequiredArguments,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideMoreRequiredArguments(String name, String name2) {
+  return new Message(codeOverrideMoreRequiredArguments,
+      message:
+          """The method '$name' has more required arguments than those of overridden method '$name2'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateOverrideTypeVariablesMismatch = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
+    withArguments: _withArgumentsOverrideTypeVariablesMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeOverrideTypeVariablesMismatch =
+    const Code<Message Function(String name, String name2)>(
+  "OverrideTypeVariablesMismatch",
+  templateOverrideTypeVariablesMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
+  return new Message(codeOverrideTypeVariablesMismatch,
+      message:
+          """Declared type variables of '$name' doesn't match those on overridden method '$name2'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePositionalParameterWithEquals =

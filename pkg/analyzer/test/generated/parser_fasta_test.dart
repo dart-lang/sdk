@@ -12,6 +12,7 @@ import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -794,6 +795,12 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   void deprecated_addCompileTimeError(int charOffset, Object message,
       {Uri fileUri, bool silent: false, bool wasHandled: false}) {
     fail('$message');
+  }
+
+  @override
+  void addCompileTimeError(Message message, int charOffset, Uri uri,
+      {bool silent: false, bool wasHandled: false}) {
+    fail('${message.message}');
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
