@@ -16,16 +16,15 @@ import 'messages.dart'
 /// Used to report an internal error.
 ///
 /// Internal errors should be avoided as best as possible, but are preferred
-/// over assertion failures. The message should contain a short description
-/// that may help a developer debug the issue.  This method should be called
-/// instead of using `throw`, as this allows us to ensure that there are no
-/// throws anywhere else in the codebase.
+/// over assertion failures. The message should start with "Internal error:"
+/// and contain a short description that may help a developer debug the issue.
+/// This method should be called instead of using `throw`, as this allows us to
+/// ensure that there are no throws anywhere else in the codebase.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  String text = "Internal problem: ${message.message}";
   if (uri == null && charOffset == -1) {
-    throw text;
+    throw message.message;
   } else {
-    throw deprecated_format(uri, charOffset, text);
+    throw deprecated_format(uri, charOffset, message.message);
   }
 }
 

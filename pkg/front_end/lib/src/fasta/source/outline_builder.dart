@@ -6,30 +6,15 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
-
-import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
-
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../../scanner/token.dart' show Token;
-
-import '../util/link.dart' show Link;
-
-import '../combinator.dart' show Combinator;
-
-import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../builder/builder.dart';
 
+import '../combinator.dart' show Combinator;
+
+import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
+
 import '../modifier.dart' show abstractMask, externalMask, Modifier;
-
-import 'source_library_builder.dart' show SourceLibraryBuilder;
-
-import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
-
-import '../parser/native_support.dart'
-    show extractNativeMethodName, removeNativeClause, skipNativeClause;
 
 import '../operator.dart'
     show
@@ -38,7 +23,22 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
+import '../parser/identifier_context.dart' show IdentifierContext;
+
+import '../parser/native_support.dart'
+    show extractNativeMethodName, removeNativeClause, skipNativeClause;
+
+import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
+
+import '../problems.dart' show unhandled, unimplemented;
+
 import '../quote.dart' show unescapeString;
+
+import '../util/link.dart' show Link;
+
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 
 enum MethodBody {
   Abstract,
@@ -206,7 +206,7 @@ class OutlineBuilder extends UnhandledListener {
       push(unescapeString(token.lexeme));
       push(token.charOffset);
     } else {
-      deprecated_internalProblem("String interpolation not implemented.");
+      unimplemented("string interpolation", endToken.charOffset, uri);
     }
   }
 
@@ -295,7 +295,8 @@ class OutlineBuilder extends UnhandledListener {
     if (token == null) return ProcedureKind.Method;
     if (optional("get", token)) return ProcedureKind.Getter;
     if (optional("set", token)) return ProcedureKind.Setter;
-    return deprecated_internalProblem("Unhandled: ${token.lexeme}");
+    return unhandled(
+        token.lexeme, "computeProcedureKind", token.charOffset, uri);
   }
 
   @override

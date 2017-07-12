@@ -48,6 +48,15 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     message: r"""Can only use type variables in instance methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemPreviousTokenNotFound =
+    messageInternalProblemPreviousTokenNotFound;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemPreviousTokenNotFound =
+    const MessageCode("InternalProblemPreviousTokenNotFound",
+        message: r"""Couldn't find previous token.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -140,6 +149,31 @@ Message _withArgumentsUnexpected(String string, String string2) {
   return new Message(codeUnexpected,
       message: """Internal error: Expected '$string', but got '$string2'.""",
       arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)>
+    templateInternalProblemConstructorNotFound =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate:
+            r"""Internal error: No constructor named '#name' in '#uri'.""",
+        withArguments: _withArgumentsInternalProblemConstructorNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)>
+    codeInternalProblemConstructorNotFound =
+    const Code<Message Function(String name, Uri uri_)>(
+  "InternalProblemConstructorNotFound",
+  templateInternalProblemConstructorNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemConstructorNotFound(
+    String name, Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeInternalProblemConstructorNotFound,
+      message: """Internal error: No constructor named '$name' in '$uri'.""",
+      arguments: {'name': name, 'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -355,6 +389,29 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
     tip: r"""Try adding an optional parameter to the list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateInternalProblemNotFoundIn =
+    const Template<Message Function(String name, String name2)>(
+        messageTemplate:
+            r"""Internal error: Couldn't find '#name' in '#name2'.""",
+        withArguments: _withArgumentsInternalProblemNotFoundIn);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeInternalProblemNotFoundIn =
+    const Code<Message Function(String name, String name2)>(
+  "InternalProblemNotFoundIn",
+  templateInternalProblemNotFoundIn,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
+  return new Message(codeInternalProblemNotFoundIn,
+      message: """Internal error: Couldn't find '$name' in '$name2'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateTypeNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Type '#name' not found.""",
@@ -371,6 +428,28 @@ const Code<Message Function(String name)> codeTypeNotFound =
 Message _withArgumentsTypeNotFound(String name) {
   return new Message(codeTypeNotFound,
       message: """Type '$name' not found.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInternalProblemSuperclassNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Internal error: Superclass not found '#name'.""",
+        withArguments: _withArgumentsInternalProblemSuperclassNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInternalProblemSuperclassNotFound =
+    const Code<Message Function(String name)>(
+  "InternalProblemSuperclassNotFound",
+  templateInternalProblemSuperclassNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
+  return new Message(codeInternalProblemSuperclassNotFound,
+      message: """Internal error: Superclass not found '$name'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -441,6 +520,16 @@ Message _withArgumentsUnhandled(String string, String string2) {
       message: """Internal error: Unhandled $string in $string2.""",
       arguments: {'string': string, 'string2': string2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemBodyOnAbstractMethod =
+    messageInternalProblemBodyOnAbstractMethod;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemBodyOnAbstractMethod =
+    const MessageCode("InternalProblemBodyOnAbstractMethod",
+        message:
+            r"""Internal error: Attempting to set body on abstract method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
@@ -562,6 +651,28 @@ const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
     message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateInternalProblemStackNotEmpty =
+    const Template<Message Function(String name, String string)>(
+        messageTemplate: r"""Internal error: #name.stack isn't empty:
+  #string""", withArguments: _withArgumentsInternalProblemStackNotEmpty);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeInternalProblemStackNotEmpty =
+    const Code<Message Function(String name, String string)>(
+  "InternalProblemStackNotEmpty",
+  templateInternalProblemStackNotEmpty,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
+  return new Message(codeInternalProblemStackNotEmpty,
+      message: """Internal error: $name.stack isn't empty:
+  $string""", arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Getter not found: '#name'.""",
@@ -578,6 +689,29 @@ const Code<Message Function(String name)> codeGetterNotFound =
 Message _withArgumentsGetterNotFound(String name) {
   return new Message(codeGetterNotFound,
       message: """Getter not found: '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInternalProblemPrivateConstructorAccess =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Internal error: Can't access private constructor '#name'.""",
+        withArguments: _withArgumentsInternalProblemPrivateConstructorAccess);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInternalProblemPrivateConstructorAccess =
+    const Code<Message Function(String name)>(
+  "InternalProblemPrivateConstructorAccess",
+  templateInternalProblemPrivateConstructorAccess,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
+  return new Message(codeInternalProblemPrivateConstructorAccess,
+      message: """Internal error: Can't access private constructor '$name'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -673,6 +807,26 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
   return new Message(codeUnmatchedToken,
       message: """Can't find '$string' to match '$lexeme'.""",
       arguments: {'string': string, 'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateInternalProblemNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Internal error: Couldn't find '#name'.""",
+        withArguments: _withArgumentsInternalProblemNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInternalProblemNotFound =
+    const Code<Message Function(String name)>(
+  "InternalProblemNotFound",
+  templateInternalProblemNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemNotFound(String name) {
+  return new Message(codeInternalProblemNotFound,
+      message: """Internal error: Couldn't find '$name'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1079,6 +1233,16 @@ const MessageCode messageTypeRequired = const MessageCode("TypeRequired",
     tip: r"""Try adding a type, 'var', 'const', or 'final'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemAlreadyInitialized =
+    messageInternalProblemAlreadyInitialized;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
+    "InternalProblemAlreadyInitialized",
+    message:
+        r"""Internal error: Attempt to set initializer on field without initializer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidVoid = messageInvalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1165,6 +1329,15 @@ Message _withArgumentsUnsupported(String name) {
       message: """Internal error: Unsupported operation: '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemExtendingUnmodifiableScope =
+    messageInternalProblemExtendingUnmodifiableScope;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemExtendingUnmodifiableScope =
+    const MessageCode("InternalProblemExtendingUnmodifiableScope",
+        message: r"""Can't extend an unmodifiable scope.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)>

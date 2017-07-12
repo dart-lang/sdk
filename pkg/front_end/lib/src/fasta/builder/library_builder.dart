@@ -6,14 +6,22 @@ library fasta.library_builder;
 
 import '../combinator.dart' show Combinator;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../problems.dart' show internalProblem;
 
 import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
-    show Message, deprecated_nit, deprecated_warning, nit, warning;
+    show
+        Message,
+        deprecated_nit,
+        deprecated_warning,
+        nit,
+        templateInternalProblemConstructorNotFound,
+        templateInternalProblemNotFoundIn,
+        templateInternalProblemPrivateConstructorAccess,
+        warning;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -161,9 +169,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
       {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
-      throw deprecated_internalProblem(
-          "Internal error: Can't access private constructor "
-          "'$constructorName'.");
+      return internalProblem(
+          templateInternalProblemPrivateConstructorAccess
+              .withArguments(constructorName),
+          -1,
+          null);
     }
     Builder cls =
         (bypassLibraryPrivacy ? scope : exports).lookup(className, -1, null);
@@ -182,8 +192,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
         return constructor;
       }
     }
-    throw deprecated_internalProblem("Internal error: No constructor named"
-        " '$className::$constructorName' in '$uri'.");
+    throw internalProblem(
+        templateInternalProblemConstructorNotFound.withArguments(
+            "$className::$constructorName", uri),
+        -1,
+        null);
   }
 
   int finishTypeVariables(ClassBuilder object) => 0;
@@ -202,7 +215,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   /// (and not a setter).
   Builder operator [](String name) {
     return scope.local[name] ??
-        deprecated_internalProblem("Not found: '$name'.");
+        internalProblem(
+            templateInternalProblemNotFoundIn.withArguments(
+                name, relativeFileUri),
+            -1,
+            null);
   }
 
   Builder lookup(String name, int charOffset, Uri fileUri) {

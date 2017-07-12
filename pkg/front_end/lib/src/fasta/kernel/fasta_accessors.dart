@@ -9,32 +9,15 @@ import 'package:kernel/ast.dart'
 
 import '../../scanner/token.dart' show Token;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
-
 import '../messages.dart' show Message;
 
 import '../names.dart' show callName, lengthName;
 
-import '../scope.dart'
-    show deprecated_AccessErrorBuilder, ProblemBuilder, Scope;
+import '../problems.dart' show unhandled, unimplemented, unsupported;
+
+import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
-
-import 'kernel_shadow_ast.dart'
-    show
-        KernelArguments,
-        KernelComplexAssignment,
-        KernelIllegalAssignment,
-        KernelIndexAssign,
-        KernelPropertyAssign,
-        KernelStaticAssignment,
-        KernelThisExpression,
-        KernelTypeLiteral,
-        KernelVariableAssignment;
-
-import 'utils.dart' show offsetForToken;
-
-import 'frontend_accessors.dart' show Accessor;
 
 import 'frontend_accessors.dart' as kernel
     show
@@ -49,6 +32,8 @@ import 'frontend_accessors.dart' as kernel
         ThisPropertyAccessor,
         VariableAccessor;
 
+import 'frontend_accessors.dart' show Accessor;
+
 import 'kernel_builder.dart'
     show
         Builder,
@@ -57,6 +42,20 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
+
+import 'kernel_shadow_ast.dart'
+    show
+        KernelArguments,
+        KernelComplexAssignment,
+        KernelIllegalAssignment,
+        KernelIndexAssign,
+        KernelPropertyAssign,
+        KernelStaticAssignment,
+        KernelThisExpression,
+        KernelTypeLiteral,
+        KernelVariableAssignment;
+
+import 'utils.dart' show offsetForToken;
 
 abstract class BuilderHelper {
   LibraryBuilder get library;
@@ -219,7 +218,7 @@ abstract class ErrorAccessor implements FastaAccessor {
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
 
-  Name get name => deprecated_internalProblem("Unsupported operation.");
+  Name get name => unsupported("name", offsetForToken(token), uri);
 
   @override
   String get plainNameForRead => name.name;
@@ -319,8 +318,10 @@ class ThisAccessor extends FastaAccessor {
   ThisAccessor(this.helper, this.token, this.isInitializer,
       {this.isSuper: false});
 
-  String get plainNameForRead =>
-      deprecated_internalProblem(isSuper ? "super" : "this");
+  String get plainNameForRead {
+    return unsupported("${isSuper ? 'super' : 'this'}.plainNameForRead",
+        offsetForToken(token), uri);
+  }
 
   Expression buildSimpleRead() {
     if (!isSuper) {
@@ -490,11 +491,11 @@ class SendAccessor extends IncompleteSend {
   String get plainNameForRead => name.name;
 
   Expression buildSimpleRead() {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("buildSimpleRead", offsetForToken(token), uri);
   }
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("buildAssignment", offsetForToken(token), uri);
   }
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
@@ -521,7 +522,7 @@ class SendAccessor extends IncompleteSend {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("buildNullAwareAssignment", offset, uri);
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
@@ -529,21 +530,24 @@ class SendAccessor extends IncompleteSend {
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported(
+        "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset, bool voidContext: false, Procedure interfaceTarget}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported(
+        "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset, bool voidContext: false, Procedure interfaceTarget}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported(
+        "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression doInvocation(int offset, Arguments arguments) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("doInvocation", offset, uri);
   }
 
   toString() {
@@ -558,10 +562,12 @@ class IncompletePropertyAccessor extends IncompleteSend {
 
   String get plainNameForRead => name.name;
 
-  Expression buildSimpleRead() => deprecated_internalProblem("Unhandled");
+  Expression buildSimpleRead() {
+    return unsupported("buildSimpleRead", offsetForToken(token), uri);
+  }
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("buildAssignment", offsetForToken(token), uri);
   }
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
@@ -587,7 +593,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("buildNullAwareAssignment", offset, uri);
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
@@ -595,21 +601,24 @@ class IncompletePropertyAccessor extends IncompleteSend {
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported(
+        "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset, bool voidContext: false, Procedure interfaceTarget}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported(
+        "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset, bool voidContext: false, Procedure interfaceTarget}) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported(
+        "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
   }
 
   Expression doInvocation(int offset, Arguments arguments) {
-    return deprecated_internalProblem("Unhandled");
+    return unsupported("doInvocation", offset, uri);
   }
 
   toString() {
@@ -707,14 +716,15 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
   factory StaticAccessor.fromBuilder(BuilderHelper helper, Builder builder,
       Token token, Builder builderSetter) {
-    if (builder is deprecated_AccessErrorBuilder) {
-      deprecated_AccessErrorBuilder error = builder;
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
       builder = error.builder;
       // We should only see an access error here if we've looked up a setter
       // when not explicitly looking for a setter.
       assert(builder.isSetter);
     } else if (builder.target == null) {
-      return deprecated_internalProblem("Unhandled: ${builder}");
+      return unhandled("${builder.runtimeType}", "StaticAccessor.fromBuilder",
+          offsetForToken(token), helper.uri);
     }
     Member getter = builder.target.hasGetter ? builder.target : null;
     Member setter = builder.target.hasSetter ? builder.target : null;
@@ -776,10 +786,7 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
     } else {
       // TODO(ahe): This could be something like "super.property(...)" where
       // property is a setter.
-      return deprecated_internalProblem(
-          "Unhandled invocation ${getter.runtimeType}.",
-          helper.uri,
-          offsetForToken(token));
+      return unhandled("${getter.runtimeType}", "doInvocation", offset, uri);
     }
   }
 
@@ -875,7 +882,7 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
   String get plainNameForRead => name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
-    return deprecated_internalProblem("Not implemented yet.");
+    return unimplemented("doInvocation", offset, uri);
   }
 
   toString() => "NullAwarePropertyAccessor()";
@@ -990,7 +997,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       FastaAccessor accessor;
       if (builder == null) {
         // If we find a setter, [builder] is an
-        // [deprecated_AccessErrorBuilder], not null.
+        // [AccessErrorBuilder], not null.
         accessor = new UnresolvedAccessor(helper, name, token);
       } else {
         Builder setter;

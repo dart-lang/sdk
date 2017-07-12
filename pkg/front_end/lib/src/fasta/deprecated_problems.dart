@@ -26,23 +26,6 @@ bool hasCrashed = false;
 /// [resetCrashReporting].
 Uri firstSourceUri;
 
-/// Used to report an internal error.
-///
-/// Internal errors should be avoided as best as possible, but are preferred
-/// over assertion failures. Favor error messages that starts with "Internal
-/// error: " and a short description that may help a developer debug the issue.
-/// This method should be called instead of using `throw`, as this allows us to
-/// ensure that there are no throws anywhere in the codebase.
-dynamic deprecated_internalProblem(Object error,
-    [Uri uri, int charOffset = -1]) {
-  if (uri == null && charOffset == -1) {
-    throw error;
-  } else {
-    throw deprecated_format(
-        uri, charOffset, "Internal error: ${safeToString(error)}");
-  }
-}
-
 /// Used to report an error in input.
 ///
 /// Avoid using this for reporting compile-time errors, instead use

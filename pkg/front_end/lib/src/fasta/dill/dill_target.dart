@@ -10,12 +10,18 @@ import 'package:kernel/ast.dart' show Class;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
 import '../kernel/kernel_builder.dart' show ClassBuilder;
+
+import '../problems.dart' show unsupported;
+
 import '../target_implementation.dart' show TargetImplementation;
+
 import '../ticker.dart' show Ticker;
+
 import '../translate_uri.dart' show TranslateUri;
+
 import 'dill_library_builder.dart' show DillLibraryBuilder;
+
 import 'dill_loader.dart' show DillLoader;
 
 class DillTarget extends TargetImplementation {
@@ -29,16 +35,16 @@ class DillTarget extends TargetImplementation {
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
-    deprecated_internalProblem("Unsupported operation.");
+    unsupported("addSourceInformation", -1, null);
   }
 
   void read(Uri uri) {
-    deprecated_internalProblem("Unsupported operation.");
+    unsupported("read", -1, null);
   }
 
   @override
   Future<Null> buildProgram() {
-    return deprecated_internalProblem("not implemented.");
+    return new Future<Null>.sync(() => unsupported("buildProgram", -1, null));
   }
 
   @override

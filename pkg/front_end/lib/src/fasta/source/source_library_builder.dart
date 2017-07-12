@@ -4,22 +4,11 @@
 
 library fasta.source_library_builder;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../combinator.dart' show Combinator;
-
-import '../deprecated_problems.dart'
-    show deprecated_inputError, deprecated_internalProblem;
-
-import '../export.dart' show Export;
-
-import '../import.dart' show Import;
-
-import 'source_loader.dart' show SourceLoader;
+import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
     show
@@ -39,6 +28,18 @@ import '../builder/builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder,
         Unhandled;
+
+import '../combinator.dart' show Combinator;
+
+import '../deprecated_problems.dart' show deprecated_inputError;
+
+import '../export.dart' show Export;
+
+import '../import.dart' show Import;
+
+import '../problems.dart' show unhandled;
+
+import 'source_loader.dart' show SourceLoader;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
@@ -283,7 +284,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       } else if (builder is PrefixBuilder) {
         assert(builder.parent == this);
       } else {
-        return deprecated_internalProblem("Unhandled: ${builder.runtimeType}");
+        return unhandled(
+            "${builder.runtimeType}", "addBuilder", charOffset, fileUri);
       }
     } else {
       assert(currentDeclaration.parent == libraryDeclaration);

@@ -9,7 +9,7 @@ library fasta.kernel.kernel_outline_shaker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../problems.dart' show unimplemented, unsupported;
 
 /// Removes unnecessary libraries, classes, and members from [program].
 ///
@@ -263,8 +263,7 @@ class RootsMarker extends RecursiveVisitor {
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     if (node.receiver is! ThisExpression) {
-      return deprecated_internalProblem(
-          'Direct calls are only supported on "this"');
+      return unsupported("direct call not on this", node.fileOffset, null);
     }
     data.markMember(node.target);
     node.visitChildren(this);
@@ -338,7 +337,7 @@ class RootsMarker extends RecursiveVisitor {
 
   @override
   visitTypedefReference(Typedef node) {
-    return deprecated_internalProblem('not implemented');
+    return unimplemented("visitTypedefReference", -1, null);
   }
 }
 

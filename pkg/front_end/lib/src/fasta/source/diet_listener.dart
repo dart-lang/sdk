@@ -4,46 +4,43 @@
 
 library fasta.diet_listener;
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
-    show TypeInferenceEngine;
-
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrerDisabled;
-
 import 'package:kernel/ast.dart' show AsyncMarker, Class, InterfaceType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
-
-import '../parser/parser.dart' show MemberKind, Parser, optional;
-
 import '../../scanner/token.dart' show BeginToken, Token;
+
+import '../builder/builder.dart';
+
+import '../deprecated_problems.dart'
+    show Crash, deprecated_InputError, deprecated_inputError;
+
+import '../fasta_codes.dart'
+    show Message, codeExpectedBlockToSkip, templateInternalProblemNotFound;
+
+import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../parser/native_support.dart'
     show removeNativeClause, skipNativeClause;
 
+import '../parser/parser.dart' show MemberKind, Parser, optional;
+
+import '../problems.dart' show internalProblem;
+
+import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrerDisabled;
+
 import '../util/link.dart' show Link;
 
-import '../deprecated_problems.dart'
-    show
-        Crash,
-        deprecated_InputError,
-        deprecated_inputError,
-        deprecated_internalProblem;
+import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart' show NullValue, StackListener;
-
-import '../kernel/body_builder.dart' show BodyBuilder;
-
-import '../builder/builder.dart';
-
-import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
@@ -606,8 +603,10 @@ class DietListener extends StackListener {
       builder = library.scopeBuilder[name];
     }
     if (builder == null) {
-      return deprecated_internalProblem(
-          "Builder not found: $name", uri, token.charOffset);
+      return internalProblem(
+          templateInternalProblemNotFound.withArguments(name),
+          token.charOffset,
+          uri);
     }
     if (builder.next != null) {
       return deprecated_inputError(

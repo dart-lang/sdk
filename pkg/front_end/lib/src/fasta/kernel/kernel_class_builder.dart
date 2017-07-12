@@ -4,9 +4,6 @@
 
 library fasta.kernel_class_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelMember;
-
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -27,11 +24,11 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart' show templateRedirectionTargetNotFound;
 
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+import '../problems.dart' show unhandled, unimplemented;
 
 import 'kernel_builder.dart'
     show
@@ -48,6 +45,8 @@ import 'kernel_builder.dart'
         Scope,
         TypeVariableBuilder,
         computeDefaultTypeArguments;
+
+import 'kernel_shadow_ast.dart' show KernelMember;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -84,7 +83,7 @@ abstract class KernelClassBuilder
     for (KernelTypeBuilder builder in arguments) {
       DartType type = builder.build(library);
       if (type == null) {
-        deprecated_internalProblem("Bad type: ${builder.runtimeType}");
+        unhandled("${builder.runtimeType}", "buildTypeArguments", -1, null);
       }
       typeArguments.add(type);
     }
@@ -190,8 +189,8 @@ abstract class KernelClassBuilder
   void checkOverride(
       Member declaredMember, Member interfaceMember, bool isSetter) {
     if (declaredMember is Constructor || interfaceMember is Constructor) {
-      deprecated_internalProblem(
-          "Constructor in override check.", fileUri, declaredMember.fileOffset);
+      unimplemented(
+          "Constructor in override check.", declaredMember.fileOffset, fileUri);
     }
     if (declaredMember is Procedure && interfaceMember is Procedure) {
       if (declaredMember.kind == ProcedureKind.Method &&

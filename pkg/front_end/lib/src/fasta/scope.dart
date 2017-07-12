@@ -6,8 +6,11 @@ library fasta.scope;
 
 import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
-import 'deprecated_problems.dart'
-    show deprecated_InputError, deprecated_internalProblem;
+import 'deprecated_problems.dart' show deprecated_InputError;
+
+import 'problems.dart' show internalProblem, unsupported;
+
+import 'fasta_codes.dart' show messageInternalProblemExtendingUnmodifiableScope;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -50,13 +53,13 @@ class Scope extends MutableScope {
       : this(<String, Builder>{}, null, parent, isModifiable: isModifiable);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set local(_) => deprecated_internalProblem("Unsupported operation.");
+  void set local(_) => unsupported("local=", -1, null);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set setters(_) => deprecated_internalProblem("Unsupported operation.");
+  void set setters(_) => unsupported("setters=", -1, null);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set parent(_) => deprecated_internalProblem("Unsupported operation.");
+  void set parent(_) => unsupported("parent=", -1, null);
 
   /// This scope becomes equivalent to [scope]. This is used for parts to
   /// become part of their library's scope.
@@ -120,8 +123,7 @@ class Scope extends MutableScope {
     if (builder != null) return builder;
     builder = lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
     if (builder != null && !builder.hasProblem) {
-      return new deprecated_AccessErrorBuilder(
-          name, builder, charOffset, fileUri);
+      return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
     if (!isInstanceScope) {
       // For static lookup, do not seach the parent scope.
@@ -138,8 +140,7 @@ class Scope extends MutableScope {
     if (builder != null) return builder;
     builder = lookupIn(name, charOffset, fileUri, local, isInstanceScope);
     if (builder != null && !builder.hasProblem) {
-      return new deprecated_AccessErrorBuilder(
-          name, builder, charOffset, fileUri);
+      return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
     if (!isInstanceScope) {
       // For static lookup, do not seach the parent scope.
@@ -155,7 +156,8 @@ class Scope extends MutableScope {
       labels ??= <String, Builder>{};
       labels[name] = target;
     } else {
-      deprecated_internalProblem("Can't extend an unmodifiable scope.");
+      internalProblem(
+          messageInternalProblemExtendingUnmodifiableScope, -1, null);
     }
   }
 
@@ -196,7 +198,8 @@ class Scope extends MutableScope {
       recordUse(name, charOffset, fileUri);
       local[name] = builder;
     } else {
-      deprecated_internalProblem("Can't extend an unmodifiable scope.");
+      internalProblem(
+          messageInternalProblemExtendingUnmodifiableScope, -1, null);
     }
     return null;
   }
@@ -284,9 +287,8 @@ abstract class ProblemBuilder extends Builder {
 
 /// Represents a [builder] that's being accessed incorrectly. For example, an
 /// attempt to write to a final field, or to read from a setter.
-class deprecated_AccessErrorBuilder extends ProblemBuilder {
-  deprecated_AccessErrorBuilder(
-      String name, Builder builder, int charOffset, Uri fileUri)
+class AccessErrorBuilder extends ProblemBuilder {
+  AccessErrorBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
   Builder get parent => builder;

@@ -4,29 +4,29 @@
 
 library fasta.kernel_library_builder;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../../scanner/token.dart' show Token;
 
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
     show abstractMask, namedMixinApplicationMask, staticMask;
 
-import '../source/source_library_builder.dart'
-    show DeclarationBuilder, SourceLibraryBuilder;
+import '../problems.dart' show unhandled;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../source/source_library_builder.dart'
+    show DeclarationBuilder, SourceLibraryBuilder;
 
 import '../util/relativize.dart' show relativizeUri;
 
 import 'kernel_builder.dart'
     show
-        deprecated_AccessErrorBuilder,
+        AccessErrorBuilder,
         Builder,
         BuiltinTypeBuilder,
         ClassBuilder,
@@ -675,7 +675,8 @@ class KernelLibraryBuilder
     } else if (builder is BuiltinTypeBuilder) {
       // Nothing needed.
     } else {
-      deprecated_internalProblem("Unhandled builder: ${builder.runtimeType}");
+      unhandled("${builder.runtimeType}", "buildBuilder", builder.charOffset,
+          builder.fileUri);
     }
   }
 
@@ -695,12 +696,12 @@ class KernelLibraryBuilder
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
     if (other is InvalidTypeBuilder) return other;
-    if (builder is deprecated_AccessErrorBuilder) {
-      deprecated_AccessErrorBuilder error = builder;
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
       builder = error.builder;
     }
-    if (other is deprecated_AccessErrorBuilder) {
-      deprecated_AccessErrorBuilder error = other;
+    if (other is AccessErrorBuilder) {
+      AccessErrorBuilder error = other;
       other = error.builder;
     }
     bool isLocal = false;

@@ -4,20 +4,15 @@
 
 library fasta.source_class_builder;
 
-import 'package:front_end/src/fasta/builder/class_builder.dart'
-    show ClassBuilder;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
-
 import 'package:kernel/ast.dart'
     show Class, Constructor, Supertype, TreeNode, setParents;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../kernel/kernel_builder.dart'
     show
         Builder,
+        ClassBuilder,
         ConstructorReferenceBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
@@ -31,7 +26,9 @@ import '../kernel/kernel_builder.dart'
         TypeVariableBuilder,
         compareProcedures;
 
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+import '../problems.dart' show unhandled;
+
+import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 Class initializeClass(
     Class cls, String name, KernelLibraryBuilder parent, int charOffset) {
@@ -91,8 +88,8 @@ class SourceClassBuilder extends KernelClassBuilder {
         } else if (builder is KernelFunctionBuilder) {
           cls.addMember(builder.build(library));
         } else {
-          deprecated_internalProblem(
-              "Unhandled builder: ${builder.runtimeType}");
+          unhandled("${builder.runtimeType}", "buildBuilders",
+              builder.charOffset, builder.fileUri);
         }
         builder = builder.next;
       } while (builder != null);

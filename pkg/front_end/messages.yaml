@@ -583,3 +583,33 @@ Unexpected:
 
 Unsupported:
   template: "Internal error: Unsupported operation: '#name'."
+
+InternalProblemSuperclassNotFound:
+  template: "Internal error: Superclass not found '#name'."
+
+InternalProblemNotFound:
+  template: "Internal error: Couldn't find '#name'."
+
+InternalProblemNotFoundIn:
+  template: "Internal error: Couldn't find '#name' in '#name2'."
+
+InternalProblemPrivateConstructorAccess:
+  template: "Internal error: Can't access private constructor '#name'."
+
+InternalProblemConstructorNotFound:
+  template: "Internal error: No constructor named '#name' in '#uri'."
+
+InternalProblemExtendingUnmodifiableScope:
+  template: "Can't extend an unmodifiable scope."
+
+InternalProblemPreviousTokenNotFound:
+  template: "Couldn't find previous token."
+
+InternalProblemStackNotEmpty:
+  template: "Internal error: #name.stack isn't empty:\n  #string"
+
+InternalProblemAlreadyInitialized:
+  template: "Internal error: Attempt to set initializer on field without initializer."
+
+InternalProblemBodyOnAbstractMethod:
+  template: "Internal error: Attempting to set body on abstract method."

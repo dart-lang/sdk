@@ -6,8 +6,6 @@ library fasta.kernel_target;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/file_system.dart';
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -42,29 +40,32 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
-import '../source/source_loader.dart' show SourceLoader;
+import '../../../file_system.dart' show FileSystem;
 
-import '../source/source_class_builder.dart' show SourceClassBuilder;
-
-import '../target_implementation.dart' show TargetImplementation;
-
-import '../translate_uri.dart' show TranslateUri;
-
-import '../dill/dill_target.dart' show DillTarget;
+import '../compiler_context.dart' show CompilerContext;
 
 import '../deprecated_problems.dart'
     show
         deprecated_formatUnexpected,
         deprecated_InputError,
-        deprecated_internalProblem,
         reportCrash,
         resetCrashReporting;
 
+import '../dill/dill_target.dart' show DillTarget;
+
 import '../messages.dart' show LocatedMessage;
 
-import '../util/relativize.dart' show relativizeUri;
+import '../problems.dart' show unhandled;
 
-import '../compiler_context.dart' show CompilerContext;
+import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../source/source_loader.dart' show SourceLoader;
+
+import '../target_implementation.dart' show TargetImplementation;
+
+import '../translate_uri.dart' show TranslateUri;
+
+import '../util/relativize.dart' show relativizeUri;
 
 import 'kernel_builder.dart'
     show
@@ -153,7 +154,8 @@ class KernelTarget extends TargetImplementation {
     if (supertype is NamedTypeBuilder) {
       f(supertype);
     } else if (supertype != null) {
-      deprecated_internalProblem("Unhandled: ${supertype.runtimeType}");
+      unhandled("${supertype.runtimeType}", "forEachDirectSupertype",
+          cls.charOffset, cls.fileUri);
     }
     if (cls.interfaces != null) {
       for (NamedTypeBuilder t in cls.interfaces) {
@@ -426,7 +428,8 @@ class KernelTarget extends TargetImplementation {
         if (type is NamedTypeBuilder) {
           supertype = type.builder;
         } else {
-          deprecated_internalProblem("Unhandled: ${type.runtimeType}");
+          unhandled("${type.runtimeType}", "installDefaultConstructor",
+              builder.charOffset, builder.fileUri);
         }
       }
       if (supertype is KernelClassBuilder) {
@@ -446,7 +449,8 @@ class KernelTarget extends TargetImplementation {
       } else if (supertype is InvalidTypeBuilder) {
         builder.addSyntheticConstructor(makeDefaultConstructor());
       } else {
-        deprecated_internalProblem("Unhandled: ${supertype.runtimeType}");
+        unhandled("${supertype.runtimeType}", "installDefaultConstructor",
+            builder.charOffset, builder.fileUri);
       }
     } else {
       /// >Iff no constructor is specified for a class C, it implicitly has a

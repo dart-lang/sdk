@@ -4,58 +4,39 @@
 
 library fasta.body_builder;
 
-import '../fasta_codes.dart' show Message;
+import 'package:kernel/ast.dart'
+    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/clone.dart' show CloneVisitor;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/transformations/flags.dart' show TransformerFlag;
+
+import '../../scanner/token.dart' show BeginToken, Token;
+
+import '../deprecated_problems.dart'
+    show deprecated_InputError, deprecated_formatUnexpected;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../parser/parser.dart'
-    show Assert, FormalParameterType, MemberKind, optional;
+import '../fasta_codes.dart' show Message;
+
+import '../messages.dart' as messages show getLocationFromUri;
+
+import '../modifier.dart' show Modifier, constMask, finalMask;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
 import '../parser/native_support.dart' show skipNativeClause;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import '../parser/parser.dart'
+    show Assert, FormalParameterType, MemberKind, optional;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
-
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
-
-import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
-    show TypePromoter;
-
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
-
-import 'package:kernel/clone.dart' show CloneVisitor;
-
-import 'package:kernel/transformations/flags.dart' show TransformerFlag;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'frontend_accessors.dart' show buildIsNull, makeBinary;
-
-import '../messages.dart' as messages show getLocationFromUri;
-
-import '../../scanner/token.dart' show BeginToken, Token;
-
-import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
-
-import '../deprecated_problems.dart'
-    show
-        deprecated_InputError,
-        deprecated_formatUnexpected,
-        deprecated_internalProblem;
-
-import '../source/scope_listener.dart'
-    show JumpTargetKind, NullValue, ScopeListener;
-
-import '../scope.dart' show ProblemBuilder;
-
-import 'fasta_accessors.dart';
+import '../problems.dart'
+    show internalProblem, unexpected, unhandled, unsupported;
 
 import '../quote.dart'
     show
@@ -66,7 +47,18 @@ import '../quote.dart'
         unescapeLastStringPart,
         unescapeString;
 
-import '../modifier.dart' show Modifier, constMask, finalMask;
+import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
+
+import '../scope.dart' show ProblemBuilder;
+
+import '../source/scope_listener.dart'
+    show JumpTargetKind, NullValue, ScopeListener;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
+
+import '../type_inference/type_promotion.dart' show TypePromoter;
+
+import 'frontend_accessors.dart' show buildIsNull, makeBinary;
 
 import 'redirecting_factory_body.dart'
     show
@@ -74,9 +66,15 @@ import 'redirecting_factory_body.dart'
         getRedirectingFactoryBody,
         getRedirectionTarget;
 
-import 'kernel_builder.dart';
+import 'utils.dart' show offsetForToken;
 
 import '../names.dart';
+
+import 'fasta_accessors.dart';
+
+import 'kernel_builder.dart';
+
+import 'kernel_shadow_ast.dart';
 
 class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
@@ -230,7 +228,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (node is ProblemBuilder) {
       return buildProblemExpression(node, -1);
     } else {
-      return deprecated_internalProblem("Unhandled: ${node.runtimeType}");
+      return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
   }
 
@@ -441,8 +439,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (field.next != null) {
           // TODO(ahe): This can happen, for example, if a final field is
           // combined with a setter.
-          deprecated_internalProblem(
-              "Unhandled: '${field.name}' has more than one declaration.");
+          unhandled("field with more than one declaration", field.name,
+              field.charOffset, field.fileUri);
         }
         field.initializer = initializer;
         _typeInferrer.inferFieldInitializer(
@@ -621,7 +619,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (builder is KernelProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
     } else {
-      deprecated_internalProblem("Unhandled: ${builder.runtimeType}");
+      unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
+          builder.fileUri);
     }
   }
 
@@ -1154,8 +1153,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       return builder;
     } else {
-      if (builder.hasProblem && builder is! deprecated_AccessErrorBuilder)
-        return builder;
+      if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
       Builder setter;
       if (builder.isSetter) {
         setter = builder;
@@ -1496,8 +1494,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (variableOrExpression is Expression) {
       begin = new KernelExpressionStatement(variableOrExpression);
     } else {
-      return deprecated_internalProblem(
-          "Unhandled: ${variableOrExpression.runtimeType}");
+      return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
+          forKeyword.charOffset, uri);
     }
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
@@ -1610,7 +1608,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (name is Operator) {
       return name.name;
     } else {
-      return deprecated_internalProblem("Unhandled: ${name.runtimeType}");
+      return unhandled("${name.runtimeType}", "symbolPartToString", -1, uri);
     }
   }
 
@@ -1667,7 +1665,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     dynamic name = pop();
     if (name is List) {
       if (name.length != 2) {
-        deprecated_internalProblem("Unexpected: $name.length");
+        unexpected("${name.length}", "2", beginToken.charOffset, uri);
       }
       var prefix = name[0];
       if (prefix is Identifier) {
@@ -1709,7 +1707,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (name is String) {
       push(kernelTypeFromString(name, arguments, beginToken.charOffset));
     } else {
-      deprecated_internalProblem("Unhandled: '${name.runtimeType}'.");
+      unhandled(
+          "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
     }
     // TODO(ahe): Unused code fasta.messageNonInstanceTypeVariableUse.
   }
@@ -1845,8 +1844,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ProcedureBuilder member = this.member;
       KernelFormalParameterBuilder formal = member.getFormal(name.name);
       if (formal == null) {
-        deprecated_internalProblem(
-            "Internal error: formal missing for '${name.name}'");
+        internalProblem(
+            fasta.templateInternalProblemNotFoundIn
+                .withArguments(name.name, "formals"),
+            member.charOffset,
+            member.fileUri);
       } else {
         variable = formal.build(library);
         variable.initializer = name.initializer;
@@ -2056,8 +2058,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Name incrementOperator(Token token) {
     if (optional("++", token)) return plusName;
     if (optional("--", token)) return minusName;
-    return deprecated_internalProblem(
-        "Unknown increment operator: ${token.lexeme}");
+    return unhandled(token.lexeme, "incrementOperator", token.charOffset, uri);
   }
 
   @override
@@ -3417,12 +3418,12 @@ abstract class ContextAccessor extends FastaAccessor {
 
   ContextAccessor(this.helper, this.token, this.accessor);
 
-  String get plainNameForRead =>
-      deprecated_internalProblem("Unsupported operation.");
+  String get plainNameForRead {
+    return unsupported("plainNameForRead", token.charOffset, helper.uri);
+  }
 
   Expression doInvocation(int charOffset, Arguments arguments) {
-    return deprecated_internalProblem(
-        "Unhandled: ${runtimeType}", uri, charOffset);
+    return unhandled("${runtimeType}", "doInvocation", charOffset, uri);
   }
 
   Expression buildSimpleRead();
@@ -3461,7 +3462,9 @@ abstract class ContextAccessor extends FastaAccessor {
     return makeInvalidWrite(null);
   }
 
-  makeInvalidRead() => deprecated_internalProblem("not supported");
+  makeInvalidRead() {
+    return unsupported("makeInvalidRead", token.charOffset, helper.uri);
+  }
 
   Expression makeInvalidWrite(Expression value) {
     return helper.deprecated_buildCompileTimeError(
@@ -3532,7 +3535,8 @@ class DelayedAssignment extends ContextAccessor {
       return accessor.buildCompoundAssignment(mustacheName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else {
-      return deprecated_internalProblem("Unhandled: $assignmentOperator");
+      return unhandled(
+          assignmentOperator, "handleAssignment", token.charOffset, helper.uri);
     }
   }
 
@@ -3649,11 +3653,9 @@ class LabelTarget extends Builder implements JumpTarget {
 
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
 
-  List<Statement> get users =>
-      deprecated_internalProblem("Unsupported operation.");
+  List<Statement> get users => unsupported("users", charOffset, fileUri);
 
-  JumpTargetKind get kind =>
-      deprecated_internalProblem("Unsupported operation.");
+  JumpTargetKind get kind => unsupported("kind", charOffset, fileUri);
 
   bool get isBreakTarget => true;
 
@@ -3670,7 +3672,7 @@ class LabelTarget extends Builder implements JumpTarget {
   }
 
   void addGoto(ContinueSwitchStatement statement) {
-    deprecated_internalProblem("Unsupported operation.");
+    unsupported("addGoto", charOffset, fileUri);
   }
 
   void resolveBreaks(LabeledStatement target) {
@@ -3682,7 +3684,7 @@ class LabelTarget extends Builder implements JumpTarget {
   }
 
   void resolveGotos(SwitchCase target) {
-    deprecated_internalProblem("Unsupported operation.");
+    unsupported("resolveGotos", charOffset, fileUri);
   }
 
   @override
@@ -3808,7 +3810,7 @@ String getNodeName(Object node) {
   } else if (node is FastaAccessor) {
     return node.plainNameForRead;
   } else {
-    return deprecated_internalProblem("Unhandled: ${node.runtimeType}");
+    return unhandled("${node.runtimeType}", "getNodeName", -1, null);
   }
 }
 
@@ -3828,6 +3830,7 @@ AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
       return AsyncMarker.AsyncStar;
     }
   } else {
-    return deprecated_internalProblem("Unknown async modifier: $asyncToken");
+    return unhandled(asyncToken.lexeme, "asyncMarkerFromTokens",
+        asyncToken.charOffset, null);
   }
 }

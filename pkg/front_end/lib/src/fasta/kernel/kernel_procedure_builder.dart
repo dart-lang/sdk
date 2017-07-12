@@ -4,15 +4,6 @@
 
 library fasta.kernel_procedure_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelProcedure;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
-
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -44,11 +35,20 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
-
-import '../messages.dart' show messageNonInstanceTypeVariableUse, warning;
-
 import '../loader.dart' show Loader;
+
+import '../messages.dart'
+    show
+        messageInternalProblemBodyOnAbstractMethod,
+        messageNonInstanceTypeVariableUse,
+        warning;
+
+import '../problems.dart' show internalProblem;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
 
 import 'kernel_builder.dart'
     show
@@ -66,6 +66,8 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation,
         deprecated_memberError;
+
+import 'kernel_shadow_ast.dart' show KernelProcedure;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -91,8 +93,8 @@ abstract class KernelFunctionBuilder
   void set body(Statement newBody) {
     if (newBody != null) {
       if (isAbstract) {
-        return deprecated_internalProblem(
-            "Attempting to set body on abstract method.");
+        return internalProblem(messageInternalProblemBodyOnAbstractMethod,
+            newBody.fileOffset, fileUri);
       }
       if (isExternal) {
         return library.deprecated_addCompileTimeError(

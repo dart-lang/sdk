@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/deprecated_problems.dart';
-import 'package:front_end/src/scanner/token.dart' show BeginToken, Token;
+import '../../scanner/token.dart' show BeginToken, Token;
+
+import '../problems.dart' show internalProblem;
+
+import '../fasta_codes.dart' show messageInternalProblemPreviousTokenNotFound;
 
 /// Provides the capability of inserting tokens into a token stream by rewriting
 /// the previous token to point to the inserted token.
@@ -74,7 +77,8 @@ class TokenStreamRewriter {
     // Otherwise scan forward from the start of the token stream.
     Token previous = _scanForPreviousToken(target, _head);
     if (previous == null) {
-      deprecated_internalProblem('Could not find previous token');
+      internalProblem(
+          messageInternalProblemPreviousTokenNotFound, target.charOffset, null);
     }
     return previous;
   }
