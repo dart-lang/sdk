@@ -9,7 +9,8 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
@@ -42,7 +43,7 @@ class ProcessedOptions {
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
-  TranslateUri _uriTranslator;
+  UriTranslatorImpl _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
@@ -214,18 +215,18 @@ class ProcessedOptions {
     return loadProgramFromBytes(bytes, new Program(nameRoot: nameRoot));
   }
 
-  /// Get the [TranslateUri] which resolves "package:" and "dart:" URIs.
+  /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<TranslateUri> getUriTranslator() async {
+  Future<UriTranslatorImpl> getUriTranslator() async {
     if (_uriTranslator == null) {
       await _getPackages();
       // TODO(scheglov) Load SDK libraries from whatever format we decide.
       // TODO(scheglov) Remove the field "_raw.dartLibraries".
       var libraries = _raw.dartLibraries ?? await _parseDartLibraries();
-      _uriTranslator =
-          new TranslateUri(libraries, const <String, List<Uri>>{}, _packages);
+      _uriTranslator = new UriTranslatorImpl(
+          libraries, const <String, List<Uri>>{}, _packages);
       ticker.logMs("Read packages file");
     }
     return _uriTranslator;

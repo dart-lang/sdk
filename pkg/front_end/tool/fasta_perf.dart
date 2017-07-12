@@ -15,9 +15,10 @@ import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/fasta/parser/native_support.dart'
     show skipNativeClause;
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -74,12 +75,13 @@ Uri sdkRoot =
     Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
-TranslateUri uriResolver;
+UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
 Future setup(Uri entryUri) async {
-  uriResolver = await TranslateUri.parse(PhysicalFileSystem.instance, sdkRoot);
+  uriResolver =
+      await UriTranslatorImpl.parse(PhysicalFileSystem.instance, sdkRoot);
 }
 
 /// Scan [contents] and return the first token produced by the scanner.

@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TranslateUriTest);
+    defineReflectiveTests(UriTranslatorImplTest);
   });
 }
 
 @reflectiveTest
-class TranslateUriTest {
+class UriTranslatorImplTest {
   void test_isPlatformImplementation() {
-    var translator = new TranslateUri({
+    var translator = new UriTranslatorImpl({
       'core': Uri.parse('file:///sdk/core/core.dart'),
       'math': Uri.parse('file:///sdk/math/math.dart')
     }, {}, {});
@@ -32,7 +32,7 @@ class TranslateUriTest {
   }
 
   void test_translate_dart() {
-    var translator = new TranslateUri({
+    var translator = new UriTranslatorImpl({
       'core': Uri.parse('file:///sdk/core/core.dart'),
       'math': Uri.parse('file:///sdk/math/math.dart')
     }, {}, {});

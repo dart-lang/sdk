@@ -19,7 +19,7 @@ import 'fasta/kernel/kernel_outline_shaker.dart';
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 import 'fasta/kernel/utils.dart';
 import 'fasta/kernel/verifier.dart';
-import 'fasta/translate_uri.dart' show TranslateUri;
+import 'fasta/uri_translator.dart' show UriTranslator;
 
 /// Implementation for the `package:front_end/kernel_generator.dart` and
 /// `package:front_end/summary_generator.dart` APIs.
@@ -60,7 +60,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
   options.ticker.logMs("Validated arguments");
 
   try {
-    TranslateUri uriTranslator = await options.getUriTranslator();
+    UriTranslator uriTranslator = await options.getUriTranslator();
 
     var dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);

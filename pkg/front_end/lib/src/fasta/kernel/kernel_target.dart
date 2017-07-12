@@ -63,7 +63,7 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../target_implementation.dart' show TargetImplementation;
 
-import '../translate_uri.dart' show TranslateUri;
+import '../uri_translator.dart' show UriTranslator;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -108,7 +108,7 @@ class KernelTarget extends TargetImplementation {
   bool get disableTypeInference => backendTarget.disableTypeInference;
 
   KernelTarget(
-      this.fileSystem, DillTarget dillTarget, TranslateUri uriTranslator,
+      this.fileSystem, DillTarget dillTarget, UriTranslator uriTranslator,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,

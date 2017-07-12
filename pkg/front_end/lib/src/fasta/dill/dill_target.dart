@@ -18,7 +18,7 @@ import '../target_implementation.dart' show TargetImplementation;
 
 import '../ticker.dart' show Ticker;
 
-import '../translate_uri.dart' show TranslateUri;
+import '../uri_translator.dart' show UriTranslator;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -28,7 +28,7 @@ class DillTarget extends TargetImplementation {
   bool isLoaded = false;
   DillLoader loader;
 
-  DillTarget(Ticker ticker, TranslateUri uriTranslator, Target backendTarget)
+  DillTarget(Ticker ticker, UriTranslator uriTranslator, Target backendTarget)
       : super(ticker, uriTranslator, backendTarget) {
     loader = new DillLoader(this);
   }

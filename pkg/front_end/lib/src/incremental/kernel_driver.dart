@@ -12,7 +12,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
@@ -55,7 +55,7 @@ class KernelDriver {
   final ByteStore _byteStore;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs.
-  final TranslateUri _uriTranslator;
+  final UriTranslator _uriTranslator;
 
   /// Is `true` if strong mode analysis should be used.
   final bool _strongMode;

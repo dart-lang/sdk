@@ -24,7 +24,7 @@ import 'package:front_end/src/fasta/deprecated_problems.dart'
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
@@ -51,7 +51,7 @@ class AnalyzerCompileTask extends CompileTask {
 
   @override
   AnalyzerTarget createKernelTarget(
-      DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode) {
+      DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
     return new AnalyzerTarget(
         dillTarget, uriTranslator, strongMode, c.uriToSource);
   }

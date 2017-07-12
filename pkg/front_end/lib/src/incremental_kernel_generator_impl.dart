@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' hide Source;
@@ -43,7 +43,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   _TestView _testView;
 
   IncrementalKernelGeneratorImpl(
-      ProcessedOptions options, TranslateUri uriTranslator, this._entryPoint,
+      ProcessedOptions options, UriTranslator uriTranslator, this._entryPoint,
       {WatchUsedFilesFn watch})
       : _logger = options.logger,
         _watchFn = watch {

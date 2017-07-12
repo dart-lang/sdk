@@ -7,6 +7,7 @@ library test.kernel.closures.suite;
 import 'dart:async' show Future;
 
 import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -34,7 +35,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
@@ -52,7 +53,7 @@ const String STRONG_MODE = " strong mode ";
 class ClosureConversionContext extends ChainContext {
   final bool strongMode;
 
-  final TranslateUri uriTranslator;
+  final UriTranslator uriTranslator;
 
   final List<Step> steps;
 
@@ -86,7 +87,7 @@ class ClosureConversionContext extends ChainContext {
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
-    TranslateUri uriTranslator = await TranslateUri
+    UriTranslator uriTranslator = await UriTranslatorImpl
         .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     return new ClosureConversionContext(
         strongMode, updateExpectations, uriTranslator);

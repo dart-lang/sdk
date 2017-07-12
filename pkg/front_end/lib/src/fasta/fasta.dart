@@ -12,6 +12,7 @@ import 'dart:io' show BytesBuilder, File, exitCode;
 
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
@@ -30,7 +31,7 @@ import 'compile_platform.dart' show compilePlatformInternal;
 
 import 'ticker.dart' show Ticker;
 
-import 'translate_uri.dart' show TranslateUri;
+import 'uri_translator.dart' show UriTranslator;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
@@ -107,18 +108,18 @@ class CompileTask {
 
   CompileTask(this.c, this.ticker);
 
-  DillTarget createDillTarget(TranslateUri uriTranslator) {
+  DillTarget createDillTarget(UriTranslator uriTranslator) {
     return new DillTarget(ticker, uriTranslator, c.options.target);
   }
 
   KernelTarget createKernelTarget(
-      DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode) {
+      DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
     return new KernelTarget(
         c.fileSystem, dillTarget, uriTranslator, c.uriToSource);
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
-    TranslateUri uriTranslator = await TranslateUri
+    UriTranslator uriTranslator = await UriTranslatorImpl
         .parse(c.fileSystem, c.options.sdk, packages: c.options.packages);
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
@@ -204,8 +205,8 @@ Future<List<Uri>> getDependencies(Uri script,
     c.options.validate();
     sdk ??= c.options.sdk;
 
-    TranslateUri uriTranslator = await TranslateUri.parse(c.fileSystem, sdk,
-        packages: c.options.packages);
+    UriTranslator uriTranslator = await UriTranslatorImpl
+        .parse(c.fileSystem, sdk, packages: c.options.packages);
     ticker.logMs("Read packages file");
     DillTarget dillTarget =
         new DillTarget(ticker, uriTranslator, c.options.target);
