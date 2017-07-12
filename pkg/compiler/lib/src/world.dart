@@ -4,7 +4,6 @@
 
 library dart2js.world;
 
-import 'closure.dart' show ClosureClassElement;
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
@@ -376,8 +375,10 @@ abstract class ClosedWorldRefiner {
   void registerCannotThrow(FunctionEntity element);
 
   /// Adds the closure class [cls] to the inference world. The class is
-  /// considered directly instantiated.
-  void registerClosureClass(covariant ClassElement cls);
+  /// considered directly instantiated. If [fromInstanceMember] is true, this
+  /// closure class represents a closure that is inside an instance member, thus
+  /// has access to `this`.
+  void registerClosureClass(covariant ClassEntity cls, bool fromInstanceMember);
 }
 
 abstract class OpenWorld implements World {
@@ -1178,6 +1179,16 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
         .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }
+
+  /// Should only be called by subclasses.
+  void addClassHierarchyNode(ClassEntity cls, ClassHierarchyNode node) {
+    _classHierarchyNodes[cls] = node;
+  }
+
+  /// Should only be called by subclasses.
+  void addClassSet(ClassEntity cls, ClassSet classSet) {
+    _classSets[cls] = classSet;
+  }
 }
 
 class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
@@ -1297,7 +1308,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     return selector.appliesUntyped(element);
   }
 
-  void registerClosureClass(ClosureClassElement cls) {
+  void registerClosureClass(ClassElement cls, bool _) {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node = _classHierarchyNodes[cls] =
         new ClassHierarchyNode(parentNode, cls, cls.hierarchyDepth);

@@ -28,6 +28,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_model/closure.dart';
 import '../js_model/elements.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
@@ -656,6 +657,28 @@ abstract class ElementCreatorMixin {
     });
   }
 
+  void addClosureClass(KernelClosureClass cls, InterfaceType supertype) {
+    cls.classIndex = _classEnvs.length;
+    _classEnvs.add(new ClassEnv.closureClass());
+    _classList.add(cls);
+
+    // Create a classData and set up the interfaces and subclass
+    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
+    var closureData = new ClassData(null);
+    closureData
+      ..isMixinApplication = false
+      ..thisType =
+          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
+      ..supertype = supertype
+      ..interfaces = const <InterfaceType>[];
+    var setBuilder =
+        new _KernelOrderedTypeSetBuilder((this as KernelToElementMapBase), cls);
+    _classData.add(closureData);
+    closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
+        closureData.supertype, const Link<InterfaceType>());
+    // TODO(efortuna): Does getMetadata get called in ClassData for this object?
+  }
+
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
       KLibrary library = _getLibrary(node.enclosingLibrary);
@@ -664,7 +687,7 @@ abstract class ElementCreatorMixin {
       }
       _classEnvs.add(classEnv);
       _classData.add(new ClassData(node));
-      ClassEntity cls = createClass(library, _classMap.length, node.name,
+      ClassEntity cls = createClass(library, _classList.length, node.name,
           isAbstract: node.isAbstract);
       _classList.add(cls);
       return cls;
@@ -1536,7 +1559,7 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
 
   @override
   ClassEntity getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorldMixin.getSuperClass');
+    return elementMap._getSuperType(cls)?.element;
   }
 
   @override
@@ -1606,8 +1629,32 @@ class KernelClosedWorld extends ClosedWorldBase
   }
 
   @override
-  void registerClosureClass(ClassElement cls) {
-    throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
+  void registerClosureClass(ClassEntity cls, bool fromInstanceMember) {
+    // Tell the hierarchy that this is the super class. then we can use
+    // .getSupertypes(class)
+    IndexedClass superclass = fromInstanceMember
+        ? commonElements.boundClosureClass
+        : commonElements.closureClass;
+    ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
+    ClassHierarchyNode node = new ClassHierarchyNode(
+        parentNode, cls, getHierarchyDepth(superclass) + 1);
+    addClassHierarchyNode(cls, node);
+    for (InterfaceType type in getOrderedTypeSet(superclass).types) {
+      // TODO(efortuna): assert that the FunctionClass is in this ordered set.
+      // If not, we need to explicitly add node as a subtype of FunctionClass.
+      ClassSet subtypeSet = getClassSet(type.element);
+      subtypeSet.addSubtype(node);
+    }
+    addClassSet(cls, new ClassSet(node));
+
+    // Ensure that the supertype's hierarchy is completely set up.
+    var supertype = new InterfaceType(superclass, const []);
+    ClassData superdata = elementMap._classData[superclass.classIndex];
+    elementMap._ensureSupertypes(superclass, superdata);
+    elementMap._ensureThisAndRawType(superclass, superdata);
+
+    elementMap.addClosureClass(cls, supertype);
+    node.isDirectlyInstantiated = true;
   }
 }
 

@@ -161,6 +161,15 @@ class ClassEnv {
       : isUnnamedMixinApplication =
             cls.name.contains('+') || cls.name.contains('&');
 
+  // TODO(efortuna): This is gross because even though the closure class *has*
+  // members, we're not populating this because they aren't ir.Member types. :-(
+  ClassEnv.closureClass()
+      : cls = null,
+        isUnnamedMixinApplication = false,
+        _constructorMap = const <String, ir.Member>{},
+        _memberMap = const <String, ir.Member>{},
+        _setterMap = const <String, ir.Member>{};
+
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
       CloneVisitor cloner, ir.Constructor superclassConstructor) {
