@@ -9,7 +9,7 @@
 library dart.typed_data.implementation;
 
 import 'dart:collection';
-import 'dart:_internal';
+import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
     show
