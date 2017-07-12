@@ -1599,9 +1599,9 @@ class CodeSerializationCluster : public SerializationCluster {
         FATAL("Cannot serialize code with embedded pointers");
       }
       if (kind == Snapshot::kFullAOT) {
-        // No disabled code in precompilation.
-        NOT_IN_PRECOMPILED(ASSERT(code->ptr()->instructions_ ==
-                                  code->ptr()->active_instructions_));
+        if (code->ptr()->instructions_ != code->ptr()->active_instructions_) {
+          s->UnexpectedObject(code, "Disabled code");
+        }
       }
 
       RawInstructions* instr = code->ptr()->instructions_;
