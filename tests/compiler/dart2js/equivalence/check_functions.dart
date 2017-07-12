@@ -833,36 +833,185 @@ void checkEmitters(CodeEmitterTask emitter1, CodeEmitterTask emitter2,
       verbose: verbose);
 }
 
-// TODO(johnniwinther): Check all program properties.
 void checkEmitterPrograms(Program program1, Program program2) {
   checkLists(program1.fragments, program2.fragments, 'fragments',
       (a, b) => a.outputFileName == b.outputFileName,
       onSameElement: checkEmitterFragments);
+  checkLists(
+      program1.holders, program2.holders, 'holders', (a, b) => a.name == b.name,
+      onSameElement: checkEmitterHolders);
+  check(program1, program2, 'outputContainsConstantList',
+      program1.outputContainsConstantList, program2.outputContainsConstantList);
+  check(program1, program2, 'needsNativeSupport', program1.needsNativeSupport,
+      program2.needsNativeSupport);
+  check(program1, program2, 'hasIsolateSupport', program1.hasIsolateSupport,
+      program2.hasIsolateSupport);
+  check(program1, program2, 'hasSoftDeferredClasses',
+      program1.hasSoftDeferredClasses, program2.hasSoftDeferredClasses);
+  checkMaps(
+      program1.loadMap,
+      program2.loadMap,
+      'loadMap',
+      equality,
+      (a, b) => areSetsEquivalent(
+          a, b, (a, b) => a.outputFileName == b.outputFileName));
+  checkMaps(program1.symbolsMap, program2.symbolsMap, 'symbolsMap',
+      (a, b) => a.key == b.key, equality);
+
+  check(
+      program1,
+      program2,
+      'typeToInterceptorMap',
+      program1.typeToInterceptorMap,
+      program2.typeToInterceptorMap,
+      areJsNodesEquivalent);
+  check(program1, program2, 'metadata', program1.metadata, program2.metadata,
+      areJsNodesEquivalent);
 }
 
-// TODO(johnniwinther): Check all fragment properties.
 void checkEmitterFragments(Fragment fragment1, Fragment fragment2) {
+  // TODO(johnniwinther): Check outputUnit.
   checkLists(fragment1.libraries, fragment2.libraries, 'libraries',
       (a, b) => a.element.canonicalUri == b.element.canonicalUri,
       onSameElement: checkEmitterLibraries);
+  checkLists(fragment1.constants, fragment2.constants, 'constants',
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterConstants);
+  checkLists(fragment1.staticNonFinalFields, fragment2.staticNonFinalFields,
+      'staticNonFinalFields', (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterStaticFields);
+  checkLists(
+      fragment1.staticLazilyInitializedFields,
+      fragment2.staticLazilyInitializedFields,
+      'staticLazilyInitializedFields',
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterStaticFields);
+  check(fragment1, fragment2, 'isMainFragment', fragment1.isMainFragment,
+      fragment2.isMainFragment);
+  if (fragment1 is MainFragment && fragment2 is MainFragment) {
+    check(fragment1, fragment2, 'invokeMain', fragment1.invokeMain,
+        fragment2.invokeMain, areJsNodesEquivalent);
+  }
 }
 
-// TODO(johnniwinther): Check all library properties.
 void checkEmitterLibraries(Library library1, Library library2) {
+  check(library1, library2, 'uri', library1.uri, library2.uri);
   checkLists(library1.classes, library2.classes, 'classes',
       (a, b) => a.element.name == b.element.name,
       onSameElement: checkEmitterClasses);
-  // TODO(johnniwinther): Check static method properties.
   checkLists(library1.statics, library2.statics, 'statics',
-      (a, b) => a.name.key == b.name.key);
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterMethods);
+  checkLists(
+      library1.staticFieldsForReflection,
+      library2.staticFieldsForReflection,
+      'staticFieldsForReflection',
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterFields);
 }
 
-// TODO(johnniwinther): Check all class properties.
 void checkEmitterClasses(Class class1, Class class2) {
   checkLists(class1.methods, class2.methods, 'methods',
-      (a, b) => a.name.key == b.name.key);
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterMethods);
+  checkLists(class1.fields, class2.fields, 'fields',
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterFields);
   checkLists(class1.isChecks, class2.isChecks, 'isChecks',
-      (a, b) => a.name.key == b.name.key);
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterMethods);
+  checkLists(class1.checkedSetters, class2.checkedSetters, 'checkedSetters',
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterMethods);
+  checkLists(class1.callStubs, class2.callStubs, 'callStubs',
+      (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterMethods);
+  checkLists(class1.noSuchMethodStubs, class2.noSuchMethodStubs,
+      'noSuchMethodStubs', (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterMethods);
+  checkLists(class1.staticFieldsForReflection, class2.staticFieldsForReflection,
+      'staticFieldsForReflection', (a, b) => a.name.key == b.name.key,
+      onSameElement: checkEmitterFields);
+
+  check(class1, class2, 'superclassName', class1.superclassName?.key,
+      class2.superclassName?.key);
+  check(class1, class2, 'isMixinApplication', class1.isMixinApplication,
+      class2.isMixinApplication);
+  check(class1, class2, 'hasRtiField', class1.hasRtiField, class2.hasRtiField);
+  check(class1, class2, 'onlyForRti', class1.onlyForRti, class2.onlyForRti);
+  check(class1, class2, 'isDirectlyInstantiated', class1.isDirectlyInstantiated,
+      class2.isDirectlyInstantiated);
+  check(class1, class2, 'isNative', class1.isNative, class2.isNative);
+  check(class1, class2, 'isClosureBaseClass', class1.isClosureBaseClass,
+      class2.isClosureBaseClass);
+  check(class1, class2, 'isSoftDeferred', class1.isSoftDeferred,
+      class2.isSoftDeferred);
+  check(class1, class2, 'isEager', class1.isEager, class2.isEager);
+  checkEmitterHolders(class1.holder, class2.holder);
+}
+
+void checkEmitterMethods(Method method1, Method method2) {
+  check(method1, method2, 'code', method1.code, method2.code,
+      areJsNodesEquivalent);
+  check(method1, method2, 'is ParameterStubMethod',
+      method1 is ParameterStubMethod, method2 is ParameterStubMethod);
+  if (method1 is ParameterStubMethod && method2 is ParameterStubMethod) {
+    check(method1, method2, 'callName', method1.callName?.key,
+        method2.callName?.key);
+  }
+  check(method1, method2, 'is DartMethod', method1 is DartMethod,
+      method2 is DartMethod);
+  if (method1 is DartMethod && method2 is DartMethod) {
+    check(method1, method2, 'callName', method1.callName?.key,
+        method2.callName?.key);
+    check(method1, method2, 'needsTearOff', method1.needsTearOff,
+        method2.needsTearOff);
+    // TODO(johnniwinther): Fix teadOffName mismatch.
+    //check(method1, method2, 'tearOffName',
+    //     method1.tearOffName?.key, method2.tearOffName?.key);
+    checkLists(method1.parameterStubs, method2.parameterStubs, 'parameterStubs',
+        (a, b) => a.name.key == b.name.key,
+        onSameElement: checkEmitterMethods);
+    check(method1, method2, 'canBeApplied', method1.canBeApplied,
+        method2.canBeApplied);
+    check(method1, method2, 'canBeReflected', method1.canBeReflected,
+        method2.canBeReflected);
+    check(method1, method2, 'functionType', method1.functionType,
+        method2.functionType, areJsNodesEquivalent);
+    check(method1, method2, 'requiredParameterCount',
+        method1.requiredParameterCount, method2.requiredParameterCount);
+    // TODO(johnniwinther): Check optionalParameterDefaultValues.
+  }
+}
+
+void checkEmitterFields(Field field1, Field field2) {
+  check(field1, field2, 'accessorName', field1.accessorName?.key,
+      field2.accessorName?.key);
+  check(field1, field2, 'getterFlags', field1.getterFlags, field2.getterFlags);
+  check(field1, field2, 'setterFlags', field1.setterFlags, field2.setterFlags);
+  check(field1, field2, 'needsCheckedSetter', field1.needsCheckedSetter,
+      field2.needsCheckedSetter);
+}
+
+void checkEmitterConstants(Constant constant1, Constant constant2) {
+  // TODO(johnniwinther): Check value.
+  checkEmitterHolders(constant1.holder, constant2.holder);
+}
+
+void checkEmitterStaticFields(StaticField field1, StaticField field2) {
+  check(field1, field2, 'code', field1.code, field2.code, areJsNodesEquivalent);
+  check(field1, field2, 'isFinal', field1.isFinal, field2.isFinal);
+  check(field1, field2, 'isLazy', field1.isLazy, field2.isLazy);
+  checkEmitterHolders(field1.holder, field2.holder);
+}
+
+void checkEmitterHolders(Holder holder1, Holder holder2) {
+  check(holder1, holder2, 'name', holder1.name, holder2.name);
+  check(holder1, holder2, 'index', holder1.index, holder2.index);
+  check(holder1, holder2, 'isStaticStateHolder', holder1.isStaticStateHolder,
+      holder2.isStaticStateHolder);
+  check(holder1, holder2, 'isConstantsHolder', holder1.isConstantsHolder,
+      holder2.isConstantsHolder);
 }
 
 void checkGeneratedCode(JavaScriptBackend backend1, JavaScriptBackend backend2,
