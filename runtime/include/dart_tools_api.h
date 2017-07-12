@@ -1024,6 +1024,9 @@ typedef enum {
   Dart_Timeline_Event_Async_End,      // Phase = 'e'.
   Dart_Timeline_Event_Async_Instant,  // Phase = 'n'.
   Dart_Timeline_Event_Counter,        // Phase = 'C'.
+  Dart_Timeline_Event_Flow_Begin,     // Phase = 's'.
+  Dart_Timeline_Event_Flow_Step,      // Phase = 't'.
+  Dart_Timeline_Event_Flow_End,       // Phase = 'f'.
 } Dart_Timeline_Event_Type;
 
 /**

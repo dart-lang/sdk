@@ -158,6 +158,9 @@ class TimelineEvent {
     kAsyncInstant,
     kAsyncEnd,
     kCounter,
+    kFlowBegin,
+    kFlowStep,
+    kFlowEnd,
     kMetadata,
     kNumEventTypes,
   };
@@ -208,6 +211,16 @@ class TimelineEvent {
            int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
 
   void Counter(const char* label,
+               int64_t micros = OS::GetCurrentMonotonicMicros());
+
+  void FlowBegin(const char* label,
+                 int64_t async_id,
+                 int64_t micros = OS::GetCurrentMonotonicMicros());
+  void FlowStep(const char* label,
+                int64_t async_id,
+                int64_t micros = OS::GetCurrentMonotonicMicros());
+  void FlowEnd(const char* label,
+               int64_t async_id,
                int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void Metadata(const char* label,

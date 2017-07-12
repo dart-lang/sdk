@@ -459,6 +459,36 @@ void TimelineEvent::Counter(const char* label, int64_t micros) {
 }
 
 
+void TimelineEvent::FlowBegin(const char* label,
+                              int64_t async_id,
+                              int64_t micros) {
+  Init(kFlowBegin, label);
+  set_timestamp0(micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(async_id);
+}
+
+
+void TimelineEvent::FlowStep(const char* label,
+                             int64_t async_id,
+                             int64_t micros) {
+  Init(kFlowStep, label);
+  set_timestamp0(micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(async_id);
+}
+
+
+void TimelineEvent::FlowEnd(const char* label,
+                            int64_t async_id,
+                            int64_t micros) {
+  Init(kFlowEnd, label);
+  set_timestamp0(micros);
+  // Overload timestamp1_ with the async_id.
+  set_timestamp1(async_id);
+}
+
+
 void TimelineEvent::Metadata(const char* label, int64_t micros) {
   Init(kMetadata, label);
   set_timestamp0(micros);
@@ -562,7 +592,10 @@ FUCHSIA_EVENT_ARGS_LIST(EMIT_FUCHSIA_EVENT)
   V(Instant, TRACE_INSTANT, ::tracing::EventScope)                             \
   V(AsyncBegin, TRACE_ASYNC_BEGIN, int64_t)                                    \
   V(AsyncEnd, TRACE_ASYNC_END, int64_t)                                        \
-  V(AsyncInstant, TRACE_ASYNC_INSTANT, int64_t)
+  V(AsyncInstant, TRACE_ASYNC_INSTANT, int64_t)                                \
+  V(FlowBegin, TRACE_FLOW_BEGIN, int64_t)                                      \
+  V(FlowStep, TRACE_FLOW_STEP, int64_t)                                        \
+  V(FlowEnd, TRACE_FLOW_END, int64_t)
 
 #define EMIT_FUCHSIA_EVENT(__name, __macro, __id_typ)                          \
   static void EmitFuchsia##__name##Event(const char* label, __id_typ id,       \
@@ -607,6 +640,17 @@ void TimelineEvent::EmitFuchsiaEvent() {
     case kAsyncInstant:
       EmitFuchsiaAsyncInstantEvent(label_, AsyncId(), arguments_,
                                    arguments_length_);
+      break;
+    case kFlowBegin:
+      EmitFuchsiaFlowBeginEvent(label_, AsyncId(), arguments_,
+                                arguments_length_);
+      break;
+    case kFlowStep:
+      EmitFuchsiaFlowStepEvent(label_, AsyncId(), arguments_,
+                               arguments_length_);
+      break;
+    case kFlowEnd:
+      EmitFuchsiaFlowEndEvent(label_, AsyncId(), arguments_, arguments_length_);
       break;
     default:
       // TODO(zra): Figure out what to do with kDuration, kCounter, and
@@ -780,11 +824,24 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
       obj.AddProperty("ph", "e");
       obj.AddPropertyF("id", "%" Px64 "", AsyncId());
     } break;
-    case kMetadata: {
-      obj.AddProperty("ph", "M");
-    } break;
     case kCounter: {
       obj.AddProperty("ph", "C");
+    } break;
+    case kFlowBegin: {
+      obj.AddProperty("ph", "s");
+      obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    } break;
+    case kFlowStep: {
+      obj.AddProperty("ph", "t");
+      obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    } break;
+    case kFlowEnd: {
+      obj.AddProperty("ph", "f");
+      obj.AddProperty("bp", "e");
+      obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    } break;
+    case kMetadata: {
+      obj.AddProperty("ph", "M");
     } break;
     default:
       UNIMPLEMENTED();
@@ -1328,6 +1385,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
+  // TODO(rmacnak): Use TRACE_NONCE() on Fuchsia?
   uint32_t next =
       static_cast<uint32_t>(AtomicOperations::FetchAndIncrement(&async_id_));
   return static_cast<int64_t>(next);

@@ -6474,7 +6474,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type < Dart_Timeline_Event_Begin) {
     return;
   }
-  if (type > Dart_Timeline_Event_Counter) {
+  if (type > Dart_Timeline_Event_Flow_End) {
     return;
   }
   TimelineStream* stream = Timeline::GetEmbedderStream();
@@ -6508,6 +6508,15 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
       break;
     case Dart_Timeline_Event_Counter:
       event->Counter(label, timestamp0);
+      break;
+    case Dart_Timeline_Event_Flow_Begin:
+      event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
+      break;
+    case Dart_Timeline_Event_Flow_Step:
+      event->FlowStep(label, timestamp1_or_async_id, timestamp0);
+      break;
+    case Dart_Timeline_Event_Flow_End:
+      event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
       break;
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");
