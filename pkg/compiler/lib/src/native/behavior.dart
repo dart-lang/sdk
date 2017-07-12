@@ -131,11 +131,11 @@ class NativeThrowBehavior {
  * `null` may be returned.
  */
 class NativeBehavior {
-  /// [ResolutionDartType]s or [SpecialType]s returned or yielded by the native
+  /// [DartType]s or [SpecialType]s returned or yielded by the native
   /// element.
   final List typesReturned = [];
 
-  /// [ResolutionDartType]s or [SpecialType]s instantiated by the native
+  /// [DartType]s or [SpecialType]s instantiated by the native
   /// element.
   final List typesInstantiated = [];
 

@@ -1692,43 +1692,25 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
 class JsToFrontendMapImpl extends JsToFrontendMapBase
     implements JsToFrontendMap {
-  final KernelToElementMapBase _frontend;
   final KernelToElementMapBase _backend;
 
-  JsToFrontendMapImpl(this._frontend, this._backend);
+  JsToFrontendMapImpl(this._backend);
 
   LibraryEntity toBackendLibrary(covariant IndexedLibrary library) {
     return _backend._libraryList[library.libraryIndex];
-  }
-
-  LibraryEntity toFrontendLibrary(covariant IndexedLibrary library) {
-    return _frontend._libraryList[library.libraryIndex];
   }
 
   ClassEntity toBackendClass(covariant IndexedClass cls) {
     return _backend._classList[cls.classIndex];
   }
 
-  ClassEntity toFrontendClass(covariant IndexedClass cls) {
-    return _frontend._classList[cls.classIndex];
-  }
-
   MemberEntity toBackendMember(covariant IndexedMember member) {
     return _backend._memberList[member.memberIndex];
-  }
-
-  MemberEntity toFrontendMember(covariant IndexedMember member) {
-    return _frontend._memberList[member.memberIndex];
   }
 
   TypeVariableEntity toBackendTypeVariable(
       covariant IndexedTypeVariable typeVariable) {
     return _backend._typeVariableList[typeVariable.typeVariableIndex];
-  }
-
-  TypeVariableEntity toFrontendTypeVariable(
-      covariant IndexedTypeVariable typeVariable) {
-    return _frontend._typeVariableList[typeVariable.typeVariableIndex];
   }
 }
 
@@ -1736,7 +1718,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     with
         KernelToElementMapForBuildingMixin,
         JsElementCreatorMixin,
-        // TODO(johnniwinther): Avoid mixin in [ElementCreatorMixin]. The
+        // TODO(johnniwinther): Avoid mixing in [ElementCreatorMixin]. The
         // codegen world should be a strict subset of the resolution world and
         // creating elements for IR nodes should therefore not be needed.
         // Currently some are created purely for testing (like
@@ -1747,12 +1729,9 @@ class JsKernelToElementMap extends KernelToElementMapBase
         ElementCreatorMixin
     implements
         KernelToWorldBuilder {
-  JsToFrontendMap _jsToFrontendMap;
-
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapForImpactImpl _elementMap)
       : super(reporter, environment) {
-    _jsToFrontendMap = new JsToFrontendMapImpl(_elementMap, this);
     _env = _elementMap._env;
     for (int libraryIndex = 0;
         libraryIndex < _elementMap._libraryEnvs.length;
@@ -1826,8 +1805,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
             "Unexpected entity $entity, expected family $jsElementPrefix."));
     return true;
   }
-
-  JsToFrontendMap get jsToFrontendMap => _jsToFrontendMap;
 
   @override
   Spannable getSpannable(MemberEntity member, ir.Node node) {

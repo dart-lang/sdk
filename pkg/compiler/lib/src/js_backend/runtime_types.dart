@@ -216,7 +216,7 @@ abstract class _RuntimeTypesBase {
   }
 }
 
-class _RuntimeTypesNeed implements RuntimeTypesNeed {
+class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final ElementEnvironment _elementEnvironment;
   final BackendUsage _backendUsage;
   final Set<ClassEntity> classesNeedingRti;
@@ -227,7 +227,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   /// to get the runtime type.
   final Set<ClassEntity> classesUsingTypeVariableExpression;
 
-  _RuntimeTypesNeed(
+  RuntimeTypesNeedImpl(
       this._elementEnvironment,
       this._backendUsage,
       this.classesNeedingRti,
@@ -266,7 +266,7 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   }
 }
 
-class _ResolutionRuntimeTypesNeed extends _RuntimeTypesNeed {
+class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
   _ResolutionRuntimeTypesNeed(
       ElementEnvironment elementEnvironment,
       BackendUsage backendUsage,
@@ -447,7 +447,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<FunctionEntity> methodsNeedingRti,
       Set<Local> localFunctionsNeedingRti,
       Set<ClassEntity> classesUsingTypeVariableExpression) {
-    return new _RuntimeTypesNeed(
+    return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
         classesNeedingRti,
