@@ -6544,8 +6544,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     // Code for a constant shift amount.
     ASSERT(locs()->in(1).constant().IsSmi());
-    const int32_t shift =
-        reinterpret_cast<int32_t>(locs()->in(1).constant().raw()) >> 1;
+    const int32_t shift = Smi::Cast(locs()->in(1).constant()).Value();
     ASSERT(shift >= 0);
     switch (op_kind()) {
       case Token::kSHR: {
