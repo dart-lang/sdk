@@ -297,6 +297,7 @@ Future<ResultKind> runTest(
       verbose: verbose);
 
   checkEmitters(compiler1.backend.emitter, compiler2.backend.emitter,
+      equivalence2.defaultStrategy,
       elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
         return equivalence2.typeEquivalence(unalias(a), b);

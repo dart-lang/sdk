@@ -392,6 +392,11 @@ abstract class Method {
   final js.Expression code;
 
   Method(this.element, this.name, this.code);
+
+  String toString() {
+    return 'method[name=${name},element=${element}'
+        ',code=${js.nodeToString(code)}]';
+  }
 }
 
 /// A method that corresponds to a method in the original Dart program.

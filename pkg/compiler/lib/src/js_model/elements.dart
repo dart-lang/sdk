@@ -439,9 +439,6 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
             isStatic: false,
             isExternal: false);
 
-  @override
-  bool get isFunction => true;
-
   String get _kind => 'constructor_body';
 }
 

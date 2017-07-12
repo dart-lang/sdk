@@ -803,40 +803,42 @@ void checkCodegenEnqueuers(CodegenEnqueuer enqueuer1, CodegenEnqueuer enqueuer2,
 }
 
 // TODO(johnniwinther): Check all emitter properties.
-void checkEmitters(CodeEmitterTask emitter1, CodeEmitterTask emitter2,
+void checkEmitters(
+    CodeEmitterTask emitter1, CodeEmitterTask emitter2, TestStrategy strategy,
     {bool elementEquivalence(Entity a, Entity b): _areEntitiesEquivalent,
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
-  checkEmitterPrograms(
-      emitter1.emitter.programForTesting, emitter2.emitter.programForTesting);
+  checkEmitterPrograms(emitter1.emitter.programForTesting,
+      emitter2.emitter.programForTesting, strategy);
 
   checkSets(
       emitter1.typeTestRegistry.rtiNeededClasses,
       emitter2.typeTestRegistry.rtiNeededClasses,
       "TypeTestRegistry rti needed classes mismatch",
-      elementEquivalence,
+      strategy.elementEquivalence,
       verbose: verbose);
 
   checkSets(
       emitter1.typeTestRegistry.checkedFunctionTypes,
       emitter2.typeTestRegistry.checkedFunctionTypes,
       "TypeTestRegistry checked function types mismatch",
-      typeEquivalence,
+      strategy.typeEquivalence,
       verbose: verbose);
 
   checkSets(
       emitter1.typeTestRegistry.checkedClasses,
       emitter2.typeTestRegistry.checkedClasses,
       "TypeTestRegistry checked classes mismatch",
-      elementEquivalence,
+      strategy.elementEquivalence,
       verbose: verbose);
 }
 
-void checkEmitterPrograms(Program program1, Program program2) {
+void checkEmitterPrograms(
+    Program program1, Program program2, TestStrategy strategy) {
   checkLists(program1.fragments, program2.fragments, 'fragments',
       (a, b) => a.outputFileName == b.outputFileName,
-      onSameElement: checkEmitterFragments);
+      onSameElement: (a, b) => checkEmitterFragments(a, b, strategy));
   checkLists(
       program1.holders, program2.holders, 'holders', (a, b) => a.name == b.name,
       onSameElement: checkEmitterHolders);
@@ -869,14 +871,15 @@ void checkEmitterPrograms(Program program1, Program program2) {
       areJsNodesEquivalent);
 }
 
-void checkEmitterFragments(Fragment fragment1, Fragment fragment2) {
+void checkEmitterFragments(
+    Fragment fragment1, Fragment fragment2, TestStrategy strategy) {
   // TODO(johnniwinther): Check outputUnit.
   checkLists(fragment1.libraries, fragment2.libraries, 'libraries',
       (a, b) => a.element.canonicalUri == b.element.canonicalUri,
-      onSameElement: checkEmitterLibraries);
+      onSameElement: (a, b) => checkEmitterLibraries(a, b, strategy));
   checkLists(fragment1.constants, fragment2.constants, 'constants',
       (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterConstants);
+      onSameElement: (a, b) => checkEmitterConstants(a, b, strategy));
   checkLists(fragment1.staticNonFinalFields, fragment2.staticNonFinalFields,
       'staticNonFinalFields', (a, b) => a.name.key == b.name.key,
       onSameElement: checkEmitterStaticFields);
@@ -894,14 +897,15 @@ void checkEmitterFragments(Fragment fragment1, Fragment fragment2) {
   }
 }
 
-void checkEmitterLibraries(Library library1, Library library2) {
+void checkEmitterLibraries(
+    Library library1, Library library2, TestStrategy strategy) {
   check(library1, library2, 'uri', library1.uri, library2.uri);
   checkLists(library1.classes, library2.classes, 'classes',
       (a, b) => a.element.name == b.element.name,
-      onSameElement: checkEmitterClasses);
+      onSameElement: (a, b) => checkEmitterClasses(a, b, strategy));
   checkLists(library1.statics, library2.statics, 'statics',
       (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterMethods);
+      onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
   checkLists(
       library1.staticFieldsForReflection,
       library2.staticFieldsForReflection,
@@ -910,25 +914,25 @@ void checkEmitterLibraries(Library library1, Library library2) {
       onSameElement: checkEmitterFields);
 }
 
-void checkEmitterClasses(Class class1, Class class2) {
+void checkEmitterClasses(Class class1, Class class2, TestStrategy strategy) {
   checkLists(class1.methods, class2.methods, 'methods',
       (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterMethods);
+      onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
   checkLists(class1.fields, class2.fields, 'fields',
       (a, b) => a.name.key == b.name.key,
       onSameElement: checkEmitterFields);
   checkLists(class1.isChecks, class2.isChecks, 'isChecks',
       (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterMethods);
+      onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
   checkLists(class1.checkedSetters, class2.checkedSetters, 'checkedSetters',
       (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterMethods);
+      onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
   checkLists(class1.callStubs, class2.callStubs, 'callStubs',
       (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterMethods);
+      onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
   checkLists(class1.noSuchMethodStubs, class2.noSuchMethodStubs,
       'noSuchMethodStubs', (a, b) => a.name.key == b.name.key,
-      onSameElement: checkEmitterMethods);
+      onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
   checkLists(class1.staticFieldsForReflection, class2.staticFieldsForReflection,
       'staticFieldsForReflection', (a, b) => a.name.key == b.name.key,
       onSameElement: checkEmitterFields);
@@ -950,7 +954,8 @@ void checkEmitterClasses(Class class1, Class class2) {
   checkEmitterHolders(class1.holder, class2.holder);
 }
 
-void checkEmitterMethods(Method method1, Method method2) {
+void checkEmitterMethods(
+    Method method1, Method method2, TestStrategy strategy) {
   check(method1, method2, 'code', method1.code, method2.code,
       areJsNodesEquivalent);
   check(method1, method2, 'is ParameterStubMethod',
@@ -966,12 +971,11 @@ void checkEmitterMethods(Method method1, Method method2) {
         method2.callName?.key);
     check(method1, method2, 'needsTearOff', method1.needsTearOff,
         method2.needsTearOff);
-    // TODO(johnniwinther): Fix teadOffName mismatch.
-    //check(method1, method2, 'tearOffName',
-    //     method1.tearOffName?.key, method2.tearOffName?.key);
+    check(method1, method2, 'tearOffName', method1.tearOffName?.key,
+        method2.tearOffName?.key);
     checkLists(method1.parameterStubs, method2.parameterStubs, 'parameterStubs',
         (a, b) => a.name.key == b.name.key,
-        onSameElement: checkEmitterMethods);
+        onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
     check(method1, method2, 'canBeApplied', method1.canBeApplied,
         method2.canBeApplied);
     check(method1, method2, 'canBeReflected', method1.canBeReflected,
@@ -980,7 +984,32 @@ void checkEmitterMethods(Method method1, Method method2) {
         method2.functionType, areJsNodesEquivalent);
     check(method1, method2, 'requiredParameterCount',
         method1.requiredParameterCount, method2.requiredParameterCount);
-    // TODO(johnniwinther): Check optionalParameterDefaultValues.
+    if (method1.optionalParameterDefaultValues == null &&
+        method2.optionalParameterDefaultValues == null) {
+      // Nothing to test.
+    } else if (method1.optionalParameterDefaultValues is List &&
+        method2.optionalParameterDefaultValues is List) {
+      checkLists(
+          method1.optionalParameterDefaultValues,
+          method2.optionalParameterDefaultValues,
+          'optionalParameterDefaultValues',
+          strategy.constantValueEquivalence);
+    } else if (method1.optionalParameterDefaultValues is Map &&
+        method2.optionalParameterDefaultValues is Map) {
+      checkMaps(
+          method1.optionalParameterDefaultValues,
+          method2.optionalParameterDefaultValues,
+          'optionalParameterDefaultValues',
+          equality,
+          strategy.constantValueEquivalence);
+    } else {
+      check(
+          method1,
+          method2,
+          'optionalParameterDefaultValues',
+          method1.optionalParameterDefaultValues,
+          method2.optionalParameterDefaultValues);
+    }
   }
 }
 
@@ -993,9 +1022,11 @@ void checkEmitterFields(Field field1, Field field2) {
       field2.needsCheckedSetter);
 }
 
-void checkEmitterConstants(Constant constant1, Constant constant2) {
-  // TODO(johnniwinther): Check value.
+void checkEmitterConstants(
+    Constant constant1, Constant constant2, TestStrategy strategy) {
   checkEmitterHolders(constant1.holder, constant2.holder);
+  check(constant1, constant2, 'value', constant1.value, constant2.value,
+      strategy.constantValueEquivalence);
 }
 
 void checkEmitterStaticFields(StaticField field1, StaticField field2) {
