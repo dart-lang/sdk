@@ -14,13 +14,17 @@ import '../fasta_codes.dart'
     show
         Message,
         messageConflictsWithTypeVariableCause,
+        messageTypeVariableDuplicatedName,
+        messageTypeVariableSameNameAsEnclosing,
         templateConflictsWithTypeVariable,
         templateDuplicatedExport,
         templateDuplicatedImport,
         templateExportHidesExport,
+        templateIllegalMethodName,
         templateImportHidesImport,
         templateLocalDefinitionHidesExport,
-        templateLocalDefinitionHidesImport;
+        templateLocalDefinitionHidesImport,
+        templateTypeVariableDuplicatedNameCause;
 
 import '../loader.dart' show Loader;
 
@@ -186,20 +190,20 @@ class KernelLibraryBuilder
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        deprecated_addCompileTimeError(tv.charOffset,
-            "A type variable can't have the same name as another.");
-        deprecated_addCompileTimeError(
-            existing.charOffset, "The other type variable named '${tv.name}'.");
+        addCompileTimeError(
+            messageTypeVariableDuplicatedName, tv.charOffset, fileUri);
+        addCompileTimeError(
+            templateTypeVariableDuplicatedNameCause.withArguments(tv.name),
+            existing.charOffset,
+            fileUri);
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {
           // Only classes and type variables can't have the same name. See
           // [#29555](https://github.com/dart-lang/sdk/issues/29555).
           if (tv.name == owner.name) {
-            deprecated_addCompileTimeError(
-                tv.charOffset,
-                "A type variable can't have the same name as its enclosing "
-                "declaration.");
+            addCompileTimeError(
+                messageTypeVariableSameNameAsEnclosing, tv.charOffset, fileUri);
           }
         }
       }
@@ -510,10 +514,10 @@ class KernelLibraryBuilder
       return null;
     }
     String suffix = name.substring(index + 1);
-    deprecated_addCompileTimeError(
+    addCompileTimeError(
+        templateIllegalMethodName.withArguments(name, "$className.$suffix"),
         charOffset,
-        "'$name' isn't a legal method name.\n"
-        "Did you mean '$className.$suffix'?");
+        fileUri);
     return suffix;
   }
 

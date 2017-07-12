@@ -46,6 +46,8 @@
 #
 # `#name2` another name (a string).
 #
+# `#number` a number (an integer).
+#
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string` a string.
@@ -693,3 +695,89 @@ OverrideFewerPositionalArguments:
 
 OverrideMoreRequiredArguments:
   template: "The method '#name' has more required arguments than those of overridden method '#name2'."
+
+IllegalMethodName:
+  template: "'#name' isn't a legal method name."
+  tip: "Did you mean '#name2'?"
+
+ConstConstructorWithBody:
+  template: "A const constructor can't have a body."
+
+PartOfSelf:
+  template: "A file can't be a part of itself."
+
+TypeVariableDuplicatedName:
+  template: "A type variable can't have the same name as another."
+
+TypeVariableDuplicatedNameCause:
+  template: "The other type variable named '#name'."
+
+TypeVariableSameNameAsEnclosing:
+  template: "A type variable can't have the same name as its enclosing declaration."
+
+EnumDeclartionEmpty:
+  template: "An enum declaration can't be empty."
+
+ExternalMethodWithBody:
+  template: "An external method can't have a body."
+
+OperatorWithOptionalFormals:
+  template: "An operator can't have optional parameters."
+
+PlatformPrivateLibraryAccess:
+  template: "Can't access platform private library."
+
+TypedefNotFunction:
+  template: "Can't create typedef from non-function type."
+
+PartTwice:
+  template: "Can't use '#uri' as a part more than once."
+
+MissingPartOf:
+  template: "Can't use '#uri' as a part, because it has no 'part of' declaration."
+
+SupertypeIsFunction:
+  template: "Can't use a function type as supertype."
+
+DeferredPrefixDuplicated:
+  template: "Can't use the name '#name' for a deferred library, as the name is used elsewhere."
+
+DeferredPrefixDuplicatedCause:
+  template: "'#name' is used here."
+
+TypeArgumentsOnTypeVariable:
+  template: "Can't use type arguments with type variable '#name'."
+
+DuplicatedDefinition:
+  template: "Duplicated definition of '#name'."
+
+DuplicatedName:
+  template: "Duplicated name: '#name'."
+
+DuplicatedParameterName:
+  template: "Duplicated parameter name '#name'."
+
+DuplicatedParameterNameCause:
+  template: "Other parameter named '#name'."
+
+EnumConstantSameNameAsEnclosing:
+  template: "Name of enum constant '#name' can't be the same as the enum's own name."
+
+OperatorParameterMismatch:
+  template: "Operator '#name' must have exactly #number parameters."
+
+SupertypeIsIllegal:
+  template: "The type '#name' can't be used as supertype."
+
+SupertypeIsTypeVariable:
+  template: "The type variable '#name' can't be used as supertype."
+
+PartOfLibraryNameMismatch:
+  template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
+
+PartOfUseUri:
+  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
+  tip: "Try changing the 'part of' declaration to use a relative file name."
+
+PartOfUriMismatch:
+  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'."

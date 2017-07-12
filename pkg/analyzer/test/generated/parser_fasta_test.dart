@@ -792,12 +792,6 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   Uri get fileUri => uri;
 
   @override
-  void deprecated_addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false, bool wasHandled: false}) {
-    fail('$message');
-  }
-
-  @override
   void addCompileTimeError(Message message, int charOffset, Uri uri,
       {bool silent: false, bool wasHandled: false}) {
     fail('${message.message}');

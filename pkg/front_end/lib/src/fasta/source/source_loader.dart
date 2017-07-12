@@ -43,7 +43,8 @@ import '../fasta_codes.dart'
         templateExtendingRestricted,
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
-        templateIllegalMixinDueToConstructorsCause;
+        templateIllegalMixinDueToConstructorsCause,
+        templateUnspecified;
 
 import '../kernel/kernel_shadow_ast.dart' show KernelTypeInferenceEngine;
 
@@ -118,9 +119,10 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.deprecated_addCompileTimeError(
-            token.charOffset, error.assertionMessage,
-            fileUri: uri);
+        library.addCompileTimeError(
+            templateUnspecified.withArguments(error.assertionMessage),
+            token.charOffset,
+            uri);
       }
       token = token.next;
     }

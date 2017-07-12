@@ -39,6 +39,8 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
+        messageConstConstructorWithBody,
+        messageExternalMethodWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         warning;
@@ -97,12 +99,12 @@ abstract class KernelFunctionBuilder
             newBody.fileOffset, fileUri);
       }
       if (isExternal) {
-        return library.deprecated_addCompileTimeError(
-            newBody.fileOffset, "An external method can't have a body.");
+        return library.addCompileTimeError(
+            messageExternalMethodWithBody, newBody.fileOffset, fileUri);
       }
       if (isConstructor && isConst) {
-        return library.deprecated_addCompileTimeError(
-            newBody.fileOffset, "A const constructor can't have a body.");
+        return library.addCompileTimeError(
+            messageConstConstructorWithBody, newBody.fileOffset, fileUri);
       }
     }
     actualBody = newBody;

@@ -28,7 +28,12 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         VariableGet;
 
-import '../fasta_codes.dart' show messageNoUnnamedConstructorInObject;
+import '../fasta_codes.dart'
+    show
+        messageEnumDeclartionEmpty,
+        messageNoUnnamedConstructorInObject,
+        templateDuplicatedName,
+        templateEnumConstantSameNameAsEnclosing;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
@@ -159,16 +164,16 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name = constantNamesAndOffsets[i];
       int charOffset = constantNamesAndOffsets[i + 1];
       if (members.containsKey(name)) {
-        parent.deprecated_addCompileTimeError(
-            charOffset, "Duplicated name: '$name'.");
+        parent.addCompileTimeError(templateDuplicatedName.withArguments(name),
+            charOffset, parent.fileUri);
         constantNamesAndOffsets[i] = null;
         continue;
       }
       if (name == className) {
-        parent.deprecated_addCompileTimeError(
+        parent.addCompileTimeError(
+            templateEnumConstantSameNameAsEnclosing.withArguments(name),
             charOffset,
-            "Name of enum constant '$name' can't be the same as the enum's "
-            "own name.");
+            parent.fileUri);
         constantNamesAndOffsets[i] = null;
         continue;
       }
@@ -216,8 +221,8 @@ class KernelEnumBuilder extends SourceClassBuilder
   @override
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     if (constantNamesAndOffsets.isEmpty) {
-      libraryBuilder.deprecated_addCompileTimeError(
-          -1, "An enum declaration can't be empty.");
+      libraryBuilder.addCompileTimeError(
+          messageEnumDeclartionEmpty, charOffset, fileUri);
     }
     intType.resolveIn(coreLibrary.scope);
     stringType.resolveIn(coreLibrary.scope);

@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart'
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
+import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
+
 import 'kernel_builder.dart'
     show
         KernelClassBuilder,
@@ -33,9 +35,10 @@ class KernelTypeVariableBuilder
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
-      library.deprecated_addWarning(arguments.first.charOffset,
-          "Can't use type arguments with type parameter $parameter",
-          fileUri: fileUri);
+      library.addWarning(
+          templateTypeArgumentsOnTypeVariable.withArguments(name),
+          arguments.first.charOffset,
+          arguments.first.fileUri);
     }
     return new TypeParameterType(parameter);
   }

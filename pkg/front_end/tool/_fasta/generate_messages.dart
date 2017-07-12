@@ -85,6 +85,11 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'name3': name3");
         break;
 
+      case "#number":
+        parameters.add("int number");
+        arguments.add("'number': number");
+        break;
+
       case "#lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
@@ -111,6 +116,12 @@ String compileTemplate(String name, String template, String tip,
         parameters.add("Uri uri2_");
         conversions.add("String uri2 = relativizeUri(uri2_);");
         arguments.add("'uri2': uri2_");
+        break;
+
+      case "#uri3":
+        parameters.add("Uri uri3_");
+        conversions.add("String uri3 = relativizeUri(uri3_);");
+        arguments.add("'uri3': uri3_");
         break;
 
       default:

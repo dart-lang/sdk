@@ -12,7 +12,15 @@ import '../builder/builder.dart';
 
 import '../combinator.dart' show Combinator;
 
-import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
+import '../fasta_codes.dart'
+    show
+        Message,
+        codeExpectedBlockToSkip,
+        messageOperatorWithOptionalFormals,
+        messageTypedefNotFunction,
+        templateDuplicatedParameterName,
+        templateDuplicatedParameterNameCause,
+        templateOperatorParameterMismatch;
 
 import '../modifier.dart' show abstractMask, externalMask, Modifier;
 
@@ -374,16 +382,16 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        library.deprecated_addCompileTimeError(
-            charOffset,
-            "Operator '$name' must have exactly $requiredArgumentCount "
-            "parameters.");
+        addCompileTimeError(
+            templateOperatorParameterMismatch.withArguments(
+                name, requiredArgumentCount),
+            charOffset);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              library.deprecated_addCompileTimeError(formal.charOffset,
-                  "An operator can't have optional parameters.");
+              addCompileTimeError(
+                  messageOperatorWithOptionalFormals, formal.charOffset);
             }
           }
         }
@@ -553,10 +561,13 @@ class OutlineBuilder extends UnhandledListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          library.deprecated_addCompileTimeError(formals[1].charOffset,
-              "Duplicated parameter name '${formals[1].name}'.");
-          library.deprecated_addCompileTimeError(formals[0].charOffset,
-              "Other parameter named '${formals[1].name}'.");
+          addCompileTimeError(
+              templateDuplicatedParameterName.withArguments(formals[1].name),
+              formals[1].charOffset);
+          addCompileTimeError(
+              templateDuplicatedParameterNameCause
+                  .withArguments(formals[1].name),
+              formals[0].charOffset);
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -564,11 +575,12 @@ class OutlineBuilder extends UnhandledListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            library.deprecated_addCompileTimeError(formal.charOffset,
-                "Duplicated parameter name '${formal.name}'.");
-            library.deprecated_addCompileTimeError(
-                seenNames[formal.name].charOffset,
-                "Other parameter named '${formal.name}'.");
+            addCompileTimeError(
+                templateDuplicatedParameterName.withArguments(formal.name),
+                formal.charOffset);
+            addCompileTimeError(
+                templateDuplicatedParameterNameCause.withArguments(formal.name),
+                seenNames[formal.name].charOffset);
           } else {
             seenNames[formal.name] = formal;
           }
@@ -670,8 +682,7 @@ class OutlineBuilder extends UnhandledListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        library.deprecated_addCompileTimeError(
-            equals.charOffset, "Can't create typedef from non-function type.");
+        addCompileTimeError(messageTypedefNotFunction, equals.charOffset);
       }
     }
     List<MetadataBuilder> metadata = pop();
@@ -868,8 +879,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
-    library.deprecated_addCompileTimeError(charOffset, message.message,
-        fileUri: uri);
+    library.addCompileTimeError(message, charOffset, uri);
   }
 
   @override

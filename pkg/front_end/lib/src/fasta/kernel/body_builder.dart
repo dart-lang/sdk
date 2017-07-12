@@ -345,8 +345,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           offset));
 
       // Reports the error on `print(x)`.
-      library.deprecated_addCompileTimeError(error.charOffset, error.error,
-          fileUri: error.uri);
+      library.addCompileTimeError(
+          fasta.templateUnspecified.withArguments(error.error),
+          error.charOffset,
+          error.uri);
     }
   }
 
@@ -3254,8 +3256,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool silent: false, bool wasHandled: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
     // avoid a long list of errors.
-    return library.deprecated_addCompileTimeError(charOffset, message,
-        fileUri: uri, silent: silent, wasHandled: wasHandled);
+    return library.addCompileTimeError(
+        fasta.templateUnspecified.withArguments(message), charOffset, uri,
+        silent: silent, wasHandled: wasHandled);
   }
 
   @override
@@ -3357,8 +3360,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
-    library.deprecated_addCompileTimeError(charOffset, message.message,
-        fileUri: uri);
+    library.addCompileTimeError(message, charOffset, uri);
   }
 
   @override
