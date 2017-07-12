@@ -104,6 +104,9 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
     for (var child in node.children) {
       _setCodeMemoryPercentage(node, child);
     }
+    node.children.sort((a, b) {
+      return b.inclusiveNativeAllocations - a.inclusiveNativeAllocations;
+    });
   }
 
   _recordCallerAndCalleesInner(
@@ -416,6 +419,9 @@ class FunctionCallTree extends CallTree implements M.FunctionCallTree {
     for (var child in node.children) {
       _setFunctionMemoryPercentage(node, child);
     }
+    node.children.sort((a, b) {
+      return b.inclusiveNativeAllocations - a.inclusiveNativeAllocations;
+    });
   }
 
   _markFunctionCallsInner(
