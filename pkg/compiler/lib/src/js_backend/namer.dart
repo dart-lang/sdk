@@ -21,7 +21,6 @@ import '../elements/elements.dart'
         Elements,
         FieldElement,
         MemberElement,
-        TypeDeclarationElement,
         MixinApplicationElement,
         TypedefElement;
 import '../elements/entities.dart';
@@ -907,7 +906,7 @@ class Namer {
   ///
   /// Should be used together with [globalObjectForType], which denotes the
   /// object on which the returned property name should be used.
-  jsAst.Name globalPropertyNameForType(TypeDeclarationElement element) =>
+  jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
   /**

@@ -242,11 +242,11 @@ class Collector {
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-    classesOnlyNeededForRti = new Set<ClassElement>();
-    for (ClassElement cls in _rtiNeededClasses) {
+    classesOnlyNeededForRti = new Set<ClassEntity>();
+    for (ClassEntity cls in _rtiNeededClasses) {
       while (cls != null && !neededClasses.contains(cls)) {
         if (!classesOnlyNeededForRti.add(cls)) break;
-        cls = cls.superclass;
+        cls = _elementEnvironment.getSuperClass(cls);
       }
     }
 

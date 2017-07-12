@@ -256,7 +256,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         closedWorld.nativeData,
         closedWorld.interceptorData);
     loopHandler = new SsaLoopHandler(this);
-    typeBuilder = new TypeBuilder(this);
+    typeBuilder = new TypeBuilderImpl(this);
   }
 
   MemberElement get targetElement => target;
@@ -2469,8 +2469,9 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, commonMasks.boolType);
     } else if (type.isTypeVariable) {
+      ResolutionTypeVariableType typeVariable = type;
       HInstruction runtimeType =
-          typeBuilder.addTypeVariableReference(type, sourceElement);
+          typeBuilder.addTypeVariableReference(typeVariable, sourceElement);
       MethodElement helper = commonElements.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, typeMask: commonMasks.boolType);
@@ -6851,4 +6852,13 @@ class AstInliningState extends InliningState {
       this.allFunctionsCalledOnce,
       this.oldElementInferenceResults)
       : super(function);
+}
+
+class TypeBuilderImpl extends TypeBuilder {
+  TypeBuilderImpl(GraphBuilder builder) : super(builder);
+
+  @override
+  InterfaceType getThisType(covariant ClassElement cls) {
+    return cls.thisType;
+  }
 }

@@ -50,6 +50,7 @@ const List<Test> TESTS = const <Test>[
   const Test(const {
     'main.dart': '''
 import 'dart:html';
+import 'package:expect/expect.dart';
 
 foo({named}) => 1;
 bar(a) => !a;
@@ -70,6 +71,8 @@ class SubClass extends Class {
     super.method();
   }  
 }
+
+class Generic<T> {}
 
 var toplevel;
 
@@ -123,9 +126,19 @@ main() {
     break;
   }
   x = toplevel;
+  x = testIs(x);
+  x = testAsGeneric(x);
+  x = testAsFunction(x);
   print(x);
   return x;
 }
+typedef NoArg();
+@NoInline()
+testIs(o) => o is Generic<int> || o is NoArg;
+@NoInline()
+testAsGeneric(o) => o as Generic<int>;
+@NoInline()
+testAsFunction(o) => o as NoArg;
 '''
   }),
   const Test(const {

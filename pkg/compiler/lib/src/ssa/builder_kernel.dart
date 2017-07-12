@@ -117,7 +117,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.sourceInformationBuilder,
       this.functionNode) {
     this.loopHandler = new KernelLoopHandler(this);
-    typeBuilder = new TypeBuilder(this);
+    typeBuilder = new KernelTypeBuilder(_elementMap, this);
     graph.element = targetElement;
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
@@ -3500,5 +3500,16 @@ class TryCatchFinallyBuilder {
             kernelBuilder.wrapStatementGraph(finallyGraph)),
         exitBlock);
     kernelBuilder.inTryStatement = previouslyInTryStatement;
+  }
+}
+
+class KernelTypeBuilder extends TypeBuilder {
+  KernelToElementMapForBuilding _elementMap;
+
+  KernelTypeBuilder(this._elementMap, GraphBuilder builder) : super(builder);
+
+  @override
+  InterfaceType getThisType(ClassEntity cls) {
+    return _elementMap.elementEnvironment.getThisType(cls);
   }
 }

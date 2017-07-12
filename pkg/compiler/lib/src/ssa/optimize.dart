@@ -850,7 +850,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    ResolutionDartType type = node.typeExpression;
+    DartType type = node.typeExpression;
     if (type != null) {
       if (type.isMalformed) {
         // Malformed types are treated as dynamic statically, but should
