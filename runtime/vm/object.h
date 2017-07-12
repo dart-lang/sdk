@@ -4692,8 +4692,7 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword PayloadStart() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.PayloadStart();
+    return Instructions::PayloadStart(instructions());
   }
   uword UncheckedEntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4703,10 +4702,7 @@ class Code : public Object {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.CheckedEntryPoint();
   }
-  intptr_t Size() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.Size();
-  }
+  intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
