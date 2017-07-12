@@ -193,4 +193,8 @@ class CompilerOptions {
   ///
   /// Dumped data is printed in stdout.
   bool debugDump = false;
+
+  /// Whether to set the exit code to non-zero if any problem (including
+  /// warning, etc.) is encountered during compilation.
+  bool setExitCodeOnProblem = false;
 }

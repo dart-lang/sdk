@@ -143,6 +143,7 @@ Future _main(List<String> argv) async {
     var program = await kernelForProgram(
         Uri.parse('dart:$vmserviceName'),
         new CompilerOptions()
+          ..setExitCodeOnProblem = true
           // TODO(sigmund): investigate. This should be outline, but it breaks
           // vm-debug tests. Issue #30111
           ..sdkSummary = platform
@@ -204,6 +205,7 @@ Future _main(List<String> argv) async {
 Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
     Uri fullOutput, Uri outlineOutput) async {
   var options = new CompilerOptions()
+    ..setExitCodeOnProblem = true
     ..strongMode = false
     ..compileSdk = true
     ..sdkRoot = patchedSdk

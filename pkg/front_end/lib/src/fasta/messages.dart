@@ -4,6 +4,8 @@
 
 library fasta.messages;
 
+import 'dart:io' show exitCode;
+
 import 'package:kernel/ast.dart' show Library, Location, Program, TreeNode;
 
 import 'util/relativize.dart' show relativizeUri;
@@ -29,6 +31,10 @@ bool get warningsAreFatal => CompilerContext.current.options.warningsAreFatal;
 bool get isVerbose => CompilerContext.current.options.verbose;
 
 bool get hideNits => !isVerbose;
+
+bool get setExitCodeOnProblem {
+  return CompilerContext.current.options.setExitCodeOnProblem;
+}
 
 void warning(Message message, int charOffset, Uri uri) {
   if (hideWarnings) return;
@@ -85,6 +91,9 @@ String colorNit(String message) {
 }
 
 String deprecated_format(Uri uri, int charOffset, String message) {
+  if (setExitCodeOnProblem) {
+    exitCode = 1;
+  }
   if (uri != null) {
     String path = relativizeUri(uri);
     Location location = charOffset == -1 ? null : getLocation(path, charOffset);

@@ -54,6 +54,10 @@ class CompilerCommandLine extends CommandLine {
         options.containsKey("/?");
   }
 
+  bool get setExitCodeOnProblem {
+    return options.containsKey("--set-exit-code-on-problem");
+  }
+
   void validate() {
     if (help) {
       print(computeUsage(programName, verbose));

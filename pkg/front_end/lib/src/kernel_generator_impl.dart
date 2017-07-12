@@ -11,14 +11,14 @@ import 'dart:async';
 import 'package:kernel/kernel.dart' show Program, CanonicalName;
 
 import 'base/processed_options.dart';
-import 'fasta/dill/dill_target.dart' show DillTarget;
+import 'fasta/compiler_command_line.dart' show CompilerCommandLine;
 import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
+import 'fasta/dill/dill_target.dart' show DillTarget;
 import 'fasta/kernel/kernel_outline_shaker.dart';
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
-import 'fasta/kernel/verifier.dart';
 import 'fasta/kernel/utils.dart';
-import 'fasta/compiler_command_line.dart';
+import 'fasta/kernel/verifier.dart';
 import 'fasta/translate_uri.dart' show TranslateUri;
 
 /// Implementation for the `package:front_end/kernel_generator.dart` and
@@ -28,7 +28,7 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
     bool buildProgram: true,
     bool trimDependencies: false}) async {
   // TODO(sigmund): Replace CompilerCommandLine and instead simply use a
-  // CompilerContext that directly uses the ProcessedOptions throught the
+  // CompilerContext that directly uses the ProcessedOptions through the
   // system.
   String programName = "";
   List<String> arguments = <String>[programName, "--target=none"];
@@ -37,6 +37,9 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
   }
   if (options.verbose) {
     arguments.add("--verbose");
+  }
+  if (options.setExitCodeOnProblem) {
+    arguments.add("--set-exit-code-on-problem");
   }
   return await CompilerCommandLine.withGlobalOptions(programName, arguments,
       (CompilerContext context) async {

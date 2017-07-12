@@ -80,6 +80,8 @@ class ProcessedOptions {
 
   bool get debugDump => _raw.debugDump;
 
+  bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
+
   /// Like [CompilerOptions.chaseDependencies] but with the appropriate default
   /// value filled in.
   bool get chaseDependencies => _raw.chaseDependencies ?? !_modularApi;
