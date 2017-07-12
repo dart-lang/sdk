@@ -643,7 +643,7 @@ class KernelTarget extends TargetImplementation {
 
   void verify() {
     var verifyErrors = verifyProgram(program);
-    errors.addAll(verifyErrors.map((error) => '$error'));
+    errors.addAll(verifyErrors.map((error) => error.message));
     ticker.logMs("Verified program");
   }
 

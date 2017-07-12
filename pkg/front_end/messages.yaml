@@ -624,6 +624,9 @@ InternalProblemAlreadyInitialized:
 InternalProblemBodyOnAbstractMethod:
   template: "Attempting to set body on abstract method."
 
+InternalVerificationError:
+  template: "Verification of the generated program failed: #string."
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
 
@@ -781,3 +784,17 @@ PartOfUseUri:
 
 PartOfUriMismatch:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'."
+
+MissingMain:
+  template: "No 'main' method found."
+  tip: "Try adding a method named 'main' to your program."
+  dart2jsCode: MISSING_MAIN
+
+MissingInputFile:
+  template: "Input file not found: #string."
+
+MissingSdkRoot:
+  template: "SDK root directory not found: #string."
+
+MissingSdkSummary:
+  template: "SDK summary not found: #string."

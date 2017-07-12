@@ -120,7 +120,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         trimProgram(summaryProgram, (uri) => !excluded.contains(uri));
       }
       if (options.verify) {
-        verifyProgram(summaryProgram).forEach((e) => options.reportError('$e'));
+        verifyProgram(summaryProgram).forEach(options.reportMessage);
       }
       if (options.debugDump) {
         printProgramText(summaryProgram,
@@ -147,7 +147,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
     }
 
     if (kernelTarget.errors.isNotEmpty) {
-      kernelTarget.errors.forEach(options.reportError);
+      kernelTarget.errors.forEach(options.deprecated_reportError);
       return null;
     }
 
@@ -156,7 +156,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         program: program,
         deps: kernelTarget.loader.getDependencies());
   } on deprecated_InputError catch (e) {
-    options.reportError(e.deprecated_format());
+    options.deprecated_reportError(e.deprecated_format());
     return null;
   } catch (e, t) {
     return reportCrash(e, t);

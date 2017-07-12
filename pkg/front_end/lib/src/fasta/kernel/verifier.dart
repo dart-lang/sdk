@@ -24,13 +24,14 @@ import 'package:kernel/verifier.dart' show VerificationError, VerifyingVisitor;
 
 import '../deprecated_problems.dart' show deprecated_printUnexpected;
 
+import '../fasta_codes.dart';
+
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
-List<VerificationError> verifyProgram(Program program,
-    {bool isOutline: false}) {
+List<LocatedMessage> verifyProgram(Program program, {bool isOutline: false}) {
   FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
   program.accept(verifier);
-  return verifier.errors;
+  return verifier.errors.map(convertError).toList();
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor
@@ -105,4 +106,14 @@ class FastaVerifyingVisitor extends VerifyingVisitor
     // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
     problem(null, "Unexpected appearance of the unknown type.");
   }
+}
+
+LocatedMessage convertError(VerificationError error) {
+  var node = error.node ?? error.context;
+  int offset = node?.fileOffset ?? -1;
+  var file = node?.location?.file;
+  Uri uri = file == null ? null : Uri.parse(file);
+  return templateInternalVerificationError
+      .withArguments(error.details)
+      .withLocation(uri, offset);
 }

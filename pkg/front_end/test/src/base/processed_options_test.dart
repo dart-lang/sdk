@@ -162,7 +162,7 @@ class ProcessedOptionsTest {
       ..onError = (e) => errors.add(e);
     var options = new ProcessedOptions(raw);
     expect(await options.validateOptions(), isFalse);
-    expect('${errors.first}', contains("SDK root directory not found"));
+    expect(errors.first.message, contains("SDK root directory not found"));
   }
 
   test_validateOptions_summary_exists() async {
@@ -189,7 +189,7 @@ class ProcessedOptionsTest {
       ..onError = (e) => errors.add(e);
     var options = new ProcessedOptions(raw);
     expect(await options.validateOptions(), isFalse);
-    expect('${errors.first}', contains("SDK summary not found"));
+    expect(errors.first.message, contains("SDK summary not found"));
   }
 
   test_validateOptions_inferred_summary_exists() async {
@@ -220,6 +220,6 @@ class ProcessedOptionsTest {
       ..onError = (e) => errors.add(e);
     var options = new ProcessedOptions(raw);
     expect(await options.validateOptions(), isFalse);
-    expect('${errors.first}', contains("SDK summary not found"));
+    expect(errors.first.message, contains("SDK summary not found"));
   }
 }

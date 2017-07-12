@@ -53,6 +53,11 @@ final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
 
 String compileTemplate(String name, String template, String tip,
     String analyzerCode, String dart2jsCode) {
+  if (template == null) {
+    print('Error: missing template for message: $name');
+    exit(1);
+    return '';
+  }
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();

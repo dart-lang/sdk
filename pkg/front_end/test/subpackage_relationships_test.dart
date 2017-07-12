@@ -41,6 +41,7 @@ final subpackageRules = {
   'lib': new SubpackageRules(allowedDependencies: [
     'lib/src',
     'lib/src/base',
+    'lib/src/fasta',
     'lib/src/incremental',
   ]),
   'lib/src': new SubpackageRules(allowedDependencies: [

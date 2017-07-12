@@ -8,9 +8,11 @@ import 'package:front_end/compilation_error.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
+import 'package:front_end/src/fasta/problems.dart' show unimplemented;
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
@@ -18,7 +20,7 @@ import 'package:kernel/kernel.dart'
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm_fasta.dart';
 import 'package:package_config/packages_file.dart' as package_config;
-import 'package:source_span/source_span.dart' show SourceSpan;
+import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
 /// All options needed for the front end implementation.
 ///
@@ -111,11 +113,17 @@ class ProcessedOptions {
     return _raw.byteStore;
   }
 
-  // TODO(sigmund): delete. We should use messages with error codes directly
-  // instead.
-  void reportError(String message) {
-    _raw.onError(new _CompilationError(message));
+  // TODO(sigmund,ahe): delete in favor of reportMessage.
+  void deprecated_reportError(String error) {
+    _raw.onError(new _StringMessage(error));
   }
+
+  void reportMessage(LocatedMessage message) {
+    _raw.onError(new _CompilationMessage(message));
+  }
+
+  void reportMessageWithoutLocation(Message message) =>
+      reportMessage(message.withLocation(null, -1));
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
@@ -123,26 +131,30 @@ class ProcessedOptions {
     for (var source in inputs) {
       if (source.scheme == 'file' &&
           !await fileSystem.entityForUri(source).exists()) {
-        reportError("Entry-point file not found: $source");
+        reportMessageWithoutLocation(
+            templateMissingInputFile.withArguments('$source'));
         return false;
       }
     }
 
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
-      reportError("SDK root directory not found: ${sdkRoot}");
+      reportMessageWithoutLocation(
+          templateMissingSdkRoot.withArguments('$sdkRoot'));
       return false;
     }
 
     var summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
-      reportError("SDK summary not found: ${summary}");
+      reportMessageWithoutLocation(
+          templateMissingSdkSummary.withArguments('$summary'));
       return false;
     }
 
     if (compileSdk && summary != null) {
-      reportError(
-          "The compileSdk and sdkSummary options are mutually exclusive");
+      reportMessageWithoutLocation(
+          templateInternalProblemUnsupported.withArguments(
+              "The compileSdk and sdkSummary options are mutually exclusive"));
       return false;
     }
     return true;
@@ -245,7 +257,7 @@ class ProcessedOptions {
     if (_packages == null) {
       if (_raw.packagesFileUri == null) {
         // TODO(sigmund,paulberry): implement
-        throw new UnimplementedError('search for .packages');
+        return unimplemented('search for .packages');
       } else if (_raw.packagesFileUri.path.isEmpty) {
         _packages = {};
       } else {
@@ -265,7 +277,7 @@ class ProcessedOptions {
     if (_raw.sdkRoot == null) {
       // TODO(paulberry): implement the algorithm for finding the SDK
       // automagically.
-      throw new UnimplementedError('infer the default sdk location');
+      return unimplemented('infer the default sdk location');
     }
     var root = _raw.sdkRoot;
     if (!root.path.endsWith('/')) {
@@ -346,12 +358,30 @@ class HermeticAccessException extends FileSystemException {
   String toString() => message;
 }
 
-/// An error that only contains a message and no error location.
-class _CompilationError implements CompilationError {
-  String get correction => null;
-  SourceSpan get span => null;
+/// Wraps a [LocatedMessage] to implement the public [CompilationError] API.
+class _CompilationMessage implements CompilationError {
+  final LocatedMessage original;
+
+  String get message => original.message;
+
+  String get tip => original.tip;
+
+  SourceSpan get span =>
+      new SourceLocation(original.charOffset, sourceUrl: original.uri)
+          .pointSpan();
+
+  _CompilationMessage(this.original);
+
+  String toString() => message;
+}
+
+/// Wraps an error message as a [CompilationError] API.
+class _StringMessage implements CompilationError {
   final String message;
-  _CompilationError(this.message);
+  String get tip => null;
+  SourceSpan get span => null;
+
+  _StringMessage(this.message);
 
   String toString() => message;
 }

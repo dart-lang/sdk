@@ -1433,6 +1433,28 @@ Message _withArgumentsInternalProblemUnsupported(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInternalVerificationError =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Verification of the generated program failed: #string.""",
+        withArguments: _withArgumentsInternalVerificationError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInternalVerificationError =
+    const Code<Message Function(String string)>(
+  "InternalVerificationError",
+  templateInternalVerificationError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalVerificationError(String string) {
+  return new Message(codeInternalVerificationError,
+      message: """Verification of the generated program failed: $string.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1583,6 +1605,35 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateMissingInputFile =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Input file not found: #string.""",
+        withArguments: _withArgumentsMissingInputFile);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeMissingInputFile =
+    const Code<Message Function(String string)>(
+  "MissingInputFile",
+  templateMissingInputFile,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingInputFile(String string) {
+  return new Message(codeMissingInputFile,
+      message: """Input file not found: $string.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingMain = messageMissingMain;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingMain = const MessageCode("MissingMain",
+    dart2jsCode: "MISSING_MAIN",
+    message: r"""No 'main' method found.""",
+    tip: r"""Try adding a method named 'main' to your program.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templateMissingPartOf = const Template<
         Message Function(Uri uri_)>(
@@ -1604,6 +1655,46 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
       message:
           """Can't use '$uri' as a part, because it has no 'part of' declaration.""",
       arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateMissingSdkRoot =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""SDK root directory not found: #string.""",
+        withArguments: _withArgumentsMissingSdkRoot);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeMissingSdkRoot =
+    const Code<Message Function(String string)>(
+  "MissingSdkRoot",
+  templateMissingSdkRoot,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingSdkRoot(String string) {
+  return new Message(codeMissingSdkRoot,
+      message: """SDK root directory not found: $string.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateMissingSdkSummary =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""SDK summary not found: #string.""",
+        withArguments: _withArgumentsMissingSdkSummary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeMissingSdkSummary =
+    const Code<Message Function(String string)>(
+  "MissingSdkSummary",
+  templateMissingSdkSummary,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingSdkSummary(String string) {
+  return new Message(codeMissingSdkSummary,
+      message: """SDK summary not found: $string.""",
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
