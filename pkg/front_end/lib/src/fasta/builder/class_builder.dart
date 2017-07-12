@@ -229,8 +229,4 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   void deprecated_addWarning(int charOffset, String message) {
     library.deprecated_addWarning(charOffset, message, fileUri: fileUri);
   }
-
-  void deprecated_addNit(int charOffset, String message) {
-    library.deprecated_addNit(charOffset, message, fileUri: fileUri);
-  }
 }

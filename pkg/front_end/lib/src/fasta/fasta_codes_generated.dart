@@ -225,6 +225,56 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateDuplicatedExport =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate:
+            r"""'#name' is exported from both '#uri' and '#uri2'.""",
+        withArguments: _withArgumentsDuplicatedExport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeDuplicatedExport =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+  "DuplicatedExport",
+  templateDuplicatedExport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeDuplicatedExport,
+      message: """'$name' is exported from both '$uri' and '$uri2'.""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateDuplicatedImport =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate:
+            r"""'#name' is imported from both '#uri' and '#uri2'.""",
+        withArguments: _withArgumentsDuplicatedImport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeDuplicatedImport =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+  "DuplicatedImport",
+  templateDuplicatedImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeDuplicatedImport,
+      message: """'$name' is imported from both '$uri' and '$uri2'.""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -475,6 +525,31 @@ Message _withArgumentsExpectedType(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateExportHidesExport =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate:
+            r"""Export of '#name' (from '#uri') hides export from '#uri2'.""",
+        withArguments: _withArgumentsExportHidesExport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeExportHidesExport =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+  "ExportHidesExport",
+  templateExportHidesExport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeExportHidesExport,
+      message: """Export of '$name' (from '$uri') hides export from '$uri2'.""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExtraneousModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Can't have modifier '#lexeme' here.""",
@@ -646,6 +721,31 @@ const MessageCode messageGetterWithFormals = const MessageCode(
     dart2jsCode: "*ignored*",
     message: r"""A getter can't have formal parameters.""",
     tip: r"""Try removing '(...)'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateImportHidesImport =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate:
+            r"""Import of '#name' (from '#uri') hides import from '#uri2'.""",
+        withArguments: _withArgumentsImportHidesImport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeImportHidesImport =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+  "ImportHidesImport",
+  templateImportHidesImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeImportHidesImport,
+      message: """Import of '$name' (from '$uri') hides import from '$uri2'.""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemAlreadyInitialized =
@@ -959,6 +1059,54 @@ const Code<Null> codeListLiteralTypeArgumentMismatch =
 const MessageCode messageListLiteralTypeArgumentMismatch = const MessageCode(
     "ListLiteralTypeArgumentMismatch",
     message: r"""Map literal requires two type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)>
+    templateLocalDefinitionHidesExport =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate:
+            r"""Local definition of '#name' hides export from '#uri'.""",
+        withArguments: _withArgumentsLocalDefinitionHidesExport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)>
+    codeLocalDefinitionHidesExport =
+    const Code<Message Function(String name, Uri uri_)>(
+  "LocalDefinitionHidesExport",
+  templateLocalDefinitionHidesExport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLocalDefinitionHidesExport(String name, Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeLocalDefinitionHidesExport,
+      message: """Local definition of '$name' hides export from '$uri'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)>
+    templateLocalDefinitionHidesImport =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate:
+            r"""Local definition of '#name' hides import from '#uri'.""",
+        withArguments: _withArgumentsLocalDefinitionHidesImport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)>
+    codeLocalDefinitionHidesImport =
+    const Code<Message Function(String name, Uri uri_)>(
+  "LocalDefinitionHidesImport",
+  templateLocalDefinitionHidesImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeLocalDefinitionHidesImport,
+      message: """Local definition of '$name' hides import from '$uri'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;

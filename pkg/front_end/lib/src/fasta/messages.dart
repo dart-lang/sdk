@@ -68,16 +68,6 @@ void deprecated_warning(Uri uri, int charOffset, String message) {
   }
 }
 
-void deprecated_nit(Uri uri, int charOffset, String message) {
-  if (hideNits) return;
-  print(deprecated_format(uri, charOffset, colorNit("Nit: $message")));
-  if (nitsAreFatal) {
-    if (isVerbose) print(StackTrace.current);
-    throw new deprecated_InputError(
-        uri, charOffset, "Compilation aborted due to fatal nits.");
-  }
-}
-
 String colorWarning(String message) {
   // TODO(ahe): Colors need to be optional. Doesn't work well in Emacs or on
   // Windows.

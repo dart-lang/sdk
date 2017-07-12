@@ -105,7 +105,7 @@ String compileTemplate(String name, String template, String tip,
       case "#uri2":
         parameters.add("Uri uri2_");
         conversions.add("String uri2 = relativizeUri(uri2_);");
-        arguments.add("'uri': uri2_");
+        arguments.add("'uri2': uri2_");
         break;
 
       default:

@@ -123,6 +123,8 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
+  void warning(Message message, int charOffset);
+
   void deprecated_warning(String message, [int charOffset]);
 
   void warnUnresolvedSuperGet(Name name, int charOffset);
@@ -956,12 +958,12 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       int offset = offsetForToken(token);
       if (declaration is KernelInvalidTypeBuilder) {
         KernelInvalidTypeBuilder declaration = this.declaration;
-        String message = declaration.message;
-        helper.library.deprecated_addWarning(declaration.charOffset, message,
-            fileUri: declaration.fileUri);
-        helper.deprecated_warning(message, offset);
+        helper.library.addWarning(
+            declaration.message, declaration.charOffset, declaration.fileUri);
+        helper.warning(declaration.message, offset);
         super.expression = new Throw(
-            new StringLiteral(message)..fileOffset = offsetForToken(token))
+            new StringLiteral(declaration.message.message)
+              ..fileOffset = offsetForToken(token))
           ..fileOffset = offset;
       } else {
         super.expression = new KernelTypeLiteral(

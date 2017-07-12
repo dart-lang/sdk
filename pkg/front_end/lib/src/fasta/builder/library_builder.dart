@@ -15,7 +15,6 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         Message,
-        deprecated_nit,
         deprecated_warning,
         nit,
         templateInternalProblemConstructorNotFound,
@@ -113,14 +112,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     fileUri ??= this.fileUri;
     if (!silent) {
       deprecated_warning(fileUri, charOffset, message);
-    }
-  }
-
-  void deprecated_addNit(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
-    fileUri ??= this.fileUri;
-    if (!silent) {
-      deprecated_nit(fileUri, charOffset, message);
     }
   }
 

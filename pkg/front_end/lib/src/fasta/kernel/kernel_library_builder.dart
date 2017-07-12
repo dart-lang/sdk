@@ -10,6 +10,16 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import '../../scanner/token.dart' show Token;
 
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateDuplicatedExport,
+        templateDuplicatedImport,
+        templateExportHidesExport,
+        templateImportHidesImport,
+        templateLocalDefinitionHidesExport,
+        templateLocalDefinitionHidesImport;
+
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
@@ -729,25 +739,15 @@ class KernelLibraryBuilder
     }
     if (preferred != null) {
       if (isLocal) {
-        if (isExport) {
-          deprecated_addNit(charOffset,
-              "Local definition of '$name' hides export from '${hiddenUri}'.");
-        } else {
-          deprecated_addNit(charOffset,
-              "Local definition of '$name' hides import from '${hiddenUri}'.");
-        }
+        var template = isExport
+            ? templateLocalDefinitionHidesExport
+            : templateLocalDefinitionHidesImport;
+        addNit(template.withArguments(name, hiddenUri), charOffset, fileUri);
       } else {
-        if (isExport) {
-          deprecated_addNit(
-              charOffset,
-              "Export of '$name' (from '${preferredUri}') hides export from "
-              "'${hiddenUri}'.");
-        } else {
-          deprecated_addNit(
-              charOffset,
-              "Import of '$name' (from '${preferredUri}') hides import from "
-              "'${hiddenUri}'.");
-        }
+        var template =
+            isExport ? templateExportHidesExport : templateImportHidesImport;
+        addNit(template.withArguments(name, preferredUri, hiddenUri),
+            charOffset, fileUri);
       }
       return preferred;
     }
@@ -763,10 +763,10 @@ class KernelLibraryBuilder
           });
       }
     }
-    String message = isExport
-        ? "'$name' is exported from both '${uri}' and '${otherUri}'."
-        : "'$name' is imported from both '${uri}' and '${otherUri}'.";
-    deprecated_addNit(charOffset, message);
+    var template =
+        isExport ? templateDuplicatedExport : templateDuplicatedImport;
+    Message message = template.withArguments(name, uri, otherUri);
+    addNit(message, charOffset, fileUri);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
   }
 

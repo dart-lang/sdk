@@ -621,3 +621,21 @@ InternalProblemAlreadyInitialized:
 
 InternalProblemBodyOnAbstractMethod:
   template: "Attempting to set body on abstract method."
+
+LocalDefinitionHidesExport:
+  template: "Local definition of '#name' hides export from '#uri'."
+
+LocalDefinitionHidesImport:
+  template: "Local definition of '#name' hides import from '#uri'."
+
+ExportHidesExport:
+  template: "Export of '#name' (from '#uri') hides export from '#uri2'."
+
+ImportHidesImport:
+  template: "Import of '#name' (from '#uri') hides import from '#uri2'."
+
+DuplicatedExport:
+  template: "'#name' is exported from both '#uri' and '#uri2'."
+
+DuplicatedImport:
+  template: "'#name' is imported from both '#uri' and '#uri2'."
