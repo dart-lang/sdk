@@ -844,7 +844,8 @@ import 'a.dart';
   }
 
   void _assertCompiledUris(Iterable<Uri> expected) {
-    var compiledCycles = incrementalKernelGenerator.test.compiledCycles;
+    var compiledCycles =
+        incrementalKernelGenerator.test.driver.test.compiledCycles;
     Set<Uri> compiledUris = compiledCycles
         .map((cycle) => cycle.libraries.map((file) => file.uri))
         .expand((uris) => uris)
