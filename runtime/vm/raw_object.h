@@ -709,7 +709,7 @@ class RawClass : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  NOT_IN_PRODUCT(RawString* user_name_);
+  RawString* user_name_;
   RawArray* functions_;
   RawArray* functions_hash_table_;
   RawArray* fields_;

@@ -79,6 +79,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
     FLAG_unbox_numeric_fields = false;
+    FLAG_enable_mirrors = false;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_bootstrap.
@@ -87,7 +88,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_enable_mirrors = false;
     FLAG_load_deferred_eagerly = true;
     FLAG_print_stop_message = false;
     FLAG_use_osr = false;
@@ -103,7 +103,6 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 COMPILE_ASSERT(!FLAG_collect_code);
 COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
-COMPILE_ASSERT(!FLAG_enable_mirrors);
 COMPILE_ASSERT(FLAG_precompiled_runtime);
 COMPILE_ASSERT(!FLAG_print_stop_message);
 COMPILE_ASSERT(!FLAG_use_osr);

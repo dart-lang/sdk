@@ -3954,7 +3954,7 @@ class Library : public Object {
   static RawLibrary* InternalLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawLibrary* MirrorsLibrary();
 #endif
   static RawLibrary* NativeWrappersLibrary();

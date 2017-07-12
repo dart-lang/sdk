@@ -192,10 +192,8 @@ regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
-[ $compiler == precompiler || $mode == product ]
-apply3_test: SkipByDesign # Imports dart:mirrors
-
 [ $compiler == precompiler ]
+apply3_test: SkipByDesign # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify

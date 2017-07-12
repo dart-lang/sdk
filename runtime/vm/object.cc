@@ -268,12 +268,12 @@ RawString* String::ScrubName(const String& name) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   const char* cname = name.ToCString();
   ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
@@ -317,7 +317,7 @@ RawString* String::ScrubName(const String& name) {
     unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t len = sum_segment_len;
   intptr_t start = 0;
   intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
@@ -366,14 +366,14 @@ RawString* String::ScrubName(const String& name) {
   }
 
   unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
-#endif  // !defined(PRODUCT)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   return Symbols::New(thread, unmangled_name);
 }
 
 
 RawString* String::ScrubNameRetainPrivate(const String& name) {
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t len = name.Length();
   intptr_t start = 0;
   intptr_t at_pos = -1;  // Position of '@' in the name, if any.
@@ -416,8 +416,8 @@ RawString* String::ScrubNameRetainPrivate(const String& name) {
   }
 
   return result.raw();
-#endif                // !defined(PRODUCT)
-  return name.raw();  // In PRODUCT, return argument unchanged.
+#endif                // !defined(DART_PRECOMPILED_RUNTIME)
+  return name.raw();  // In AOT, return argument unchanged.
 }
 
 
@@ -1511,7 +1511,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
 
 // Pre-register the mirrors library so we can place the vm class
 // MirrorReference there rather than the core library.
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
     lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
@@ -10359,7 +10359,6 @@ RawField* Library::GetMetadataField(const String& metaname) const {
 
 RawObject* Library::GetMetadata(const Object& obj) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  COMPILE_ASSERT(!FLAG_enable_mirrors);
   return Object::empty_array().raw();
 #else
   if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
@@ -11564,7 +11563,7 @@ RawLibrary* Library::MathLibrary() {
 }
 
 
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawLibrary* Library::MirrorsLibrary() {
   return Isolate::Current()->object_store()->mirrors_library();
 }
@@ -11942,7 +11941,6 @@ void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
 
 RawObject* Namespace::GetMetadata() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  COMPILE_ASSERT(!FLAG_enable_mirrors);
   return Object::empty_array().raw();
 #else
   Field& field = Field::Handle(metadata_field());

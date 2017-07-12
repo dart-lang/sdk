@@ -456,8 +456,13 @@ mirrors/metadata_allowed_values_test/31: Crash # Issue 25911
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 
-[ $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler ]
 mirrors/*: SkipByDesign
+
+[ $compiler == none && $mode == product ]
+mirrors/load_library_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_import_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
+mirrors/library_enumeration_deferred_loading_test: RuntimeError,OK # Deferred loaded eagerly
 
 [ $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout

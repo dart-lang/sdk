@@ -27,9 +27,9 @@ static struct NativeEntries {
   Dart_NativeFunction function_;
   int argument_count_;
 } BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
                             MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
-#endif  // !PRODUCT && !DART_PRECOMPILED_RUNTIME
+#endif  // !DART_PRECOMPILED_RUNTIME
 };
 
 
@@ -117,12 +117,12 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
-#endif  // !defined(PRODUCT)
+#endif
 
   library = Library::ProfilerLibrary();
   ASSERT(!library.IsNull());

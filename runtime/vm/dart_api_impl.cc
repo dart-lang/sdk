@@ -5929,7 +5929,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
     I->debugger()->NotifyDoneLoading();
   }
 
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_mirrors) {
     // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
     const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
