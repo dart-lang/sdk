@@ -29,14 +29,16 @@ main(List<String> arguments) async {
 part of fasta.codes;
 """);
 
-  yaml.forEach((String name, description) {
+  List<String> keys = yaml.keys.toList()..sort();
+  for (String name in keys) {
+    var description = yaml[name];
     while (description is String) {
       description = yaml[description];
     }
     Map map = description;
     sb.writeln(compileTemplate(name, map['template'], map['tip'],
         map['analyzerCode'], map['dart2jsCode']));
-  });
+  }
 
   String dartfmtedText = new DartFormatter().format("$sb");
 
