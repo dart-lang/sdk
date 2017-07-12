@@ -48,6 +48,27 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     message: r"""Can only use type variables in instance methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInternalProblemUnsupported =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Unsupported operation: '#name'.""",
+        withArguments: _withArgumentsInternalProblemUnsupported);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInternalProblemUnsupported =
+    const Code<Message Function(String name)>(
+  "InternalProblemUnsupported",
+  templateInternalProblemUnsupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUnsupported(String name) {
+  return new Message(codeInternalProblemUnsupported,
+      message: """Unsupported operation: '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemPreviousTokenNotFound =
     messageInternalProblemPreviousTokenNotFound;
 
@@ -130,33 +151,10 @@ const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
     message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String string2)>
-    templateUnexpected =
-    const Template<Message Function(String string, String string2)>(
-        messageTemplate:
-            r"""Internal error: Expected '#string', but got '#string2'.""",
-        withArguments: _withArgumentsUnexpected);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2)> codeUnexpected =
-    const Code<Message Function(String string, String string2)>(
-  "Unexpected",
-  templateUnexpected,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnexpected(String string, String string2) {
-  return new Message(codeUnexpected,
-      message: """Internal error: Expected '$string', but got '$string2'.""",
-      arguments: {'string': string, 'string2': string2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_)>
     templateInternalProblemConstructorNotFound =
     const Template<Message Function(String name, Uri uri_)>(
-        messageTemplate:
-            r"""Internal error: No constructor named '#name' in '#uri'.""",
+        messageTemplate: r"""No constructor named '#name' in '#uri'.""",
         withArguments: _withArgumentsInternalProblemConstructorNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -172,7 +170,7 @@ Message _withArgumentsInternalProblemConstructorNotFound(
     String name, Uri uri_) {
   String uri = relativizeUri(uri_);
   return new Message(codeInternalProblemConstructorNotFound,
-      message: """Internal error: No constructor named '$name' in '$uri'.""",
+      message: """No constructor named '$name' in '$uri'.""",
       arguments: {'name': name, 'uri': uri_});
 }
 
@@ -392,8 +390,7 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
 const Template<Message Function(String name, String name2)>
     templateInternalProblemNotFoundIn =
     const Template<Message Function(String name, String name2)>(
-        messageTemplate:
-            r"""Internal error: Couldn't find '#name' in '#name2'.""",
+        messageTemplate: r"""Couldn't find '#name' in '#name2'.""",
         withArguments: _withArgumentsInternalProblemNotFoundIn);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -407,7 +404,7 @@ const Code<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
   return new Message(codeInternalProblemNotFoundIn,
-      message: """Internal error: Couldn't find '$name' in '$name2'.""",
+      message: """Couldn't find '$name' in '$name2'.""",
       arguments: {'name': name, 'name2': name2});
 }
 
@@ -434,7 +431,7 @@ Message _withArgumentsTypeNotFound(String name) {
 const Template<Message Function(String name)>
     templateInternalProblemSuperclassNotFound =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""Internal error: Superclass not found '#name'.""",
+        messageTemplate: r"""Superclass not found '#name'.""",
         withArguments: _withArgumentsInternalProblemSuperclassNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -448,8 +445,7 @@ const Code<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
   return new Message(codeInternalProblemSuperclassNotFound,
-      message: """Internal error: Superclass not found '$name'.""",
-      arguments: {'name': name});
+      message: """Superclass not found '$name'.""", arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -481,55 +477,13 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateUnimplemented =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Internal error: Unimplemented #string.""",
-        withArguments: _withArgumentsUnimplemented);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeUnimplemented =
-    const Code<Message Function(String string)>(
-  "Unimplemented",
-  templateUnimplemented,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnimplemented(String string) {
-  return new Message(codeUnimplemented,
-      message: """Internal error: Unimplemented $string.""",
-      arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, String string2)>
-    templateUnhandled =
-    const Template<Message Function(String string, String string2)>(
-        messageTemplate: r"""Internal error: Unhandled #string in #string2.""",
-        withArguments: _withArgumentsUnhandled);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, String string2)> codeUnhandled =
-    const Code<Message Function(String string, String string2)>(
-  "Unhandled",
-  templateUnhandled,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnhandled(String string, String string2) {
-  return new Message(codeUnhandled,
-      message: """Internal error: Unhandled $string in $string2.""",
-      arguments: {'string': string, 'string2': string2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemBodyOnAbstractMethod =
     messageInternalProblemBodyOnAbstractMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemBodyOnAbstractMethod =
     const MessageCode("InternalProblemBodyOnAbstractMethod",
-        message:
-            r"""Internal error: Attempting to set body on abstract method.""");
+        message: r"""Attempting to set body on abstract method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
@@ -654,7 +608,7 @@ const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
 const Template<Message Function(String name, String string)>
     templateInternalProblemStackNotEmpty =
     const Template<Message Function(String name, String string)>(
-        messageTemplate: r"""Internal error: #name.stack isn't empty:
+        messageTemplate: r"""#name.stack isn't empty:
   #string""", withArguments: _withArgumentsInternalProblemStackNotEmpty);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -668,7 +622,7 @@ const Code<Message Function(String name, String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
   return new Message(codeInternalProblemStackNotEmpty,
-      message: """Internal error: $name.stack isn't empty:
+      message: """$name.stack isn't empty:
   $string""", arguments: {'name': name, 'string': string});
 }
 
@@ -695,8 +649,7 @@ Message _withArgumentsGetterNotFound(String name) {
 const Template<Message Function(String name)>
     templateInternalProblemPrivateConstructorAccess =
     const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Internal error: Can't access private constructor '#name'.""",
+        messageTemplate: r"""Can't access private constructor '#name'.""",
         withArguments: _withArgumentsInternalProblemPrivateConstructorAccess);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -710,7 +663,7 @@ const Code<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
   return new Message(codeInternalProblemPrivateConstructorAccess,
-      message: """Internal error: Can't access private constructor '$name'.""",
+      message: """Can't access private constructor '$name'.""",
       arguments: {'name': name});
 }
 
@@ -741,6 +694,26 @@ Message _withArgumentsExpectedDeclaration(Token token) {
   return new Message(codeExpectedDeclaration,
       message: """Expected a declaration, but got '$lexeme'.""",
       arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInternalProblemUnimplemented =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Unimplemented #string.""",
+        withArguments: _withArgumentsInternalProblemUnimplemented);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInternalProblemUnimplemented =
+    const Code<Message Function(String string)>(
+  "InternalProblemUnimplemented",
+  templateInternalProblemUnimplemented,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUnimplemented(String string) {
+  return new Message(codeInternalProblemUnimplemented,
+      message: """Unimplemented $string.""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -812,7 +785,7 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""Internal error: Couldn't find '#name'.""",
+        messageTemplate: r"""Couldn't find '#name'.""",
         withArguments: _withArgumentsInternalProblemNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -825,8 +798,7 @@ const Code<Message Function(String name)> codeInternalProblemNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFound(String name) {
   return new Message(codeInternalProblemNotFound,
-      message: """Internal error: Couldn't find '$name'.""",
-      arguments: {'name': name});
+      message: """Couldn't find '$name'.""", arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -838,6 +810,28 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
     dart2jsCode: "INVALID_SYNC_MODIFIER",
     message: r"""Invalid modifier 'sync'.""",
     tip: r"""Try replacing 'sync' with 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String string2)>
+    templateInternalProblemUnhandled =
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate: r"""Unhandled #string in #string2.""",
+        withArguments: _withArgumentsInternalProblemUnhandled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeInternalProblemUnhandled =
+    const Code<Message Function(String string, String string2)>(
+  "InternalProblemUnhandled",
+  templateInternalProblemUnhandled,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUnhandled(String string, String string2) {
+  return new Message(codeInternalProblemUnhandled,
+      message: """Unhandled $string in $string2.""",
+      arguments: {'string': string, 'string2': string2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFastaCLIArgumentRequired =
@@ -991,6 +985,28 @@ const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
         r"""'await' is only supported in methods with an 'async' or 'async*' body modifier.""",
     tip:
         r"""Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String string2)>
+    templateInternalProblemUnexpected =
+    const Template<Message Function(String string, String string2)>(
+        messageTemplate: r"""Expected '#string', but got '#string2'.""",
+        withArguments: _withArgumentsInternalProblemUnexpected);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeInternalProblemUnexpected =
+    const Code<Message Function(String string, String string2)>(
+  "InternalProblemUnexpected",
+  templateInternalProblemUnexpected,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUnexpected(String string, String string2) {
+  return new Message(codeInternalProblemUnexpected,
+      message: """Expected '$string', but got '$string2'.""",
+      arguments: {'string': string, 'string2': string2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedType =
@@ -1239,8 +1255,7 @@ const Code<Null> codeInternalProblemAlreadyInitialized =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
     "InternalProblemAlreadyInitialized",
-    message:
-        r"""Internal error: Attempt to set initializer on field without initializer.""");
+    message: r"""Attempt to set initializer on field without initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidVoid = messageInvalidVoid;
@@ -1308,26 +1323,6 @@ const Code<Message Function(String name)> codeMethodNotFound =
 Message _withArgumentsMethodNotFound(String name) {
   return new Message(codeMethodNotFound,
       message: """Method not found: '$name'.""", arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateUnsupported =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Internal error: Unsupported operation: '#name'.""",
-        withArguments: _withArgumentsUnsupported);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeUnsupported =
-    const Code<Message Function(String name)>(
-  "Unsupported",
-  templateUnsupported,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnsupported(String name) {
-  return new Message(codeUnsupported,
-      message: """Internal error: Unsupported operation: '$name'.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

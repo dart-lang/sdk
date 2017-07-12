@@ -12,6 +12,14 @@
 # 3. Examples that produce the message (one of expression, statement,
 #    declaration, member, script, or bytes).
 #
+# A message shouldn't indicate which kind of diagnostic it is, for example,
+# warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
+# and should be allowed to change the kind of diagnostic without affecting the
+# message. For example, an error might be turned into a warning by the tool.
+#
+# A message used for internal errors should have key that starts with
+# "InternalProblem". This way, UX review can prioritize it accordingly.
+#
 # In addition, an entry can contain an analyzer error code (analyzerCode) and a
 # dart2js error code (dart2jsCode).
 #
@@ -572,32 +580,32 @@ ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
   dart2jsCode: "*ignored*"
 
-Unhandled:
-  template: "Internal error: Unhandled #string in #string2."
+InternalProblemUnhandled:
+  template: "Unhandled #string in #string2."
 
-Unimplemented:
-  template: "Internal error: Unimplemented #string."
+InternalProblemUnimplemented:
+  template: "Unimplemented #string."
 
-Unexpected:
-  template: "Internal error: Expected '#string', but got '#string2'."
+InternalProblemUnexpected:
+  template: "Expected '#string', but got '#string2'."
 
-Unsupported:
-  template: "Internal error: Unsupported operation: '#name'."
+InternalProblemUnsupported:
+  template: "Unsupported operation: '#name'."
 
 InternalProblemSuperclassNotFound:
-  template: "Internal error: Superclass not found '#name'."
+  template: "Superclass not found '#name'."
 
 InternalProblemNotFound:
-  template: "Internal error: Couldn't find '#name'."
+  template: "Couldn't find '#name'."
 
 InternalProblemNotFoundIn:
-  template: "Internal error: Couldn't find '#name' in '#name2'."
+  template: "Couldn't find '#name' in '#name2'."
 
 InternalProblemPrivateConstructorAccess:
-  template: "Internal error: Can't access private constructor '#name'."
+  template: "Can't access private constructor '#name'."
 
 InternalProblemConstructorNotFound:
-  template: "Internal error: No constructor named '#name' in '#uri'."
+  template: "No constructor named '#name' in '#uri'."
 
 InternalProblemExtendingUnmodifiableScope:
   template: "Can't extend an unmodifiable scope."
@@ -606,10 +614,10 @@ InternalProblemPreviousTokenNotFound:
   template: "Couldn't find previous token."
 
 InternalProblemStackNotEmpty:
-  template: "Internal error: #name.stack isn't empty:\n  #string"
+  template: "#name.stack isn't empty:\n  #string"
 
 InternalProblemAlreadyInitialized:
-  template: "Internal error: Attempt to set initializer on field without initializer."
+  template: "Attempt to set initializer on field without initializer."
 
 InternalProblemBodyOnAbstractMethod:
-  template: "Internal error: Attempting to set body on abstract method."
+  template: "Attempting to set body on abstract method."

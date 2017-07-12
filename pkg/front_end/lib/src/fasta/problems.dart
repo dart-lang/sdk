@@ -8,42 +8,56 @@ import 'messages.dart'
     show
         Message,
         deprecated_format,
-        templateUnexpected,
-        templateUnhandled,
-        templateUnimplemented,
-        templateUnsupported;
+        templateInternalProblemUnexpected,
+        templateInternalProblemUnhandled,
+        templateInternalProblemUnimplemented,
+        templateInternalProblemUnsupported;
 
 /// Used to report an internal error.
 ///
 /// Internal errors should be avoided as best as possible, but are preferred
-/// over assertion failures. The message should start with "Internal error:"
+/// over assertion failures. The message should start with an upper-case letter
 /// and contain a short description that may help a developer debug the issue.
 /// This method should be called instead of using `throw`, as this allows us to
 /// ensure that there are no throws anywhere else in the codebase.
+///
+/// Before printing the message, the string `"Internal error: "` is prepended.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
+  String text = "Internal error: ${message.message}";
+  if (message.tip != null) {
+    text += "\n${message.tip}";
+  }
   if (uri == null && charOffset == -1) {
-    throw message.message;
+    throw text;
   } else {
-    throw deprecated_format(uri, charOffset, message.message);
+    throw deprecated_format(uri, charOffset, text);
   }
 }
 
 dynamic unimplemented(String what, int charOffset, Uri uri) {
   return internalProblem(
-      templateUnimplemented.withArguments(what), charOffset, uri);
+      templateInternalProblemUnimplemented.withArguments(what),
+      charOffset,
+      uri);
 }
 
 dynamic unhandled(String what, String where, int charOffset, Uri uri) {
   return internalProblem(
-      templateUnhandled.withArguments(what, where), charOffset, uri);
+      templateInternalProblemUnhandled.withArguments(what, where),
+      charOffset,
+      uri);
 }
 
 dynamic unexpected(String expected, String actual, int charOffset, Uri uri) {
   return internalProblem(
-      templateUnexpected.withArguments(expected, actual), charOffset, uri);
+      templateInternalProblemUnexpected.withArguments(expected, actual),
+      charOffset,
+      uri);
 }
 
 dynamic unsupported(String operation, int charOffset, Uri uri) {
   return internalProblem(
-      templateUnsupported.withArguments(operation), charOffset, uri);
+      templateInternalProblemUnsupported.withArguments(operation),
+      charOffset,
+      uri);
 }
