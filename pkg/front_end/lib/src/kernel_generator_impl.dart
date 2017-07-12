@@ -12,6 +12,7 @@ import 'package:kernel/kernel.dart' show Program, CanonicalName;
 
 import 'base/processed_options.dart';
 import 'fasta/dill/dill_target.dart' show DillTarget;
+import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
 import 'fasta/kernel/kernel_outline_shaker.dart';
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
@@ -29,11 +30,17 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
   // TODO(sigmund): Replace CompilerCommandLine and instead simply use a
   // CompilerContext that directly uses the ProcessedOptions throught the
   // system.
-  return await CompilerCommandLine.withGlobalOptions("", [""], (context) async {
-    context.options.options['--target'] = options.target;
-    context.options.options['--strong-mode'] = options.strongMode;
-    context.options.options['--verbose'] = options.verbose;
-
+  String programName = "";
+  List<String> arguments = <String>[programName, "--target=none"];
+  if (options.strongMode) {
+    arguments.add("--strong-mode");
+  }
+  if (options.verbose) {
+    arguments.add("--verbose");
+  }
+  return await CompilerCommandLine.withGlobalOptions(programName, arguments,
+      (CompilerContext context) async {
+    context.options.options["--target"] = options.target;
     return await generateKernelInternal(options,
         buildSummary: buildSummary,
         buildProgram: buildProgram,
