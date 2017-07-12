@@ -702,9 +702,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
   // R9: Allocation size.
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+  Heap::Space space = Heap::kNew;
+  __ ldr(R8, Address(THR, Thread::heap_offset()));
   // Potential new object start.
-  __ ldr(R0, Address(THR, Thread::top_offset()));
+  __ ldr(R0, Address(R8, Heap::TopOffset(space)));
   __ adds(NOTFP, R0, Operand(R9));  // Potential next object start.
   __ b(&slow_case, CS);             // Branch if unsigned overflow.
 
@@ -712,14 +713,14 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R0: potential new object start.
   // NOTFP: potential next object start.
   // R9: allocation size.
-  __ ldr(R3, Address(THR, Thread::end_offset()));
+  __ ldr(R3, Address(R8, Heap::EndOffset(space)));
   __ cmp(NOTFP, Operand(R3));
   __ b(&slow_case, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
   NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
-  __ str(R7, Address(THR, Thread::top_offset()));
+  __ str(NOTFP, Address(R8, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
@@ -928,15 +929,17 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R0, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ ldr(R9, Address(THR, Thread::heap_offset()));
+    __ ldr(R0, Address(R9, Heap::TopOffset(space)));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
     // R0: potential new object.
     // R1: number of context variables.
     // R2: object size.
     // R3: potential next object start.
-    __ ldr(IP, Address(THR, Thread::end_offset()));
+    // R9: heap.
+    __ ldr(IP, Address(R9, Heap::EndOffset(space)));
     __ cmp(R3, Operand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
@@ -950,8 +953,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
+    // R9: heap.
     NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
-    __ str(R3, Address(THR, Thread::top_offset()));
+    __ str(R3, Address(R9, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
     // Calculate the size tag.
@@ -1123,20 +1127,22 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R0, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ ldr(R9, Address(THR, Thread::heap_offset()));
+    __ ldr(R0, Address(R9, Heap::TopOffset(space)));
     __ AddImmediate(R1, R0, instance_size);
     // Check if the allocation fits into the remaining space.
     // R0: potential new object start.
     // R1: potential next object start.
-    __ ldr(IP, Address(THR, Thread::end_offset()));
+    // R9: heap.
+    __ ldr(IP, Address(R9, Heap::EndOffset(space)));
     __ cmp(R1, Operand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R1, Address(THR, Thread::top_offset()));
+    __ str(R1, Address(R9, Heap::TopOffset(space)));
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.

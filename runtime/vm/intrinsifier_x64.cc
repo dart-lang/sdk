@@ -174,8 +174,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
-  __ movq(RAX, Address(THR, Thread::top_offset()));                            \
+  Heap::Space space = Heap::kNew;                                              \
+  __ movq(R13, Address(THR, Thread::heap_offset()));                           \
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));                          \
   __ movq(RCX, RAX);                                                           \
                                                                                \
   /* RDI: allocation size. */                                                  \
@@ -186,12 +187,13 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* RAX: potential new object start. */                                       \
   /* RCX: potential next object start. */                                      \
   /* RDI: allocation size. */                                                  \
-  __ cmpq(RCX, Address(THR, Thread::end_offset()));                            \
+  /* R13: heap. */                                                             \
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));                          \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movq(Address(THR, Thread::top_offset()), RCX);                            \
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);                          \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));           \
   /* Initialize the tags. */                                                   \
@@ -2023,8 +2025,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andq(RDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-  __ movq(RAX, Address(THR, Thread::top_offset()));
+  Heap::Space space = Heap::kNew;
+  __ movq(R13, Address(THR, Thread::heap_offset()));
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
   __ movq(RCX, RAX);
@@ -2035,12 +2038,13 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ cmpq(RCX, Address(THR, Thread::end_offset()));
+  // R13: heap.
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(Address(THR, Thread::top_offset()), RCX);
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));
 

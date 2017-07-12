@@ -663,8 +663,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ andq(RDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kArrayCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-  __ movq(RAX, Address(THR, Thread::top_offset()));
+  Heap::Space space = Heap::kNew;
+  __ movq(R13, Address(THR, Thread::heap_offset()));
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
   __ movq(RCX, RAX);
@@ -675,12 +676,13 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ cmpq(RCX, Address(THR, Thread::end_offset()));
+  // R13: heap.
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(Address(THR, Thread::top_offset()), RCX);
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI, space));
   // Initialize the tags.
@@ -910,14 +912,16 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ movq(RAX, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ movq(RCX, Address(THR, Thread::heap_offset()));
+    __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object.
     // R13: potential next object start.
     // R10: number of context variables.
-    __ cmpq(R13, Address(THR, Thread::end_offset()));
+    // RCX: heap.
+    __ cmpq(R13, Address(RCX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
@@ -929,7 +933,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R13: next object start.
     // R10: number of context variables.
-    __ movq(Address(THR, Thread::top_offset()), R13);
+    // RCX: heap.
+    __ movq(Address(RCX, Heap::TopOffset(space)), R13);
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
     __ addq(RAX, Immediate(kHeapObjectTag));
@@ -1108,19 +1113,21 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ movq(RAX, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ movq(RCX, Address(THR, Thread::heap_offset()));
+    __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ leaq(RBX, Address(RAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object start.
     // RBX: potential next object start.
-    __ cmpq(RBX, Address(THR, Thread::end_offset()));
+    // RCX: heap.
+    __ cmpq(RBX, Address(RCX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movq(Address(THR, Thread::top_offset()), RBX);
+    __ movq(Address(RCX, Heap::TopOffset(space)), RBX);
     NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), space));
 
     // RAX: new object start (untagged).

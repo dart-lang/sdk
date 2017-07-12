@@ -366,21 +366,6 @@ class Thread : public BaseThread {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
-  void set_top(uword value) {
-    ASSERT(heap_ != NULL);
-    top_ = value;
-  }
-  void set_end(uword value) {
-    ASSERT(heap_ != NULL);
-    end_ = value;
-  }
-
-  uword top() { return top_; }
-  uword end() { return end_; }
-
-  static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
-  static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
-
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
     return no_handle_scope_depth_;
@@ -711,8 +696,6 @@ class Thread : public BaseThread {
   uword stack_overflow_flags_;
   Isolate* isolate_;
   Heap* heap_;
-  uword top_;
-  uword end_;
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;

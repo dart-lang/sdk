@@ -620,22 +620,24 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EBX: allocation size.
 
   const intptr_t cid = kArrayCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-  __ movl(EAX, Address(THR, Thread::top_offset()));
+  Heap::Space space = Heap::kNew;
+  __ movl(EDI, Address(THR, Thread::heap_offset()));
+  __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
   __ addl(EBX, EAX);
   __ j(CARRY, &slow_case);
 
   // Check if the allocation fits into the remaining space.
   // EAX: potential new object start.
   // EBX: potential next object start.
+  // EDI: heap.
   // ECX: array element type.
   // EDX: array length as Smi).
-  __ cmpl(EBX, Address(THR, Thread::end_offset()));
+  __ cmpl(EBX, Address(EDI, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address(THR, Thread::top_offset()), EBX);
+  __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
   __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI, space));
@@ -845,14 +847,15 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // EDX: number of context variables.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ movl(EAX, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ movl(ECX, Address(THR, Thread::heap_offset()));
+    __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
     __ addl(EBX, EAX);
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object.
     // EBX: potential next object start.
     // EDX: number of context variables.
-    __ cmpl(EBX, Address(THR, Thread::end_offset()));
+    __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
@@ -869,7 +872,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EBX: next object start.
     // EDX: number of context variables.
-    __ movl(Address(THR, Thread::top_offset()), EBX);
+    __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
     // EBX: Size of allocation in bytes.
     __ subl(EBX, EAX);
     __ addl(EAX, Immediate(kHeapObjectTag));
@@ -1054,19 +1057,21 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ movl(EAX, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ movl(EDI, Address(THR, Thread::heap_offset()));
+    __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
     __ leal(EBX, Address(EAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
-    __ cmpl(EBX, Address(THR, Thread::end_offset()));
+    // EDI: heap.
+    __ cmpl(EBX, Address(EDI, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movl(Address(THR, Thread::top_offset()), EBX);
+    __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
     NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), ECX, space));
 
     // EAX: new object start (untagged).

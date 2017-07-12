@@ -216,8 +216,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding)); \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
-  __ movl(EAX, Address(THR, Thread::top_offset()));                            \
+  Heap::Space space = Heap::kNew;                                              \
+  __ movl(ECX, Address(THR, Thread::heap_offset()));                           \
+  __ movl(EAX, Address(ECX, Heap::TopOffset(space)));                          \
   __ movl(EBX, EAX);                                                           \
                                                                                \
   /* EDI: allocation size. */                                                  \
@@ -228,12 +229,13 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: potential new object start. */                                       \
   /* EBX: potential next object start. */                                      \
   /* EDI: allocation size. */                                                  \
-  __ cmpl(EBX, Address(THR, Thread::end_offset()));                            \
+  /* ECX: heap. */                                                             \
+  __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));                          \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movl(Address(THR, Thread::top_offset()), EBX);                            \
+  __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));      \
                                                                                \
@@ -2043,8 +2045,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   const intptr_t cid = kOneByteStringCid;
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-  __ movl(EAX, Address(THR, Thread::top_offset()));
+  Heap::Space space = Heap::kNew;
+  __ movl(ECX, Address(THR, Thread::heap_offset()));
+  __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -2055,12 +2058,13 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // EAX: potential new object start.
   // EBX: potential next object start.
   // EDI: allocation size.
-  __ cmpl(EBX, Address(THR, Thread::end_offset()));
+  // ECX: heap.
+  __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address(THR, Thread::top_offset()), EBX);
+  __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX, space));

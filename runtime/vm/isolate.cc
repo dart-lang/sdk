@@ -2669,10 +2669,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     os_thread->set_thread(thread);
     if (is_mutator) {
       mutator_thread_ = thread;
-      if (this != Dart::vm_isolate()) {
-        mutator_thread_->set_top(heap()->new_space()->top());
-        mutator_thread_->set_end(heap()->new_space()->end());
-      }
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
@@ -2712,12 +2708,6 @@ void Isolate::UnscheduleThread(Thread* thread,
   os_thread->set_thread(NULL);
   OSThread::SetCurrent(os_thread);
   if (is_mutator) {
-    if (this != Dart::vm_isolate()) {
-      heap()->new_space()->set_top(mutator_thread_->top_);
-      heap()->new_space()->set_end(mutator_thread_->end_);
-    }
-    mutator_thread_->top_ = 0;
-    mutator_thread_->end_ = 0;
     mutator_thread_ = NULL;
   }
   thread->isolate_ = NULL;

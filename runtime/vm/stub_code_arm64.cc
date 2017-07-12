@@ -721,13 +721,15 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, R4, &slow_case));
 
-  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+  Heap::Space space = Heap::kNew;
+  __ ldr(R8, Address(THR, Thread::heap_offset()));
 
   // Calculate and align allocation size.
   // Load new object start and calculate next object start.
   // R1: array element type.
   // R2: array length as Smi.
-  __ ldr(R0, Address(THR, Thread::top_offset()));
+  // R8: heap.
+  __ LoadFromOffset(R0, R8, Heap::TopOffset(space));
   intptr_t fixed_size_plus_alignment_padding =
       sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
@@ -745,7 +747,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R2: array length as Smi.
   // R3: array size.
   // R7: potential next object start.
-  __ LoadFromOffset(TMP, THR, Thread::end_offset());
+  // R8: heap.
+  __ LoadFromOffset(TMP, R8, Heap::EndOffset(space));
   __ CompareRegisters(R7, TMP);
   __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
 
@@ -754,7 +757,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R0: potential new object start.
   // R3: array size.
   // R7: potential next object start.
-  __ str(R7, Address(THR, Thread::top_offset()));
+  // R8: heap.
+  __ StoreToOffset(R7, R8, Heap::TopOffset(space));
   __ add(R0, R0, Operand(kHeapObjectTag));
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R3, space));
 
@@ -986,15 +990,17 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R0, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ ldr(R5, Address(THR, Thread::heap_offset()));
+    __ ldr(R0, Address(R5, Heap::TopOffset(space)));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
     // R0: potential new object.
     // R1: number of context variables.
     // R2: object size.
     // R3: potential next object start.
-    __ ldr(TMP, Address(THR, Thread::end_offset()));
+    // R5: heap.
+    __ ldr(TMP, Address(R5, Heap::EndOffset(space)));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
@@ -1008,7 +1014,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    __ str(R3, Address(THR, Thread::top_offset()));
+    // R5: heap.
+    __ str(R3, Address(R5, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
     NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
 
@@ -1169,20 +1176,22 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
-    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
-    __ ldr(R2, Address(THR, Thread::top_offset()));
+    Heap::Space space = Heap::kNew;
+    __ ldr(R5, Address(THR, Thread::heap_offset()));
+    __ ldr(R2, Address(R5, Heap::TopOffset(space)));
     __ AddImmediate(R3, R2, instance_size);
     // Check if the allocation fits into the remaining space.
     // R2: potential new object start.
     // R3: potential next object start.
-    __ ldr(TMP, Address(THR, Thread::end_offset()));
+    // R5: heap.
+    __ ldr(TMP, Address(R5, Heap::EndOffset(space)));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R3, Address(THR, Thread::top_offset()));
+    __ str(R3, Address(R5, Heap::TopOffset(space)));
     NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), space));
 
     // R2: new object start.

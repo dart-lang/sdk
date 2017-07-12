@@ -123,46 +123,24 @@ class Scavenger {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
-  uword AllocateGC(intptr_t size) {
+  uword TryAllocate(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
-    ASSERT(scavenging_);
-    uword result = top_;
-    intptr_t remaining = end_ - top_;
-
-    // This allocation happens only in GC and only when copying objects to
-    // the new to_ space. It must succeed.
-    ASSERT(size <= remaining);
-    ASSERT(to_->Contains(result));
-    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
-    top_ += size;
-    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
-    return result;
-  }
-
-  uword TryAllocateInTLAB(Thread* thread, intptr_t size) {
-    ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ASSERT(heap_ != Dart::vm_isolate()->heap());
-    ASSERT(thread->IsMutatorThread());
-    ASSERT(thread->isolate()->IsMutatorThreadScheduled());
 #if defined(DEBUG)
-    if (FLAG_gc_at_alloc) {
-      ASSERT(!scavenging_);
+    if (FLAG_gc_at_alloc && !scavenging_) {
       Scavenge();
     }
 #endif
-    uword top = thread->top();
-    uword end = thread->end();
-    uword result = top;
-    intptr_t remaining = end - top;
+    uword result = top_;
+    intptr_t remaining = end_ - top_;
     if (remaining < size) {
       return 0;
     }
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
-    top += size;
-    ASSERT(to_->Contains(top) || (top == to_->end()));
-    thread->set_top(top);
+
+    top_ += size;
+    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
     return result;
   }
 
@@ -173,14 +151,11 @@ class Scavenger {
   // Promote all live objects.
   void Evacuate();
 
-  uword top() { return top_; }
-  uword end() { return end_; }
-
-  void set_top(uword value) { top_ = value; }
-  void set_end(uword value) {
-    ASSERT(to_->end() == value);
-    end_ = value;
-  }
+  // Accessors to generate code for inlined allocation.
+  uword* TopAddress() { return &top_; }
+  uword* EndAddress() { return &end_; }
+  static intptr_t top_offset() { return OFFSET_OF(Scavenger, top_); }
+  static intptr_t end_offset() { return OFFSET_OF(Scavenger, end_); }
 
   int64_t UsedInWords() const {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
@@ -216,8 +191,6 @@ class Scavenger {
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
-
-  void FlushTLS() const;
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -281,6 +254,12 @@ class Scavenger {
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
+  // Accessed from generated code.
+  // ** This block of fields must come first! **
+  // For AOT cross-compilation, we rely on these members having the same offsets
+  // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
+  // We use only word-sized fields to avoid differences in struct packing on the
+  // different architectures. See also CheckOffsets in dart.cc.
   uword top_;
   uword end_;
 
