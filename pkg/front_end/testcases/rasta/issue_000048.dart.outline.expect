@@ -10,7 +10,7 @@ class A extends core::Object {
 }
 class M1 extends core::Object {
   field core::num v2;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class C = self::A with self::M1 {

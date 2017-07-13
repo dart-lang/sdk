@@ -8,7 +8,7 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  constructor •() → self::A
+  default constructor •() → self::A
     : super core::Object::•();
   get e() → dynamic
     return null;
@@ -33,7 +33,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d;
-  constructor •() → self::B
+  default constructor •() → self::B
     : super self::A::•();
   get b() → dynamic
     return null;
@@ -41,7 +41,7 @@ class B extends self::A {
   set i(dynamic x) → dynamic {}
 }
 class C extends self::B {
-  constructor •() → self::C
+  default constructor •() → self::C
     : super self::B::•();
   method test() → dynamic {
     super.{self::A::~}();

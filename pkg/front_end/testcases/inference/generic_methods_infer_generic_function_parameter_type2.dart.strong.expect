@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 typedef G<V extends core::Object> = () → core::List<V>;
 class C<T extends core::Object> extends self::D<self::C::T> {
-  constructor •() → void
+  default constructor •() → void
     : super self::D::•()
     ;
   method f<U extends core::Object>(() → core::List<self::C::f::U> g) → void
     return null;
 }
 abstract class D<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method f<U extends core::Object>(() → core::List<self::D::f::U> g) → void;

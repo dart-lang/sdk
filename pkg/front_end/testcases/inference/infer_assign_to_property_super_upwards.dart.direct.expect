@@ -6,12 +6,12 @@ class Base extends core::Object {
   field core::int intProp = null;
   field core::num numProp = null;
   field core::double doubleProp = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class Test1 extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -26,7 +26,7 @@ class Test1 extends self::Base {
   }
 }
 class Test2 extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -44,7 +44,7 @@ class Test2 extends self::Base {
   }
 }
 class Test3 extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     : super self::Base::•()
     ;
   method test3() → void {

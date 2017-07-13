@@ -9,11 +9,11 @@ class Foo extends core::Object {
     ;
 }
 class Bar extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class Baz extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method main() → dynamic

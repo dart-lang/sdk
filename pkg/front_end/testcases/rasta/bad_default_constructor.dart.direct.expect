@@ -8,7 +8,7 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  constructor •() → self::B
+  default constructor •() → self::B
     : invalid-initializer;
 }
 static method main() → dynamic {

@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic x;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class D extends self::C {
-  constructor •() → void
+  default constructor •() → void
     ;
   method g() → void
     ;

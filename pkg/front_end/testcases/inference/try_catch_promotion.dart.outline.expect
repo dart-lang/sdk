@@ -3,15 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class D extends self::C {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class E extends core::StackTrace {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method test(() → void f) → void

@@ -3,7 +3,7 @@ import self as self;
 import "./infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
 
 class B extends test::A {
-  constructor •() → void
+  default constructor •() → void
     : super test::A::•()
     ;
 }

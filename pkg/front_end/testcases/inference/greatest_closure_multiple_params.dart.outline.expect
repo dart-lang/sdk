@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class C<E extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method sort([(self::C::E, self::C::E) → core::int compare]) → void
     ;

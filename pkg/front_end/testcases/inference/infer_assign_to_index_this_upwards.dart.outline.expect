@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Test1 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::int;
   abstract operator []=(core::String s, core::int v) → void;
@@ -11,7 +11,7 @@ abstract class Test1 extends core::Object {
     ;
 }
 abstract class Test2 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::int;
   abstract operator []=(core::String s, core::num v) → void;
@@ -19,7 +19,7 @@ abstract class Test2 extends core::Object {
     ;
 }
 abstract class Test3 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::int;
   abstract operator []=(core::String s, core::double v) → void;
@@ -27,7 +27,7 @@ abstract class Test3 extends core::Object {
     ;
 }
 abstract class Test4 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::num;
   abstract operator []=(core::String s, core::int v) → void;
@@ -35,7 +35,7 @@ abstract class Test4 extends core::Object {
     ;
 }
 abstract class Test5 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::num;
   abstract operator []=(core::String s, core::num v) → void;
@@ -43,7 +43,7 @@ abstract class Test5 extends core::Object {
     ;
 }
 abstract class Test6 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::num;
   abstract operator []=(core::String s, core::double v) → void;
@@ -51,7 +51,7 @@ abstract class Test6 extends core::Object {
     ;
 }
 abstract class Test7 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::double;
   abstract operator []=(core::String s, core::int v) → void;
@@ -59,7 +59,7 @@ abstract class Test7 extends core::Object {
     ;
 }
 abstract class Test8 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::double;
   abstract operator []=(core::String s, core::num v) → void;
@@ -67,7 +67,7 @@ abstract class Test8 extends core::Object {
     ;
 }
 abstract class Test9 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → core::double;
   abstract operator []=(core::String s, core::double v) → void;

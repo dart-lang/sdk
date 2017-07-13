@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I<E extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method m(dynamic a, (dynamic, self::I::E) → core::String f) → core::String;
@@ -16,7 +16,7 @@ abstract class A<E extends core::Object> extends core::Object implements self::I
 }
 abstract class M extends core::Object {
   final field core::int y = 0;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

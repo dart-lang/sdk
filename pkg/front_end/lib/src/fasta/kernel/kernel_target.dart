@@ -506,7 +506,8 @@ class KernelTarget extends TargetImplementation {
   Constructor makeDefaultConstructor() {
     return new Constructor(
         new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
-        name: new Name(""));
+        name: new Name(""),
+        isSyntheticDefault: true);
   }
 
   void finishAllConstructors() {

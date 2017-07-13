@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 typedef F = () → core::int;
 abstract class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract set x(() → core::int value) → void;
 }
 abstract class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
   abstract set x(() → dynamic value) → void;

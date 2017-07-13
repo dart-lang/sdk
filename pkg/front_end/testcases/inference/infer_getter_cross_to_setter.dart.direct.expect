@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract set x(core::double value) → void;
 }
 abstract class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
   abstract get x() → dynamic;

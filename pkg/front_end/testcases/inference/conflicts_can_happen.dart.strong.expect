@@ -4,37 +4,37 @@ import "dart:core" as core;
 
 class I1 extends core::Object {
   field core::int x = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class I2 extends self::I1 {
   field core::int y = null;
-  constructor •() → void
+  default constructor •() → void
     : super self::I1::•()
     ;
 }
 class A extends core::Object {
   final field self::I1 a = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
   final field self::I2 a = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class C1 extends core::Object implements self::A, self::B {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   get a() → dynamic
     return null;
 }
 class C2 extends core::Object implements self::B, self::A {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   get a() → dynamic

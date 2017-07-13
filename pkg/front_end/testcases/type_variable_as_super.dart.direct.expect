@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
@@ -13,12 +13,13 @@ abstract class B<T extends core::Object> extends core::Object {
     ;
 }
 class C<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
+const field dynamic #errors = const <dynamic>["Error: The type variable 'T' can't be used as supertype.", "Error: The type variable 'T' can't be used as supertype.", "Error: The type variable 'T' can't be used as supertype."]/* from null */;
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::•(null, #A, <dynamic>[], <dynamic, dynamic>{}, null);
-  throw new core::NoSuchMethodError::•(null, #B, <dynamic>[], <dynamic, dynamic>{}, null);
+  throw new core::AbstractClassInstantiationError::•("A");
+  throw new core::AbstractClassInstantiationError::•("B");
   new self::C::•<dynamic>();
 }

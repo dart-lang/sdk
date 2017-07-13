@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   set onlySetter(dynamic value) → void
     ;
@@ -13,7 +13,7 @@ class C extends core::Object {
     ;
 }
 class D extends self::C {
-  constructor •() → void
+  default constructor •() → void
     ;
   get onlySetter() → core::String
     ;

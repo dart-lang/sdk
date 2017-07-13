@@ -9,7 +9,7 @@ class UnusedClass extends core::Object {
   }
 }
 abstract class UsedAsBaseClass extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method usedInSubclass() → void {
@@ -23,7 +23,7 @@ abstract class UsedAsBaseClass extends core::Object {
   }
 }
 class UsedAsInterface extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method usedInSubclass() → void {
@@ -31,7 +31,7 @@ class UsedAsInterface extends core::Object {
   }
 }
 class InstantiatedButMethodsUnused extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method usedInSubclass() → void {
@@ -39,7 +39,7 @@ class InstantiatedButMethodsUnused extends core::Object {
   }
 }
 class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  constructor •() → void
+  default constructor •() → void
     : super self::UsedAsBaseClass::•()
     ;
   method usedInSubclass() → void {
@@ -47,7 +47,7 @@ class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, sel
   }
 }
 class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  constructor •() → void
+  default constructor •() → void
     : super self::UsedAsBaseClass::•()
     ;
   method usedInSubclass() → void {

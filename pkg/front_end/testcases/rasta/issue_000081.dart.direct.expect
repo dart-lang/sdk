@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 class Base extends core::Object {
   field core::int hashCode = 42;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class Sub extends self::Base {
   field core::int _hashCode = null;
-  constructor •() → void
+  default constructor •() → void
     : super self::Base::•()
     ;
   get hashCode() → dynamic

@@ -3,32 +3,32 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class AB1 extends self::A implements self::B {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
 }
 class AB2 extends self::A implements self::B {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
 }
 class BA1 extends self::B implements self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::B::•()
     ;
 }
 class BA2 extends self::B implements self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::B::•()
     ;
 }

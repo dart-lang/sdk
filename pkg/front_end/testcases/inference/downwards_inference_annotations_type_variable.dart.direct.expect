@@ -9,12 +9,12 @@ class Foo extends core::Object {
     ;
 }
 class C<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class D extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method m<T extends core::Object>() → void {}

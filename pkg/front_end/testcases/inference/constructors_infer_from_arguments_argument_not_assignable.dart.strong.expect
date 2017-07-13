@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = () → T;
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
@@ -14,7 +14,7 @@ class C<T extends self::A> extends core::Object {
     ;
 }
 class NotA extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

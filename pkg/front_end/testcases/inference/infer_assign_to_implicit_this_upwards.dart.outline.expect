@@ -4,21 +4,21 @@ import "dart:core" as core;
 
 class Test1 extends core::Object {
   field core::int t;
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 class Test2 extends core::Object {
   field core::num t;
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 class Test3 extends core::Object {
   field core::double t;
-  constructor •() → void
+  default constructor •() → void
     ;
   method test3() → void
     ;
