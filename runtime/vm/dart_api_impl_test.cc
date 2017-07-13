@@ -868,6 +868,7 @@ TEST_CASE(IntegerValues) {
   const int64_t kIntegerVal2 = 0xffffffff;
   const char* kIntegerVal3 = "0x123456789123456789123456789";
   const uint64_t kIntegerVal4 = 0xffffffffffffffff;
+  const int64_t kIntegerVal5 = -0x7fffffffffffffff;
 
   Dart_Handle val1 = Dart_NewInteger(kIntegerVal1);
   EXPECT(Dart_IsInteger(val1));
@@ -913,6 +914,12 @@ TEST_CASE(IntegerValues) {
   EXPECT_VALID(val5);
   uint64_t out5 = 0;
   result = Dart_IntegerToUint64(val5, &out5);
+  EXPECT(Dart_IsError(result));
+
+  Dart_Handle val6 = Dart_NewInteger(kIntegerVal5);
+  EXPECT_VALID(val6);
+  uint64_t out6 = 0;
+  result = Dart_IntegerToUint64(val6, &out6);
   EXPECT(Dart_IsError(result));
 }
 

@@ -2141,9 +2141,11 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
   }
   if (int_obj.IsSmi()) {
     ASSERT(int_obj.IsNegative());
-  } else if (int_obj.IsMint() && !int_obj.IsNegative()) {
-    *value = int_obj.AsInt64Value();
-    return Api::Success();
+  } else if (int_obj.IsMint()) {
+    if (!int_obj.IsNegative()) {
+      *value = int_obj.AsInt64Value();
+      return Api::Success();
+    }
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (bigint.FitsIntoUint64()) {
