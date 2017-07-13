@@ -36,7 +36,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
                                           int number_of_arguments,
                                           bool* auto_setup_scope) {
   // Now resolve the native function to the corresponding native entrypoint.
-  if (library.native_entry_resolver() == 0) {
+  if (library.native_entry_resolver() == NULL) {
     // Native methods are not allowed in the library to which this
     // class belongs in.
     return NULL;
@@ -58,7 +58,7 @@ const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
                                                    uword pc) {
   Dart_NativeEntrySymbol symbol_resolver =
       library.native_entry_symbol_resolver();
-  if (symbol_resolver == 0) {
+  if (symbol_resolver == NULL) {
     // Cannot reverse lookup native entries.
     return NULL;
   }
@@ -218,8 +218,13 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
   ASSERT(!native_name.IsNull());
 
   const int num_params = NativeArguments::ParameterCountForResolution(func);
-  return NativeEntry::ResolveNative(library, native_name, num_params,
-                                    is_auto_scope);
+  NativeFunction native_function = NativeEntry::ResolveNative(
+      library, native_name, num_params, is_auto_scope);
+  if (native_function == NULL) {
+    FATAL2("Failed to resolve native function '%s' in '%s'\n",
+           native_name.ToCString(), func.ToQualifiedCString());
+  }
+  return native_function;
 }
 
 uword NativeEntry::LinkNativeCallEntry() {
