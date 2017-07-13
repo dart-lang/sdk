@@ -1038,6 +1038,20 @@ void Profiler::DumpStackTrace(void* context) {
   uword fp = SignalHandler::GetFramePointer(mcontext);
   uword sp = SignalHandler::GetCStackPointer(mcontext);
   DumpStackTrace(sp, fp, pc, true /* for_crash */);
+#elif defined(HOST_OS_WINDOWS)
+  CONTEXT* ctx = reinterpret_cast<CONTEXT*>(context);
+#if defined(HOST_ARCH_IA32)
+  uword pc = static_cast<uword>(ctx->Eip);
+  uword fp = static_cast<uword>(ctx->Ebp);
+  uword sp = static_cast<uword>(ctx->Esp);
+#elif defined(HOST_ARCH_X64)
+  uword pc = static_cast<uword>(ctx->Rip);
+  uword fp = static_cast<uword>(ctx->Rbp);
+  uword sp = static_cast<uword>(ctx->Rsp);
+#else
+#error Unsupported architecture.
+#endif
+  DumpStackTrace(sp, fp, pc, true /* for_crash */);
 #else
 // TODO(fschneider): Add support for more platforms.
 // Do nothing on unsupported platforms.

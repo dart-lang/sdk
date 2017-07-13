@@ -62,6 +62,10 @@ class PlatformWin {
     // CTRL_C_EVENT signal. This will only run when there is no signal handler
     // registered for the CTRL_C_EVENT from Dart code.
     SetConsoleCtrlHandler(SignalHandler, TRUE);
+#ifndef PRODUCT
+    // Set up global exception handler to be able to dump stack trace on crash.
+    SetExceptionHandler();
+#endif
   }
 
   static BOOL WINAPI SignalHandler(DWORD signal) {
@@ -104,6 +108,24 @@ class PlatformWin {
   static void RestoreConsole() {
     MutexLocker ml(platform_win_mutex_);
     RestoreConsoleLocked();
+  }
+
+  // Windows top-level unhandled exception handler function.
+  // See MSDN documentation for UnhandledExceptionFilter.
+  // https://msdn.microsoft.com/en-us/library/windows/desktop/ms681401(v=vs.85).aspx
+  static LONG WINAPI
+  DartExceptionHandler(struct _EXCEPTION_POINTERS* ExceptionInfo) {
+    if (ExceptionInfo->ExceptionRecord->ExceptionCode ==
+        EXCEPTION_ACCESS_VIOLATION) {
+      Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
+      RestoreConsole();
+      abort();
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+  }
+
+  static void SetExceptionHandler() {
+    SetUnhandledExceptionFilter(DartExceptionHandler);
   }
 
  private:
