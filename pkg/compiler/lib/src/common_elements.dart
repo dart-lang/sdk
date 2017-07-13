@@ -224,7 +224,8 @@ class CommonElements {
   /// will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element) =>
-      element.name == '' && element.enclosingClass == listClass;
+      (element.name == '' && element.enclosingClass == listClass) ||
+      (element.name == 'list' && element.enclosingClass == jsArrayClass);
 
   /// Returns `true` if [element] is the 'filled' constructor of `List`. This
   /// will not resolve the constructor if it hasn't been seen yet during

@@ -72,7 +72,9 @@ class SubClass extends Class {
   }  
 }
 
-class Generic<T> {}
+class Generic<T> {
+  method(o) => o is T;
+}
 
 var toplevel;
 
@@ -80,6 +82,7 @@ main() {
   foo();
   bar(true);
   [];
+  <int>[];
   {};
   new Object();
   new Class.named('');
@@ -127,6 +130,7 @@ main() {
   }
   x = toplevel;
   x = testIs(x);
+  x = new Generic<int>().method(x);
   x = testAsGeneric(x);
   x = testAsFunction(x);
   print(x);
