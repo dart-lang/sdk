@@ -435,17 +435,6 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
 DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2);
 
 /**
- * Returns a hash code for the argument. The hash code of objects that are equal
- * according to Dart_IdentityEquals will return the same hash code, but the hash
- * codes of non-equal objects are not necessarily distinct.
- *
- * \param obj An object for which to derive a hash code.
- *
- * \return A hash code for the parameter.
- */
-DART_EXPORT uint64_t Dart_IdentityHash(Dart_Handle obj);
-
-/**
  * Allocates a handle in the current scope from a persistent handle.
  */
 DART_EXPORT Dart_Handle Dart_HandleFromPersistent(Dart_PersistentHandle object);

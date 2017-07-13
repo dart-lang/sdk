@@ -915,47 +915,6 @@ DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
   return false;
 }
 
-DART_EXPORT uint64_t Dart_IdentityHash(Dart_Handle obj) {
-  DARTSCOPE(Thread::Current());
-
-  const Object& object = Object::Handle(Z, Api::UnwrapHandle(obj));
-  if (!object.IsInstance() && !object.IsNull()) {
-    return 0;
-  }
-
-  const Library& libcore = Library::Handle(Z, Library::CoreLibrary());
-  const String& function_name =
-      String::Handle(Z, String::New("identityHashCode"));
-  const Function& function =
-      Function::Handle(Z, libcore.LookupFunctionAllowPrivate(function_name));
-  if (function.IsNull()) {
-    UNREACHABLE();
-    return 0;
-  }
-
-  const Array& arguments = Array::Handle(Z, Array::New(1));
-  arguments.SetAt(0, object);
-  const Object& result =
-      Object::Handle(Z, DartEntry::InvokeFunction(function, arguments));
-
-  if (result.IsSmi()) {
-    return Smi::Cast(result).Value();
-  }
-  if (result.IsMint()) {
-    const Mint& mint = Mint::Cast(result);
-    if (!mint.IsNegative()) {
-      return mint.AsInt64Value();
-    }
-  }
-  if (result.IsBigint()) {
-    const Bigint& bigint = Bigint::Cast(result);
-    if (bigint.FitsIntoUint64()) {
-      return bigint.AsUint64Value();
-    }
-  }
-  return 0;
-}
-
 DART_EXPORT Dart_Handle
 Dart_HandleFromPersistent(Dart_PersistentHandle object) {
   Thread* thread = Thread::Current();

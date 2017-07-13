@@ -659,46 +659,6 @@ TEST_CASE(IdentityEquals) {
   }
 }
 
-TEST_CASE(IdentityHash) {
-  Dart_Handle five = Dart_NewInteger(5);
-  Dart_Handle five_again = Dart_NewInteger(5);
-  Dart_Handle mint = Dart_NewInteger(0xFFFFFFFF);
-  Dart_Handle mint_again = Dart_NewInteger(0xFFFFFFFF);
-  Dart_Handle abc = NewString("abc");
-  // Dart_Handle abc_again = NewString("abc");
-  Dart_Handle xyz = NewString("xyz");
-  Dart_Handle dart_core = NewString("dart:core");
-  Dart_Handle dart_mirrors = NewString("dart:mirrors");
-
-  // Same objects.
-  EXPECT_EQ(Dart_IdentityHash(five), Dart_IdentityHash(five));
-  EXPECT_EQ(Dart_IdentityHash(mint), Dart_IdentityHash(mint));
-  EXPECT_EQ(Dart_IdentityHash(abc), Dart_IdentityHash(abc));
-  EXPECT_EQ(Dart_IdentityHash(xyz), Dart_IdentityHash(xyz));
-
-  // Equal objects with special spec rules.
-  EXPECT_EQ(Dart_IdentityHash(five), Dart_IdentityHash(five_again));
-  EXPECT_EQ(Dart_IdentityHash(mint), Dart_IdentityHash(mint_again));
-
-  // Note abc and abc_again are not required to have equal identity hashes.
-
-  // Case where identical() is not the same as pointer equality.
-  Dart_Handle nan1 = Dart_NewDouble(NAN);
-  Dart_Handle nan2 = Dart_NewDouble(NAN);
-  EXPECT_EQ(Dart_IdentityHash(nan1), Dart_IdentityHash(nan2));
-
-  // Non-instance objects.
-  {
-    CHECK_API_SCOPE(thread);
-    HANDLESCOPE(thread);
-    Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
-    Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
-
-    EXPECT_EQ(Dart_IdentityHash(lib1), Dart_IdentityHash(lib1));
-    EXPECT_EQ(Dart_IdentityHash(lib2), Dart_IdentityHash(lib2));
-  }
-}
-
 TEST_CASE(ObjectEquals) {
   bool equal = false;
   Dart_Handle five = NewString("5");
