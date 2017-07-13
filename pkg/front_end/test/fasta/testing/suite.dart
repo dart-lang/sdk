@@ -68,10 +68,6 @@ const String ENABLE_FULL_COMPILE = " full compile ";
 
 const String AST_KIND_INDEX = " AST kind index ";
 
-const String SKIP_KERNEL_GENERATION = " skip kernel generation ";
-
-const String SKIP_RESOLUTION = " skip resolution ";
-
 const String EXPECTATIONS = '''
 [
   {
@@ -81,14 +77,8 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-String shortenAstKindName(AstKind astKind, bool strongMode) {
-  switch (astKind) {
-    case AstKind.Analyzer:
-      return strongMode ? "dartk-strong" : "dartk";
-    case AstKind.Kernel:
-      return strongMode ? "strong" : "direct";
-  }
-  throw "Unknown AST kind: $astKind";
+String generateExpectationName(bool strongMode) {
+  return strongMode ? "strong" : "direct";
 }
 
 enum AstKind {
@@ -115,22 +105,19 @@ class FastaContext extends ChainContext {
       bool updateExpectations,
       bool updateComments,
       bool skipVm,
-      bool generateKernel,
-      bool doResolution,
       this.uriTranslator,
       bool fullCompile,
       AstKind astKind)
       : steps = <Step>[
-          new Outline(
-              fullCompile, astKind, strongMode, generateKernel, doResolution,
+          new Outline(fullCompile, astKind, strongMode,
               updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
-    if (generateKernel) {
+    if (astKind != AstKind.Analyzer) {
       steps.add(new MatchExpectation(
           fullCompile
-              ? ".${shortenAstKindName(astKind, strongMode)}.expect"
+              ? ".${generateExpectationName(strongMode)}.expect"
               : ".outline.expect",
           updateExpectations: updateExpectations));
       if (fullCompile && !skipVm) {
@@ -169,8 +156,6 @@ class FastaContext extends ChainContext {
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
-    bool generateKernel = !environment.containsKey(SKIP_KERNEL_GENERATION);
-    bool doResolution = !environment.containsKey(SKIP_RESOLUTION);
     String astKindString = environment[AST_KIND_INDEX];
     AstKind astKind =
         astKindString == null ? null : AstKind.values[int.parse(astKindString)];
@@ -180,8 +165,6 @@ class FastaContext extends ChainContext {
         updateExpectations,
         updateComments,
         skipVm,
-        generateKernel,
-        doResolution,
         uriTranslator,
         environment.containsKey(ENABLE_FULL_COMPILE),
         astKind);
@@ -226,12 +209,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   final bool strongMode;
 
-  final bool generateKernel;
-
-  final bool doResolution;
-
   const Outline(this.fullCompile, this.astKind, this.strongMode,
-      this.generateKernel, this.doResolution,
       {this.updateComments: false});
 
   final bool updateComments;
@@ -260,8 +238,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         const <String, List<Uri>>{},
         context.uriTranslator.packages);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(
-            dillTarget, uriTranslator, strongMode, generateKernel, doResolution)
+        ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
         : new KernelTarget(
             PhysicalFileSystem.instance, dillTarget, uriTranslator);
 

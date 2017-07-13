@@ -4,11 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
-import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -127,35 +125,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
     super.test_logicalOrExpression_precedence_nullableType();
   }
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * All undeclared identifiers are presumed to resolve to an instance of this
- * class.
- */
-class ElementProxy implements KernelClassElement {
-  @override
-  final KernelInterfaceType rawType = new InterfaceTypeProxy();
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * Any request for an element is satisfied by creating an instance of
- * [ElementProxy].
- */
-class ElementStoreProxy implements ElementStore {
-  final _elements = <Builder, Element>{};
-
-  @override
-  Element operator [](Builder builder) =>
-      _elements.putIfAbsent(builder, () => new ElementProxy());
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -772,16 +741,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 }
 
 /**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * Any element used as a type name is presumed to refer to an instance of this
- * class.
- */
-class InterfaceTypeProxy implements KernelInterfaceType {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
  * Proxy implementation of [KernelLibraryBuilderProxy] used by Fasta parser
  * tests.
  */
@@ -833,10 +792,8 @@ class ParserProxy implements analyzer.Parser {
       {bool enableGenericMethodComments: false}) {
     var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();
-    var elementStore = new ElementStoreProxy();
     var scope = new ScopeProxy();
-    var astBuilder =
-        new AstBuilder(null, library, member, elementStore, scope, true, false);
+    var astBuilder = new AstBuilder(null, library, member, scope, true);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
     var fastaParser = new fasta.Parser(new ForwardingTestListener(astBuilder));
     astBuilder.parser = fastaParser;

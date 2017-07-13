@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
-import 'package:analyzer/src/fasta/element_store.dart' as fasta;
 import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -585,10 +584,8 @@ class FileState {
             new ErrorReporter(errorListener, source),
             null,
             null,
-            new _FastaElementStoreProxy(),
             new fasta.Scope.top(isModifiable: true),
             true,
-            false,
             uri);
         astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
 
@@ -940,26 +937,4 @@ class KnownFilesSetChange {
   final Set<String> removed;
 
   KnownFilesSetChange(this.added, this.removed);
-}
-
-class _FastaElementProxy implements fasta.KernelClassElement {
-  @override
-  final fasta.KernelInterfaceType rawType = new _FastaInterfaceTypeProxy();
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FastaElementStoreProxy implements fasta.ElementStore {
-  final _elements = <fasta.Builder, _FastaElementProxy>{};
-
-  @override
-  _FastaElementProxy operator [](fasta.Builder builder) =>
-      _elements.putIfAbsent(builder, () => new _FastaElementProxy());
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FastaInterfaceTypeProxy implements fasta.KernelInterfaceType {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -11,7 +11,6 @@ Future<FastaContext> createContext(
   environment[ENABLE_FULL_COMPILE] = "";
   environment[AST_KIND_INDEX] = "${AstKind.Analyzer.index}";
   environment[STRONG_MODE] = "";
-  environment[SKIP_KERNEL_GENERATION] = "";
   return FastaContext.create(suite, environment);
 }
 

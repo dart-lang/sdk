@@ -8,10 +8,6 @@ class _Builder implements Builder {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _ElementStore implements ElementStore {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _KernelLibraryBuilder implements KernelLibraryBuilder {
   @override
   final uri;
@@ -51,11 +47,10 @@ class _Parser2 implements Parser {
     var errorReporter = new ErrorReporter(errorListener, source);
     var library = new _KernelLibraryBuilder(source.uri);
     var member = new _Builder();
-    var elementStore = new _ElementStore();
     var scope = new Scope.top(isModifiable: true);
 
-    AstBuilder astBuilder = new AstBuilder(
-        errorReporter, library, member, elementStore, scope, true, false);
+    AstBuilder astBuilder =
+        new AstBuilder(errorReporter, library, member, scope, true);
     fasta.Parser fastaParser = new fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
     return new _Parser2._(source, fastaParser, astBuilder);

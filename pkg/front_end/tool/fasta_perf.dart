@@ -194,8 +194,7 @@ parseFull(Uri uri, List<int> source) {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri)
-      : super(null, null, null, null, null, true, true, uri);
+  _PartialAstBuilder(Uri uri) : super(null, null, null, null, true, uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override

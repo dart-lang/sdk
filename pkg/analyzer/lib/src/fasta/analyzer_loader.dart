@@ -18,45 +18,17 @@ import 'package:front_end/src/fasta/source/source_class_builder.dart'
 import 'package:front_end/src/fasta/source/source_loader.dart'
     show SourceLoader;
 
-import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
-
 import 'analyzer_diet_listener.dart' show AnalyzerDietListener;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/incremental_class_hierarchy.dart';
 
 class AnalyzerLoader<L> extends SourceLoader<L> {
-  ElementStore elementStore;
-
-  /// Indicates whether a kernel representation of the code should be generated.
-  ///
-  /// When `false`, an analyzer AST is generated, and type inference is copied
-  /// over to it, but the result is not converted to a kernel representation.
-  ///
-  /// TODO(paulberry): remove this once "kompile" functionality is no longer
-  /// needed.
-  final bool generateKernel;
-
-  /// Indicates whether a resolved AST should be generated.
-  ///
-  /// When `false`, an analyzer AST is generated, but none of the types or
-  /// elements pointed to by the AST are guaranteed to be correct.
-  ///
-  /// This is needed in order to support the old "kompile" use case, since the
-  /// tests of that functionality were based on the behavior prior to
-  /// integrating resolution and type inference with analyzer.
-  ///
-  /// TODO(paulberry): remove this once "kompile" functionality is no longer
-  /// needed.
-  final bool doResolution;
-
-  AnalyzerLoader(
-      TargetImplementation target, this.generateKernel, this.doResolution)
+  AnalyzerLoader(TargetImplementation target)
       : super(PhysicalFileSystem.instance, target);
 
   @override
   void computeHierarchy(Program program) {
-    elementStore = new ElementStore(coreLibrary, builders);
     ticker.logMs("Built analyzer element model.");
     hierarchy = new IncrementalClassHierarchy();
     ticker.logMs("Computed class hierarchy");
@@ -66,8 +38,8 @@ class AnalyzerLoader<L> extends SourceLoader<L> {
 
   @override
   AnalyzerDietListener createDietListener(LibraryBuilder library) {
-    return new AnalyzerDietListener(library, elementStore, hierarchy, coreTypes,
-        typeInferenceEngine, generateKernel, doResolution);
+    return new AnalyzerDietListener(
+        library, hierarchy, coreTypes, typeInferenceEngine);
   }
 
   @override

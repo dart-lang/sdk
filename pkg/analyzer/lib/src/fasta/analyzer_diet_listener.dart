@@ -47,13 +47,9 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart' as kernel show DartType;
 
-import 'element_store.dart' show ElementStore;
-
 import 'ast_builder.dart' show AstBuilder;
 
 class AnalyzerDietListener extends DietListener {
-  final ElementStore elementStore;
-
   /// The body builder for the method currently being compiled, or `null` if no
   /// method is currently being compiled.
   ///
@@ -69,36 +65,8 @@ class AnalyzerDietListener extends DietListener {
   /// These are used strictly for validation purposes.
   List<int> _typeOffsets;
 
-  /// Indicates whether a kernel representation of the code should be generated.
-  ///
-  /// When `false`, an analyzer AST is generated, and type inference is copied
-  /// over to it, but the result is not converted to a kernel representation.
-  ///
-  /// TODO(paulberry): remove this once "kompile" functionality is no longer
-  /// needed.
-  final bool generateKernel;
-
-  /// Indicates whether a resolved AST should be generated.
-  ///
-  /// When `false`, an analyzer AST is generated, but none of the types or
-  /// elements pointed to by the AST are guaranteed to be correct.
-  ///
-  /// This is needed in order to support the old "kompile" use case, since the
-  /// tests of that functionality were based on the behavior prior to
-  /// integrating resolution and type inference with analyzer.
-  ///
-  /// TODO(paulberry): remove this once "kompile" functionality is no longer
-  /// needed.
-  final bool doResolution;
-
-  AnalyzerDietListener(
-      SourceLibraryBuilder library,
-      this.elementStore,
-      ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
-      TypeInferenceEngine typeInferenceEngine,
-      this.generateKernel,
-      this.doResolution)
+  AnalyzerDietListener(SourceLibraryBuilder library, ClassHierarchy hierarchy,
+      CoreTypes coreTypes, TypeInferenceEngine typeInferenceEngine)
       : super(library, hierarchy, coreTypes, typeInferenceEngine);
 
   @override
@@ -135,8 +103,7 @@ class AnalyzerDietListener extends DietListener {
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope, TypeInferenceListener listener]) {
-    return new AstBuilder(null, library, builder, elementStore, memberScope,
-        false, generateKernel, uri);
+    return new AstBuilder(null, library, builder, memberScope, false, uri);
   }
 
   @override
@@ -154,36 +121,36 @@ class AnalyzerDietListener extends DietListener {
       dynamic body) {
     // TODO(paulberry): this duplicates a lot of code from
     // DietListener.parseFunctionBody.
-    if (doResolution) {
-      // At this point the analyzer AST has been built, but it doesn't contain
-      // resolution data or inferred types.  Run the body builder and gather
-      // this information.
-      Parser parser = new Parser(_bodyBuilder);
-      List bodyBuilderMetadataConstants;
-      if (metadata != null) {
-        parser.parseMetadataStar(metadata);
-        bodyBuilderMetadataConstants = _bodyBuilder.pop();
-      }
-      token = parser.parseFormalParametersOpt(token, kind);
-      var bodyBuilderFormals = _bodyBuilder.pop();
-      _bodyBuilder.checkEmpty(token.charOffset);
-      token = parser.parseInitializersOpt(token);
-      bool isExpression = false;
-      bool allowAbstract = asyncModifier == AsyncMarker.Sync;
-      parser.parseFunctionBody(token, isExpression, allowAbstract);
-      var bodyBuilderBody = _bodyBuilder.pop();
-      _bodyBuilder.checkEmpty(token.charOffset);
-      _bodyBuilder.finishFunction(bodyBuilderMetadataConstants,
-          bodyBuilderFormals, asyncModifier, bodyBuilderBody);
 
-      // Now apply the resolution data and inferred types to the analyzer AST.
-      var translatedTypes = _translateTypes(_kernelTypes);
-      var resolutionApplier =
-          new ValidatingResolutionApplier(translatedTypes, _typeOffsets);
-      ast.AstNode bodyAsAstNode = body;
-      bodyAsAstNode.accept(resolutionApplier);
-      resolutionApplier.checkDone();
+    // At this point the analyzer AST has been built, but it doesn't contain
+    // resolution data or inferred types.  Run the body builder and gather
+    // this information.
+    Parser parser = new Parser(_bodyBuilder);
+    List bodyBuilderMetadataConstants;
+    if (metadata != null) {
+      parser.parseMetadataStar(metadata);
+      bodyBuilderMetadataConstants = _bodyBuilder.pop();
     }
+    token = parser.parseFormalParametersOpt(token, kind);
+    var bodyBuilderFormals = _bodyBuilder.pop();
+    _bodyBuilder.checkEmpty(token.charOffset);
+    token = parser.parseInitializersOpt(token);
+    bool isExpression = false;
+    bool allowAbstract = asyncModifier == AsyncMarker.Sync;
+    parser.parseFunctionBody(token, isExpression, allowAbstract);
+    var bodyBuilderBody = _bodyBuilder.pop();
+    _bodyBuilder.checkEmpty(token.charOffset);
+    _bodyBuilder.finishFunction(bodyBuilderMetadataConstants,
+        bodyBuilderFormals, asyncModifier, bodyBuilderBody);
+
+    // Now apply the resolution data and inferred types to the analyzer AST.
+    var translatedTypes = _translateTypes(_kernelTypes);
+    var resolutionApplier =
+        new ValidatingResolutionApplier(translatedTypes, _typeOffsets);
+    ast.AstNode bodyAsAstNode = body;
+    bodyAsAstNode.accept(resolutionApplier);
+    resolutionApplier.checkDone();
+
     listener.finishFunction(metadataConstants, formals, asyncModifier, body);
   }
 
