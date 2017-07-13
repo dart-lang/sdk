@@ -53,7 +53,7 @@ abstract class ClosureDataLookup<T> {
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
-  LoopClosureScope getLoopClosureScope(T loopNode);
+  LoopClosureScope getLoopClosureScope(covariant T loopNode);
 
   /// Accessor to the information about closures that the SSA builder will use.
   ClosureScope getClosureScope(MemberEntity entity);
