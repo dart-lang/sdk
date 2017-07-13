@@ -807,3 +807,12 @@ ThisAsIdentifier:
 
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
+
+SwitchCaseFallThrough:
+  template: "Switch case may fall through to the next case."
+
+FinalInstanceVariableAlreadyInitialized:
+  template: "'#name' is a final instance variable that has already been initialized."
+
+FinalInstanceVariableAlreadyInitializedCause:
+  template: "'#name' was initialized here."

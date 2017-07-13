@@ -3012,7 +3012,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     DartType bound = pop();
     if (bound != null) {
       // TODO(ahe): To handle F-bounded types, this needs to be a TypeBuilder.
-      deprecated_warningNotError("Type variable bounds not implemented yet.",
+      warningNotError(
+          fasta.templateInternalProblemUnimplemented
+              .withArguments("bounds on type variables"),
           offsetForToken(extendsOrSuper.next));
     }
     Identifier name = pop();
@@ -3120,8 +3122,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Expression buildFallThroughError(int charOffset) {
-    deprecated_warningNotError(
-        "Switch case may fall through to next case.", charOffset);
+    warningNotError(fasta.messageSwitchCaseFallThrough, charOffset);
 
     Location location = messages.getLocationFromUri(uri, charOffset);
 
@@ -3182,12 +3183,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (builder.isFinal && builder.hasInitializer) {
         // TODO(ahe): If CL 2843733002 is landed, this becomes a compile-time
         // error. Also, this is a compile-time error in strong mode.
-        deprecated_warningNotError(
-            "'$name' is final instance variable that has already been "
-            "initialized.",
+        warningNotError(
+            fasta.templateFinalInstanceVariableAlreadyInitialized
+                .withArguments(name),
             offset);
-        deprecated_warningNotError(
-            "'$name' was initialized here.", builder.charOffset);
+        warningNotError(
+            fasta.templateFinalInstanceVariableAlreadyInitializedCause
+                .withArguments(name),
+            builder.charOffset);
         Builder constructor =
             library.loader.getDuplicatedFieldInitializerError();
         return buildInvalidInitializer(
@@ -3278,10 +3281,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       super.deprecated_warning(message, charOffset);
     }
-  }
-
-  void deprecated_warningNotError(String message, [int charOffset = -1]) {
-    super.deprecated_warning(message, charOffset);
   }
 
   void warningNotError(Message message, int charOffset) {

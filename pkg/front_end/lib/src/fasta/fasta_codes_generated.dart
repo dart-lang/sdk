@@ -1022,6 +1022,53 @@ const MessageCode messageFinalFieldWithoutInitializer = const MessageCode(
     tip: r"""Try adding '= <initializer>'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFinalInstanceVariableAlreadyInitialized =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""'#name' is a final instance variable that has already been initialized.""",
+        withArguments: _withArgumentsFinalInstanceVariableAlreadyInitialized);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalInstanceVariableAlreadyInitialized =
+    const Code<Message Function(String name)>(
+  "FinalInstanceVariableAlreadyInitialized",
+  templateFinalInstanceVariableAlreadyInitialized,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalInstanceVariableAlreadyInitialized(String name) {
+  return new Message(codeFinalInstanceVariableAlreadyInitialized,
+      message:
+          """'$name' is a final instance variable that has already been initialized.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFinalInstanceVariableAlreadyInitializedCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' was initialized here.""",
+        withArguments:
+            _withArgumentsFinalInstanceVariableAlreadyInitializedCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalInstanceVariableAlreadyInitializedCause =
+    const Code<Message Function(String name)>(
+  "FinalInstanceVariableAlreadyInitializedCause",
+  templateFinalInstanceVariableAlreadyInitializedCause,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
+    String name) {
+  return new Message(codeFinalInstanceVariableAlreadyInitializedCause,
+      message: """'$name' was initialized here.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2296,6 +2343,14 @@ Message _withArgumentsSupertypeIsTypeVariable(String name) {
       message: """The type variable '$name' can't be used as supertype.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSwitchCaseFallThrough = const MessageCode(
+    "SwitchCaseFallThrough",
+    message: r"""Switch case may fall through to the next case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
