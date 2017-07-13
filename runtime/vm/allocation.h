@@ -50,7 +50,6 @@ class StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackResource);
 };
 
-
 // Zone allocated objects cannot be individually deallocated, but have
 // to rely on the destructor of Zone which is called when the Zone
 // goes out of scope to reclaim memory.
@@ -77,7 +76,6 @@ class ZoneAllocated {
  private:
   DISALLOW_COPY_AND_ASSIGN(ZoneAllocated);
 };
-
 
 // Within a NoSafepointScope, the thread must not reach any safepoint. Used
 // around code that manipulates raw object pointers directly without handles.

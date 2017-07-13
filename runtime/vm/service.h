@@ -63,7 +63,6 @@ class RingServiceIdZone : public ServiceIdZone {
   ObjectIdRing::IdPolicy policy_;
 };
 
-
 class StreamInfo {
  public:
   explicit StreamInfo(const char* id) : id_(id), enabled_(false) {}
@@ -77,7 +76,6 @@ class StreamInfo {
   const char* id_;
   bool enabled_;
 };
-
 
 class Service : public AllStatic {
  public:

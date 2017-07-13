@@ -41,7 +41,6 @@ class ProcessResult {
   DISALLOW_ALLOCATION();
 };
 
-
 // To be kept in sync with ProcessSignal consts in sdk/lib/io/process.dart
 // Note that this map is as on Linux.
 enum ProcessSignals {
@@ -77,14 +76,12 @@ enum ProcessSignals {
   kLastSignal = kSigsys,
 };
 
-
 // To be kept in sync with ProcessStartMode consts in sdk/lib/io/process.dart.
 enum ProcessStartMode {
   kNormal = 0,
   kDetached = 1,
   kDetachedWithStdio = 2,
 };
-
 
 class Process {
  public:
@@ -162,7 +159,6 @@ class Process {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };
 
-
 class SignalInfo {
  public:
   SignalInfo(intptr_t fd, intptr_t signal, SignalInfo* next)
@@ -203,7 +199,6 @@ class SignalInfo {
 
   DISALLOW_COPY_AND_ASSIGN(SignalInfo);
 };
-
 
 // Utility class for collecting the output when running a process
 // synchronously by using Process::Wait. This class is sub-classed in

@@ -24,7 +24,6 @@ class RawICData;
 class RawObject;
 class String;
 
-
 // Stack-allocated class to create a scope where the specified region
 // [address, address + size] has write access enabled. This is used
 // when patching generated code. Access is reset to read-execute in
@@ -38,7 +37,6 @@ class WritableInstructionsScope : public ValueObject {
   const uword address_;
   const intptr_t size_;
 };
-
 
 class CodePatcher : public AllStatic {
  public:

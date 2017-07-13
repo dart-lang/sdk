@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/port.h"
 #include "platform/assert.h"
 #include "vm/lockers.h"
 #include "vm/message_handler.h"
 #include "vm/os.h"
-#include "vm/port.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -29,7 +29,6 @@ class PortMapTestPeer {
   }
 };
 
-
 class PortTestMessageHandler : public MessageHandler {
  public:
   PortTestMessageHandler() : notify_count(0) {}
@@ -41,7 +40,6 @@ class PortTestMessageHandler : public MessageHandler {
   int notify_count;
 };
 
-
 TEST_CASE(PortMap_CreateAndCloseOnePort) {
   PortTestMessageHandler handler;
   Dart_Port port = PortMap::CreatePort(&handler);
@@ -51,7 +49,6 @@ TEST_CASE(PortMap_CreateAndCloseOnePort) {
   PortMap::ClosePort(port);
   EXPECT(!PortMapTestPeer::IsActivePort(port));
 }
-
 
 TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
   PortTestMessageHandler handler;
@@ -72,7 +69,6 @@ TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
   EXPECT(!PortMapTestPeer::IsActivePort(port2));
 }
 
-
 TEST_CASE(PortMap_ClosePorts) {
   PortTestMessageHandler handler;
   Dart_Port port1 = PortMap::CreatePort(&handler);
@@ -86,7 +82,6 @@ TEST_CASE(PortMap_ClosePorts) {
   EXPECT(!PortMapTestPeer::IsActivePort(port2));
 }
 
-
 TEST_CASE(PortMap_CreateManyPorts) {
   PortTestMessageHandler handler;
   for (int i = 0; i < 32; i++) {
@@ -96,7 +91,6 @@ TEST_CASE(PortMap_CreateManyPorts) {
     EXPECT(!PortMapTestPeer::IsActivePort(port));
   }
 }
-
 
 TEST_CASE(PortMap_SetPortState) {
   PortTestMessageHandler handler;
@@ -130,7 +124,6 @@ TEST_CASE(PortMap_SetPortState) {
   EXPECT(!PortMapTestPeer::IsLivePort(port));
 }
 
-
 TEST_CASE(PortMap_PostMessage) {
   PortTestMessageHandler handler;
   Dart_Port port = PortMap::CreatePort(&handler);
@@ -148,7 +141,6 @@ TEST_CASE(PortMap_PostMessage) {
   PortMap::ClosePorts(&handler);
 }
 
-
 TEST_CASE(PortMap_PostIntegerMessage) {
   PortTestMessageHandler handler;
   Dart_Port port = PortMap::CreatePort(&handler);
@@ -162,7 +154,6 @@ TEST_CASE(PortMap_PostIntegerMessage) {
   PortMap::ClosePorts(&handler);
 }
 
-
 TEST_CASE(PortMap_PostNullMessage) {
   PortTestMessageHandler handler;
   Dart_Port port = PortMap::CreatePort(&handler);
@@ -175,7 +166,6 @@ TEST_CASE(PortMap_PostNullMessage) {
   EXPECT_EQ(1, handler.notify_count);
   PortMap::ClosePorts(&handler);
 }
-
 
 TEST_CASE(PortMap_PostMessageClosedPort) {
   // Create a port id and make it invalid.

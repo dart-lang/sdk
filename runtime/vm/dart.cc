@@ -21,8 +21,8 @@
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
-#include "vm/object_store.h"
 #include "vm/object_id_ring.h"
+#include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/service_isolate.h"
@@ -80,7 +80,6 @@ class ReadOnlyHandles {
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
 };
 
-
 static void CheckOffsets() {
 #define CHECK_OFFSET(expr, offset)                                             \
   if ((expr) != (offset)) {                                                    \
@@ -109,7 +108,6 @@ static void CheckOffsets() {
 #endif
 #undef CHECK_OFFSET
 }
-
 
 char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                      const uint8_t* instructions_snapshot,
@@ -319,7 +317,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   return NULL;
 }
 
-
 // This waits until only the VM isolate and the service isolate remains in the
 // list, i.e. list length == 2.
 void Dart::WaitForApplicationIsolateShutdown() {
@@ -337,7 +334,6 @@ void Dart::WaitForApplicationIsolateShutdown() {
        ServiceIsolate::IsServiceIsolate(Isolate::isolates_list_head_)));
 }
 
-
 // This waits until only the VM isolate remains in the list.
 void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
@@ -348,7 +344,6 @@ void Dart::WaitForIsolateShutdown() {
   }
   ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }
-
 
 const char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
@@ -369,7 +364,6 @@ const char* Dart::Cleanup() {
     }
     Profiler::Shutdown();
   }
-
 
   {
     // Set the VM isolate as current isolate when shutting down
@@ -488,14 +482,12 @@ const char* Dart::Cleanup() {
   return NULL;
 }
 
-
 Isolate* Dart::CreateIsolate(const char* name_prefix,
                              const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
   Isolate* isolate = Isolate::Init(name_prefix, api_flags);
   return isolate;
 }
-
 
 static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
                                  Snapshot::Kind isolate_kind) {
@@ -504,7 +496,6 @@ static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
     return true;
   return Snapshot::IsFull(isolate_kind);
 }
-
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
@@ -644,7 +635,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   return Error::null();
 }
 
-
 const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
@@ -662,7 +652,7 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
       buffer.AddString(" support-debugger");
     }
 
-    // Checked mode affects deopt ids.
+// Checked mode affects deopt ids.
 #define ADD_FLAG(name, isolate_flag, flag)                                     \
   do {                                                                         \
     const bool name = (isolate != NULL) ? isolate->name() : flag;              \
@@ -713,7 +703,6 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   return buffer.Steal();
 }
 
-
 void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
@@ -722,7 +711,6 @@ void Dart::RunShutdownCallback() {
     (callback)(callback_data);
   }
 }
-
 
 void Dart::ShutdownIsolate(Isolate* isolate) {
   ASSERT(Isolate::Current() == NULL);
@@ -735,18 +723,15 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
   ASSERT(Isolate::Current() == NULL);
 }
 
-
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   isolate->Shutdown();
   delete isolate;
 }
 
-
 int64_t Dart::UptimeMicros() {
   return OS::GetCurrentMonotonicMicros() - Dart::start_time_micros_;
 }
-
 
 uword Dart::AllocateReadOnlyHandle() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
@@ -754,19 +739,16 @@ uword Dart::AllocateReadOnlyHandle() {
   return predefined_handles_->handles_.AllocateScopedHandle();
 }
 
-
 LocalHandle* Dart::AllocateReadOnlyApiHandle() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->api_handles_.AllocateHandle();
 }
 
-
 bool Dart::IsReadOnlyHandle(uword address) {
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->handles_.IsValidScopedHandle(address);
 }
-
 
 bool Dart::IsReadOnlyApiHandle(Dart_Handle handle) {
   ASSERT(predefined_handles_ != NULL);

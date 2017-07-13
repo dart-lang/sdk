@@ -4,14 +4,14 @@
 
 #include "vm/regexp_assembler_bytecode.h"
 
-#include "vm/regexp_assembler_bytecode_inl.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
-#include "vm/regexp_bytecodes.h"
-#include "vm/regexp_assembler.h"
 #include "vm/regexp.h"
-#include "vm/regexp_parser.h"
+#include "vm/regexp_assembler.h"
+#include "vm/regexp_assembler_bytecode_inl.h"
+#include "vm/regexp_bytecodes.h"
 #include "vm/regexp_interpreter.h"
+#include "vm/regexp_parser.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -24,17 +24,14 @@ BytecodeRegExpMacroAssembler::BytecodeRegExpMacroAssembler(
       pc_(0),
       advance_current_end_(kInvalidPC) {}
 
-
 BytecodeRegExpMacroAssembler::~BytecodeRegExpMacroAssembler() {
   if (backtrack_.is_linked()) backtrack_.Unuse();
 }
-
 
 BytecodeRegExpMacroAssembler::IrregexpImplementation
 BytecodeRegExpMacroAssembler::Implementation() {
   return kBytecodeImplementation;
 }
-
 
 void BytecodeRegExpMacroAssembler::BindBlock(BlockLabel* l) {
   advance_current_end_ = kInvalidPC;
@@ -50,7 +47,6 @@ void BytecodeRegExpMacroAssembler::BindBlock(BlockLabel* l) {
   l->bind_to(pc_);
 }
 
-
 void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
   if (l == NULL) l = &backtrack_;
   if (l->is_bound()) {
@@ -65,20 +61,17 @@ void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
   }
 }
 
-
 void BytecodeRegExpMacroAssembler::PopRegister(intptr_t register_index) {
   ASSERT(register_index >= 0);
   ASSERT(register_index <= kMaxRegister);
   Emit(BC_POP_REGISTER, register_index);
 }
 
-
 void BytecodeRegExpMacroAssembler::PushRegister(intptr_t register_index) {
   ASSERT(register_index >= 0);
   ASSERT(register_index <= kMaxRegister);
   Emit(BC_PUSH_REGISTER, register_index);
 }
-
 
 void BytecodeRegExpMacroAssembler::WriteCurrentPositionToRegister(
     intptr_t register_index,
@@ -89,7 +82,6 @@ void BytecodeRegExpMacroAssembler::WriteCurrentPositionToRegister(
   Emit32(cp_offset);  // Current position offset.
 }
 
-
 void BytecodeRegExpMacroAssembler::ClearRegisters(intptr_t reg_from,
                                                   intptr_t reg_to) {
   ASSERT(reg_from <= reg_to);
@@ -98,14 +90,12 @@ void BytecodeRegExpMacroAssembler::ClearRegisters(intptr_t reg_from,
   }
 }
 
-
 void BytecodeRegExpMacroAssembler::ReadCurrentPositionFromRegister(
     intptr_t register_index) {
   ASSERT(register_index >= 0);
   ASSERT(register_index <= kMaxRegister);
   Emit(BC_SET_CP_TO_REGISTER, register_index);
 }
-
 
 void BytecodeRegExpMacroAssembler::WriteStackPointerToRegister(
     intptr_t register_index) {
@@ -114,7 +104,6 @@ void BytecodeRegExpMacroAssembler::WriteStackPointerToRegister(
   Emit(BC_SET_REGISTER_TO_SP, register_index);
 }
 
-
 void BytecodeRegExpMacroAssembler::ReadStackPointerFromRegister(
     intptr_t register_index) {
   ASSERT(register_index >= 0);
@@ -122,12 +111,10 @@ void BytecodeRegExpMacroAssembler::ReadStackPointerFromRegister(
   Emit(BC_SET_SP_TO_REGISTER, register_index);
 }
 
-
 void BytecodeRegExpMacroAssembler::SetCurrentPositionFromEnd(intptr_t by) {
   ASSERT(Utils::IsUint(24, by));
   Emit(BC_SET_CURRENT_POSITION_FROM_END, by);
 }
-
 
 void BytecodeRegExpMacroAssembler::SetRegister(intptr_t register_index,
                                                intptr_t to) {
@@ -137,7 +124,6 @@ void BytecodeRegExpMacroAssembler::SetRegister(intptr_t register_index,
   Emit32(to);
 }
 
-
 void BytecodeRegExpMacroAssembler::AdvanceRegister(intptr_t register_index,
                                                    intptr_t by) {
   ASSERT(register_index >= 0);
@@ -146,21 +132,17 @@ void BytecodeRegExpMacroAssembler::AdvanceRegister(intptr_t register_index,
   Emit32(by);
 }
 
-
 void BytecodeRegExpMacroAssembler::PopCurrentPosition() {
   Emit(BC_POP_CP, 0);
 }
-
 
 void BytecodeRegExpMacroAssembler::PushCurrentPosition() {
   Emit(BC_PUSH_CP, 0);
 }
 
-
 void BytecodeRegExpMacroAssembler::Backtrack() {
   Emit(BC_POP_BT, 0);
 }
-
 
 void BytecodeRegExpMacroAssembler::GoTo(BlockLabel* l) {
   if (advance_current_end_ == pc_) {
@@ -176,23 +158,19 @@ void BytecodeRegExpMacroAssembler::GoTo(BlockLabel* l) {
   }
 }
 
-
 void BytecodeRegExpMacroAssembler::PushBacktrack(BlockLabel* l) {
   Emit(BC_PUSH_BT, 0);
   EmitOrLink(l);
 }
-
 
 bool BytecodeRegExpMacroAssembler::Succeed() {
   Emit(BC_SUCCEED, 0);
   return false;  // Restart matching for global regexp not supported.
 }
 
-
 void BytecodeRegExpMacroAssembler::Fail() {
   Emit(BC_FAIL, 0);
 }
-
 
 void BytecodeRegExpMacroAssembler::AdvanceCurrentPosition(intptr_t by) {
   ASSERT(by >= kMinCPOffset);
@@ -203,13 +181,11 @@ void BytecodeRegExpMacroAssembler::AdvanceCurrentPosition(intptr_t by) {
   advance_current_end_ = pc_;
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckGreedyLoop(
     BlockLabel* on_tos_equals_current_position) {
   Emit(BC_CHECK_GREEDY, 0);
   EmitOrLink(on_tos_equals_current_position);
 }
-
 
 void BytecodeRegExpMacroAssembler::LoadCurrentCharacter(intptr_t cp_offset,
                                                         BlockLabel* on_failure,
@@ -241,20 +217,17 @@ void BytecodeRegExpMacroAssembler::LoadCurrentCharacter(intptr_t cp_offset,
   if (check_bounds) EmitOrLink(on_failure);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckCharacterLT(uint16_t limit,
                                                     BlockLabel* on_less) {
   Emit(BC_CHECK_LT, limit);
   EmitOrLink(on_less);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckCharacterGT(uint16_t limit,
                                                     BlockLabel* on_greater) {
   Emit(BC_CHECK_GT, limit);
   EmitOrLink(on_greater);
 }
-
 
 void BytecodeRegExpMacroAssembler::CheckCharacter(uint32_t c,
                                                   BlockLabel* on_equal) {
@@ -267,19 +240,16 @@ void BytecodeRegExpMacroAssembler::CheckCharacter(uint32_t c,
   EmitOrLink(on_equal);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckAtStart(BlockLabel* on_at_start) {
   Emit(BC_CHECK_AT_START, 0);
   EmitOrLink(on_at_start);
 }
-
 
 void BytecodeRegExpMacroAssembler::CheckNotAtStart(
     BlockLabel* on_not_at_start) {
   Emit(BC_CHECK_NOT_AT_START, 0);
   EmitOrLink(on_not_at_start);
 }
-
 
 void BytecodeRegExpMacroAssembler::CheckNotCharacter(uint32_t c,
                                                      BlockLabel* on_not_equal) {
@@ -291,7 +261,6 @@ void BytecodeRegExpMacroAssembler::CheckNotCharacter(uint32_t c,
   }
   EmitOrLink(on_not_equal);
 }
-
 
 void BytecodeRegExpMacroAssembler::CheckCharacterAfterAnd(
     uint32_t c,
@@ -307,7 +276,6 @@ void BytecodeRegExpMacroAssembler::CheckCharacterAfterAnd(
   EmitOrLink(on_equal);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckNotCharacterAfterAnd(
     uint32_t c,
     uint32_t mask,
@@ -322,7 +290,6 @@ void BytecodeRegExpMacroAssembler::CheckNotCharacterAfterAnd(
   EmitOrLink(on_not_equal);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckNotCharacterAfterMinusAnd(
     uint16_t c,
     uint16_t minus,
@@ -334,7 +301,6 @@ void BytecodeRegExpMacroAssembler::CheckNotCharacterAfterMinusAnd(
   EmitOrLink(on_not_equal);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckCharacterInRange(
     uint16_t from,
     uint16_t to,
@@ -345,7 +311,6 @@ void BytecodeRegExpMacroAssembler::CheckCharacterInRange(
   EmitOrLink(on_in_range);
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckCharacterNotInRange(
     uint16_t from,
     uint16_t to,
@@ -355,7 +320,6 @@ void BytecodeRegExpMacroAssembler::CheckCharacterNotInRange(
   Emit16(to);
   EmitOrLink(on_not_in_range);
 }
-
 
 void BytecodeRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
                                                    BlockLabel* on_bit_set) {
@@ -370,7 +334,6 @@ void BytecodeRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
   }
 }
 
-
 void BytecodeRegExpMacroAssembler::CheckNotBackReference(
     intptr_t start_reg,
     BlockLabel* on_not_equal) {
@@ -379,7 +342,6 @@ void BytecodeRegExpMacroAssembler::CheckNotBackReference(
   Emit(BC_CHECK_NOT_BACK_REF, start_reg);
   EmitOrLink(on_not_equal);
 }
-
 
 void BytecodeRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     intptr_t start_reg,
@@ -390,7 +352,6 @@ void BytecodeRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
   EmitOrLink(on_not_equal);
 }
 
-
 void BytecodeRegExpMacroAssembler::IfRegisterLT(intptr_t register_index,
                                                 intptr_t comparand,
                                                 BlockLabel* on_less_than) {
@@ -400,7 +361,6 @@ void BytecodeRegExpMacroAssembler::IfRegisterLT(intptr_t register_index,
   Emit32(comparand);
   EmitOrLink(on_less_than);
 }
-
 
 void BytecodeRegExpMacroAssembler::IfRegisterGE(
     intptr_t register_index,
@@ -413,7 +373,6 @@ void BytecodeRegExpMacroAssembler::IfRegisterGE(
   EmitOrLink(on_greater_or_equal);
 }
 
-
 void BytecodeRegExpMacroAssembler::IfRegisterEqPos(intptr_t register_index,
                                                    BlockLabel* on_eq) {
   ASSERT(register_index >= 0);
@@ -421,7 +380,6 @@ void BytecodeRegExpMacroAssembler::IfRegisterEqPos(intptr_t register_index,
   Emit(BC_CHECK_REGISTER_EQ_POS, register_index);
   EmitOrLink(on_eq);
 }
-
 
 RawTypedData* BytecodeRegExpMacroAssembler::GetBytecode() {
   BindBlock(&backtrack_);
@@ -437,11 +395,9 @@ RawTypedData* BytecodeRegExpMacroAssembler::GetBytecode() {
   return bytecode.raw();
 }
 
-
 intptr_t BytecodeRegExpMacroAssembler::length() {
   return pc_;
 }
-
 
 void BytecodeRegExpMacroAssembler::Expand() {
   // BOGUS
@@ -453,7 +409,6 @@ void BytecodeRegExpMacroAssembler::Expand() {
   for (intptr_t i = 0; i < x; i++)
     buffer_->Add(0);
 }
-
 
 static intptr_t Prepare(const RegExp& regexp,
                         const String& subject,
@@ -502,7 +457,6 @@ static intptr_t Prepare(const RegExp& regexp,
          (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
 }
 
-
 static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
                                                    const String& subject,
                                                    intptr_t index,
@@ -548,7 +502,6 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
   return result;
 }
-
 
 RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
                                                      const String& subject,
@@ -598,6 +551,5 @@ RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
   ASSERT(result == IrregexpInterpreter::RE_FAILURE);
   return Instance::null();
 }
-
 
 }  // namespace dart

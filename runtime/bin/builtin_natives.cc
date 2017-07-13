@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "include/dart_api.h"
@@ -29,7 +29,6 @@ namespace bin {
   V(Builtin_PrintString, 1)                                                    \
   V(Builtin_GetCurrentDirectory, 0)
 
-
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
 
 static struct NativeEntries {
@@ -38,11 +37,9 @@ static struct NativeEntries {
   int argument_count_;
 } BuiltinEntries[] = {BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)};
 
-
 void Builtin_DummyNative(Dart_NativeArguments args) {
   UNREACHABLE();
 }
-
 
 /**
  * Looks up native functions in both libdart_builtin and libdart_io.
@@ -72,7 +69,6 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
   return result;
 }
 
-
 const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -83,7 +79,6 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
   }
   return IONativeSymbol(nf);
 }
-
 
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.

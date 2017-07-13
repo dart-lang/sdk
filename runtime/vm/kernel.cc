@@ -7,10 +7,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
-namespace kernel {
-
-
-}  // namespace kernel
+namespace kernel {}  // namespace kernel
 
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

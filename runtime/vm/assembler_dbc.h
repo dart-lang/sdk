@@ -19,13 +19,11 @@
 
 namespace dart {
 
-
 // Dummy declaration to make things compile.
 class Address : public ValueObject {
  private:
   Address();
 };
-
 
 class Label : public ValueObject {
  public:
@@ -67,7 +65,6 @@ class Label : public ValueObject {
   friend class Assembler;
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
-
 
 class Assembler : public ValueObject {
  public:
@@ -138,7 +135,6 @@ class Assembler : public ValueObject {
 #define PARAMS_T intptr_t x
 #define PARAMS_A_X uintptr_t ra, intptr_t x
 
-
   BYTECODES_LIST(DECLARE_EMIT)
 
 #undef PARAMS_0
@@ -184,7 +180,6 @@ class Assembler : public ValueObject {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
-
 
 }  // namespace dart
 

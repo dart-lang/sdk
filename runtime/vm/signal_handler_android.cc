@@ -4,8 +4,8 @@
 
 #include "vm/globals.h"
 #include "vm/instructions.h"
-#include "vm/simulator.h"
 #include "vm/signal_handler.h"
+#include "vm/simulator.h"
 #if defined(HOST_OS_ANDROID)
 
 namespace dart {
@@ -26,7 +26,6 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
 #endif  // HOST_ARCH_...
   return pc;
 }
-
 
 uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   uintptr_t fp = 0;
@@ -53,7 +52,6 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   return fp;
 }
 
-
 uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   uintptr_t sp = 0;
 
@@ -71,7 +69,6 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   return sp;
 }
 
-
 uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
 #if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
   return static_cast<uintptr_t>(mcontext.regs[SPREG]);
@@ -79,7 +76,6 @@ uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
   return GetCStackPointer(mcontext);
 #endif
 }
-
 
 uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   uintptr_t lr = 0;
@@ -98,7 +94,6 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   return lr;
 }
 
-
 void SignalHandler::InstallImpl(SignalAction action) {
   struct sigaction act;
   memset(&act, 0, sizeof(act));
@@ -108,7 +103,6 @@ void SignalHandler::InstallImpl(SignalAction action) {
   int r = sigaction(SIGPROF, &act, NULL);
   ASSERT(r == 0);
 }
-
 
 void SignalHandler::Remove() {
   // Ignore future SIGPROF signals because by default SIGPROF will terminate
@@ -120,7 +114,6 @@ void SignalHandler::Remove() {
   int r = sigaction(SIGPROF, &act, NULL);
   ASSERT(r == 0);
 }
-
 
 }  // namespace dart
 

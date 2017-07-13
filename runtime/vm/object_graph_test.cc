@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/object_graph.h"
+#include "platform/assert.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -36,7 +36,6 @@ class CounterVisitor : public ObjectGraph::Visitor {
   RawObject* skip_;
   RawObject* expected_parent_;
 };
-
 
 ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   Isolate* isolate = thread->isolate();

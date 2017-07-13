@@ -315,7 +315,6 @@ class Heap {
   // ensure thread-safety.
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
 
-
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread,
                               ApiCallbacks api_callbacks,
@@ -375,7 +374,6 @@ class Heap {
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
-
 class HeapIterationScope : public StackResource {
  public:
   explicit HeapIterationScope(bool writable = false);
@@ -389,7 +387,6 @@ class HeapIterationScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-
 class NoHeapGrowthControlScope : public StackResource {
  public:
   NoHeapGrowthControlScope();
@@ -399,7 +396,6 @@ class NoHeapGrowthControlScope : public StackResource {
   bool current_growth_controller_state_;
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
 };
-
 
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {

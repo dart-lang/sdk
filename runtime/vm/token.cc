@@ -28,7 +28,6 @@ const Token::Attribute Token::attributes_[] = {
     DART_TOKEN_LIST(TOKEN_ATTRIBUTE) DART_KEYWORD_LIST(TOKEN_ATTRIBUTE)};
 #undef TOKEN_ATTRIBUTE
 
-
 bool Token::IsBinaryOperator(Token::Kind token) {
   switch (token) {
     case Token::kOR:
@@ -39,11 +38,9 @@ bool Token::IsBinaryOperator(Token::Kind token) {
   }
 }
 
-
 bool Token::IsUnaryOperator(Token::Kind token) {
   return (token == kNOT) || IsUnaryArithmeticOperator(token);
 }
-
 
 bool Token::IsBinaryArithmeticOperator(Token::Kind token) {
   switch (token) {
@@ -64,11 +61,9 @@ bool Token::IsBinaryArithmeticOperator(Token::Kind token) {
   }
 }
 
-
 bool Token::IsUnaryArithmeticOperator(Token::Kind token) {
   return (token == kBIT_NOT) || (token == kNEGATE);
 }
-
 
 bool Token::IsBinaryBitwiseOperator(Token::Kind token) {
   switch (token) {

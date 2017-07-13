@@ -40,7 +40,6 @@ namespace dart {
 static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
 static const intptr_t kMinStackSize = 512;
 
-
 /*
  * This assembler uses the following main local variables:
  * - stack_: A pointer to a growable list which we use as an all-purpose stack
@@ -142,9 +141,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
   set_current_instruction(start_block_);
 }
 
-
 IRRegExpMacroAssembler::~IRRegExpMacroAssembler() {}
-
 
 void IRRegExpMacroAssembler::InitializeLocals() {
   // All generated functions are expected to have a current-context variable.
@@ -172,7 +169,6 @@ void IRRegExpMacroAssembler::InitializeLocals() {
   start_index_param_ = Parameter(Symbols::start_index_param(),
                                  RegExpMacroAssembler::kParamStartOffsetIndex);
 }
-
 
 void IRRegExpMacroAssembler::GenerateEntryBlock() {
   set_current_instruction(entry_block_->normal_entry());
@@ -211,7 +207,6 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
   current_instruction_->Goto(start_block_);
 }
 
-
 void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
   set_current_instruction(backtrack_block_);
   TAG();
@@ -239,7 +234,6 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
         TargetWithJoinGoto(entry_block_->indirect_entries().At(j)));
   }
 }
-
 
 void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   set_current_instruction(success_block_);
@@ -276,7 +270,6 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
       TokenPosition::kNoSource, Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
-
 void IRRegExpMacroAssembler::GenerateExitBlock() {
   set_current_instruction(exit_block_);
   TAG();
@@ -286,13 +279,11 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
       TokenPosition::kNoSource, Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
-
 void IRRegExpMacroAssembler::FinalizeRegistersArray() {
   ASSERT(registers_count_ >= saved_registers_count_);
   registers_array_ =
       TypedData::New(kTypedDataInt32ArrayCid, registers_count_, Heap::kOld);
 }
-
 
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
 // Disabling unaligned accesses forces the regexp engine to load characters one
@@ -307,7 +298,6 @@ static const bool kEnableUnalignedAccesses = true;
 bool IRRegExpMacroAssembler::CanReadUnaligned() {
   return kEnableUnalignedAccesses && !slow_safe();
 }
-
 
 RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
                                           const String& input,
@@ -343,7 +333,6 @@ RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
   return Array::Cast(retval).raw();
 }
 
-
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
                                                  intptr_t index) const {
   LocalVariable* local =
@@ -356,7 +345,6 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
   return local;
 }
 
-
 LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
   LocalVariable* local =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -366,29 +354,24 @@ LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
   return local;
 }
 
-
 ConstantInstr* IRRegExpMacroAssembler::Int64Constant(int64_t value) const {
   return new (Z)
       ConstantInstr(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
-
 
 ConstantInstr* IRRegExpMacroAssembler::Uint64Constant(uint64_t value) const {
   return new (Z) ConstantInstr(
       Integer::ZoneHandle(Z, Integer::NewFromUint64(value, Heap::kOld)));
 }
 
-
 ConstantInstr* IRRegExpMacroAssembler::BoolConstant(bool value) const {
   return new (Z) ConstantInstr(value ? Bool::True() : Bool::False());
 }
-
 
 ConstantInstr* IRRegExpMacroAssembler::StringConstant(const char* value) const {
   return new (Z)
       ConstantInstr(String::ZoneHandle(Z, String::New(value, Heap::kOld)));
 }
-
 
 ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   const Library& lib = Library::Handle(Z, Library::CoreLibrary());
@@ -408,7 +391,6 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   return new (Z) ConstantInstr(
       Instance::ZoneHandle(Z, word_character_field.StaticValue()));
 }
-
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
                                                     PushArgumentInstr* lhs,
@@ -458,14 +440,12 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
   return Comparison(kind, lhs_push, rhs_push);
 }
 
-
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(0);
   return StaticCall(function, arguments);
 }
-
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
@@ -476,7 +456,6 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
 
   return StaticCall(function, arguments);
 }
-
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
@@ -489,7 +468,6 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
 
   return StaticCall(function, arguments);
 }
-
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
@@ -500,7 +478,6 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
                                  ic_data_array_, GetNextDeoptId());
 }
 
-
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     PushArgumentInstr* arg1) const {
@@ -510,7 +487,6 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 
   return InstanceCall(desc, arguments);
 }
-
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
@@ -523,7 +499,6 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 
   return InstanceCall(desc, arguments);
 }
-
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
@@ -539,7 +514,6 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
   return InstanceCall(desc, arguments);
 }
 
-
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
@@ -550,21 +524,17 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
       ic_data_array_, GetNextDeoptId());
 }
 
-
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
   return new (Z) LoadLocalInstr(*local, TokenPosition::kNoSource);
 }
-
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local, Value* value) {
   Do(new (Z) StoreLocalInstr(*local, value, TokenPosition::kNoSource));
 }
 
-
 void IRRegExpMacroAssembler::set_current_instruction(Instruction* instruction) {
   current_instruction_ = instruction;
 }
-
 
 Value* IRRegExpMacroAssembler::Bind(Definition* definition) {
   AppendInstruction(definition);
@@ -573,11 +543,9 @@ Value* IRRegExpMacroAssembler::Bind(Definition* definition) {
   return new (Z) Value(definition);
 }
 
-
 void IRRegExpMacroAssembler::Do(Definition* definition) {
   AppendInstruction(definition);
 }
-
 
 Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
   if (local.IsConst()) {
@@ -586,7 +554,6 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
   ASSERT(!local.is_captured());
   return Bind(new (Z) LoadLocalInstr(local, TokenPosition::kNoSource));
 }
-
 
 // In some cases, the V8 irregexp engine generates unreachable code by emitting
 // a jmp not followed by a bind. We cannot do the same, since it is impossible
@@ -617,7 +584,6 @@ void IRRegExpMacroAssembler::AppendInstruction(Instruction* instruction) {
   set_current_instruction(instruction);
 }
 
-
 void IRRegExpMacroAssembler::CloseBlockWith(Instruction* instruction) {
   HANDLE_DEAD_CODE_EMISSION();
 
@@ -631,7 +597,6 @@ void IRRegExpMacroAssembler::CloseBlockWith(Instruction* instruction) {
   set_current_instruction(NULL);
 }
 
-
 void IRRegExpMacroAssembler::GoTo(BlockLabel* to) {
   if (to == NULL) {
     Backtrack();
@@ -640,7 +605,6 @@ void IRRegExpMacroAssembler::GoTo(BlockLabel* to) {
     GoTo(to->block());
   }
 }
-
 
 // Closes the current block with a goto, and unsets current_instruction_.
 // BindBlock() must be called before emission can continue.
@@ -653,7 +617,6 @@ void IRRegExpMacroAssembler::GoTo(JoinEntryInstr* to) {
   set_current_instruction(NULL);
 }
 
-
 PushArgumentInstr* IRRegExpMacroAssembler::PushArgument(Value* value) {
   arg_id_.Alloc();
   PushArgumentInstr* push = new (Z) PushArgumentInstr(value);
@@ -662,17 +625,14 @@ PushArgumentInstr* IRRegExpMacroAssembler::PushArgument(Value* value) {
   return push;
 }
 
-
 PushArgumentInstr* IRRegExpMacroAssembler::PushLocal(LocalVariable* local) {
   return PushArgument(Bind(LoadLocal(local)));
 }
-
 
 void IRRegExpMacroAssembler::Print(const char* str) {
   Print(PushArgument(Bind(new (Z) ConstantInstr(
       String::ZoneHandle(Z, String::New(str, Heap::kOld))))));
 }
-
 
 void IRRegExpMacroAssembler::Print(PushArgumentInstr* argument) {
   const Library& lib = Library::Handle(Library::CoreLibrary());
@@ -681,18 +641,15 @@ void IRRegExpMacroAssembler::Print(PushArgumentInstr* argument) {
   Do(StaticCall(print_fn, argument));
 }
 
-
 void IRRegExpMacroAssembler::PrintBlocks() {
   for (intptr_t i = 0; i < blocks_.length(); i++) {
     FlowGraphPrinter::PrintBlock(blocks_[i], false);
   }
 }
 
-
 intptr_t IRRegExpMacroAssembler::stack_limit_slack() {
   return 32;
 }
-
 
 void IRRegExpMacroAssembler::AdvanceCurrentPosition(intptr_t by) {
   TAG();
@@ -704,7 +661,6 @@ void IRRegExpMacroAssembler::AdvanceCurrentPosition(intptr_t by) {
     StoreLocal(current_position_, new_pos_value);
   }
 }
-
 
 void IRRegExpMacroAssembler::AdvanceRegister(intptr_t reg, intptr_t by) {
   TAG();
@@ -721,12 +677,10 @@ void IRRegExpMacroAssembler::AdvanceRegister(intptr_t reg, intptr_t by) {
   }
 }
 
-
 void IRRegExpMacroAssembler::Backtrack() {
   TAG();
   GoTo(backtrack_block_);
 }
-
 
 // A BindBlock is analogous to assigning a label to a basic block.
 // If the BlockLabel does not yet contain a block, it is created.
@@ -747,12 +701,10 @@ void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
   PRINT(PushArgument(Bind(Uint64Constant(label->block()->block_id()))));
 }
 
-
 intptr_t IRRegExpMacroAssembler::GetNextLocalIndex() {
   intptr_t id = local_id_.Alloc();
   return kFirstLocalSlotFromFp - id;
 }
-
 
 Value* IRRegExpMacroAssembler::LoadRegister(intptr_t index) {
   PushArgumentInstr* registers_push = PushLocal(registers_);
@@ -767,7 +719,6 @@ void IRRegExpMacroAssembler::StoreRegister(intptr_t index, intptr_t value) {
   PushArgumentInstr* value_push = PushArgument(Bind(Uint64Constant(value)));
   StoreRegister(registers_push, index_push, value_push);
 }
-
 
 void IRRegExpMacroAssembler::StoreRegister(PushArgumentInstr* registers,
                                            PushArgumentInstr* index,
@@ -784,7 +735,6 @@ PushArgumentInstr* IRRegExpMacroAssembler::PushRegisterIndex(intptr_t index) {
   return PushArgument(Bind(Uint64Constant(index)));
 }
 
-
 void IRRegExpMacroAssembler::CheckCharacter(uint32_t c, BlockLabel* on_equal) {
   TAG();
   Definition* cur_char_def = LoadLocal(current_character_);
@@ -793,7 +743,6 @@ void IRRegExpMacroAssembler::CheckCharacter(uint32_t c, BlockLabel* on_equal) {
   BranchOrBacktrack(Comparison(kEQ, cur_char_def, char_def), on_equal);
 }
 
-
 void IRRegExpMacroAssembler::CheckCharacterGT(uint16_t limit,
                                               BlockLabel* on_greater) {
   TAG();
@@ -801,7 +750,6 @@ void IRRegExpMacroAssembler::CheckCharacterGT(uint16_t limit,
       Comparison(kGT, LoadLocal(current_character_), Uint64Constant(limit)),
       on_greater);
 }
-
 
 void IRRegExpMacroAssembler::CheckAtStart(BlockLabel* on_at_start) {
   TAG();
@@ -824,7 +772,6 @@ void IRRegExpMacroAssembler::CheckAtStart(BlockLabel* on_at_start) {
   BindBlock(&not_at_start);
 }
 
-
 void IRRegExpMacroAssembler::CheckNotAtStart(BlockLabel* on_not_at_start) {
   TAG();
 
@@ -842,7 +789,6 @@ void IRRegExpMacroAssembler::CheckNotAtStart(BlockLabel* on_not_at_start) {
   BranchOrBacktrack(Comparison(kNE, neg_len_def, offset_def), on_not_at_start);
 }
 
-
 void IRRegExpMacroAssembler::CheckCharacterLT(uint16_t limit,
                                               BlockLabel* on_less) {
   TAG();
@@ -850,7 +796,6 @@ void IRRegExpMacroAssembler::CheckCharacterLT(uint16_t limit,
       Comparison(kLT, LoadLocal(current_character_), Uint64Constant(limit)),
       on_less);
 }
-
 
 void IRRegExpMacroAssembler::CheckGreedyLoop(BlockLabel* on_equal) {
   TAG();
@@ -868,7 +813,6 @@ void IRRegExpMacroAssembler::CheckGreedyLoop(BlockLabel* on_equal) {
 
   BindBlock(&fallthrough);
 }
-
 
 void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     intptr_t start_reg,
@@ -896,7 +840,6 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
   BranchOrBacktrack(
       Comparison(kEQ, LoadLocal(capture_length_), Uint64Constant(0)),
       &fallthrough);
-
 
   // Check that there are sufficient characters left in the input.
   PushArgumentInstr* pos_push = PushLocal(current_position_);
@@ -1019,7 +962,6 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
   BindBlock(&fallthrough);
 }
 
-
 void IRRegExpMacroAssembler::CheckNotBackReference(intptr_t start_reg,
                                                    BlockLabel* on_no_match) {
   TAG();
@@ -1100,7 +1042,6 @@ void IRRegExpMacroAssembler::CheckNotBackReference(intptr_t start_reg,
   BindBlock(&fallthrough);
 }
 
-
 void IRRegExpMacroAssembler::CheckNotCharacter(uint32_t c,
                                                BlockLabel* on_not_equal) {
   TAG();
@@ -1108,7 +1049,6 @@ void IRRegExpMacroAssembler::CheckNotCharacter(uint32_t c,
       Comparison(kNE, LoadLocal(current_character_), Uint64Constant(c)),
       on_not_equal);
 }
-
 
 void IRRegExpMacroAssembler::CheckCharacterAfterAnd(uint32_t c,
                                                     uint32_t mask,
@@ -1126,7 +1066,6 @@ void IRRegExpMacroAssembler::CheckCharacterAfterAnd(uint32_t c,
   BranchOrBacktrack(Comparison(kEQ, actual_def, expected_def), on_equal);
 }
 
-
 void IRRegExpMacroAssembler::CheckNotCharacterAfterAnd(
     uint32_t c,
     uint32_t mask,
@@ -1143,7 +1082,6 @@ void IRRegExpMacroAssembler::CheckNotCharacterAfterAnd(
 
   BranchOrBacktrack(Comparison(kNE, actual_def, expected_def), on_not_equal);
 }
-
 
 void IRRegExpMacroAssembler::CheckNotCharacterAfterMinusAnd(
     uint16_t c,
@@ -1167,7 +1105,6 @@ void IRRegExpMacroAssembler::CheckNotCharacterAfterMinusAnd(
   BranchOrBacktrack(Comparison(kNE, actual_def, expected_def), on_not_equal);
 }
 
-
 void IRRegExpMacroAssembler::CheckCharacterInRange(uint16_t from,
                                                    uint16_t to,
                                                    BlockLabel* on_in_range) {
@@ -1189,7 +1126,6 @@ void IRRegExpMacroAssembler::CheckCharacterInRange(uint16_t from,
   BindBlock(&on_not_in_range);
 }
 
-
 void IRRegExpMacroAssembler::CheckCharacterNotInRange(
     uint16_t from,
     uint16_t to,
@@ -1205,7 +1141,6 @@ void IRRegExpMacroAssembler::CheckCharacterNotInRange(
       Comparison(kGT, LoadLocal(current_character_), Uint64Constant(to)),
       on_not_in_range);
 }
-
 
 void IRRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
                                              BlockLabel* on_bit_set) {
@@ -1229,7 +1164,6 @@ void IRRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
 
   BranchOrBacktrack(Comparison(kNE, byte_def, zero_def), on_bit_set);
 }
-
 
 bool IRRegExpMacroAssembler::CheckSpecialCharacterClass(
     uint16_t type,
@@ -1367,7 +1301,6 @@ bool IRRegExpMacroAssembler::CheckSpecialCharacterClass(
   }
 }
 
-
 void IRRegExpMacroAssembler::Fail() {
   TAG();
   ASSERT(FAILURE == 0);  // Return value for failure is zero.
@@ -1376,7 +1309,6 @@ void IRRegExpMacroAssembler::Fail() {
   }
   GoTo(exit_block_);
 }
-
 
 void IRRegExpMacroAssembler::IfRegisterGE(intptr_t reg,
                                           intptr_t comparand,
@@ -1387,7 +1319,6 @@ void IRRegExpMacroAssembler::IfRegisterGE(intptr_t reg,
   BranchOrBacktrack(Comparison(kGTE, reg_push, pos), if_ge);
 }
 
-
 void IRRegExpMacroAssembler::IfRegisterLT(intptr_t reg,
                                           intptr_t comparand,
                                           BlockLabel* if_lt) {
@@ -1397,7 +1328,6 @@ void IRRegExpMacroAssembler::IfRegisterLT(intptr_t reg,
   BranchOrBacktrack(Comparison(kLT, reg_push, pos), if_lt);
 }
 
-
 void IRRegExpMacroAssembler::IfRegisterEqPos(intptr_t reg, BlockLabel* if_eq) {
   TAG();
   PushArgumentInstr* reg_push = PushArgument(LoadRegister(reg));
@@ -1405,12 +1335,10 @@ void IRRegExpMacroAssembler::IfRegisterEqPos(intptr_t reg, BlockLabel* if_eq) {
   BranchOrBacktrack(Comparison(kEQ, reg_push, pos), if_eq);
 }
 
-
 RegExpMacroAssembler::IrregexpImplementation
 IRRegExpMacroAssembler::Implementation() {
   return kIRImplementation;
 }
-
 
 void IRRegExpMacroAssembler::LoadCurrentCharacter(intptr_t cp_offset,
                                                   BlockLabel* on_end_of_input,
@@ -1425,12 +1353,10 @@ void IRRegExpMacroAssembler::LoadCurrentCharacter(intptr_t cp_offset,
   LoadCurrentCharacterUnchecked(cp_offset, characters);
 }
 
-
 void IRRegExpMacroAssembler::PopCurrentPosition() {
   TAG();
   StoreLocal(current_position_, Bind(PopStack()));
 }
-
 
 void IRRegExpMacroAssembler::PopRegister(intptr_t reg) {
   TAG();
@@ -1440,7 +1366,6 @@ void IRRegExpMacroAssembler::PopRegister(intptr_t reg) {
   PushArgumentInstr* pop_push = PushArgument(Bind(PopStack()));
   StoreRegister(registers_push, index_push, pop_push);
 }
-
 
 void IRRegExpMacroAssembler::PushStack(Definition* definition) {
   PushArgumentInstr* stack_push = PushLocal(stack_);
@@ -1454,7 +1379,6 @@ void IRRegExpMacroAssembler::PushStack(Definition* definition) {
                   stack_push, stack_pointer_push, value_push));
 }
 
-
 Definition* IRRegExpMacroAssembler::PopStack() {
   PushArgumentInstr* stack_push = PushLocal(stack_);
   PushArgumentInstr* stack_pointer_push1 = PushLocal(stack_pointer_);
@@ -1465,14 +1389,12 @@ Definition* IRRegExpMacroAssembler::PopStack() {
                       stack_push, stack_pointer_push1);
 }
 
-
 Definition* IRRegExpMacroAssembler::PeekStack() {
   PushArgumentInstr* stack_push = PushLocal(stack_);
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
                       stack_push, stack_pointer_push);
 }
-
 
 // Pushes the location corresponding to label to the backtracking stack.
 void IRRegExpMacroAssembler::PushBacktrack(BlockLabel* label) {
@@ -1491,12 +1413,10 @@ void IRRegExpMacroAssembler::PushBacktrack(BlockLabel* label) {
   CheckStackLimit();
 }
 
-
 void IRRegExpMacroAssembler::PushCurrentPosition() {
   TAG();
   PushStack(LoadLocal(current_position_));
 }
-
 
 void IRRegExpMacroAssembler::PushRegister(intptr_t reg) {
   TAG();
@@ -1512,7 +1432,6 @@ void IRRegExpMacroAssembler::PushRegister(intptr_t reg) {
                   stack_push, stack_pointer_push, value_push));
   CheckStackLimit();
 }
-
 
 // Checks that (stack.capacity - stack_limit_slack) > stack_pointer.
 // This ensures that up to stack_limit_slack stack pushes can be
@@ -1543,7 +1462,6 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
   BindBlock(&fallthrough);
 }
 
-
 void IRRegExpMacroAssembler::GrowStack() {
   TAG();
   const Library& lib = Library::Handle(Library::InternalLibrary());
@@ -1563,7 +1481,6 @@ void IRRegExpMacroAssembler::GrowStack() {
   Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
                   stack_cell_push, index_push, stack_push));
 }
-
 
 void IRRegExpMacroAssembler::ReadCurrentPositionFromRegister(intptr_t reg) {
   TAG();
@@ -1598,7 +1515,6 @@ void IRRegExpMacroAssembler::SetCurrentPositionFromEnd(intptr_t by) {
   BindBlock(&after_position);
 }
 
-
 void IRRegExpMacroAssembler::SetRegister(intptr_t reg, intptr_t to) {
   TAG();
   // Reserved for positions!
@@ -1606,13 +1522,11 @@ void IRRegExpMacroAssembler::SetRegister(intptr_t reg, intptr_t to) {
   StoreRegister(reg, to);
 }
 
-
 bool IRRegExpMacroAssembler::Succeed() {
   TAG();
   GoTo(success_block_);
   return global();
 }
-
 
 void IRRegExpMacroAssembler::WriteCurrentPositionToRegister(
     intptr_t reg,
@@ -1628,7 +1542,6 @@ void IRRegExpMacroAssembler::WriteCurrentPositionToRegister(
   // within the success block.
   StoreRegister(registers_push, index_push, neg_off_push);
 }
-
 
 void IRRegExpMacroAssembler::ClearRegisters(intptr_t reg_from,
                                             intptr_t reg_to) {
@@ -1650,7 +1563,6 @@ void IRRegExpMacroAssembler::ClearRegisters(intptr_t reg_from,
   }
 }
 
-
 void IRRegExpMacroAssembler::WriteStackPointerToRegister(intptr_t reg) {
   TAG();
 
@@ -1660,9 +1572,7 @@ void IRRegExpMacroAssembler::WriteStackPointerToRegister(intptr_t reg) {
   StoreRegister(registers_push, index_push, tip_push);
 }
 
-
 // Private methods:
-
 
 void IRRegExpMacroAssembler::CheckPosition(intptr_t cp_offset,
                                            BlockLabel* on_outside_input) {
@@ -1675,7 +1585,6 @@ void IRRegExpMacroAssembler::CheckPosition(intptr_t cp_offset,
 
   BranchOrBacktrack(Comparison(kGTE, curpos_def, cp_off_def), on_outside_input);
 }
-
 
 void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
                                                BlockLabel* true_successor) {
@@ -1707,7 +1616,6 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
   BindBlock(&fallthrough);
 }
 
-
 TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
     JoinEntryInstr* dst) {
   TargetEntryInstr* target = new (Z)
@@ -1718,7 +1626,6 @@ TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
 
   return target;
 }
-
 
 IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
     JoinEntryInstr* dst) {
@@ -1731,7 +1638,6 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 
   return target;
 }
-
 
 void IRRegExpMacroAssembler::CheckPreemption(bool is_backtrack) {
   TAG();
@@ -1746,18 +1652,15 @@ void IRRegExpMacroAssembler::CheckPreemption(bool is_backtrack) {
                    : CheckStackOverflowInstr::kOsrOnly));
 }
 
-
 Definition* IRRegExpMacroAssembler::Add(PushArgumentInstr* lhs,
                                         PushArgumentInstr* rhs) {
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kADD), lhs, rhs);
 }
 
-
 Definition* IRRegExpMacroAssembler::Sub(PushArgumentInstr* lhs,
                                         PushArgumentInstr* rhs) {
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kSUB), lhs, rhs);
 }
-
 
 void IRRegExpMacroAssembler::LoadCurrentCharacterUnchecked(
     intptr_t cp_offset,
@@ -1789,11 +1692,9 @@ void IRRegExpMacroAssembler::LoadCurrentCharacterUnchecked(
   PRINT(PushLocal(current_character_));
 }
 
-
 Value* IRRegExpMacroAssembler::CharacterAt(LocalVariable* index) {
   return LoadCodeUnitsAt(index, 1);
 }
-
 
 Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                                intptr_t characters) {
@@ -1827,7 +1728,6 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                          specialization_cid_,
                                          TokenPosition::kNoSource));
 }
-
 
 #undef __
 

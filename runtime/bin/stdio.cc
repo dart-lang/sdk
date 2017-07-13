@@ -28,7 +28,6 @@ void FUNCTION_NAME(Stdin_ReadByte)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Stdin_GetEchoMode)(Dart_NativeArguments args) {
   bool enabled = false;
   if (Stdin::GetEchoMode(&enabled)) {
@@ -37,7 +36,6 @@ void FUNCTION_NAME(Stdin_GetEchoMode)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
   bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
@@ -48,7 +46,6 @@ void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Stdin_GetLineMode)(Dart_NativeArguments args) {
   bool enabled = false;
   if (Stdin::GetLineMode(&enabled)) {
@@ -57,7 +54,6 @@ void FUNCTION_NAME(Stdin_GetLineMode)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
   bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
@@ -68,7 +64,6 @@ void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Stdin_AnsiSupported)(Dart_NativeArguments args) {
   bool supported = false;
   if (Stdin::AnsiSupported(&supported)) {
@@ -77,7 +72,6 @@ void FUNCTION_NAME(Stdin_AnsiSupported)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
   if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {
@@ -101,7 +95,6 @@ void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdout_AnsiSupported)(Dart_NativeArguments args) {
   if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {

@@ -76,7 +76,6 @@ int SSLCertContext::CertificateCallback(int preverify_ok,
   return DartUtils::GetBooleanValue(result);
 }
 
-
 SSLCertContext* SSLCertContext::GetSecurityContext(Dart_NativeArguments args) {
   SSLCertContext* context;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
@@ -87,14 +86,12 @@ SSLCertContext* SSLCertContext::GetSecurityContext(Dart_NativeArguments args) {
   return context;
 }
 
-
 static void DeleteSecurityContext(void* isolate_data,
                                   Dart_WeakPersistentHandle handle,
                                   void* context_pointer) {
   SSLCertContext* context = static_cast<SSLCertContext*>(context_pointer);
   context->Release();
 }
-
 
 static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
                                       SSLCertContext* context) {
@@ -111,7 +108,6 @@ static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
   return Dart_Null();
 }
 
-
 static void ReleaseCertificate(void* isolate_data,
                                Dart_WeakPersistentHandle handle,
                                void* context_pointer) {
@@ -119,12 +115,10 @@ static void ReleaseCertificate(void* isolate_data,
   X509_free(cert);
 }
 
-
 static intptr_t EstimateX509Size(X509* certificate) {
   intptr_t length = i2d_X509(certificate, NULL);
   return length > 0 ? length : 0;
 }
-
 
 // Returns the handle for a Dart object wrapping the X509 certificate object.
 // The caller should own a reference to the X509 object whose reference count
@@ -162,7 +156,6 @@ Dart_Handle X509Helper::WrappedX509Certificate(X509* certificate) {
                                ReleaseCertificate);
   return result;
 }
-
 
 static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context,
                                              BIO* bio,
@@ -202,7 +195,6 @@ static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context,
   return status;
 }
 
-
 static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
   X509_STORE* store = SSL_CTX_get_cert_store(context);
 
@@ -225,7 +217,6 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
   return SecureSocketUtils::NoPEMStartLine() ? status : 0;
 }
 
-
 void SSLCertContext::SetTrustedCertificatesBytes(Dart_Handle cert_bytes,
                                                  const char* password) {
   int status = 0;
@@ -247,7 +238,6 @@ void SSLCertContext::SetTrustedCertificatesBytes(Dart_Handle cert_bytes,
   SecureSocketUtils::CheckStatus(status, "TlsException",
                                  "Failure trusting builtin roots");
 }
-
 
 static int SetClientAuthoritiesPKCS12(SSL_CTX* context,
                                       BIO* bio,
@@ -286,7 +276,6 @@ static int SetClientAuthoritiesPKCS12(SSL_CTX* context,
   return status;
 }
 
-
 static int SetClientAuthoritiesPEM(SSL_CTX* context, BIO* bio) {
   int status = 0;
   X509* cert = NULL;
@@ -299,7 +288,6 @@ static int SetClientAuthoritiesPEM(SSL_CTX* context, BIO* bio) {
   }
   return SecureSocketUtils::NoPEMStartLine() ? status : 0;
 }
-
 
 static int SetClientAuthorities(SSL_CTX* context,
                                 BIO* bio,
@@ -317,7 +305,6 @@ static int SetClientAuthorities(SSL_CTX* context,
   }
   return status;
 }
-
 
 void SSLCertContext::SetClientAuthoritiesBytes(
     Dart_Handle client_authorities_bytes,
@@ -347,7 +334,6 @@ void SSLCertContext::LoadRootCertFile(const char* file) {
     Log::Print("Trusting roots from: %s\n", file);
   }
 }
-
 
 void SSLCertContext::AddCompiledInCerts() {
   if (root_certificates_pem == NULL) {
@@ -379,7 +365,6 @@ void SSLCertContext::AddCompiledInCerts() {
   ERR_clear_error();
 }
 
-
 void SSLCertContext::LoadRootCertCache(const char* cache) {
   if (SSL_LOG_STATUS) {
     Log::Print("Looking for trusted roots in %s\n", cache);
@@ -396,14 +381,12 @@ void SSLCertContext::LoadRootCertCache(const char* cache) {
   }
 }
 
-
 int PasswordCallback(char* buf, int size, int rwflag, void* userdata) {
   char* password = static_cast<char*>(userdata);
   ASSERT(size == PEM_BUFSIZE);
   strncpy(buf, password, size);
   return strlen(password);
 }
-
 
 static EVP_PKEY* GetPrivateKeyPKCS12(BIO* bio, const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
@@ -425,7 +408,6 @@ static EVP_PKEY* GetPrivateKeyPKCS12(BIO* bio, const char* password) {
   return key;
 }
 
-
 static EVP_PKEY* GetPrivateKey(BIO* bio, const char* password) {
   EVP_PKEY* key = PEM_read_bio_PrivateKey(bio, NULL, PasswordCallback,
                                           const_cast<char*>(password));
@@ -446,7 +428,6 @@ static EVP_PKEY* GetPrivateKey(BIO* bio, const char* password) {
   return key;
 }
 
-
 const char* SSLCertContext::GetPasswordArgument(Dart_NativeArguments args,
                                                 intptr_t index) {
   Dart_Handle password_object =
@@ -466,7 +447,6 @@ const char* SSLCertContext::GetPasswordArgument(Dart_NativeArguments args,
   }
   return password;
 }
-
 
 int AlpnCallback(SSL* ssl,
                  const uint8_t** out,
@@ -496,7 +476,6 @@ int AlpnCallback(SSL* ssl,
   // TODO(23580): Make failure send a fatal alert instead of ignoring ALPN.
   return SSL_TLSEXT_ERR_NOACK;
 }
-
 
 // Sets the protocol list for ALPN on a SSL object or a context.
 void SSLCertContext::SetAlpnProtocolList(Dart_Handle protocols_handle,
@@ -556,7 +535,6 @@ void SSLCertContext::SetAlpnProtocolList(Dart_Handle protocols_handle,
   Dart_TypedDataReleaseData(protocols_handle);
 }
 
-
 static int UseChainBytesPKCS12(SSL_CTX* context,
                                BIO* bio,
                                const char* password) {
@@ -600,7 +578,6 @@ static int UseChainBytesPKCS12(SSL_CTX* context,
   return status;
 }
 
-
 static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
   int status = 0;
   ScopedX509 x509(PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL));
@@ -636,7 +613,6 @@ static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
   return SecureSocketUtils::NoPEMStartLine() ? status : 0;
 }
 
-
 static int UseChainBytes(SSL_CTX* context, BIO* bio, const char* password) {
   int status = UseChainBytesPEM(context, bio);
   if (status == 0) {
@@ -652,13 +628,11 @@ static int UseChainBytes(SSL_CTX* context, BIO* bio, const char* password) {
   return status;
 }
 
-
 int SSLCertContext::UseCertificateChainBytes(Dart_Handle cert_chain_bytes,
                                              const char* password) {
   ScopedMemBIO bio(cert_chain_bytes);
   return UseChainBytes(context(), bio.bio(), password);
 }
-
 
 static X509* GetX509Certificate(Dart_NativeArguments args) {
   X509* certificate = NULL;
@@ -669,7 +643,6 @@ static X509* GetX509Certificate(Dart_NativeArguments args) {
       reinterpret_cast<intptr_t*>(&certificate)));
   return certificate;
 }
-
 
 Dart_Handle X509Helper::GetSubject(Dart_NativeArguments args) {
   X509* certificate = GetX509Certificate(args);
@@ -683,7 +656,6 @@ Dart_Handle X509Helper::GetSubject(Dart_NativeArguments args) {
   OPENSSL_free(subject_string);
   return subject_handle;
 }
-
 
 Dart_Handle X509Helper::GetIssuer(Dart_NativeArguments args) {
   fprintf(stdout, "Getting issuer!\n");
@@ -699,7 +671,6 @@ Dart_Handle X509Helper::GetIssuer(Dart_NativeArguments args) {
   return issuer_handle;
 }
 
-
 static Dart_Handle ASN1TimeToMilliseconds(ASN1_TIME* aTime) {
   ASN1_UTCTIME* epoch_start = M_ASN1_UTCTIME_new();
   ASN1_UTCTIME_set_string(epoch_start, "700101000000Z");
@@ -714,13 +685,11 @@ static Dart_Handle ASN1TimeToMilliseconds(ASN1_TIME* aTime) {
   return Dart_NewInteger((86400LL * days + seconds) * 1000LL);
 }
 
-
 Dart_Handle X509Helper::GetStartValidity(Dart_NativeArguments args) {
   X509* certificate = GetX509Certificate(args);
   ASN1_TIME* not_before = X509_get_notBefore(certificate);
   return ASN1TimeToMilliseconds(not_before);
 }
-
 
 Dart_Handle X509Helper::GetEndValidity(Dart_NativeArguments args) {
   X509* certificate = GetX509Certificate(args);
@@ -751,7 +720,6 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
                                  "Failure in usePrivateKeyBytes");
 }
 
-
 void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
   SSL_CTX* ctx = SSL_CTX_new(TLS_method());
@@ -766,7 +734,6 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
   SSLCertContext* context = SSLCertContext::GetSecurityContext(args);
@@ -777,7 +744,6 @@ void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
   ASSERT(password != NULL);
   context->SetTrustedCertificatesBytes(cert_bytes, password);
 }
-
 
 void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
@@ -791,7 +757,6 @@ void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
 
   context->SetClientAuthoritiesBytes(client_authorities_bytes, password);
 }
-
 
 void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
@@ -808,7 +773,6 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
                                  "Failure in useCertificateChainBytes");
 }
 
-
 void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     Dart_NativeArguments args) {
   SSLCertContext* context = SSLCertContext::GetSecurityContext(args);
@@ -818,26 +782,21 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   context->TrustBuiltinRoots();
 }
 
-
 void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, X509Helper::GetSubject(args));
 }
-
 
 void FUNCTION_NAME(X509_Issuer)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, X509Helper::GetIssuer(args));
 }
 
-
 void FUNCTION_NAME(X509_StartValidity)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, X509Helper::GetStartValidity(args));
 }
 
-
 void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, X509Helper::GetEndValidity(args));
 }
-
 
 void FUNCTION_NAME(SecurityContext_SetAlpnProtocols)(
     Dart_NativeArguments args) {

@@ -41,7 +41,6 @@ class BranchSimplifier : public AllStatic {
                                   Value* new_right);
 };
 
-
 // Rewrite diamond control flow patterns that materialize values to use more
 // efficient branchless code patterns if such are supported on the current
 // platform.

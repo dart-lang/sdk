@@ -12,7 +12,6 @@
 #include "vm/growable_array.h"
 #include "vm/token_position.h"
 
-
 namespace dart {
 
 class Field;
@@ -21,9 +20,7 @@ class Zone;
 
 namespace kernel {
 
-
 class Reader;
-
 
 class StringIndex {
  public:
@@ -36,7 +33,6 @@ class StringIndex {
   int value_;
 };
 
-
 class NameIndex {
  public:
   NameIndex() : value_(-1) {}
@@ -48,7 +44,6 @@ class NameIndex {
   int value_;
 };
 
-
 class Field {
  public:
   enum Flags {
@@ -58,7 +53,6 @@ class Field {
   };
 };
 
-
 class Constructor {
  public:
   enum Flags {
@@ -66,7 +60,6 @@ class Constructor {
     kFlagExternal = 1 << 1,
   };
 };
-
 
 class Procedure {
  public:
@@ -88,7 +81,6 @@ class Procedure {
     kIncompleteProcedure = 255
   };
 };
-
 
 class FunctionNode {
  public:
@@ -117,12 +109,10 @@ class YieldStatement {
   };
 };
 
-
 class LogicalExpression {
  public:
   enum Operator { kAnd, kOr };
 };
-
 
 class Program {
  public:
@@ -153,7 +143,6 @@ class Program {
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
 
-
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
                                             const dart::Field& field);
 
@@ -161,7 +150,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length);
-
 
 }  // namespace dart
 

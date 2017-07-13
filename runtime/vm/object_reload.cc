@@ -18,7 +18,6 @@ DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, trace_reload_verbose);
 DECLARE_FLAG(bool, two_args_smi_icd);
 
-
 class ObjectReloadUtils : public AllStatic {
   static void DumpLibraryDictionary(const Library& lib) {
     DictionaryIterator it(lib);
@@ -33,11 +32,9 @@ class ObjectReloadUtils : public AllStatic {
   }
 };
 
-
 void Function::Reparent(const Class& new_cls) const {
   set_owner(new_cls);
 }
-
 
 void Function::ZeroEdgeCounters() const {
   const Array& saved_ic_data = Array::Handle(ic_data_array());
@@ -55,7 +52,6 @@ void Function::ZeroEdgeCounters() const {
     edge_counters_array.SetAt(i, zero);
   }
 }
-
 
 void Code::ResetICDatas(Zone* zone) const {
 // Iterate over the Code's object pool and reset all ICDatas.
@@ -101,7 +97,6 @@ void Code::ResetICDatas(Zone* zone) const {
 #endif
 }
 
-
 void Class::CopyStaticFieldValues(const Class& old_cls) const {
   // We only update values for non-enum classes.
   const bool update_values = !is_enum_class();
@@ -141,7 +136,6 @@ void Class::CopyStaticFieldValues(const Class& old_cls) const {
   }
 }
 
-
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
   if (is_enum_class()) {
     // We do not copy enum classes's canonical constants because we explicitly
@@ -165,7 +159,6 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
   set_constants(old_constants);
 }
 
-
 void Class::CopyCanonicalType(const Class& old_cls) const {
   const Type& old_canonical_type = Type::Handle(old_cls.canonical_type());
   if (old_canonical_type.IsNull()) {
@@ -173,7 +166,6 @@ void Class::CopyCanonicalType(const Class& old_cls) const {
   }
   set_canonical_type(old_canonical_type);
 }
-
 
 class EnumMapTraits {
  public:
@@ -189,7 +181,6 @@ class EnumMapTraits {
     return String::Cast(obj).Hash();
   }
 };
-
 
 // Given an old enum class, add become mappings from old values to new values.
 // Some notes about how we reload enums below:
@@ -347,7 +338,6 @@ void Class::ReplaceEnum(const Class& old_enum) const {
   }
 }
 
-
 void Class::PatchFieldsAndFunctions() const {
   // Move all old functions and fields to a patch class so that they
   // still refer to their original script.
@@ -392,7 +382,6 @@ void Class::PatchFieldsAndFunctions() const {
   }
 }
 
-
 void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
                                           const Class& new_cls) const {
   const Array& funcs = Array::Handle(functions());
@@ -420,7 +409,6 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
   }
 }
 
-
 class EnumClassConflict : public ClassReasonForCancelling {
  public:
   EnumClassConflict(Zone* zone, const Class& from, const Class& to)
@@ -435,7 +423,6 @@ class EnumClassConflict : public ClassReasonForCancelling {
   }
 };
 
-
 class TypedefClassConflict : public ClassReasonForCancelling {
  public:
   TypedefClassConflict(Zone* zone, const Class& from, const Class& to)
@@ -449,7 +436,6 @@ class TypedefClassConflict : public ClassReasonForCancelling {
         from_.ToCString());
   }
 };
-
 
 class EnsureFinalizedError : public ClassReasonForCancelling {
  public:
@@ -467,7 +453,6 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
   RawString* ToString() { return String::New(error_.ToErrorCString()); }
 };
 
-
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
   NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
@@ -479,7 +464,6 @@ class NativeFieldsConflict : public ClassReasonForCancelling {
                                 from_.ToCString());
   }
 };
-
 
 class TypeParametersChanged : public ClassReasonForCancelling {
  public:
@@ -502,7 +486,6 @@ class TypeParametersChanged : public ClassReasonForCancelling {
   }
 };
 
-
 class PreFinalizedConflict : public ClassReasonForCancelling {
  public:
   PreFinalizedConflict(Zone* zone, const Class& from, const Class& to)
@@ -516,7 +499,6 @@ class PreFinalizedConflict : public ClassReasonForCancelling {
         from_.ToCString(), to_.ToCString());
   }
 };
-
 
 class InstanceSizeConflict : public ClassReasonForCancelling {
  public:
@@ -532,7 +514,6 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
                                 to_.ToCString(), to_.instance_size());
   }
 };
-
 
 class UnimplementedDeferredLibrary : public ReasonForCancelling {
  public:
@@ -556,7 +537,6 @@ class UnimplementedDeferredLibrary : public ReasonForCancelling {
         lib_url.ToCString(), name_.ToCString());
   }
 };
-
 
 // This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
@@ -613,7 +593,6 @@ void Class::CheckReload(const Class& replacement,
             id(), replacement.id());
 }
 
-
 bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
@@ -650,7 +629,6 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   return false;
 }
 
-
 bool Class::CanReloadFinalized(const Class& replacement,
                                IsolateReloadContext* context) const {
   // Make sure the declaration types matches for the two classes.
@@ -671,7 +649,6 @@ bool Class::CanReloadFinalized(const Class& replacement,
   return true;
 }
 
-
 bool Class::CanReloadPreFinalized(const Class& replacement,
                                   IsolateReloadContext* context) const {
   // The replacement class must also prefinalized.
@@ -688,7 +665,6 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
   }
   return true;
 }
-
 
 void Library::CheckReload(const Library& replacement,
                           IsolateReloadContext* context) const {
@@ -708,9 +684,7 @@ void Library::CheckReload(const Library& replacement,
   }
 }
 
-
 static const Function* static_call_target = NULL;
-
 
 void ICData::Reset(Zone* zone) const {
   if (is_static_call()) {

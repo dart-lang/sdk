@@ -30,7 +30,6 @@ DEFINE_NATIVE_ENTRY(Function_apply, 2) {
   return result.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -69,14 +68,12 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
   return Bool::False().raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Closure_hashCode, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(zone, receiver.function());
   return func.GetClosureHashCode();
 }
-
 
 DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
   const Closure& receiver =
@@ -98,6 +95,5 @@ DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
   return Closure::New(instantiator_type_arguments, function_type_arguments,
                       function, cloned_context);
 }
-
 
 }  // namespace dart

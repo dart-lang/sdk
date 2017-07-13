@@ -86,20 +86,16 @@ class SimulatorSetjmpBuffer {
   DISALLOW_COPY_AND_ASSIGN(SimulatorSetjmpBuffer);
 };
 
-
 DART_FORCE_INLINE static RawObject** SavedCallerFP(RawObject** FP) {
   return reinterpret_cast<RawObject**>(FP[kSavedCallerFpSlotFromFp]);
 }
-
 
 DART_FORCE_INLINE static RawObject** FrameArguments(RawObject** FP,
                                                     intptr_t argc) {
   return FP - (kDartFrameFixedSize + argc);
 }
 
-
 #define RAW_CAST(Type, val) (SimulatorHelpers::CastTo##Type(val))
-
 
 class SimulatorHelpers {
  public:
@@ -458,7 +454,6 @@ class SimulatorHelpers {
     return static_cast<RawCode*>(FP[kPcMarkerSlotFromFp]);
   }
 
-
   DART_FORCE_INLINE static void SetFrameCode(RawObject** FP, RawCode* code) {
     ASSERT(GetClassId(code) == kCodeCid);
     FP[kPcMarkerSlotFromFp] = code;
@@ -474,11 +469,9 @@ class SimulatorHelpers {
   }
 };
 
-
 DART_FORCE_INLINE static uint32_t* SavedCallerPC(RawObject** FP) {
   return reinterpret_cast<uint32_t*>(FP[kSavedCallerPcSlotFromFp]);
 }
-
 
 DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
   RawFunction* function = static_cast<RawFunction*>(FP[kFunctionSlotFromFp]);
@@ -486,9 +479,7 @@ DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
   return function;
 }
 
-
 IntrinsicHandler Simulator::intrinsics_[Simulator::kIntrinsicCount];
-
 
 // Synchronization primitives support.
 void Simulator::InitOnce() {
@@ -529,7 +520,6 @@ void Simulator::InitOnce() {
       SimulatorHelpers::SetAsyncThreadStackTrace;
 }
 
-
 Simulator::Simulator() : stack_(NULL), fp_(NULL) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
@@ -547,7 +537,6 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL) {
   NOT_IN_PRODUCT(icount_ = 0;)
 }
 
-
 Simulator::~Simulator() {
   delete[] stack_;
   Isolate* isolate = Isolate::Current();
@@ -555,7 +544,6 @@ Simulator::~Simulator() {
     isolate->set_simulator(NULL);
   }
 }
-
 
 // Get the active Simulator for the current isolate.
 Simulator* Simulator::Current() {
@@ -567,7 +555,6 @@ Simulator* Simulator::Current() {
   return simulator;
 }
 
-
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
 uword Simulator::StackTop() const {
@@ -577,13 +564,11 @@ uword Simulator::StackTop() const {
          (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
-
 #if !defined(PRODUCT)
 // Returns true if tracing of executed instructions is enabled.
 DART_FORCE_INLINE bool Simulator::IsTracingExecution() const {
   return icount_ > FLAG_trace_sim_after;
 }
-
 
 // Prints bytecode instruction at given pc for instruction tracing.
 DART_NOINLINE void Simulator::TraceInstruction(uint32_t* pc) const {
@@ -596,7 +581,6 @@ DART_NOINLINE void Simulator::TraceInstruction(uint32_t* pc) const {
   }
 }
 #endif  // !defined(PRODUCT)
-
 
 // Calls into the Dart runtime are based on this interface.
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
@@ -613,7 +597,6 @@ typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 // Calls to native Dart functions are based on this interface.
 typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
 typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
-
 
 void Simulator::Exit(Thread* thread,
                      RawObject** base,
@@ -661,7 +644,6 @@ DART_FORCE_INLINE static bool SignedAddWithOverflow(intptr_t lhs,
   return (res != 0);
 }
 
-
 DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
                                                     intptr_t rhs,
                                                     intptr_t* out) {
@@ -691,7 +673,6 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
 #endif
   return (res != 0);
 }
-
 
 DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
                                                     intptr_t rhs,
@@ -737,11 +718,9 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
   return (res != 0);
 }
 
-
 DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
   return ((a | b) & kHeapObjectTag) == 0;
 }
-
 
 #define SMI_MUL(lhs, rhs, pres) SignedMulWithOverflow((lhs), (rhs) >> 1, pres)
 #define SMI_COND(cond, lhs, rhs, pres)                                         \
@@ -752,7 +731,6 @@ DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
 #define SMI_BITOR(lhs, rhs, pres) ((*(pres) = (lhs | rhs)), false)
 #define SMI_BITAND(lhs, rhs, pres) ((*(pres) = ((lhs) & (rhs))), false)
 #define SMI_BITXOR(lhs, rhs, pres) ((*(pres) = ((lhs) ^ (rhs))), false)
-
 
 void Simulator::CallRuntime(Thread* thread,
                             RawObject** base,
@@ -767,7 +745,6 @@ void Simulator::CallRuntime(Thread* thread,
   reinterpret_cast<RuntimeFunction>(target)(native_args);
 }
 
-
 DART_FORCE_INLINE static void EnterSyntheticFrame(RawObject*** FP,
                                                   RawObject*** SP,
                                                   uint32_t* pc) {
@@ -779,14 +756,12 @@ DART_FORCE_INLINE static void EnterSyntheticFrame(RawObject*** FP,
   *SP = fp - 1;
 }
 
-
 DART_FORCE_INLINE static void LeaveSyntheticFrame(RawObject*** FP,
                                                   RawObject*** SP) {
   RawObject** fp = *FP;
   *FP = reinterpret_cast<RawObject**>(fp[kSavedCallerFpSlotFromFp]);
   *SP = fp - kDartFrameFixedSize;
 }
-
 
 DART_FORCE_INLINE void Simulator::Invoke(Thread* thread,
                                          RawObject** call_base,
@@ -808,7 +783,6 @@ DART_FORCE_INLINE void Simulator::Invoke(Thread* thread,
   *FP = callee_fp;
   *SP = *FP - 1;
 }
-
 
 void Simulator::InlineCacheMiss(int checked_args,
                                 Thread* thread,
@@ -843,7 +817,6 @@ void Simulator::InlineCacheMiss(int checked_args,
   CallRuntime(thread, FP, exit_frame, pc, miss_handler_argc, miss_handler_args,
               result, reinterpret_cast<uword>(handler));
 }
-
 
 DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
                                                 RawICData* icdata,
@@ -886,7 +859,6 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
   *argdesc = icdata->ptr()->args_descriptor_;
   Invoke(thread, call_base, top, pp, pc, FP, SP);
 }
-
 
 DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
                                                 RawICData* icdata,
@@ -932,7 +904,6 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
   Invoke(thread, call_base, top, pp, pc, FP, SP);
 }
 
-
 // Note: functions below are marked DART_NOINLINE to recover performance on
 // ARM where inlining these functions into the interpreter loop seemed to cause
 // some code quality issues.
@@ -952,7 +923,6 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
   }
 }
 
-
 static DART_NOINLINE bool InvokeBootstrapNative(Thread* thread,
                                                 Simulator* sim,
                                                 SimulatorBootstrapNativeCall f,
@@ -968,7 +938,6 @@ static DART_NOINLINE bool InvokeBootstrapNative(Thread* thread,
     return false;
   }
 }
-
 
 static DART_NOINLINE bool InvokeNativeNoScopeWrapper(Thread* thread,
                                                      Simulator* sim,
@@ -986,7 +955,6 @@ static DART_NOINLINE bool InvokeNativeNoScopeWrapper(Thread* thread,
     return false;
   }
 }
-
 
 static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
                                                        Simulator* sim,
@@ -1068,7 +1036,6 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
   USE(rD)
 #define DECODE_A_X rD = (static_cast<int32_t>(op) >> Bytecode::kDShift);
 
-
 #define SMI_FASTPATH_ICDATA_INC                                                \
   do {                                                                         \
     ASSERT(Bytecode::IsCallOpcode(*pc));                                       \
@@ -1118,7 +1085,6 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
     Func(lhs, rhs, slot);                                                      \
   }
 
-
 // Exception handling helper. Gets handler FP and PC from the Simulator where
 // they were stored by Simulator::Longjmp and proceeds to execute the handler.
 // Corner case: handler PC can be a fake marker that marks entry frame, which
@@ -1161,7 +1127,6 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
   }
 
 #define LOAD_CONSTANT(index) (pp->data()[(index)].raw_obj_)
-
 
 // Returns true if deoptimization succeeds.
 DART_FORCE_INLINE bool Simulator::Deoptimize(Thread* thread,
@@ -1218,7 +1183,6 @@ DART_FORCE_INLINE bool Simulator::Deoptimize(Thread* thread,
 
   return true;
 }
-
 
 RawObject* Simulator::Call(const Code& code,
                            const Array& arguments_descriptor,
@@ -3903,7 +3867,6 @@ RawObject* Simulator::Call(const Code& code,
   UNREACHABLE();
   return 0;
 }
-
 
 void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)

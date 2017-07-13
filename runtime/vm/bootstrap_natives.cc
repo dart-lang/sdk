@@ -18,7 +18,6 @@ namespace dart {
 #define REGISTER_NATIVE_ENTRY(name, count)                                     \
   {"" #name, BootstrapNatives::DN_##name, count},
 
-
 // List all native functions implemented in the vm or core bootstrap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
@@ -31,7 +30,6 @@ static struct NativeEntries {
                             MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
 #endif  // !DART_PRECOMPILED_RUNTIME
 };
-
 
 Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
                                              int argument_count,
@@ -55,7 +53,6 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   return NULL;
 }
 
-
 const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -66,7 +63,6 @@ const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
   }
   return NULL;
 }
-
 
 void Bootstrap::SetupNativeResolver() {
   Library& library = Library::Handle();
@@ -139,7 +135,6 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 }
-
 
 bool Bootstrap::IsBootstapResolver(Dart_NativeEntryResolver resolver) {
   return (resolver ==

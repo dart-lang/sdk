@@ -9,8 +9,8 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
-#include "vm/object_set.h"
 #include "vm/object_id_ring.h"
+#include "vm/object_set.h"
 #include "vm/safepoint.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
@@ -42,26 +42,22 @@ enum {
   kForwarded = kForwardingMask,
 };
 
-
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
   ASSERT((bits == kNotForwarded) || (bits == kForwarded));
   return bits == kForwarded;
 }
 
-
 static inline uword ForwardedAddr(uword header) {
   ASSERT(IsForwarding(header));
   return header & ~kForwardingMask;
 }
-
 
 static inline void ForwardTo(uword original, uword target) {
   // Make sure forwarding can be encoded.
   ASSERT((target & kForwardingMask) == 0);
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
-
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
@@ -193,7 +189,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
 };
 
-
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
@@ -218,7 +213,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
-
 // Visitor used to verify that all old->new references have been added to the
 // StoreBuffers.
 class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
@@ -241,7 +235,6 @@ class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(VerifyStoreBufferPointerVisitor);
 };
 
-
 SemiSpace::SemiSpace(VirtualMemory* reserved)
     : reserved_(reserved), region_(NULL, 0) {
   if (reserved != NULL) {
@@ -249,28 +242,24 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
   }
 }
 
-
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), Heap::kZapByte, size_in_words()
-                                                     << kWordSizeLog2);
+    memset(reserved_->address(), Heap::kZapByte,
+           size_in_words() << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
 }
 
-
 Mutex* SemiSpace::mutex_ = NULL;
 SemiSpace* SemiSpace::cache_ = NULL;
-
 
 void SemiSpace::InitOnce() {
   ASSERT(mutex_ == NULL);
   mutex_ = new Mutex();
   ASSERT(mutex_ != NULL);
 }
-
 
 SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
   {
@@ -300,7 +289,6 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
   }
 }
 
-
 void SemiSpace::Delete() {
 #ifdef DEBUG
   if (reserved_ != NULL) {
@@ -317,7 +305,6 @@ void SemiSpace::Delete() {
   delete old_cache;
 }
 
-
 void SemiSpace::WriteProtect(bool read_only) {
   if (reserved_ != NULL) {
     bool success = reserved_->Protect(read_only ? VirtualMemory::kReadOnly
@@ -325,7 +312,6 @@ void SemiSpace::WriteProtect(bool read_only) {
     ASSERT(success);
   }
 }
-
 
 Scavenger::Scavenger(Heap* heap,
                      intptr_t max_semi_capacity_in_words,
@@ -366,12 +352,10 @@ Scavenger::Scavenger(Heap* heap,
   UpdateMaxHeapUsage();
 }
 
-
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   to_->Delete();
 }
-
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
   if (stats_history_.Size() == 0) {
@@ -385,7 +369,6 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
     return old_size_in_words;
   }
 }
-
 
 SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
@@ -411,7 +394,6 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   end_ = to_->end();
   return from;
 }
-
 
 void Scavenger::Epilogue(Isolate* isolate,
                          SemiSpace* from,
@@ -455,7 +437,6 @@ void Scavenger::Epilogue(Isolate* isolate,
   }
 }
 
-
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
                                     ScavengerVisitor* visitor) {
   // Iterating through the store buffers.
@@ -492,7 +473,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   visitor->VisitingOldObject(NULL);
 }
 
-
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
 #ifndef PRODUCT
@@ -509,7 +489,6 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 #endif  // !PRODUCT
 }
 
-
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   int64_t start = OS::GetCurrentMonotonicMicros();
   isolate->VisitObjectPointers(visitor,
@@ -523,7 +502,6 @@ void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
   heap_->RecordTime(kDummyScavengeTime, 0);
 }
-
 
 bool Scavenger::IsUnreachable(RawObject** p) {
   RawObject* raw_obj = *p;
@@ -546,11 +524,9 @@ bool Scavenger::IsUnreachable(RawObject** p) {
   return true;
 }
 
-
 void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
   isolate->VisitWeakPersistentHandles(visitor);
 }
-
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   // Iterate until all work has been drained.
@@ -613,7 +589,6 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   }
 }
 
-
 void Scavenger::UpdateMaxHeapCapacity() {
   if (heap_ == NULL) {
     // Some unit tests.
@@ -627,7 +602,6 @@ void Scavenger::UpdateMaxHeapCapacity() {
                                                    kWordSize);
 }
 
-
 void Scavenger::UpdateMaxHeapUsage() {
   if (heap_ == NULL) {
     // Some unit tests.
@@ -639,7 +613,6 @@ void Scavenger::UpdateMaxHeapUsage() {
   ASSERT(isolate != NULL);
   isolate->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 }
-
 
 void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {
   ASSERT(raw_weak->IsHeapObject());
@@ -654,7 +627,6 @@ void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {
   raw_weak->ptr()->next_ = reinterpret_cast<uword>(delayed_weak_properties_);
   delayed_weak_properties_ = raw_weak;
 }
-
 
 uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
                                      ScavengerVisitor* visitor) {
@@ -672,7 +644,6 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
   // Key is gray or black.  Make the weak property black.
   return raw_weak->VisitPointersNonvirtual(visitor);
 }
-
 
 void Scavenger::ProcessWeakReferences() {
   // Rehash the weak tables now that we know which objects survive this cycle.
@@ -729,7 +700,6 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   uword cur = FirstObjectStart();
   while (cur < top_) {
@@ -737,7 +707,6 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     cur += raw_obj->VisitPointers(visitor);
   }
 }
-
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   uword cur = FirstObjectStart();
@@ -748,11 +717,9 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   }
 }
 
-
 void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
   set->AddRegion(to_->start(), to_->end());
 }
-
 
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
@@ -771,13 +738,11 @@ RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   return Object::null();
 }
 
-
 void Scavenger::Scavenge() {
   // TODO(cshapiro): Add a decision procedure for determining when the
   // the API callbacks should be invoked.
   Scavenge(false);
 }
-
 
 void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Isolate* isolate = heap_->isolate();
@@ -857,12 +822,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   scavenging_ = false;
 }
 
-
 void Scavenger::WriteProtect(bool read_only) {
   ASSERT(!scavenging_);
   to_->WriteProtect(read_only);
 }
-
 
 #ifndef PRODUCT
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
@@ -894,19 +857,16 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-
 void Scavenger::AllocateExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
 }
-
 
 void Scavenger::FreeExternal(intptr_t size) {
   ASSERT(size >= 0);
   external_size_ -= size;
   ASSERT(external_size_ >= 0);
 }
-
 
 void Scavenger::Evacuate() {
   // We need a safepoint here to prevent allocation right before or right after

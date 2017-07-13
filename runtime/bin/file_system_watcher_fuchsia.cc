@@ -17,32 +17,26 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   return DartUtils::NewDartOSError();
 }
 
-
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   UNIMPLEMENTED();
   return -1;
 }
 
-
 bool FileSystemWatcher::IsSupported() {
   return false;
 }
-
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   UNIMPLEMENTED();
 }
 
-
 intptr_t FileSystemWatcher::Init() {
   return 0;
 }
 
-
 void FileSystemWatcher::Close(intptr_t id) {
   UNIMPLEMENTED();
 }
-
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,

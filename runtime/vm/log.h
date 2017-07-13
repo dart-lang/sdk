@@ -67,7 +67,6 @@ class Log {
   DISALLOW_COPY_AND_ASSIGN(Log);
 };
 
-
 // Causes all log messages to be buffered until destructor is called.
 // Can be nested.
 class LogBlock : public StackResource {

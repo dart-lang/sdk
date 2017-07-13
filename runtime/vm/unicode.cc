@@ -35,12 +35,10 @@ const uint32_t Utf8::kMagicBits[7] = {0,  // Padding.
                                       0x00000000, 0x00003080, 0x000E2080,
                                       0x03C82080, 0xFA082080, 0x82082080};
 
-
 // Minimum values of code points used to check shortest form.
 const uint32_t Utf8::kOverlongMinimum[7] = {0,  // Padding.
                                             0x0,     0x80,       0x800,
                                             0x10000, 0xFFFFFFFF, 0xFFFFFFFF};
-
 
 // Returns the most restricted coding form in which the sequence of utf8
 // characters in 'utf8_array' can be represented in, and the number of
@@ -67,7 +65,6 @@ intptr_t Utf8::CodeUnitCount(const uint8_t* utf8_array,
   *type = char_type;
   return len;
 }
-
 
 // Returns true if str is a valid NUL-terminated UTF-8 string.
 bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
@@ -98,7 +95,6 @@ bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
   return true;
 }
 
-
 intptr_t Utf8::Length(int32_t ch) {
   if (ch <= kMaxOneByteChar) {
     return 1;
@@ -111,7 +107,6 @@ intptr_t Utf8::Length(int32_t ch) {
   return 4;
 }
 
-
 intptr_t Utf8::Length(const String& str) {
   intptr_t length = 0;
   String::CodePointIterator it(str);
@@ -121,7 +116,6 @@ intptr_t Utf8::Length(const String& str) {
   }
   return length;
 }
-
 
 intptr_t Utf8::Encode(int32_t ch, char* dst) {
   static const int kMask = ~(1 << 6);
@@ -148,7 +142,6 @@ intptr_t Utf8::Encode(int32_t ch, char* dst) {
   return 4;
 }
 
-
 intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
   intptr_t pos = 0;
   String::CodePointIterator it(src);
@@ -163,7 +156,6 @@ intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
   }
   return pos;
 }
-
 
 intptr_t Utf8::Decode(const uint8_t* utf8_array,
                       intptr_t array_len,
@@ -194,7 +186,6 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
   return i;
 }
 
-
 bool Utf8::DecodeToLatin1(const uint8_t* utf8_array,
                           intptr_t array_len,
                           uint8_t* dst,
@@ -217,7 +208,6 @@ bool Utf8::DecodeToLatin1(const uint8_t* utf8_array,
   }
   return true;  // Success.
 }
-
 
 bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
                          intptr_t array_len,
@@ -246,7 +236,6 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
   return true;  // Success.
 }
 
-
 bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
                          intptr_t array_len,
                          int32_t* dst,
@@ -268,14 +257,12 @@ bool Utf8::DecodeToUTF32(const uint8_t* utf8_array,
   return true;  // Success.
 }
 
-
 bool Utf8::DecodeCStringToUTF32(const char* str, int32_t* dst, intptr_t len) {
   ASSERT(str != NULL);
   intptr_t array_len = strlen(str);
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(str);
   return Utf8::DecodeToUTF32(utf8_array, array_len, dst, len);
 }
-
 
 void Utf16::Encode(int32_t codepoint, uint16_t* dst) {
   ASSERT(codepoint > Utf16::kMaxCodeUnit);

@@ -21,13 +21,11 @@ typename BlockStack<BlockSize>::List* BlockStack<BlockSize>::global_empty_ =
 template <int BlockSize>
 Mutex* BlockStack<BlockSize>::global_mutex_ = NULL;
 
-
 template <int BlockSize>
 void BlockStack<BlockSize>::InitOnce() {
   global_empty_ = new List();
   global_mutex_ = new Mutex();
 }
-
 
 template <int BlockSize>
 void BlockStack<BlockSize>::ShutDown() {
@@ -35,17 +33,14 @@ void BlockStack<BlockSize>::ShutDown() {
   delete global_mutex_;
 }
 
-
 template <int BlockSize>
 BlockStack<BlockSize>::BlockStack() : mutex_(new Mutex()) {}
-
 
 template <int BlockSize>
 BlockStack<BlockSize>::~BlockStack() {
   Reset();
   delete mutex_;
 }
-
 
 template <int BlockSize>
 void BlockStack<BlockSize>::Reset() {
@@ -67,7 +62,6 @@ void BlockStack<BlockSize>::Reset() {
   }
 }
 
-
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::Blocks() {
   MutexLocker ml(mutex_);
@@ -76,7 +70,6 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::Blocks() {
   }
   return full_.PopAll();
 }
-
 
 template <int BlockSize>
 void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
@@ -94,7 +87,6 @@ void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
   }
 }
 
-
 void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
   BlockStack<Block::kSize>::PushBlockImpl(block);
   if ((policy == kCheckThreshold) && Overflowed()) {
@@ -108,7 +100,6 @@ void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
   }
 }
 
-
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block*
 BlockStack<BlockSize>::PopNonFullBlock() {
@@ -121,7 +112,6 @@ BlockStack<BlockSize>::PopNonFullBlock() {
   return PopEmptyBlock();
 }
 
-
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::PopEmptyBlock() {
   {
@@ -132,7 +122,6 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::PopEmptyBlock() {
   }
   return new Block();
 }
-
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block*
@@ -147,13 +136,11 @@ BlockStack<BlockSize>::PopNonEmptyBlock() {
   }
 }
 
-
 template <int BlockSize>
 bool BlockStack<BlockSize>::IsEmpty() {
   MutexLocker ml(mutex_);
   return full_.IsEmpty() && partial_.IsEmpty();
 }
-
 
 template <int BlockSize>
 BlockStack<BlockSize>::List::~List() {
@@ -161,7 +148,6 @@ BlockStack<BlockSize>::List::~List() {
     delete Pop();
   }
 }
-
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::Pop() {
@@ -172,7 +158,6 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::Pop() {
   return result;
 }
 
-
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::PopAll() {
   Block* result = head_;
@@ -180,7 +165,6 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::PopAll() {
   length_ = 0;
   return result;
 }
-
 
 template <int BlockSize>
 void BlockStack<BlockSize>::List::Push(Block* block) {
@@ -190,12 +174,10 @@ void BlockStack<BlockSize>::List::Push(Block* block) {
   ++length_;
 }
 
-
 bool StoreBuffer::Overflowed() {
   MutexLocker ml(mutex_);
   return (full_.length() + partial_.length()) > kMaxNonEmpty;
 }
-
 
 template <int BlockSize>
 void BlockStack<BlockSize>::TrimGlobalEmpty() {
@@ -204,7 +186,6 @@ void BlockStack<BlockSize>::TrimGlobalEmpty() {
     delete global_empty_->Pop();
   }
 }
-
 
 template class BlockStack<kStoreBufferBlockSize>;
 template class BlockStack<kMarkingStackBlockSize>;

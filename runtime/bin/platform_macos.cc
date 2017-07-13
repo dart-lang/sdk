@@ -35,7 +35,6 @@ static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   abort();
 }
 
-
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
@@ -68,7 +67,6 @@ bool Platform::Initialize() {
   return true;
 }
 
-
 int Platform::NumberOfProcessors() {
   int32_t cpus = -1;
   size_t cpus_length = sizeof(cpus);
@@ -80,7 +78,6 @@ int Platform::NumberOfProcessors() {
   }
 }
 
-
 const char* Platform::OperatingSystem() {
 #if HOST_OS_IOS
   return "ios";
@@ -89,16 +86,13 @@ const char* Platform::OperatingSystem() {
 #endif
 }
 
-
 const char* Platform::LibraryPrefix() {
   return "lib";
 }
 
-
 const char* Platform::LibraryExtension() {
   return "dylib";
 }
-
 
 static const char* GetLocaleName() {
   CFLocaleRef locale = CFLocaleCopyCurrent();
@@ -116,7 +110,6 @@ static const char* GetLocaleName() {
   }
   return result;
 }
-
 
 static const char* GetPreferredLanguageName() {
   CFArrayRef languages = CFLocaleCopyPreferredLanguages();
@@ -144,7 +137,6 @@ static const char* GetPreferredLanguageName() {
   return result;
 }
 
-
 const char* Platform::LocaleName() {
   // First see if there is a preferred language. If not, return the
   // current locale name.
@@ -152,11 +144,9 @@ const char* Platform::LocaleName() {
   return (preferred_language != NULL) ? preferred_language : GetLocaleName();
 }
 
-
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
-
 
 char** Platform::Environment(intptr_t* count) {
 #if HOST_OS_IOS
@@ -191,11 +181,9 @@ char** Platform::Environment(intptr_t* count) {
 #endif
 }
 
-
 const char* Platform::GetExecutableName() {
   return executable_name_;
 }
-
 
 const char* Platform::ResolveExecutablePath() {
   // Get the required length of the buffer.
@@ -212,7 +200,6 @@ const char* Platform::ResolveExecutablePath() {
   const char* canon_path = File::GetCanonicalPath(path);
   return canon_path;
 }
-
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

@@ -63,7 +63,6 @@ class SemiSpace {
   static Mutex* mutex_;
 };
 
-
 // Statistics for a particular scavenge.
 class ScavengeStats {
  public:
@@ -106,7 +105,6 @@ class ScavengeStats {
   intptr_t promo_candidates_in_words_;
   intptr_t promoted_in_words_;
 };
-
 
 class Scavenger {
  public:

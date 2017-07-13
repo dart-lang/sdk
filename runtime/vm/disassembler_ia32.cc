@@ -20,13 +20,11 @@ namespace dart {
 // Tables used for decoding of x86 instructions.
 enum OperandOrder { UNSET_OP_ORDER = 0, REG_OPER_OP_ORDER, OPER_REG_OP_ORDER };
 
-
 struct ByteMnemonic {
   int b;  // -1 terminates, otherwise must be in range (0..255)
   const char* mnem;
   OperandOrder op_order_;
 };
-
 
 static ByteMnemonic two_operands_instr[] = {
     {0x01, "add", OPER_REG_OP_ORDER},   {0x03, "add", REG_OPER_OP_ORDER},
@@ -41,7 +39,6 @@ static ByteMnemonic two_operands_instr[] = {
     {0x8A, "mov_b", REG_OPER_OP_ORDER}, {0x8B, "mov", REG_OPER_OP_ORDER},
     {0x8D, "lea", REG_OPER_OP_ORDER},   {-1, "", UNSET_OP_ORDER}};
 
-
 static ByteMnemonic zero_operands_instr[] = {
     {0xC3, "ret", UNSET_OP_ORDER},   {0xC9, "leave", UNSET_OP_ORDER},
     {0x90, "nop", UNSET_OP_ORDER},   {0xF4, "hlt", UNSET_OP_ORDER},
@@ -51,11 +48,9 @@ static ByteMnemonic zero_operands_instr[] = {
     {0x99, "cdq", UNSET_OP_ORDER},   {0x9B, "fwait", UNSET_OP_ORDER},
     {-1, "", UNSET_OP_ORDER}};
 
-
 static ByteMnemonic call_jump_instr[] = {{0xE8, "call", UNSET_OP_ORDER},
                                          {0xE9, "jmp", UNSET_OP_ORDER},
                                          {-1, "", UNSET_OP_ORDER}};
-
 
 static ByteMnemonic short_immediate_instr[] = {
     {0x05, "add", UNSET_OP_ORDER}, {0x0D, "or", UNSET_OP_ORDER},
@@ -63,13 +58,11 @@ static ByteMnemonic short_immediate_instr[] = {
     {0x2D, "sub", UNSET_OP_ORDER}, {0x35, "xor", UNSET_OP_ORDER},
     {0x3D, "cmp", UNSET_OP_ORDER}, {-1, "", UNSET_OP_ORDER}};
 
-
 static const char* jump_conditional_mnem[] = {
     /*0*/ "jo",  "jno", "jc",  "jnc",
     /*4*/ "jz",  "jnz", "jna", "ja",
     /*8*/ "js",  "jns", "jpe", "jpo",
     /*12*/ "jl", "jnl", "jng", "jg"};
-
 
 static const char* set_conditional_mnem[] = {
     /*0*/ "seto",  "setno", "setc",  "setnc",
@@ -77,13 +70,11 @@ static const char* set_conditional_mnem[] = {
     /*8*/ "sets",  "setns", "setpe", "setpo",
     /*12*/ "setl", "setnl", "setng", "setg"};
 
-
 static const char* conditional_move_mnem[] = {
     /*0*/ "cmovo",  "cmovno", "cmovc",  "cmovnc",
     /*4*/ "cmovz",  "cmovnz", "cmovna", "cmova",
     /*8*/ "cmovs",  "cmovns", "cmovpe", "cmovpo",
     /*12*/ "cmovl", "cmovnl", "cmovng", "cmovg"};
-
 
 enum InstructionType {
   NO_INSTR,
@@ -96,13 +87,11 @@ enum InstructionType {
   SHORT_IMMEDIATE_INSTR
 };
 
-
 struct InstructionDesc {
   const char* mnem;
   InstructionType type;
   OperandOrder op_order_;
 };
-
 
 class InstructionTable : public ValueObject {
  public:
@@ -123,12 +112,10 @@ class InstructionTable : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(InstructionTable);
 };
 
-
 InstructionTable::InstructionTable() {
   Clear();
   Init();
 }
-
 
 void InstructionTable::Clear() {
   for (int i = 0; i < 256; i++) {
@@ -137,7 +124,6 @@ void InstructionTable::Clear() {
     instructions_[i].op_order_ = UNSET_OP_ORDER;
   }
 }
-
 
 void InstructionTable::Init() {
   CopyTable(two_operands_instr, TWO_OPERANDS_INSTR);
@@ -153,7 +139,6 @@ void InstructionTable::Init() {
   SetTableRange(MOVE_REG_INSTR, 0xB8, 0xBF, "mov");
 }
 
-
 void InstructionTable::CopyTable(ByteMnemonic bm[], InstructionType type) {
   for (int i = 0; bm[i].b >= 0; i++) {
     InstructionDesc* id = &instructions_[bm[i].b];
@@ -163,7 +148,6 @@ void InstructionTable::CopyTable(ByteMnemonic bm[], InstructionType type) {
     id->type = type;
   }
 }
-
 
 void InstructionTable::SetTableRange(InstructionType type,
                                      uint8_t start,
@@ -177,7 +161,6 @@ void InstructionTable::SetTableRange(InstructionType type,
   }
 }
 
-
 void InstructionTable::AddJumpConditionalShort() {
   for (uint8_t b = 0x70; b <= 0x7F; b++) {
     InstructionDesc* id = &instructions_[b];
@@ -187,9 +170,7 @@ void InstructionTable::AddJumpConditionalShort() {
   }
 }
 
-
 static InstructionTable instruction_table;
-
 
 // Mnemonics for instructions 0xF0 byte.
 // Returns NULL if the instruction is not handled here.
@@ -287,7 +268,6 @@ static const char* PackedDoubleMnemonic(uint8_t data) {
   return mnemonic;
 }
 
-
 static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
   return f0byte == 0x28 || f0byte == 0x11 || f0byte == 0x12 || f0byte == 0x14 ||
          f0byte == 0x15 || f0byte == 0x16 || f0byte == 0x51 || f0byte == 0x52 ||
@@ -295,7 +275,6 @@ static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
          f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D || f0byte == 0x5E ||
          f0byte == 0x5F || f0byte == 0x5A;
 }
-
 
 // The implementation of x86 decoding based on the above tables.
 class X86Decoder : public ValueObject {
@@ -379,7 +358,6 @@ class X86Decoder : public ValueObject {
     *base = data & 7;
   }
 
-
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
   char* current_position_in_buffer() { return buffer_ + buffer_pos_; }
@@ -392,13 +370,11 @@ class X86Decoder : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(X86Decoder);
 };
 
-
 void X86Decoder::PrintInt(int value) {
   char int_buffer[16];
   OS::SNPrint(int_buffer, sizeof(int_buffer), "%#x", value);
   Print(int_buffer);
 }
-
 
 // Append the int value (printed in hex) to the output buffer.
 void X86Decoder::PrintHex(int value, bool signed_value) {
@@ -411,7 +387,6 @@ void X86Decoder::PrintHex(int value, bool signed_value) {
   Print(hex_buffer);
 }
 
-
 // Append the str to the output buffer.
 void X86Decoder::Print(const char* str) {
   char cur = *str++;
@@ -421,7 +396,6 @@ void X86Decoder::Print(const char* str) {
   }
   buffer_[buffer_pos_] = '\0';
 }
-
 
 static const int kMaxCPURegisters = 8;
 static const char* cpu_regs[kMaxCPURegisters] = {"eax", "ecx", "edx", "ebx",
@@ -441,13 +415,11 @@ void X86Decoder::PrintCPURegister(int reg) {
   Print(cpu_regs[reg]);
 }
 
-
 void X86Decoder::PrintCPUByteRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kMaxByteCPURegisters);
   Print(byte_cpu_regs[reg]);
 }
-
 
 void X86Decoder::PrintXmmRegister(int reg) {
   ASSERT(0 <= reg);
@@ -463,7 +435,6 @@ void X86Decoder::PrintXmmComparison(int comparison) {
   Print(comparisons[comparison]);
 }
 
-
 void X86Decoder::PrintAddress(uword addr) {
   char addr_buffer[32];
   OS::SNPrint(addr_buffer, sizeof(addr_buffer), "%#" Px "", addr);
@@ -477,7 +448,6 @@ void X86Decoder::PrintAddress(uword addr) {
     Print("]");
   }
 }
-
 
 int X86Decoder::PrintRightOperandHelper(uint8_t* modrmp,
                                         RegisterNamePrinter register_printer) {
@@ -599,21 +569,17 @@ int X86Decoder::PrintRightOperandHelper(uint8_t* modrmp,
   UNREACHABLE();
 }
 
-
 int X86Decoder::PrintRightOperand(uint8_t* modrmp) {
   return PrintRightOperandHelper(modrmp, &X86Decoder::PrintCPURegister);
 }
-
 
 int X86Decoder::PrintRightXmmOperand(uint8_t* modrmp) {
   return PrintRightOperandHelper(modrmp, &X86Decoder::PrintXmmRegister);
 }
 
-
 int X86Decoder::PrintRightByteOperand(uint8_t* modrmp) {
   return PrintRightOperandHelper(modrmp, &X86Decoder::PrintCPUByteRegister);
 }
-
 
 int X86Decoder::PrintOperands(const char* mnem,
                               OperandOrder op_order,
@@ -645,7 +611,6 @@ int X86Decoder::PrintOperands(const char* mnem,
   }
   return advance;
 }
-
 
 int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
   bool sign_extension_bit = (*data & 0x02) != 0;
@@ -697,7 +662,6 @@ int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
   }
 }
 
-
 int X86Decoder::DecodeEnter(uint8_t* data) {
   uint16_t size = *reinterpret_cast<uint16_t*>(data + 1);
   uint8_t level = *reinterpret_cast<uint8_t*>(data + 3);
@@ -708,7 +672,6 @@ int X86Decoder::DecodeEnter(uint8_t* data) {
   return 4;
 }
 
-
 // Returns number of bytes used, including *data.
 int X86Decoder::JumpShort(uint8_t* data) {
   ASSERT(*data == 0xEB);
@@ -718,7 +681,6 @@ int X86Decoder::JumpShort(uint8_t* data) {
   PrintAddress(dest);
   return 2;
 }
-
 
 // Returns number of bytes used, including *data.
 int X86Decoder::JumpConditional(uint8_t* data, const char* comment) {
@@ -737,7 +699,6 @@ int X86Decoder::JumpConditional(uint8_t* data, const char* comment) {
   return 6;  // includes 0x0F
 }
 
-
 // Returns number of bytes used, including *data.
 int X86Decoder::JumpConditionalShort(uint8_t* data, const char* comment) {
   uint8_t cond = *data & 0x0F;
@@ -754,7 +715,6 @@ int X86Decoder::JumpConditionalShort(uint8_t* data, const char* comment) {
   return 2;
 }
 
-
 // Returns number of bytes used, including *data.
 int X86Decoder::SetCC(uint8_t* data) {
   ASSERT(*data == 0x0F);
@@ -766,7 +726,6 @@ int X86Decoder::SetCC(uint8_t* data) {
   return 3;  // includes 0x0F
 }
 
-
 // Returns number of bytes used, including *data.
 int X86Decoder::CMov(uint8_t* data) {
   ASSERT(*data == 0x0F);
@@ -775,7 +734,6 @@ int X86Decoder::CMov(uint8_t* data) {
   int op_size = PrintOperands(mnem, REG_OPER_OP_ORDER, data + 2);
   return 2 + op_size;  // includes 0x0F
 }
-
 
 int X86Decoder::D1D3C1Instruction(uint8_t* data) {
   uint8_t op = *data;
@@ -819,7 +777,6 @@ int X86Decoder::D1D3C1Instruction(uint8_t* data) {
   }
   return num_bytes;
 }
-
 
 uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
   if (*(data + 1) == 0x0F) {
@@ -936,7 +893,6 @@ uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
   }
   return data;
 }
-
 
 // Returns number of bytes used, including *data.
 int X86Decoder::F7Instruction(uint8_t* data) {
@@ -1181,7 +1137,6 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
   return 2;
 }
 
-
 uint8_t* X86Decoder::SSEInstruction(uint8_t prefix,
                                     uint8_t primary,
                                     uint8_t* data) {
@@ -1213,7 +1168,6 @@ uint8_t* X86Decoder::SSEInstruction(uint8_t prefix,
   return data;
 }
 
-
 int X86Decoder::BitwisePDInstruction(uint8_t* data) {
   const char* mnem =
       (*data == 0x57) ? "xorpd" : (*data == 0x56) ? "orpd" : "andpd";
@@ -1225,7 +1179,6 @@ int X86Decoder::BitwisePDInstruction(uint8_t* data) {
   Print(",");
   return 1 + PrintRightXmmOperand(data + 1);
 }
-
 
 int X86Decoder::Packed660F38Instruction(uint8_t* data) {
   if (*(data + 1) == 0x25) {
@@ -1246,7 +1199,6 @@ int X86Decoder::Packed660F38Instruction(uint8_t* data) {
   UNREACHABLE();
   return 1;
 }
-
 
 // Called when disassembling test eax, 0xXXXXX.
 void X86Decoder::CheckPrintStop(uint8_t* data) {
@@ -1276,7 +1228,6 @@ const char* X86Decoder::GetBranchPrefix(uint8_t** data) {
       return NULL;
   }
 }
-
 
 bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
                                        const char* branch_hint,
@@ -1339,7 +1290,6 @@ bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
       return false;
   }
 }
-
 
 int X86Decoder::InstructionDecode(uword pc) {
   uint8_t* data = reinterpret_cast<uint8_t*>(pc);
@@ -1911,7 +1861,6 @@ int X86Decoder::InstructionDecode(uword pc) {
 
   return instr_len;
 }  // NOLINT
-
 
 void Disassembler::DecodeInstruction(char* hex_buffer,
                                      intptr_t hex_size,

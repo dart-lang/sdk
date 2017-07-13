@@ -7,15 +7,15 @@
 
 #include "include/dart_api.h"
 
+#include "lib/invocation_mirror.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "lib/invocation_mirror.h"
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
-#include "vm/kernel.h"
 #include "vm/hash_table.h"
+#include "vm/kernel.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/token.h"
@@ -28,7 +28,7 @@ namespace kernel {
 
 class ScopeBuildingResult;
 
-}  // kernel
+}  // namespace kernel
 
 class ArgumentsDescriptor;
 class Isolate;
@@ -160,7 +160,6 @@ class ParsedFunction : public ZoneAllocated {
 #endif
   }
 
-
   const Instance& DefaultParameterValueAt(intptr_t i) const {
     ASSERT(default_parameter_values_ != NULL);
     return *default_parameter_values_->At(i);
@@ -260,7 +259,6 @@ class ParsedFunction : public ZoneAllocated {
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };
-
 
 class Parser : public ValueObject {
  public:

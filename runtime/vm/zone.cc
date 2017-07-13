@@ -43,7 +43,6 @@ class Zone::Segment {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
 
-
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   ASSERT(size >= 0);
   Segment* result = reinterpret_cast<Segment*>(malloc(size));
@@ -61,7 +60,6 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   return result;
 }
 
-
 void Zone::Segment::DeleteSegmentList(Segment* head) {
   Segment* current = head;
   while (current != NULL) {
@@ -76,7 +74,6 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
   }
 }
 
-
 void Zone::Segment::IncrementMemoryCapacity(uintptr_t size) {
   Thread* current_thread = Thread::Current();
   if (current_thread != NULL) {
@@ -87,7 +84,6 @@ void Zone::Segment::IncrementMemoryCapacity(uintptr_t size) {
   }
 }
 
-
 void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
   Thread* current_thread = Thread::Current();
   if (current_thread != NULL) {
@@ -97,7 +93,6 @@ void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
     ApiNativeScope::DecrementNativeScopeMemoryCapacity(size);
   }
 }
-
 
 // TODO(bkonyi): We need to account for the initial chunk size when a new zone
 // is created within a new thread or ApiNativeScope when calculating high
@@ -119,7 +114,6 @@ Zone::Zone()
 #endif
 }
 
-
 Zone::~Zone() {
   if (FLAG_trace_zones) {
     DumpZoneSizes();
@@ -127,7 +121,6 @@ Zone::~Zone() {
   DeleteAll();
   Segment::DecrementMemoryCapacity(kInitialChunkSize);
 }
-
 
 void Zone::DeleteAll() {
   // Traverse the chained list of segments, zapping (in debug mode)
@@ -150,7 +143,6 @@ void Zone::DeleteAll() {
   handles_.Reset();
 }
 
-
 uintptr_t Zone::SizeInBytes() const {
   uintptr_t size = 0;
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
@@ -166,7 +158,6 @@ uintptr_t Zone::SizeInBytes() const {
   return size + (position_ - head_->start());
 }
 
-
 uintptr_t Zone::CapacityInBytes() const {
   uintptr_t size = 0;
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
@@ -181,7 +172,6 @@ uintptr_t Zone::CapacityInBytes() const {
   }
   return size;
 }
-
 
 uword Zone::AllocateExpand(intptr_t size) {
   ASSERT(size >= 0);
@@ -215,7 +205,6 @@ uword Zone::AllocateExpand(intptr_t size) {
   return result;
 }
 
-
 uword Zone::AllocateLargeSegment(intptr_t size) {
   ASSERT(size >= 0);
   // Make sure the requested size is already properly aligned and that
@@ -233,14 +222,12 @@ uword Zone::AllocateLargeSegment(intptr_t size) {
   return result;
 }
 
-
 char* Zone::MakeCopyOfString(const char* str) {
   intptr_t len = strlen(str) + 1;  // '\0'-terminated.
   char* copy = Alloc<char>(len);
   strncpy(copy, str, len);
   return copy;
 }
-
 
 char* Zone::MakeCopyOfStringN(const char* str, intptr_t len) {
   ASSERT(len >= 0);
@@ -256,7 +243,6 @@ char* Zone::MakeCopyOfStringN(const char* str, intptr_t len) {
   return copy;
 }
 
-
 char* Zone::ConcatStrings(const char* a, const char* b, char join) {
   intptr_t a_len = (a == NULL) ? 0 : strlen(a);
   const intptr_t b_len = strlen(b) + 1;  // '\0'-terminated.
@@ -271,7 +257,6 @@ char* Zone::ConcatStrings(const char* a, const char* b, char join) {
   return copy;
 }
 
-
 void Zone::DumpZoneSizes() {
   intptr_t size = 0;
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
@@ -283,7 +268,6 @@ void Zone::DumpZoneSizes() {
                reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }
 
-
 void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   Zone* zone = this;
   while (zone != NULL) {
@@ -291,7 +275,6 @@ void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     zone = zone->previous_;
   }
 }
-
 
 char* Zone::PrintToString(const char* format, ...) {
   va_list args;
@@ -301,11 +284,9 @@ char* Zone::PrintToString(const char* format, ...) {
   return buffer;
 }
 
-
 char* Zone::VPrint(const char* format, va_list args) {
   return OS::VSCreate(this, format, args);
 }
-
 
 StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {
   if (FLAG_trace_zones) {
@@ -316,7 +297,6 @@ StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {
   zone_.Link(thread->zone());
   thread->set_zone(&zone_);
 }
-
 
 StackZone::~StackZone() {
   ASSERT(thread()->zone() == &zone_);

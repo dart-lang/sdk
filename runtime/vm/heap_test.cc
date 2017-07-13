@@ -73,7 +73,6 @@ TEST_CASE(LargeSweep) {
   heap->CollectGarbage(Heap::kOld);
 }
 
-
 #ifndef PRODUCT
 class ClassHeapStatsTestHelper {
  public:
@@ -90,14 +89,12 @@ class ClassHeapStatsTestHelper {
   }
 };
 
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
-
 
 TEST_CASE(ClassHeapStats) {
   const char* kScriptChars =
@@ -192,7 +189,6 @@ TEST_CASE(ClassHeapStats) {
   EXPECT_EQ(0, class_stats->recent.old_count);
 }
 
-
 TEST_CASE(ArrayHeapStats) {
   const char* kScriptChars =
       "List f(int len) {\n"
@@ -232,7 +228,6 @@ TEST_CASE(ArrayHeapStats) {
 }
 #endif  // !PRODUCT
 
-
 class FindOnly : public FindObjectVisitor {
  public:
   explicit FindOnly(RawObject* target) : target_(target) {
@@ -248,14 +243,12 @@ class FindOnly : public FindObjectVisitor {
   RawObject* target_;
 };
 
-
 class FindNothing : public FindObjectVisitor {
  public:
   FindNothing() {}
   virtual ~FindNothing() {}
   virtual bool FindObject(RawObject* obj) const { return false; }
 };
-
 
 TEST_CASE(FindObject) {
   Isolate* isolate = Isolate::Current();
@@ -276,7 +269,6 @@ TEST_CASE(FindObject) {
   }
 }
 
-
 TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
@@ -286,7 +278,6 @@ TEST_CASE(IterateReadOnly) {
   heap->WriteProtect(false);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
-
 
 void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   Isolate* isolate = Isolate::Current();
@@ -312,26 +303,21 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   EXPECT(before_obj.raw() == after_obj.raw());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToOld) {
   TestBecomeForward(Heap::kOld, Heap::kOld);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToNew) {
   TestBecomeForward(Heap::kNew, Heap::kNew);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToNew) {
   TestBecomeForward(Heap::kOld, Heap::kNew);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
   TestBecomeForward(Heap::kNew, Heap::kOld);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   Isolate* isolate = Isolate::Current();
@@ -363,7 +349,6 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   EXPECT(before_obj.raw() == after_obj.raw());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -386,7 +371,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   EXPECT(size_before == size_after);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -408,7 +392,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
 
   EXPECT(size_before == size_after);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
   Isolate* isolate = Isolate::Current();
@@ -433,7 +416,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
   EXPECT(size_before == size_after);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -454,7 +436,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
 
   EXPECT(size_before < size_after);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
   Isolate* isolate = Isolate::Current();
@@ -477,7 +458,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
   EXPECT(size_before < size_after);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -499,7 +479,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
   EXPECT(size_before < size_after);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -520,7 +499,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
 
   EXPECT(size_before < size_after);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
   Isolate* isolate = Isolate::Current();
@@ -545,7 +523,6 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
 
   EXPECT(size_before < size_after);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   Isolate* isolate = Isolate::Current();

@@ -31,7 +31,6 @@ ThreadRegistry::~ThreadRegistry() {
   delete threads_lock_;
 }
 
-
 // Gets a free Thread structure, we special case the mutator thread
 // by reusing the cached structure, see comment in 'thread_registry.h'.
 Thread* ThreadRegistry::GetFreeThreadLocked(Isolate* isolate, bool is_mutator) {
@@ -51,7 +50,6 @@ Thread* ThreadRegistry::GetFreeThreadLocked(Isolate* isolate, bool is_mutator) {
   return thread;
 }
 
-
 void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Remove thread from the active list for the isolate.
@@ -60,7 +58,6 @@ void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
     ReturnToFreelistLocked(thread);
   }
 }
-
 
 void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                          bool validate_frames) {
@@ -81,7 +78,6 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
-
 void ThreadRegistry::PrepareForGC() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
@@ -90,7 +86,6 @@ void ThreadRegistry::PrepareForGC() {
     thread = thread->next_;
   }
 }
-
 
 #ifndef PRODUCT
 void ThreadRegistry::PrintJSON(JSONStream* stream) const {
@@ -104,7 +99,6 @@ void ThreadRegistry::PrintJSON(JSONStream* stream) const {
 }
 #endif
 
-
 intptr_t ThreadRegistry::CountZoneHandles() const {
   MonitorLocker ml(threads_lock());
   intptr_t count = 0;
@@ -115,7 +109,6 @@ intptr_t ThreadRegistry::CountZoneHandles() const {
   }
   return count;
 }
-
 
 intptr_t ThreadRegistry::CountScopedHandles() const {
   MonitorLocker ml(threads_lock());
@@ -128,14 +121,12 @@ intptr_t ThreadRegistry::CountScopedHandles() const {
   return count;
 }
 
-
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   thread->next_ = active_list_;
   active_list_ = thread;
 }
-
 
 void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
   ASSERT(thread != NULL);
@@ -156,7 +147,6 @@ void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
   }
 }
 
-
 Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   Thread* thread = NULL;
@@ -169,7 +159,6 @@ Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
   }
   return thread;
 }
-
 
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != NULL);

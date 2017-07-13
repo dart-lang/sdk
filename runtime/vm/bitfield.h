@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_BITFIELD_H_
 #define RUNTIME_VM_BITFIELD_H_
 
+#include "platform/globals.h"
+
 namespace dart {
 
 static const uword kUwordOne = 1U;

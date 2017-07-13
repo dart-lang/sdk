@@ -66,10 +66,8 @@ BlockLabel::BlockLabel()
 #endif
 }
 
-
 RegExpMacroAssembler::RegExpMacroAssembler(Zone* zone)
     : slow_safe_compiler_(false), global_mode_(NOT_GLOBAL), zone_(zone) {}
-
 
 RegExpMacroAssembler::~RegExpMacroAssembler() {}
 

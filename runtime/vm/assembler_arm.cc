@@ -35,7 +35,6 @@ uint32_t Address::encoding3() const {
   return encoding_;
 }
 
-
 uint32_t Address::vencoding() const {
   ASSERT(kind_ == Immediate);
   uint32_t offset = encoding_ & kOffset12Mask;
@@ -50,7 +49,6 @@ uint32_t Address::vencoding() const {
   return vencoding;
 }
 
-
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
   ASSERT(Utils::IsAligned(length, 4));
@@ -61,12 +59,10 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   }
 }
 
-
 void Assembler::Emit(int32_t value) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<int32_t>(value);
 }
-
 
 void Assembler::EmitType01(Condition cond,
                            int type,
@@ -85,14 +81,12 @@ void Assembler::EmitType01(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      5 << kTypeShift | (link ? 1 : 0) << kLinkShift;
   Emit(Assembler::EncodeBranchOffset(offset, encoding));
 }
-
 
 void Assembler::EmitMemOp(Condition cond,
                           bool load,
@@ -110,7 +104,6 @@ void Assembler::EmitMemOp(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::EmitMemOpAddressMode3(Condition cond,
                                       int32_t mode,
                                       Register rd,
@@ -121,7 +114,6 @@ void Assembler::EmitMemOpAddressMode3(Condition cond,
                      (static_cast<int32_t>(rd) << kRdShift) | ad.encoding3();
   Emit(encoding);
 }
-
 
 void Assembler::EmitMultiMemOp(Condition cond,
                                BlockAddressMode am,
@@ -135,7 +127,6 @@ void Assembler::EmitMultiMemOp(Condition cond,
                      (static_cast<int32_t>(base) << kRnShift) | regs;
   Emit(encoding);
 }
-
 
 void Assembler::EmitShiftImmediate(Condition cond,
                                    Shift opcode,
@@ -151,7 +142,6 @@ void Assembler::EmitShiftImmediate(Condition cond,
       static_cast<int32_t>(opcode) << kShiftShift | static_cast<int32_t>(rm);
   Emit(encoding);
 }
-
 
 void Assembler::EmitShiftRegister(Condition cond,
                                   Shift opcode,
@@ -169,16 +159,13 @@ void Assembler::EmitShiftRegister(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), AND, 0, rn, rd, o);
 }
 
-
 void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
 }
-
 
 void Assembler::sub(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 0, rn, rd, o);
@@ -192,106 +179,85 @@ void Assembler::rsbs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSB, 1, rn, rd, o);
 }
 
-
 void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 0, rn, rd, o);
 }
-
 
 void Assembler::adds(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 1, rn, rd, o);
 }
 
-
 void Assembler::subs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 1, rn, rd, o);
 }
-
 
 void Assembler::adc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADC, 0, rn, rd, o);
 }
 
-
 void Assembler::adcs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADC, 1, rn, rd, o);
 }
-
 
 void Assembler::sbc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SBC, 0, rn, rd, o);
 }
 
-
 void Assembler::sbcs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SBC, 1, rn, rd, o);
 }
-
 
 void Assembler::rsc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSC, 0, rn, rd, o);
 }
 
-
 void Assembler::tst(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), TST, 1, rn, R0, o);
 }
-
 
 void Assembler::teq(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), TEQ, 1, rn, R0, o);
 }
 
-
 void Assembler::cmp(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), CMP, 1, rn, R0, o);
 }
-
 
 void Assembler::cmn(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), CMN, 1, rn, R0, o);
 }
 
-
 void Assembler::orr(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ORR, 0, rn, rd, o);
 }
-
 
 void Assembler::orrs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ORR, 1, rn, rd, o);
 }
 
-
 void Assembler::mov(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 0, R0, rd, o);
 }
-
 
 void Assembler::movs(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 1, R0, rd, o);
 }
 
-
 void Assembler::bic(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 0, rn, rd, o);
 }
-
 
 void Assembler::bics(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 1, rn, rd, o);
 }
 
-
 void Assembler::mvn(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 0, R0, rd, o);
 }
 
-
 void Assembler::mvns(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 1, R0, rd, o);
 }
-
 
 void Assembler::clz(Register rd, Register rm, Condition cond) {
   ASSERT(rd != kNoRegister);
@@ -306,7 +272,6 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift | B25 | B24 |
@@ -315,7 +280,6 @@ void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift | B25 | B24 |
@@ -323,7 +287,6 @@ void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
                      static_cast<int32_t>(rd) << kRdShift | (imm16 & 0xfff);
   Emit(encoding);
 }
-
 
 void Assembler::EmitMulOp(Condition cond,
                           int32_t opcode,
@@ -344,18 +307,15 @@ void Assembler::EmitMulOp(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::mul(Register rd, Register rn, Register rm, Condition cond) {
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
   EmitMulOp(cond, 0, R0, rd, rn, rm);
 }
 
-
 // Like mul, but sets condition flags.
 void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {
   EmitMulOp(cond, B20, R0, rd, rn, rm);
 }
-
 
 void Assembler::mla(Register rd,
                     Register rn,
@@ -366,7 +326,6 @@ void Assembler::mla(Register rd,
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
   EmitMulOp(cond, B21, ra, rd, rn, rm);
 }
-
 
 void Assembler::mls(Register rd,
                     Register rn,
@@ -383,7 +342,6 @@ void Assembler::mls(Register rd,
   }
 }
 
-
 void Assembler::smull(Register rd_lo,
                       Register rd_hi,
                       Register rn,
@@ -392,7 +350,6 @@ void Assembler::smull(Register rd_lo,
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
 }
-
 
 void Assembler::umull(Register rd_lo,
                       Register rd_hi,
@@ -403,7 +360,6 @@ void Assembler::umull(Register rd_lo,
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
 }
 
-
 void Assembler::umlal(Register rd_lo,
                       Register rd_hi,
                       Register rn,
@@ -412,7 +368,6 @@ void Assembler::umlal(Register rd_lo,
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
 }
-
 
 void Assembler::umaal(Register rd_lo,
                       Register rd_hi,
@@ -433,7 +388,6 @@ void Assembler::umaal(Register rd_lo,
   }
 }
 
-
 void Assembler::EmitDivOp(Condition cond,
                           int32_t opcode,
                           Register rd,
@@ -451,56 +405,45 @@ void Assembler::EmitDivOp(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::sdiv(Register rd, Register rn, Register rm, Condition cond) {
   EmitDivOp(cond, 0, rd, rn, rm);
 }
-
 
 void Assembler::udiv(Register rd, Register rn, Register rm, Condition cond) {
   EmitDivOp(cond, B21, rd, rn, rm);
 }
 
-
 void Assembler::ldr(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, true, false, rd, ad);
 }
-
 
 void Assembler::str(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, false, false, rd, ad);
 }
 
-
 void Assembler::ldrb(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, true, true, rd, ad);
 }
-
 
 void Assembler::strb(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, false, true, rd, ad);
 }
 
-
 void Assembler::ldrh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | H | B4, rd, ad);
 }
-
 
 void Assembler::strh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, B7 | H | B4, rd, ad);
 }
 
-
 void Assembler::ldrsb(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | B6 | B4, rd, ad);
 }
 
-
 void Assembler::ldrsh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | B6 | H | B4, rd, ad);
 }
-
 
 void Assembler::ldrd(Register rd,
                      Register rd2,
@@ -517,7 +460,6 @@ void Assembler::ldrd(Register rd,
   }
 }
 
-
 void Assembler::strd(Register rd,
                      Register rd2,
                      Register rn,
@@ -533,7 +475,6 @@ void Assembler::strd(Register rd,
   }
 }
 
-
 void Assembler::ldm(BlockAddressMode am,
                     Register base,
                     RegList regs,
@@ -542,7 +483,6 @@ void Assembler::ldm(BlockAddressMode am,
   EmitMultiMemOp(cond, am, true, base, regs);
 }
 
-
 void Assembler::stm(BlockAddressMode am,
                     Register base,
                     RegList regs,
@@ -550,7 +490,6 @@ void Assembler::stm(BlockAddressMode am,
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
 }
-
 
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
@@ -563,7 +502,6 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
                      B9 | B8 | B7 | B4 | B3 | B2 | B1 | B0;
   Emit(encoding);
 }
-
 
 void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
@@ -579,7 +517,6 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::clrex() {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   int32_t encoding = (kSpecialCondition << kConditionShift) | B26 | B24 | B22 |
@@ -587,14 +524,12 @@ void Assembler::clrex() {
   Emit(encoding);
 }
 
-
 void Assembler::nop(Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B25 |
                      B24 | B21 | (0xf << 12);
   Emit(encoding);
 }
-
 
 void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -610,7 +545,6 @@ void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sn != kNoSRegister);
@@ -624,7 +558,6 @@ void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
                      ((static_cast<int32_t>(sn) & 1) * B7) | B4;
   Emit(encoding);
 }
-
 
 void Assembler::vmovsrr(SRegister sm,
                         Register rt,
@@ -647,7 +580,6 @@ void Assembler::vmovsrr(SRegister sm,
                      (static_cast<int32_t>(sm) >> 1);
   Emit(encoding);
 }
-
 
 void Assembler::vmovrrs(Register rt,
                         Register rt2,
@@ -672,7 +604,6 @@ void Assembler::vmovrrs(Register rt,
   Emit(encoding);
 }
 
-
 void Assembler::vmovdr(DRegister dn, int i, Register rt, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((i == 0) || (i == 1));
@@ -687,7 +618,6 @@ void Assembler::vmovdr(DRegister dn, int i, Register rt, Condition cond) {
                      ((static_cast<int32_t>(dn) & 0xf) * B16) | B4;
   Emit(encoding);
 }
-
 
 void Assembler::vmovdrr(DRegister dm,
                         Register rt,
@@ -709,7 +639,6 @@ void Assembler::vmovdrr(DRegister dm,
                      (static_cast<int32_t>(dm) & 0xf);
   Emit(encoding);
 }
-
 
 void Assembler::vmovrrd(Register rt,
                         Register rt2,
@@ -733,7 +662,6 @@ void Assembler::vmovrrd(Register rt,
   Emit(encoding);
 }
 
-
 void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
@@ -744,7 +672,6 @@ void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
                      ad.vencoding();
   Emit(encoding);
 }
-
 
 void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -758,7 +685,6 @@ void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
@@ -769,7 +695,6 @@ void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
                      ad.vencoding();
   Emit(encoding);
 }
-
 
 void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -803,7 +728,6 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::EmitMultiVDMemOp(Condition cond,
                                  BlockAddressMode am,
                                  bool load,
@@ -825,7 +749,6 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::vldms(BlockAddressMode am,
                       Register base,
                       SRegister first,
@@ -836,7 +759,6 @@ void Assembler::vldms(BlockAddressMode am,
   EmitMultiVSMemOp(cond, am, true, base, first, last - first + 1);
 }
 
-
 void Assembler::vstms(BlockAddressMode am,
                       Register base,
                       SRegister first,
@@ -846,7 +768,6 @@ void Assembler::vstms(BlockAddressMode am,
   ASSERT(last > first);
   EmitMultiVSMemOp(cond, am, false, base, first, last - first + 1);
 }
-
 
 void Assembler::vldmd(BlockAddressMode am,
                       Register base,
@@ -859,7 +780,6 @@ void Assembler::vldmd(BlockAddressMode am,
   EmitMultiVDMemOp(cond, am, true, base, first, count);
 }
 
-
 void Assembler::vstmd(BlockAddressMode am,
                       Register base,
                       DRegister first,
@@ -870,7 +790,6 @@ void Assembler::vstmd(BlockAddressMode am,
   ASSERT(first + count <= kNumberOfDRegisters);
   EmitMultiVDMemOp(cond, am, false, base, first, count);
 }
-
 
 void Assembler::EmitVFPsss(Condition cond,
                            int32_t opcode,
@@ -892,7 +811,6 @@ void Assembler::EmitVFPsss(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::EmitVFPddd(Condition cond,
                            int32_t opcode,
                            DRegister dd,
@@ -913,16 +831,13 @@ void Assembler::EmitVFPddd(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::vmovs(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B6, sd, S0, sm);
 }
 
-
 void Assembler::vmovd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B6, dd, D0, dm);
 }
-
 
 bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
   if (TargetCPUFeatures::arm_version() != ARMv7) {
@@ -941,7 +856,6 @@ bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
   return false;
 }
 
-
 bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
   if (TargetCPUFeatures::arm_version() != ARMv7) {
     return false;
@@ -959,14 +873,12 @@ bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
   return false;
 }
 
-
 void Assembler::vadds(SRegister sd,
                       SRegister sn,
                       SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21 | B20, sd, sn, sm);
 }
-
 
 void Assembler::vaddd(DRegister dd,
                       DRegister dn,
@@ -975,14 +887,12 @@ void Assembler::vaddd(DRegister dd,
   EmitVFPddd(cond, B21 | B20, dd, dn, dm);
 }
 
-
 void Assembler::vsubs(SRegister sd,
                       SRegister sn,
                       SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21 | B20 | B6, sd, sn, sm);
 }
-
 
 void Assembler::vsubd(DRegister dd,
                       DRegister dn,
@@ -991,14 +901,12 @@ void Assembler::vsubd(DRegister dd,
   EmitVFPddd(cond, B21 | B20 | B6, dd, dn, dm);
 }
 
-
 void Assembler::vmuls(SRegister sd,
                       SRegister sn,
                       SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21, sd, sn, sm);
 }
-
 
 void Assembler::vmuld(DRegister dd,
                       DRegister dn,
@@ -1007,14 +915,12 @@ void Assembler::vmuld(DRegister dd,
   EmitVFPddd(cond, B21, dd, dn, dm);
 }
 
-
 void Assembler::vmlas(SRegister sd,
                       SRegister sn,
                       SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, 0, sd, sn, sm);
 }
-
 
 void Assembler::vmlad(DRegister dd,
                       DRegister dn,
@@ -1023,14 +929,12 @@ void Assembler::vmlad(DRegister dd,
   EmitVFPddd(cond, 0, dd, dn, dm);
 }
 
-
 void Assembler::vmlss(SRegister sd,
                       SRegister sn,
                       SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B6, sd, sn, sm);
 }
-
 
 void Assembler::vmlsd(DRegister dd,
                       DRegister dn,
@@ -1039,14 +943,12 @@ void Assembler::vmlsd(DRegister dd,
   EmitVFPddd(cond, B6, dd, dn, dm);
 }
 
-
 void Assembler::vdivs(SRegister sd,
                       SRegister sn,
                       SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B23, sd, sn, sm);
 }
-
 
 void Assembler::vdivd(DRegister dd,
                       DRegister dn,
@@ -1055,26 +957,21 @@ void Assembler::vdivd(DRegister dd,
   EmitVFPddd(cond, B23, dd, dn, dm);
 }
 
-
 void Assembler::vabss(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B7 | B6, sd, S0, sm);
 }
-
 
 void Assembler::vabsd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B7 | B6, dd, D0, dm);
 }
 
-
 void Assembler::vnegs(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B16 | B6, sd, S0, sm);
 }
 
-
 void Assembler::vnegd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B16 | B6, dd, D0, dm);
 }
-
 
 void Assembler::vsqrts(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B16 | B7 | B6, sd, S0, sm);
@@ -1083,7 +980,6 @@ void Assembler::vsqrts(SRegister sd, SRegister sm, Condition cond) {
 void Assembler::vsqrtd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B16 | B7 | B6, dd, D0, dm);
 }
-
 
 void Assembler::EmitVFPsd(Condition cond,
                           int32_t opcode,
@@ -1101,7 +997,6 @@ void Assembler::EmitVFPsd(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::EmitVFPds(Condition cond,
                           int32_t opcode,
                           DRegister dd,
@@ -1118,76 +1013,61 @@ void Assembler::EmitVFPds(Condition cond,
   Emit(encoding);
 }
 
-
 void Assembler::vcvtsd(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B18 | B17 | B16 | B8 | B7 | B6, sd, dm);
 }
-
 
 void Assembler::vcvtds(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B18 | B17 | B16 | B7 | B6, dd, sm);
 }
 
-
 void Assembler::vcvtis(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B18 | B16 | B7 | B6, sd, S0, sm);
 }
-
 
 void Assembler::vcvtid(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B19 | B18 | B16 | B8 | B7 | B6, sd, dm);
 }
 
-
 void Assembler::vcvtsi(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B7 | B6, sd, S0, sm);
 }
-
 
 void Assembler::vcvtdi(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B19 | B8 | B7 | B6, dd, sm);
 }
 
-
 void Assembler::vcvtus(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B18 | B7 | B6, sd, S0, sm);
 }
-
 
 void Assembler::vcvtud(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B19 | B18 | B8 | B7 | B6, sd, dm);
 }
 
-
 void Assembler::vcvtsu(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B6, sd, S0, sm);
 }
-
 
 void Assembler::vcvtdu(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B19 | B8 | B6, dd, sm);
 }
 
-
 void Assembler::vcmps(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B18 | B6, sd, S0, sm);
 }
-
 
 void Assembler::vcmpd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B18 | B6, dd, D0, dm);
 }
 
-
 void Assembler::vcmpsz(SRegister sd, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B18 | B16 | B6, sd, S0, S0);
 }
 
-
 void Assembler::vcmpdz(DRegister dd, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B18 | B16 | B6, dd, D0, D0);
 }
-
 
 void Assembler::vmrs(Register rd, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -1198,11 +1078,9 @@ void Assembler::vmrs(Register rd, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::vmstat(Condition cond) {
   vmrs(APSR, cond);
 }
-
 
 static inline int ShiftOfOperandSize(OperandSize size) {
   switch (size) {
@@ -1229,7 +1107,6 @@ static inline int ShiftOfOperandSize(OperandSize size) {
   return -1;
 }
 
-
 void Assembler::EmitSIMDqqq(int32_t opcode,
                             OperandSize size,
                             QRegister qd,
@@ -1249,7 +1126,6 @@ void Assembler::EmitSIMDqqq(int32_t opcode,
   Emit(encoding);
 }
 
-
 void Assembler::EmitSIMDddd(int32_t opcode,
                             OperandSize size,
                             DRegister dd,
@@ -1267,11 +1143,9 @@ void Assembler::EmitSIMDddd(int32_t opcode,
   Emit(encoding);
 }
 
-
 void Assembler::vmovq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qm, qm);
 }
-
 
 void Assembler::vaddqi(OperandSize sz,
                        QRegister qd,
@@ -1280,11 +1154,9 @@ void Assembler::vaddqi(OperandSize sz,
   EmitSIMDqqq(B11, sz, qd, qn, qm);
 }
 
-
 void Assembler::vaddqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B8, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vsubqi(OperandSize sz,
                        QRegister qd,
@@ -1293,11 +1165,9 @@ void Assembler::vsubqi(OperandSize sz,
   EmitSIMDqqq(B24 | B11, sz, qd, qn, qm);
 }
 
-
 void Assembler::vsubqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B8, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vmulqi(OperandSize sz,
                        QRegister qd,
@@ -1306,11 +1176,9 @@ void Assembler::vmulqi(OperandSize sz,
   EmitSIMDqqq(B11 | B8 | B4, sz, qd, qn, qm);
 }
 
-
 void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vshlqi(OperandSize sz,
                        QRegister qd,
@@ -1319,7 +1187,6 @@ void Assembler::vshlqi(OperandSize sz,
   EmitSIMDqqq(B25 | B10, sz, qd, qn, qm);
 }
 
-
 void Assembler::vshlqu(OperandSize sz,
                        QRegister qd,
                        QRegister qm,
@@ -1327,75 +1194,61 @@ void Assembler::vshlqu(OperandSize sz,
   EmitSIMDqqq(B25 | B24 | B10, sz, qd, qn, qm);
 }
 
-
 void Assembler::veorq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B8 | B4, kByte, qd, qn, qm);
 }
-
 
 void Assembler::vorrq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qn, qm);
 }
 
-
 void Assembler::vornq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B20 | B8 | B4, kByte, qd, qn, qm);
 }
-
 
 void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
 }
 
-
 void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
-
 
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
 }
 
-
 void Assembler::vmaxqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vabsqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B10 | B9 | B8, kSWord, qd, Q0,
               qm);
 }
 
-
 void Assembler::vnegqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B10 | B9 | B8 | B7, kSWord,
               qd, Q0, qm);
 }
-
 
 void Assembler::vrecpeqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8, kSWord, qd,
               Q0, qm);
 }
 
-
 void Assembler::vrecpsqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vrsqrteqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8 | B7, kSWord,
               qd, Q0, qm);
 }
 
-
 void Assembler::vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
   ASSERT((sz != kDWord) && (sz != kSWord) && (sz != kWordPair));
@@ -1428,17 +1281,14 @@ void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
               static_cast<DRegister>(code & 0xf), dm);
 }
 
-
 void Assembler::vtbl(DRegister dd, DRegister dn, int len, DRegister dm) {
   ASSERT((len >= 1) && (len <= 4));
   EmitSIMDddd(B24 | B23 | B11 | ((len - 1) * B8), kWordPair, dd, dn, dm);
 }
 
-
 void Assembler::vzipqw(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B8 | B7, kByte, qd, Q0, qm);
 }
-
 
 void Assembler::vceqqi(OperandSize sz,
                        QRegister qd,
@@ -1447,11 +1297,9 @@ void Assembler::vceqqi(OperandSize sz,
   EmitSIMDqqq(B24 | B11 | B4, sz, qd, qn, qm);
 }
 
-
 void Assembler::vceqqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B9, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vcgeqi(OperandSize sz,
                        QRegister qd,
@@ -1460,7 +1308,6 @@ void Assembler::vcgeqi(OperandSize sz,
   EmitSIMDqqq(B9 | B8 | B4, sz, qd, qn, qm);
 }
 
-
 void Assembler::vcugeqi(OperandSize sz,
                         QRegister qd,
                         QRegister qn,
@@ -1468,11 +1315,9 @@ void Assembler::vcugeqi(OperandSize sz,
   EmitSIMDqqq(B24 | B9 | B8 | B4, sz, qd, qn, qm);
 }
 
-
 void Assembler::vcgeqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B9, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vcgtqi(OperandSize sz,
                        QRegister qd,
@@ -1481,7 +1326,6 @@ void Assembler::vcgtqi(OperandSize sz,
   EmitSIMDqqq(B9 | B8, sz, qd, qn, qm);
 }
 
-
 void Assembler::vcugtqi(OperandSize sz,
                         QRegister qd,
                         QRegister qn,
@@ -1489,26 +1333,21 @@ void Assembler::vcugtqi(OperandSize sz,
   EmitSIMDqqq(B24 | B9 | B8, sz, qd, qn, qm);
 }
 
-
 void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B21 | B11 | B10 | B9, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::bkpt(uint16_t imm16) {
   Emit(BkptEncoding(imm16));
 }
 
-
 void Assembler::b(Label* label, Condition cond) {
   EmitBranch(cond, label, false);
 }
 
-
 void Assembler::bl(Label* label, Condition cond) {
   EmitBranch(cond, label, true);
 }
-
 
 void Assembler::bx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
@@ -1519,7 +1358,6 @@ void Assembler::bx(Register rm, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::blx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -1529,7 +1367,6 @@ void Assembler::blx(Register rm, Condition cond) {
   Emit(encoding);
 }
 
-
 void Assembler::MarkExceptionHandler(Label* label) {
   EmitType01(AL, 1, TST, 1, PC, R0, Operand(0));
   Label l;
@@ -1538,7 +1375,6 @@ void Assembler::MarkExceptionHandler(Label* label) {
   Bind(&l);
 }
 
-
 void Assembler::Drop(intptr_t stack_elements) {
   ASSERT(stack_elements >= 0);
   if (stack_elements > 0) {
@@ -1546,11 +1382,9 @@ void Assembler::Drop(intptr_t stack_elements) {
   }
 }
 
-
 intptr_t Assembler::FindImmediate(int32_t imm) {
   return object_pool_wrapper_.FindImmediate(imm);
 }
-
 
 // Uses a code sequence that can easily be decoded.
 void Assembler::LoadWordFromPoolOffset(Register rd,
@@ -1605,12 +1439,10 @@ void Assembler::CheckCodePointer() {
 #endif
 }
 
-
 void Assembler::RestoreCodePointer() {
   ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
   CheckCodePointer();
 }
-
 
 void Assembler::LoadPoolPointer(Register reg) {
   // Load new pool pointer.
@@ -1619,11 +1451,9 @@ void Assembler::LoadPoolPointer(Register reg) {
   set_constant_pool_allowed(reg == PP);
 }
 
-
 void Assembler::LoadIsolate(Register rd) {
   ldr(rd, Address(THR, Thread::isolate_offset()));
 }
-
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
@@ -1637,7 +1467,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(object.IsOld());
   return true;
 }
-
 
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
@@ -1665,18 +1494,15 @@ void Assembler::LoadObjectHelper(Register rd,
   }
 }
 
-
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ false, PP);
 }
-
 
 void Assembler::LoadUniqueObject(Register rd,
                                  const Object& object,
                                  Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
 }
-
 
 void Assembler::LoadFunctionFromCalleePool(Register dst,
                                            const Function& function,
@@ -1685,7 +1511,6 @@ void Assembler::LoadFunctionFromCalleePool(Register dst,
       ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
   LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp, AL);
 }
-
 
 void Assembler::LoadNativeEntry(Register rd,
                                 const ExternalLabel* label,
@@ -1696,14 +1521,12 @@ void Assembler::LoadNativeEntry(Register rd,
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
 }
 
-
 void Assembler::PushObject(const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   LoadObject(IP, object);
   Push(IP);
 }
-
 
 void Assembler::CompareObject(Register rn, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
@@ -1716,7 +1539,6 @@ void Assembler::CompareObject(Register rn, const Object& object) {
     cmp(rn, Operand(IP));
   }
 }
-
 
 // Preserves object and value registers.
 void Assembler::StoreIntoObjectFilterNoSmi(Register object,
@@ -1734,7 +1556,6 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   b(no_update, EQ);
 }
 
-
 // Preserves object and value registers.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
@@ -1748,7 +1569,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
   b(no_update, EQ);
 }
 
-
 Register UseRegister(Register reg, RegList* used) {
   ASSERT(reg != THR);
   ASSERT(reg != SP);
@@ -1759,7 +1579,6 @@ Register UseRegister(Register reg, RegList* used) {
   return reg;
 }
 
-
 Register AllocateRegister(RegList* used) {
   const RegList free = ~*used;
   return (free == 0)
@@ -1768,7 +1587,6 @@ Register AllocateRegister(RegList* used) {
                    static_cast<Register>(Utils::CountTrailingZeros(free)),
                    used);
 }
-
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
@@ -1798,7 +1616,6 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
-
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
@@ -1813,7 +1630,6 @@ void Assembler::StoreIntoObjectOffset(Register object,
   }
 }
 
-
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
@@ -1827,7 +1643,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
-
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
@@ -1839,7 +1654,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   LoadObject(IP, value);
   str(IP, dest);
 }
-
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
@@ -1855,7 +1669,6 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
     Pop(base);
   }
 }
-
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
@@ -1873,7 +1686,6 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
     Pop(base);
   }
 }
-
 
 void Assembler::InitializeFieldsNoBarrier(Register object,
                                           Register begin,
@@ -1897,7 +1709,6 @@ void Assembler::InitializeFieldsNoBarrier(Register object,
 #endif  // defined(DEBUG)
   // No store buffer update.
 }
-
 
 void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
                                                   Register base,
@@ -1925,7 +1736,6 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
   // No store buffer update.
 }
 
-
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 #if defined(DEBUG)
   Label done;
@@ -1937,7 +1747,6 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   str(value, dest);
 }
 
-
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
@@ -1945,7 +1754,6 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
       Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   ldrh(result, FieldAddress(object, class_id_offset), cond);
 }
-
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
@@ -1956,13 +1764,11 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
-
 void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ASSERT(scratch != result);
   LoadClassId(scratch, object);
   LoadClassById(result, scratch);
 }
-
 
 void Assembler::CompareClassId(Register object,
                                intptr_t class_id,
@@ -1971,25 +1777,21 @@ void Assembler::CompareClassId(Register object,
   CompareImmediate(scratch, class_id);
 }
 
-
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   tst(object, Operand(kSmiTagMask));
   LoadClassId(result, object, NE);
   LoadImmediate(result, kSmiCid, EQ);
 }
 
-
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
 }
 
-
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
 }
-
 
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
@@ -2006,12 +1808,10 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   return (inst & ~kBranchOffsetMask) | offset;
 }
 
-
 int Assembler::DecodeBranchOffset(int32_t inst) {
   // Sign-extend, left-shift by 2, then add 8.
   return ((((inst & kBranchOffsetMask) << 8) >> 6) + Instr::kPCReadOffset);
 }
-
 
 static int32_t DecodeARMv7LoadImmediate(int32_t movt, int32_t movw) {
   int32_t offset = 0;
@@ -2021,7 +1821,6 @@ static int32_t DecodeARMv7LoadImmediate(int32_t movt, int32_t movw) {
   offset |= movw & 0xfff;
   return offset;
 }
-
 
 static int32_t DecodeARMv6LoadImmediate(int32_t mov,
                                         int32_t or1,
@@ -2034,7 +1833,6 @@ static int32_t DecodeARMv6LoadImmediate(int32_t mov,
   offset |= (or3 & 0xff);
   return offset;
 }
-
 
 class PatchFarBranch : public AssemblerFixup {
  public:
@@ -2087,7 +1885,6 @@ class PatchFarBranch : public AssemblerFixup {
            (or3 == Instr::kNopInstruction) && (bx == Instr::kNopInstruction));
   }
 
-
   void ProcessARMv7(const MemoryRegion& region, intptr_t position) {
     const int32_t movw = region.Load<int32_t>(position);
     const int32_t movt = region.Load<int32_t>(position + Instr::kInstrSize);
@@ -2118,7 +1915,6 @@ class PatchFarBranch : public AssemblerFixup {
   virtual bool IsPointerOffset() const { return false; }
 };
 
-
 void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
   buffer_.EmitFixup(new PatchFarBranch());
   LoadPatchableImmediate(IP, offset);
@@ -2128,7 +1924,6 @@ void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
     bx(IP, cond);
   }
 }
-
 
 void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
   if (label->IsBound()) {
@@ -2150,7 +1945,6 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
     label->LinkTo(position);
   }
 }
-
 
 void Assembler::BindARMv6(Label* label) {
   ASSERT(!label->IsBound());
@@ -2230,7 +2024,6 @@ void Assembler::BindARMv6(Label* label) {
   label->BindTo(bound_pc);
 }
 
-
 void Assembler::BindARMv7(Label* label) {
   ASSERT(!label->IsBound());
   intptr_t bound_pc = buffer_.Size();
@@ -2297,7 +2090,6 @@ void Assembler::BindARMv7(Label* label) {
   label->BindTo(bound_pc);
 }
 
-
 void Assembler::Bind(Label* label) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
@@ -2307,7 +2099,6 @@ void Assembler::Bind(Label* label) {
     BindARMv7(label);
   }
 }
-
 
 OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
@@ -2356,7 +2147,6 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
   }
 }
 
-
 bool Address::CanHoldLoadOffset(OperandSize size,
                                 int32_t offset,
                                 int32_t* offset_mask) {
@@ -2390,7 +2180,6 @@ bool Address::CanHoldLoadOffset(OperandSize size,
     }
   }
 }
-
 
 bool Address::CanHoldStoreOffset(OperandSize size,
                                  int32_t offset,
@@ -2426,7 +2215,6 @@ bool Address::CanHoldStoreOffset(OperandSize size,
   }
 }
 
-
 bool Address::CanHoldImmediateOffset(bool is_load,
                                      intptr_t cid,
                                      int64_t offset) {
@@ -2438,33 +2226,27 @@ bool Address::CanHoldImmediateOffset(bool is_load,
   }
 }
 
-
 void Assembler::Push(Register rd, Condition cond) {
   str(rd, Address(SP, -kWordSize, Address::PreIndex), cond);
 }
-
 
 void Assembler::Pop(Register rd, Condition cond) {
   ldr(rd, Address(SP, kWordSize, Address::PostIndex), cond);
 }
 
-
 void Assembler::PushList(RegList regs, Condition cond) {
   stm(DB_W, SP, regs, cond);
 }
 
-
 void Assembler::PopList(RegList regs, Condition cond) {
   ldm(IA_W, SP, regs, cond);
 }
-
 
 void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
     mov(rd, Operand(rm), cond);
   }
 }
-
 
 void Assembler::Lsl(Register rd,
                     Register rm,
@@ -2475,11 +2257,9 @@ void Assembler::Lsl(Register rd,
   mov(rd, Operand(rm, LSL, shift_imm.encoding()), cond);
 }
 
-
 void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, LSL, rs), cond);
 }
-
 
 void Assembler::Lsr(Register rd,
                     Register rm,
@@ -2494,11 +2274,9 @@ void Assembler::Lsr(Register rd,
   mov(rd, Operand(rm, LSR, shift), cond);
 }
 
-
 void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, LSR, rs), cond);
 }
-
 
 void Assembler::Asr(Register rd,
                     Register rm,
@@ -2513,7 +2291,6 @@ void Assembler::Asr(Register rd,
   mov(rd, Operand(rm, ASR, shift), cond);
 }
 
-
 void Assembler::Asrs(Register rd,
                      Register rm,
                      const Operand& shift_imm,
@@ -2527,11 +2304,9 @@ void Assembler::Asrs(Register rd,
   movs(rd, Operand(rm, ASR, shift), cond);
 }
 
-
 void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, ASR, rs), cond);
 }
-
 
 void Assembler::Ror(Register rd,
                     Register rm,
@@ -2542,21 +2317,17 @@ void Assembler::Ror(Register rd,
   mov(rd, Operand(rm, ROR, shift_imm.encoding()), cond);
 }
 
-
 void Assembler::Ror(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, ROR, rs), cond);
 }
-
 
 void Assembler::Rrx(Register rd, Register rm, Condition cond) {
   mov(rd, Operand(rm, ROR, 0), cond);
 }
 
-
 void Assembler::SignFill(Register rd, Register rm, Condition cond) {
   Asr(rd, rm, Operand(31), cond);
 }
-
 
 void Assembler::Vreciprocalqs(QRegister qd, QRegister qm) {
   ASSERT(qm != QTMP);
@@ -2570,7 +2341,6 @@ void Assembler::Vreciprocalqs(QRegister qd, QRegister qm) {
   vrecpsqs(QTMP, qm, qd);
   vmulqs(qd, qd, QTMP);
 }
-
 
 void Assembler::VreciprocalSqrtqs(QRegister qd, QRegister qm) {
   ASSERT(qm != QTMP);
@@ -2589,7 +2359,6 @@ void Assembler::VreciprocalSqrtqs(QRegister qd, QRegister qm) {
   vmulqs(qd, qd, QTMP);
 }
 
-
 void Assembler::Vsqrtqs(QRegister qd, QRegister qm, QRegister temp) {
   ASSERT(temp != QTMP);
   ASSERT(qm != QTMP);
@@ -2605,7 +2374,6 @@ void Assembler::Vsqrtqs(QRegister qd, QRegister qm, QRegister temp) {
   Vreciprocalqs(qd, qm);
 }
 
-
 void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   ASSERT(qd != QTMP);
   ASSERT(qn != QTMP);
@@ -2614,7 +2382,6 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   Vreciprocalqs(qd, qm);
   vmulqs(qd, qn, qd);
 }
-
 
 void Assembler::Branch(const StubEntry& stub_entry,
                        Patchability patchable,
@@ -2628,7 +2395,6 @@ void Assembler::Branch(const StubEntry& stub_entry,
   bx(IP, cond);
 }
 
-
 void Assembler::BranchLink(const Code& target, Patchability patchable) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
@@ -2641,25 +2407,21 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
   const Code& code = Code::ZoneHandle(stub_entry.code());
   BranchLink(code, patchable);
 }
 
-
 void Assembler::BranchLinkPatchable(const Code& target) {
   BranchLink(target, kPatchable);
 }
-
 
 void Assembler::BranchLinkToRuntime() {
   ldr(IP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
   ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   blx(IP);
 }
-
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
@@ -2675,17 +2437,14 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
   BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()));
 }
-
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
@@ -2693,7 +2452,6 @@ void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   LoadFromOffset(kWord, IP, base, offset);
   blx(IP);  // Use blx instruction so that the return branch prediction works.
 }
-
 
 void Assembler::LoadPatchableImmediate(Register rd,
                                        int32_t value,
@@ -2718,7 +2476,6 @@ void Assembler::LoadPatchableImmediate(Register rd,
   }
 }
 
-
 void Assembler::LoadDecodableImmediate(Register rd,
                                        int32_t value,
                                        Condition cond) {
@@ -2740,7 +2497,6 @@ void Assembler::LoadDecodableImmediate(Register rd,
   }
 }
 
-
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -2752,7 +2508,6 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   }
 }
 
-
 void Assembler::LoadSImmediate(SRegister sd, float value, Condition cond) {
   if (!vmovs(sd, value, cond)) {
     const DRegister dd = static_cast<DRegister>(sd >> 1);
@@ -2761,7 +2516,6 @@ void Assembler::LoadSImmediate(SRegister sd, float value, Condition cond) {
     vmovdr(dd, index, IP, cond);
   }
 }
-
 
 void Assembler::LoadDImmediate(DRegister dd,
                                double value,
@@ -2778,7 +2532,6 @@ void Assembler::LoadDImmediate(DRegister dd,
     vmovdrr(dd, IP, scratch, cond);
   }
 }
-
 
 void Assembler::LoadFromOffset(OperandSize size,
                                Register reg,
@@ -2814,7 +2567,6 @@ void Assembler::LoadFromOffset(OperandSize size,
   }
 }
 
-
 void Assembler::StoreToOffset(OperandSize size,
                               Register reg,
                               Register base,
@@ -2844,7 +2596,6 @@ void Assembler::StoreToOffset(OperandSize size,
   }
 }
 
-
 void Assembler::LoadSFromOffset(SRegister reg,
                                 Register base,
                                 int32_t offset,
@@ -2858,7 +2609,6 @@ void Assembler::LoadSFromOffset(SRegister reg,
   }
   vldrs(reg, Address(base, offset), cond);
 }
-
 
 void Assembler::StoreSToOffset(SRegister reg,
                                Register base,
@@ -2874,7 +2624,6 @@ void Assembler::StoreSToOffset(SRegister reg,
   vstrs(reg, Address(base, offset), cond);
 }
 
-
 void Assembler::LoadDFromOffset(DRegister reg,
                                 Register base,
                                 int32_t offset,
@@ -2888,7 +2637,6 @@ void Assembler::LoadDFromOffset(DRegister reg,
   }
   vldrd(reg, Address(base, offset), cond);
 }
-
 
 void Assembler::StoreDToOffset(DRegister reg,
                                Register base,
@@ -2904,7 +2652,6 @@ void Assembler::StoreDToOffset(DRegister reg,
   vstrd(reg, Address(base, offset), cond);
 }
 
-
 void Assembler::LoadMultipleDFromOffset(DRegister first,
                                         intptr_t count,
                                         Register base,
@@ -2914,7 +2661,6 @@ void Assembler::LoadMultipleDFromOffset(DRegister first,
   vldmd(IA, IP, first, count);
 }
 
-
 void Assembler::StoreMultipleDToOffset(DRegister first,
                                        intptr_t count,
                                        Register base,
@@ -2923,7 +2669,6 @@ void Assembler::StoreMultipleDToOffset(DRegister first,
   AddImmediate(IP, base, offset);
   vstmd(IA, IP, first, count);
 }
-
 
 void Assembler::CopyDoubleField(Register dst,
                                 Register src,
@@ -2942,7 +2687,6 @@ void Assembler::CopyDoubleField(Register dst,
                   Double::value_offset() + kWordSize - kHeapObjectTag);
   }
 }
-
 
 void Assembler::CopyFloat32x4Field(Register dst,
                                    Register src,
@@ -2979,7 +2723,6 @@ void Assembler::CopyFloat32x4Field(Register dst,
   }
 }
 
-
 void Assembler::CopyFloat64x2Field(Register dst,
                                    Register src,
                                    Register tmp1,
@@ -3014,7 +2757,6 @@ void Assembler::CopyFloat64x2Field(Register dst,
                   (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
   }
 }
-
 
 void Assembler::AddImmediate(Register rd,
                              Register rn,
@@ -3052,7 +2794,6 @@ void Assembler::AddImmediate(Register rd,
   }
 }
 
-
 void Assembler::AddImmediateSetFlags(Register rd,
                                      Register rn,
                                      int32_t value,
@@ -3079,7 +2820,6 @@ void Assembler::AddImmediateSetFlags(Register rd,
     }
   }
 }
-
 
 void Assembler::SubImmediateSetFlags(Register rd,
                                      Register rn,
@@ -3108,7 +2848,6 @@ void Assembler::SubImmediateSetFlags(Register rd,
   }
 }
 
-
 void Assembler::AndImmediate(Register rd,
                              Register rs,
                              int32_t imm,
@@ -3122,7 +2861,6 @@ void Assembler::AndImmediate(Register rd,
   }
 }
 
-
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -3133,7 +2871,6 @@ void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
     cmp(rn, Operand(IP), cond);
   }
 }
-
 
 void Assembler::TestImmediate(Register rn, int32_t imm, Condition cond) {
   Operand o;
@@ -3167,7 +2904,6 @@ void Assembler::IntegerDivide(Register result,
   }
 }
 
-
 static int NumRegsBelowFP(RegList regs) {
   int count = 0;
   for (int i = 0; i < FP; i++) {
@@ -3177,7 +2913,6 @@ static int NumRegsBelowFP(RegList regs) {
   }
   return count;
 }
-
 
 void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   if (prologue_offset_ == -1) {
@@ -3193,7 +2928,6 @@ void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   }
 }
 
-
 void Assembler::LeaveFrame(RegList regs) {
   ASSERT((regs & (1 << PC)) == 0);  // Must not pop PC.
   if ((regs & (1 << FP)) != 0) {
@@ -3203,11 +2937,9 @@ void Assembler::LeaveFrame(RegList regs) {
   PopList(regs);
 }
 
-
 void Assembler::Ret() {
   bx(LR);
 }
-
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -3217,7 +2949,6 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
     bic(SP, SP, Operand(OS::ActivationFrameAlignment() - 1));
   }
 }
-
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
@@ -3242,7 +2973,6 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
 
   ReserveAlignedFrameSpace(frame_space);
 }
-
 
 void Assembler::LeaveCallRuntimeFrame() {
   // SP might have been modified to reserve space for arguments
@@ -3278,12 +3008,10 @@ void Assembler::LeaveCallRuntimeFrame() {
   LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP));
 }
 
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
 }
-
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!constant_pool_allowed());
@@ -3301,7 +3029,6 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   AddImmediate(SP, -frame_size);
 }
 
-
 // On entry to a function compiled for OSR, the caller's frame pointer, the
 // stack locals, and any copied parameters are already in place.  The frame
 // pointer is already set up.  The PC marker is not correct for the
@@ -3316,7 +3043,6 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   AddImmediate(SP, -extra_size);
 }
 
-
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (restore_pp == kRestoreCallerPP) {
     ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
@@ -3328,16 +3054,13 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   LeaveFrame((1 << FP) | (1 << LR));
 }
 
-
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
 }
 
-
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
-
 
 // R0 receiver, R9 guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
@@ -3368,7 +3091,6 @@ void Assembler::MonomorphicCheckedEntry() {
 #endif
 }
 
-
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
@@ -3379,7 +3101,6 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
   b(trace, NE);
 }
-
 
 void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
@@ -3392,7 +3113,6 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
 }
-
 
 void Assembler::IncrementAllocationStats(Register stats_addr_reg,
                                          intptr_t cid,
@@ -3409,7 +3129,6 @@ void Assembler::IncrementAllocationStats(Register stats_addr_reg,
   AddImmediate(TMP, 1);
   str(TMP, count_address);
 }
-
 
 void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
                                                  Register size_reg,
@@ -3434,7 +3153,6 @@ void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
   str(TMP, size_address);
 }
 #endif  // !PRODUCT
-
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
@@ -3484,7 +3202,6 @@ void Assembler::TryAllocate(const Class& cls,
   }
 }
 
-
 void Assembler::TryAllocateArray(intptr_t cid,
                                  intptr_t instance_size,
                                  Label* failure,
@@ -3533,7 +3250,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
-
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
@@ -3551,7 +3267,6 @@ void Assembler::Stop(const char* message) {
   Bind(&stop);
   bkpt(Instr::kStopMessageCode);
 }
-
 
 Address Assembler::ElementAddressForIntIndex(bool is_load,
                                              bool is_external,
@@ -3575,7 +3290,6 @@ Address Assembler::ElementAddressForIntIndex(bool is_load,
   }
 }
 
-
 void Assembler::LoadElementAddressForIntIndex(Register address,
                                               bool is_load,
                                               bool is_external,
@@ -3590,7 +3304,6 @@ void Assembler::LoadElementAddressForIntIndex(Register address,
   ASSERT(Utils::IsInt(32, offset));
   AddImmediate(address, array, offset);
 }
-
 
 Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              bool is_external,
@@ -3631,7 +3344,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   return Address(base, offset);
 }
 
-
 void Assembler::LoadElementAddressForRegIndex(Register address,
                                               bool is_load,
                                               bool is_external,
@@ -3654,7 +3366,6 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
   }
 }
 
-
 void Assembler::LoadHalfWordUnaligned(Register dst,
                                       Register addr,
                                       Register tmp) {
@@ -3663,7 +3374,6 @@ void Assembler::LoadHalfWordUnaligned(Register dst,
   ldrsb(tmp, Address(addr, 1));
   orr(dst, dst, Operand(tmp, LSL, 8));
 }
-
 
 void Assembler::LoadHalfWordUnsignedUnaligned(Register dst,
                                               Register addr,
@@ -3674,7 +3384,6 @@ void Assembler::LoadHalfWordUnsignedUnaligned(Register dst,
   orr(dst, dst, Operand(tmp, LSL, 8));
 }
 
-
 void Assembler::StoreHalfWordUnaligned(Register src,
                                        Register addr,
                                        Register tmp) {
@@ -3682,7 +3391,6 @@ void Assembler::StoreHalfWordUnaligned(Register src,
   Lsr(tmp, src, Operand(8));
   strb(tmp, Address(addr, 1));
 }
-
 
 void Assembler::LoadWordUnaligned(Register dst, Register addr, Register tmp) {
   ASSERT(dst != addr);
@@ -3695,7 +3403,6 @@ void Assembler::LoadWordUnaligned(Register dst, Register addr, Register tmp) {
   orr(dst, dst, Operand(tmp, LSL, 24));
 }
 
-
 void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(src, Address(addr, 0));
   Lsr(tmp, src, Operand(8));
@@ -3706,18 +3413,15 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(tmp, Address(addr, 3));
 }
 
-
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
     "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
 };
 
-
 const char* Assembler::RegisterName(Register reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
   return cpu_reg_names[reg];
 }
-
 
 static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
     "q0", "q1", "q2",  "q3",  "q4",  "q5",  "q6",  "q7",
@@ -3725,7 +3429,6 @@ static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
     "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
 #endif
 };
-
 
 const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));

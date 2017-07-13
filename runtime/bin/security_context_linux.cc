@@ -69,7 +69,6 @@ void SSLCertContext::TrustBuiltinRoots() {
   AddCompiledInCerts();
 }
 
-
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {
   // No callbacks to register for implementations using BoringSSL's built-in
   // verification mechanism.

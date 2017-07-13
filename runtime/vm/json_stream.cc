@@ -18,7 +18,6 @@
 #include "vm/timeline.h"
 #include "vm/unicode.h"
 
-
 namespace dart {
 
 #ifndef PRODUCT
@@ -44,7 +43,6 @@ class MaybeOnStackBuffer {
   char buffer_[kOnStackBufferCapacity];
 };
 
-
 void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
                               const char* stream_name,
                               const uint8_t* buffer,
@@ -60,7 +58,6 @@ void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
   ASSERT(js != NULL);
   js->AppendSerializedObject(buffer, buffer_length);
 }
-
 
 DECLARE_FLAG(bool, trace_service);
 
@@ -87,9 +84,7 @@ JSONStream::JSONStream(intptr_t buf_size)
   default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
 }
 
-
 JSONStream::~JSONStream() {}
-
 
 void JSONStream::Setup(Zone* zone,
                        Dart_Port reply_port,
@@ -135,12 +130,10 @@ void JSONStream::Setup(Zone* zone,
   buffer_.Printf("{\"jsonrpc\":\"2.0\", \"result\":");
 }
 
-
 void JSONStream::SetupError() {
   buffer_.Clear();
   buffer_.Printf("{\"jsonrpc\":\"2.0\", \"error\":");
 }
-
 
 static const char* GetJSONRpcErrorMessage(intptr_t code) {
   switch (code) {
@@ -179,7 +172,6 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
   }
 }
 
-
 static void PrintRequest(JSONObject* obj, JSONStream* js) {
   JSONObject jsobj(obj, "request");
   jsobj.AddProperty("method", js->method());
@@ -190,7 +182,6 @@ static void PrintRequest(JSONObject* obj, JSONStream* js) {
     }
   }
 }
-
 
 void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
   SetupError();
@@ -217,19 +208,16 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
   }
 }
 
-
 void JSONStream::PostNullReply(Dart_Port port) {
   PortMap::PostMessage(
       new Message(port, Object::null(), Message::kNormalPriority));
 }
-
 
 static void Finalizer(void* isolate_callback_data,
                       Dart_WeakPersistentHandle handle,
                       void* buffer) {
   free(buffer);
 }
-
 
 void JSONStream::PostReply() {
   ASSERT(seq_ != NULL);
@@ -307,7 +295,6 @@ void JSONStream::PostReply() {
   }
 }
 
-
 const char* JSONStream::LookupParam(const char* key) const {
   for (int i = 0; i < num_params(); i++) {
     if (!strcmp(key, param_keys_[i])) {
@@ -317,12 +304,10 @@ const char* JSONStream::LookupParam(const char* key) const {
   return NULL;
 }
 
-
 bool JSONStream::HasParam(const char* key) const {
   ASSERT(key);
   return LookupParam(key) != NULL;
 }
-
 
 bool JSONStream::ParamIs(const char* key, const char* value) const {
   ASSERT(key);
@@ -330,7 +315,6 @@ bool JSONStream::ParamIs(const char* key, const char* value) const {
   const char* key_value = LookupParam(key);
   return (key_value != NULL) && (strcmp(key_value, value) == 0);
 }
-
 
 void JSONStream::ComputeOffsetAndCount(intptr_t length,
                                        intptr_t* offset,
@@ -348,12 +332,10 @@ void JSONStream::ComputeOffsetAndCount(intptr_t length,
   }
 }
 
-
 void JSONStream::AppendSerializedObject(const char* serialized_object) {
   PrintCommaIfNeeded();
   buffer_.AddString(serialized_object);
 }
-
 
 void JSONStream::AppendSerializedObject(const uint8_t* buffer,
                                         intptr_t buffer_length) {
@@ -372,7 +354,6 @@ void JSONStream::Clear() {
   open_objects_ = 0;
 }
 
-
 void JSONStream::OpenObject(const char* property_name) {
   PrintCommaIfNeeded();
   open_objects_++;
@@ -382,13 +363,11 @@ void JSONStream::OpenObject(const char* property_name) {
   buffer_.AddChar('{');
 }
 
-
 void JSONStream::CloseObject() {
   ASSERT(open_objects_ > 0);
   open_objects_--;
   buffer_.AddChar('}');
 }
-
 
 void JSONStream::OpenArray(const char* property_name) {
   PrintCommaIfNeeded();
@@ -399,13 +378,11 @@ void JSONStream::OpenArray(const char* property_name) {
   buffer_.AddChar('[');
 }
 
-
 void JSONStream::CloseArray() {
   ASSERT(open_objects_ > 0);
   open_objects_--;
   buffer_.AddChar(']');
 }
-
 
 void JSONStream::PrintValueNull() {
   PrintCommaIfNeeded();
@@ -417,13 +394,11 @@ void JSONStream::PrintValueBool(bool b) {
   buffer_.Printf("%s", b ? "true" : "false");
 }
 
-
 void JSONStream::PrintValue(intptr_t i) {
   EnsureIntegerIsRepresentableInJavaScript(static_cast<int64_t>(i));
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd "", i);
 }
-
 
 void JSONStream::PrintValue64(int64_t i) {
   EnsureIntegerIsRepresentableInJavaScript(i);
@@ -431,29 +406,24 @@ void JSONStream::PrintValue64(int64_t i) {
   buffer_.Printf("%" Pd64 "", i);
 }
 
-
 void JSONStream::PrintValueTimeMillis(int64_t millis) {
   EnsureIntegerIsRepresentableInJavaScript(millis);
   PrintValue64(millis);
 }
-
 
 void JSONStream::PrintValueTimeMicros(int64_t micros) {
   EnsureIntegerIsRepresentableInJavaScript(micros);
   PrintValue64(micros);
 }
 
-
 void JSONStream::PrintValue(double d) {
   PrintCommaIfNeeded();
   buffer_.Printf("%f", d);
 }
 
-
 static const char base64_digits[65] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char base64_pad = '=';
-
 
 void JSONStream::PrintValueBase64(const uint8_t* bytes, intptr_t length) {
   PrintCommaIfNeeded();
@@ -485,14 +455,12 @@ void JSONStream::PrintValueBase64(const uint8_t* bytes, intptr_t length) {
   buffer_.AddChar('"');
 }
 
-
 void JSONStream::PrintValue(const char* s) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
   AddEscapedUTF8String(s);
   buffer_.AddChar('"');
 }
-
 
 bool JSONStream::PrintValueStr(const String& s,
                                intptr_t offset,
@@ -504,12 +472,10 @@ bool JSONStream::PrintValueStr(const String& s,
   return did_truncate;
 }
 
-
 void JSONStream::PrintValueNoEscape(const char* s) {
   PrintCommaIfNeeded();
   buffer_.Printf("%s", s);
 }
-
 
 void JSONStream::PrintfValue(const char* format, ...) {
   PrintCommaIfNeeded();
@@ -529,124 +495,103 @@ void JSONStream::PrintfValue(const char* format, ...) {
   buffer_.AddChar('"');
 }
 
-
 void JSONStream::PrintValue(const Object& o, bool ref) {
   PrintCommaIfNeeded();
   o.PrintJSON(this, ref);
 }
-
 
 void JSONStream::PrintValue(Breakpoint* bpt) {
   PrintCommaIfNeeded();
   bpt->PrintJSON(this);
 }
 
-
 void JSONStream::PrintValue(TokenPosition tp) {
   PrintCommaIfNeeded();
   PrintValue(tp.value());
 }
-
 
 void JSONStream::PrintValue(const ServiceEvent* event) {
   PrintCommaIfNeeded();
   event->PrintJSON(this);
 }
 
-
 void JSONStream::PrintValue(Metric* metric) {
   PrintCommaIfNeeded();
   metric->PrintJSON(this);
 }
-
 
 void JSONStream::PrintValue(MessageQueue* queue) {
   PrintCommaIfNeeded();
   queue->PrintJSON(this);
 }
 
-
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
 }
-
 
 void JSONStream::PrintValue(ThreadRegistry* reg) {
   PrintCommaIfNeeded();
   reg->PrintJSON(this);
 }
 
-
 void JSONStream::PrintValue(Thread* thread) {
   PrintCommaIfNeeded();
   thread->PrintJSON(this);
 }
-
 
 void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
   PrintCommaIfNeeded();
   timeline_event->PrintJSON(this);
 }
 
-
 void JSONStream::PrintValue(const TimelineEventBlock* timeline_event_block) {
   PrintCommaIfNeeded();
   timeline_event_block->PrintJSON(this);
 }
-
 
 void JSONStream::PrintValueVM(bool ref) {
   PrintCommaIfNeeded();
   Service::PrintJSONForVM(this, ref);
 }
 
-
 void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
   PrintProperty("id", id_zone_->GetServiceId(o));
 }
-
 
 void JSONStream::PrintPropertyBool(const char* name, bool b) {
   PrintPropertyName(name);
   PrintValueBool(b);
 }
 
-
 void JSONStream::PrintProperty(const char* name, intptr_t i) {
   PrintPropertyName(name);
   PrintValue(i);
 }
-
 
 void JSONStream::PrintProperty64(const char* name, int64_t i) {
   PrintPropertyName(name);
   PrintValue64(i);
 }
 
-
 void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
   PrintProperty64(name, millis);
 }
 
-
 void JSONStream::PrintPropertyTimeMicros(const char* name, int64_t micros) {
   PrintProperty64(name, micros);
 }
-
 
 void JSONStream::PrintProperty(const char* name, double d) {
   PrintPropertyName(name);
   PrintValue(d);
 }
 
-
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
 }
-
 
 void JSONStream::PrintPropertyBase64(const char* name,
                                      const uint8_t* b,
@@ -654,7 +599,6 @@ void JSONStream::PrintPropertyBase64(const char* name,
   PrintPropertyName(name);
   PrintValueBase64(b, len);
 }
-
 
 bool JSONStream::PrintPropertyStr(const char* name,
                                   const String& s,
@@ -664,60 +608,50 @@ bool JSONStream::PrintPropertyStr(const char* name,
   return PrintValueStr(s, offset, count);
 }
 
-
 void JSONStream::PrintPropertyNoEscape(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValueNoEscape(s);
 }
-
 
 void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
   PrintPropertyName(name);
   PrintValue(event);
 }
 
-
 void JSONStream::PrintProperty(const char* name, Breakpoint* bpt) {
   PrintPropertyName(name);
   PrintValue(bpt);
 }
-
 
 void JSONStream::PrintProperty(const char* name, TokenPosition tp) {
   PrintPropertyName(name);
   PrintValue(tp);
 }
 
-
 void JSONStream::PrintProperty(const char* name, Metric* metric) {
   PrintPropertyName(name);
   PrintValue(metric);
 }
-
 
 void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
   PrintPropertyName(name);
   PrintValue(queue);
 }
 
-
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
   PrintValue(isolate);
 }
-
 
 void JSONStream::PrintProperty(const char* name, ThreadRegistry* reg) {
   PrintPropertyName(name);
   PrintValue(reg);
 }
 
-
 void JSONStream::PrintProperty(const char* name, Thread* thread) {
   PrintPropertyName(name);
   PrintValue(thread);
 }
-
 
 void JSONStream::PrintProperty(const char* name,
                                const TimelineEvent* timeline_event) {
@@ -725,13 +659,11 @@ void JSONStream::PrintProperty(const char* name,
   PrintValue(timeline_event);
 }
 
-
 void JSONStream::PrintProperty(const char* name,
                                const TimelineEventBlock* timeline_event_block) {
   PrintPropertyName(name);
   PrintValue(timeline_event_block);
 }
-
 
 void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   PrintPropertyName(name);
@@ -750,7 +682,6 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   buffer_.AddChar('"');
 }
 
-
 void JSONStream::Steal(char** buffer, intptr_t* buffer_length) {
   ASSERT(buffer != NULL);
   ASSERT(buffer_length != NULL);
@@ -758,11 +689,9 @@ void JSONStream::Steal(char** buffer, intptr_t* buffer_length) {
   *buffer = buffer_.Steal();
 }
 
-
 void JSONStream::set_reply_port(Dart_Port port) {
   reply_port_ = port;
 }
-
 
 intptr_t JSONStream::NumObjectParameters() const {
   if (parameter_keys_ == NULL) {
@@ -773,18 +702,15 @@ intptr_t JSONStream::NumObjectParameters() const {
   return parameter_keys_->Length();
 }
 
-
 RawObject* JSONStream::GetObjectParameterKey(intptr_t i) const {
   ASSERT((i >= 0) && (i < NumObjectParameters()));
   return parameter_keys_->At(i);
 }
 
-
 RawObject* JSONStream::GetObjectParameterValue(intptr_t i) const {
   ASSERT((i >= 0) && (i < NumObjectParameters()));
   return parameter_values_->At(i);
 }
-
 
 RawObject* JSONStream::LookupObjectParam(const char* c_key) const {
   const String& key = String::Handle(String::New(c_key));
@@ -799,7 +725,6 @@ RawObject* JSONStream::LookupObjectParam(const char* c_key) const {
   return Object::null();
 }
 
-
 void JSONStream::SetParams(const char** param_keys,
                            const char** param_values,
                            intptr_t num_params) {
@@ -808,18 +733,15 @@ void JSONStream::SetParams(const char** param_keys,
   num_params_ = num_params;
 }
 
-
 void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
   PrintPropertyName(name);
   PrintValue(o, ref);
 }
 
-
 void JSONStream::PrintPropertyVM(const char* name, bool ref) {
   PrintPropertyName(name);
   PrintValueVM(ref);
 }
-
 
 void JSONStream::PrintPropertyName(const char* name) {
   ASSERT(name != NULL);
@@ -830,13 +752,11 @@ void JSONStream::PrintPropertyName(const char* name) {
   buffer_.AddChar(':');
 }
 
-
 void JSONStream::PrintCommaIfNeeded() {
   if (NeedComma()) {
     buffer_.AddChar(',');
   }
 }
-
 
 bool JSONStream::NeedComma() {
   const char* buffer = buffer_.buf();
@@ -847,7 +767,6 @@ bool JSONStream::NeedComma() {
   char ch = buffer[length - 1];
   return (ch != '[') && (ch != '{') && (ch != ':') && (ch != ',');
 }
-
 
 void JSONStream::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
 #ifdef DEBUG
@@ -861,7 +780,6 @@ void JSONStream::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
 #endif
 }
 
-
 void JSONStream::AddEscapedUTF8String(const char* s) {
   if (s == NULL) {
     return;
@@ -869,7 +787,6 @@ void JSONStream::AddEscapedUTF8String(const char* s) {
   intptr_t len = strlen(s);
   AddEscapedUTF8String(s, len);
 }
-
 
 void JSONStream::AddEscapedUTF8String(const char* s, intptr_t len) {
   if (s == NULL) {
@@ -888,7 +805,6 @@ void JSONStream::AddEscapedUTF8String(const char* s, intptr_t len) {
   }
   ASSERT(i == len);
 }
-
 
 bool JSONStream::AddDartString(const String& s,
                                intptr_t offset,
@@ -927,11 +843,9 @@ bool JSONStream::AddDartString(const String& s,
   return (offset > 0) || (limit < length);
 }
 
-
 JSONObject::JSONObject(const JSONArray* arr) : stream_(arr->stream_) {
   stream_->OpenObject();
 }
-
 
 void JSONObject::AddFixedServiceId(const char* format, ...) const {
   // Mark that this id is fixed.
@@ -953,7 +867,6 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
   stream_->buffer_.AddChar('"');
 }
 
-
 void JSONObject::AddLocation(const Script& script,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) const {
@@ -966,7 +879,6 @@ void JSONObject::AddLocation(const Script& script,
   }
 }
 
-
 void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   ASSERT(bpt_loc->IsResolved());
 
@@ -977,7 +889,6 @@ void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
   AddLocation(script, token_pos);
 }
-
 
 void JSONObject::AddUnresolvedLocation(
     const BreakpointLocation* bpt_loc) const {
@@ -1009,7 +920,6 @@ void JSONObject::AddUnresolvedLocation(
   }
 }
 
-
 void JSONObject::AddPropertyF(const char* name, const char* format, ...) const {
   stream_->PrintPropertyName(name);
   va_list args;
@@ -1026,7 +936,6 @@ void JSONObject::AddPropertyF(const char* name, const char* format, ...) const {
   stream_->AddEscapedUTF8String(p, len);
   stream_->buffer_.AddChar('"');
 }
-
 
 void JSONArray::AddValueF(const char* format, ...) const {
   stream_->PrintCommaIfNeeded();

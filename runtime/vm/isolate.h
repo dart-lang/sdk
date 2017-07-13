@@ -12,16 +12,16 @@
 #include "vm/class_table.h"
 #include "vm/exceptions.h"
 #include "vm/fixed_cache.h"
+#include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
+#include "vm/os_thread.h"
 #include "vm/random.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
-#include "vm/os_thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
-#include "vm/growable_array.h"
 
 namespace dart {
 
@@ -73,7 +73,6 @@ class StubCode;
 class ThreadRegistry;
 class UserTag;
 
-
 class PendingLazyDeopt {
  public:
   PendingLazyDeopt(uword fp, uword pc) : fp_(fp), pc_(pc) {}
@@ -85,7 +84,6 @@ class PendingLazyDeopt {
   uword fp_;
   uword pc_;
 };
-
 
 class IsolateVisitor {
  public:
@@ -102,7 +100,6 @@ class IsolateVisitor {
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
 
-
 // Disallow OOB message handling within this scope.
 class NoOOBMessageScope : public StackResource {
  public:
@@ -112,7 +109,6 @@ class NoOOBMessageScope : public StackResource {
  private:
   DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
 };
-
 
 // Disallow isolate reload.
 class NoReloadScope : public StackResource {
@@ -124,7 +120,6 @@ class NoReloadScope : public StackResource {
   Isolate* isolate_;
   DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
 };
-
 
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
@@ -420,7 +415,6 @@ class Isolate : public BaseIsolate {
     return cleanup_callback_;
   }
 
-
   void set_object_id_ring(ObjectIdRing* ring) { object_id_ring_ = ring; }
   ObjectIdRing* object_id_ring() { return object_id_ring_; }
 
@@ -653,7 +647,7 @@ class Isolate : public BaseIsolate {
   ISOLATE_FLAG_LIST(DECLARE_GETTER)
 #undef DECLARE_GETTER
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
-#else   // defined(PRODUCT)
+#else  // defined(PRODUCT)
 #define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
   bool name() const { return name##_; }
   ISOLATE_FLAG_LIST(DECLARE_GETTER)
@@ -900,17 +894,15 @@ class Isolate : public BaseIsolate {
   friend class Become;    // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
-  friend class Scavenger;  // VisitObjectPointers
+  friend class Scavenger;    // VisitObjectPointers
   friend class ObjectGraph;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
   friend class NoReloadScope;  // reload_block
 
-
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
-
 
 // When we need to execute code in an isolate, we use the
 // StartIsolateScope.
@@ -952,7 +944,6 @@ class StartIsolateScope {
 
   DISALLOW_COPY_AND_ASSIGN(StartIsolateScope);
 };
-
 
 class IsolateSpawnState {
  public:

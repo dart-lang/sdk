@@ -91,11 +91,9 @@ class DeoptimizedCodeSet : public ZoneAllocated {
   const GrowableObjectArray& current_;
 };
 
-
 ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
     TokenPosition token_pos)
     : token_pos_(token_pos), exclusive_ticks_(0), inclusive_ticks_(0) {}
-
 
 void ProfileFunctionSourcePosition::Tick(bool exclusive) {
   if (exclusive) {
@@ -104,7 +102,6 @@ void ProfileFunctionSourcePosition::Tick(bool exclusive) {
     inclusive_ticks_++;
   }
 }
-
 
 ProfileFunction::ProfileFunction(Kind kind,
                                  const char* name,
@@ -124,7 +121,6 @@ ProfileFunction::ProfileFunction(Kind kind,
   ASSERT(profile_codes_.length() == 0);
 }
 
-
 const char* ProfileFunction::Name() const {
   if (name_ != NULL) {
     return name_;
@@ -135,7 +131,6 @@ const char* ProfileFunction::Name() const {
   return func_name.ToCString();
 }
 
-
 bool ProfileFunction::is_visible() const {
   if (function_.IsNull()) {
     // Some synthetic function.
@@ -143,7 +138,6 @@ bool ProfileFunction::is_visible() const {
   }
   return FLAG_show_invisible_frames || function_.is_visible();
 }
-
 
 void ProfileFunction::Tick(bool exclusive,
                            intptr_t inclusive_serial,
@@ -161,7 +155,6 @@ void ProfileFunction::Tick(bool exclusive,
   inclusive_ticks_++;
   TickSourcePosition(token_position, false);
 }
-
 
 void ProfileFunction::TickSourcePosition(TokenPosition token_position,
                                          bool exclusive) {
@@ -199,7 +192,6 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   }
 }
 
-
 const char* ProfileFunction::KindToCString(Kind kind) {
   switch (kind) {
     case kDartFunction:
@@ -218,13 +210,11 @@ const char* ProfileFunction::KindToCString(Kind kind) {
   }
 }
 
-
 void ProfileFunction::PrintToJSONObject(JSONObject* func) {
   func->AddProperty("type", "@Function");
   func->AddProperty("name", name());
   func->AddProperty("_kind", KindToCString(kind()));
 }
-
 
 void ProfileFunction::PrintToJSONArray(JSONArray* functions) {
   JSONObject obj(functions);
@@ -247,7 +237,6 @@ void ProfileFunction::PrintToJSONArray(JSONArray* functions) {
   }
 }
 
-
 void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
   for (intptr_t i = 0; i < profile_codes_.length(); i++) {
     if (profile_codes_[i] == code_table_index) {
@@ -256,7 +245,6 @@ void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
   }
   profile_codes_.Add(code_table_index);
 }
-
 
 bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
   if (pfsp == NULL) {
@@ -269,10 +257,8 @@ bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
   return true;
 }
 
-
 ProfileCodeAddress::ProfileCodeAddress(uword pc)
     : pc_(pc), exclusive_ticks_(0), inclusive_ticks_(0) {}
-
 
 void ProfileCodeAddress::Tick(bool exclusive) {
   if (exclusive) {
@@ -281,7 +267,6 @@ void ProfileCodeAddress::Tick(bool exclusive) {
     inclusive_ticks_++;
   }
 }
-
 
 ProfileCode::ProfileCode(Kind kind,
                          uword start,
@@ -301,14 +286,12 @@ ProfileCode::ProfileCode(Kind kind,
       code_table_index_(-1),
       address_ticks_(0) {}
 
-
 void ProfileCode::TruncateLower(uword start) {
   if (start > start_) {
     start_ = start;
   }
   ASSERT(start_ < end_);
 }
-
 
 void ProfileCode::TruncateUpper(uword end) {
   if (end < end_) {
@@ -317,14 +300,12 @@ void ProfileCode::TruncateUpper(uword end) {
   ASSERT(start_ < end_);
 }
 
-
 void ProfileCode::ExpandLower(uword start) {
   if (start < start_) {
     start_ = start;
   }
   ASSERT(start_ < end_);
 }
-
 
 void ProfileCode::ExpandUpper(uword end) {
   if (end > end_) {
@@ -333,18 +314,15 @@ void ProfileCode::ExpandUpper(uword end) {
   ASSERT(start_ < end_);
 }
 
-
 bool ProfileCode::Overlaps(const ProfileCode* other) const {
   ASSERT(other != NULL);
   return other->Contains(start_) || other->Contains(end_ - 1) ||
          Contains(other->start()) || Contains(other->end() - 1);
 }
 
-
 bool ProfileCode::IsOptimizedDart() const {
   return !code_.IsNull() && code_.is_optimized();
 }
-
 
 void ProfileCode::SetName(const char* name) {
   if (name == NULL) {
@@ -356,7 +334,6 @@ void ProfileCode::SetName(const char* name) {
   name_[len] = '\0';
 }
 
-
 void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
   const intptr_t kBuffSize = 512;
   char buff[kBuffSize];
@@ -364,7 +341,6 @@ void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
               end());
   SetName(buff);
 }
-
 
 void ProfileCode::Tick(uword pc, bool exclusive, intptr_t serial) {
   // If exclusive is set, tick it.
@@ -381,7 +357,6 @@ void ProfileCode::Tick(uword pc, bool exclusive, intptr_t serial) {
   inclusive_ticks_++;
   TickAddress(pc, false);
 }
-
 
 void ProfileCode::TickAddress(uword pc, bool exclusive) {
   const intptr_t length = address_ticks_.length();
@@ -413,7 +388,6 @@ void ProfileCode::TickAddress(uword pc, bool exclusive) {
   }
 }
 
-
 void ProfileCode::PrintNativeCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kNativeCode);
   JSONObject obj(profile_code_obj, "code");
@@ -430,7 +404,6 @@ void ProfileCode::PrintNativeCode(JSONObject* profile_code_obj) {
     function_->PrintToJSONObject(&func);
   }
 }
-
 
 void ProfileCode::PrintCollectedCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kCollectedCode);
@@ -449,7 +422,6 @@ void ProfileCode::PrintCollectedCode(JSONObject* profile_code_obj) {
   }
 }
 
-
 void ProfileCode::PrintOverwrittenCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kReusedCode);
   JSONObject obj(profile_code_obj, "code");
@@ -466,7 +438,6 @@ void ProfileCode::PrintOverwrittenCode(JSONObject* profile_code_obj) {
     function_->PrintToJSONObject(&func);
   }
 }
-
 
 void ProfileCode::PrintTagCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kTagCode);
@@ -485,7 +456,6 @@ void ProfileCode::PrintTagCode(JSONObject* profile_code_obj) {
   }
 }
 
-
 const char* ProfileCode::KindToCString(Kind kind) {
   switch (kind) {
     case kDartCode:
@@ -502,7 +472,6 @@ const char* ProfileCode::KindToCString(Kind kind) {
   UNREACHABLE();
   return NULL;
 }
-
 
 void ProfileCode::PrintToJSONArray(JSONArray* codes) {
   JSONObject obj(codes);
@@ -532,7 +501,6 @@ void ProfileCode::PrintToJSONArray(JSONArray* codes) {
     }
   }
 }
-
 
 class ProfileFunctionTable : public ZoneAllocated {
  public:
@@ -631,7 +599,6 @@ class ProfileFunctionTable : public ZoneAllocated {
   DirectChainedHashMap<ProfileFunctionTableTrait> function_hash_;
 };
 
-
 ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   ASSERT(function_ == NULL);
 
@@ -715,7 +682,6 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   return function_;
 }
 
-
 intptr_t ProfileCodeTable::FindCodeIndexForPC(uword pc) const {
   intptr_t length = table_.length();
   if (length == 0) {
@@ -738,7 +704,6 @@ intptr_t ProfileCodeTable::FindCodeIndexForPC(uword pc) const {
   }
   return -1;
 }
-
 
 intptr_t ProfileCodeTable::InsertCode(ProfileCode* new_code) {
   const intptr_t length = table_.length();
@@ -799,7 +764,6 @@ intptr_t ProfileCodeTable::InsertCode(ProfileCode* new_code) {
   return insert;
 }
 
-
 void ProfileCodeTable::FindNeighbors(uword pc,
                                      intptr_t* lo,
                                      intptr_t* hi,
@@ -848,7 +812,6 @@ void ProfileCodeTable::FindNeighbors(uword pc,
   }
 }
 
-
 void ProfileCodeTable::VerifyOrder() {
   const intptr_t length = table_.length();
   if (length == 0) {
@@ -874,7 +837,6 @@ void ProfileCodeTable::VerifyOverlap() {
   }
 }
 
-
 ProfileTrieNode::ProfileTrieNode(intptr_t table_index)
     : table_index_(table_index),
       count_(0),
@@ -885,15 +847,12 @@ ProfileTrieNode::ProfileTrieNode(intptr_t table_index)
   ASSERT(table_index_ >= 0);
 }
 
-
 ProfileTrieNode::~ProfileTrieNode() {}
-
 
 void ProfileTrieNode::Tick(ProcessedSample* sample, bool exclusive) {
   count_++;
   IncrementAllocation(sample->native_allocation_size_bytes(), exclusive);
 }
-
 
 void ProfileTrieNode::SortChildren() {
   children_.Sort(ProfileTrieNodeCompare);
@@ -903,7 +862,6 @@ void ProfileTrieNode::SortChildren() {
   }
 }
 
-
 intptr_t ProfileTrieNode::IndexOf(ProfileTrieNode* node) {
   for (intptr_t i = 0; i < children_.length(); i++) {
     if (children_[i] == node) {
@@ -912,7 +870,6 @@ intptr_t ProfileTrieNode::IndexOf(ProfileTrieNode* node) {
   }
   return -1;
 }
-
 
 class ProfileCodeTrieNode : public ProfileTrieNode {
  public:
@@ -964,7 +921,6 @@ class ProfileCodeTrieNode : public ProfileTrieNode {
   }
 };
 
-
 class ProfileFunctionTrieNodeCode {
  public:
   explicit ProfileFunctionTrieNodeCode(intptr_t index)
@@ -980,7 +936,6 @@ class ProfileFunctionTrieNodeCode {
   intptr_t code_index_;
   intptr_t ticks_;
 };
-
 
 class ProfileFunctionTrieNode : public ProfileTrieNode {
  public:
@@ -1056,7 +1011,6 @@ class ProfileFunctionTrieNode : public ProfileTrieNode {
  private:
   ZoneGrowableArray<ProfileFunctionTrieNodeCode> code_objects_;
 };
-
 
 class ProfileCodeInlinedFunctionsCache : public ValueObject {
  public:
@@ -1201,7 +1155,6 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
   intptr_t cache_miss_;
   intptr_t cache_hit_;
 };
-
 
 class ProfileBuilder : public ValueObject {
  public:
@@ -1778,7 +1731,6 @@ class ProfileBuilder : public ValueObject {
     function->IncInclusiveTicks();
   }
 
-
   // Tag append functions are overloaded for |ProfileCodeTrieNode| and
   // |ProfileFunctionTrieNode| types.
 
@@ -2225,7 +2177,6 @@ class ProfileBuilder : public ValueObject {
            thread_->isolate()->heap()->CodeContains(pc);
   }
 
-
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
     // Check if |pc| is already known in the live code table.
     ProfileCodeTable* live_table = profile_->live_code_;
@@ -2345,7 +2296,6 @@ class ProfileBuilder : public ValueObject {
   ProfileInfoKind info_kind_;
 };  // ProfileBuilder.
 
-
 Profile::Profile(Isolate* isolate)
     : isolate_(isolate),
       zone_(Thread::Current()->zone()),
@@ -2364,7 +2314,6 @@ Profile::Profile(Isolate* isolate)
   }
 }
 
-
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
                     SampleBuffer* sample_buffer,
@@ -2375,7 +2324,6 @@ void Profile::Build(Thread* thread,
   builder.Build();
 }
 
-
 intptr_t Profile::NumFunctions() const {
   return functions_->length();
 }
@@ -2384,7 +2332,6 @@ ProfileFunction* Profile::GetFunction(intptr_t index) {
   ASSERT(functions_ != NULL);
   return functions_->At(index);
 }
-
 
 ProfileCode* Profile::GetCode(intptr_t index) {
   ASSERT(live_code_ != NULL);
@@ -2411,11 +2358,9 @@ ProfileCode* Profile::GetCode(intptr_t index) {
   return tag_code_->At(index);
 }
 
-
 ProfileTrieNode* Profile::GetTrieRoot(TrieKind trie_kind) {
   return roots_[static_cast<intptr_t>(trie_kind)];
 }
-
 
 void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("samplePeriod", static_cast<intptr_t>(FLAG_profile_period));
@@ -2449,7 +2394,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   }
 }
 
-
 void Profile::PrintTimelineFrameJSON(JSONObject* frames,
                                      ProfileTrieNode* current,
                                      ProfileTrieNode* parent,
@@ -2482,7 +2426,6 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
     PrintTimelineFrameJSON(frames, child, current, next_id);
   }
 }
-
 
 void Profile::PrintTimelineJSON(JSONStream* stream) {
   ScopeTimer sw("Profile::PrintTimelineJSON", FLAG_trace_profiler);
@@ -2518,11 +2461,9 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
   }
 }
 
-
 ProfileFunction* Profile::FindFunction(const Function& function) {
   return (functions_ != NULL) ? functions_->Lookup(function) : NULL;
 }
-
 
 void Profile::PrintProfileJSON(JSONStream* stream) {
   ScopeTimer sw("Profile::PrintProfileJSON", FLAG_trace_profiler);
@@ -2582,14 +2523,12 @@ void Profile::PrintProfileJSON(JSONStream* stream) {
   }
 }
 
-
 void ProfileTrieWalker::Reset(Profile::TrieKind trie_kind) {
   code_trie_ = Profile::IsCodeTrie(trie_kind);
   parent_ = NULL;
   current_ = profile_->GetTrieRoot(trie_kind);
   ASSERT(current_ != NULL);
 }
-
 
 const char* ProfileTrieWalker::CurrentName() {
   if (current_ == NULL) {
@@ -2606,14 +2545,12 @@ const char* ProfileTrieWalker::CurrentName() {
   return NULL;
 }
 
-
 intptr_t ProfileTrieWalker::CurrentNodeTickCount() {
   if (current_ == NULL) {
     return -1;
   }
   return current_->count();
 }
-
 
 intptr_t ProfileTrieWalker::CurrentInclusiveTicks() {
   if (current_ == NULL) {
@@ -2630,7 +2567,6 @@ intptr_t ProfileTrieWalker::CurrentInclusiveTicks() {
   return -1;
 }
 
-
 intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
   if (current_ == NULL) {
     return -1;
@@ -2646,7 +2582,6 @@ intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
   return -1;
 }
 
-
 intptr_t ProfileTrieWalker::CurrentInclusiveAllocations() {
   if (current_ == NULL) {
     return -1;
@@ -2654,14 +2589,12 @@ intptr_t ProfileTrieWalker::CurrentInclusiveAllocations() {
   return current_->inclusive_allocations();
 }
 
-
 intptr_t ProfileTrieWalker::CurrentExclusiveAllocations() {
   if (current_ == NULL) {
     return -1;
   }
   return current_->exclusive_allocations();
 }
-
 
 const char* ProfileTrieWalker::CurrentToken() {
   if (current_ == NULL) {
@@ -2723,7 +2656,6 @@ bool ProfileTrieWalker::Down() {
   return true;
 }
 
-
 bool ProfileTrieWalker::NextSibling() {
   if (parent_ == NULL) {
     return false;
@@ -2740,12 +2672,10 @@ bool ProfileTrieWalker::NextSibling() {
   return true;
 }
 
-
 intptr_t ProfileTrieWalker::SiblingCount() {
   ASSERT(parent_ != NULL);
   return parent_->NumChildren();
 }
-
 
 void ProfilerService::PrintJSONImpl(Thread* thread,
                                     JSONStream* stream,
@@ -2776,7 +2706,6 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
   }
 }
 
-
 class NoAllocationSampleFilter : public SampleFilter {
  public:
   NoAllocationSampleFilter(Dart_Port port,
@@ -2791,7 +2720,6 @@ class NoAllocationSampleFilter : public SampleFilter {
   bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
 };
 
-
 void ProfilerService::PrintJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
                                 intptr_t extra_tags,
@@ -2805,7 +2733,6 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter,
                 Profiler::sample_buffer(), as_timeline);
 }
-
 
 class ClassAllocationSampleFilter : public SampleFilter {
  public:
@@ -2831,7 +2758,6 @@ class ClassAllocationSampleFilter : public SampleFilter {
   const Class& cls_;
 };
 
-
 void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           Profile::TagOrder tag_order,
                                           const Class& cls,
@@ -2847,7 +2773,6 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                 Profiler::sample_buffer(), as_timeline);
 }
 
-
 void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
                                                 Profile::TagOrder tag_order,
                                                 int64_t time_origin_micros,
@@ -2858,7 +2783,6 @@ void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
                 Profiler::allocation_sample_buffer(), as_timeline);
 }
-
 
 void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         Profile::TagOrder tag_order,
@@ -2875,7 +2799,6 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
                 Profiler::sample_buffer(), as_timeline);
 }
-
 
 void ProfilerService::ClearSamples() {
   SampleBuffer* sample_buffer = Profiler::sample_buffer();

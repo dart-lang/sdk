@@ -28,7 +28,6 @@ static void RangeCheck(intptr_t offset_in_bytes,
   }
 }
 
-
 // Checks to see if a length will not result in an OOM error.
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
@@ -37,7 +36,6 @@ static void LengthCheck(intptr_t len, intptr_t max) {
     Exceptions::ThrowArgumentError(error);
   }
 }
-
 
 DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
@@ -54,7 +52,6 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   Exceptions::ThrowArgumentError(error);
   return Integer::null();
 }
-
 
 template <typename DstType, typename SrcType>
 static RawBool* CopyData(const Instance& dst,
@@ -83,7 +80,6 @@ static RawBool* CopyData(const Instance& dst,
   return Bool::True().raw();
 }
 
-
 static bool IsClamped(intptr_t cid) {
   switch (cid) {
     case kTypedDataUint8ClampedArrayCid:
@@ -94,7 +90,6 @@ static bool IsClamped(intptr_t cid) {
       return false;
   }
 }
-
 
 static bool IsUint8(intptr_t cid) {
   switch (cid) {
@@ -109,7 +104,6 @@ static bool IsUint8(intptr_t cid) {
       return false;
   }
 }
-
 
 DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
   const Instance& dst = Instance::CheckedHandle(arguments->NativeArgAt(0));
@@ -150,7 +144,6 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
   return Bool::False().raw();
 }
 
-
 // We check the length parameter against a possible maximum length for the
 // array based on available physical addressable memory on the system. The
 // maximum possible length is a scaled value of kSmiMax which is set up based
@@ -166,9 +159,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
     return TypedData::New(cid, len);                                           \
   }
 
-
 #define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)
-
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
@@ -195,7 +186,6 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
     Exceptions::ThrowArgumentError(error);                                     \
     return object::null();                                                     \
   }
-
 
 #define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
                           access_type)                                         \
@@ -250,7 +240,6 @@ TYPED_DATA_NATIVES(Float32x4, Float32x4, New, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, 16, simd128_value_t)
 
-
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, host_value, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
@@ -263,7 +252,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {
   return Smi::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint16, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, host_value, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
@@ -273,7 +261,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint16, 2) {
   }
   return Smi::New(Utils::HostToBigEndian16(value));
 }
-
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt32, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
@@ -289,7 +276,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt32, 2) {
   return Integer::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint32, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
@@ -303,7 +289,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint32, 2) {
   return Integer::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt64, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
@@ -315,7 +300,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt64, 2) {
   }
   return Integer::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
@@ -337,7 +321,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
   return Integer::NewFromUint64(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat32, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, host_value, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
@@ -351,7 +334,6 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat32, 2) {
   }
   return Double::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat64, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, host_value, arguments->NativeArgAt(0));

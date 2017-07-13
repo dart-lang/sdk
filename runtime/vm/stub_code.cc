@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/assembler.h"
+#include "vm/clustered_snapshot.h"
 #include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/object_store.h"
@@ -14,7 +15,6 @@
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
-#include "vm/clustered_snapshot.h"
 
 namespace dart {
 
@@ -26,7 +26,6 @@ StubEntry* StubCode::entries_[kNumStubEntries] = {
 #undef STUB_CODE_DECLARE
 };
 
-
 StubEntry::StubEntry(const Code& code)
     : code_(code.raw()),
       entry_point_(code.UncheckedEntryPoint()),
@@ -34,18 +33,15 @@ StubEntry::StubEntry(const Code& code)
       size_(code.Size()),
       label_(code.UncheckedEntryPoint()) {}
 
-
 // Visit all object pointers.
 void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
 }
 
-
 #define STUB_CODE_GENERATE(name)                                               \
   code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
   entries_[k##name##Index] = new StubEntry(code);
-
 
 void StubCode::InitOnce() {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -58,15 +54,11 @@ void StubCode::InitOnce() {
 #endif  // DART_PRECOMPILED_RUNTIME
 }
 
-
 #undef STUB_CODE_GENERATE
-
 
 void StubCode::Init(Isolate* isolate) {}
 
-
 void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
-
 
 bool StubCode::HasBeenInitialized() {
 #if !defined(TARGET_ARCH_DBC)
@@ -78,7 +70,6 @@ bool StubCode::HasBeenInitialized() {
   return true;
 #endif
 }
-
 
 bool StubCode::InInvocationStub(uword pc) {
 #if !defined(TARGET_ARCH_DBC)
@@ -93,7 +84,6 @@ bool StubCode::InInvocationStub(uword pc) {
 #endif
 }
 
-
 bool StubCode::InJumpToFrameStub(uword pc) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
@@ -105,7 +95,6 @@ bool StubCode::InJumpToFrameStub(uword pc) {
   return false;
 #endif
 }
-
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 // These stubs are not used by DBC.
@@ -175,7 +164,6 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   return Code::null();
 }
 
-
 const StubEntry* StubCode::UnoptimizedStaticCallEntry(
     intptr_t num_args_tested) {
 // These stubs are not used by DBC.
@@ -196,7 +184,6 @@ const StubEntry* StubCode::UnoptimizedStaticCallEntry(
 #endif
 }
 
-
 RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
@@ -216,7 +203,6 @@ RawCode* StubCode::Generate(const char* name,
 #endif  // !PRODUCT
   return code.raw();
 }
-
 
 const char* StubCode::NameOfStub(uword entry_point) {
 #define VM_STUB_CODE_TESTER(name)                                              \

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
-#include "vm/bootstrap_natives.h"
 #include "vm/assembler.h"
+#include "vm/bootstrap_natives.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -17,7 +17,6 @@ DEFINE_NATIVE_ENTRY(List_allocate, 2) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
@@ -26,7 +25,6 @@ DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   }
   return array.At(index.Value());
 }
-
 
 DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
@@ -39,12 +37,10 @@ DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(List_getLength, 1) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
-
 
 // ObjectArray src, int start, int count, bool needTypeArgument.
 DEFINE_NATIVE_ENTRY(List_slice, 4) {
@@ -66,7 +62,6 @@ DEFINE_NATIVE_ENTRY(List_slice, 4) {
 
   return src.Slice(istart, icount, needs_type_arg.value());
 }
-
 
 // Private factory, expects correct arguments.
 DEFINE_NATIVE_ENTRY(ImmutableList_from, 4) {

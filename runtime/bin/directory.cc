@@ -25,7 +25,6 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
   int argc = Dart_GetNativeArgumentCount(args);
   Dart_Handle path;
@@ -43,7 +42,6 @@ void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kExists = 1;
   static const int kDoesNotExist = 0;
@@ -59,7 +57,6 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   if (Directory::Create(DartUtils::GetStringValue(path))) {
@@ -69,12 +66,10 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Directory_SystemTemp)(Dart_NativeArguments args) {
   const char* result = Directory::SystemTemp();
   Dart_SetReturnValue(args, DartUtils::NewString(result));
 }
-
 
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
@@ -92,7 +87,6 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Dart_Handle recursive = Dart_GetNativeArgument(args, 1);
@@ -104,7 +98,6 @@ void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Dart_Handle newPath = Dart_GetNativeArgument(args, 1);
@@ -115,7 +108,6 @@ void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
     Dart_NativeArguments args) {
@@ -142,9 +134,7 @@ void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
   }
 }
 
-
 static const int kAsyncDirectoryListerFieldIndex = 0;
-
 
 void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
     Dart_NativeArguments args) {
@@ -164,7 +154,6 @@ void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
   }
 }
 
-
 static void ReleaseListing(void* isolate_callback_data,
                            Dart_WeakPersistentHandle handle,
                            void* peer) {
@@ -172,7 +161,6 @@ static void ReleaseListing(void* isolate_callback_data,
       reinterpret_cast<AsyncDirectoryListing*>(peer);
   listing->Release();
 }
-
 
 void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
     Dart_NativeArguments args) {
@@ -191,7 +179,6 @@ void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
   }
 }
 
-
 void Directory::SetSystemTemp(const char* path) {
   if (system_temp_path_override_ != NULL) {
     free(system_temp_path_override_);
@@ -201,7 +188,6 @@ void Directory::SetSystemTemp(const char* path) {
     system_temp_path_override_ = strdup(path);
   }
 }
-
 
 CObject* Directory::CreateRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsString()) {
@@ -214,7 +200,6 @@ CObject* Directory::CreateRequest(const CObjectArray& request) {
   }
   return CObject::IllegalArgumentError();
 }
-
 
 CObject* Directory::DeleteRequest(const CObjectArray& request) {
   if ((request.Length() == 2) && request[0]->IsString() &&
@@ -229,7 +214,6 @@ CObject* Directory::DeleteRequest(const CObjectArray& request) {
   }
   return CObject::IllegalArgumentError();
 }
-
 
 CObject* Directory::ExistsRequest(const CObjectArray& request) {
   static const int kExists = 1;
@@ -248,7 +232,6 @@ CObject* Directory::ExistsRequest(const CObjectArray& request) {
   return CObject::IllegalArgumentError();
 }
 
-
 CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsString()) {
     CObjectString path(request[0]);
@@ -263,7 +246,6 @@ CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   return CObject::IllegalArgumentError();
 }
 
-
 static CObject* CreateIllegalArgumentError() {
   // Respond with an illegal argument list error message.
   CObjectArray* error = new CObjectArray(CObject::NewArray(3));
@@ -273,7 +255,6 @@ static CObject* CreateIllegalArgumentError() {
   error->SetAt(2, CObject::IllegalArgumentError());
   return error;
 }
-
 
 CObject* Directory::ListStartRequest(const CObjectArray& request) {
   if ((request.Length() == 3) && request[0]->IsString() &&
@@ -301,7 +282,6 @@ CObject* Directory::ListStartRequest(const CObjectArray& request) {
   return CreateIllegalArgumentError();
 }
 
-
 CObject* Directory::ListNextRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     CObjectIntptr ptr(request[0]);
@@ -323,7 +303,6 @@ CObject* Directory::ListNextRequest(const CObjectArray& request) {
   return CreateIllegalArgumentError();
 }
 
-
 CObject* Directory::ListStopRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     CObjectIntptr ptr(request[0]);
@@ -343,7 +322,6 @@ CObject* Directory::ListStopRequest(const CObjectArray& request) {
   return CreateIllegalArgumentError();
 }
 
-
 CObject* Directory::RenameRequest(const CObjectArray& request) {
   if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsString()) {
@@ -358,7 +336,6 @@ CObject* Directory::RenameRequest(const CObjectArray& request) {
   return CObject::IllegalArgumentError();
 }
 
-
 bool AsyncDirectoryListing::AddFileSystemEntityToResponse(Response type,
                                                           const char* arg) {
   array_->SetAt(index_++, new CObjectInt32(CObject::NewInt32(type)));
@@ -370,26 +347,21 @@ bool AsyncDirectoryListing::AddFileSystemEntityToResponse(Response type,
   return index_ < length_;
 }
 
-
 bool AsyncDirectoryListing::HandleDirectory(const char* dir_name) {
   return AddFileSystemEntityToResponse(kListDirectory, dir_name);
 }
-
 
 bool AsyncDirectoryListing::HandleFile(const char* file_name) {
   return AddFileSystemEntityToResponse(kListFile, file_name);
 }
 
-
 bool AsyncDirectoryListing::HandleLink(const char* link_name) {
   return AddFileSystemEntityToResponse(kListLink, link_name);
 }
 
-
 void AsyncDirectoryListing::HandleDone() {
   AddFileSystemEntityToResponse(kListDone, NULL);
 }
-
 
 bool AsyncDirectoryListing::HandleError() {
   CObject* err = CObject::NewOSError();
@@ -405,7 +377,6 @@ bool AsyncDirectoryListing::HandleError() {
   return index_ < length_;
 }
 
-
 bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
   Dart_Handle dir_name_dart = DartUtils::NewString(dir_name);
   Dart_Handle dir = Dart_New(directory_type_, Dart_Null(), 1, &dir_name_dart);
@@ -416,7 +387,6 @@ bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
   }
   return true;
 }
-
 
 bool SyncDirectoryListing::HandleLink(const char* link_name) {
   Dart_Handle link_name_dart = DartUtils::NewString(link_name);
@@ -429,7 +399,6 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
   return true;
 }
 
-
 bool SyncDirectoryListing::HandleFile(const char* file_name) {
   Dart_Handle file_name_dart = DartUtils::NewString(file_name);
   Dart_Handle file = Dart_New(file_type_, Dart_Null(), 1, &file_name_dart);
@@ -440,7 +409,6 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
   }
   return true;
 }
-
 
 bool SyncDirectoryListing::HandleError() {
   Dart_Handle dart_os_error = DartUtils::NewDartOSError();
@@ -454,7 +422,6 @@ bool SyncDirectoryListing::HandleError() {
       Dart_Null(), 3, args);
   return false;
 }
-
 
 static bool ListNext(DirectoryListing* listing) {
   switch (listing->top()->Next(listing)) {
@@ -487,7 +454,6 @@ static bool ListNext(DirectoryListing* listing) {
   }
   return false;
 }
-
 
 void Directory::List(DirectoryListing* listing) {
   if (listing->error()) {

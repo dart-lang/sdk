@@ -94,14 +94,11 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 
-
 RawObject** const ObjectGraph::Stack::kSentinel = NULL;
-
 
 RawObject* ObjectGraph::StackIterator::Get() const {
   return stack_->data_[index_].obj;
 }
-
 
 bool ObjectGraph::StackIterator::MoveToParent() {
   intptr_t parent = stack_->Parent(index_);
@@ -112,7 +109,6 @@ bool ObjectGraph::StackIterator::MoveToParent() {
     return true;
   }
 }
-
 
 intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
   intptr_t parent_index = stack_->Parent(index_);
@@ -136,7 +132,6 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
   }
 }
 
-
 class Unmarker : public ObjectVisitor {
  public:
   Unmarker() {}
@@ -156,16 +151,13 @@ class Unmarker : public ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(Unmarker);
 };
 
-
 ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
   ASSERT(thread->isolate() != Dart::vm_isolate());
 }
 
-
 ObjectGraph::~ObjectGraph() {}
-
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
@@ -174,7 +166,6 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
-
 
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
@@ -185,7 +176,6 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
-
 
 class InstanceAccumulator : public ObjectVisitor {
  public:
@@ -206,7 +196,6 @@ class InstanceAccumulator : public ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(InstanceAccumulator);
 };
 
-
 void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
                                      ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
@@ -218,7 +207,6 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
-
 
 class SizeVisitor : public ObjectGraph::Visitor {
  public:
@@ -238,7 +226,6 @@ class SizeVisitor : public ObjectGraph::Visitor {
   intptr_t size_;
 };
 
-
 class SizeExcludingObjectVisitor : public SizeVisitor {
  public:
   explicit SizeExcludingObjectVisitor(const Object& skip) : skip_(skip) {}
@@ -247,7 +234,6 @@ class SizeExcludingObjectVisitor : public SizeVisitor {
  private:
   const Object& skip_;
 };
-
 
 class SizeExcludingClassVisitor : public SizeVisitor {
  public:
@@ -260,7 +246,6 @@ class SizeExcludingClassVisitor : public SizeVisitor {
   const intptr_t skip_;
 };
 
-
 intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
   HeapIterationScope iteration_scope(true);
   SizeVisitor total;
@@ -272,14 +257,12 @@ intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
   return size_total - size_excluding_obj;
 }
 
-
 intptr_t ObjectGraph::SizeReachableByInstance(const Object& obj) {
   HeapIterationScope iteration_scope(true);
   SizeVisitor total;
   IterateObjectsFrom(obj, &total);
   return total.size();
 }
-
 
 intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
   HeapIterationScope iteration_scope(true);
@@ -292,14 +275,12 @@ intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
   return size_total - size_excluding_class;
 }
 
-
 intptr_t ObjectGraph::SizeReachableByClass(intptr_t class_id) {
   HeapIterationScope iteration_scope(true);
   SizeVisitor total;
   IterateObjectsFrom(class_id, &total);
   return total.size();
 }
-
 
 class RetainingPathVisitor : public ObjectGraph::Visitor {
  public:
@@ -388,7 +369,6 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   bool was_last_array_;
 };
 
-
 intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
   NoSafepointScope no_safepoint_scope_;
   HeapIterationScope iteration_scope(true);
@@ -401,7 +381,6 @@ intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
   *obj = raw;
   return visitor.length();
 }
-
 
 class InboundReferencesVisitor : public ObjectVisitor,
                                  public ObjectPointerVisitor {
@@ -466,7 +445,6 @@ class InboundReferencesVisitor : public ObjectVisitor,
   intptr_t length_;
 };
 
-
 intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   NoSafepointScope no_safepoint_scope;
@@ -474,7 +452,6 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   isolate()->heap()->IterateObjects(&visitor);
   return visitor.length();
 }
-
 
 static void WritePtr(RawObject* raw, WriteStream* stream) {
   ASSERT(raw->IsHeapObject());
@@ -486,7 +463,6 @@ static void WritePtr(RawObject* raw, WriteStream* stream) {
   // TODO(koda): Use delta-encoding/back-references to further compress this.
   stream->WriteUnsigned(addr / kObjectAlignment);
 }
-
 
 class WritePointerVisitor : public ObjectPointerVisitor {
  public:
@@ -522,7 +498,6 @@ class WritePointerVisitor : public ObjectPointerVisitor {
   intptr_t count_;
 };
 
-
 static void WriteHeader(RawObject* raw,
                         intptr_t size,
                         intptr_t cid,
@@ -532,7 +507,6 @@ static void WriteHeader(RawObject* raw,
   stream->WriteUnsigned(size);
   stream->WriteUnsigned(cid);
 }
-
 
 class WriteGraphVisitor : public ObjectGraph::Visitor {
  public:
@@ -570,7 +544,6 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
   intptr_t count_;
 };
 
-
 static void IterateUserFields(ObjectPointerVisitor* visitor) {
   Thread* thread = Thread::Current();
   // Scope to prevent handles create here from appearing as stack references.
@@ -604,7 +577,6 @@ static void IterateUserFields(ObjectPointerVisitor* visitor) {
     }
   }
 }
-
 
 intptr_t ObjectGraph::Serialize(WriteStream* stream,
                                 SnapshotRoots roots,

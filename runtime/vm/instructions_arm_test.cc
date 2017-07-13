@@ -22,7 +22,6 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ Ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Call, test) {
   // The return address, which must be the address of an instruction contained
   // in the code, points to the Ret instruction above, i.e. one instruction

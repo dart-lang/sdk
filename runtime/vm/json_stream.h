@@ -11,7 +11,6 @@
 #include "vm/service.h"
 #include "vm/token_position.h"
 
-
 namespace dart {
 
 class Array;
@@ -33,7 +32,6 @@ class TimelineEventBlock;
 class Thread;
 class ThreadRegistry;
 class Zone;
-
 
 // Keep this enum in sync with:
 //
@@ -255,7 +253,6 @@ class JSONStream : ValueObject {
   friend class JSONArray;
 };
 
-
 class JSONObject : public ValueObject {
  public:
   explicit JSONObject(JSONStream* stream) : stream_(stream) {
@@ -368,7 +365,6 @@ class JSONObject : public ValueObject {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(JSONObject);
 };
-
 
 class JSONArray : public ValueObject {
  public:

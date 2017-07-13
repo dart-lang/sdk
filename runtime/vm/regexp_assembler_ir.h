@@ -439,7 +439,6 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   IdAllocator indirect_id_;
 };
 
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_REGEXP_ASSEMBLER_IR_H_

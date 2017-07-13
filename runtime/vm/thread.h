@@ -12,8 +12,8 @@
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/os_thread.h"
-#include "vm/store_buffer.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/store_buffer.h"
 namespace dart {
 
 class AbstractType;
@@ -73,7 +73,6 @@ class Zone;
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)
-
 
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_LIST(V)
@@ -808,12 +807,10 @@ class Thread : public BaseThread {
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
-
 #if defined(HOST_OS_WINDOWS)
 // Clears the state of the current thread and frees the allocation.
 void WindowsThreadCleanUp();
 #endif
-
 
 // Disable thread interrupts.
 class DisableThreadInterruptsScope : public StackResource {

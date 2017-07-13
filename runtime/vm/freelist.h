@@ -8,8 +8,8 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/bit_set.h"
-#include "vm/raw_object.h"
 #include "vm/os_thread.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -73,7 +73,6 @@ class FreeListElement {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(FreeListElement);
 };
-
 
 class FreeList {
  public:

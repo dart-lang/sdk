@@ -36,26 +36,21 @@ bool Platform::Initialize() {
   return true;
 }
 
-
 int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
-
 
 const char* Platform::OperatingSystem() {
   return "android";
 }
 
-
 const char* Platform::LibraryPrefix() {
   return "lib";
 }
 
-
 const char* Platform::LibraryExtension() {
   return "so";
 }
-
 
 const char* Platform::LocaleName() {
   char* lang = getenv("LANG");
@@ -65,11 +60,9 @@ const char* Platform::LocaleName() {
   return lang;
 }
 
-
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
-
 
 char** Platform::Environment(intptr_t* count) {
   // Using environ directly is only safe as long as we do not
@@ -88,16 +81,13 @@ char** Platform::Environment(intptr_t* count) {
   return result;
 }
 
-
 const char* Platform::GetExecutableName() {
   return executable_name_;
 }
 
-
 const char* Platform::ResolveExecutablePath() {
   return NULL;
 }
-
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

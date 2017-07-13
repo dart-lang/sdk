@@ -8,8 +8,8 @@
 #include "vm/cpuinfo.h"
 
 #include <errno.h>       // NOLINT
-#include <sys/types.h>   // NOLINT
 #include <sys/sysctl.h>  // NOLINT
+#include <sys/types.h>   // NOLINT
 
 #include "platform/assert.h"
 
@@ -28,9 +28,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoArchitecture] = NULL;
 }
 
-
 void CpuInfo::Cleanup() {}
-
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   ASSERT(method_ != kCpuInfoDefault);
@@ -47,7 +45,6 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
 
   return (strcasestr(dest, search_string) != NULL);
 }
-
 
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   ASSERT(method_ != kCpuInfoDefault);
@@ -69,7 +66,6 @@ const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
 
   return result;
 }
-
 
 bool CpuInfo::HasField(const char* field) {
   ASSERT(method_ != kCpuInfoDefault);

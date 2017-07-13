@@ -5,8 +5,8 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
-#include "vm/dart_entry.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/isolate.h"
 #include "vm/native_entry.h"
@@ -38,7 +38,6 @@ static bool CheckInteger(const Integer& i) {
   return true;
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
@@ -52,7 +51,6 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
   // A null result indicates that a bigint operation is required.
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
-
 
 DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
   const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
@@ -68,7 +66,6 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
   const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
@@ -82,7 +79,6 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
   // A null result indicates that a bigint operation is required.
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
-
 
 DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
@@ -99,7 +95,6 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
@@ -114,7 +109,6 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
   // A null result indicates that a bigint operation is required.
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
-
 
 DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
@@ -131,7 +125,6 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left_int, arguments->NativeArgAt(1));
@@ -143,7 +136,6 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   // A null result indicates that a bigint operation is required.
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
-
 
 DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
   const Integer& right_int = Integer::CheckedHandle(arguments->NativeArgAt(0));
@@ -164,7 +156,6 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 2) {
   const Integer& right = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
@@ -177,7 +168,6 @@ DEFINE_NATIVE_ENTRY(Integer_greaterThanFromInteger, 2) {
   return Bool::Get(left.CompareWith(right) == 1).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
   const Integer& left = Integer::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
@@ -189,7 +179,6 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
   }
   return Bool::Get(left.CompareWith(right) == 0).raw();
 }
-
 
 static RawInteger* ParseInteger(const String& value) {
   // Used by both Integer_parse and Integer_fromEnvironment.
@@ -223,12 +212,10 @@ static RawInteger* ParseInteger(const String& value) {
   return Integer::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
   return ParseInteger(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
@@ -247,7 +234,6 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
   }
   return default_value.raw();
 }
-
 
 static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
@@ -290,7 +276,6 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   return Integer::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
   const Smi& left = Smi::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, right, arguments->NativeArgAt(1));
@@ -303,7 +288,6 @@ DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
   return Smi::New(left_value.Value() & right_value.Value());
 }
 
-
 DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   const Smi& amount = Smi::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
@@ -314,7 +298,6 @@ DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   // A null result indicates that a bigint operation is required.
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
-
 
 DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
   const Smi& amount = Smi::CheckedHandle(arguments->NativeArgAt(0));
@@ -331,7 +314,6 @@ DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
   return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
-
 DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
   const Smi& operand = Smi::CheckedHandle(arguments->NativeArgAt(0));
   if (FLAG_trace_intrinsified_natives) {
@@ -341,7 +323,6 @@ DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
 }
-
 
 DEFINE_NATIVE_ENTRY(Smi_bitLength, 1) {
   const Smi& operand = Smi::CheckedHandle(arguments->NativeArgAt(0));
@@ -353,7 +334,6 @@ DEFINE_NATIVE_ENTRY(Smi_bitLength, 1) {
   ASSERT(Smi::IsValid(result));
   return Smi::New(result);
 }
-
 
 // Mint natives.
 
@@ -367,7 +347,6 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
   return Integer::New(result);
 }
 
-
 DEFINE_NATIVE_ENTRY(Mint_bitLength, 1) {
   const Mint& operand = Mint::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(CheckInteger(operand));
@@ -380,7 +359,6 @@ DEFINE_NATIVE_ENTRY(Mint_bitLength, 1) {
   return Smi::New(result);
 }
 
-
 DEFINE_NATIVE_ENTRY(Mint_shlFromInt, 2) {
   // Use the preallocated out of memory exception to avoid calling
   // into dart code or allocating any code.
@@ -391,7 +369,6 @@ DEFINE_NATIVE_ENTRY(Mint_shlFromInt, 2) {
   return 0;
 }
 
-
 // Bigint natives.
 
 DEFINE_NATIVE_ENTRY(Bigint_getNeg, 1) {
@@ -399,18 +376,15 @@ DEFINE_NATIVE_ENTRY(Bigint_getNeg, 1) {
   return bigint.neg();
 }
 
-
 DEFINE_NATIVE_ENTRY(Bigint_getUsed, 1) {
   const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
   return bigint.used();
 }
 
-
 DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
   const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
   return bigint.digits();
 }
-
 
 DEFINE_NATIVE_ENTRY(Bigint_allocate, 4) {
   // TODO(alexmarkov): Revise this assertion if this native method can be used

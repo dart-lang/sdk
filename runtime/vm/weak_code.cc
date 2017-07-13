@@ -17,7 +17,6 @@ bool WeakCodeReferences::HasCodes() const {
   return !array_.IsNull() && (array_.Length() > 0);
 }
 
-
 void WeakCodeReferences::Register(const Code& value) {
   if (!array_.IsNull()) {
     // Try to find and reuse cleared WeakProperty to avoid allocating new one.
@@ -43,7 +42,6 @@ void WeakCodeReferences::Register(const Code& value) {
   UpdateArrayTo(new_array);
 }
 
-
 bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
                                          const Code& code) {
   if (!code.is_optimized()) {
@@ -58,7 +56,6 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
   }
   return false;
 }
-
 
 void WeakCodeReferences::DisableCode() {
   Thread* thread = Thread::Current();

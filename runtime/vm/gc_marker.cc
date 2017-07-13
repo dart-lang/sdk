@@ -8,6 +8,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
+#include "vm/object_id_ring.h"
 #include "vm/pages.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
@@ -17,7 +18,6 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/visitor.h"
-#include "vm/object_id_ring.h"
 
 namespace dart {
 
@@ -85,7 +85,6 @@ class SkippedCodeFunctions : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(SkippedCodeFunctions);
 };
 
-
 class MarkerWorkList : public ValueObject {
  public:
   explicit MarkerWorkList(MarkingStack* marking_stack)
@@ -136,7 +135,6 @@ class MarkerWorkList : public ValueObject {
   MarkingStack::Block* work_;
   MarkingStack* marking_stack_;
 };
-
 
 template <bool sync>
 class MarkingVisitorBase : public ObjectPointerVisitor {
@@ -416,10 +414,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
 
-
 typedef MarkingVisitorBase<false> UnsyncMarkingVisitor;
 typedef MarkingVisitorBase<true> SyncMarkingVisitor;
-
 
 static bool IsUnreachable(const RawObject* raw_obj) {
   if (!raw_obj->IsHeapObject()) {
@@ -433,7 +429,6 @@ static bool IsUnreachable(const RawObject* raw_obj) {
   }
   return !raw_obj->IsMarked();
 }
-
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
@@ -452,7 +447,6 @@ class MarkingWeakVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
-
 void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
@@ -462,13 +456,11 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   isolate->store_buffer()->Reset();
 }
 
-
 void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
     (isolate->gc_epilogue_callback())();
   }
 }
-
 
 void GCMarker::IterateRoots(Isolate* isolate,
                             ObjectPointerVisitor* visitor,
@@ -487,13 +479,11 @@ void GCMarker::IterateRoots(Isolate* isolate,
   // slices are empty.
 }
 
-
 void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   isolate->VisitWeakPersistentHandles(visitor);
 }
-
 
 void GCMarker::ProcessWeakTables(PageSpace* page_space) {
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
@@ -512,12 +502,10 @@ void GCMarker::ProcessWeakTables(PageSpace* page_space) {
   }
 }
 
-
 class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
  public:
   explicit ObjectIdRingClearPointerVisitor(Isolate* isolate)
       : ObjectPointerVisitor(isolate) {}
-
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -531,7 +519,6 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
   }
 };
 
-
 void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
@@ -543,7 +530,6 @@ void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
   ring->VisitPointers(&visitor);
 #endif  // !PRODUCT
 }
-
 
 class MarkTask : public ThreadPool::Task {
  public:
@@ -668,7 +654,6 @@ class MarkTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(MarkTask);
 };
 
-
 template <class MarkingVisitorType>
 void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
   {
@@ -689,7 +674,6 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
   }
   visitor->Finalize();
 }
-
 
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,

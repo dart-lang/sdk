@@ -45,7 +45,6 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   raw_obj->Validate(isolate_);
 }
 
-
 void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
     RawObject* raw_obj = *current;
@@ -58,14 +57,12 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   }
 }
 
-
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
   RawObject* raw_obj = handle->raw();
   visitor_->VisitPointer(&raw_obj);
 }
-
 
 void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   NoSafepointScope no_safepoint;
@@ -82,11 +79,9 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   isolate->VisitWeakPersistentHandles(&weak_visitor);
 }
 
-
 #if defined(DEBUG)
 VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
-
 
 void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
   if (obj->GetClassId() >= kInstanceCid) {

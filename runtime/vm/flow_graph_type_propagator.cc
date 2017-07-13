@@ -4,8 +4,8 @@
 
 #include "vm/flow_graph_type_propagator.h"
 
-#include "vm/cha.h"
 #include "vm/bit_vector.h"
+#include "vm/cha.h"
 #include "vm/il_printer.h"
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
@@ -21,7 +21,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, propagate_types);
 
-
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 #ifndef PRODUCT
   Thread* thread = flow_graph->thread();
@@ -32,7 +31,6 @@ void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
   FlowGraphTypePropagator propagator(flow_graph);
   propagator.Propagate();
 }
-
 
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
@@ -58,7 +56,6 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     collected_asserts_ = new ZoneGrowableArray<intptr_t>(10);
   }
 }
-
 
 void FlowGraphTypePropagator::Propagate() {
   if (FLAG_support_il_printer && FLAG_trace_type_propagation &&
@@ -113,7 +110,6 @@ void FlowGraphTypePropagator::Propagate() {
   }
 }
 
-
 void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
   if (visited_blocks_->Contains(block->postorder_number())) {
     return;
@@ -157,14 +153,12 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
   RollbackTo(rollback_point);
 }
 
-
 void FlowGraphTypePropagator::RollbackTo(intptr_t rollback_point) {
   for (intptr_t i = rollback_.length() - 1; i >= rollback_point; i--) {
     types_[rollback_[i].index()] = rollback_[i].type();
   }
   rollback_.TruncateTo(rollback_point);
 }
-
 
 CompileType* FlowGraphTypePropagator::TypeOf(Definition* def) {
   const intptr_t index = def->ssa_temp_index();
@@ -177,13 +171,11 @@ CompileType* FlowGraphTypePropagator::TypeOf(Definition* def) {
   return type;
 }
 
-
 void FlowGraphTypePropagator::SetTypeOf(Definition* def, CompileType* type) {
   const intptr_t index = def->ssa_temp_index();
   rollback_.Add(RollbackEntry(index, types_[index]));
   types_[index] = type;
 }
-
 
 void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   CompileType* current = TypeOf(def);
@@ -191,7 +183,6 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
     SetTypeOf(def, new CompileType(CompileType::FromCid(cid)));
   }
 }
-
 
 void FlowGraphTypePropagator::VisitValue(Value* value) {
   CompileType* type = TypeOf(value->definition());
@@ -205,25 +196,21 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   }
 }
 
-
 void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join) {
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
     worklist_.Add(it.Current());
   }
 }
 
-
 void FlowGraphTypePropagator::VisitCheckSmi(CheckSmiInstr* check) {
   SetCid(check->value()->definition(), kSmiCid);
 }
-
 
 void FlowGraphTypePropagator::VisitCheckArrayBound(
     CheckArrayBoundInstr* check) {
   // Array bounds checks also test index for smi.
   SetCid(check->index()->definition(), kSmiCid);
 }
-
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   if (!check->cids().IsMonomorphic()) {
@@ -239,7 +226,6 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   SetCid(check->value()->definition(), check->cids().MonomorphicReceiverCid());
 }
 
-
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
   if (!check->Dependencies().IsNone()) {
     // TODO(vegorov): If check is affected by side-effect we can still propagate
@@ -253,7 +239,6 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
     SetCid(load_cid->object()->definition(), check->cids().cid_start);
   }
 }
-
 
 void FlowGraphTypePropagator::CheckNonNullSelector(
     Instruction* call,
@@ -286,7 +271,6 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   }
 }
 
-
 void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->has_unique_selector()) {
     SetCid(instr->ArgumentAt(0), instr->ic_data()->GetReceiverClassIdAt(0));
@@ -294,7 +278,6 @@ void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
   }
   CheckNonNullSelector(instr, instr->ArgumentAt(0), instr->function_name());
 }
-
 
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
@@ -305,7 +288,6 @@ void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
   CheckNonNullSelector(instr, instr->ArgumentAt(0),
                        instr->instance_call()->function_name());
 }
-
 
 void FlowGraphTypePropagator::VisitGuardFieldClass(
     GuardFieldClassInstr* guard) {
@@ -325,13 +307,11 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
   }
 }
 
-
 void FlowGraphTypePropagator::VisitAssertAssignable(
     AssertAssignableInstr* instr) {
   SetTypeOf(instr->value()->definition(),
             new CompileType(instr->ComputeType()));
 }
-
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
@@ -397,7 +377,6 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   }
 }
 
-
 void FlowGraphTypePropagator::AddToWorklist(Definition* defn) {
   if (defn->ssa_temp_index() == -1) {
     return;
@@ -410,14 +389,12 @@ void FlowGraphTypePropagator::AddToWorklist(Definition* defn) {
   }
 }
 
-
 Definition* FlowGraphTypePropagator::RemoveLastFromWorklist() {
   Definition* defn = worklist_.RemoveLast();
   ASSERT(defn->ssa_temp_index() != -1);
   in_worklist_->Remove(defn->ssa_temp_index());
   return defn;
 }
-
 
 // In the given block strengthen type assertions by hoisting first class or smi
 // check over the same value up to the point before the assertion. This allows
@@ -448,7 +425,6 @@ void FlowGraphTypePropagator::StrengthenAsserts(BlockEntryInstr* block) {
 
   collected_asserts_->TruncateTo(0);
 }
-
 
 void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   // Marker that is used to mark values that already had type assertion
@@ -486,7 +462,6 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
 
   (*asserts_)[defn->ssa_temp_index()] = kStrengthenedAssertMarker;
 }
-
 
 void CompileType::Union(CompileType* other) {
   if (other->IsNone()) {
@@ -529,58 +504,47 @@ void CompileType::Union(CompileType* other) {
   }
 }
 
-
 static bool IsNullableCid(intptr_t cid) {
   ASSERT(cid != kIllegalCid);
   return cid == kNullCid || cid == kDynamicCid;
 }
 
-
 CompileType CompileType::Create(intptr_t cid, const AbstractType& type) {
   return CompileType(IsNullableCid(cid), cid, &type);
 }
-
 
 CompileType CompileType::FromAbstractType(const AbstractType& type,
                                           bool is_nullable) {
   return CompileType(is_nullable, kIllegalCid, &type);
 }
 
-
 CompileType CompileType::FromCid(intptr_t cid) {
   return CompileType(IsNullableCid(cid), cid, NULL);
 }
-
 
 CompileType CompileType::Dynamic() {
   return Create(kDynamicCid, Object::dynamic_type());
 }
 
-
 CompileType CompileType::Null() {
   return Create(kNullCid, Type::ZoneHandle(Type::NullType()));
 }
-
 
 CompileType CompileType::Bool() {
   return Create(kBoolCid, Type::ZoneHandle(Type::BoolType()));
 }
 
-
 CompileType CompileType::Int() {
   return FromAbstractType(Type::ZoneHandle(Type::Int64Type()), kNonNullable);
 }
-
 
 CompileType CompileType::Smi() {
   return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
 }
 
-
 CompileType CompileType::String() {
   return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
 }
-
 
 intptr_t CompileType::ToCid() {
   if ((cid_ == kNullCid) || (cid_ == kDynamicCid)) {
@@ -589,7 +553,6 @@ intptr_t CompileType::ToCid() {
 
   return is_nullable_ ? static_cast<intptr_t>(kDynamicCid) : ToNullableCid();
 }
-
 
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
@@ -636,16 +599,13 @@ intptr_t CompileType::ToNullableCid() {
   return cid_;
 }
 
-
 bool CompileType::HasDecidableNullability() {
   return !is_nullable_ || IsNull();
 }
 
-
 bool CompileType::IsNull() {
   return (ToCid() == kNullCid);
 }
-
 
 const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
@@ -675,7 +635,6 @@ const AbstractType* CompileType::ToAbstractType() {
 
   return type_;
 }
-
 
 bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
                                          bool is_nullable,
@@ -722,7 +681,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
   return *is_instance;
 }
 
-
 bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
   if (IsNone()) {
     return false;
@@ -731,7 +689,6 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
   return ToAbstractType()->IsMoreSpecificThan(other, NULL, NULL, Heap::kOld);
 }
 
-
 CompileType* Value::Type() {
   if (reaching_type_ == NULL) {
     reaching_type_ = definition()->Type();
@@ -739,13 +696,11 @@ CompileType* Value::Type() {
   return reaching_type_;
 }
 
-
 CompileType PhiInstr::ComputeType() const {
   // Initially type of phis is unknown until type propagation is run
   // for the first time.
   return CompileType::None();
 }
-
 
 bool PhiInstr::RecomputeType() {
   CompileType result = CompileType::None();
@@ -765,7 +720,6 @@ bool PhiInstr::RecomputeType() {
 
   return UpdateType(result);
 }
-
 
 CompileType RedefinitionInstr::ComputeType() const {
   if (constrained_type_ != NULL) {
@@ -798,16 +752,13 @@ CompileType RedefinitionInstr::ComputeType() const {
   return *value()->Type();
 }
 
-
 bool RedefinitionInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 
-
 CompileType IfThenElseInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
-
 
 CompileType ParameterInstr::ComputeType() const {
   // Note that returning the declared type of the formal parameter would be
@@ -893,11 +844,9 @@ CompileType ParameterInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-
 CompileType PushArgumentInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
-
 
 CompileType ConstantInstr::ComputeType() const {
   if (value().IsNull()) {
@@ -921,7 +870,6 @@ CompileType ConstantInstr::ComputeType() const {
   }
 }
 
-
 CompileType AssertAssignableInstr::ComputeType() const {
   CompileType* value_type = value()->Type();
 
@@ -932,53 +880,43 @@ CompileType AssertAssignableInstr::ComputeType() const {
   return CompileType::Create(value_type->ToCid(), dst_type());
 }
 
-
 bool AssertAssignableInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
-
 
 CompileType AssertBooleanInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
-
 CompileType BooleanNegateInstr::ComputeType() const {
   return CompileType::Bool();
 }
-
 
 CompileType InstanceOfInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
-
 CompileType StrictCompareInstr::ComputeType() const {
   return CompileType::Bool();
 }
-
 
 CompileType TestSmiInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
-
 CompileType TestCidsInstr::ComputeType() const {
   return CompileType::Bool();
 }
-
 
 CompileType EqualityCompareInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();
 }
 
-
 CompileType RelationalOpInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();
 }
-
 
 CompileType SpecialParameterInstr::ComputeType() const {
   switch (kind()) {
@@ -991,24 +929,20 @@ CompileType SpecialParameterInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-
 CompileType CloneContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
-
 
 CompileType AllocateContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
 
-
 CompileType AllocateUninitializedContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable, kContextCid,
                      &Object::dynamic_type());
 }
-
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   if (!IsSureToCallSingleRecognizedTarget()) return CompileType::Dynamic();
@@ -1017,7 +951,6 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
              ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
              : CompileType::Dynamic();
 }
-
 
 CompileType StaticCallInstr::ComputeType() const {
   if (result_cid_ != kDynamicCid) {
@@ -1035,7 +968,6 @@ CompileType StaticCallInstr::ComputeType() const {
              : CompileType::Dynamic();
 }
 
-
 CompileType LoadLocalInstr::ComputeType() const {
   if (Isolate::Current()->type_checks()) {
     return CompileType::FromAbstractType(local().type());
@@ -1043,33 +975,27 @@ CompileType LoadLocalInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-
 CompileType DropTempsInstr::ComputeType() const {
   return *value()->Type();
 }
-
 
 CompileType StoreLocalInstr::ComputeType() const {
   // Returns stored value.
   return *value()->Type();
 }
 
-
 CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
   return CompileType::FromCid(kOneByteStringCid);
 }
-
 
 CompileType StringToCharCodeInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-
 CompileType StringInterpolateInstr::ComputeType() const {
   // TODO(srdjan): Do better and determine if it is a one or two byte string.
   return CompileType::String();
 }
-
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
   bool is_nullable = CompileType::kNullable;
@@ -1100,12 +1026,10 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   return CompileType(is_nullable, cid, abstract_type);
 }
 
-
 CompileType CreateArrayInstr::ComputeType() const {
   // TODO(fschneider): Add abstract type and type arguments to the compile type.
   return CompileType::FromCid(kArrayCid);
 }
-
 
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
@@ -1117,16 +1041,13 @@ CompileType AllocateObjectInstr::ComputeType() const {
   return CompileType::FromCid(cls().id());
 }
 
-
 CompileType LoadUntaggedInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-
 CompileType LoadClassIdInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
-
 
 CompileType LoadFieldInstr::ComputeType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
@@ -1160,7 +1081,6 @@ CompileType LoadFieldInstr::ComputeType() const {
   return CompileType::Create(result_cid_, *abstract_type);
 }
 
-
 CompileType LoadCodeUnitsInstr::ComputeType() const {
   switch (class_id()) {
     case kOneByteStringCid:
@@ -1175,32 +1095,26 @@ CompileType LoadCodeUnitsInstr::ComputeType() const {
   }
 }
 
-
 CompileType BinaryInt32OpInstr::ComputeType() const {
   // TODO(vegorov): range analysis information shall be used here.
   return CompileType::Int();
 }
 
-
 CompileType BinarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
-
 
 CompileType UnarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-
 CompileType UnaryDoubleOpInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType DoubleToSmiInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
-
 
 CompileType ConstraintInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
@@ -1212,51 +1126,41 @@ CompileType BinaryMintOpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-
 CompileType ShiftMintOpInstr::ComputeType() const {
   return CompileType::Int();
 }
-
 
 CompileType UnaryMintOpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-
 CompileType BoxIntegerInstr::ComputeType() const {
   return ValueFitsSmi() ? CompileType::FromCid(kSmiCid) : CompileType::Int();
 }
-
 
 bool BoxIntegerInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 
-
 CompileType UnboxIntegerInstr::ComputeType() const {
   return CompileType::Int();
 }
-
 
 CompileType DoubleToIntegerInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-
 CompileType BinaryDoubleOpInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
-
 
 CompileType DoubleTestOpInstr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
 
-
 CompileType BinaryFloat32x4OpInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType Simd32x4ShuffleInstr::ComputeType() const {
   if ((op_kind() == MethodRecognizer::kFloat32x4ShuffleX) ||
@@ -1272,7 +1176,6 @@ CompileType Simd32x4ShuffleInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Simd32x4ShuffleMixInstr::ComputeType() const {
   if (op_kind() == MethodRecognizer::kInt32x4ShuffleMix) {
     return CompileType::FromCid(kInt32x4Cid);
@@ -1281,66 +1184,53 @@ CompileType Simd32x4ShuffleMixInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Simd32x4GetSignMaskInstr::ComputeType() const {
   return CompileType::Int();
 }
-
 
 CompileType Float32x4ConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Float32x4ZeroInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType Float32x4SplatInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Float32x4ComparisonInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
-
 
 CompileType Float32x4MinMaxInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Float32x4ScaleInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType Float32x4SqrtInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Float32x4ZeroArgInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType Float32x4ClampInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Float32x4WithInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
-
 CompileType Float32x4ToInt32x4Instr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
-
 
 CompileType Simd64x2ShuffleInstr::ComputeType() const {
   if ((op_kind() == MethodRecognizer::kFloat64x2GetX) ||
@@ -1351,31 +1241,25 @@ CompileType Simd64x2ShuffleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType Float64x2ZeroInstr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
-
 
 CompileType Float64x2SplatInstr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
 
-
 CompileType Float64x2ConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
-
 
 CompileType Float32x4ToFloat64x2Instr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
 
-
 CompileType Float64x2ToFloat32x4Instr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType Float64x2ZeroArgInstr::ComputeType() const {
   if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
@@ -1384,66 +1268,53 @@ CompileType Float64x2ZeroArgInstr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
 
-
 CompileType Float64x2OneArgInstr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
-
 
 CompileType Int32x4ConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
 
-
 CompileType Int32x4BoolConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
-
 
 CompileType Int32x4GetFlagInstr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
 
-
 CompileType Int32x4SelectInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType Int32x4SetFlagInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
 
-
 CompileType Int32x4ToFloat32x4Instr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
-
 
 CompileType BinaryInt32x4OpInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
 
-
 CompileType BinaryFloat64x2OpInstr::ComputeType() const {
   return CompileType::FromCid(kFloat64x2Cid);
 }
-
 
 CompileType MathUnaryInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType MathMinMaxInstr::ComputeType() const {
   return CompileType::FromCid(result_cid_);
 }
 
-
 CompileType CaseInsensitiveCompareUC16Instr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
-
 
 CompileType UnboxInstr::ComputeType() const {
   switch (representation()) {
@@ -1468,7 +1339,6 @@ CompileType UnboxInstr::ComputeType() const {
   }
 }
 
-
 CompileType BoxInstr::ComputeType() const {
   switch (from_representation()) {
     case kUnboxedDouble:
@@ -1489,47 +1359,38 @@ CompileType BoxInstr::ComputeType() const {
   }
 }
 
-
 CompileType Int32ToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
-
 
 CompileType SmiToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType MintToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
-
 
 CompileType DoubleToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType FloatToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
-
 
 CompileType DoubleToFloatInstr::ComputeType() const {
   // Type is double when converted back.
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType InvokeMathCFunctionInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-
 CompileType TruncDivModInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
-
 
 CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);

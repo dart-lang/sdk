@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/flow_graph_builder.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_builder.h"
 #include "vm/intermediate_language.h"
 #include "vm/unit_test.h"
 
@@ -280,7 +280,6 @@ class SourcePositionTest : public ValueObject {
   GrowableArray<BlockEntryInstr*>* blocks_;
 };
 
-
 TEST_CASE(SourcePosition_InstanceCalls) {
   const char* kScript =
       "var x = 5;\n"
@@ -300,7 +299,6 @@ TEST_CASE(SourcePosition_InstanceCalls) {
 
   spt.EnsureSourcePositions();
 }
-
 
 TEST_CASE(SourcePosition_If) {
   const char* kScript =
@@ -329,7 +327,6 @@ TEST_CASE(SourcePosition_If) {
 
   spt.EnsureSourcePositions();
 }
-
 
 TEST_CASE(SourcePosition_ForLoop) {
   const char* kScript =
@@ -360,7 +357,6 @@ TEST_CASE(SourcePosition_ForLoop) {
 
   spt.EnsureSourcePositions();
 }
-
 
 TEST_CASE(SourcePosition_While) {
   const char* kScript =
@@ -410,7 +406,6 @@ TEST_CASE(SourcePosition_While) {
   spt.EnsureSourcePositions();
 }
 
-
 TEST_CASE(SourcePosition_WhileContinueBreak) {
   const char* kScript =
       "var x = 0;\n"
@@ -450,7 +445,6 @@ TEST_CASE(SourcePosition_WhileContinueBreak) {
   spt.EnsureSourcePositions();
 }
 
-
 TEST_CASE(SourcePosition_LoadIndexed) {
   const char* kScript =
       "var x = 0;\n"
@@ -488,7 +482,6 @@ TEST_CASE(SourcePosition_LoadIndexed) {
 
   spt.EnsureSourcePositions();
 }
-
 
 TEST_CASE(SourcePosition_StoreIndexed) {
   const char* kScript =
@@ -532,7 +525,6 @@ TEST_CASE(SourcePosition_StoreIndexed) {
 
   spt.EnsureSourcePositions();
 }
-
 
 TEST_CASE(SourcePosition_BitwiseOperations) {
   const char* kScript =
@@ -583,7 +575,6 @@ TEST_CASE(SourcePosition_BitwiseOperations) {
   spt.EnsureSourcePositions();
 }
 
-
 TEST_CASE(SourcePosition_IfElse) {
   const char* kScript =
       "var x = 5;\n"
@@ -613,7 +604,6 @@ TEST_CASE(SourcePosition_IfElse) {
   spt.EnsureSourcePositions();
 }
 
-
 TEST_CASE(SourcePosition_Switch) {
   const char* kScript =
       "var x = 5;\n"
@@ -625,7 +615,6 @@ TEST_CASE(SourcePosition_Switch) {
       "    default: return 5;\n"
       "  }\n"
       "}\n";
-
 
   SourcePositionTest spt(thread, kScript);
   spt.BuildGraphFor("main");
@@ -658,7 +647,6 @@ TEST_CASE(SourcePosition_Switch) {
 
   spt.EnsureSourcePositions();
 }
-
 
 TEST_CASE(SourcePosition_TryCatchFinally) {
   const char* kScript =
@@ -711,7 +699,6 @@ TEST_CASE(SourcePosition_TryCatchFinally) {
   spt.EnsureSourcePositions();
 }
 
-
 TEST_CASE(SourcePosition_InstanceFields) {
   const char* kScript =
       "class A {\n"
@@ -741,7 +728,6 @@ TEST_CASE(SourcePosition_InstanceFields) {
   spt.EnsureSourcePositions();
 }
 
-
 TEST_CASE(SourcePosition_Async) {
   const char* kScript =
       "import 'dart:async';\n"
@@ -768,7 +754,6 @@ static bool SyntheticRoundTripTest(TokenPosition token_pos) {
   const TokenPosition synthetic_token_pos = token_pos.ToSynthetic();
   return synthetic_token_pos.FromSynthetic() == token_pos;
 }
-
 
 VM_UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
   EXPECT(TokenPosition::kNoSourcePos == -1);

@@ -18,7 +18,6 @@ TEST_CASE(InstructionTests) {
   EXPECT(!context->IsBlockEntry());
 }
 
-
 TEST_CASE(OptimizationTests) {
   JoinEntryInstr* join = new JoinEntryInstr(
       1, CatchClauseNode::kInvalidTryIndex, Thread::kNoDeoptId);
@@ -39,6 +38,5 @@ TEST_CASE(OptimizationTests) {
   EXPECT(c3->Equals(c4));
   EXPECT(!c3->Equals(c1));
 }
-
 
 }  // namespace dart

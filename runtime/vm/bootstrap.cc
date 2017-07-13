@@ -28,12 +28,9 @@ struct BootstrapLibProps {
   const char** patch_paths;
 };
 
-
 enum { kPathsUriOffset = 0, kPathsSourceOffset = 1, kPathsEntryLength = 2 };
 
-
 const char** Bootstrap::profiler_patch_paths_ = NULL;
-
 
 #define MAKE_PROPERTIES(CamelName, name)                                       \
   {ObjectStore::k##CamelName, "dart:" #name, Bootstrap::name##_source_paths_,  \
@@ -44,9 +41,7 @@ static const BootstrapLibProps bootstrap_libraries[] = {
 
 #undef MAKE_PROPERTIES
 
-
 static const intptr_t kBootstrapLibraryCount = ARRAY_SIZE(bootstrap_libraries);
-
 
 static RawString* GetLibrarySourceByIndex(intptr_t index,
                                           const String& uri,
@@ -84,7 +79,6 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   return String::FromUTF8(utf8_array, file_length);
 }
 
-
 static RawString* GetLibrarySource(const Library& lib,
                                    const String& uri,
                                    bool patch) {
@@ -104,7 +98,6 @@ static RawString* GetLibrarySource(const Library& lib,
   return GetLibrarySourceByIndex(index, uri, patch);
 }
 
-
 static RawError* Compile(const Library& library, const Script& script) {
   bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
                             script.kind() == RawScript::kLibraryTag);
@@ -123,7 +116,6 @@ static RawError* Compile(const Library& library, const Script& script) {
   }
   return error.raw();
 }
-
 
 static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
@@ -150,7 +142,6 @@ static Dart_Handle LoadPartSource(Thread* thread,
   const Error& error = Error::Handle(zone, Compile(lib, part_script));
   return Api::NewHandle(thread, error.raw());
 }
-
 
 static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle library,
@@ -186,7 +177,6 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
   ASSERT(!lib.IsNull());
   return LoadPartSource(thread, lib, uri_str);
 }
-
 
 static RawError* LoadPatchFiles(Thread* thread,
                                 const Library& lib,
@@ -225,7 +215,6 @@ static RawError* LoadPatchFiles(Thread* thread,
   return Error::null();
 }
 
-
 static void Finish(Thread* thread, bool from_kernel) {
   Bootstrap::SetupNativeResolver();
   if (!ClassFinalizer::ProcessPendingClasses(from_kernel)) {
@@ -259,7 +248,6 @@ static void Finish(Thread* thread, bool from_kernel) {
   cls = object_store->bool_class();
   Compiler::CompileClass(cls);
 }
-
 
 static RawError* BootstrapFromSource(Thread* thread) {
   Isolate* isolate = thread->isolate();
@@ -309,7 +297,6 @@ static RawError* BootstrapFromSource(Thread* thread) {
 
   return error.raw();
 }
-
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
@@ -364,7 +351,6 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   return Error::null();
 }
 #endif
-
 
 RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
   Thread* thread = Thread::Current();

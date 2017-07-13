@@ -60,7 +60,6 @@ class AtomicOperations : public AllStatic {
   }
 };
 
-
 }  // namespace dart
 
 #if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)

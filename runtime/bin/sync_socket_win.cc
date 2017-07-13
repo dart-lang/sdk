@@ -17,13 +17,11 @@ bool SynchronousSocket::Initialize() {
   return SocketBase::Initialize();
 }
 
-
 static intptr_t Create(const RawAddr& addr) {
   const intptr_t type = SOCK_STREAM;
   SOCKET s = WSASocket(addr.ss.ss_family, type, 0, NULL, 0, 0);
   return (s == INVALID_SOCKET) ? -1 : s;
 }
-
 
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   SOCKET socket = static_cast<SOCKET>(fd);
@@ -32,12 +30,10 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   return (result == SOCKET_ERROR) ? -1 : socket;
 }
 
-
 intptr_t SynchronousSocket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
   return (fd < 0) ? fd : Connect(fd, addr);
 }
-
 
 intptr_t SynchronousSocket::Available(intptr_t fd) {
   SOCKET socket = static_cast<SOCKET>(fd);
@@ -45,7 +41,6 @@ intptr_t SynchronousSocket::Available(intptr_t fd) {
   intptr_t result = ioctlsocket(socket, FIONREAD, &available);
   return (result == SOCKET_ERROR) ? -1 : static_cast<intptr_t>(available);
 }
-
 
 intptr_t SynchronousSocket::GetPort(intptr_t fd) {
   SOCKET socket = static_cast<SOCKET>(fd);
@@ -56,7 +51,6 @@ intptr_t SynchronousSocket::GetPort(intptr_t fd) {
   }
   return SocketAddress::GetAddrPort(raw);
 }
-
 
 SocketAddress* SynchronousSocket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   SOCKET socket = static_cast<SOCKET>(fd);
@@ -72,14 +66,12 @@ SocketAddress* SynchronousSocket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   return new SocketAddress(&raw.addr);
 }
 
-
 intptr_t SynchronousSocket::Read(intptr_t fd,
                                  void* buffer,
                                  intptr_t num_bytes) {
   SOCKET socket = static_cast<SOCKET>(fd);
   return recv(socket, reinterpret_cast<char*>(buffer), num_bytes, 0);
 }
-
 
 intptr_t SynchronousSocket::Write(intptr_t fd,
                                   const void* buffer,
@@ -88,18 +80,15 @@ intptr_t SynchronousSocket::Write(intptr_t fd,
   return send(socket, reinterpret_cast<const char*>(buffer), num_bytes, 0);
 }
 
-
 void SynchronousSocket::ShutdownRead(intptr_t fd) {
   SOCKET socket = static_cast<SOCKET>(fd);
   shutdown(socket, SD_RECEIVE);
 }
 
-
 void SynchronousSocket::ShutdownWrite(intptr_t fd) {
   SOCKET socket = static_cast<SOCKET>(fd);
   shutdown(socket, SD_SEND);
 }
-
 
 void SynchronousSocket::Close(intptr_t fd) {
   SOCKET socket = static_cast<SOCKET>(fd);

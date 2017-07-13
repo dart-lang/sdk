@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/virtual_memory.h"
 #include "platform/assert.h"
 #include "vm/unit_test.h"
-#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -16,7 +16,6 @@ bool IsZero(char* begin, char* end) {
   }
   return true;
 }
-
 
 VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
@@ -50,7 +49,6 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
 
   delete vm;
 }
-
 
 VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   // Reservations should always be handed back to OS upon destruction.
@@ -87,7 +85,6 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
     delete vm;
   }
 }
-
 
 VM_UNIT_TEST_CASE(VirtualMemoryCommitPartial) {
   const intptr_t kVirtualMemoryBlockSize = 3 * MB;

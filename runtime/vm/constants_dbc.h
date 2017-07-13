@@ -5,10 +5,9 @@
 #ifndef RUNTIME_VM_CONSTANTS_DBC_H_
 #define RUNTIME_VM_CONSTANTS_DBC_H_
 
-#include "platform/globals.h"
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "platform/utils.h"
-
 
 namespace dart {
 

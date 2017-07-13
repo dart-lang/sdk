@@ -5,8 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_IA32)
 
-#include "vm/isolate.h"
 #include "vm/dart_entry.h"
+#include "vm/isolate.h"
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
 #include "vm/object.h"
@@ -34,7 +34,6 @@ static Function* CreateFunction(const char* name) {
   return &function;
 }
 
-
 // Test calls to stub code which calls into the runtime.
 static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   const int argc = 2;
@@ -51,7 +50,6 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   __ ret();
 }
 
-
 TEST_CASE(CallRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
@@ -66,7 +64,6 @@ TEST_CASE(CallRuntimeStubCode) {
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
   EXPECT_EQ(length, result.Length());
 }
-
 
 // Test calls to stub code which calls into a leaf runtime entry.
 static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
@@ -87,7 +84,6 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ leave();
   __ ret();  // Return value is in EAX.
 }
-
 
 TEST_CASE(CallLeafRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,

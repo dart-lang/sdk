@@ -32,7 +32,6 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   SetMessage(error_message);
 }
 
-
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
   set_code(code);
@@ -48,14 +47,12 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
-
 const char* StringUtils::ConsoleStringToUtf8(const char* str,
                                              intptr_t len,
                                              intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
-
 
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,
                                              intptr_t len,
@@ -64,7 +61,6 @@ const char* StringUtils::Utf8ToConsoleString(const char* utf8,
   return NULL;
 }
 
-
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
@@ -72,14 +68,12 @@ char* StringUtils::ConsoleStringToUtf8(char* str,
   return NULL;
 }
 
-
 char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t len,
                                        intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
-
 
 char* StringUtils::StrNDup(const char* s, intptr_t n) {
 // strndup has only been added to Mac OS X in 10.7. We are supplying
@@ -104,25 +98,20 @@ char* StringUtils::StrNDup(const char* s, intptr_t n) {
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }
 
-
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-
 static mach_timebase_info_data_t timebase_info;
-
 
 void TimerUtils::InitOnce() {
   kern_return_t kr = mach_timebase_info(&timebase_info);
   ASSERT(KERN_SUCCESS == kr);
 }
 
-
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
-
 
 #if HOST_OS_IOS
 static int64_t GetCurrentTimeMicros() {
@@ -135,7 +124,6 @@ static int64_t GetCurrentTimeMicros() {
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 #endif  // HOST_OS_IOS
-
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
 #if HOST_OS_IOS
@@ -162,7 +150,6 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   return result;
 #endif  // HOST_OS_IOS
 }
-
 
 void TimerUtils::Sleep(int64_t millis) {
   struct timespec req;  // requested.

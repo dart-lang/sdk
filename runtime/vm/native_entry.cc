@@ -18,7 +18,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 
-
 namespace dart {
 
 DEFINE_FLAG(bool,
@@ -26,13 +25,11 @@ DEFINE_FLAG(bool,
             false,
             "Trace invocation of natives (debug mode only)");
 
-
 void DartNativeThrowArgumentException(const Instance& instance) {
   const Array& __args__ = Array::Handle(Array::New(1));
   __args__.SetAt(0, instance);
   Exceptions::ThrowByType(Exceptions::kArgument, __args__);
 }
-
 
 NativeFunction NativeEntry::ResolveNative(const Library& library,
                                           const String& function_name,
@@ -57,7 +54,6 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   return reinterpret_cast<NativeFunction>(native_function);
 }
 
-
 const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
                                                    uword pc) {
   Dart_NativeEntrySymbol symbol_resolver =
@@ -68,7 +64,6 @@ const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
   }
   return symbol_resolver(reinterpret_cast<Dart_NativeFunction>(pc));
 }
-
 
 const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
   Thread* thread = Thread::Current();
@@ -90,13 +85,11 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
   return NULL;
 }
 
-
 bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
   RawObject* retval = arguments->ReturnValue();
   return (retval->IsHeapObject() &&
           RawObject::IsErrorClassId(retval->GetClassId()));
 }
-
 
 void NativeEntry::PropagateErrors(NativeArguments* arguments) {
   Thread* thread = arguments->thread();
@@ -109,7 +102,6 @@ void NativeEntry::PropagateErrors(NativeArguments* arguments) {
   UNREACHABLE();
 }
 
-
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);
 #if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
@@ -120,13 +112,11 @@ uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   return entry;
 }
 
-
 void NativeEntry::NoScopeNativeCallWrapper(Dart_NativeArguments args,
                                            Dart_NativeFunction func) {
   CHECK_STACK_ALIGNMENT;
   NoScopeNativeCallWrapperNoStackCheck(args, func);
 }
-
 
 void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeArguments args,
@@ -148,7 +138,6 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
   VERIFY_ON_TRANSITION;
 }
 
-
 uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::AutoScopeNativeCallWrapper);
@@ -160,13 +149,11 @@ uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
   return entry;
 }
 
-
 void NativeEntry::AutoScopeNativeCallWrapper(Dart_NativeArguments args,
                                              Dart_NativeFunction func) {
   CHECK_STACK_ALIGNMENT;
   AutoScopeNativeCallWrapperNoStackCheck(args, func);
 }
-
 
 void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeArguments args,
@@ -215,7 +202,6 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
   VERIFY_ON_TRANSITION;
 }
 
-
 // DBC does not support lazy native call linking.
 #if !defined(TARGET_ARCH_DBC)
 static NativeFunction ResolveNativeFunction(Zone* zone,
@@ -236,7 +222,6 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
                                     is_auto_scope);
 }
 
-
 uword NativeEntry::LinkNativeCallEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
 #if defined(USING_SIMULATOR)
@@ -245,7 +230,6 @@ uword NativeEntry::LinkNativeCallEntry() {
 #endif
   return entry;
 }
-
 
 void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   CHECK_STACK_ALIGNMENT;
@@ -343,6 +327,5 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   }
 }
 #endif  // !defined(TARGET_ARCH_DBC)
-
 
 }  // namespace dart

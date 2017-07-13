@@ -528,7 +528,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_Isolate isolate,
     Dart_WeakPersistentHandle object);
 
-
 /*
  * ============================
  * Garbage Collection Callbacks
@@ -572,7 +571,6 @@ DART_EXPORT Dart_Handle
 Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
                     Dart_GcEpilogueCallback epilogue_callback);
 
-
 /*
  * ==========================
  * Initialization and Globals
@@ -587,7 +585,6 @@ Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,
  * \return The version string for the embedded Dart VM.
  */
 DART_EXPORT const char* Dart_VersionString();
-
 
 /**
  * Isolate specific flags are set when creating a new isolate using the
@@ -848,7 +845,6 @@ DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv);
  */
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 
-
 /*
  * ========
  * Isolates
@@ -1066,7 +1062,6 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
  */
 DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate);
 
-
 /*
  * ==================
  * Messages and Ports
@@ -1195,7 +1190,6 @@ DART_EXPORT bool Dart_IsPausedOnExit();
  */
 DART_EXPORT void Dart_SetPausedOnExit(bool paused);
 
-
 /**
  * Called when the embedder has caught a top level unhandled exception error
  * in the current isolate.
@@ -1207,12 +1201,10 @@ DART_EXPORT void Dart_SetPausedOnExit(bool paused);
  */
 DART_EXPORT void Dart_SetStickyError(Dart_Handle error);
 
-
 /**
  * Does the current isolate have a sticky error?
  */
 DART_EXPORT bool Dart_HasStickyError();
-
 
 /**
  * Gets the sticky error for the current isolate.
@@ -1220,7 +1212,6 @@ DART_EXPORT bool Dart_HasStickyError();
  * \return A handle to the sticky error object or null.
  */
 DART_EXPORT Dart_Handle Dart_GetStickyError();
-
 
 /**
  * Handles the next pending message for the current isolate.
@@ -1326,7 +1317,6 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
                                            Dart_Port* port_id);
 
-
 /*
  * ======
  * Scopes
@@ -1376,7 +1366,6 @@ DART_EXPORT void Dart_ExitScope();
  *   failed. Failure might due to is no current VM zone.
  */
 DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
-
 
 /*
  * =======
@@ -1438,7 +1427,6 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* instanceof);
 
-
 /**
  * Query object type.
  *
@@ -1466,7 +1454,6 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle object);
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle object);
 DART_EXPORT bool Dart_IsFuture(Dart_Handle object);
 
-
 /*
  * =========
  * Instances
@@ -1490,7 +1477,6 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle object);
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance);
-
 
 /*
  * =============================
@@ -1625,7 +1611,6 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
 DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
                                         Dart_Handle function_name);
 
-
 /*
  * ========
  * Booleans
@@ -1669,7 +1654,6 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value);
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj, bool* value);
-
 
 /*
  * =======
@@ -1993,7 +1977,6 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             const uint8_t* native_array,
                                             intptr_t length);
 
-
 /*
  * ====
  * Maps
@@ -2036,7 +2019,6 @@ DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key);
  *   error handle.
  */
 DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map);
-
 
 /*
  * ==========
@@ -2163,7 +2145,6 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object);
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle byte_buffer);
-
 
 /*
  * ============================================================
@@ -2332,7 +2313,6 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
                                       Dart_Handle name,
                                       Dart_Handle value);
 
-
 /*
  * ==========
  * Exceptions
@@ -2377,7 +2357,6 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
  */
 DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace);
-
 
 /*
  * ===========================
@@ -2506,7 +2485,6 @@ Dart_GetNativeArguments(Dart_NativeArguments args,
                         int num_arguments,
                         const Dart_NativeArgument_Descriptor* arg_descriptors,
                         Dart_NativeArgument_Value* arg_values);
-
 
 /**
  * Gets the native argument at some index.
@@ -2665,7 +2643,6 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
  */
 typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
 
-
 /*
  * ===========
  * Environment
@@ -2706,7 +2683,6 @@ Dart_SetNativeResolver(Dart_Handle library,
                        Dart_NativeEntrySymbol symbol);
 /* TODO(turnidge): Rename to Dart_LibrarySetNativeResolver? */
 
-
 /**
  * Returns the callback used to resolve native functions for a library.
  *
@@ -2718,7 +2694,6 @@ Dart_SetNativeResolver(Dart_Handle library,
 DART_EXPORT Dart_Handle
 Dart_GetNativeResolver(Dart_Handle library, Dart_NativeEntryResolver* resolver);
 
-
 /**
  * Returns the callback used to resolve native function symbols for a library.
  *
@@ -2729,7 +2704,6 @@ Dart_GetNativeResolver(Dart_Handle library, Dart_NativeEntryResolver* resolver);
  */
 DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
                                              Dart_NativeEntrySymbol* resolver);
-
 
 /*
  * =====================
@@ -2880,7 +2854,6 @@ Dart_LoadScriptFromSnapshot(const uint8_t* script_snapshot_buffer,
  */
 DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program);
 
-
 /**
  * Constructs an in-memory kernel program form a binary.
  *
@@ -2903,14 +2876,12 @@ DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
  */
 DART_EXPORT Dart_Handle Dart_RootLibrary();
 
-
 /**
  * Sets the root library for the current isolate.
  *
  * \return Returns an error handle if `library` is not a library handle.
  */
 DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library);
-
 
 /**
  * Lookup or instantiate a type by name and type arguments from a Library.
@@ -2949,17 +2920,14 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
  */
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 
-
 /**
  * \return An array of libraries.
  */
 DART_EXPORT Dart_Handle Dart_GetLoadedLibraries();
 
-
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 /* TODO(turnidge): Consider returning Dart_Null() when the library is
  * not found to distinguish that from a true error case. */
-
 
 /**
  * Report an loading error for the library.
@@ -2973,7 +2941,6 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
  */
 DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
                                                 Dart_Handle error);
-
 
 /**
  * Called by the embedder to provide the source for an "import"
@@ -3021,7 +2988,6 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle import,
                                                   Dart_Handle prefix);
 
-
 /**
  * Returns a flattened list of pairs. The first element in each pair is the
  * importing library and and the second element is the imported library for each
@@ -3032,7 +2998,6 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
  * \return A handle to a list of flattened pairs of importer-importee.
  */
 DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme);
-
 
 /**
  * Called by the embedder to provide the source for a "part of"
@@ -3067,7 +3032,6 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         intptr_t column_offset);
 /* TODO(turnidge): Rename to Dart_LibraryLoadSource? */
 
-
 /**
  * Loads a patch source string into a library.
  *
@@ -3078,7 +3042,6 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle url,
                                               Dart_Handle patch_source);
-
 
 /**
  * Indicates that all outstanding load requests have been satisfied.
@@ -3094,7 +3057,6 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
  *   futures are completed. Otherwise, returns an error.
  */
 DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures);
-
 
 /*
  * =====
@@ -3133,13 +3095,11 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer);
  */
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
 
-
 /*
  * ======
  * Kernel
  * ======
  */
-
 
 /**
  * Experimental support for Dart to Kernel parser isolate.
@@ -3186,7 +3146,6 @@ Dart_CompileSourcesToKernel(const char* script_uri,
  * =======
  */
 
-
 #define DART_VM_SERVICE_ISOLATE_NAME "vm-service"
 
 /**
@@ -3198,7 +3157,6 @@ Dart_CompileSourcesToKernel(const char* script_uri,
  */
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
 
-
 /**
  * Returns the port that script load requests should be sent on.
  *
@@ -3206,7 +3164,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  * isolate failed to startup or does not support load requests.
  */
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
-
 
 /**
  * Record all functions which have been compiled in the current isolate.
@@ -3220,7 +3177,6 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
 DART_EXPORT Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
                                                   intptr_t* buffer_length);
 
-
 /**
  * Compile all functions from data from Dart_SaveCompilationTrace. Unlike JIT
  * feedback, this data is fuzzy: loading does not need to happen in the exact
@@ -3231,7 +3187,6 @@ DART_EXPORT Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
  */
 DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
                                                   intptr_t buffer_length);
-
 
 /*
  * ==============
@@ -3255,13 +3210,11 @@ DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
 DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
                                              intptr_t* buffer_length);
 
-
 typedef struct {
   const char* library_uri;
   const char* class_name;
   const char* function_name;
 } Dart_QualifiedFunctionName;
-
 
 /**
  * Compiles all functions reachable from the provided entry points and marks
@@ -3286,7 +3239,6 @@ DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
                 uint8_t* jit_feedback,
                 intptr_t jit_feedback_length);
-
 
 /**
  *  Creates a precompiled snapshot.
@@ -3315,7 +3267,6 @@ DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                                     intptr_t* assembly_size);
 
-
 /**
  *  Same as Dart_CreateAppAOTSnapshotAsAssembly, except all the pieces are
  *  provided directly as bytes that the embedder can load with mmap. The
@@ -3340,7 +3291,6 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_SortClasses();
-
 
 /**
  *  Creates a snapshot that caches compiled code and type feedback for faster
@@ -3370,7 +3320,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_instructions_buffer,
                                  intptr_t* isolate_snapshot_instructions_size);
 
-
 /**
  * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.
  */
@@ -3384,14 +3333,12 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     uint8_t** isolate_snapshot_instructions_buffer,
     intptr_t* isolate_snapshot_instructions_size);
 
-
 /**
  *  Returns whether the VM only supports running from precompiled snapshots and
  *  not from any other kind of snapshot or from source (that is, the VM was
  *  compiled with DART_PRECOMPILED_RUNTIME).
  */
 DART_EXPORT bool Dart_IsPrecompiledRuntime();
-
 
 /**
  *  Print a native stack trace. Used for crash handling.

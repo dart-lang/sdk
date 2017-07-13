@@ -5,8 +5,8 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
-#include "vm/dart_entry.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/isolate.h"
 #include "vm/native_entry.h"

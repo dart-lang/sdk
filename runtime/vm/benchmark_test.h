@@ -26,7 +26,7 @@ extern const uint8_t* vm_snapshot_data;
 extern const uint8_t* vm_snapshot_instructions;
 extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
-}
+}  // namespace bin
 
 // The BENCHMARK macros are used for benchmarking a specific functionality
 // of the VM.
@@ -58,7 +58,6 @@ extern const uint8_t* core_isolate_snapshot_instructions;
 inline Dart_Handle NewString(const char* str) {
   return Dart_NewStringFromCString(str);
 }
-
 
 class Benchmark {
  public:
@@ -110,7 +109,6 @@ class Benchmark {
 
   DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
-
 
 class BenchmarkIsolateScope {
  public:

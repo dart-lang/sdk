@@ -23,7 +23,6 @@ bool SynchronousSocket::Initialize() {
   return true;
 }
 
-
 static intptr_t Create(const RawAddr& addr) {
   intptr_t fd;
   intptr_t type = SOCK_STREAM | SOCK_CLOEXEC;
@@ -33,7 +32,6 @@ static intptr_t Create(const RawAddr& addr) {
   }
   return fd;
 }
-
 
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   intptr_t result = TEMP_FAILURE_RETRY(
@@ -46,7 +44,6 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   return -1;
 }
 
-
 intptr_t SynchronousSocket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
@@ -55,21 +52,17 @@ intptr_t SynchronousSocket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr);
 }
 
-
 intptr_t SynchronousSocket::Available(intptr_t fd) {
   return SocketBase::Available(fd);
 }
-
 
 intptr_t SynchronousSocket::GetPort(intptr_t fd) {
   return SocketBase::GetPort(fd);
 }
 
-
 SocketAddress* SynchronousSocket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   return SocketBase::GetRemotePeer(fd, port);
 }
-
 
 intptr_t SynchronousSocket::Read(intptr_t fd,
                                  void* buffer,
@@ -77,23 +70,19 @@ intptr_t SynchronousSocket::Read(intptr_t fd,
   return SocketBase::Read(fd, buffer, num_bytes, SocketBase::kSync);
 }
 
-
 intptr_t SynchronousSocket::Write(intptr_t fd,
                                   const void* buffer,
                                   intptr_t num_bytes) {
   return SocketBase::Write(fd, buffer, num_bytes, SocketBase::kSync);
 }
 
-
 void SynchronousSocket::ShutdownRead(intptr_t fd) {
   VOID_NO_RETRY_EXPECTED(shutdown(fd, SHUT_RD));
 }
 
-
 void SynchronousSocket::ShutdownWrite(intptr_t fd) {
   VOID_NO_RETRY_EXPECTED(shutdown(fd, SHUT_WR));
 }
-
 
 void SynchronousSocket::Close(intptr_t fd) {
   return SocketBase::Close(fd);

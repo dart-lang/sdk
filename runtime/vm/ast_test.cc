@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/ast.h"
+#include "platform/assert.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"

@@ -37,7 +37,6 @@ static bool HasLoadFromPool(Instr instr) {
   }
 }
 
-
 static bool GetLoadedObjectAt(uword pc,
                               const ObjectPool& object_pool,
                               Object* obj) {
@@ -51,7 +50,6 @@ static bool GetLoadedObjectAt(uword pc,
   }
   return false;
 }
-
 
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
@@ -67,7 +65,6 @@ CallPattern::CallPattern(uword pc, const Code& code)
   target_code_pool_index_ = Bytecode::DecodeD(call_instr);
 }
 
-
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
@@ -76,30 +73,25 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   UNIMPLEMENTED();
 }
 
-
 RawCode* NativeCallPattern::target() const {
   return reinterpret_cast<RawCode*>(
       object_pool_.ObjectAt(target_code_pool_index_));
 }
-
 
 void NativeCallPattern::set_target(const Code& new_target) const {
   object_pool_.SetObjectAt(target_code_pool_index_, new_target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
-
 NativeFunction NativeCallPattern::native_function() const {
   return reinterpret_cast<NativeFunction>(
       object_pool_.RawValueAt(native_function_pool_index_));
 }
 
-
 void NativeCallPattern::set_native_function(NativeFunction func) const {
   object_pool_.SetRawValueAt(native_function_pool_index_,
                              reinterpret_cast<uword>(func));
 }
-
 
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
@@ -114,7 +106,6 @@ uword InstructionPattern::DecodeLoadObject(uword end,
   return 0;
 }
 
-
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
@@ -126,7 +117,6 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   UNIMPLEMENTED();
   return 0;
 }
-
 
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
@@ -140,13 +130,11 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   return 0;
 }
 
-
 bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
   const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
   return GetLoadedObjectAt(pc, pool, obj);
 }
-
 
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
@@ -156,17 +144,14 @@ RawICData* CallPattern::IcData() {
   return ic_data_.raw();
 }
 
-
 RawCode* CallPattern::TargetCode() const {
   return reinterpret_cast<RawCode*>(
       object_pool_.ObjectAt(target_code_pool_index_));
 }
 
-
 void CallPattern::SetTargetCode(const Code& target_code) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target_code);
 }
-
 
 void CallPattern::InsertDeoptCallAt(uword pc) {
   const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc))
@@ -175,7 +160,6 @@ void CallPattern::InsertDeoptCallAt(uword pc) {
   *reinterpret_cast<Instr*>(pc) = Bytecode::Encode(Bytecode::kDeopt, argc, 0);
 }
 
-
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),
@@ -183,33 +167,27 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   UNIMPLEMENTED();
 }
 
-
 RawObject* SwitchableCallPattern::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
-
 RawCode* SwitchableCallPattern::target() const {
   return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
-
 
 void SwitchableCallPattern::SetData(const Object& data) const {
   ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
   object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
-
 void SwitchableCallPattern::SetTarget(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
   object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
-
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {
   USE(pc_);
 }
-
 
 bool ReturnPattern::IsValid() const {
   UNIMPLEMENTED();

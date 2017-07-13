@@ -26,11 +26,9 @@ ThreadPool::ThreadPool()
       shutting_down_workers_(NULL),
       join_list_(NULL) {}
 
-
 ThreadPool::~ThreadPool() {
   Shutdown();
 }
-
 
 bool ThreadPool::Run(Task* task) {
   Worker* worker = NULL;
@@ -72,7 +70,6 @@ bool ThreadPool::Run(Task* task) {
   }
   return true;
 }
-
 
 void ThreadPool::Shutdown() {
   Worker* saved = NULL;
@@ -144,7 +141,6 @@ void ThreadPool::Shutdown() {
 #endif
 }
 
-
 bool ThreadPool::IsIdle(Worker* worker) {
   ASSERT(worker != NULL && worker->owned_);
   for (Worker* current = idle_workers_; current != NULL;
@@ -155,7 +151,6 @@ bool ThreadPool::IsIdle(Worker* worker) {
   }
   return false;
 }
-
 
 bool ThreadPool::RemoveWorkerFromIdleList(Worker* worker) {
   ASSERT(worker != NULL && worker->owned_);
@@ -180,7 +175,6 @@ bool ThreadPool::RemoveWorkerFromIdleList(Worker* worker) {
   }
   return false;
 }
-
 
 bool ThreadPool::RemoveWorkerFromAllList(Worker* worker) {
   ASSERT(worker != NULL && worker->owned_);
@@ -209,7 +203,6 @@ bool ThreadPool::RemoveWorkerFromAllList(Worker* worker) {
   return false;
 }
 
-
 void ThreadPool::SetIdleLocked(Worker* worker) {
   ASSERT(mutex_.IsOwnedByCurrentThread());
   ASSERT(worker->owned_ && !IsIdle(worker));
@@ -218,7 +211,6 @@ void ThreadPool::SetIdleLocked(Worker* worker) {
   count_idle_++;
   count_running_--;
 }
-
 
 void ThreadPool::SetIdleAndReapExited(Worker* worker) {
   JoinList* list = NULL;
@@ -248,7 +240,6 @@ void ThreadPool::SetIdleAndReapExited(Worker* worker) {
   }
 }
 
-
 bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
   MutexLocker ml(&mutex_);
   if (shutting_down_) {
@@ -273,14 +264,12 @@ bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
   return true;
 }
 
-
 // Only call while holding the exit_monitor_
 void ThreadPool::AddWorkerToShutdownList(Worker* worker) {
   ASSERT(exit_monitor_.IsOwnedByCurrentThread());
   worker->shutdown_next_ = shutting_down_workers_;
   shutting_down_workers_ = worker;
 }
-
 
 // Only call while holding the exit_monitor_
 bool ThreadPool::RemoveWorkerFromShutdownList(Worker* worker) {
@@ -306,11 +295,9 @@ bool ThreadPool::RemoveWorkerFromShutdownList(Worker* worker) {
   return false;
 }
 
-
 void ThreadPool::JoinList::AddLocked(ThreadJoinId id, JoinList** list) {
   *list = new JoinList(id, *list);
 }
-
 
 void ThreadPool::JoinList::Join(JoinList** list) {
   while (*list != NULL) {
@@ -321,12 +308,9 @@ void ThreadPool::JoinList::Join(JoinList** list) {
   }
 }
 
-
 ThreadPool::Task::Task() {}
 
-
 ThreadPool::Task::~Task() {}
-
 
 ThreadPool::Worker::Worker(ThreadPool* pool)
     : pool_(pool),
@@ -338,12 +322,10 @@ ThreadPool::Worker::Worker(ThreadPool* pool)
       idle_next_(NULL),
       shutdown_next_(NULL) {}
 
-
 ThreadId ThreadPool::Worker::id() {
   MonitorLocker ml(&monitor_);
   return id_;
 }
-
 
 void ThreadPool::Worker::StartThread() {
 #if defined(DEBUG)
@@ -360,14 +342,12 @@ void ThreadPool::Worker::StartThread() {
   }
 }
 
-
 void ThreadPool::Worker::SetTask(Task* task) {
   MonitorLocker ml(&monitor_);
   ASSERT(task_ == NULL);
   task_ = task;
   ml.Notify();
 }
-
 
 static int64_t ComputeTimeout(int64_t idle_start) {
   int64_t worker_timeout_micros =
@@ -387,7 +367,6 @@ static int64_t ComputeTimeout(int64_t idle_start) {
     }
   }
 }
-
 
 bool ThreadPool::Worker::Loop() {
   MonitorLocker ml(&monitor_);
@@ -430,13 +409,11 @@ bool ThreadPool::Worker::Loop() {
   return false;
 }
 
-
 void ThreadPool::Worker::Shutdown() {
   MonitorLocker ml(&monitor_);
   done_ = true;
   ml.Notify();
 }
-
 
 // static
 void ThreadPool::Worker::Main(uword args) {

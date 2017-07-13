@@ -37,7 +37,6 @@ class DeferredSlot {
   DISALLOW_COPY_AND_ASSIGN(DeferredSlot);
 };
 
-
 class DeferredDouble : public DeferredSlot {
  public:
   DeferredDouble(double value, RawObject** slot, DeferredSlot* next)
@@ -52,7 +51,6 @@ class DeferredDouble : public DeferredSlot {
 
   DISALLOW_COPY_AND_ASSIGN(DeferredDouble);
 };
-
 
 class DeferredMint : public DeferredSlot {
  public:
@@ -69,7 +67,6 @@ class DeferredMint : public DeferredSlot {
   DISALLOW_COPY_AND_ASSIGN(DeferredMint);
 };
 
-
 class DeferredFloat32x4 : public DeferredSlot {
  public:
   DeferredFloat32x4(simd128_value_t value, RawObject** slot, DeferredSlot* next)
@@ -84,7 +81,6 @@ class DeferredFloat32x4 : public DeferredSlot {
 
   DISALLOW_COPY_AND_ASSIGN(DeferredFloat32x4);
 };
-
 
 class DeferredFloat64x2 : public DeferredSlot {
  public:
@@ -101,7 +97,6 @@ class DeferredFloat64x2 : public DeferredSlot {
   DISALLOW_COPY_AND_ASSIGN(DeferredFloat64x2);
 };
 
-
 class DeferredInt32x4 : public DeferredSlot {
  public:
   DeferredInt32x4(simd128_value_t value, RawObject** slot, DeferredSlot* next)
@@ -116,7 +111,6 @@ class DeferredInt32x4 : public DeferredSlot {
 
   DISALLOW_COPY_AND_ASSIGN(DeferredInt32x4);
 };
-
 
 // Describes a slot that contains a reference to an object that had its
 // allocation removed by AllocationSinking pass.
@@ -135,7 +129,6 @@ class DeferredObjectRef : public DeferredSlot {
 
   DISALLOW_COPY_AND_ASSIGN(DeferredObjectRef);
 };
-
 
 class DeferredRetAddr : public DeferredSlot {
  public:
@@ -156,7 +149,6 @@ class DeferredRetAddr : public DeferredSlot {
   DISALLOW_COPY_AND_ASSIGN(DeferredRetAddr);
 };
 
-
 class DeferredPcMarker : public DeferredSlot {
  public:
   DeferredPcMarker(intptr_t index, RawObject** slot, DeferredSlot* next)
@@ -172,7 +164,6 @@ class DeferredPcMarker : public DeferredSlot {
   DISALLOW_COPY_AND_ASSIGN(DeferredPcMarker);
 };
 
-
 class DeferredPp : public DeferredSlot {
  public:
   DeferredPp(intptr_t index, RawObject** slot, DeferredSlot* next)
@@ -187,7 +178,6 @@ class DeferredPp : public DeferredSlot {
 
   DISALLOW_COPY_AND_ASSIGN(DeferredPp);
 };
-
 
 // Describes an object which allocation was removed by AllocationSinking pass.
 // Arguments for materialization are stored as a part of expression stack

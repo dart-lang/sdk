@@ -30,7 +30,6 @@ RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
   return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
 }
 
-
 RawFunction* Resolver::ResolveDynamicForReceiverClass(
     const Class& receiver_class,
     const String& function_name,
@@ -60,7 +59,6 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
   }
   return function.raw();
 }
-
 
 RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
                                              const Class& receiver_class,
@@ -142,7 +140,6 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
   return function.raw();
 }
 
-
 RawFunction* Resolver::ResolveStatic(const Library& library,
                                      const String& class_name,
                                      const String& function_name,
@@ -191,7 +188,6 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
   return function.raw();
 }
 
-
 RawFunction* Resolver::ResolveStatic(const Class& cls,
                                      const String& function_name,
                                      intptr_t type_args_len,
@@ -222,7 +218,6 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
   }
   return function.raw();
 }
-
 
 RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
                                                  const String& function_name,

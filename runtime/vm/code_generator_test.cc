@@ -5,12 +5,12 @@
 #include "platform/globals.h"
 
 #include "platform/assert.h"
-#include "vm/globals.h"
 #include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
+#include "vm/globals.h"
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
 #include "vm/runtime_entry.h"
@@ -22,19 +22,16 @@ namespace dart {
 
 static const TokenPosition kPos = TokenPosition::kMinSource;
 
-
 CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {
   test->node_sequence()->Add(new ReturnNode(kPos));
 }
 CODEGEN_TEST_RUN(SimpleReturnCodegen, Instance::null())
-
 
 CODEGEN_TEST_GENERATE(SmiReturnCodegen, test) {
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
 }
 CODEGEN_TEST_RUN(SmiReturnCodegen, Smi::New(3))
-
 
 CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
   // Wrap the SmiReturnCodegen test above as a static function and call it.
@@ -44,7 +41,6 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
 }
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
-
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
   const String& variable_name =
@@ -52,7 +48,6 @@ static LocalVariable* NewTestLocalVariable(const char* name) {
   const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
   return new LocalVariable(kPos, kPos, variable_name, variable_type);
 }
-
 
 CODEGEN_TEST_GENERATE(ReturnParameterCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -67,7 +62,6 @@ CODEGEN_TEST_GENERATE(ReturnParameterCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, parameter)));
 }
 
-
 CODEGEN_TEST2_GENERATE(StaticCallReturnParameterCodegen, function, test) {
   // Wrap and call the ReturnParameterCodegen test above as a static function.
   SequenceNode* node_seq = test->node_sequence();
@@ -79,7 +73,6 @@ CODEGEN_TEST2_GENERATE(StaticCallReturnParameterCodegen, function, test) {
 CODEGEN_TEST2_RUN(StaticCallReturnParameterCodegen,
                   ReturnParameterCodegen,
                   Smi::New(3))
-
 
 CODEGEN_TEST_GENERATE(SmiParamSumCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -103,7 +96,6 @@ CODEGEN_TEST_GENERATE(SmiParamSumCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, sum)));
 }
 
-
 CODEGEN_TEST2_GENERATE(StaticCallSmiParamSumCodegen, function, test) {
   // Wrap and call the SmiParamSumCodegen test above as a static function.
   SequenceNode* node_seq = test->node_sequence();
@@ -115,7 +107,6 @@ CODEGEN_TEST2_GENERATE(StaticCallSmiParamSumCodegen, function, test) {
 }
 CODEGEN_TEST2_RUN(StaticCallSmiParamSumCodegen, SmiParamSumCodegen, Smi::New(5))
 
-
 CODEGEN_TEST_GENERATE(SmiAddCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   LiteralNode* a = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
@@ -124,7 +115,6 @@ CODEGEN_TEST_GENERATE(SmiAddCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, add_node));
 }
 CODEGEN_TEST_RUN(SmiAddCodegen, Smi::New(5))
-
 
 CODEGEN_TEST_GENERATE(GenericAddCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -138,7 +128,6 @@ CODEGEN_TEST_GENERATE(GenericAddCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, add_node_2));
 }
 CODEGEN_TEST_RUN(GenericAddCodegen, Double::New(15.0))
-
 
 CODEGEN_TEST_GENERATE(SmiBinaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -155,7 +144,6 @@ CODEGEN_TEST_GENERATE(SmiBinaryOpCodegen, test) {
 }
 CODEGEN_TEST_RUN(SmiBinaryOpCodegen, Smi::New(3))
 
-
 CODEGEN_TEST_GENERATE(BoolNotCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   LiteralNode* b = new LiteralNode(kPos, Bool::False());
@@ -163,7 +151,6 @@ CODEGEN_TEST_GENERATE(BoolNotCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, not_node));
 }
 CODEGEN_TEST_RUN(BoolNotCodegen, Bool::True().raw())
-
 
 CODEGEN_TEST_GENERATE(BoolAndCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -173,7 +160,6 @@ CODEGEN_TEST_GENERATE(BoolAndCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, and_node));
 }
 CODEGEN_TEST_RUN(BoolAndCodegen, Bool::False().raw())
-
 
 CODEGEN_TEST_GENERATE(BinaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -189,7 +175,6 @@ CODEGEN_TEST_GENERATE(BinaryOpCodegen, test) {
 }
 CODEGEN_TEST_RUN(BinaryOpCodegen, Double::New(2.5));
 
-
 CODEGEN_TEST_GENERATE(SmiUnaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   LiteralNode* a = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(12)));
@@ -197,7 +182,6 @@ CODEGEN_TEST_GENERATE(SmiUnaryOpCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, neg_node));
 }
 CODEGEN_TEST_RUN(SmiUnaryOpCodegen, Smi::New(-12))
-
 
 CODEGEN_TEST_GENERATE(DoubleUnaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
@@ -207,7 +191,6 @@ CODEGEN_TEST_GENERATE(DoubleUnaryOpCodegen, test) {
   node_seq->Add(new ReturnNode(kPos, neg_node));
 }
 CODEGEN_TEST_RUN(DoubleUnaryOpCodegen, Double::New(-12.0))
-
 
 static Library& MakeTestLibrary(const char* url) {
   Thread* thread = Thread::Current();
@@ -224,13 +207,11 @@ static Library& MakeTestLibrary(const char* url) {
   return lib;
 }
 
-
 static RawClass* LookupClass(const Library& lib, const char* name) {
   const String& cls_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
   return lib.LookupClass(cls_name);
 }
-
 
 CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
   const char* kScriptChars =
@@ -277,7 +258,6 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
 }
 CODEGEN_TEST_RUN(StaticCallCodegen, Smi::New(42 + 5))
 
-
 CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   const char* kScriptChars =
       "class A {\n"
@@ -305,15 +285,15 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
       String::ZoneHandle(Symbols::New(Thread::Current(), "bar"));
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
-  InstanceCallNode* call_bar = new InstanceCallNode(
-      kPos, new ConstructorCallNode(kPos, no_type_arguments, constructor,
-                                    no_arguments),
-      function_bar_name, no_arguments);
+  InstanceCallNode* call_bar =
+      new InstanceCallNode(kPos,
+                           new ConstructorCallNode(kPos, no_type_arguments,
+                                                   constructor, no_arguments),
+                           function_bar_name, no_arguments);
 
   test->node_sequence()->Add(new ReturnNode(kPos, call_bar));
 }
 CODEGEN_TEST_RUN(InstanceCallCodegen, Smi::New(42))
-
 
 // Test allocation of dart objects.
 CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
@@ -344,7 +324,6 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
       new ReturnNode(kPos, new ConstructorCallNode(kPos, no_type_arguments,
                                                    constructor, no_arguments)));
 }
-
 
 CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   const Object& result = Object::Handle(

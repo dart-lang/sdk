@@ -46,7 +46,6 @@ Isolate* KernelIsolate::isolate_ = NULL;
 bool KernelIsolate::initializing_ = true;
 Dart_Port KernelIsolate::kernel_port_ = ILLEGAL_PORT;
 
-
 class RunKernelTask : public ThreadPool::Task {
  public:
   virtual void Run() {
@@ -199,7 +198,6 @@ class RunKernelTask : public ThreadPool::Task {
   }
 };
 
-
 void KernelIsolate::Run() {
   if (!FLAG_use_dart_frontend) {
     return;
@@ -209,7 +207,6 @@ void KernelIsolate::Run() {
   create_callback_ = Isolate::CreateCallback();
   Dart::thread_pool()->Run(new RunKernelTask());
 }
-
 
 void KernelIsolate::InitCallback(Isolate* I) {
   Thread* T = Thread::Current();
@@ -228,43 +225,36 @@ void KernelIsolate::InitCallback(Isolate* I) {
   SetKernelIsolate(I);
 }
 
-
 bool KernelIsolate::IsKernelIsolate(const Isolate* isolate) {
   MonitorLocker ml(monitor_);
   return isolate == isolate_;
 }
-
 
 bool KernelIsolate::IsRunning() {
   MonitorLocker ml(monitor_);
   return (kernel_port_ != ILLEGAL_PORT) && (isolate_ != NULL);
 }
 
-
 bool KernelIsolate::Exists() {
   MonitorLocker ml(monitor_);
   return isolate_ != NULL;
 }
-
 
 void KernelIsolate::SetKernelIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   isolate_ = isolate;
 }
 
-
 void KernelIsolate::SetLoadPort(Dart_Port port) {
   MonitorLocker ml(monitor_);
   kernel_port_ = port;
 }
-
 
 void KernelIsolate::FinishedInitializing() {
   MonitorLocker ml(monitor_);
   initializing_ = false;
   ml.NotifyAll();
 }
-
 
 Dart_Port KernelIsolate::WaitForKernelPort() {
   if (!FLAG_use_dart_frontend) {
@@ -276,7 +266,6 @@ Dart_Port KernelIsolate::WaitForKernelPort() {
   }
   return kernel_port_;
 }
-
 
 class KernelCompilationRequest : public ValueObject {
  public:
@@ -484,7 +473,6 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   return request.SendAndWaitForResponse(kernel_port, script_uri,
                                         source_file_count, source_files);
 }
-
 
 #endif  // DART_PRECOMPILED_RUNTIME
 

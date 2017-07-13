@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
+#include "vm/parser.h"
 #include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
 #include "vm/debugger.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
-#include "vm/parser.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/unit_test.h"
@@ -16,7 +15,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, show_invisible_frames);
-
 
 static void DumpFunction(const Library& lib,
                          const char* cname,
@@ -51,7 +49,6 @@ static void DumpFunction(const Library& lib,
   }
   EXPECT(retval);
 }
-
 
 void CheckField(const Library& lib,
                 const char* class_name,
@@ -89,7 +86,6 @@ void CheckField(const Library& lib,
   EXPECT_EQ(field.is_static(), expect_static);
 }
 
-
 void CheckFunction(const Library& lib,
                    const char* class_name,
                    const char* function_name,
@@ -108,7 +104,6 @@ void CheckFunction(const Library& lib,
   }
   EXPECT(!function.IsNull());
 }
-
 
 TEST_CASE(ParseClassDefinition) {
   const char* script_chars =
@@ -145,7 +140,6 @@ TEST_CASE(ParseClassDefinition) {
   CheckFunction(lib, "A", "foo", true);
 }
 
-
 TEST_CASE(Parser_TopLevel) {
   const char* script_chars =
       "class A extends B {    \n"
@@ -175,12 +169,9 @@ TEST_CASE(Parser_TopLevel) {
   DumpFunction(lib, "B", "bam");
 }
 
-
 #ifndef PRODUCT
 
-
 static char* saved_vars = NULL;
-
 
 static char* SkipIndex(const char* input) {
   char* output_buffer = new char[strlen(input)];
@@ -210,7 +201,6 @@ static char* SkipIndex(const char* input) {
   return output_buffer;
 }
 
-
 // Saves the var descriptors for all frames on the stack as a string.
 static void SaveVars(Dart_IsolateId isolate_id,
                      intptr_t bp_id,
@@ -239,7 +229,6 @@ static void SaveVars(Dart_IsolateId isolate_id,
   saved_vars = buffer;
 }
 
-
 // Uses the debugger to pause the program and capture the variable
 // descriptors for all frames on the stack.
 static char* CaptureVarsAtLine(Dart_Handle lib, const char* entry, int line) {
@@ -255,7 +244,6 @@ static char* CaptureVarsAtLine(Dart_Handle lib, const char* entry, int line) {
   FLAG_show_invisible_frames = saved_flag;
   return tmp;
 }
-
 
 TEST_CASE(Parser_AllocateVariables_CapturedVar) {
   const char* kScriptChars =
@@ -293,7 +281,6 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
       vars);
   free(vars);
 }
-
 
 TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
   const char* kScriptChars =
@@ -349,7 +336,6 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       vars);
   free(vars);
 }
-
 
 TEST_CASE(Parser_AllocateVariables_TwoChains) {
   const char* kScriptChars =
@@ -430,7 +416,6 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
   free(vars);
 }
 
-
 TEST_CASE(Parser_AllocateVariables_Issue7681) {
   // This is a distilled version of the program from Issue 7681.
   //
@@ -487,7 +472,6 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       vars);
   free(vars);
 }
-
 
 TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
   // This test verifies that...

@@ -77,11 +77,9 @@ class ARMDecoder : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ARMDecoder);
 };
 
-
 // Support for assertions in the ARMDecoder formatting functions.
 #define STRING_STARTS_WITH(string, compare_string)                             \
   (strncmp(string, compare_string, strlen(compare_string)) == 0)
-
 
 // Append the str to the output buffer.
 void ARMDecoder::Print(const char* str) {
@@ -93,7 +91,6 @@ void ARMDecoder::Print(const char* str) {
   buffer_[buffer_pos_] = '\0';
 }
 
-
 // These condition names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
 static const char* cond_names[kNumberOfConditions] = {
@@ -101,12 +98,10 @@ static const char* cond_names[kNumberOfConditions] = {
     "hi", "ls", "ge", "lt", "gt", "le", "",   "invalid",
 };
 
-
 // Print the condition guarding the instruction.
 void ARMDecoder::PrintCondition(Instr* instr) {
   Print(cond_names[instr->ConditionField()]);
 }
-
 
 // These register names are defined in a way to match the native disassembler
 // formatting, except for register alias pp (r5).
@@ -121,14 +116,12 @@ static const char* reg_names[kNumberOfCpuRegisters] = {
 #endif
 };
 
-
 // Print the register name according to the active name converter.
 void ARMDecoder::PrintRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfCpuRegisters);
   Print(reg_names[reg]);
 }
-
 
 void ARMDecoder::PrintSRegister(int reg) {
   ASSERT(0 <= reg);
@@ -137,14 +130,12 @@ void ARMDecoder::PrintSRegister(int reg) {
                              remaining_size_in_buffer(), "s%d", reg);
 }
 
-
 void ARMDecoder::PrintDRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfDRegisters);
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                              remaining_size_in_buffer(), "d%d", reg);
 }
-
 
 void ARMDecoder::PrintQRegister(int reg) {
   ASSERT(0 <= reg);
@@ -153,11 +144,9 @@ void ARMDecoder::PrintQRegister(int reg) {
                              remaining_size_in_buffer(), "q%d", reg);
 }
 
-
 // These shift names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
 static const char* shift_names[kMaxShift] = {"lsl", "lsr", "asr", "ror"};
-
 
 // Print the register shift operands for the instruction. Generally used for
 // data processing instructions.
@@ -193,7 +182,6 @@ void ARMDecoder::PrintShiftRm(Instr* instr) {
   }
 }
 
-
 // Print the immediate operand for the instruction. Generally used for data
 // processing instructions.
 void ARMDecoder::PrintShiftImm(Instr* instr) {
@@ -203,7 +191,6 @@ void ARMDecoder::PrintShiftImm(Instr* instr) {
   buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                              remaining_size_in_buffer(), "#%d", imm);
 }
-
 
 // Print PU formatting to reduce complexity of FormatOption.
 void ARMDecoder::PrintPU(Instr* instr) {
@@ -230,7 +217,6 @@ void ARMDecoder::PrintPU(Instr* instr) {
     }
   }
 }
-
 
 // Handle all register based formatting in these functions to reduce the
 // complexity of FormatOption.
@@ -287,7 +273,6 @@ int ARMDecoder::FormatRegister(Instr* instr, const char* format) {
   return -1;
 }
 
-
 int ARMDecoder::FormatSRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 's');
   if (format[1] == 'n') {  // 'sn: Sn register
@@ -327,7 +312,6 @@ int ARMDecoder::FormatSRegister(Instr* instr, const char* format) {
   return -1;
 }
 
-
 void ARMDecoder::PrintDRegisterList(int start, int reg_count) {
   Print("{");
   for (int i = start; i < start + reg_count; i++) {
@@ -338,7 +322,6 @@ void ARMDecoder::PrintDRegisterList(int start, int reg_count) {
   }
   Print("}");
 }
-
 
 int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 'd');
@@ -371,7 +354,6 @@ int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
   return -1;
 }
 
-
 int ARMDecoder::FormatQRegister(Instr* instr, const char* format) {
   ASSERT(format[0] == 'q');
   if (format[1] == 'n') {  // 'qn: Qn register
@@ -390,7 +372,6 @@ int ARMDecoder::FormatQRegister(Instr* instr, const char* format) {
   UNREACHABLE();
   return -1;
 }
-
 
 // FormatOption takes a formatting string and interprets it based on
 // the current instructions. The format string points to the first
@@ -623,7 +604,6 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
   return -1;
 }
 
-
 // Format takes a formatting string for a whole instruction and prints it into
 // the output buffer. All escaped options are handed to FormatOption to be
 // parsed further.
@@ -640,13 +620,11 @@ void ARMDecoder::Format(Instr* instr, const char* format) {
   buffer_[buffer_pos_] = '\0';
 }
 
-
 // For currently unimplemented decodings the disassembler calls Unknown(instr)
 // which will just print "unknown" of the instruction bits.
 void ARMDecoder::Unknown(Instr* instr) {
   Format(instr, "unknown");
 }
-
 
 void ARMDecoder::DecodeType01(Instr* instr) {
   if (!instr->IsDataProcessing()) {
@@ -932,7 +910,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
   }
 }
 
-
 void ARMDecoder::DecodeType2(Instr* instr) {
   switch (instr->PUField()) {
     case 0: {
@@ -966,7 +943,6 @@ void ARMDecoder::DecodeType2(Instr* instr) {
     }
   }
 }
-
 
 void ARMDecoder::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
@@ -1014,7 +990,6 @@ void ARMDecoder::DecodeType3(Instr* instr) {
   }
 }
 
-
 void ARMDecoder::DecodeType4(Instr* instr) {
   if (instr->Bit(22) == 1) {
     Unknown(instr);  // Privileged mode currently not supported.
@@ -1025,11 +1000,9 @@ void ARMDecoder::DecodeType4(Instr* instr) {
   }
 }
 
-
 void ARMDecoder::DecodeType5(Instr* instr) {
   Format(instr, "b'l'cond 'target ; 'dest");
 }
-
 
 void ARMDecoder::DecodeType6(Instr* instr) {
   if (instr->IsVFPDoubleTransfer()) {
@@ -1094,7 +1067,6 @@ void ARMDecoder::DecodeType6(Instr* instr) {
     Unknown(instr);
   }
 }
-
 
 void ARMDecoder::DecodeType7(Instr* instr) {
   if (instr->Bit(24) == 1) {
@@ -1327,7 +1299,6 @@ void ARMDecoder::DecodeType7(Instr* instr) {
   }
 }
 
-
 void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
   ASSERT(instr->ConditionField() == kSpecialCondition);
   if (instr->Bit(6) == 1) {
@@ -1457,7 +1428,6 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
   }
 }
 
-
 void ARMDecoder::InstructionDecode(uword pc) {
   Instr* instr = Instr::At(pc);
 
@@ -1511,7 +1481,6 @@ void ARMDecoder::InstructionDecode(uword pc) {
     }
   }
 }
-
 
 void Disassembler::DecodeInstruction(char* hex_buffer,
                                      intptr_t hex_size,

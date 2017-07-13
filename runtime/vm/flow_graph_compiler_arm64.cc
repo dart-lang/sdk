@@ -26,7 +26,6 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -35,21 +34,17 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   }
 }
 
-
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
 }
-
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   return false;
 }
 
-
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
-
 
 bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
   // ARM does not have a short instruction sequence for converting int64 to
@@ -57,11 +52,9 @@ bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
   return false;
 }
 
-
 bool FlowGraphCompiler::SupportsHardwareDivision() {
   return true;
 }
-
 
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
@@ -69,12 +62,10 @@ void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!assembler()->constant_pool_allowed());
 }
 
-
 void FlowGraphCompiler::ExitIntrinsicMode() {
   ASSERT(intrinsic_mode());
   intrinsic_mode_ = false;
 }
-
 
 RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
@@ -162,7 +153,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   return builder->CreateDeoptInfo(deopt_table);
 }
 
-
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
@@ -182,9 +172,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #undef __
 }
 
-
 #define __ assembler()->
-
 
 // Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
@@ -198,7 +186,6 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   __ b(is_false);
   __ Bind(&fall_through);
 }
-
 
 // R0: instance (must be preserved).
 // R1: instantiator type arguments (if used).
@@ -235,7 +222,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   GenerateBoolToJump(R1, is_instance_lbl, is_not_instance_lbl);
   return type_test_cache.raw();
 }
-
 
 // Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
 // type test is conclusive, otherwise fallthrough if a type test could not
@@ -315,7 +301,6 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
-
 void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
                                       Label* is_equal_lbl,
@@ -326,7 +311,6 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
   }
   __ b(is_not_equal_lbl);
 }
-
 
 // Testing against an instantiated type with no arguments, without
 // SubtypeTestCache.
@@ -395,7 +379,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   return true;
 }
 
-
 // Uses SubtypeTestCache to store instance class and result.
 // R0: instance to test.
 // Clobbers R1-R5.
@@ -426,7 +409,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
                                      kFunctionTypeArgumentsReg, kTempReg,
                                      is_instance_lbl, is_not_instance_lbl);
 }
-
 
 // Generates inlined check if 'type' is a type parameter or type itself
 // R0: instance (preserved).
@@ -506,7 +488,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   return SubtypeTestCache::null();
 }
 
-
 // Inputs:
 // - R0: instance being type checked (preserved).
 // - R1: optional instantiator type arguments (preserved).
@@ -548,7 +529,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   return GenerateUninstantiatedTypeTest(token_pos, type, is_instance_lbl,
                                         is_not_instance_lbl);
 }
-
 
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
@@ -621,7 +601,6 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   // Remove instantiator type arguments and function type arguments.
   __ Drop(2);
 }
-
 
 // Optimize assignable type check by adding inlined tests for:
 // - NULL -> return NULL.
@@ -696,7 +675,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ PopPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
 }
 
-
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (is_optimizing()) {
     return;
@@ -706,7 +684,6 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
     __ Push(defn->locs()->out(0).reg());
   }
 }
-
 
 // Input parameters:
 //   R4: arguments descriptor array.
@@ -801,8 +778,9 @@ void FlowGraphCompiler::CopyParameters() {
     __ add(R7, FP, Operand(R7, LSL, 2));
     __ AddImmediate(R7, kParamEndSlotFromFp * kWordSize);
     // Let R6 point to the entry of the first named argument.
-    __ add(R6, R4, Operand(ArgumentsDescriptor::first_named_entry_offset() -
-                           kHeapObjectTag));
+    __ add(R6, R4,
+           Operand(ArgumentsDescriptor::first_named_entry_offset() -
+                   kHeapObjectTag));
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter;
       const int param_pos = opt_param_position[i];
@@ -909,7 +887,6 @@ void FlowGraphCompiler::CopyParameters() {
   __ b(&null_args_loop, PL);
 }
 
-
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // LR: return address.
   // SP: receiver.
@@ -919,7 +896,6 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ LoadFieldFromOffset(R0, R0, offset);
   __ ret();
 }
-
 
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   // LR: return address.
@@ -933,7 +909,6 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ LoadObject(R0, Object::null_object());
   __ ret();
 }
-
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
@@ -977,7 +952,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ EnterDartFrame(StackSize() * kWordSize, new_pp);
   }
 }
-
 
 // Input parameters:
 //   LR: return address.
@@ -1112,7 +1086,6 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
 }
 
-
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const StubEntry& stub_entry,
                                      RawPcDescriptors::Kind kind,
@@ -1121,7 +1094,6 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
   EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
 }
 
-
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
                                               const StubEntry& stub_entry,
                                               RawPcDescriptors::Kind kind,
@@ -1129,7 +1101,6 @@ void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
   __ BranchLinkPatchable(stub_entry);
   EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
 }
-
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
@@ -1149,7 +1120,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
 }
-
 
 void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                TokenPosition token_pos,
@@ -1177,7 +1147,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   AddStaticCallTarget(target);
 }
 
-
 void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
@@ -1199,7 +1168,6 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
   }
 }
 
-
 void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
@@ -1214,7 +1182,6 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   __ add(TMP, TMP, Operand(Smi::RawValue(1)));
   __ StoreFieldToOffset(TMP, R0, Array::element_offset(edge_id));
 }
-
 
 void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                                   const ICData& ic_data,
@@ -1237,7 +1204,6 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
   __ Drop(argument_count);
 }
 
-
 void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
                                          const ICData& ic_data,
                                          intptr_t argument_count,
@@ -1250,7 +1216,6 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
                    locs);
   __ Drop(argument_count);
 }
-
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const String& name,
@@ -1299,7 +1264,6 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Drop(argument_count);
 }
 
-
 void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
                                                    intptr_t argument_count,
                                                    intptr_t deopt_id,
@@ -1329,7 +1293,6 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ Drop(argument_count);
 }
 
-
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t argument_count,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
@@ -1342,7 +1305,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t argument_count,
                    RawPcDescriptors::kUnoptStaticCall, locs);
   __ Drop(argument_count);
 }
-
 
 void FlowGraphCompiler::EmitOptimizedStaticCall(
     const Function& function,
@@ -1365,7 +1327,6 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
                          RawPcDescriptors::kOther, locs, function);
   __ Drop(argument_count);
 }
-
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
@@ -1394,7 +1355,6 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
   return EQ;
 }
 
-
 Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                        Register right,
                                                        bool needs_number_check,
@@ -1419,7 +1379,6 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   }
   return EQ;
 }
-
 
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
@@ -1452,7 +1411,6 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   }
 }
 
-
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     Register reg = static_cast<Register>(i);
@@ -1473,7 +1431,6 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   }
 }
 
-
 #if defined(DEBUG)
 void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
   // Clobber temporaries that have not been manually preserved.
@@ -1488,7 +1445,6 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 }
 #endif
 
-
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
     intptr_t argument_count,
     const Array& arguments_descriptor) {
@@ -1498,18 +1454,15 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   __ LoadObject(R4, arguments_descriptor);
 }
 
-
 void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
   __ tsti(R0, Immediate(kSmiTagMask));
   // Jump if receiver is not Smi.
   __ b(label, if_smi ? EQ : NE);
 }
 
-
 void FlowGraphCompiler::EmitTestAndCallLoadCid() {
   __ LoadClassId(R2, R0);
 }
-
 
 int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
                                                const CidRange& range,
@@ -1527,10 +1480,8 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
   return bias;
 }
 
-
 #undef __
 #define __ compiler_->assembler()->
-
 
 void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* move = moves_[index];
@@ -1644,7 +1595,6 @@ void ParallelMoveResolver::EmitMove(int index) {
   move->Eliminate();
 }
 
-
 void ParallelMoveResolver::EmitSwap(int index) {
   MoveOperands* move = moves_[index];
   const Location source = move->src();
@@ -1733,17 +1683,14 @@ void ParallelMoveResolver::EmitSwap(int index) {
   }
 }
 
-
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
   UNREACHABLE();
 }
 
-
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   UNREACHABLE();
 }
-
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
@@ -1751,13 +1698,11 @@ void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
   UNREACHABLE();
 }
 
-
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
   UNREACHABLE();
 }
-
 
 void ParallelMoveResolver::Exchange(Register reg,
                                     Register base_reg,
@@ -1767,7 +1712,6 @@ void ParallelMoveResolver::Exchange(Register reg,
   __ LoadFromOffset(reg, base_reg, stack_offset);
   __ StoreToOffset(tmp.reg(), base_reg, stack_offset);
 }
-
 
 void ParallelMoveResolver::Exchange(Register base_reg1,
                                     intptr_t stack_offset1,
@@ -1781,26 +1725,21 @@ void ParallelMoveResolver::Exchange(Register base_reg1,
   __ StoreToOffset(tmp2.reg(), base_reg1, stack_offset1);
 }
 
-
 void ParallelMoveResolver::SpillScratch(Register reg) {
   __ Push(reg);
 }
-
 
 void ParallelMoveResolver::RestoreScratch(Register reg) {
   __ Pop(reg);
 }
 
-
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
   __ PushDouble(reg);
 }
 
-
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
   __ PopDouble(reg);
 }
-
 
 #undef __
 

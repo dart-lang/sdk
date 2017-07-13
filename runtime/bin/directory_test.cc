@@ -17,12 +17,10 @@ VM_UNIT_TEST_CASE(DirectoryCurrentNoScope) {
   free(current_dir);
 }
 
-
 TEST_CASE(DirectoryCurrent) {
   const char* current = dart::bin::Directory::Current();
   EXPECT_NOTNULL(current);
 }
-
 
 TEST_CASE(DirectoryExists) {
   const char* current = dart::bin::Directory::Current();
@@ -32,12 +30,10 @@ TEST_CASE(DirectoryExists) {
   EXPECT_EQ(dart::bin::Directory::EXISTS, r);
 }
 
-
 TEST_CASE(DirectorySystemTemp) {
   const char* system_temp = dart::bin::Directory::SystemTemp();
   EXPECT_NOTNULL(system_temp);
 }
-
 
 TEST_CASE(DirectorySystemTempExists) {
   const char* system_temp = dart::bin::Directory::SystemTemp();
@@ -47,7 +43,6 @@ TEST_CASE(DirectorySystemTempExists) {
       dart::bin::Directory::Exists(system_temp);
   EXPECT_EQ(dart::bin::Directory::EXISTS, r);
 }
-
 
 TEST_CASE(DirectoryCreateTemp) {
   const char* kTempPrefix = "test_prefix";
@@ -63,7 +58,6 @@ TEST_CASE(DirectoryCreateTemp) {
   // Cleanup.
   EXPECT(dart::bin::Directory::Delete(temp_dir, false));
 }
-
 
 TEST_CASE(DirectorySetCurrent) {
   const char* current = dart::bin::Directory::Current();
@@ -81,7 +75,6 @@ TEST_CASE(DirectorySetCurrent) {
 
   EXPECT(dart::bin::Directory::SetCurrent(current));
 }
-
 
 TEST_CASE(DirectoryCreateDelete) {
   const char* kTempDirName = "create_delete_test_name";
@@ -106,7 +99,6 @@ TEST_CASE(DirectoryCreateDelete) {
   EXPECT(dart::bin::Directory::Delete(name, false));
   delete[] name;
 }
-
 
 TEST_CASE(DirectoryRename) {
   const char* kTempDirName = "rename_test_name";

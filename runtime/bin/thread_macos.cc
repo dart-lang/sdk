@@ -33,7 +33,6 @@ namespace bin {
     FATAL2("pthread error: %d (%s)", result, error_message);                   \
   }
 
-
 #ifdef DEBUG
 #define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) {                                                           \
@@ -51,7 +50,6 @@ namespace bin {
   }
 #endif
 
-
 class ThreadStartData {
  public:
   ThreadStartData(Thread::ThreadStartFunction function, uword parameter)
@@ -66,7 +64,6 @@ class ThreadStartData {
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
-
 
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
@@ -83,7 +80,6 @@ static void* ThreadStart(void* data_ptr) {
 
   return NULL;
 }
-
 
 int Thread::Start(ThreadStartFunction function, uword parameter) {
   pthread_attr_t attr;
@@ -108,7 +104,6 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   return 0;
 }
 
-
 const ThreadLocalKey Thread::kUnsetThreadLocalKey =
     static_cast<pthread_key_t>(-1);
 const ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
@@ -121,13 +116,11 @@ ThreadLocalKey Thread::CreateThreadLocal() {
   return key;
 }
 
-
 void Thread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   int result = pthread_key_delete(key);
   VALIDATE_PTHREAD_RESULT(result);
 }
-
 
 void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
@@ -135,33 +128,27 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
-
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
-
 ThreadId Thread::GetCurrentThreadId() {
   return pthread_self();
 }
-
 
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
   return reinterpret_cast<intptr_t>(id);
 }
 
-
 bool Thread::Compare(ThreadId a, ThreadId b) {
   return (pthread_equal(a, b) != 0);
 }
 
-
 void Thread::InitOnce() {
   // Nothing to be done.
 }
-
 
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
@@ -181,13 +168,11 @@ Mutex::Mutex() {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
-
 Mutex::~Mutex() {
   int result = pthread_mutex_destroy(data_.mutex());
   // Verify that the pthread_mutex was destroyed.
   VALIDATE_PTHREAD_RESULT(result);
 }
-
 
 void Mutex::Lock() {
   int result = pthread_mutex_lock(data_.mutex());
@@ -196,7 +181,6 @@ void Mutex::Lock() {
   ASSERT(result == 0);  // Verify no other errors.
   // TODO(iposva): Do we need to track lock owners?
 }
-
 
 bool Mutex::TryLock() {
   int result = pthread_mutex_trylock(data_.mutex());
@@ -209,7 +193,6 @@ bool Mutex::TryLock() {
   return true;
 }
 
-
 void Mutex::Unlock() {
   // TODO(iposva): Do we need to track lock owners?
   int result = pthread_mutex_unlock(data_.mutex());
@@ -217,7 +200,6 @@ void Mutex::Unlock() {
   ASSERT(result != EPERM);
   ASSERT(result == 0);  // Verify no other errors.
 }
-
 
 Monitor::Monitor() {
   pthread_mutexattr_t attr;
@@ -239,7 +221,6 @@ Monitor::Monitor() {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
-
 Monitor::~Monitor() {
   int result = pthread_mutex_destroy(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
@@ -248,13 +229,11 @@ Monitor::~Monitor() {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
-
 void Monitor::Enter() {
   int result = pthread_mutex_lock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
   // TODO(iposva): Do we need to track lock owners?
 }
-
 
 void Monitor::Exit() {
   // TODO(iposva): Do we need to track lock owners?
@@ -262,11 +241,9 @@ void Monitor::Exit() {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
-
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
   return WaitMicros(millis * kMicrosecondsPerMillisecond);
 }
-
 
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   // TODO(iposva): Do we need to track lock owners?
@@ -296,13 +273,11 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   return retval;
 }
 
-
 void Monitor::Notify() {
   // TODO(iposva): Do we need to track lock owners?
   int result = pthread_cond_signal(data_.cond());
   VALIDATE_PTHREAD_RESULT(result);
 }
-
 
 void Monitor::NotifyAll() {
   // TODO(iposva): Do we need to track lock owners?

@@ -13,7 +13,6 @@
 
 namespace dart {
 
-
 FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   // Precondition: the (page containing the) header of the element is
   // writable.
@@ -43,18 +42,15 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   // writable.
 }
 
-
 void FreeListElement::InitOnce() {
   ASSERT(sizeof(FreeListElement) == kObjectAlignment);
   ASSERT(OFFSET_OF(FreeListElement, tags_) == Object::tags_offset());
 }
 
-
 intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
   if (size == 0) return 0;
   return ((size > RawObject::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
 }
-
 
 FreeList::FreeList()
     : mutex_(new Mutex()),
@@ -62,17 +58,14 @@ FreeList::FreeList()
   Reset();
 }
 
-
 FreeList::~FreeList() {
   delete mutex_;
 }
-
 
 uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
   MutexLocker ml(mutex_);
   return TryAllocateLocked(size, is_protected);
 }
-
 
 uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
   DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
@@ -189,12 +182,10 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
   return 0;
 }
 
-
 void FreeList::Free(uword addr, intptr_t size) {
   MutexLocker ml(mutex_);
   FreeLocked(addr, size);
 }
-
 
 void FreeList::FreeLocked(uword addr, intptr_t size) {
   DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
@@ -209,7 +200,6 @@ void FreeList::FreeLocked(uword addr, intptr_t size) {
   // Postcondition: the (page containing the) header is left writable.
 }
 
-
 void FreeList::Reset() {
   MutexLocker ml(mutex_);
   free_map_.Reset();
@@ -218,7 +208,6 @@ void FreeList::Reset() {
     free_lists_[i] = NULL;
   }
 }
-
 
 intptr_t FreeList::IndexForSize(intptr_t size) {
   ASSERT(size >= kObjectAlignment);
@@ -231,7 +220,6 @@ intptr_t FreeList::IndexForSize(intptr_t size) {
   return index;
 }
 
-
 void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   FreeListElement* next = free_lists_[index];
   if (next == NULL && index != kNumLists) {
@@ -242,7 +230,6 @@ void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   element->set_next(next);
   free_lists_[index] = element;
 }
-
 
 FreeListElement* FreeList::DequeueElement(intptr_t index) {
   FreeListElement* result = free_lists_[index];
@@ -261,7 +248,6 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
   return result;
 }
 
-
 intptr_t FreeList::LengthLocked(int index) const {
   DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
   ASSERT(index >= 0);
@@ -274,7 +260,6 @@ intptr_t FreeList::LengthLocked(int index) const {
   }
   return result;
 }
-
 
 void FreeList::PrintSmall() const {
   int small_sizes = 0;
@@ -298,7 +283,6 @@ void FreeList::PrintSmall() const {
   }
 }
 
-
 class IntptrPair {
  public:
   IntptrPair() : first_(-1), second_(-1) {}
@@ -321,7 +305,6 @@ class IntptrPair {
   intptr_t first_;
   intptr_t second_;
 };
-
 
 void FreeList::PrintLarge() const {
   int large_sizes = 0;
@@ -357,13 +340,11 @@ void FreeList::PrintLarge() const {
   }
 }
 
-
 void FreeList::Print() const {
   MutexLocker ml(mutex_);
   PrintSmall();
   PrintLarge();
 }
-
 
 void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
                                            intptr_t size,
@@ -392,12 +373,10 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
   }
 }
 
-
 FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
   MutexLocker ml(mutex_);
   return TryAllocateLargeLocked(minimum_size);
 }
-
 
 FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
   DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
@@ -427,7 +406,6 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
   }
   return NULL;
 }
-
 
 uword FreeList::TryAllocateSmallLocked(intptr_t size) {
   DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());

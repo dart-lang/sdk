@@ -15,12 +15,10 @@ void _printRawObject(RawObject* object) {
   OS::PrintErr("%s\n", Object::Handle(object).ToCString());
 }
 
-
 DART_EXPORT
 Object* _handle(RawObject* object) {
   return &Object::Handle(object);
 }
-
 
 // An utility method for convenient printing of dart stack traces when
 // inside 'gdb'. Note: This function will only work when there is a
@@ -32,7 +30,6 @@ void _printDartStackTrace() {
   const StackTrace& stacktrace = GetCurrentStackTrace(0);
   OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 }
-
 
 // Like _printDartStackTrace, but works in a NoSafepointScope. Use it if you're
 // in the middle of a GC or interested in stub frames.
@@ -48,7 +45,6 @@ void _printStackTrace() {
   }
 }
 
-
 class PrintObjectPointersVisitor : public ObjectPointerVisitor {
  public:
   PrintObjectPointersVisitor() : ObjectPointerVisitor(Isolate::Current()) {}
@@ -60,7 +56,6 @@ class PrintObjectPointersVisitor : public ObjectPointerVisitor {
     }
   }
 };
-
 
 DART_EXPORT
 void _printStackTraceWithLocals() {

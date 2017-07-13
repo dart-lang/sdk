@@ -119,7 +119,6 @@ class ArgumentsDescriptor : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 
-
 // DartEntry abstracts functionality needed to resolve dart functions
 // and invoke them from C++.
 class DartEntry : public AllStatic {
@@ -164,7 +163,6 @@ class DartEntry : public AllStatic {
                                        const Array& arguments,
                                        const Array& arguments_descriptor);
 };
-
 
 // Utility functions to call from VM into Dart bootstrap libraries.
 // Each may return an exception object.

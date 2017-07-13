@@ -38,7 +38,6 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
-
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
@@ -68,7 +67,6 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   return 0;
 }
 
-
 int OSThread::Start(const char* name,
                     ThreadStartFunction function,
                     uword parameter) {
@@ -89,10 +87,8 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-
 const ThreadId OSThread::kInvalidThreadId = 0;
 const ThreadJoinId OSThread::kInvalidThreadJoinId = NULL;
-
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
@@ -103,7 +99,6 @@ ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   return key;
 }
 
-
 void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
@@ -113,24 +108,20 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ThreadLocalData::RemoveThreadLocal(key);
 }
 
-
 intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
-
 ThreadId OSThread::GetCurrentThreadId() {
   return ::GetCurrentThreadId();
 }
-
 
 #ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ::GetCurrentThreadId();
 }
 #endif  // PRODUCT
-
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
@@ -147,7 +138,6 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   return handle;
 }
 
-
 void OSThread::Join(ThreadJoinId id) {
   HANDLE handle = static_cast<HANDLE>(id);
   ASSERT(handle != NULL);
@@ -156,22 +146,18 @@ void OSThread::Join(ThreadJoinId id) {
   ASSERT(res == WAIT_OBJECT_0);
 }
 
-
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
-
 ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
   return static_cast<ThreadId>(id);
 }
 
-
 bool OSThread::Compare(ThreadId a, ThreadId b) {
   return a == b;
 }
-
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 // On Windows stack limits for the current thread are available in
@@ -187,7 +173,6 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   return true;
 }
 
-
 void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
@@ -195,7 +180,6 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
     FATAL1("TlsSetValue failed %d", GetLastError());
   }
 }
-
 
 Mutex::Mutex() {
   // Allocate unnamed semaphore with initial count 1 and max count 1.
@@ -209,7 +193,6 @@ Mutex::Mutex() {
 #endif  // defined(DEBUG)
 }
 
-
 Mutex::~Mutex() {
   CloseHandle(data_.semaphore_);
 #if defined(DEBUG)
@@ -217,7 +200,6 @@ Mutex::~Mutex() {
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
-
 
 void Mutex::Lock() {
   DWORD result = WaitForSingleObject(data_.semaphore_, INFINITE);
@@ -229,7 +211,6 @@ void Mutex::Lock() {
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
-
 
 bool Mutex::TryLock() {
   // Attempt to pass the semaphore but return immediately.
@@ -248,7 +229,6 @@ bool Mutex::TryLock() {
   return false;
 }
 
-
 void Mutex::Unlock() {
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.
@@ -261,9 +241,7 @@ void Mutex::Unlock() {
   }
 }
 
-
 ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ = kUnsetThreadLocalKey;
-
 
 Monitor::Monitor() {
   InitializeCriticalSection(&data_.cs_);
@@ -277,7 +255,6 @@ Monitor::Monitor() {
 #endif  // defined(DEBUG)
 }
 
-
 Monitor::~Monitor() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -287,7 +264,6 @@ Monitor::~Monitor() {
   DeleteCriticalSection(&data_.cs_);
   DeleteCriticalSection(&data_.waiters_cs_);
 }
-
 
 bool Monitor::TryEnter() {
   // Attempt to pass the semaphore but return immediately.
@@ -303,7 +279,6 @@ bool Monitor::TryEnter() {
   return true;
 }
 
-
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
 
@@ -314,7 +289,6 @@ void Monitor::Enter() {
 #endif  // defined(DEBUG)
 }
 
-
 void Monitor::Exit() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -324,7 +298,6 @@ void Monitor::Exit() {
 
   LeaveCriticalSection(&data_.cs_);
 }
-
 
 void MonitorWaitData::ThreadExit() {
   if (MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey) {
@@ -340,7 +313,6 @@ void MonitorWaitData::ThreadExit() {
   }
 }
 
-
 void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   // Add the MonitorWaitData object to the list of objects waiting for
   // this monitor.
@@ -354,7 +326,6 @@ void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   }
   LeaveCriticalSection(&waiters_cs_);
 }
-
 
 void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   // Remove the MonitorWaitData object from the list of objects
@@ -386,7 +357,6 @@ void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   LeaveCriticalSection(&waiters_cs_);
 }
 
-
 void MonitorData::SignalAndRemoveFirstWaiter() {
   EnterCriticalSection(&waiters_cs_);
   MonitorWaitData* first = waiters_head_;
@@ -407,7 +377,6 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
   }
   LeaveCriticalSection(&waiters_cs_);
 }
-
 
 void MonitorData::SignalAndRemoveAllWaiters() {
   EnterCriticalSection(&waiters_cs_);
@@ -431,7 +400,6 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   LeaveCriticalSection(&waiters_cs_);
 }
 
-
 MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
@@ -453,7 +421,6 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   }
   return wait_data;
 }
-
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
 #if defined(DEBUG)
@@ -509,7 +476,6 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   return retval;
 }
 
-
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   // TODO(johnmccutchan): Investigate sub-millisecond sleep times on Windows.
   int64_t millis = micros / kMicrosecondsPerMillisecond;
@@ -522,13 +488,11 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   return Wait(millis);
 }
 
-
 void Monitor::Notify() {
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
   data_.SignalAndRemoveFirstWaiter();
 }
-
 
 void Monitor::NotifyAll() {
   // When running with assertions enabled we track the owner.
@@ -540,7 +504,6 @@ void Monitor::NotifyAll() {
   // Wait.
   data_.SignalAndRemoveAllWaiters();
 }
-
 
 void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
                                      ThreadDestructor destructor) {
@@ -561,7 +524,6 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
   thread_locals_->Add(ThreadLocalEntry(key, destructor));
 }
 
-
 void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   ASSERT(thread_locals_ != NULL);
   MutexLocker ml(mutex_, false);
@@ -579,7 +541,6 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   thread_locals_->RemoveAt(i);
 }
 
-
 // This function is executed on the thread that is exiting. It is invoked
 // by |OnDartThreadExit| (see below for notes on TLS destructors on Windows).
 void ThreadLocalData::RunDestructors() {
@@ -595,16 +556,13 @@ void ThreadLocalData::RunDestructors() {
   }
 }
 
-
 Mutex* ThreadLocalData::mutex_ = NULL;
 MallocGrowableArray<ThreadLocalEntry>* ThreadLocalData::thread_locals_ = NULL;
-
 
 void ThreadLocalData::InitOnce() {
   mutex_ = new Mutex();
   thread_locals_ = new MallocGrowableArray<ThreadLocalEntry>();
 }
-
 
 void ThreadLocalData::Shutdown() {
   if (mutex_ != NULL) {
@@ -616,7 +574,6 @@ void ThreadLocalData::Shutdown() {
     thread_locals_ = NULL;
   }
 }
-
 
 }  // namespace dart
 

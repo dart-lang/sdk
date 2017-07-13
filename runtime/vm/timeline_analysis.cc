@@ -18,14 +18,11 @@ DECLARE_FLAG(bool, timing);
 
 TimelineAnalysisThread::TimelineAnalysisThread(ThreadId id) : id_(id) {}
 
-
 TimelineAnalysisThread::~TimelineAnalysisThread() {}
-
 
 void TimelineAnalysisThread::AddBlock(TimelineEventBlock* block) {
   blocks_.Add(block);
 }
-
 
 static int CompareBlocksLowerTimeBound(TimelineEventBlock* const* a,
                                        TimelineEventBlock* const* b) {
@@ -36,7 +33,6 @@ static int CompareBlocksLowerTimeBound(TimelineEventBlock* const* a,
   return (*a)->LowerTimeBound() - (*b)->LowerTimeBound();
 }
 
-
 void TimelineAnalysisThread::Finalize() {
   blocks_.Sort(CompareBlocksLowerTimeBound);
   if (FLAG_trace_timeline_analysis) {
@@ -45,17 +41,14 @@ void TimelineAnalysisThread::Finalize() {
   }
 }
 
-
 TimelineAnalysisThreadEventIterator::TimelineAnalysisThreadEventIterator(
     TimelineAnalysisThread* thread) {
   Reset(thread);
 }
 
-
 TimelineAnalysisThreadEventIterator::~TimelineAnalysisThreadEventIterator() {
   Reset(NULL);
 }
-
 
 void TimelineAnalysisThreadEventIterator::Reset(
     TimelineAnalysisThread* thread) {
@@ -74,11 +67,9 @@ void TimelineAnalysisThreadEventIterator::Reset(
   current_ = block->At(event_cursor_++);
 }
 
-
 bool TimelineAnalysisThreadEventIterator::HasNext() const {
   return current_ != NULL;
 }
-
 
 TimelineEvent* TimelineAnalysisThreadEventIterator::Next() {
   ASSERT(current_ != NULL);
@@ -102,7 +93,6 @@ TimelineEvent* TimelineAnalysisThreadEventIterator::Next() {
   return r;
 }
 
-
 TimelineAnalysis::TimelineAnalysis(Zone* zone,
                                    Isolate* isolate,
                                    TimelineEventRecorder* recorder)
@@ -116,15 +106,12 @@ TimelineAnalysis::TimelineAnalysis(Zone* zone,
   ASSERT(recorder_ != NULL);
 }
 
-
 TimelineAnalysis::~TimelineAnalysis() {}
-
 
 void TimelineAnalysis::BuildThreads() {
   DiscoverThreads();
   FinalizeThreads();
 }
-
 
 TimelineAnalysisThread* TimelineAnalysis::GetThread(ThreadId tid) {
   // Linear lookup because we expect N (# of threads in an isolate) to be small.
@@ -138,7 +125,6 @@ TimelineAnalysisThread* TimelineAnalysis::GetThread(ThreadId tid) {
   return NULL;
 }
 
-
 TimelineAnalysisThread* TimelineAnalysis::GetOrAddThread(ThreadId tid) {
   TimelineAnalysisThread* thread = GetThread(tid);
   if (thread != NULL) {
@@ -149,7 +135,6 @@ TimelineAnalysisThread* TimelineAnalysis::GetOrAddThread(ThreadId tid) {
   threads_.Add(thread);
   return thread;
 }
-
 
 void TimelineAnalysis::DiscoverThreads() {
   TimelineEventBlockIterator it(recorder_);
@@ -179,7 +164,6 @@ void TimelineAnalysis::DiscoverThreads() {
   }
 }
 
-
 void TimelineAnalysis::FinalizeThreads() {
   for (intptr_t i = 0; i < threads_.length(); i++) {
     TimelineAnalysisThread* thread = threads_.At(i);
@@ -187,7 +171,6 @@ void TimelineAnalysis::FinalizeThreads() {
     thread->Finalize();
   }
 }
-
 
 void TimelineAnalysis::SetError(const char* format, ...) {
   ASSERT(!has_error_);
@@ -202,7 +185,6 @@ void TimelineAnalysis::SetError(const char* format, ...) {
   }
 }
 
-
 TimelineLabelPauseInfo::TimelineLabelPauseInfo(const char* name)
     : name_(name),
       inclusive_micros_(0),
@@ -212,16 +194,13 @@ TimelineLabelPauseInfo::TimelineLabelPauseInfo(const char* name)
   ASSERT(name_ != NULL);
 }
 
-
 void TimelineLabelPauseInfo::OnPush(int64_t micros, bool already_on_stack) {
   UpdateInclusiveMicros(micros, already_on_stack);
 }
 
-
 void TimelineLabelPauseInfo::OnPop(int64_t exclusive_micros) {
   UpdateExclusiveMicros(exclusive_micros);
 }
-
 
 void TimelineLabelPauseInfo::OnBeginPop(int64_t inclusive_micros,
                                         int64_t exclusive_micros,
@@ -229,7 +208,6 @@ void TimelineLabelPauseInfo::OnBeginPop(int64_t inclusive_micros,
   UpdateInclusiveMicros(inclusive_micros, already_on_stack);
   UpdateExclusiveMicros(exclusive_micros);
 }
-
 
 void TimelineLabelPauseInfo::UpdateInclusiveMicros(int64_t inclusive_micros,
                                                    bool already_on_stack) {
@@ -242,14 +220,12 @@ void TimelineLabelPauseInfo::UpdateInclusiveMicros(int64_t inclusive_micros,
   }
 }
 
-
 void TimelineLabelPauseInfo::UpdateExclusiveMicros(int64_t exclusive_micros) {
   add_exclusive_micros(exclusive_micros);
   if (exclusive_micros > max_exclusive_micros_) {
     max_exclusive_micros_ = exclusive_micros;
   }
 }
-
 
 void TimelineLabelPauseInfo::Aggregate(
     const TimelineLabelPauseInfo* thread_pause_info) {
@@ -264,17 +240,14 @@ void TimelineLabelPauseInfo::Aggregate(
   }
 }
 
-
 TimelinePauses::TimelinePauses(Zone* zone,
                                Isolate* isolate,
                                TimelineEventRecorder* recorder)
     : TimelineAnalysis(zone, isolate, recorder) {}
 
-
 void TimelinePauses::Setup() {
   BuildThreads();
 }
-
 
 void TimelinePauses::CalculatePauseTimesForThread(ThreadId tid) {
   if (has_error()) {
@@ -287,7 +260,6 @@ void TimelinePauses::CalculatePauseTimesForThread(ThreadId tid) {
   }
   ProcessThread(thread);
 }
-
 
 TimelineLabelPauseInfo* TimelinePauses::GetLabelPauseInfo(
     const char* name) const {
@@ -302,13 +274,11 @@ TimelineLabelPauseInfo* TimelinePauses::GetLabelPauseInfo(
   return NULL;
 }
 
-
 int64_t TimelinePauses::InclusiveTime(const char* name) const {
   TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
   ASSERT(pause_info != NULL);
   return pause_info->inclusive_micros();
 }
-
 
 int64_t TimelinePauses::ExclusiveTime(const char* name) const {
   TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
@@ -316,20 +286,17 @@ int64_t TimelinePauses::ExclusiveTime(const char* name) const {
   return pause_info->exclusive_micros();
 }
 
-
 int64_t TimelinePauses::MaxInclusiveTime(const char* name) const {
   TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
   ASSERT(pause_info != NULL);
   return pause_info->max_inclusive_micros();
 }
 
-
 int64_t TimelinePauses::MaxExclusiveTime(const char* name) const {
   TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
   ASSERT(pause_info != NULL);
   return pause_info->max_exclusive_micros();
 }
-
 
 void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
   ASSERT(thread != NULL);
@@ -379,7 +346,6 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
   }
 }
 
-
 // Verify that |event| is contained within all parent events on the stack.
 bool TimelinePauses::CheckStack(TimelineEvent* event) {
   ASSERT(event != NULL);
@@ -399,7 +365,6 @@ bool TimelinePauses::CheckStack(TimelineEvent* event) {
   return true;
 }
 
-
 void TimelinePauses::PopFinishedDurations(int64_t start) {
   while (stack_.length() > 0) {
     const StackItem& top = stack_.Last();
@@ -416,7 +381,6 @@ void TimelinePauses::PopFinishedDurations(int64_t start) {
     }
   }
 }
-
 
 void TimelinePauses::PopBegin(const char* label, int64_t end) {
   if (stack_.length() == 0) {
@@ -460,7 +424,6 @@ void TimelinePauses::PopBegin(const char* label, int64_t end) {
   }
 }
 
-
 void TimelinePauses::Push(TimelineEvent* event) {
   TimelineLabelPauseInfo* pause_info = GetOrAddLabelPauseInfo(event->label());
   ASSERT(pause_info != NULL);
@@ -494,7 +457,6 @@ void TimelinePauses::Push(TimelineEvent* event) {
   }
 }
 
-
 bool TimelinePauses::IsLabelOnStack(const char* label) const {
   ASSERT(label != NULL);
   for (intptr_t i = 0; i < stack_.length(); i++) {
@@ -506,17 +468,14 @@ bool TimelinePauses::IsLabelOnStack(const char* label) const {
   return false;
 }
 
-
 intptr_t TimelinePauses::StackDepth() const {
   return stack_.length();
 }
-
 
 TimelinePauses::StackItem& TimelinePauses::GetStackTop() {
   ASSERT(stack_.length() > 0);
   return stack_.Last();
 }
-
 
 TimelineLabelPauseInfo* TimelinePauses::GetOrAddLabelPauseInfo(
     const char* name) {
@@ -531,12 +490,9 @@ TimelineLabelPauseInfo* TimelinePauses::GetOrAddLabelPauseInfo(
   return pause_info;
 }
 
-
 TimelinePauseTrace::TimelinePauseTrace() {}
 
-
 TimelinePauseTrace::~TimelinePauseTrace() {}
-
 
 void TimelinePauseTrace::Print() {
   Thread* thread = Thread::Current();
@@ -576,7 +532,6 @@ void TimelinePauseTrace::Print() {
   THR_Print("\n");
 }
 
-
 TimelineLabelPauseInfo* TimelinePauseTrace::GetOrAddLabelPauseInfo(
     const char* name) {
   ASSERT(name != NULL);
@@ -593,7 +548,6 @@ TimelineLabelPauseInfo* TimelinePauseTrace::GetOrAddLabelPauseInfo(
   return pause_info;
 }
 
-
 void TimelinePauseTrace::Aggregate(
     const TimelineLabelPauseInfo* thread_pause_info) {
   ASSERT(thread_pause_info != NULL);
@@ -602,7 +556,6 @@ void TimelinePauseTrace::Aggregate(
   ASSERT(isolate_pause_info != NULL);
   isolate_pause_info->Aggregate(thread_pause_info);
 }
-
 
 void TimelinePauseTrace::PrintPauseInfo(
     const TimelineLabelPauseInfo* pause_info) {

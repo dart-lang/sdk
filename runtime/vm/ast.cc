@@ -10,7 +10,6 @@
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 
-
 namespace dart {
 
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
@@ -21,13 +20,11 @@ namespace dart {
 FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 #undef DEFINE_VISIT_FUNCTION
 
-
 #define DEFINE_NAME_FUNCTION(BaseName)                                         \
   const char* BaseName##Node::Name() const { return #BaseName; }
 
 FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
-
 
 const Field* AstNode::MayCloneField(const Field& value) {
   if (Compiler::IsBackgroundCompilation() ||
@@ -38,7 +35,6 @@ const Field* AstNode::MayCloneField(const Field& value) {
     return &value;
   }
 }
-
 
 // A visitor class to collect all the nodes (including children) into an
 // array.
@@ -60,19 +56,16 @@ class AstNodeCollector : public AstNodeVisitor {
   DISALLOW_COPY_AND_ASSIGN(AstNodeCollector);
 };
 
-
 void SequenceNode::CollectAllNodes(GrowableArray<AstNode*>* nodes) {
   AstNodeCollector node_collector(nodes);
   this->Visit(&node_collector);
 }
-
 
 void SequenceNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     NodeAt(i)->Visit(visitor);
   }
 }
-
 
 void SequenceNode::Add(AstNode* node) {
   if (node->IsReturnNode()) {
@@ -81,9 +74,7 @@ void SequenceNode::Add(AstNode* node) {
   nodes_.Add(node);
 }
 
-
 void PrimaryNode::VisitChildren(AstNodeVisitor* visitor) const {}
-
 
 void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
@@ -91,10 +82,8 @@ void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
   }
 }
 
-
 LetNode::LetNode(TokenPosition token_pos)
     : AstNode(token_pos), vars_(1), initializers_(1), nodes_(1) {}
-
 
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
   Thread* thread = Thread::Current();
@@ -110,7 +99,6 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   vars_.Add(temp_var);
   return temp_var;
 }
-
 
 void LetNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < num_temps(); ++i) {
@@ -151,13 +139,11 @@ const Instance* LetNode::EvalConstExpr() const {
   return last;
 }
 
-
 void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     ElementAt(i)->Visit(visitor);
   }
 }
-
 
 bool StringInterpolateNode::IsPotentiallyConst() const {
   for (int i = 0; i < value_->length(); i++) {
@@ -168,11 +154,9 @@ bool StringInterpolateNode::IsPotentiallyConst() const {
   return true;
 }
 
-
 bool LiteralNode::IsPotentiallyConst() const {
   return true;
 }
-
 
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   if (unary_op_kind == Token::kNEGATE) {
@@ -218,11 +202,9 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   return NULL;
 }
 
-
 const char* TypeNode::TypeName() const {
   return String::Handle(type().UserVisibleName()).ToCString();
 }
-
 
 bool ComparisonNode::IsKindValid() const {
   return Token::IsRelationalOperator(kind_) ||
@@ -230,11 +212,9 @@ bool ComparisonNode::IsKindValid() const {
          Token::IsTypeCastOperator(kind_);
 }
 
-
 const char* ComparisonNode::TokenName() const {
   return (kind_ == Token::kAS) ? "as" : Token::Str(kind_);
 }
-
 
 bool ComparisonNode::IsPotentiallyConst() const {
   switch (kind_) {
@@ -252,7 +232,6 @@ bool ComparisonNode::IsPotentiallyConst() const {
       return false;
   }
 }
-
 
 const Instance* ComparisonNode::EvalConstExpr() const {
   const Instance* left_val = this->left()->EvalConstExpr();
@@ -295,7 +274,6 @@ const Instance* ComparisonNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 bool BinaryOpNode::IsKindValid() const {
   switch (kind_) {
     case Token::kADD:
@@ -318,11 +296,9 @@ bool BinaryOpNode::IsKindValid() const {
   }
 }
 
-
 const char* BinaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
-
 
 bool BinaryOpNode::IsPotentiallyConst() const {
   switch (kind_) {
@@ -356,7 +332,6 @@ bool BinaryOpNode::IsPotentiallyConst() const {
       return false;
   }
 }
-
 
 const Instance* BinaryOpNode::EvalConstExpr() const {
   const Instance* left_val = this->left()->EvalConstExpr();
@@ -419,7 +394,6 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* UnaryOpNode::UnaryOpOrLiteral(TokenPosition token_pos,
                                        Token::Kind kind,
                                        AstNode* operand) {
@@ -429,7 +403,6 @@ AstNode* UnaryOpNode::UnaryOpOrLiteral(TokenPosition token_pos,
   }
   return new UnaryOpNode(token_pos, kind, operand);
 }
-
 
 bool UnaryOpNode::IsKindValid() const {
   switch (kind_) {
@@ -442,7 +415,6 @@ bool UnaryOpNode::IsKindValid() const {
   }
 }
 
-
 bool UnaryOpNode::IsPotentiallyConst() const {
   if (this->operand()->IsLiteralNode() &&
       this->operand()->AsLiteralNode()->literal().IsNull()) {
@@ -450,7 +422,6 @@ bool UnaryOpNode::IsPotentiallyConst() const {
   }
   return this->operand()->IsPotentiallyConst();
 }
-
 
 const Instance* UnaryOpNode::EvalConstExpr() const {
   const Instance* val = this->operand()->EvalConstExpr();
@@ -469,13 +440,11 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
   }
 }
 
-
 bool ConditionalExprNode::IsPotentiallyConst() const {
   return this->condition()->IsPotentiallyConst() &&
          this->true_expr()->IsPotentiallyConst() &&
          this->false_expr()->IsPotentiallyConst();
 }
-
 
 const Instance* ConditionalExprNode::EvalConstExpr() const {
   const Instance* cond = this->condition()->EvalConstExpr();
@@ -487,14 +456,12 @@ const Instance* ConditionalExprNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 bool ClosureNode::IsPotentiallyConst() const {
   if (function().IsImplicitStaticClosureFunction()) {
     return true;
   }
   return false;
 }
-
 
 const Instance* ClosureNode::EvalConstExpr() const {
   if (!is_deferred_reference_ && function().IsImplicitStaticClosureFunction()) {
@@ -503,7 +470,6 @@ const Instance* ClosureNode::EvalConstExpr() const {
   }
   return NULL;
 }
-
 
 AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
   if (scope() == NULL) {
@@ -517,16 +483,13 @@ AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
   return NULL;
 }
 
-
 const char* UnaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
 
-
 const char* JumpNode::TokenName() const {
   return Token::Str(kind_);
 }
-
 
 bool LoadLocalNode::IsPotentiallyConst() const {
   // Parameters of const constructors are implicitly final and can be
@@ -537,7 +500,6 @@ bool LoadLocalNode::IsPotentiallyConst() const {
   return local().is_final();
 }
 
-
 const Instance* LoadLocalNode::EvalConstExpr() const {
   if (local().IsConst()) {
     return local().ConstValue();
@@ -545,14 +507,12 @@ const Instance* LoadLocalNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (local().is_final()) {
     return NULL;
   }
   return new StoreLocalNode(token_pos(), &local(), rhs);
 }
-
 
 AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
@@ -567,18 +527,15 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
                                   Field::ZoneHandle(field().Original()), rhs);
 }
 
-
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
   return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs,
                                 is_conditional());
 }
 
-
 bool InstanceGetterNode::IsPotentiallyConst() const {
   return field_name().Equals(Symbols::Length()) && !is_conditional() &&
          receiver()->IsPotentiallyConst();
 }
-
 
 const Instance* InstanceGetterNode::EvalConstExpr() const {
   if (field_name().Equals(Symbols::Length()) && !is_conditional()) {
@@ -590,12 +547,10 @@ const Instance* InstanceGetterNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
   return new StoreIndexedNode(token_pos(), array(), index_expr(), rhs,
                               super_class());
 }
-
 
 AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   Thread* thread = Thread::Current();
@@ -736,7 +691,6 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
 }
 
-
 AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
   // Return this node if it represents a 'throw NoSuchMethodError' indicating
   // that a getter was not found, otherwise return null.
@@ -749,7 +703,6 @@ AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
   }
   return NULL;
 }
-
 
 bool StaticGetterNode::IsPotentiallyConst() const {
   if (is_deferred_reference_) {
@@ -764,7 +717,6 @@ bool StaticGetterNode::IsPotentiallyConst() const {
   }
   return true;
 }
-
 
 const Instance* StaticGetterNode::EvalConstExpr() const {
   if (is_deferred_reference_) {

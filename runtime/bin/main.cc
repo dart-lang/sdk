@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
@@ -114,30 +114,24 @@ static const char* commandline_package_root = NULL;
 // free'd.)
 static const char* commandline_packages_file = NULL;
 
-
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool compile_all = false;
 static bool parse_all = false;
 
-
 // Global flag that is used to indicate that we want to use blobs/mmap instead
 // of assembly/shared libraries for precompilation.
 static bool use_blobs = false;
-
 
 // Global flag that is used to indicate that we want to trace resolution of
 // URIs and the loading of libraries, parts and scripts.
 static bool trace_loading = false;
 
-
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
 
-
 static Dart_Isolate main_isolate = NULL;
-
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
@@ -150,7 +144,6 @@ static int vm_service_server_port = -1;
 // checks are disabled.
 static bool vm_service_dev_mode = false;
 
-
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
 
@@ -162,7 +155,6 @@ static bool IsValidFlag(const char* name,
           (strncmp(name, prefix, prefix_length) == 0));
 }
 
-
 static bool version_option = false;
 static bool ProcessVersionOption(const char* arg,
                                  CommandLineOptions* vm_options) {
@@ -173,7 +165,6 @@ static bool ProcessVersionOption(const char* arg,
   return true;
 }
 
-
 static bool help_option = false;
 static bool ProcessHelpOption(const char* arg, CommandLineOptions* vm_options) {
   if (*arg != '\0') {
@@ -182,7 +173,6 @@ static bool ProcessHelpOption(const char* arg, CommandLineOptions* vm_options) {
   help_option = true;
   return true;
 }
-
 
 static bool verbose_option = false;
 static bool ProcessVerboseOption(const char* arg,
@@ -194,7 +184,6 @@ static bool ProcessVerboseOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessPackageRootOption(const char* arg,
                                      CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -204,7 +193,6 @@ static bool ProcessPackageRootOption(const char* arg,
   commandline_package_root = arg;
   return true;
 }
-
 
 static bool ProcessPackagesOption(const char* arg,
                                   CommandLineOptions* vm_options) {
@@ -216,7 +204,6 @@ static bool ProcessPackagesOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessSaveCompilationTraceOption(const char* arg,
                                               CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -226,7 +213,6 @@ static bool ProcessSaveCompilationTraceOption(const char* arg,
   save_compilation_trace_filename = arg;
   return true;
 }
-
 
 static bool ProcessLoadCompilationTraceOption(const char* arg,
                                               CommandLineOptions* vm_options) {
@@ -238,7 +224,6 @@ static bool ProcessLoadCompilationTraceOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessSaveFeedbackOption(const char* arg,
                                       CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -248,7 +233,6 @@ static bool ProcessSaveFeedbackOption(const char* arg,
   save_feedback_filename = arg;
   return true;
 }
-
 
 static bool ProcessLoadFeedbackOption(const char* arg,
                                       CommandLineOptions* vm_options) {
@@ -260,11 +244,9 @@ static bool ProcessLoadFeedbackOption(const char* arg,
   return true;
 }
 
-
 static void* GetHashmapKeyFromString(char* key) {
   return reinterpret_cast<void*>(key);
 }
-
 
 static bool ExtractPortAndAddress(const char* option_value,
                                   int* out_port,
@@ -301,7 +283,6 @@ static bool ExtractPortAndAddress(const char* option_value,
   *out_port = port;
   return true;
 }
-
 
 static bool ProcessEnvironmentOption(const char* arg,
                                      CommandLineOptions* vm_options) {
@@ -345,7 +326,6 @@ static bool ProcessEnvironmentOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessCompileAllOption(const char* arg,
                                     CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -356,7 +336,6 @@ static bool ProcessCompileAllOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessParseAllOption(const char* arg,
                                   CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -366,7 +345,6 @@ static bool ProcessParseAllOption(const char* arg,
   parse_all = true;
   return true;
 }
-
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static bool ProcessFrontendOption(const char* filename,
@@ -380,7 +358,6 @@ static bool ProcessFrontendOption(const char* filename,
   return true;
 }
 
-
 static bool ProcessKernelBinariesOption(const char* dirname,
                                         CommandLineOptions* vm_options) {
   ASSERT(dirname != NULL);
@@ -392,7 +369,6 @@ static bool ProcessKernelBinariesOption(const char* dirname,
 }
 #endif
 
-
 static bool ProcessUseBlobsOption(const char* arg,
                                   CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -403,7 +379,6 @@ static bool ProcessUseBlobsOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessSnapshotFilenameOption(const char* filename,
                                           CommandLineOptions* vm_options) {
   snapshot_filename = filename;
@@ -412,7 +387,6 @@ static bool ProcessSnapshotFilenameOption(const char* filename,
   }
   return true;
 }
-
 
 static bool ProcessSnapshotKindOption(const char* kind,
                                       CommandLineOptions* vm_options) {
@@ -433,13 +407,11 @@ static bool ProcessSnapshotKindOption(const char* kind,
   return false;
 }
 
-
 static bool ProcessSnapshotDepsFilenameOption(const char* filename,
                                               CommandLineOptions* vm_options) {
   snapshot_deps_filename = filename;
   return true;
 }
-
 
 static bool ProcessEnableVmServiceOption(const char* option_value,
                                          CommandLineOptions* vm_options) {
@@ -457,7 +429,6 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
   return true;
 }
 
-
 static bool ProcessDisableServiceOriginCheckOption(
     const char* option_value,
     CommandLineOptions* vm_options) {
@@ -468,7 +439,6 @@ static bool ProcessDisableServiceOriginCheckOption(
   vm_service_dev_mode = true;
   return true;
 }
-
 
 static bool ProcessObserveOption(const char* option_value,
                                  CommandLineOptions* vm_options) {
@@ -490,7 +460,6 @@ static bool ProcessObserveOption(const char* option_value,
   return true;
 }
 
-
 static bool ProcessTraceLoadingOption(const char* arg,
                                       CommandLineOptions* vm_options) {
   if (*arg != '\0') {
@@ -499,7 +468,6 @@ static bool ProcessTraceLoadingOption(const char* arg,
   trace_loading = true;
   return true;
 }
-
 
 static bool ProcessHotReloadTestModeOption(const char* arg,
                                            CommandLineOptions* vm_options) {
@@ -521,7 +489,6 @@ static bool ProcessHotReloadTestModeOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessHotReloadRollbackTestModeOption(
     const char* arg,
     CommandLineOptions* vm_options) {
@@ -541,7 +508,6 @@ static bool ProcessHotReloadRollbackTestModeOption(
   return true;
 }
 
-
 extern bool short_socket_read;
 
 extern bool short_socket_write;
@@ -552,13 +518,11 @@ static bool ProcessShortSocketReadOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessShortSocketWriteOption(const char* arg,
                                           CommandLineOptions* vm_options) {
   short_socket_write = true;
   return true;
 }
-
 
 extern const char* commandline_root_certs_file;
 extern const char* commandline_root_certs_cache;
@@ -579,7 +543,6 @@ static bool ProcessRootCertsFileOption(const char* arg,
   return true;
 }
 
-
 static bool ProcessRootCertsCacheOption(const char* arg,
                                         CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -595,7 +558,6 @@ static bool ProcessRootCertsCacheOption(const char* arg,
   commandline_root_certs_cache = arg;
   return true;
 }
-
 
 static struct {
   const char* option_name;
@@ -638,7 +600,6 @@ static struct {
     {"--root-certs-cache=", ProcessRootCertsCacheOption},
     {NULL, NULL}};
 
-
 static bool ProcessMainOptions(const char* option,
                                CommandLineOptions* vm_options) {
   int i = 0;
@@ -656,7 +617,6 @@ static bool ProcessMainOptions(const char* option,
   }
   return false;
 }
-
 
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
@@ -774,7 +734,6 @@ static int ParseArguments(int argc,
   return 0;
 }
 
-
 static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
   Dart_Handle dart_arguments = Dart_NewList(options_count);
@@ -793,7 +752,6 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   }
   return dart_arguments;
 }
-
 
 static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   uint8_t* utf8_array;
@@ -825,7 +783,6 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   return result;
 }
 
-
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = strdup(Dart_GetError(result));                                      \
   if (Dart_IsCompilationError(result)) {                                       \
@@ -839,19 +796,16 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   Dart_ShutdownIsolate();                                                      \
   return NULL;
 
-
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     SAVE_ERROR_AND_EXIT(result);                                               \
   }
-
 
 #define CHECK_RESULT_CLEANUP(result, cleanup)                                  \
   if (Dart_IsError(result)) {                                                  \
     delete (cleanup);                                                          \
     SAVE_ERROR_AND_EXIT(result);                                               \
   }
-
 
 static void SnapshotOnExitHook(int64_t exit_code) {
   if (Dart_CurrentIsolate() != main_isolate) {
@@ -865,7 +819,6 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Snapshot::GenerateAppJIT(snapshot_filename);
   }
 }
-
 
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        bool is_main_isolate,
@@ -972,7 +925,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   return isolate;
 }
 
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 // Returns newly created Kernel Isolate on success, NULL on failure.
 // For now we only support the kernel isolate coming up from an
@@ -1023,7 +975,6 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* main,
                             isolate_run_app_snapshot, error, exit_code);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 
 // Returns newly created Service Isolate on success, NULL on failure.
 // For now we only support the service isolate coming up from sources
@@ -1103,7 +1054,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_ExitIsolate();
   return isolate;
 }
-
 
 // Returns newly created Isolate on success, NULL on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
@@ -1193,7 +1143,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
 #undef CHECK_RESULT
 
-
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           const char* package_root,
@@ -1229,11 +1178,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                      &exit_code);
 }
 
-
 static void PrintVersion() {
   Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
 }
-
 
 // clang-format off
 static void PrintUsage() {
@@ -1329,7 +1276,6 @@ static void PrintUsage() {
 }
 // clang-format on
 
-
 char* BuildIsolateName(const char* script_name, const char* func_name) {
   // Skip past any slashes in the script name.
   const char* last_slash = strrchr(script_name, '/');
@@ -1345,22 +1291,18 @@ char* BuildIsolateName(const char* script_name, const char* func_name) {
   return buffer;
 }
 
-
 static void OnIsolateShutdown(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   isolate_data->OnIsolateShutdown();
 }
-
 
 static void DeleteIsolateData(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   delete isolate_data;
 }
 
-
 static const char* kStdoutStreamId = "Stdout";
 static const char* kStderrStreamId = "Stderr";
-
 
 static bool ServiceStreamListenCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
@@ -1373,7 +1315,6 @@ static bool ServiceStreamListenCallback(const char* stream_id) {
   return false;
 }
 
-
 static void ServiceStreamCancelCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
     SetCaptureStdout(false);
@@ -1381,7 +1322,6 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
     SetCaptureStderr(false);
   }
 }
-
 
 static bool FileModifiedCallback(const char* url, int64_t since) {
   if (strncmp(url, "file:///", 8) == 0) {
@@ -1398,7 +1338,6 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
   return modified;
 }
 
-
 static void GenerateAppAOTSnapshot() {
   if (use_blobs) {
     Snapshot::GenerateAppAOTAsBlobs(snapshot_filename);
@@ -1407,7 +1346,6 @@ static void GenerateAppAOTSnapshot() {
   }
 }
 
-
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     const int exit_code = Dart_IsCompilationError(result)                      \
@@ -1415,7 +1353,6 @@ static void GenerateAppAOTSnapshot() {
                               : kErrorExitCode;                                \
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
-
 
 static void WriteFile(const char* filename,
                       const uint8_t* buffer,
@@ -1430,7 +1367,6 @@ static void WriteFile(const char* filename,
   file->Release();
 }
 
-
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   File* file = File::Open(filename, File::kRead);
   if (file == NULL) {
@@ -1443,7 +1379,6 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   }
   file->Release();
 }
-
 
 bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
@@ -1492,8 +1427,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     result = Dart_LibraryImportLibrary(isolate_data->builtin_lib(), root_lib,
                                        Dart_Null());
     if ((gen_snapshot_kind == kAppAOT) || (gen_snapshot_kind == kAppJIT)) {
-      // Load the embedder's portion of the VM service's Dart code so it will
-      // be included in the app snapshot.
+// Load the embedder's portion of the VM service's Dart code so it will
+// be included in the app snapshot.
 #if defined(DART_PRECOMPILED_RUNTIME)
       if (!VmService::LoadForGenPrecompiled(NULL)) {
 #else
@@ -1699,12 +1634,10 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
 #undef CHECK_RESULT
 
-
 // Observatory assets are only needed in the regular dart binary.
 #if !defined(DART_PRECOMPILER) && !defined(NO_OBSERVATORY)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
-
 
 // |input| is assumed to be a gzipped stream.
 // This function allocates the output buffer in the C heap and the caller
@@ -1771,7 +1704,6 @@ void Decompress(const uint8_t* input,
   inflateEnd(&strm);
 }
 
-
 Dart_Handle GetVMServiceAssetsArchiveCallback() {
   uint8_t* decompressed = NULL;
   unsigned int decompressed_len = 0;
@@ -1786,7 +1718,6 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
 #else   // !defined(DART_PRECOMPILER)
 static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 #endif  // !defined(DART_PRECOMPILER)
-
 
 void main(int argc, char** argv) {
   char* script_name;

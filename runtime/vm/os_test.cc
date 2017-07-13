@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/os.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/globals.h"
-#include "vm/os.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -20,7 +20,6 @@ VM_UNIT_TEST_CASE(Sleep) {
   EXPECT_GE(delta, sleep_time - kAcceptableSleepWakeupJitter);
   EXPECT_LE(delta, sleep_time + kAcceptableSleepWakeupJitter);
 }
-
 
 VM_UNIT_TEST_CASE(SNPrint) {
   char buffer[256];
@@ -38,14 +37,12 @@ VM_UNIT_TEST_CASE(SNPrint) {
   EXPECT_EQ(3, length);
 }
 
-
 // This test is expected to crash when it runs.
 VM_UNIT_TEST_CASE(SNPrint_BadArgs) {
   int width = kMaxInt32;
   int num = 7;
   OS::SNPrint(NULL, 0, "%*d%*d", width, num, width, num);
 }
-
 
 VM_UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::ActivationFrameAlignment()));

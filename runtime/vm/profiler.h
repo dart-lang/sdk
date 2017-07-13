@@ -48,7 +48,6 @@ struct ProfilerCounters {
   int64_t failure_native_allocation_sample;
 };
 
-
 class Profiler : public AllStatic {
  public:
   static void InitOnce();
@@ -101,7 +100,6 @@ class Profiler : public AllStatic {
   friend class Thread;
 };
 
-
 class SampleVisitor : public ValueObject {
  public:
   explicit SampleVisitor(Dart_Port port) : port_(port), visited_(0) {}
@@ -121,7 +119,6 @@ class SampleVisitor : public ValueObject {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(SampleVisitor);
 };
-
 
 class SampleFilter : public ValueObject {
  public:
@@ -160,14 +157,12 @@ class SampleFilter : public ValueObject {
   int64_t time_extent_micros_;
 };
 
-
 class ClearProfileVisitor : public SampleVisitor {
  public:
   explicit ClearProfileVisitor(Isolate* isolate);
 
   virtual void VisitSample(Sample* sample);
 };
-
 
 // Each Sample holds a stack trace from an isolate.
 class Sample {
@@ -418,7 +413,6 @@ class Sample {
   DISALLOW_COPY_AND_ASSIGN(Sample);
 };
 
-
 class NativeAllocationSampleFilter : public SampleFilter {
  public:
   NativeAllocationSampleFilter(int64_t time_origin_micros,
@@ -439,7 +433,6 @@ class NativeAllocationSampleFilter : public SampleFilter {
     return (sample == recorded_sample);
   }
 };
-
 
 // A Code object descriptor.
 class CodeDescriptor : public ZoneAllocated {
@@ -483,7 +476,6 @@ class CodeDescriptor : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(CodeDescriptor);
 };
 
-
 // Fast lookup of Dart code objects.
 class CodeLookupTable : public ZoneAllocated {
  public:
@@ -509,7 +501,6 @@ class CodeLookupTable : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(CodeLookupTable);
 };
-
 
 // Ring buffer of Samples that is (usually) shared by many isolates.
 class SampleBuffer {
@@ -572,7 +563,6 @@ class SampleBuffer {
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);
 };
 
-
 class AllocationSampleBuffer : public SampleBuffer {
  public:
   explicit AllocationSampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
@@ -589,7 +579,6 @@ class AllocationSampleBuffer : public SampleBuffer {
 
   DISALLOW_COPY_AND_ASSIGN(AllocationSampleBuffer);
 };
-
 
 // A |ProcessedSample| is a combination of 1 (or more) |Sample|(s) that have
 // been merged into a logical sample. The raw data may have been processed to
@@ -687,7 +676,6 @@ class ProcessedSample : public ZoneAllocated {
   friend class SampleBuffer;
   DISALLOW_COPY_AND_ASSIGN(ProcessedSample);
 };
-
 
 // A collection of |ProcessedSample|s.
 class ProcessedSampleBuffer : public ZoneAllocated {

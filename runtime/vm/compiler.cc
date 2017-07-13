@@ -108,9 +108,7 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
-
 #ifndef DART_PRECOMPILED_RUNTIME
-
 
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
   const Function& function = parsed_function->function();
@@ -119,14 +117,12 @@ bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
          (function.kind() == RawFunction::kInvokeFieldDispatcher);
 }
 
-
 void DartCompilationPipeline::ParseFunction(ParsedFunction* parsed_function) {
   if (!UseKernelFrontEndFor(parsed_function)) {
     Parser::ParseFunction(parsed_function);
     parsed_function->AllocateVariables();
   }
 }
-
 
 FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     Zone* zone,
@@ -150,9 +146,7 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
   return builder.BuildGraph();
 }
 
-
 void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {}
-
 
 void IrregexpCompilationPipeline::ParseFunction(
     ParsedFunction* parsed_function) {
@@ -182,7 +176,6 @@ void IrregexpCompilationPipeline::ParseFunction(
   // Variables are allocated after compilation.
 }
 
-
 FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
@@ -209,11 +202,9 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
       FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);
 }
 
-
 void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {
   backtrack_goto_->ComputeOffsetTable();
 }
-
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
@@ -223,7 +214,6 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
     return new (zone) DartCompilationPipeline();
   }
 }
-
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -240,7 +230,6 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
     Exceptions::PropagateError(Error::Cast(result));
   }
 }
-
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   if (FLAG_support_debugger) {
@@ -304,12 +293,10 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   return true;
 }
 
-
 bool Compiler::IsBackgroundCompilation() {
   // For now: compilation in non mutator thread is the background compoilation.
   return !Thread::Current()->IsMutatorThread();
 }
-
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   LongJumpScope jump;
@@ -336,7 +323,6 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
   UNREACHABLE();
   return Error::null();
 }
-
 
 static void AddRelatedClassesToList(
     const Class& cls,
@@ -383,7 +369,6 @@ static void AddRelatedClassesToList(
     }
   }
 }
-
 
 RawError* Compiler::CompileClass(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
@@ -510,7 +495,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
   return Error::null();
 }
 
-
 class CompileParsedFunctionHelper : public ValueObject {
  public:
   CompileParsedFunctionHelper(ParsedFunction* parsed_function,
@@ -547,7 +531,6 @@ class CompileParsedFunctionHelper : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
 };
-
 
 RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
@@ -714,7 +697,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   return code.raw();
 }
 
-
 void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped() {
   ASSERT(Compiler::IsBackgroundCompilation());
   if (!isolate()->background_compiler()->is_running()) {
@@ -723,7 +705,6 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped() {
         Thread::kNoDeoptId, "Background compilation is being stopped");
   }
 }
-
 
 // Return null if bailed out.
 // If optimized_result_code is not NULL then it is caller's responsibility
@@ -1240,7 +1221,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   return result->raw();
 }
 
-
 static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         const Function& function,
                                         bool optimized,
@@ -1406,7 +1386,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
   return Object::null();
 }
 
-
 static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
                                      const Function& function,
                                      bool optimized,
@@ -1463,7 +1442,6 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
   return Error::null();
 }
 
-
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #ifdef DART_PRECOMPILER
   if (FLAG_precompiled_mode) {
@@ -1493,7 +1471,6 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
                                /* optimized = */ false, kNoOSRDeoptId);
 }
 
-
 RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
   Isolate* isolate = thread->isolate();
 #if !defined(PRODUCT)
@@ -1514,7 +1491,6 @@ RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
   return ParseFunctionHelper(pipeline, function,
                              /* optimized = */ false, kNoOSRDeoptId);
 }
-
 
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                           const Function& function) {
@@ -1547,7 +1523,6 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   return Error::null();
 }
 
-
 RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                               const Function& function,
                                               intptr_t osr_id) {
@@ -1575,7 +1550,6 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                osr_id);
 }
 
-
 // This is only used from unit tests.
 RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
   LongJumpScope jump;
@@ -1600,7 +1574,6 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
   UNREACHABLE();
   return Error::null();
 }
-
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
@@ -1649,7 +1622,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   Thread::Current()->set_deopt_id(prev_deopt_id);
 }
 
-
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -1685,7 +1657,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   return Error::null();
 }
 
-
 RawError* Compiler::ParseAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -1718,7 +1689,6 @@ RawError* Compiler::ParseAllFunctions(const Class& cls) {
   }
   return error.raw();
 }
-
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #ifdef DART_PRECOMPILER
@@ -1781,7 +1751,6 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   thread->clear_sticky_error();
   return error.raw();
 }
-
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 #ifdef DART_PRECOMPILER
@@ -1857,7 +1826,6 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   return result.raw();
 }
 
-
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   if (FLAG_trace_compiler) {
     THR_Print("ABORT background compilation: %s\n", msg);
@@ -1878,7 +1846,6 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
       deopt_id, Object::background_compilation_error());
 }
 
-
 // C-heap allocated background compilation queue element.
 class QueueElement {
  public:
@@ -1891,7 +1858,6 @@ class QueueElement {
   }
 
   RawFunction* Function() const { return function_; }
-
 
   void set_next(QueueElement* elem) { next_ = elem; }
   QueueElement* next() const { return next_; }
@@ -1907,7 +1873,6 @@ class QueueElement {
 
   DISALLOW_COPY_AND_ASSIGN(QueueElement);
 };
-
 
 // Allocated in C-heap. Handles both input and output of background compilation.
 // It implements a FIFO queue, using Peek, Add, Remove operations.
@@ -1988,7 +1953,6 @@ class BackgroundCompilationQueue {
   DISALLOW_COPY_AND_ASSIGN(BackgroundCompilationQueue);
 };
 
-
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate),
       running_(true),
@@ -1999,7 +1963,6 @@ BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
   *done_ = false;
 }
 
-
 // Fields all deleted in ::Stop; here clear them.
 BackgroundCompiler::~BackgroundCompiler() {
   isolate_ = NULL;
@@ -2009,7 +1972,6 @@ BackgroundCompiler::~BackgroundCompiler() {
   done_monitor_ = NULL;
   function_queue_ = NULL;
 }
-
 
 void BackgroundCompiler::Run() {
   while (running_) {
@@ -2081,7 +2043,6 @@ void BackgroundCompiler::Run() {
   }
 }
 
-
 void BackgroundCompiler::CompileOptimized(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
   // TODO(srdjan): Checking different strategy for collecting garbage
@@ -2101,11 +2062,9 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
   }
 }
 
-
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
   function_queue_->VisitObjectPointers(visitor);
 }
-
 
 void BackgroundCompiler::Stop(Isolate* isolate) {
   BackgroundCompiler* task = isolate->background_compiler();
@@ -2141,7 +2100,6 @@ void BackgroundCompiler::Stop(Isolate* isolate) {
   isolate->set_background_compiler(NULL);
 }
 
-
 void BackgroundCompiler::Disable() {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -2158,7 +2116,6 @@ void BackgroundCompiler::Disable() {
   isolate->disable_background_compiler();
 }
 
-
 bool BackgroundCompiler::IsDisabled() {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -2167,7 +2124,6 @@ bool BackgroundCompiler::IsDisabled() {
   return isolate->is_background_compiler_disabled();
 }
 
-
 void BackgroundCompiler::Enable() {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -2175,7 +2131,6 @@ void BackgroundCompiler::Enable() {
   MutexLocker ml(isolate->mutex());
   isolate->enable_background_compiler();
 }
-
 
 void BackgroundCompiler::EnsureInit(Thread* thread) {
   ASSERT(thread->IsMutatorThread());
@@ -2206,22 +2161,18 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   }
 }
 
-
 #else  // DART_PRECOMPILED_RUNTIME
-
 
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
   UNREACHABLE();
   return false;
 }
 
-
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
   UNREACHABLE();
   return NULL;
 }
-
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
@@ -2231,48 +2182,40 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
          Function::KindToCString(function.kind()));
 }
 
-
 bool Compiler::IsBackgroundCompilation() {
   return false;
 }
-
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   UNREACHABLE();
   return false;
 }
 
-
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   FATAL1("Attempt to compile script %s", script.ToCString());
   return Error::null();
 }
-
 
 RawError* Compiler::CompileClass(const Class& cls) {
   FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 
-
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
   FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
-
 
 RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
   FATAL1("Attempt to parse function %s", function.ToCString());
   return Error::null();
 }
 
-
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                           const Function& function) {
   FATAL1("Attempt to compile function %s", function.ToCString());
   return Error::null();
 }
-
 
 RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                               const Function& function,
@@ -2281,30 +2224,25 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
   return Error::null();
 }
 
-
 RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
   FATAL1("Attempt to compile function %s",
          parsed_function->function().ToCString());
   return Error::null();
 }
 
-
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   UNREACHABLE();
 }
-
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
 }
 
-
 RawError* Compiler::ParseAllFunctions(const Class& cls) {
   FATAL1("Attempt to parse class %s", cls.ToCString());
   return Error::null();
 }
-
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.HasPrecompiledInitializer());
@@ -2313,47 +2251,38 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 
-
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   UNREACHABLE();
   return Object::null();
 }
 
-
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   UNREACHABLE();
 }
-
 
 void BackgroundCompiler::CompileOptimized(const Function& function) {
   UNREACHABLE();
 }
 
-
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
   UNREACHABLE();
 }
-
 
 void BackgroundCompiler::Stop(Isolate* isolate) {
   UNREACHABLE();
 }
 
-
 void BackgroundCompiler::EnsureInit(Thread* thread) {
   UNREACHABLE();
 }
-
 
 void BackgroundCompiler::Disable() {
   UNREACHABLE();
 }
 
-
 void BackgroundCompiler::Enable() {
   UNREACHABLE();
 }
-
 
 bool BackgroundCompiler::IsDisabled() {
   UNREACHABLE();

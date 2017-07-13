@@ -47,7 +47,6 @@ Heap::Heap(Isolate* isolate,
   stats_.num_ = 0;
 }
 
-
 Heap::~Heap() {
   delete barrier_;
   delete barrier_done_;
@@ -57,7 +56,6 @@ Heap::~Heap() {
     delete old_weak_tables_[sel];
   }
 }
-
 
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
@@ -76,7 +74,6 @@ uword Heap::AllocateNew(intptr_t size) {
   }
   return addr;
 }
-
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
@@ -125,7 +122,6 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return 0;
 }
 
-
 void Heap::AllocateExternal(intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
@@ -163,43 +159,35 @@ bool Heap::Contains(uword addr) const {
   return new_space_.Contains(addr) || old_space_.Contains(addr);
 }
 
-
 bool Heap::NewContains(uword addr) const {
   return new_space_.Contains(addr);
 }
-
 
 bool Heap::OldContains(uword addr) const {
   return old_space_.Contains(addr);
 }
 
-
 bool Heap::CodeContains(uword addr) const {
   return old_space_.Contains(addr, HeapPage::kExecutable);
 }
 
-
 bool Heap::DataContains(uword addr) const {
   return old_space_.DataContains(addr);
 }
-
 
 void Heap::VisitObjects(ObjectVisitor* visitor) const {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjects(visitor);
 }
 
-
 void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjectsNoImagePages(visitor);
 }
 
-
 void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   old_space_.VisitObjectsImagePages(visitor);
 }
-
 
 HeapIterationScope::HeapIterationScope(bool writable)
     : StackResource(Thread::Current()),
@@ -228,7 +216,6 @@ HeapIterationScope::HeapIterationScope(bool writable)
   }
 }
 
-
 HeapIterationScope::~HeapIterationScope() {
   if (writable_) {
     thread()->heap()->WriteProtectCode(true);
@@ -244,7 +231,6 @@ HeapIterationScope::~HeapIterationScope() {
   ml.NotifyAll();
 }
 
-
 void Heap::IterateObjects(ObjectVisitor* visitor) const {
   // The visitor must not allocate from the heap.
   NoSafepointScope no_safepoint_scope_;
@@ -252,24 +238,20 @@ void Heap::IterateObjects(ObjectVisitor* visitor) const {
   IterateOldObjects(visitor);
 }
 
-
 void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
   old_space_.VisitObjects(visitor);
 }
-
 
 void Heap::IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
   old_space_.VisitObjectsNoImagePages(visitor);
 }
 
-
 void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   new_space_.VisitObjectPointers(visitor);
   old_space_.VisitObjectPointers(visitor);
 }
-
 
 RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
@@ -279,17 +261,14 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   return reinterpret_cast<RawInstructions*>(raw_obj);
 }
 
-
 RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
   return old_space_.FindObject(visitor, HeapPage::kData);
 }
 
-
 RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
   return new_space_.FindObject(visitor);
 }
-
 
 RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
   // The visitor must not allocate from the heap.
@@ -306,7 +285,6 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
   return raw_obj;
 }
 
-
 bool Heap::BeginNewSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
@@ -321,14 +299,12 @@ bool Heap::BeginNewSpaceGC(Thread* thread) {
   return false;
 }
 
-
 void Heap::EndNewSpaceGC() {
   MonitorLocker ml(&gc_in_progress_monitor_);
   ASSERT(gc_new_space_in_progress_);
   gc_new_space_in_progress_ = false;
   ml.NotifyAll();
 }
-
 
 bool Heap::BeginOldSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
@@ -344,14 +320,12 @@ bool Heap::BeginOldSpaceGC(Thread* thread) {
   return false;
 }
 
-
 void Heap::EndOldSpaceGC() {
   MonitorLocker ml(&gc_in_progress_monitor_);
   ASSERT(gc_old_space_in_progress_);
   gc_old_space_in_progress_ = false;
   ml.NotifyAll();
 }
-
 
 #ifndef PRODUCT
 void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
@@ -363,7 +337,6 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
   }
 }
 #endif
-
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT(reason == kFull);
@@ -380,7 +353,6 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     EndNewSpaceGC();
   }
 }
-
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
@@ -405,7 +377,6 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
   }
 }
 
-
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
@@ -427,7 +398,6 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
 }
 
-
 void Heap::CollectGarbage(Space space,
                           ApiCallbacks api_callbacks,
                           GCReason reason) {
@@ -447,7 +417,6 @@ void Heap::CollectGarbage(Space space,
   }
 }
 
-
 void Heap::CollectGarbage(Space space) {
   Thread* thread = Thread::Current();
   if (space == kOld) {
@@ -458,7 +427,6 @@ void Heap::CollectGarbage(Space space) {
   }
 }
 
-
 void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
 
@@ -468,14 +436,12 @@ void Heap::CollectAllGarbage() {
   CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kFull);
 }
 
-
 void Heap::WaitForSweeperTasks(Thread* thread) {
   MonitorLocker ml(old_space_.tasks_lock());
   while (old_space_.tasks() > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
 }
-
 
 void Heap::UpdateGlobalMaxUsed() {
   ASSERT(isolate_ != NULL);
@@ -486,28 +452,23 @@ void Heap::UpdateGlobalMaxUsed() {
       (UsedInWords(Heap::kOld) * kWordSize));
 }
 
-
 void Heap::InitGrowthControl() {
   old_space_.InitGrowthControl();
 }
-
 
 void Heap::SetGrowthControlState(bool state) {
   old_space_.SetGrowthControlState(state);
 }
 
-
 bool Heap::GrowthControlState() {
   return old_space_.GrowthControlState();
 }
-
 
 void Heap::WriteProtect(bool read_only) {
   read_only_ = read_only;
   new_space_.WriteProtect(read_only);
   old_space_.WriteProtect(read_only);
 }
-
 
 intptr_t Heap::TopOffset(Heap::Space space) {
   if (space == kNew) {
@@ -518,7 +479,6 @@ intptr_t Heap::TopOffset(Heap::Space space) {
   }
 }
 
-
 intptr_t Heap::EndOffset(Heap::Space space) {
   if (space == kNew) {
     return OFFSET_OF(Heap, new_space_) + Scavenger::end_offset();
@@ -527,7 +487,6 @@ intptr_t Heap::EndOffset(Heap::Space space) {
     return OFFSET_OF(Heap, old_space_) + PageSpace::end_offset();
   }
 }
-
 
 void Heap::Init(Isolate* isolate,
                 intptr_t max_new_gen_words,
@@ -538,7 +497,6 @@ void Heap::Init(Isolate* isolate,
                         max_external_words);
   isolate->set_heap(heap);
 }
-
 
 void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
   const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
@@ -562,12 +520,10 @@ void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
   OS::SNPrint(name, name_size, "dart-%s %s", space_name, isolate_name);
 }
 
-
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
   new_space_.AddRegionsToObjectSet(set);
   old_space_.AddRegionsToObjectSet(set);
 }
-
 
 ObjectSet* Heap::CreateAllocatedObjectSet(
     Zone* zone,
@@ -598,12 +554,10 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   return allocated_set;
 }
 
-
 bool Heap::Verify(MarkExpectation mark_expectation) const {
   HeapIterationScope heap_iteration_scope;
   return VerifyGC(mark_expectation);
 }
-
 
 bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   StackZone stack_zone(Thread::Current());
@@ -616,7 +570,6 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   return true;
 }
 
-
 void Heap::PrintSizes() const {
   OS::PrintErr(
       "New space (%" Pd64 "k of %" Pd64
@@ -626,23 +579,19 @@ void Heap::PrintSizes() const {
       (UsedInWords(kOld) / KBInWords), (CapacityInWords(kOld) / KBInWords));
 }
 
-
 int64_t Heap::UsedInWords(Space space) const {
   return space == kNew ? new_space_.UsedInWords() : old_space_.UsedInWords();
 }
-
 
 int64_t Heap::CapacityInWords(Space space) const {
   return space == kNew ? new_space_.CapacityInWords()
                        : old_space_.CapacityInWords();
 }
 
-
 int64_t Heap::ExternalInWords(Space space) const {
   return space == kNew ? new_space_.ExternalInWords()
                        : old_space_.ExternalInWords();
 }
-
 
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {
@@ -651,14 +600,12 @@ int64_t Heap::GCTimeInMicros(Space space) const {
   return old_space_.gc_time_micros();
 }
 
-
 intptr_t Heap::Collections(Space space) const {
   if (space == kNew) {
     return new_space_.collections();
   }
   return old_space_.collections();
 }
-
 
 const char* Heap::GCReasonToString(GCReason gc_reason) {
   switch (gc_reason) {
@@ -680,7 +627,6 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
   }
 }
 
-
 int64_t Heap::PeerCount() const {
   return new_weak_tables_[kPeers]->count() + old_weak_tables_[kPeers]->count();
 }
@@ -692,18 +638,15 @@ int64_t Heap::HashCount() const {
 }
 #endif
 
-
 int64_t Heap::ObjectIdCount() const {
   return new_weak_tables_[kObjectIds]->count() +
          old_weak_tables_[kObjectIds]->count();
 }
 
-
 void Heap::ResetObjectIdTable() {
   new_weak_tables_[kObjectIds]->Reset();
   old_weak_tables_[kObjectIds]->Reset();
 }
-
 
 intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
   if (raw_obj->IsNewObject()) {
@@ -712,7 +655,6 @@ intptr_t Heap::GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const {
   ASSERT(raw_obj->IsOldObject());
   return old_weak_tables_[sel]->GetValue(raw_obj);
 }
-
 
 void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
   if (raw_obj->IsNewObject()) {
@@ -723,7 +665,6 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
   }
 }
 
-
 #ifndef PRODUCT
 void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   if (space == kNew) {
@@ -733,7 +674,6 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   }
 }
 #endif  // PRODUCT
-
 
 void Heap::RecordBeforeGC(Space space, GCReason reason) {
   ASSERT((space == kNew && gc_new_space_in_progress_) ||
@@ -749,7 +689,6 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   for (int i = 0; i < GCStats::kDataEntries; i++)
     stats_.data_[i] = 0;
 }
-
 
 void Heap::RecordAfterGC(Space space) {
   stats_.after_.micros_ = OS::GetCurrentMonotonicMicros();
@@ -774,7 +713,6 @@ void Heap::RecordAfterGC(Space space) {
   }
 #endif  // !PRODUCT
 }
-
 
 void Heap::PrintStats() {
   if (!FLAG_verbose_gc) return;
@@ -842,7 +780,6 @@ void Heap::PrintStats() {
   // clang-format on
 }
 
-
 void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
 #if !defined(PRODUCT)
   if ((event == NULL) || !event->enabled()) {
@@ -878,7 +815,6 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
 #endif  // !defined(PRODUCT)
 }
 
-
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : StackResource(Thread::Current()) {
   Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
@@ -886,18 +822,15 @@ NoHeapGrowthControlScope::NoHeapGrowthControlScope()
   heap->DisableGrowthControl();
 }
 
-
 NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
   Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
   heap->SetGrowthControlState(current_growth_controller_state_);
 }
 
-
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : StackResource(thread) {
   Dart::vm_isolate()->heap()->WriteProtect(false);
 }
-
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);

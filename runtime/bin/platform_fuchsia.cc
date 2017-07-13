@@ -29,26 +29,21 @@ bool Platform::Initialize() {
   return true;
 }
 
-
 int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
-
 
 const char* Platform::OperatingSystem() {
   return "fuchsia";
 }
 
-
 const char* Platform::LibraryPrefix() {
   return "lib";
 }
 
-
 const char* Platform::LibraryExtension() {
   return "so";
 }
-
 
 const char* Platform::LocaleName() {
   char* lang = getenv("LANG");
@@ -58,11 +53,9 @@ const char* Platform::LocaleName() {
   return lang;
 }
 
-
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
-
 
 char** Platform::Environment(intptr_t* count) {
   // Using environ directly is only safe as long as we do not
@@ -81,7 +74,6 @@ char** Platform::Environment(intptr_t* count) {
   return result;
 }
 
-
 const char* Platform::GetExecutableName() {
   if (executable_name_ != NULL) {
     return executable_name_;
@@ -94,7 +86,6 @@ const char* Platform::GetExecutableName() {
   }
   return name;
 }
-
 
 const char* Platform::ResolveExecutablePath() {
   const char* executable_name = Platform::GetExecutableName();
@@ -131,7 +122,6 @@ const char* Platform::ResolveExecutablePath() {
   // Platform.resovledExecutable.
   return NULL;
 }
-
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

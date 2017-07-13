@@ -60,7 +60,6 @@ DEFINE_FLAG(bool,
       Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 #endif
 
-
 // Define all of the non-product flags here.
 FLAG_LIST(PRODUCT_FLAG_MARCO,
           RELEASE_FLAG_MARCO,
@@ -71,7 +70,6 @@ FLAG_LIST(PRODUCT_FLAG_MARCO,
 #undef DEBUG_FLAG_MARCO
 #undef PRODUCT_FLAG_MARCO
 #undef PRECOMPILE_FLAG_MARCO
-
 
 bool Flags::initialized_ = false;
 
@@ -144,7 +142,6 @@ class Flag {
   bool changed_;
 };
 
-
 Flag* Flags::Lookup(const char* name) {
   for (intptr_t i = 0; i < num_flags_; i++) {
     Flag* flag = flags_[i];
@@ -155,13 +152,11 @@ Flag* Flags::Lookup(const char* name) {
   return NULL;
 }
 
-
 bool Flags::IsSet(const char* name) {
   Flag* flag = Lookup(name);
   return (flag != NULL) && (flag->type_ == Flag::kBoolean) &&
          (flag->bool_ptr_ != NULL) && (*flag->bool_ptr_ == true);
 }
-
 
 void Flags::AddFlag(Flag* flag) {
   ASSERT(!initialized_);
@@ -183,7 +178,6 @@ void Flags::AddFlag(Flag* flag) {
   flags_[num_flags_++] = flag;
 }
 
-
 bool Flags::Register_bool(bool* addr,
                           const char* name,
                           bool default_value,
@@ -198,7 +192,6 @@ bool Flags::Register_bool(bool* addr,
   return default_value;
 }
 
-
 int Flags::Register_int(int* addr,
                         const char* name,
                         int default_value,
@@ -210,7 +203,6 @@ int Flags::Register_int(int* addr,
 
   return default_value;
 }
-
 
 uint64_t Flags::Register_uint64_t(uint64_t* addr,
                                   const char* name,
@@ -224,7 +216,6 @@ uint64_t Flags::Register_uint64_t(uint64_t* addr,
   return default_value;
 }
 
-
 const char* Flags::Register_charp(charp* addr,
                                   const char* name,
                                   const char* default_value,
@@ -235,7 +226,6 @@ const char* Flags::Register_charp(charp* addr,
   return default_value;
 }
 
-
 bool Flags::Register_func(FlagHandler handler,
                           const char* name,
                           const char* comment) {
@@ -245,7 +235,6 @@ bool Flags::Register_func(FlagHandler handler,
   return false;
 }
 
-
 static void Normalize(char* s) {
   intptr_t len = strlen(s);
   for (intptr_t i = 0; i < len; i++) {
@@ -254,7 +243,6 @@ static void Normalize(char* s) {
     }
   }
 }
-
 
 bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
   ASSERT(!flag->IsUnrecognized());
@@ -322,7 +310,6 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
   return true;
 }
 
-
 void Flags::Parse(const char* option) {
   // Find the beginning of the option argument, if it exists.
   const char* equals = option;
@@ -382,7 +369,6 @@ void Flags::Parse(const char* option) {
   delete[] name;
 }
 
-
 static bool IsValidFlag(const char* name,
                         const char* prefix,
                         intptr_t prefix_length) {
@@ -391,13 +377,11 @@ static bool IsValidFlag(const char* name,
           (strncmp(name, prefix, prefix_length) == 0));
 }
 
-
 int Flags::CompareFlagNames(const void* left, const void* right) {
   const Flag* left_flag = *reinterpret_cast<const Flag* const*>(left);
   const Flag* right_flag = *reinterpret_cast<const Flag* const*>(right);
   return strcmp(left_flag->name_, right_flag->name_);
 }
-
 
 bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
                                     const char** vm_flags) {
@@ -444,7 +428,6 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   return true;
 }
 
-
 bool Flags::SetFlag(const char* name, const char* value, const char** error) {
   Flag* flag = Lookup(name);
   if (flag == NULL) {
@@ -458,14 +441,12 @@ bool Flags::SetFlag(const char* name, const char* value, const char** error) {
   return true;
 }
 
-
 void Flags::PrintFlags() {
   OS::Print("Flag settings:\n");
   for (intptr_t i = 0; i < num_flags_; ++i) {
     flags_[i]->Print();
   }
 }
-
 
 #ifndef PRODUCT
 void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
@@ -510,7 +491,6 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
       break;
   }
 }
-
 
 void Flags::PrintJSON(JSONStream* js) {
   if (!FLAG_support_service) {

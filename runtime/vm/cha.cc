@@ -24,14 +24,12 @@ void CHA::AddToGuardedClasses(const Class& cls, intptr_t subclass_count) {
   return;
 }
 
-
 bool CHA::IsGuardedClass(intptr_t cid) const {
   for (intptr_t i = 0; i < guarded_classes_.length(); ++i) {
     if (guarded_classes_[i].cls->id() == cid) return true;
   }
   return false;
 }
-
 
 bool CHA::HasSubclasses(const Class& cls) {
   ASSERT(!cls.IsNull());
@@ -51,13 +49,11 @@ bool CHA::HasSubclasses(const Class& cls) {
   return !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
 }
 
-
 bool CHA::HasSubclasses(intptr_t cid) const {
   const ClassTable& class_table = *thread_->isolate()->class_table();
   Class& cls = Class::Handle(thread_->zone(), class_table.At(cid));
   return HasSubclasses(cls);
 }
-
 
 bool CHA::ConcreteSubclasses(const Class& cls,
                              GrowableArray<intptr_t>* class_ids) {
@@ -83,7 +79,6 @@ bool CHA::ConcreteSubclasses(const Class& cls,
   return true;
 }
 
-
 bool CHA::IsImplemented(const Class& cls) {
   // Function type aliases have different type checking rules.
   ASSERT(!cls.IsTypedefClass());
@@ -95,7 +90,6 @@ bool CHA::IsImplemented(const Class& cls) {
 
   return cls.is_implemented();
 }
-
 
 static intptr_t CountFinalizedSubclasses(Thread* thread, const Class& cls) {
   intptr_t count = 0;
@@ -116,7 +110,6 @@ static intptr_t CountFinalizedSubclasses(Thread* thread, const Class& cls) {
   return count;
 }
 
-
 bool CHA::IsConsistentWithCurrentHierarchy() const {
   for (intptr_t i = 0; i < guarded_classes_.length(); i++) {
     const intptr_t subclass_count =
@@ -127,7 +120,6 @@ bool CHA::IsConsistentWithCurrentHierarchy() const {
   }
   return true;
 }
-
 
 bool CHA::HasOverride(const Class& cls,
                       const String& function_name,
@@ -173,12 +165,10 @@ bool CHA::HasOverride(const Class& cls,
   return false;
 }
 
-
 void CHA::RegisterDependencies(const Code& code) const {
   for (intptr_t i = 0; i < guarded_classes_.length(); ++i) {
     guarded_classes_[i].cls->RegisterCHACode(code);
   }
 }
-
 
 }  // namespace dart

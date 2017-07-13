@@ -6,8 +6,8 @@
 #define RUNTIME_VM_JSON_PARSER_H_
 
 #include "vm/allocation.h"
-#include "vm/zone.h"
 #include "vm/growable_array.h"
+#include "vm/zone.h"
 
 namespace dart {
 

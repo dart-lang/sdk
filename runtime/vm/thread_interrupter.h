@@ -6,8 +6,8 @@
 #define RUNTIME_VM_THREAD_INTERRUPTER_H_
 
 #include "vm/allocation.h"
-#include "vm/signal_handler.h"
 #include "vm/os_thread.h"
+#include "vm/signal_handler.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -19,7 +19,6 @@ struct InterruptedThreadState {
   uintptr_t fp;
   uintptr_t lr;
 };
-
 
 class ThreadInterrupter : public AllStatic {
  public:

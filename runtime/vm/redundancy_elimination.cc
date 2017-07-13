@@ -13,7 +13,6 @@
 
 namespace dart {
 
-
 DEFINE_FLAG(bool, dead_store_elimination, true, "Eliminate dead stores");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool,
@@ -23,7 +22,6 @@ DEFINE_FLAG(bool,
 
 // Quick access to the current zone.
 #define Z (zone())
-
 
 class CSEInstructionMap : public ValueObject {
  public:
@@ -70,7 +68,6 @@ class CSEInstructionMap : public ValueObject {
   // All computations that are affected by side effect.
   Map dependent_;
 };
-
 
 // Place describes an abstract location (e.g. field) that IR can load
 // from or store to.
@@ -331,7 +328,6 @@ class Place : public ValueObject {
                  RoundByteOffset(to, index_constant_));
   }
 
-
   intptr_t id() const { return id_; }
 
   Kind kind() const { return KindBits::decode(flags_); }
@@ -583,7 +579,6 @@ class Place : public ValueObject {
   intptr_t id_;
 };
 
-
 class ZonePlace : public ZoneAllocated {
  public:
   explicit ZonePlace(const Place& place) : place_(place) {}
@@ -594,13 +589,11 @@ class ZonePlace : public ZoneAllocated {
   Place place_;
 };
 
-
 Place* Place::Wrap(Zone* zone, const Place& place, intptr_t id) {
   Place* wrapped = (new (zone) ZonePlace(place))->place();
   wrapped->id_ = id;
   return wrapped;
 }
-
 
 // Correspondence between places connected through outgoing phi moves on the
 // edge that targets join.
@@ -646,7 +639,6 @@ class PhiPlaceMoves : public ZoneAllocated {
  private:
   GrowableArray<ZoneGrowableArray<Move>*> moves_;
 };
-
 
 // A map from aliases to a set of places sharing the alias. Additionally
 // carries a set of places that can be aliased by side-effects, essentially
@@ -1136,7 +1128,6 @@ class AliasedSet : public ZoneAllocated {
   GrowableArray<Definition*> identity_rollback_;
 };
 
-
 static Definition* GetStoredValue(Instruction* instr) {
   if (instr->IsStoreIndexed()) {
     return instr->AsStoreIndexed()->value()->definition();
@@ -1156,13 +1147,11 @@ static Definition* GetStoredValue(Instruction* instr) {
   return NULL;
 }
 
-
 static bool IsPhiDependentPlace(Place* place) {
   return ((place->kind() == Place::kField) ||
           (place->kind() == Place::kVMField)) &&
          (place->instance() != NULL) && place->instance()->IsPhi();
 }
-
 
 // For each place that depends on a phi ensure that equivalent places
 // corresponding to phi input are numbered and record outgoing phi moves
@@ -1209,9 +1198,7 @@ static PhiPlaceMoves* ComputePhiMoves(
   return phi_moves;
 }
 
-
 enum CSEMode { kOptimizeLoads, kOptimizeStores };
-
 
 static AliasedSet* NumberPlaces(
     FlowGraph* graph,
@@ -1265,13 +1252,11 @@ static AliasedSet* NumberPlaces(
   return new (zone) AliasedSet(zone, map, places, phi_moves);
 }
 
-
 // Load instructions handled by load elimination.
 static bool IsLoadEliminationCandidate(Instruction* instr) {
   return instr->IsLoadField() || instr->IsLoadIndexed() ||
          instr->IsLoadStaticField();
 }
-
 
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
                                 intptr_t loop_header_index,
@@ -1281,11 +1266,9 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
          (*sets)[loop_header_index]->Contains(instr->place_id());
 }
 
-
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
   ASSERT(flow_graph->is_licm_allowed());
 }
-
 
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
@@ -1318,7 +1301,6 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
   current->CopyDeoptIdFrom(*last);
 }
-
 
 void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
                                BlockEntryInstr* header,
@@ -1369,7 +1351,6 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
   phi->UpdateType(CompileType::FromCid(kSmiCid));
 }
 
-
 void LICM::OptimisticallySpecializeSmiPhis() {
   if (!flow_graph()->function().allows_hoisting_check_class() ||
       FLAG_precompiled_mode) {
@@ -1393,7 +1374,6 @@ void LICM::OptimisticallySpecializeSmiPhis() {
     }
   }
 }
-
 
 void LICM::Optimize() {
   if (!flow_graph()->function().allows_hoisting_check_class()) {
@@ -1442,7 +1422,6 @@ void LICM::Optimize() {
     }
   }
 }
-
 
 class LoadOptimizer : public ValueObject {
  public:
@@ -1838,7 +1817,6 @@ class LoadOptimizer : public ValueObject {
 
       ZoneGrowableArray<Definition*>* block_out_values =
           out_values_[preorder_number];
-
 
       // If OUT set has changed then we have new values available out of
       // the block. Compute these values creating phi where necessary.
@@ -2352,13 +2330,11 @@ class LoadOptimizer : public ValueObject {
   GrowableArray<Definition*> congruency_worklist_;
   BitVector* in_worklist_;
 
-
   // True if any load was eliminated.
   bool forwarded_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
 };
-
 
 bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
@@ -2371,7 +2347,6 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
 
   return changed;
 }
-
 
 bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
                                           BlockEntryInstr* block,
@@ -2418,7 +2393,6 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
   }
   return changed;
 }
-
 
 class StoreOptimizer : public LivenessAnalysis {
  public:
@@ -2626,13 +2600,11 @@ class StoreOptimizer : public LivenessAnalysis {
   DISALLOW_COPY_AND_ASSIGN(StoreOptimizer);
 };
 
-
 void DeadStoreElimination::Optimize(FlowGraph* graph) {
   if (FLAG_dead_store_elimination) {
     StoreOptimizer::OptimizeGraph(graph);
   }
 }
-
 
 enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 
@@ -2675,7 +2647,6 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
   return false;
 }
 
-
 // Right now we are attempting to sink allocation only into
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
@@ -2696,7 +2667,6 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
   return true;
 }
 
-
 // If the given use is a store into an object then return an object we are
 // storing into.
 static Definition* StoreInto(Value* use) {
@@ -2707,7 +2677,6 @@ static Definition* StoreInto(Value* use) {
 
   return NULL;
 }
-
 
 // Remove the given allocation from the graph. It is not observable.
 // If deoptimization occurs the object will be materialized.
@@ -2742,7 +2711,6 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
     }
   }
 }
-
 
 // Find allocation instructions that can be potentially eliminated and
 // rematerialized at deoptimization exits if needed. See IsSafeUse
@@ -2807,7 +2775,6 @@ void AllocationSinking::CollectCandidates() {
   candidates_.TruncateTo(j);
 }
 
-
 // If materialization references an allocation sinking candidate then replace
 // this reference with a materialization which should have been computed for
 // this side-exit. CollectAllExits should have collected this exit.
@@ -2824,7 +2791,6 @@ void AllocationSinking::NormalizeMaterializations() {
     }
   }
 }
-
 
 // We transitively insert materializations at each deoptimization exit that
 // might see the given allocation (see ExitsCollector). Some of this
@@ -2858,7 +2824,6 @@ void AllocationSinking::RemoveUnusedMaterializations() {
   }
   materializations_.TruncateTo(j);
 }
-
 
 // Some candidates might stop being eligible for allocation sinking after
 // the load forwarding because they flow into phis that load forwarding
@@ -2945,7 +2910,6 @@ void AllocationSinking::DiscoverFailedCandidates() {
   candidates_.TruncateTo(j);
 }
 
-
 void AllocationSinking::Optimize() {
   CollectCandidates();
 
@@ -2998,7 +2962,6 @@ void AllocationSinking::Optimize() {
   }
 }
 
-
 // Remove materializations from the graph. Register allocator will treat them
 // as part of the environment not as a real instruction.
 void AllocationSinking::DetachMaterializations() {
@@ -3006,7 +2969,6 @@ void AllocationSinking::DetachMaterializations() {
     materializations_[i]->previous()->LinkTo(materializations_[i]->next());
   }
 }
-
 
 // Add a field/offset to the list of fields if it is not yet present there.
 static bool AddSlot(ZoneGrowableArray<const Object*>* slots,
@@ -3022,7 +2984,6 @@ static bool AddSlot(ZoneGrowableArray<const Object*>* slots,
   return true;
 }
 
-
 // Find deoptimization exit for the given materialization assuming that all
 // materializations are emitted right before the instruction which is a
 // deoptimization exit.
@@ -3033,7 +2994,6 @@ static Instruction* ExitForMaterialization(MaterializeObjectInstr* mat) {
   return mat->next();
 }
 
-
 // Given the deoptimization exit find first materialization that was inserted
 // before it.
 static Instruction* FirstMaterializationAt(Instruction* exit) {
@@ -3042,7 +3002,6 @@ static Instruction* FirstMaterializationAt(Instruction* exit) {
   }
   return exit;
 }
-
 
 // Given the allocation and deoptimization exit try to find MaterializeObject
 // instruction corresponding to this allocation at this exit.
@@ -3062,7 +3021,6 @@ MaterializeObjectInstr* AllocationSinking::MaterializationFor(
 
   return NULL;
 }
-
 
 // Insert MaterializeObject instruction for the given allocation before
 // the given instruction that can deoptimize.
@@ -3129,7 +3087,6 @@ void AllocationSinking::CreateMaterializationAt(
   materializations_.Add(mat);
 }
 
-
 // Add given instruction to the list of the instructions if it is not yet
 // present there.
 template <typename T>
@@ -3142,7 +3099,6 @@ void AddInstruction(GrowableArray<T*>* list, T* value) {
   }
   list->Add(value);
 }
-
 
 // Transitively collect all deoptimization exits that might need this allocation
 // rematerialized. It is not enough to collect only environment uses of this
@@ -3172,7 +3128,6 @@ void AllocationSinking::ExitsCollector::Collect(Definition* alloc) {
   }
 }
 
-
 void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
   exits_.TruncateTo(0);
   worklist_.TruncateTo(0);
@@ -3188,7 +3143,6 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
     Collect(worklist_[i]);
   }
 }
-
 
 void AllocationSinking::InsertMaterializations(Definition* alloc) {
   // Collect all fields that are written for this instance.
@@ -3223,7 +3177,6 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     CreateMaterializationAt(exits_collector_.exits()[i], alloc, *slots);
   }
 }
-
 
 void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
   // For every catch-block: Iterate over all call instructions inside the
@@ -3297,7 +3250,6 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
   }
 }
 
-
 // Returns true iff this definition is used in a non-phi instruction.
 static bool HasRealUse(Definition* def) {
   // Environment uses are real (non-phi) uses.
@@ -3308,7 +3260,6 @@ static bool HasRealUse(Definition* def) {
   }
   return false;
 }
-
 
 void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
   GrowableArray<PhiInstr*> live_phis;
@@ -3381,6 +3332,5 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
     }
   }
 }
-
 
 }  // namespace dart

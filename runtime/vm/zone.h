@@ -9,8 +9,8 @@
 #include "vm/allocation.h"
 #include "vm/handles.h"
 #include "vm/json_stream.h"
-#include "vm/thread.h"
 #include "vm/memory_region.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -41,7 +41,6 @@ class Zone {
   // check for integer overflow.  If you use AllocUnsafe, you are
   // responsible for avoiding integer overflow yourself.
   inline uword AllocUnsafe(intptr_t size);
-
 
   // Make a copy of the string in the zone allocated area.
   char* MakeCopyOfString(const char* str);
@@ -165,7 +164,6 @@ class Zone {
   DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 
-
 class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Thread.
@@ -217,7 +215,6 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
   return result;
 }
 
-
 template <class ElementType>
 inline void Zone::CheckLength(intptr_t len) {
   const intptr_t kElementSize = sizeof(ElementType);
@@ -226,7 +223,6 @@ inline void Zone::CheckLength(intptr_t len) {
            len, kElementSize);
   }
 }
-
 
 template <class ElementType>
 inline ElementType* Zone::Alloc(intptr_t len) {

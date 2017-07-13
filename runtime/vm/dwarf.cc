@@ -48,7 +48,6 @@ class InliningNode : public ZoneAllocated {
   InliningNode* children_next;
 };
 
-
 Dwarf::Dwarf(Zone* zone, WriteStream* stream)
     : zone_(zone),
       stream_(stream),
@@ -59,7 +58,6 @@ Dwarf::Dwarf(Zone* zone, WriteStream* stream)
       scripts_(zone, 1024),
       script_to_index_(zone),
       temp_(0) {}
-
 
 intptr_t Dwarf::AddCode(const Code& code) {
   ASSERT(!code.IsNull());
@@ -87,7 +85,6 @@ intptr_t Dwarf::AddCode(const Code& code) {
   return index;
 }
 
-
 intptr_t Dwarf::AddFunction(const Function& function) {
   ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
@@ -103,7 +100,6 @@ intptr_t Dwarf::AddFunction(const Function& function) {
   return index;
 }
 
-
 intptr_t Dwarf::AddScript(const Script& script) {
   ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
@@ -118,7 +114,6 @@ intptr_t Dwarf::AddScript(const Script& script) {
   return index;
 }
 
-
 intptr_t Dwarf::LookupFunction(const Function& function) {
   ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
@@ -128,7 +123,6 @@ intptr_t Dwarf::LookupFunction(const Function& function) {
   }
   return pair->index_;
 }
-
 
 intptr_t Dwarf::LookupScript(const Script& script) {
   ASSERT(!script.IsNull());
@@ -140,14 +134,12 @@ intptr_t Dwarf::LookupScript(const Script& script) {
   return pair->index_;
 }
 
-
 void Dwarf::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
   stream_->VPrint(format, args);
   va_end(args);
 }
-
 
 void Dwarf::WriteAbbreviations() {
 // Dwarf data mostly takes the form of a tree, whose nodes are called
@@ -226,7 +218,6 @@ void Dwarf::WriteAbbreviations() {
   uleb128(0);  // End of abbreviations.
 }
 
-
 void Dwarf::WriteCompilationUnit() {
 // 7.5.1.1 Compilation Unit Header
 
@@ -289,7 +280,6 @@ void Dwarf::WriteCompilationUnit() {
   Print(".Lcu_end:\n");
 }
 
-
 void Dwarf::WriteAbstractFunctions() {
   Script& script = Script::Handle(zone_);
   String& name = String::Handle(zone_);
@@ -309,7 +299,6 @@ void Dwarf::WriteAbstractFunctions() {
     uleb128(0);                                   // End of children.
   }
 }
-
 
 void Dwarf::WriteConcreteFunctions() {
   Function& function = Function::Handle(zone_);
@@ -348,7 +337,6 @@ void Dwarf::WriteConcreteFunctions() {
     uleb128(0);  // End of children.
   }
 }
-
 
 // Our state machine encodes position metadata such that we don't know the
 // end pc for an inlined function until it is popped, but DWARF DIEs encode
@@ -424,7 +412,6 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   return root_node;
 }
 
-
 void Dwarf::WriteInliningNode(InliningNode* node,
                               intptr_t root_code_index,
                               const Script& parent_script) {
@@ -458,7 +445,6 @@ void Dwarf::WriteInliningNode(InliningNode* node,
 
   uleb128(0);  // End of children.
 }
-
 
 void Dwarf::WriteLines() {
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)

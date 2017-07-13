@@ -14,8 +14,8 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
-#include "vm/symbols.h"
 #include "vm/simulator.h"
+#include "vm/symbols.h"
 
 namespace dart {
 

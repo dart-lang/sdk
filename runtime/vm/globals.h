@@ -43,7 +43,6 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
   ((sizeof(array) / sizeof(*(array))) /                                        \
    static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
 
-
 #if defined(ARCH_IS_64_BIT)
 #define HASH_IN_OBJECT_HEADER 1
 #endif
@@ -76,11 +75,9 @@ const intptr_t kOffsetOfPtr = 32;
     return reinterpret_cast<type*>(result);                                    \
   } while (0)
 
-
 // A type large enough to contain the value of the C++ vtable. This is needed
 // to support the handle operations.
 typedef uword cpp_vtable;
-
 
 // When using GCC we can use GCC attributes to ensure that certain
 // constants are 8 or 16 byte aligned.
@@ -92,14 +89,12 @@ typedef uword cpp_vtable;
 #define ALIGN16 __attribute__((aligned(16)))
 #endif
 
-
 // Zap value used to indicate uninitialized handle area (debug purposes).
 #if defined(ARCH_IS_32_BIT)
 static const uword kZapUninitializedWord = 0xabababab;
 #else
 static const uword kZapUninitializedWord = 0xabababababababab;
 #endif
-
 
 // Macros to get the contents of the fp register.
 #if defined(HOST_OS_WINDOWS)

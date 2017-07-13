@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_JIT_OPTIMIZER_H_
 #define RUNTIME_VM_JIT_OPTIMIZER_H_
 
-#include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
+#include "vm/intermediate_language.h"
 
 namespace dart {
 
@@ -99,7 +99,6 @@ class JitOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
-
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 
@@ -129,7 +128,6 @@ class JitOptimizer : public FlowGraphVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(JitOptimizer);
 };
-
 
 }  // namespace dart
 

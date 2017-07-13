@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_AOT_OPTIMIZER_H_
 #define RUNTIME_VM_AOT_OPTIMIZER_H_
 
-#include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
+#include "vm/intermediate_language.h"
 
 namespace dart {
 
@@ -146,7 +146,6 @@ class AotOptimizer : public FlowGraphVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(AotOptimizer);
 };
-
 
 }  // namespace dart
 

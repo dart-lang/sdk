@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/os.h"
-#include "vm/lockers.h"
 #include "vm/thread_pool.h"
+#include "vm/lockers.h"
+#include "vm/os.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 DECLARE_FLAG(int, worker_timeout_millis);
 
-
 VM_UNIT_TEST_CASE(ThreadPool_Create) {
   ThreadPool thread_pool;
 }
-
 
 class TestTask : public ThreadPool::Task {
  public:
@@ -42,7 +40,6 @@ class TestTask : public ThreadPool::Task {
   bool* done_;
 };
 
-
 VM_UNIT_TEST_CASE(ThreadPool_RunOne) {
   ThreadPool thread_pool;
   Monitor sync;
@@ -62,7 +59,6 @@ VM_UNIT_TEST_CASE(ThreadPool_RunOne) {
   EXPECT_EQ(1U, thread_pool.workers_started());
   EXPECT_EQ(0U, thread_pool.workers_stopped());
 }
-
 
 VM_UNIT_TEST_CASE(ThreadPool_RunMany) {
   const int kTaskCount = 100;
@@ -84,7 +80,6 @@ VM_UNIT_TEST_CASE(ThreadPool_RunMany) {
     EXPECT(done[i]);
   }
 }
-
 
 class SleepTask : public ThreadPool::Task {
  public:
@@ -117,7 +112,6 @@ class SleepTask : public ThreadPool::Task {
   int* slept_count_;
   int millis_;
 };
-
 
 VM_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
   const int kTaskCount = 10;
@@ -156,7 +150,6 @@ VM_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
   EXPECT_EQ(kTaskCount, final_count);
 }
 
-
 VM_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   // Adjust the worker timeout so that we timeout quickly.
   int saved_timeout = FLAG_worker_timeout_millis;
@@ -193,7 +186,6 @@ VM_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   FLAG_worker_timeout_millis = saved_timeout;
 }
 
-
 class SpawnTask : public ThreadPool::Task {
  public:
   SpawnTask(ThreadPool* pool, Monitor* sync, int todo, int total, int* done)
@@ -228,7 +220,6 @@ class SpawnTask : public ThreadPool::Task {
   int total_;
   int* done_;
 };
-
 
 VM_UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
   ThreadPool thread_pool;

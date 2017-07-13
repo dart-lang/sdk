@@ -36,7 +36,6 @@ class DisassemblyFormatter {
   virtual void Print(const char* format, ...) = 0;
 };
 
-
 // Basic disassembly formatter that outputs the disassembled instruction
 // to stdout.
 class DisassembleToStdout : public DisassemblyFormatter {
@@ -58,7 +57,6 @@ class DisassembleToStdout : public DisassemblyFormatter {
   DISALLOW_ALLOCATION()
   DISALLOW_COPY_AND_ASSIGN(DisassembleToStdout);
 };
-
 
 // Disassemble into a JSONStream.
 class DisassembleToJSONStream : public DisassemblyFormatter {
@@ -82,7 +80,6 @@ class DisassembleToJSONStream : public DisassemblyFormatter {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(DisassembleToJSONStream);
 };
-
 
 // Disassemble instructions.
 class Disassembler : public AllStatic {

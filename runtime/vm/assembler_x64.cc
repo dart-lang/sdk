@@ -20,7 +20,6 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 
-
 Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
@@ -31,11 +30,9 @@ Assembler::Assembler(bool use_far_branches)
   ASSERT(!use_far_branches);
 }
 
-
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
 }
-
 
 void Assembler::call(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -45,14 +42,12 @@ void Assembler::call(Register reg) {
   EmitOperand(2, operand);
 }
 
-
 void Assembler::call(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(2, address, REX_NONE);
   EmitUint8(0xFF);
   EmitOperand(2, address);
 }
-
 
 void Assembler::call(Label* label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -61,7 +56,6 @@ void Assembler::call(Label* label) {
   EmitLabel(label, kSize);
 }
 
-
 void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
                                 Patchability patchable) {
@@ -69,7 +63,6 @@ void Assembler::LoadNativeEntry(Register dst,
       object_pool_wrapper_.FindNativeEntry(label, patchable));
   LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
 }
-
 
 void Assembler::call(const ExternalLabel* label) {
   {  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
@@ -80,7 +73,6 @@ void Assembler::call(const ExternalLabel* label) {
   }
   call(TMP);
 }
-
 
 void Assembler::CallPatchable(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
@@ -94,7 +86,6 @@ void Assembler::CallPatchable(const StubEntry& stub_entry) {
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
-
 void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
                                     const Object& equivalence) {
   ASSERT(constant_pool_allowed());
@@ -106,7 +97,6 @@ void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
   call(TMP);
 }
 
-
 void Assembler::Call(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
@@ -117,13 +107,11 @@ void Assembler::Call(const StubEntry& stub_entry) {
   call(TMP);
 }
 
-
 void Assembler::CallToRuntime() {
   movq(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
   movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   call(TMP);
 }
-
 
 void Assembler::pushq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -131,14 +119,12 @@ void Assembler::pushq(Register reg) {
   EmitUint8(0x50 | (reg & 7));
 }
 
-
 void Assembler::pushq(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(6, address, REX_NONE);
   EmitUint8(0xFF);
   EmitOperand(6, address);
 }
-
 
 void Assembler::pushq(const Immediate& imm) {
   if (imm.is_int8()) {
@@ -155,7 +141,6 @@ void Assembler::pushq(const Immediate& imm) {
   }
 }
 
-
 void Assembler::PushImmediate(const Immediate& imm) {
   if (imm.is_int32()) {
     pushq(imm);
@@ -165,13 +150,11 @@ void Assembler::PushImmediate(const Immediate& imm) {
   }
 }
 
-
 void Assembler::popq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
   EmitUint8(0x58 | (reg & 7));
 }
-
 
 void Assembler::popq(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -180,14 +163,12 @@ void Assembler::popq(const Address& address) {
   EmitOperand(0, address);
 }
 
-
 void Assembler::setcc(Condition condition, ByteRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0x90 + condition);
   EmitUint8(0xC0 + dst);
 }
-
 
 void Assembler::movl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -196,7 +177,6 @@ void Assembler::movl(Register dst, Register src) {
   EmitUint8(0x8B);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::movl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -208,14 +188,12 @@ void Assembler::movl(Register dst, const Immediate& imm) {
   EmitImmediate(imm);
 }
 
-
 void Assembler::movl(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_NONE);
   EmitUint8(0x8B);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::movl(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -224,12 +202,10 @@ void Assembler::movl(const Address& dst, Register src) {
   EmitOperand(src & 7, dst);
 }
 
-
 void Assembler::movl(const Address& dst, const Immediate& imm) {
   movl(TMP, imm);
   movl(dst, TMP);
 }
-
 
 void Assembler::movzxb(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -240,7 +216,6 @@ void Assembler::movzxb(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::movzxb(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);
@@ -248,7 +223,6 @@ void Assembler::movzxb(Register dst, const Address& src) {
   EmitUint8(0xB6);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::movsxb(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -259,7 +233,6 @@ void Assembler::movsxb(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::movsxb(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);
@@ -268,14 +241,12 @@ void Assembler::movsxb(Register dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::movb(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_NONE);
   EmitUint8(0x8A);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::movb(const Address& dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -286,14 +257,12 @@ void Assembler::movb(const Address& dst, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
-
 void Assembler::movb(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(src, dst, REX_NONE);
   EmitUint8(0x88);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::movzxw(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -304,7 +273,6 @@ void Assembler::movzxw(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::movzxw(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);
@@ -312,7 +280,6 @@ void Assembler::movzxw(Register dst, const Address& src) {
   EmitUint8(0xB7);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::movsxw(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -323,7 +290,6 @@ void Assembler::movsxw(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::movsxw(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);
@@ -332,11 +298,9 @@ void Assembler::movsxw(Register dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::movw(Register dst, const Address& src) {
   FATAL("Use movzxw or movsxw instead.");
 }
-
 
 void Assembler::movw(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -345,7 +309,6 @@ void Assembler::movw(const Address& dst, Register src) {
   EmitUint8(0x89);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::movw(const Address& dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -356,7 +319,6 @@ void Assembler::movw(const Address& dst, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
   EmitUint8((imm.value() >> 8) & 0xFF);
 }
-
 
 void Assembler::movq(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -372,7 +334,6 @@ void Assembler::movq(Register dst, const Immediate& imm) {
   EmitImmediate(imm);
 }
 
-
 // Use 0x89 encoding (instead of 0x8B encoding), which is expected by gdb64
 // older than 7.3.1-gg5 when disassembling a function's prologue (movq rbp, rsp)
 // for proper unwinding of Dart frames (use --generate_gdb_symbols and -O0).
@@ -384,7 +345,6 @@ void Assembler::movq(Register dst, Register src) {
   EmitOperand(src & 7, operand);
 }
 
-
 void Assembler::movq(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);
@@ -392,14 +352,12 @@ void Assembler::movq(Register dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::movq(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(src, dst, REX_W);
   EmitUint8(0x89);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::movq(const Address& dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -415,7 +373,6 @@ void Assembler::movq(const Address& dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::movsxd(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -424,7 +381,6 @@ void Assembler::movsxd(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::movsxd(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);
@@ -432,13 +388,11 @@ void Assembler::movsxd(Register dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::rep_movsb() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
   EmitUint8(0xA4);
 }
-
 
 void Assembler::leaq(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -446,7 +400,6 @@ void Assembler::leaq(Register dst, const Address& src) {
   EmitUint8(0x8D);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::cmovnoq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -457,7 +410,6 @@ void Assembler::cmovnoq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::cmoveq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -466,7 +418,6 @@ void Assembler::cmoveq(Register dst, Register src) {
   EmitUint8(0x44);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::cmovgeq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -477,7 +428,6 @@ void Assembler::cmovgeq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::cmovlessq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -486,7 +436,6 @@ void Assembler::cmovlessq(Register dst, Register src) {
   EmitUint8(0x4C);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::movss(XmmRegister dst, const Address& src) {
   ASSERT(dst <= XMM15);
@@ -498,7 +447,6 @@ void Assembler::movss(XmmRegister dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::movss(const Address& dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -508,7 +456,6 @@ void Assembler::movss(const Address& dst, XmmRegister src) {
   EmitUint8(0x11);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::movss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -521,7 +468,6 @@ void Assembler::movss(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(src & 7, dst);
 }
 
-
 void Assembler::movd(XmmRegister dst, Register src) {
   ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -532,7 +478,6 @@ void Assembler::movd(XmmRegister dst, Register src) {
   EmitOperand(dst & 7, Operand(src));
 }
 
-
 void Assembler::movd(Register dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -542,7 +487,6 @@ void Assembler::movd(Register dst, XmmRegister src) {
   EmitUint8(0x7E);
   EmitOperand(src & 7, Operand(dst));
 }
-
 
 void Assembler::addss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -555,7 +499,6 @@ void Assembler::addss(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::subss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -566,7 +509,6 @@ void Assembler::subss(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x5C);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::mulss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -579,7 +521,6 @@ void Assembler::mulss(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::divss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -591,7 +532,6 @@ void Assembler::divss(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::movsd(XmmRegister dst, const Address& src) {
   ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -602,7 +542,6 @@ void Assembler::movsd(XmmRegister dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::movsd(const Address& dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -612,7 +551,6 @@ void Assembler::movsd(const Address& dst, XmmRegister src) {
   EmitUint8(0x11);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::movsd(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -625,7 +563,6 @@ void Assembler::movsd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(src & 7, dst);
 }
 
-
 void Assembler::movaps(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -636,7 +573,6 @@ void Assembler::movaps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::movups(XmmRegister dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -645,7 +581,6 @@ void Assembler::movups(XmmRegister dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::movups(const Address& dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(src, dst);
@@ -653,7 +588,6 @@ void Assembler::movups(const Address& dst, XmmRegister src) {
   EmitUint8(0x11);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::addsd(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -666,7 +600,6 @@ void Assembler::addsd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::subsd(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -677,7 +610,6 @@ void Assembler::subsd(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x5C);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::mulsd(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -690,7 +622,6 @@ void Assembler::mulsd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::divsd(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -702,7 +633,6 @@ void Assembler::divsd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::addpl(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
@@ -711,7 +641,6 @@ void Assembler::addpl(XmmRegister dst, XmmRegister src) {
   EmitUint8(0xFE);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::subpl(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -722,7 +651,6 @@ void Assembler::subpl(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::addps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -730,7 +658,6 @@ void Assembler::addps(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x58);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::subps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -740,7 +667,6 @@ void Assembler::subps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::divps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -748,7 +674,6 @@ void Assembler::divps(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x5E);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::mulps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -758,7 +683,6 @@ void Assembler::mulps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::minps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -766,7 +690,6 @@ void Assembler::minps(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x5D);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::maxps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -776,7 +699,6 @@ void Assembler::maxps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::andps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -785,7 +707,6 @@ void Assembler::andps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::andps(XmmRegister dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -793,7 +714,6 @@ void Assembler::andps(XmmRegister dst, const Address& src) {
   EmitUint8(0x54);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::orps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -809,13 +729,11 @@ void Assembler::notps(XmmRegister dst) {
   xorps(dst, Address(TMP, 0));
 }
 
-
 void Assembler::negateps(XmmRegister dst) {
   // { 0x80000000, 0x80000000, 0x80000000, 0x80000000 }
   movq(TMP, Address(THR, Thread::float_negate_address_offset()));
   xorps(dst, Address(TMP, 0));
 }
-
 
 void Assembler::absps(XmmRegister dst) {
   // { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF }
@@ -823,13 +741,11 @@ void Assembler::absps(XmmRegister dst) {
   andps(dst, Address(TMP, 0));
 }
 
-
 void Assembler::zerowps(XmmRegister dst) {
   // { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 }
   movq(TMP, Address(THR, Thread::float_zerow_address_offset()));
   andps(dst, Address(TMP, 0));
 }
-
 
 void Assembler::cmppseq(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -840,7 +756,6 @@ void Assembler::cmppseq(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x0);
 }
 
-
 void Assembler::cmppsneq(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -849,7 +764,6 @@ void Assembler::cmppsneq(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
   EmitUint8(0x4);
 }
-
 
 void Assembler::cmppslt(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -860,7 +774,6 @@ void Assembler::cmppslt(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x1);
 }
 
-
 void Assembler::cmppsle(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -869,7 +782,6 @@ void Assembler::cmppsle(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
   EmitUint8(0x2);
 }
-
 
 void Assembler::cmppsnlt(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -880,7 +792,6 @@ void Assembler::cmppsnlt(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x5);
 }
 
-
 void Assembler::cmppsnle(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -890,7 +801,6 @@ void Assembler::cmppsnle(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x6);
 }
 
-
 void Assembler::sqrtps(XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, dst);
@@ -898,7 +808,6 @@ void Assembler::sqrtps(XmmRegister dst) {
   EmitUint8(0x51);
   EmitXmmRegisterOperand(dst & 7, dst);
 }
-
 
 void Assembler::rsqrtps(XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -908,7 +817,6 @@ void Assembler::rsqrtps(XmmRegister dst) {
   EmitXmmRegisterOperand(dst & 7, dst);
 }
 
-
 void Assembler::reciprocalps(XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, dst);
@@ -916,7 +824,6 @@ void Assembler::reciprocalps(XmmRegister dst) {
   EmitUint8(0x53);
   EmitXmmRegisterOperand(dst & 7, dst);
 }
-
 
 void Assembler::movhlps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -926,7 +833,6 @@ void Assembler::movhlps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::movlhps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -934,7 +840,6 @@ void Assembler::movlhps(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x16);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::unpcklps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -944,7 +849,6 @@ void Assembler::unpcklps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::unpckhps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -952,7 +856,6 @@ void Assembler::unpckhps(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x15);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::unpcklpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -963,7 +866,6 @@ void Assembler::unpcklpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::unpckhpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
@@ -972,7 +874,6 @@ void Assembler::unpckhpd(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x15);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::set1ps(XmmRegister dst, Register tmp1, const Immediate& imm) {
   // Load 32-bit immediate value into tmp1.
@@ -983,7 +884,6 @@ void Assembler::set1ps(XmmRegister dst, Register tmp1, const Immediate& imm) {
   shufps(dst, dst, Immediate(0x0));
 }
 
-
 void Assembler::shufps(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -993,7 +893,6 @@ void Assembler::shufps(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   ASSERT(imm.is_uint8());
   EmitUint8(imm.value());
 }
-
 
 void Assembler::addpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1006,13 +905,11 @@ void Assembler::addpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::negatepd(XmmRegister dst) {
   // { 0x8000000000000000LL, 0x8000000000000000LL }
   movq(TMP, Address(THR, Thread::double_negate_address_offset()));
   xorpd(dst, Address(TMP, 0));
 }
-
 
 void Assembler::subpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1025,7 +922,6 @@ void Assembler::subpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::mulpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(src <= XMM15);
@@ -1036,7 +932,6 @@ void Assembler::mulpd(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x59);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::divpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1049,13 +944,11 @@ void Assembler::divpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::abspd(XmmRegister dst) {
   // { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL }
   movq(TMP, Address(THR, Thread::double_abs_address_offset()));
   andpd(dst, Address(TMP, 0));
 }
-
 
 void Assembler::minpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1068,7 +961,6 @@ void Assembler::minpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::maxpd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(src <= XMM15);
@@ -1080,7 +972,6 @@ void Assembler::maxpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::sqrtpd(XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(dst <= XMM15);
@@ -1091,7 +982,6 @@ void Assembler::sqrtpd(XmmRegister dst) {
   EmitXmmRegisterOperand(dst & 7, dst);
 }
 
-
 void Assembler::cvtps2pd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(src <= XMM15);
@@ -1101,7 +991,6 @@ void Assembler::cvtps2pd(XmmRegister dst, XmmRegister src) {
   EmitUint8(0x5A);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::cvtpd2ps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1114,7 +1003,6 @@ void Assembler::cvtpd2ps(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
@@ -1125,7 +1013,6 @@ void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   ASSERT(imm.is_uint8());
   EmitUint8(imm.value());
 }
-
 
 void Assembler::comisd(XmmRegister a, XmmRegister b) {
   ASSERT(a <= XMM15);
@@ -1138,7 +1025,6 @@ void Assembler::comisd(XmmRegister a, XmmRegister b) {
   EmitXmmRegisterOperand(a & 7, b);
 }
 
-
 void Assembler::movmskpd(Register dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1149,7 +1035,6 @@ void Assembler::movmskpd(Register dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::movmskps(Register dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1158,7 +1043,6 @@ void Assembler::movmskps(Register dst, XmmRegister src) {
   EmitUint8(0x50);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::sqrtsd(XmmRegister dst, XmmRegister src) {
   ASSERT(dst <= XMM15);
@@ -1171,7 +1055,6 @@ void Assembler::sqrtsd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::xorpd(XmmRegister dst, const Address& src) {
   ASSERT(dst <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1181,7 +1064,6 @@ void Assembler::xorpd(XmmRegister dst, const Address& src) {
   EmitUint8(0x57);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::xorpd(XmmRegister dst, XmmRegister src) {
   ASSERT(dst <= XMM15);
@@ -1194,7 +1076,6 @@ void Assembler::xorpd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::xorps(XmmRegister dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitREX_RB(dst, src);
@@ -1202,7 +1083,6 @@ void Assembler::xorps(XmmRegister dst, const Address& src) {
   EmitUint8(0x57);
   EmitOperand(dst & 7, src);
 }
-
 
 void Assembler::xorps(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1222,7 +1102,6 @@ void Assembler::andpd(XmmRegister dst, const Address& src) {
   EmitOperand(dst & 7, src);
 }
 
-
 void Assembler::cvtsi2sdq(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(dst <= XMM15);
@@ -1233,7 +1112,6 @@ void Assembler::cvtsi2sdq(XmmRegister dst, Register src) {
   EmitUint8(0x2A);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::cvtsi2sdl(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1246,7 +1124,6 @@ void Assembler::cvtsi2sdl(XmmRegister dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::cvttsd2siq(Register dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1257,7 +1134,6 @@ void Assembler::cvttsd2siq(Register dst, XmmRegister src) {
   EmitUint8(0x2C);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::cvtss2sd(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
@@ -1270,7 +1146,6 @@ void Assembler::cvtss2sd(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::cvtsd2ss(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -1282,7 +1157,6 @@ void Assembler::cvtsd2ss(XmmRegister dst, XmmRegister src) {
   EmitXmmRegisterOperand(dst & 7, src);
 }
 
-
 void Assembler::pxor(XmmRegister dst, XmmRegister src) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -1293,7 +1167,6 @@ void Assembler::pxor(XmmRegister dst, XmmRegister src) {
   EmitUint8(0xEF);
   EmitXmmRegisterOperand(dst & 7, src);
 }
-
 
 void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   ASSERT(src <= XMM15);
@@ -1309,13 +1182,11 @@ void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
 }
 
-
 void Assembler::fldl(const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);
   EmitOperand(0, src);
 }
-
 
 void Assembler::fstpl(const Address& dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1323,13 +1194,11 @@ void Assembler::fstpl(const Address& dst) {
   EmitOperand(3, dst);
 }
 
-
 void Assembler::fincstp() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xD9);
   EmitUint8(0xF7);
 }
-
 
 void Assembler::ffree(intptr_t value) {
   ASSERT(value < 7);
@@ -1338,20 +1207,17 @@ void Assembler::ffree(intptr_t value) {
   EmitUint8(0xC0 + value);
 }
 
-
 void Assembler::fsin() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xD9);
   EmitUint8(0xFE);
 }
 
-
 void Assembler::fcos() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xD9);
   EmitUint8(0xFF);
 }
-
 
 void Assembler::xchgl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1361,7 +1227,6 @@ void Assembler::xchgl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::xchgq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1369,7 +1234,6 @@ void Assembler::xchgq(Register dst, Register src) {
   EmitUint8(0x87);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::cmpb(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1380,7 +1244,6 @@ void Assembler::cmpb(const Address& address, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
-
 void Assembler::cmpw(Register reg, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandSizeOverride();
@@ -1388,7 +1251,6 @@ void Assembler::cmpw(Register reg, const Address& address) {
   EmitUint8(0x3B);
   EmitOperand(reg & 7, address);
 }
-
 
 void Assembler::cmpw(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1400,13 +1262,11 @@ void Assembler::cmpw(const Address& address, const Immediate& imm) {
   EmitUint8((imm.value() >> 8) & 0xFF);
 }
 
-
 void Assembler::cmpl(Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
   EmitComplex(7, Operand(reg), imm);
 }
-
 
 void Assembler::cmpl(Register reg0, Register reg1) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1416,14 +1276,12 @@ void Assembler::cmpl(Register reg0, Register reg1) {
   EmitOperand(reg0 & 7, operand);
 }
 
-
 void Assembler::cmpl(Register reg, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(reg, address, REX_NONE);
   EmitUint8(0x3B);
   EmitOperand(reg & 7, address);
 }
-
 
 void Assembler::cmpl(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1432,14 +1290,12 @@ void Assembler::cmpl(const Address& address, const Immediate& imm) {
   EmitComplex(7, operand, imm);
 }
 
-
 void Assembler::cmpq(const Address& address, Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(reg, address, REX_W);
   EmitUint8(0x39);
   EmitOperand(reg & 7, address);
 }
-
 
 void Assembler::cmpq(const Address& address, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1453,7 +1309,6 @@ void Assembler::cmpq(const Address& address, const Immediate& imm) {
   }
 }
 
-
 void Assembler::cmpq(Register reg, const Immediate& imm) {
   if (imm.is_int32()) {
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1466,7 +1321,6 @@ void Assembler::cmpq(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::cmpq(Register reg0, Register reg1) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg1);
@@ -1475,14 +1329,12 @@ void Assembler::cmpq(Register reg0, Register reg1) {
   EmitOperand(reg0 & 7, operand);
 }
 
-
 void Assembler::cmpq(Register reg, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(reg, address, REX_W);
   EmitUint8(0x3B);
   EmitOperand(reg & 7, address);
 }
-
 
 void Assembler::CompareImmediate(Register reg, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1494,7 +1346,6 @@ void Assembler::CompareImmediate(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::CompareImmediate(const Address& address, const Immediate& imm) {
   if (imm.is_int32()) {
     cmpq(address, imm);
@@ -1504,7 +1355,6 @@ void Assembler::CompareImmediate(const Address& address, const Immediate& imm) {
   }
 }
 
-
 void Assembler::testl(Register reg1, Register reg2) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg2);
@@ -1512,7 +1362,6 @@ void Assembler::testl(Register reg1, Register reg2) {
   EmitUint8(0x85);
   EmitOperand(reg1 & 7, operand);
 }
-
 
 void Assembler::testl(Register reg, const Immediate& imm) {
   // TODO(kasperl): Deal with registers r8-r15 using the short
@@ -1545,7 +1394,6 @@ void Assembler::testl(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::testb(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(0, address, REX_NONE);
@@ -1555,7 +1403,6 @@ void Assembler::testb(const Address& address, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
-
 void Assembler::testq(Register reg1, Register reg2) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg2);
@@ -1563,7 +1410,6 @@ void Assembler::testq(Register reg1, Register reg2) {
   EmitUint8(0x85);
   EmitOperand(reg1 & 7, operand);
 }
-
 
 void Assembler::testq(Register reg, const Immediate& imm) {
   // TODO(kasperl): Deal with registers r8-r15 using the short
@@ -1594,7 +1440,6 @@ void Assembler::testq(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::TestImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     testq(dst, imm);
@@ -1605,7 +1450,6 @@ void Assembler::TestImmediate(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::andl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1614,13 +1458,11 @@ void Assembler::andl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::andl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_NONE);
   EmitComplex(4, Operand(dst), imm);
 }
-
 
 void Assembler::orl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1630,13 +1472,11 @@ void Assembler::orl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::orl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_NONE);
   EmitComplex(1, Operand(dst), imm);
 }
-
 
 void Assembler::orl(const Address& address, Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1644,7 +1484,6 @@ void Assembler::orl(const Address& address, Register reg) {
   EmitUint8(0x09);
   EmitOperand(reg & 7, address);
 }
-
 
 void Assembler::xorl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1654,7 +1493,6 @@ void Assembler::xorl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::andq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1663,14 +1501,12 @@ void Assembler::andq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::andq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
   EmitUint8(0x23);
   EmitOperand(dst & 7, address);
 }
-
 
 void Assembler::andq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1684,7 +1520,6 @@ void Assembler::andq(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::AndImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     andq(dst, imm);
@@ -1695,7 +1530,6 @@ void Assembler::AndImmediate(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::orq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1704,14 +1538,12 @@ void Assembler::orq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::orq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
   EmitUint8(0x0B);
   EmitOperand(dst & 7, address);
 }
-
 
 void Assembler::orq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1725,7 +1557,6 @@ void Assembler::orq(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::OrImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     orq(dst, imm);
@@ -1736,7 +1567,6 @@ void Assembler::OrImmediate(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::xorq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1745,7 +1575,6 @@ void Assembler::xorq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::xorq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
@@ -1753,14 +1582,12 @@ void Assembler::xorq(Register dst, const Address& address) {
   EmitOperand(dst & 7, address);
 }
 
-
 void Assembler::xorq(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(src, dst, REX_W);
   EmitUint8(0x31);
   EmitOperand(src & 7, dst);
 }
-
 
 void Assembler::xorq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1774,7 +1601,6 @@ void Assembler::xorq(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::XorImmediate(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     xorq(dst, imm);
@@ -1785,7 +1611,6 @@ void Assembler::XorImmediate(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::addl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1794,14 +1619,12 @@ void Assembler::addl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::addl(Register dst, const Immediate& imm) {
   ASSERT(imm.is_int32());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_NONE);
   EmitComplex(0, Operand(dst), imm);
 }
-
 
 void Assembler::addl(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1810,14 +1633,12 @@ void Assembler::addl(Register dst, const Address& address) {
   EmitOperand(dst & 7, address);
 }
 
-
 void Assembler::addl(const Address& address, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(src, address, REX_NONE);
   EmitUint8(0x01);
   EmitOperand(src & 7, address);
 }
-
 
 void Assembler::adcl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1827,7 +1648,6 @@ void Assembler::adcl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::adcl(Register dst, const Immediate& imm) {
   ASSERT(imm.is_int32());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1835,14 +1655,12 @@ void Assembler::adcl(Register dst, const Immediate& imm) {
   EmitComplex(2, Operand(dst), imm);
 }
 
-
 void Assembler::adcl(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_NONE);
   EmitUint8(0x13);
   EmitOperand(dst & 7, address);
 }
-
 
 void Assembler::addq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1852,14 +1670,12 @@ void Assembler::addq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::addq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
   EmitUint8(0x03);
   EmitOperand(dst & 7, address);
 }
-
 
 void Assembler::addq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1873,7 +1689,6 @@ void Assembler::addq(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::addq(const Address& address, const Immediate& imm) {
   if (imm.is_int32()) {
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1885,14 +1700,12 @@ void Assembler::addq(const Address& address, const Immediate& imm) {
   }
 }
 
-
 void Assembler::addq(const Address& address, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(src, address, REX_W);
   EmitUint8(0x01);
   EmitOperand(src & 7, address);
 }
-
 
 void Assembler::adcq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1901,7 +1714,6 @@ void Assembler::adcq(Register dst, Register src) {
   EmitUint8(0x13);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::adcq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -1915,14 +1727,12 @@ void Assembler::adcq(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::adcq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
   EmitUint8(0x13);
   EmitOperand(dst & 7, address);
 }
-
 
 void Assembler::subl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1932,7 +1742,6 @@ void Assembler::subl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::subl(Register dst, const Immediate& imm) {
   ASSERT(imm.is_int32());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1940,14 +1749,12 @@ void Assembler::subl(Register dst, const Immediate& imm) {
   EmitComplex(3, Operand(dst), imm);
 }
 
-
 void Assembler::subl(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_NONE);
   EmitUint8(0x2B);
   EmitOperand(dst & 7, address);
 }
-
 
 void Assembler::sbbl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1957,14 +1764,12 @@ void Assembler::sbbl(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::sbbl(Register dst, const Immediate& imm) {
   ASSERT(imm.is_int32());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_NONE);
   EmitComplex(3, Operand(dst), imm);
 }
-
 
 void Assembler::sbbl(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1973,19 +1778,16 @@ void Assembler::sbbl(Register dst, const Address& address) {
   EmitOperand(dst & 7, address);
 }
 
-
 void Assembler::cdq() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x99);
 }
-
 
 void Assembler::cqo() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(RAX, REX_W);
   EmitUint8(0x99);
 }
-
 
 void Assembler::idivl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -1994,14 +1796,12 @@ void Assembler::idivl(Register reg) {
   EmitOperand(7, Operand(reg));
 }
 
-
 void Assembler::divl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
   EmitUint8(0xF7);
   EmitOperand(6, Operand(reg));
 }
-
 
 void Assembler::idivq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2010,14 +1810,12 @@ void Assembler::idivq(Register reg) {
   EmitOperand(7, Operand(reg));
 }
 
-
 void Assembler::divq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_W);
   EmitUint8(0xF7);
   EmitOperand(6, Operand(reg));
 }
-
 
 void Assembler::imull(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2028,7 +1826,6 @@ void Assembler::imull(Register dst, Register src) {
   EmitOperand(dst & 7, Operand(src));
 }
 
-
 void Assembler::imull(Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -2038,14 +1835,12 @@ void Assembler::imull(Register reg, const Immediate& imm) {
   EmitImmediate(imm);
 }
 
-
 void Assembler::mull(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
   EmitUint8(0xF7);
   EmitOperand(4, Operand(reg));
 }
-
 
 void Assembler::imulq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2055,7 +1850,6 @@ void Assembler::imulq(Register dst, Register src) {
   EmitUint8(0xAF);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::imulq(Register reg, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -2072,7 +1866,6 @@ void Assembler::imulq(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::MulImmediate(Register reg, const Immediate& imm) {
   if (imm.is_int32()) {
     imulq(reg, imm);
@@ -2083,7 +1876,6 @@ void Assembler::MulImmediate(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::imulq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
@@ -2092,14 +1884,12 @@ void Assembler::imulq(Register dst, const Address& address) {
   EmitOperand(dst & 7, address);
 }
 
-
 void Assembler::mulq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_W);
   EmitUint8(0xF7);
   EmitOperand(4, Operand(reg));
 }
-
 
 void Assembler::subq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2108,7 +1898,6 @@ void Assembler::subq(Register dst, Register src) {
   EmitUint8(0x2B);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::subq(Register reg, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -2122,7 +1911,6 @@ void Assembler::subq(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::subq(Register reg, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(reg, address, REX_W);
@@ -2130,14 +1918,12 @@ void Assembler::subq(Register reg, const Address& address) {
   EmitOperand(reg & 7, address);
 }
 
-
 void Assembler::subq(const Address& address, Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(reg, address, REX_W);
   EmitUint8(0x29);
   EmitOperand(reg & 7, address);
 }
-
 
 void Assembler::subq(const Address& address, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -2150,7 +1936,6 @@ void Assembler::subq(const Address& address, const Immediate& imm) {
   }
 }
 
-
 void Assembler::sbbq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -2158,7 +1943,6 @@ void Assembler::sbbq(Register dst, Register src) {
   EmitUint8(0x1B);
   EmitOperand(dst & 7, operand);
 }
-
 
 void Assembler::sbbq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
@@ -2172,7 +1956,6 @@ void Assembler::sbbq(Register dst, const Immediate& imm) {
   }
 }
 
-
 void Assembler::sbbq(Register dst, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, address, REX_W);
@@ -2180,36 +1963,29 @@ void Assembler::sbbq(Register dst, const Address& address) {
   EmitOperand(dst & 7, address);
 }
 
-
 void Assembler::shll(Register reg, const Immediate& imm) {
   EmitGenericShift(false, 4, reg, imm);
 }
-
 
 void Assembler::shll(Register operand, Register shifter) {
   EmitGenericShift(false, 4, operand, shifter);
 }
 
-
 void Assembler::shrl(Register reg, const Immediate& imm) {
   EmitGenericShift(false, 5, reg, imm);
 }
-
 
 void Assembler::shrl(Register operand, Register shifter) {
   EmitGenericShift(false, 5, operand, shifter);
 }
 
-
 void Assembler::sarl(Register reg, const Immediate& imm) {
   EmitGenericShift(false, 7, reg, imm);
 }
 
-
 void Assembler::sarl(Register operand, Register shifter) {
   EmitGenericShift(false, 7, operand, shifter);
 }
-
 
 void Assembler::shldl(Register dst, Register src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2222,36 +1998,29 @@ void Assembler::shldl(Register dst, Register src, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
-
 void Assembler::shlq(Register reg, const Immediate& imm) {
   EmitGenericShift(true, 4, reg, imm);
 }
-
 
 void Assembler::shlq(Register operand, Register shifter) {
   EmitGenericShift(true, 4, operand, shifter);
 }
 
-
 void Assembler::shrq(Register reg, const Immediate& imm) {
   EmitGenericShift(true, 5, reg, imm);
 }
-
 
 void Assembler::shrq(Register operand, Register shifter) {
   EmitGenericShift(true, 5, operand, shifter);
 }
 
-
 void Assembler::sarq(Register reg, const Immediate& imm) {
   EmitGenericShift(true, 7, reg, imm);
 }
 
-
 void Assembler::sarq(Register operand, Register shifter) {
   EmitGenericShift(true, 7, operand, shifter);
 }
-
 
 void Assembler::shldq(Register dst, Register src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2264,7 +2033,6 @@ void Assembler::shldq(Register dst, Register src, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
-
 void Assembler::shldq(Register dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(shifter == RCX);
@@ -2274,7 +2042,6 @@ void Assembler::shldq(Register dst, Register src, Register shifter) {
   EmitUint8(0xA5);
   EmitOperand(src & 7, operand);
 }
-
 
 void Assembler::shrdq(Register dst, Register src, Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2286,7 +2053,6 @@ void Assembler::shrdq(Register dst, Register src, Register shifter) {
   EmitOperand(src & 7, operand);
 }
 
-
 void Assembler::incl(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(address);
@@ -2294,7 +2060,6 @@ void Assembler::incl(const Address& address) {
   EmitUint8(0xFF);
   EmitOperand(0, operand);
 }
-
 
 void Assembler::decl(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2304,7 +2069,6 @@ void Assembler::decl(const Address& address) {
   EmitOperand(1, operand);
 }
 
-
 void Assembler::incq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -2312,7 +2076,6 @@ void Assembler::incq(Register reg) {
   EmitUint8(0xFF);
   EmitOperand(0, operand);
 }
-
 
 void Assembler::incq(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2322,7 +2085,6 @@ void Assembler::incq(const Address& address) {
   EmitOperand(0, operand);
 }
 
-
 void Assembler::decq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -2330,7 +2092,6 @@ void Assembler::decq(Register reg) {
   EmitUint8(0xFF);
   EmitOperand(1, operand);
 }
-
 
 void Assembler::decq(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2340,14 +2101,12 @@ void Assembler::decq(const Address& address) {
   EmitOperand(1, operand);
 }
 
-
 void Assembler::negl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
   EmitUint8(0xF7);
   EmitOperand(3, Operand(reg));
 }
-
 
 void Assembler::negq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2356,7 +2115,6 @@ void Assembler::negq(Register reg) {
   EmitOperand(3, Operand(reg));
 }
 
-
 void Assembler::notl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
@@ -2364,14 +2122,12 @@ void Assembler::notl(Register reg) {
   EmitUint8(0xD0 | (reg & 7));
 }
 
-
 void Assembler::notq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_W);
   EmitUint8(0xF7);
   EmitUint8(0xD0 | (reg & 7));
 }
-
 
 void Assembler::bsrq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2382,7 +2138,6 @@ void Assembler::bsrq(Register dst, Register src) {
   EmitOperand(dst & 7, operand);
 }
 
-
 void Assembler::btq(Register base, Register offset) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(base);
@@ -2391,7 +2146,6 @@ void Assembler::btq(Register base, Register offset) {
   EmitUint8(0xA3);
   EmitOperand(offset & 7, operand);
 }
-
 
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2402,18 +2156,15 @@ void Assembler::enter(const Immediate& imm) {
   EmitUint8(0x00);
 }
 
-
 void Assembler::leave() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC9);
 }
 
-
 void Assembler::ret() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC3);
 }
-
 
 void Assembler::nop(int size) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2477,18 +2228,15 @@ void Assembler::nop(int size) {
   }
 }
 
-
 void Assembler::int3() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xCC);
 }
 
-
 void Assembler::hlt() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF4);
 }
-
 
 void Assembler::j(Condition condition, Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2515,7 +2263,6 @@ void Assembler::j(Condition condition, Label* label, bool near) {
   }
 }
 
-
 void Assembler::J(Condition condition,
                   const StubEntry& stub_entry,
                   Register pp) {
@@ -2526,7 +2273,6 @@ void Assembler::J(Condition condition,
   Bind(&no_jump);
 }
 
-
 void Assembler::jmp(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -2535,14 +2281,12 @@ void Assembler::jmp(Register reg) {
   EmitOperand(4, operand);
 }
 
-
 void Assembler::jmp(const Address& dst) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(4, dst, REX_NONE);
   EmitUint8(0xFF);
   EmitOperand(4, dst);
 }
-
 
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2567,7 +2311,6 @@ void Assembler::jmp(Label* label, bool near) {
   }
 }
 
-
 void Assembler::jmp(const ExternalLabel* label) {
   {  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2577,7 +2320,6 @@ void Assembler::jmp(const ExternalLabel* label) {
   }
   jmp(TMP);
 }
-
 
 void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
@@ -2589,7 +2331,6 @@ void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   jmp(TMP);
 }
 
-
 void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
@@ -2600,12 +2341,10 @@ void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
   jmp(TMP);
 }
 
-
 void Assembler::lock() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF0);
 }
-
 
 void Assembler::cmpxchgl(const Address& address, Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2615,7 +2354,6 @@ void Assembler::cmpxchgl(const Address& address, Register reg) {
   EmitOperand(reg & 7, address);
 }
 
-
 void Assembler::cmpxchgq(const Address& address, Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(reg, address, REX_W);
@@ -2624,18 +2362,15 @@ void Assembler::cmpxchgq(const Address& address, Register reg) {
   EmitOperand(reg & 7, address);
 }
 
-
 void Assembler::cpuid() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xA2);
 }
 
-
 void Assembler::CompareRegisters(Register a, Register b) {
   cmpq(a, b);
 }
-
 
 void Assembler::MoveRegister(Register to, Register from) {
   if (to != from) {
@@ -2643,11 +2378,9 @@ void Assembler::MoveRegister(Register to, Register from) {
   }
 }
 
-
 void Assembler::PopRegister(Register r) {
   popq(r);
 }
-
 
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   const int64_t value = imm.value();
@@ -2671,7 +2404,6 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
@@ -2692,7 +2424,6 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
     SubImmediate(address, Immediate(-value));
   }
 }
-
 
 void Assembler::SubImmediate(Register reg, const Immediate& imm) {
   const int64_t value = imm.value();
@@ -2716,7 +2447,6 @@ void Assembler::SubImmediate(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::SubImmediate(const Address& address, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
@@ -2738,7 +2468,6 @@ void Assembler::SubImmediate(const Address& address, const Immediate& imm) {
   }
 }
 
-
 void Assembler::Drop(intptr_t stack_elements, Register tmp) {
   ASSERT(stack_elements >= 0);
   if (stack_elements <= 4) {
@@ -2749,7 +2478,6 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
   }
   addq(RSP, Immediate(stack_elements * kWordSize));
 }
-
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
@@ -2771,7 +2499,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-
 void Assembler::LoadWordFromPoolOffset(Register dst, int32_t offset) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
@@ -2780,11 +2507,9 @@ void Assembler::LoadWordFromPoolOffset(Register dst, int32_t offset) {
   movq(dst, Address::AddressBaseImm32(PP, offset));
 }
 
-
 void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, Thread::isolate_offset()));
 }
-
 
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
@@ -2804,7 +2529,6 @@ void Assembler::LoadObjectHelper(Register dst,
   }
 }
 
-
 void Assembler::LoadFunctionFromCalleePool(Register dst,
                                            const Function& function,
                                            Register new_pp) {
@@ -2815,16 +2539,13 @@ void Assembler::LoadFunctionFromCalleePool(Register dst,
   movq(dst, Address::AddressBaseImm32(new_pp, offset - kHeapObjectTag));
 }
 
-
 void Assembler::LoadObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, false);
 }
 
-
 void Assembler::LoadUniqueObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, true);
 }
-
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
@@ -2841,7 +2562,6 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
   }
 }
 
-
 void Assembler::PushObject(const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
@@ -2855,7 +2575,6 @@ void Assembler::PushObject(const Object& object) {
     PushImmediate(Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
-
 
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
@@ -2872,11 +2591,9 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   }
 }
 
-
 intptr_t Assembler::FindImmediate(int64_t imm) {
   return object_pool_wrapper_.FindImmediate(imm);
 }
-
 
 void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
   if (imm.is_int32() || !constant_pool_allowed()) {
@@ -2887,7 +2604,6 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
   }
 }
 
-
 void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   if (imm.is_int32()) {
     movq(dst, imm);
@@ -2896,7 +2612,6 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
     movq(dst, TMP);
   }
 }
-
 
 // Destroys the value register.
 void Assembler::StoreIntoObjectFilterNoSmi(Register object,
@@ -2917,7 +2632,6 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 
-
 // Destroys the value register.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
@@ -2936,7 +2650,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
                         kOldObjectAlignmentOffset + kHeapObjectTag));
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
-
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
@@ -2965,7 +2678,6 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
-
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
@@ -2981,7 +2693,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
-
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
@@ -2989,7 +2700,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   StoreObject(dest, value);
 }
-
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 #if defined(DEBUG)
@@ -3002,12 +2712,10 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   movq(dest, value);
 }
 
-
 void Assembler::ZeroInitSmiField(const Address& dest) {
   Immediate zero(Smi::RawValue(0));
   movq(dest, zero);
 }
-
 
 void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
   // Note: FlowGraphCompiler::EdgeCounterIncrementSizeInBytes depends on
@@ -3016,20 +2724,17 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
   addq(dest, inc_imm);
 }
 
-
 void Assembler::DoubleNegate(XmmRegister d) {
   // {0x8000000000000000LL, 0x8000000000000000LL}
   movq(TMP, Address(THR, Thread::double_negate_address_offset()));
   xorpd(d, Address(TMP, 0));
 }
 
-
 void Assembler::DoubleAbs(XmmRegister reg) {
   // {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL}
   movq(TMP, Address(THR, Thread::double_abs_address_offset()));
   andpd(reg, Address(TMP, 0));
 }
-
 
 void Assembler::Stop(const char* message, bool fixed_length_encoding) {
   int64_t message_address = reinterpret_cast<int64_t>(message);
@@ -3057,7 +2762,6 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
   int3();  // Execution can be resumed with the 'cont' command in gdb.
 }
 
-
 void Assembler::Bind(Label* label) {
   intptr_t bound = buffer_.Size();
   ASSERT(!label->IsBound());  // Labels can only be bound once.
@@ -3075,7 +2779,6 @@ void Assembler::Bind(Label* label) {
   }
   label->BindTo(bound);
 }
-
 
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
@@ -3097,12 +2800,10 @@ void Assembler::EnterFrame(intptr_t frame_size) {
   }
 }
 
-
 void Assembler::LeaveFrame() {
   movq(RSP, RBP);
   popq(RBP);
 }
-
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -3114,7 +2815,6 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
     andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 }
-
 
 void Assembler::PushRegisters(intptr_t cpu_register_set,
                               intptr_t xmm_register_set) {
@@ -3144,7 +2844,6 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
   }
 }
 
-
 void Assembler::PopRegisters(intptr_t cpu_register_set,
                              intptr_t xmm_register_set) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
@@ -3170,7 +2869,6 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
   }
 }
 
-
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
   EnterStubFrame();
@@ -3181,7 +2879,6 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
 
   ReserveAlignedFrameSpace(frame_space);
 }
-
 
 void Assembler::LeaveCallRuntimeFrame() {
   // RSP might have been modified to reserve space for arguments
@@ -3204,7 +2901,6 @@ void Assembler::LeaveCallRuntimeFrame() {
   LeaveStubFrame();
 }
 
-
 void Assembler::CallCFunction(Register reg) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
@@ -3213,17 +2909,14 @@ void Assembler::CallCFunction(Register reg) {
   call(reg);
 }
 
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
 }
 
-
 void Assembler::RestoreCodePointer() {
   movq(CODE_REG, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
 }
-
 
 void Assembler::LoadPoolPointer(Register pp) {
   // Load new pool pointer.
@@ -3231,7 +2924,6 @@ void Assembler::LoadPoolPointer(Register pp) {
   movq(pp, FieldAddress(CODE_REG, Code::object_pool_offset()));
   set_constant_pool_allowed(pp == PP);
 }
-
 
 void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
@@ -3249,7 +2941,6 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   }
 }
 
-
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
   if (restore_pp == kRestoreCallerPP) {
@@ -3258,7 +2949,6 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   }
   LeaveFrame();
 }
-
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
@@ -3290,7 +2980,6 @@ void Assembler::CheckCodePointer() {
 #endif
 }
 
-
 // On entry to a function compiled for OSR, the caller's frame pointer, the
 // stack locals, and any copied parameters are already in place.  The frame
 // pointer is already set up.  The PC marker is not correct for the
@@ -3310,16 +2999,13 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   }
 }
 
-
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0, kNoRegister);
 }
 
-
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
-
 
 // RDI receiver, RBX guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
@@ -3350,7 +3036,6 @@ void Assembler::MonomorphicCheckedEntry() {
   ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 }
 
-
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
@@ -3369,7 +3054,6 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   j(NOT_ZERO, trace, near_jump);
 }
 
-
 void Assembler::UpdateAllocationStats(intptr_t cid, Heap::Space space) {
   ASSERT(cid > 0);
   intptr_t counter_offset =
@@ -3382,7 +3066,6 @@ void Assembler::UpdateAllocationStats(intptr_t cid, Heap::Space space) {
   incq(Address(temp_reg, counter_offset));
 }
 
-
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Heap::Space space) {
@@ -3393,7 +3076,6 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   intptr_t size_offset = ClassTable::SizeOffsetFor(cid, space == Heap::kNew);
   addq(Address(temp_reg, size_offset), size_reg);
 }
-
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               intptr_t size_in_bytes,
@@ -3406,7 +3088,6 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   addq(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT
-
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
@@ -3445,7 +3126,6 @@ void Assembler::TryAllocate(const Class& cls,
     jmp(failure);
   }
 }
-
 
 void Assembler::TryAllocateArray(intptr_t cid,
                                  intptr_t instance_size,
@@ -3511,7 +3191,6 @@ void Assembler::Align(int alignment, intptr_t offset) {
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
 }
 
-
 void Assembler::EmitOperand(int rm, const Operand& operand) {
   ASSERT(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;
@@ -3525,13 +3204,11 @@ void Assembler::EmitOperand(int rm, const Operand& operand) {
   }
 }
 
-
 void Assembler::EmitXmmRegisterOperand(int rm, XmmRegister xmm_reg) {
   Operand operand;
   operand.SetModRM(3, static_cast<Register>(xmm_reg));
   EmitOperand(rm, operand);
 }
-
 
 void Assembler::EmitImmediate(const Immediate& imm) {
   if (imm.is_int32()) {
@@ -3540,7 +3217,6 @@ void Assembler::EmitImmediate(const Immediate& imm) {
     EmitInt64(imm.value());
   }
 }
-
 
 void Assembler::EmitComplex(int rm,
                             const Operand& operand,
@@ -3563,7 +3239,6 @@ void Assembler::EmitComplex(int rm,
   }
 }
 
-
 void Assembler::EmitLabel(Label* label, intptr_t instruction_size) {
   if (label->IsBound()) {
     intptr_t offset = label->Position() - buffer_.Size();
@@ -3574,7 +3249,6 @@ void Assembler::EmitLabel(Label* label, intptr_t instruction_size) {
   }
 }
 
-
 void Assembler::EmitLabelLink(Label* label) {
   ASSERT(!label->IsBound());
   intptr_t position = buffer_.Size();
@@ -3582,14 +3256,12 @@ void Assembler::EmitLabelLink(Label* label) {
   label->LinkTo(position);
 }
 
-
 void Assembler::EmitNearLabelLink(Label* label) {
   ASSERT(!label->IsBound());
   intptr_t position = buffer_.Size();
   EmitUint8(0);
   label->NearLinkTo(position);
 }
-
 
 void Assembler::EmitGenericShift(bool wide,
                                  int rm,
@@ -3612,7 +3284,6 @@ void Assembler::EmitGenericShift(bool wide,
   }
 }
 
-
 void Assembler::EmitGenericShift(bool wide,
                                  int rm,
                                  Register operand,
@@ -3628,7 +3299,6 @@ void Assembler::EmitGenericShift(bool wide,
   EmitOperand(rm, Operand(operand));
 }
 
-
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
@@ -3637,7 +3307,6 @@ void Assembler::LoadClassId(Register result, Register object) {
       Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
-
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
@@ -3648,18 +3317,15 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 
-
 void Assembler::LoadClass(Register result, Register object) {
   LoadClassId(TMP, object);
   LoadClassById(result, TMP);
 }
 
-
 void Assembler::CompareClassId(Register object, intptr_t class_id) {
   LoadClassId(TMP, object);
   cmpl(TMP, Immediate(class_id));
 }
-
 
 void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
@@ -3679,7 +3345,6 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   movzxw(TMP, Address(object, TIMES_2, class_id_offset));
   cmpl(TMP, Immediate(class_id));
 }
-
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   Label smi;
@@ -3705,7 +3370,6 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
     Bind(&smi);
   }
 }
-
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   Label smi;
@@ -3734,7 +3398,6 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   }
 }
 
-
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
@@ -3749,7 +3412,6 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
     return FieldAddress(array, static_cast<int32_t>(disp));
   }
 }
-
 
 static ScaleFactor ToScaleFactor(intptr_t index_scale) {
   // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
@@ -3773,7 +3435,6 @@ static ScaleFactor ToScaleFactor(intptr_t index_scale) {
   }
 }
 
-
 Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
@@ -3787,22 +3448,18 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   }
 }
 
-
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
     "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
-
 
 const char* Assembler::RegisterName(Register reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
   return cpu_reg_names[reg];
 }
 
-
 static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
     "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
     "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
-
 
 const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));

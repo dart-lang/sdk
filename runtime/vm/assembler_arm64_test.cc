@@ -21,12 +21,10 @@ ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Simple, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Move wide immediate tests.
 // movz
@@ -35,12 +33,10 @@ ASSEMBLER_TEST_GENERATE(Movz0, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movz0, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movz1, assembler) {
   __ movz(R0, Immediate(42), 0);  // Overwritten by next instruction.
@@ -48,36 +44,30 @@ ASSEMBLER_TEST_GENERATE(Movz1, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movz1, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL << 16, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movz2, assembler) {
   __ movz(R0, Immediate(42), 2);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movz2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL << 32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movz3, assembler) {
   __ movz(R0, Immediate(42), 3);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movz3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL << 48, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // movn
 ASSEMBLER_TEST_GENERATE(Movn0, assembler) {
@@ -85,42 +75,35 @@ ASSEMBLER_TEST_GENERATE(Movn0, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movn0, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~42LL, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movn1, assembler) {
   __ movn(R0, Immediate(42), 1);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movn1, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~(42LL << 16), EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movn2, assembler) {
   __ movn(R0, Immediate(42), 2);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movn2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~(42LL << 32), EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(Movn3, assembler) {
   __ movn(R0, Immediate(42), 3);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(Movn3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
@@ -134,13 +117,11 @@ ASSEMBLER_TEST_GENERATE(Movk0, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movk0, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL | (1LL << 48),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movk1, assembler) {
   __ movz(R0, Immediate(1), 0);
@@ -148,13 +129,11 @@ ASSEMBLER_TEST_GENERATE(Movk1, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movk1, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ((42LL << 16) | 1,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movk2, assembler) {
   __ movz(R0, Immediate(1), 0);
@@ -162,13 +141,11 @@ ASSEMBLER_TEST_GENERATE(Movk2, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movk2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ((42LL << 32) | 1,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Movk3, assembler) {
   __ movz(R0, Immediate(1), 0);
@@ -176,25 +153,21 @@ ASSEMBLER_TEST_GENERATE(Movk3, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Movk3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ((42LL << 48) | 1,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(MovzBig, assembler) {
   __ movz(R0, Immediate(0x8000), 0);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(MovzBig, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x8000, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // add tests.
 ASSEMBLER_TEST_GENERATE(AddReg, assembler) {
@@ -204,12 +177,10 @@ ASSEMBLER_TEST_GENERATE(AddReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddLSLReg, assembler) {
   __ movz(R0, Immediate(20), 0);
@@ -218,12 +189,10 @@ ASSEMBLER_TEST_GENERATE(AddLSLReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddLSLReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddLSRReg, assembler) {
   __ movz(R0, Immediate(20), 0);
@@ -232,12 +201,10 @@ ASSEMBLER_TEST_GENERATE(AddLSRReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddLSRReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddASRReg, assembler) {
   __ movz(R0, Immediate(20), 0);
@@ -246,12 +213,10 @@ ASSEMBLER_TEST_GENERATE(AddASRReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddASRReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddASRNegReg, assembler) {
   __ movz(R0, Immediate(43), 0);
@@ -261,12 +226,10 @@ ASSEMBLER_TEST_GENERATE(AddASRNegReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddASRNegReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // TODO(zra): test other sign extension modes.
 ASSEMBLER_TEST_GENERATE(AddExtReg, assembler) {
@@ -277,12 +240,10 @@ ASSEMBLER_TEST_GENERATE(AddExtReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddExtReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ LoadImmediate(R2, -1);
@@ -294,12 +255,10 @@ ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
   __ LoadImmediate(R1, 1);
@@ -310,12 +269,10 @@ ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
   __ LoadImmediate(R0, 0);
@@ -328,12 +285,10 @@ ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(WordAddCarryInOut, assembler) {
   __ LoadImmediate(R2, -1);
@@ -345,12 +300,10 @@ ASSEMBLER_TEST_GENERATE(WordAddCarryInOut, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(WordAddCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(WordSubCarryInOut, assembler) {
   __ LoadImmediate(R1, 1);
@@ -361,12 +314,10 @@ ASSEMBLER_TEST_GENERATE(WordSubCarryInOut, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(WordSubCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x0FFFFFFFF, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(WordOverflow, assembler) {
   __ LoadImmediate(R0, 0);
@@ -379,12 +330,10 @@ ASSEMBLER_TEST_GENERATE(WordOverflow, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(WordOverflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Loads and Stores.
 ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
@@ -397,12 +346,10 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(SimpleLoadStore, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
   __ SetupDartSP();
@@ -415,12 +362,10 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
   __ SetupDartSP();
@@ -436,12 +381,10 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadStoreLargeIndex, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
   __ SetupDartSP();
@@ -455,12 +398,10 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadStoreLargeOffset, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
   __ SetupDartSP();
@@ -478,12 +419,10 @@ ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadStoreExtReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ SetupDartSP();
@@ -499,12 +438,10 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
   __ SetupDartSP();
@@ -516,12 +453,10 @@ ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
   __ SetupDartSP();
@@ -534,12 +469,10 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(SimpleLoadStorePair, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
   __ SetupDartSP();
@@ -554,12 +487,10 @@ ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ SetupDartSP();
@@ -577,13 +508,11 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Semaphore, test) {
   EXPECT(test != NULL);
   typedef intptr_t (*Semaphore)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Semaphore, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
   __ SetupDartSP();
@@ -599,13 +528,11 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
   EXPECT(test != NULL);
   typedef intptr_t (*FailedSemaphore)() DART_UNUSED;
   EXPECT_EQ(41, EXECUTE_TEST_CODE_INT64(FailedSemaphore, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Semaphore32, assembler) {
   __ SetupDartSP();
@@ -629,7 +556,6 @@ ASSEMBLER_TEST_GENERATE(Semaphore32, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Semaphore32, test) {
   EXPECT(test != NULL);
   typedef intptr_t (*Semaphore32)() DART_UNUSED;
@@ -638,7 +564,6 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
   EXPECT_EQ(42 + (40l << 32),
             EXECUTE_TEST_CODE_INT64(Semaphore32, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
   __ SetupDartSP();
@@ -658,7 +583,6 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
   EXPECT(test != NULL);
   typedef intptr_t (*FailedSemaphore32)() DART_UNUSED;
@@ -668,7 +592,6 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
 }
 
-
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, Immediate(43), 0);
@@ -677,12 +600,10 @@ ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ movz(R1, Immediate(42), 0);
@@ -691,12 +612,10 @@ ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndShiftRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BicRegs, assembler) {
   __ movz(R1, Immediate(42), 0);
@@ -705,12 +624,10 @@ ASSEMBLER_TEST_GENERATE(BicRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(BicRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(OrrRegs, assembler) {
   __ movz(R1, Immediate(32), 0);
@@ -719,12 +636,10 @@ ASSEMBLER_TEST_GENERATE(OrrRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(OrrRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(OrnRegs, assembler) {
   __ movz(R1, Immediate(32), 0);
@@ -734,12 +649,10 @@ ASSEMBLER_TEST_GENERATE(OrnRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(OrnRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(EorRegs, assembler) {
   __ movz(R1, Immediate(0xffd5), 0);
@@ -748,12 +661,10 @@ ASSEMBLER_TEST_GENERATE(EorRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(EorRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(EonRegs, assembler) {
   __ movz(R1, Immediate(0xffd5), 0);
@@ -762,12 +673,10 @@ ASSEMBLER_TEST_GENERATE(EonRegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(EonRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Logical immediate operations.
 ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
@@ -776,12 +685,10 @@ ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndImmCsp, assembler) {
   // Note we must maintain the ARM64 ABI invariants on CSP here.
@@ -794,12 +701,10 @@ ASSEMBLER_TEST_GENERATE(AndImmCsp, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndImmCsp, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndOneImm, assembler) {
   __ movz(R1, Immediate(43), 0);
@@ -807,12 +712,10 @@ ASSEMBLER_TEST_GENERATE(AndOneImm, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndOneImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(OrrImm, assembler) {
   __ movz(R1, Immediate(0), 0);
@@ -824,12 +727,10 @@ ASSEMBLER_TEST_GENERATE(OrrImm, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(OrrImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(EorImm, assembler) {
   __ movn(R0, Immediate(0), 0);
@@ -840,12 +741,10 @@ ASSEMBLER_TEST_GENERATE(EorImm, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(EorImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   Label error;
@@ -872,12 +771,10 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Clz, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
@@ -889,12 +786,10 @@ ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(BranchALForward, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
   Label l, leave;
@@ -912,12 +807,10 @@ ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(BranchALBackwards, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
   Label l;
@@ -933,12 +826,10 @@ ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpEqBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
   Label l;
@@ -954,12 +845,10 @@ ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpEqBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
   Label l;
@@ -974,12 +863,10 @@ ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpEq1Branch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
   Label l;
@@ -994,12 +881,10 @@ ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmnEq1Branch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
   Label l;
@@ -1015,12 +900,10 @@ ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpLtBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
   Label l;
@@ -1036,12 +919,10 @@ ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpLtBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfZero, assembler) {
   Label l;
@@ -1055,12 +936,10 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfZero, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpBranchIfZero, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfZeroNotTaken, assembler) {
   Label l;
@@ -1074,12 +953,10 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfZeroNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpBranchIfZeroNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZero, assembler) {
   Label l;
@@ -1093,12 +970,10 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZero, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpBranchIfNotZero, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZeroNotTaken, assembler) {
   Label l;
@@ -1112,12 +987,10 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZeroNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
   Label l;
@@ -1133,12 +1006,10 @@ ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FcmpEqBranchNotTaken, assembler) {
   Label l;
@@ -1154,12 +1025,10 @@ ASSEMBLER_TEST_GENERATE(FcmpEqBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FcmpEqBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FcmpLtBranch, assembler) {
   Label l;
@@ -1175,12 +1044,10 @@ ASSEMBLER_TEST_GENERATE(FcmpLtBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FcmpLtBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FcmpLtBranchNotTaken, assembler) {
   Label l;
@@ -1196,12 +1063,10 @@ ASSEMBLER_TEST_GENERATE(FcmpLtBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FcmpLtBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
   Label l;
@@ -1218,12 +1083,10 @@ ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FcmpzGtBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
   Label l;
@@ -1239,12 +1102,10 @@ ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndsBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
   Label l;
@@ -1260,12 +1121,10 @@ ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndsBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
   Label l;
@@ -1281,12 +1140,10 @@ ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(BicsBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
   Label l;
@@ -1302,12 +1159,10 @@ ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(BicsBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
   Label l;
@@ -1322,12 +1177,10 @@ ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndisBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
   Label l;
@@ -1342,12 +1195,10 @@ ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AndisBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Address of PC-rel offset, br, blr.
 ASSEMBLER_TEST_GENERATE(AdrBr, assembler) {
@@ -1362,12 +1213,10 @@ ASSEMBLER_TEST_GENERATE(AdrBr, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AdrBr, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AdrBlr, assembler) {
   __ movz(R0, Immediate(123), 0);
@@ -1383,12 +1232,10 @@ ASSEMBLER_TEST_GENERATE(AdrBlr, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(AdrBlr, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Misc. arithmetic.
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
@@ -1399,13 +1246,11 @@ ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Udiv, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
   __ movz(R0, Immediate(27), 0);
@@ -1416,13 +1261,11 @@ ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Sdiv, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
   __ movz(R0, Immediate(27), 0);
@@ -1432,13 +1275,11 @@ ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Udiv_zero, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   __ movz(R0, Immediate(27), 0);
@@ -1448,13 +1289,11 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
   __ movz(R0, Immediate(0x8000), 3);  // R0 <- 0x8000000000000000
@@ -1464,13 +1303,11 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Udiv_corner, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
   __ movz(R3, Immediate(0x8000), 3);  // R0 <- 0x8000000000000000
@@ -1480,14 +1317,12 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(static_cast<int64_t>(0x8000000000000000),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
   __ movz(R1, Immediate(21), 0);
@@ -1496,12 +1331,10 @@ ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Lslv, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
   __ movz(R1, Immediate(84), 0);
@@ -1510,12 +1343,10 @@ ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Lsrv, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
   __ movz(R1, Immediate(1), 0);
@@ -1525,12 +1356,10 @@ ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LShiftingV, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
   __ movz(R1, Immediate(1), 0);
@@ -1540,12 +1369,10 @@ ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(RShiftingV, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
   __ movz(R1, Immediate(6), 0);
@@ -1554,12 +1381,10 @@ ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Mult_pos, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
   __ movz(R1, Immediate(6), 0);
@@ -1569,12 +1394,10 @@ ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Mult_neg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
   __ movz(R1, Immediate(6), 0);
@@ -1583,12 +1406,10 @@ ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Smulh_pos, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
   __ movz(R1, Immediate(6), 0);
@@ -1598,12 +1419,10 @@ ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Smulh_neg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Umulh, assembler) {
   __ movz(R1, Immediate(-1), 3);  // 0xffff000000000000
@@ -1612,13 +1431,11 @@ ASSEMBLER_TEST_GENERATE(Umulh, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Umulh, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(static_cast<int64_t>(0x6fff900000000),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Umaddl, assembler) {
   __ movn(R1, Immediate(0), 0);  // W1 = 0xffffffff.
@@ -1628,12 +1445,10 @@ ASSEMBLER_TEST_GENERATE(Umaddl, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Umaddl, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x700000001, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Loading immediate values without the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
@@ -1641,30 +1456,25 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediateSmall, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMed, assembler) {
   __ LoadImmediate(R0, 0xf1234123);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediateMed, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xf1234123, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateMed2, assembler) {
   __ LoadImmediate(R0, 0x4321f1234123);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateMed2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
@@ -1672,12 +1482,10 @@ ASSEMBLER_TEST_RUN(LoadImmediateMed2, test) {
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateLarge, assembler) {
   __ LoadImmediate(R0, 0x9287436598237465);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateLarge, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
@@ -1685,73 +1493,61 @@ ASSEMBLER_TEST_RUN(LoadImmediateLarge, test) {
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateSmallNeg, assembler) {
   __ LoadImmediate(R0, -42);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateSmallNeg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg, assembler) {
   __ LoadImmediate(R0, -0x1212341234);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x1212341234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg2, assembler) {
   __ LoadImmediate(R0, -0x1212340000);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x1212340000, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg3, assembler) {
   __ LoadImmediate(R0, -0x1200001234);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x1200001234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg4, assembler) {
   __ LoadImmediate(R0, -0x12341234);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x12341234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
   __ LoadUnaligned(R1, R0, TMP, kHalfword);
   __ mov(R0, R1);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -1770,13 +1566,11 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
                                       reinterpret_cast<intptr_t>(&buffer[1])));
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
   __ LoadUnaligned(R1, R0, TMP, kUnsignedHalfword);
   __ mov(R0, R1);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
   EXPECT(test != NULL);
@@ -1793,14 +1587,12 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
                         reinterpret_cast<intptr_t>(&buffer[1])));
 }
 
-
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0xABCD);
   __ StoreUnaligned(R1, R0, TMP, kHalfword);
   __ mov(R0, R1);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -1824,13 +1616,11 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT_EQ(0, buffer[3]);
 }
 
-
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
   __ LoadUnaligned(R1, R0, TMP, kUnsignedWord);
   __ mov(R0, R1);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -1855,14 +1645,12 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
                                      reinterpret_cast<intptr_t>(&buffer[3])));
 }
 
-
 ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0x12345678);
   __ StoreUnaligned(R1, R0, TMP, kUnsignedWord);
   __ mov(R0, R1);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
   EXPECT(test != NULL);
@@ -1902,7 +1690,6 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
   EXPECT_EQ(0x12, buffer[6]);
 }
 
-
 static void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ Push(CODE_REG);
@@ -1913,14 +1700,12 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
 }
-
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
@@ -1932,11 +1717,9 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
   EXPECT_EQ(42, test->InvokeWithCodeAndThread<int64_t>());
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
   __ SetupDartSP();
@@ -1947,11 +1730,9 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
   EXPECT_EQ(0xf1234123, test->InvokeWithCodeAndThread<int64_t>());
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
   __ SetupDartSP();
@@ -1962,11 +1743,9 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
   EXPECT_EQ(0x4321f1234124, test->InvokeWithCodeAndThread<int64_t>());
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
   __ SetupDartSP();
@@ -1977,12 +1756,10 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
   EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
             test->InvokeWithCodeAndThread<int64_t>());
 }
-
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
@@ -1994,11 +1771,9 @@ ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
   EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
   __ SetupDartSP();
@@ -2009,11 +1784,9 @@ ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
   EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
   __ SetupDartSP();
@@ -2024,11 +1797,9 @@ ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
   EXPECT_EQ(Bool::False().raw(), test->InvokeWithCodeAndThread<RawObject*>());
 }
-
 
 ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
   __ LoadImmediate(R1, 42);
@@ -2038,12 +1809,10 @@ ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CSelTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
   __ LoadImmediate(R1, 42);
@@ -2053,12 +1822,10 @@ ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CSelFalse, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CsincFalse, assembler) {
   __ LoadImmediate(R1, 42);
@@ -2068,12 +1835,10 @@ ASSEMBLER_TEST_GENERATE(CsincFalse, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CsincFalse, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(43, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CsincTrue, assembler) {
   __ LoadImmediate(R1, 42);
@@ -2083,12 +1848,10 @@ ASSEMBLER_TEST_GENERATE(CsincTrue, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CsincTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CsinvFalse, assembler) {
   __ LoadImmediate(R1, 42);
@@ -2098,12 +1861,10 @@ ASSEMBLER_TEST_GENERATE(CsinvFalse, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CsinvFalse, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CsinvTrue, assembler) {
   __ LoadImmediate(R1, 42);
@@ -2113,12 +1874,10 @@ ASSEMBLER_TEST_GENERATE(CsinvTrue, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(CsinvTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 // Floating point move immediate, to/from integer register.
 ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
@@ -2126,18 +1885,15 @@ ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fmovdi, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(Fmovdi2, assembler) {
   __ LoadDImmediate(V0, 123412983.1324524315);
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(Fmovdi2, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
@@ -2146,20 +1902,17 @@ ASSEMBLER_TEST_RUN(Fmovdi2, test) {
                   0.0001f);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Fmovrd, assembler) {
   __ LoadDImmediate(V1, 1.0);
   __ fmovrd(R0, V1);
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fmovrd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   const int64_t one = bit_cast<int64_t, double>(1.0);
   EXPECT_EQ(one, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fmovdr, assembler) {
   __ LoadDImmediate(V1, 1.0);
@@ -2168,12 +1921,10 @@ ASSEMBLER_TEST_GENERATE(Fmovdr, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fmovdr, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fmovrs, assembler) {
   __ LoadDImmediate(V2, 1.0);
@@ -2182,14 +1933,12 @@ ASSEMBLER_TEST_GENERATE(Fmovrs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fmovrs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   int64_t result = EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
   const uint32_t one = bit_cast<uint32_t, float>(1.0f);
   EXPECT_EQ(one, static_cast<uint32_t>(result));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fmovsr, assembler) {
   __ LoadImmediate(R2, bit_cast<uint32_t, float>(1.0f));
@@ -2198,14 +1947,12 @@ ASSEMBLER_TEST_GENERATE(Fmovsr, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fmovsr, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   int64_t result = EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
   const uint32_t one = bit_cast<uint32_t, float>(1.0f);
   EXPECT_EQ(one, static_cast<uint32_t>(result));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
   __ SetupDartSP();
@@ -2216,12 +1963,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
   __ SetupDartSP();
@@ -2234,12 +1979,10 @@ ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
   __ SetupDartSP();
@@ -2259,12 +2002,10 @@ ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fcvtzds, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -2272,12 +2013,10 @@ ASSEMBLER_TEST_GENERATE(Fcvtzds, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fcvtzds, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {
   __ LoadImmediate(R0, 42);
@@ -2285,12 +2024,10 @@ ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Scvtfdx, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Scvtfdw, assembler) {
   // Fill upper 32-bits with garbage.
@@ -2299,12 +2036,10 @@ ASSEMBLER_TEST_GENERATE(Scvtfdw, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Scvtfdw, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FabsdPos, assembler) {
   __ LoadDImmediate(V1, 42.0);
@@ -2312,12 +2047,10 @@ ASSEMBLER_TEST_GENERATE(FabsdPos, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FabsdPos, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FabsdNeg, assembler) {
   __ LoadDImmediate(V1, -42.0);
@@ -2325,12 +2058,10 @@ ASSEMBLER_TEST_GENERATE(FabsdNeg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FabsdNeg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FnegdPos, assembler) {
   __ LoadDImmediate(V1, 42.0);
@@ -2338,12 +2069,10 @@ ASSEMBLER_TEST_GENERATE(FnegdPos, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FnegdPos, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FnegdNeg, assembler) {
   __ LoadDImmediate(V1, -42.0);
@@ -2351,12 +2080,10 @@ ASSEMBLER_TEST_GENERATE(FnegdNeg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FnegdNeg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fsqrtd, assembler) {
   __ LoadDImmediate(V1, 64.0);
@@ -2364,12 +2091,10 @@ ASSEMBLER_TEST_GENERATE(Fsqrtd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fsqrtd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(8.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fmuld, assembler) {
   __ LoadDImmediate(V1, 84.0);
@@ -2378,12 +2103,10 @@ ASSEMBLER_TEST_GENERATE(Fmuld, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fmuld, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fdivd, assembler) {
   __ LoadDImmediate(V1, 84.0);
@@ -2392,12 +2115,10 @@ ASSEMBLER_TEST_GENERATE(Fdivd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fdivd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Faddd, assembler) {
   __ LoadDImmediate(V1, 41.5);
@@ -2406,12 +2127,10 @@ ASSEMBLER_TEST_GENERATE(Faddd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Faddd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Fsubd, assembler) {
   __ LoadDImmediate(V1, 42.5);
@@ -2420,12 +2139,10 @@ ASSEMBLER_TEST_GENERATE(Fsubd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Fsubd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
   __ SetupDartSP();
@@ -2440,12 +2157,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
   __ SetupDartSP();
@@ -2461,12 +2176,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrdFstrdLargeIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
   __ SetupDartSP();
@@ -2480,12 +2193,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrdFstrdLargeOffset, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
   __ SetupDartSP();
@@ -2503,12 +2214,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrdFstrdExtReg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
   __ SetupDartSP();
@@ -2524,12 +2233,10 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(FldrdFstrdScaledReg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(VinswVmovrs, assembler) {
   __ LoadImmediate(R0, 42);
@@ -2553,13 +2260,11 @@ ASSEMBLER_TEST_GENERATE(VinswVmovrs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(VinswVmovrs, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(174, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(VinsxVmovrd, assembler) {
   __ LoadImmediate(R0, 42);
@@ -2575,13 +2280,11 @@ ASSEMBLER_TEST_GENERATE(VinsxVmovrd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(VinsxVmovrd, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(85, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vnot, assembler) {
   __ LoadImmediate(R0, 0xfffffffe);
@@ -2603,13 +2306,11 @@ ASSEMBLER_TEST_GENERATE(Vnot, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vnot, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vabss, assembler) {
   __ LoadDImmediate(V1, 21.0);
@@ -2634,12 +2335,10 @@ ASSEMBLER_TEST_GENERATE(Vabss, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vabss, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vabsd, assembler) {
   __ LoadDImmediate(V1, 21.0);
@@ -2657,12 +2356,10 @@ ASSEMBLER_TEST_GENERATE(Vabsd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vabsd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vnegs, assembler) {
   __ LoadDImmediate(V1, 42.0);
@@ -2686,12 +2383,10 @@ ASSEMBLER_TEST_GENERATE(Vnegs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vnegs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vnegd, assembler) {
   __ LoadDImmediate(V1, 42.0);
@@ -2709,12 +2404,10 @@ ASSEMBLER_TEST_GENERATE(Vnegd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vnegd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
   __ LoadDImmediate(V0, 0.0);
@@ -2750,12 +2443,10 @@ ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vadds, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(12.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubs, assembler) {
   __ LoadDImmediate(V0, 0.0);
@@ -2792,12 +2483,10 @@ ASSEMBLER_TEST_GENERATE(Vsubs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-6.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmuls, assembler) {
   __ LoadDImmediate(V0, 0.0);
@@ -2833,12 +2522,10 @@ ASSEMBLER_TEST_GENERATE(Vmuls, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vmuls, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(14.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vdivs, assembler) {
   __ LoadDImmediate(V0, 0.0);
@@ -2874,12 +2561,10 @@ ASSEMBLER_TEST_GENERATE(Vdivs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vdivs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(4.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddd, assembler) {
   __ LoadDImmediate(V0, 2.0);
@@ -2897,12 +2582,10 @@ ASSEMBLER_TEST_GENERATE(Vaddd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(10.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubd, assembler) {
   __ LoadDImmediate(V0, 2.0);
@@ -2921,12 +2604,10 @@ ASSEMBLER_TEST_GENERATE(Vsubd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-5.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmuld, assembler) {
   __ LoadDImmediate(V0, 2.0);
@@ -2944,12 +2625,10 @@ ASSEMBLER_TEST_GENERATE(Vmuld, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vmuld, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(13.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vdivd, assembler) {
   __ LoadDImmediate(V0, 2.0);
@@ -2967,12 +2646,10 @@ ASSEMBLER_TEST_GENERATE(Vdivd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vdivd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(2.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
   __ SetupDartSP();
@@ -2991,12 +2668,10 @@ ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vdupd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
   __ SetupDartSP();
@@ -3025,12 +2700,10 @@ ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vdups, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(84.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
   __ SetupDartSP();
@@ -3049,12 +2722,10 @@ ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vinsd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
   __ SetupDartSP();
@@ -3084,12 +2755,10 @@ ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vinss, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vand, assembler) {
   __ LoadDImmediate(V1, 21.0);
@@ -3121,12 +2790,10 @@ ASSEMBLER_TEST_GENERATE(Vand, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vand, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vorr, assembler) {
   __ LoadDImmediate(V1, 10.5);
@@ -3159,12 +2826,10 @@ ASSEMBLER_TEST_GENERATE(Vorr, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vorr, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Veor, assembler) {
   __ LoadImmediate(R1, 0xffffffff);
@@ -3193,12 +2858,10 @@ ASSEMBLER_TEST_GENERATE(Veor, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Veor, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddw, assembler) {
   __ LoadImmediate(R4, 21);
@@ -3218,12 +2881,10 @@ ASSEMBLER_TEST_GENERATE(Vaddw, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(168, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
   __ LoadImmediate(R4, 31);
@@ -3244,12 +2905,10 @@ ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(84, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vaddx, assembler) {
   __ LoadImmediate(R4, 21);
@@ -3265,12 +2924,10 @@ ASSEMBLER_TEST_GENERATE(Vaddx, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vaddx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(84, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsubx, assembler) {
   __ LoadImmediate(R4, 31);
@@ -3287,12 +2944,10 @@ ASSEMBLER_TEST_GENERATE(Vsubx, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vsubx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vceqs, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -3320,12 +2975,10 @@ ASSEMBLER_TEST_GENERATE(Vceqs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vceqs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vceqd, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -3344,12 +2997,10 @@ ASSEMBLER_TEST_GENERATE(Vceqd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vceqd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -3377,12 +3028,10 @@ ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vcgts, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcgtd, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -3401,12 +3050,10 @@ ASSEMBLER_TEST_GENERATE(Vcgtd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vcgtd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcges, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -3434,12 +3081,10 @@ ASSEMBLER_TEST_GENERATE(Vcges, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vcges, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vcged, assembler) {
   __ LoadDImmediate(V0, 42.0);
@@ -3458,12 +3103,10 @@ ASSEMBLER_TEST_GENERATE(Vcged, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vcged, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmaxs, assembler) {
   __ LoadDImmediate(V0, 10.5);
@@ -3496,12 +3139,10 @@ ASSEMBLER_TEST_GENERATE(Vmaxs, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vmaxs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmaxd, assembler) {
   __ LoadDImmediate(V0, 21.0);
@@ -3520,12 +3161,10 @@ ASSEMBLER_TEST_GENERATE(Vmaxd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vmaxd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmins, assembler) {
   __ LoadDImmediate(V0, 10.5);
@@ -3558,12 +3197,10 @@ ASSEMBLER_TEST_GENERATE(Vmins, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vmins, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vmind, assembler) {
   __ LoadDImmediate(V0, 21.0);
@@ -3582,12 +3219,10 @@ ASSEMBLER_TEST_GENERATE(Vmind, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vmind, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsqrts, assembler) {
   __ LoadDImmediate(V0, 64.0);
@@ -3612,12 +3247,10 @@ ASSEMBLER_TEST_GENERATE(Vsqrts, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vsqrts, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(15.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vsqrtd, assembler) {
   __ LoadDImmediate(V0, 64.0);
@@ -3635,12 +3268,10 @@ ASSEMBLER_TEST_GENERATE(Vsqrtd, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vsqrtd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(15.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
-
 
 // This is the same function as in the Simulator.
 static float arm_recip_estimate(float a) {
@@ -3679,7 +3310,6 @@ static float arm_recip_estimate(float a) {
   return bit_cast<float, int32_t>(result_bits);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Vrecpes, assembler) {
   __ LoadDImmediate(V1, 147.0);
   __ fcvtsd(V1, V1);
@@ -3692,14 +3322,12 @@ ASSEMBLER_TEST_GENERATE(Vrecpes, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vrecpes, test) {
   EXPECT(test != NULL);
   typedef double (*DoubleReturn)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(arm_recip_estimate(147.0), res, 0.0001);
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vrecpss, assembler) {
   __ LoadDImmediate(V1, 5.0);
@@ -3714,14 +3342,12 @@ ASSEMBLER_TEST_GENERATE(Vrecpss, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vrecpss, test) {
   EXPECT(test != NULL);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(2.0 - 10.0 * 5.0, res, 0.0001);
 }
-
 
 ASSEMBLER_TEST_GENERATE(VRecps, assembler) {
   __ LoadDImmediate(V0, 1.0 / 10.5);
@@ -3747,13 +3373,11 @@ ASSEMBLER_TEST_GENERATE(VRecps, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(VRecps, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(42.0, res, 0.0001);
 }
-
 
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
@@ -3809,7 +3433,6 @@ static float arm_reciprocal_sqrt_estimate(float a) {
   return bit_cast<float, int32_t>(result_bits);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Vrsqrtes, assembler) {
   __ LoadDImmediate(V1, 147.0);
   __ fcvtsd(V1, V1);
@@ -3820,14 +3443,12 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtes, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vrsqrtes, test) {
   EXPECT(test != NULL);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(arm_reciprocal_sqrt_estimate(147.0), res, 0.0001);
 }
-
 
 ASSEMBLER_TEST_GENERATE(Vrsqrtss, assembler) {
   __ LoadDImmediate(V1, 5.0);
@@ -3842,14 +3463,12 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtss, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Vrsqrtss, test) {
   EXPECT(test != NULL);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0) / 2.0, res, 0.0001);
 }
-
 
 ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
   __ LoadDImmediate(V1, 147000.0);
@@ -3861,14 +3480,12 @@ ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
   EXPECT(test != NULL);
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(1.0 / sqrt(147000.0), res, 0.0001);
 }
-
 
 // Called from assembler_test.cc.
 // LR: return address.

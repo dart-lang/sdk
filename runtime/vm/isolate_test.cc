@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/isolate.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/globals.h"
-#include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
@@ -21,7 +21,6 @@ VM_UNIT_TEST_CASE(IsolateCurrent) {
   Dart_ShutdownIsolate();
   EXPECT_EQ(reinterpret_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
 }
-
 
 // Test to ensure that an exception is thrown if no isolate creation
 // callback has been set by the embedder when an isolate is spawned.
@@ -71,7 +70,6 @@ TEST_CASE(IsolateSpawn) {
   DART_CHECK_VALID(Dart_Invoke(
       async_lib, NewString("_setScheduleImmediateClosure"), 1, args));
 
-
   result = Dart_Invoke(test_lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
   // Run until all ports to isolate are closed.
@@ -81,7 +79,6 @@ TEST_CASE(IsolateSpawn) {
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
 }
-
 
 class InterruptChecker : public ThreadPool::Task {
  public:
@@ -115,7 +112,6 @@ class InterruptChecker : public ThreadPool::Task {
   Thread* thread_;
   ThreadBarrier* barrier_;
 };
-
 
 const intptr_t InterruptChecker::kTaskCount = 5;
 const intptr_t InterruptChecker::kIterations = 10;
@@ -151,7 +147,6 @@ TEST_CASE(StackLimitInterrupts) {
   barrier.Exit();
 }
 
-
 class IsolateTestHelper {
  public:
   static uword GetStackLimit(Thread* thread) { return thread->stack_limit_; }
@@ -165,7 +160,6 @@ class IsolateTestHelper {
     return thread->deferred_interrupts_;
   }
 };
-
 
 TEST_CASE(NoOOBMessageScope) {
   // EXPECT_EQ is picky about type agreement for its arguments.

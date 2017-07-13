@@ -20,7 +20,6 @@ ZoneTextBuffer::ZoneTextBuffer(Zone* zone, intptr_t initial_capacity)
   buffer_[length_] = '\0';
 }
 
-
 intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -43,11 +42,9 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   return len;
 }
 
-
 void ZoneTextBuffer::AddString(const char* s) {
   Printf("%s", s);
 }
-
 
 void ZoneTextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = capacity_ - length_;
