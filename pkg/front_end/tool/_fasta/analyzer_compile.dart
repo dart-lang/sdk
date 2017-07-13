@@ -53,7 +53,7 @@ class AnalyzerCompileTask extends CompileTask {
   AnalyzerTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
     return new AnalyzerTarget(
-        dillTarget, uriTranslator, strongMode, c.uriToSource);
+        dillTarget, uriTranslator, strongMode, true, false, c.uriToSource);
   }
 }
 

@@ -62,8 +62,10 @@ class AstBuilder extends ScopeListener {
   /// bodies.
   final bool isFullAst;
 
+  final bool generateKernel;
+
   AstBuilder(this.errorReporter, this.library, this.member, this.elementStore,
-      Scope scope, this.isFullAst,
+      Scope scope, this.isFullAst, this.generateKernel,
       [Uri uri])
       : uri = uri ?? library.fileUri,
         super(scope);
@@ -298,12 +300,16 @@ class AstBuilder extends ScopeListener {
     } else {
       bodyStatement = (body as BlockFunctionBody).block;
     }
-    var kernel = toKernel(bodyStatement, elementStore, library.library, scope);
-    if (member is ProcedureBuilder) {
-      ProcedureBuilder builder = member;
-      builder.body = kernel;
-    } else {
-      unexpected("procedure", "${member.runtimeType}", member.charOffset, uri);
+    if (generateKernel) {
+      var kernel =
+          toKernel(bodyStatement, elementStore, library.library, scope);
+      if (member is ProcedureBuilder) {
+        ProcedureBuilder builder = member;
+        builder.body = kernel;
+      } else {
+        unexpected(
+            "procedure", "${member.runtimeType}", member.charOffset, uri);
+      }
     }
   }
 

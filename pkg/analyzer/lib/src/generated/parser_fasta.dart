@@ -55,7 +55,7 @@ class _Parser2 implements Parser {
     var scope = new Scope.top(isModifiable: true);
 
     AstBuilder astBuilder = new AstBuilder(
-        errorReporter, library, member, elementStore, scope, true);
+        errorReporter, library, member, elementStore, scope, true, false);
     fasta.Parser fastaParser = new fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
     return new _Parser2._(source, fastaParser, astBuilder);

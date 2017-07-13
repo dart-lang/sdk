@@ -28,7 +28,30 @@ import 'package:kernel/src/incremental_class_hierarchy.dart';
 class AnalyzerLoader<L> extends SourceLoader<L> {
   ElementStore elementStore;
 
-  AnalyzerLoader(TargetImplementation target)
+  /// Indicates whether a kernel representation of the code should be generated.
+  ///
+  /// When `false`, an analyzer AST is generated, and type inference is copied
+  /// over to it, but the result is not converted to a kernel representation.
+  ///
+  /// TODO(paulberry): remove this once "kompile" functionality is no longer
+  /// needed.
+  final bool generateKernel;
+
+  /// Indicates whether a resolved AST should be generated.
+  ///
+  /// When `false`, an analyzer AST is generated, but none of the types or
+  /// elements pointed to by the AST are guaranteed to be correct.
+  ///
+  /// This is needed in order to support the old "kompile" use case, since the
+  /// tests of that functionality were based on the behavior prior to
+  /// integrating resolution and type inference with analyzer.
+  ///
+  /// TODO(paulberry): remove this once "kompile" functionality is no longer
+  /// needed.
+  final bool doResolution;
+
+  AnalyzerLoader(
+      TargetImplementation target, this.generateKernel, this.doResolution)
       : super(PhysicalFileSystem.instance, target);
 
   @override
@@ -43,7 +66,8 @@ class AnalyzerLoader<L> extends SourceLoader<L> {
 
   @override
   AnalyzerDietListener createDietListener(LibraryBuilder library) {
-    return new AnalyzerDietListener(library, elementStore);
+    return new AnalyzerDietListener(library, elementStore, hierarchy, coreTypes,
+        typeInferenceEngine, generateKernel, doResolution);
   }
 
   @override

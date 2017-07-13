@@ -836,7 +836,7 @@ class ParserProxy implements analyzer.Parser {
     var elementStore = new ElementStoreProxy();
     var scope = new ScopeProxy();
     var astBuilder =
-        new AstBuilder(null, library, member, elementStore, scope, true);
+        new AstBuilder(null, library, member, elementStore, scope, true, false);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
     var fastaParser = new fasta.Parser(new ForwardingTestListener(astBuilder));
     astBuilder.parser = fastaParser;
