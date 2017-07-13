@@ -23,6 +23,7 @@ import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'parser_fasta_listener.dart';
 import 'parser_test.dart';
 import 'test_support.dart';
 
@@ -837,7 +838,7 @@ class ParserProxy implements analyzer.Parser {
     var astBuilder =
         new AstBuilder(null, library, member, elementStore, scope, true);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
-    var fastaParser = new fasta.Parser(astBuilder);
+    var fastaParser = new fasta.Parser(new ForwardingTestListener(astBuilder));
     astBuilder.parser = fastaParser;
     return new ParserProxy._(startingToken, fastaParser, astBuilder);
   }
