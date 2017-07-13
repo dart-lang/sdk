@@ -915,9 +915,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         warnUnresolvedSuperMethod(node.name, node.fileOffset);
       } else if (!areArgumentsCompatible(target.function, node.arguments)) {
         target = null;
-        deprecated_warning(
-            "Super class doesn't have a method named '${node.name.name}' "
-            "with matching arguments.",
+        warning(
+            fasta.templateSuperclassMethodArgumentMismatch
+                .withArguments(node.name.name),
             node.fileOffset);
       }
       Expression result;
@@ -987,20 +987,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void warnUnresolvedSuperGet(Name name, int charOffset) {
-    deprecated_warning(
-        "Super class has no getter named '${name.name}'.", charOffset);
+    warning(fasta.templateSuperclassHasNoGetter.withArguments(name.name),
+        charOffset);
   }
 
   @override
   void warnUnresolvedSuperSet(Name name, int charOffset) {
-    deprecated_warning(
-        "Super class has no setter named '${name.name}'.", charOffset);
+    warning(fasta.templateSuperclassHasNoSetter.withArguments(name.name),
+        charOffset);
   }
 
   @override
   void warnUnresolvedSuperMethod(Name name, int charOffset) {
-    deprecated_warning(
-        "Super class has no method named '${name.name}'.", charOffset);
+    warning(fasta.templateSuperclassHasNoMethod.withArguments(name.name),
+        charOffset);
   }
 
   @override
@@ -1635,7 +1635,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String name, List<DartType> arguments, int charOffset) {
     Builder builder = scope.lookup(name, charOffset, uri);
     if (builder == null) {
-      deprecated_warning("Type not found: '$name'.", charOffset);
+      warning(fasta.templateTypeNotFound.withArguments(name), charOffset);
       return const InvalidType();
     } else {
       return kernelTypeFromBuilder(builder, arguments, charOffset);
@@ -3274,15 +3274,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
-  @override
-  void deprecated_warning(String message, [int charOffset = -1]) {
-    if (constantExpressionRequired) {
-      deprecated_addCompileTimeError(charOffset, message);
-    } else {
-      super.deprecated_warning(message, charOffset);
-    }
-  }
-
   void warningNotError(Message message, int charOffset) {
     super.warning(message, charOffset);
   }
@@ -3291,11 +3282,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError) {
     if (!isInstanceContext && type.parameter.parent is Class) {
-      String message = "Type variables can't be used in static members.";
+      Message message = fasta.messageTypeVariableInStaticContext;
       if (nonInstanceAccessIsError) {
-        deprecated_addCompileTimeError(offset, message);
+        addCompileTimeError(message, offset);
       } else {
-        deprecated_warning(message, offset);
+        warning(message, offset);
       }
       return const InvalidType();
     } else if (constantExpressionRequired) {

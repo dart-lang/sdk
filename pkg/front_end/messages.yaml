@@ -816,3 +816,18 @@ FinalInstanceVariableAlreadyInitialized:
 
 FinalInstanceVariableAlreadyInitializedCause:
   template: "'#name' was initialized here."
+
+TypeVariableInStaticContext:
+  template: "Type variables can't be used in static members."
+
+SuperclassMethodArgumentMismatch:
+  template: "Superclass doesn't have a method named '#name' with matching arguments."
+
+SuperclassHasNoGetter:
+  template: "Superclass has no getter named '#name'."
+
+SuperclassHasNoSetter:
+  template: "Superclass has no setter named '#name'."
+
+SuperclassHasNoMethod:
+  template: "Superclass has no method named '#name'."

@@ -125,8 +125,6 @@ abstract class BuilderHelper {
 
   void warning(Message message, int charOffset);
 
-  void deprecated_warning(String message, [int charOffset]);
-
   void warnUnresolvedSuperGet(Name name, int charOffset);
 
   void warnUnresolvedSuperSet(Name name, int charOffset);

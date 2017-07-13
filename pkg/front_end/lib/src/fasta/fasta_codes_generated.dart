@@ -2296,6 +2296,91 @@ const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
     tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateSuperclassHasNoGetter =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Superclass has no getter named '#name'.""",
+        withArguments: _withArgumentsSuperclassHasNoGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassHasNoGetter =
+    const Code<Message Function(String name)>(
+  "SuperclassHasNoGetter",
+  templateSuperclassHasNoGetter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoGetter(String name) {
+  return new Message(codeSuperclassHasNoGetter,
+      message: """Superclass has no getter named '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateSuperclassHasNoMethod =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Superclass has no method named '#name'.""",
+        withArguments: _withArgumentsSuperclassHasNoMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassHasNoMethod =
+    const Code<Message Function(String name)>(
+  "SuperclassHasNoMethod",
+  templateSuperclassHasNoMethod,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoMethod(String name) {
+  return new Message(codeSuperclassHasNoMethod,
+      message: """Superclass has no method named '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateSuperclassHasNoSetter =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Superclass has no setter named '#name'.""",
+        withArguments: _withArgumentsSuperclassHasNoSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassHasNoSetter =
+    const Code<Message Function(String name)>(
+  "SuperclassHasNoSetter",
+  templateSuperclassHasNoSetter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoSetter(String name) {
+  return new Message(codeSuperclassHasNoSetter,
+      message: """Superclass has no setter named '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSuperclassMethodArgumentMismatch = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Superclass doesn't have a method named '#name' with matching arguments.""",
+    withArguments: _withArgumentsSuperclassMethodArgumentMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassMethodArgumentMismatch =
+    const Code<Message Function(String name)>(
+  "SuperclassMethodArgumentMismatch",
+  templateSuperclassMethodArgumentMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
+  return new Message(codeSuperclassMethodArgumentMismatch,
+      message:
+          """Superclass doesn't have a method named '$name' with matching arguments.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSupertypeIsFunction = messageSupertypeIsFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2470,6 +2555,15 @@ Message _withArgumentsTypeVariableDuplicatedNameCause(String name) {
       message: """The other type variable named '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypeVariableInStaticContext =
+    messageTypeVariableInStaticContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypeVariableInStaticContext = const MessageCode(
+    "TypeVariableInStaticContext",
+    message: r"""Type variables can't be used in static members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeVariableSameNameAsEnclosing =
