@@ -2232,6 +2232,14 @@ const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
     dart2jsCode: "GENERIC", message: r"""Stack overflow.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperAsIdentifier = messageSuperAsIdentifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperAsIdentifier = const MessageCode(
+    "SuperAsIdentifier",
+    message: r"""Expected identifier, but got 'super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2288,6 +2296,37 @@ Message _withArgumentsSupertypeIsTypeVariable(String name) {
       message: """The type variable '$name' can't be used as supertype.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateThisAccessInFieldInitializer =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't access 'this' in a field initializer to read '#name'.""",
+        withArguments: _withArgumentsThisAccessInFieldInitializer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
+    const Code<Message Function(String name)>(
+  "ThisAccessInFieldInitializer",
+  templateThisAccessInFieldInitializer,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsThisAccessInFieldInitializer(String name) {
+  return new Message(codeThisAccessInFieldInitializer,
+      message:
+          """Can't access 'this' in a field initializer to read '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageThisAsIdentifier = const MessageCode(
+    "ThisAsIdentifier",
+    message: r"""Expected identifier, but got 'this'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeAfterVar = messageTypeAfterVar;

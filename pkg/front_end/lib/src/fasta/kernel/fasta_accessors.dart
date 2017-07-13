@@ -464,17 +464,17 @@ abstract class IncompleteSend extends FastaAccessor {
   Arguments get arguments => null;
 }
 
-class deprecated_IncompleteError extends IncompleteSend with ErrorAccessor {
-  final Object error;
+class IncompleteError extends IncompleteSend with ErrorAccessor {
+  final Message message;
 
-  deprecated_IncompleteError(BuilderHelper helper, Token token, this.error)
+  IncompleteError(BuilderHelper helper, Token token, this.message)
       : super(helper, token, null);
 
   @override
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
-    return helper.deprecated_buildCompileTimeError(
-        error, offset ?? offsetForToken(this.token));
+    return helper.buildCompileTimeError(
+        message, offset ?? offsetForToken(this.token));
   }
 
   @override

@@ -798,3 +798,12 @@ MissingSdkRoot:
 
 MissingSdkSummary:
   template: "SDK summary not found: #string."
+
+ThisAccessInFieldInitializer:
+  template: "Can't access 'this' in a field initializer to read '#name'."
+
+ThisAsIdentifier:
+  template: "Expected identifier, but got 'this'."
+
+SuperAsIdentifier:
+  template: "Expected identifier, but got 'super'."

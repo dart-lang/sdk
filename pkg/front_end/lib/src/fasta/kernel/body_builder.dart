@@ -1063,8 +1063,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isQualified: false, PrefixBuilder prefix}) {
     Builder builder = scope.lookup(name, offsetForToken(token), uri);
     if (builder != null && member.isField && builder.isInstanceMember) {
-      return new deprecated_IncompleteError(this, token,
-          "Can't access 'this' in a field initializer to read '$name'.");
+      return new IncompleteError(this, token,
+          fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       Name n = new Name(name, library.library);
@@ -2375,8 +2375,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (context.isScopeReference && isInstanceContext) {
       push(new ThisAccessor(this, token, inInitializer));
     } else {
-      push(new deprecated_IncompleteError(
-          this, token, "Expected identifier, but got 'this'."));
+      push(new IncompleteError(this, token, fasta.messageThisAsIdentifier));
     }
   }
 
@@ -2388,8 +2387,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessor(this, token, inInitializer, isSuper: true));
     } else {
-      push(new deprecated_IncompleteError(
-          this, token, "Expected identifier, but got 'super'."));
+      push(new IncompleteError(this, token, fasta.messageSuperAsIdentifier));
     }
   }
 
