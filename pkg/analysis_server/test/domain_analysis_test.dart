@@ -390,9 +390,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
   test_setRoots_packages() {
     // prepare package
     String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(
-        pkgFile,
-        '''
+    resourceProvider.newFile(pkgFile, '''
 library lib_a;
 class A {}
 ''');
@@ -680,9 +678,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
 
   test_afterAnalysis_packageFile_external() async {
     String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(
-        pkgFile,
-        '''
+    resourceProvider.newFile(pkgFile, '''
 library lib_a;
 class A {}
 ''');
@@ -711,15 +707,11 @@ main() {
     String pkgB = '/pkgA';
     String pkgFileA = '$pkgA/lib/libA.dart';
     String pkgFileB = '$pkgA/lib/libB.dart';
-    resourceProvider.newFile(
-        pkgFileA,
-        '''
+    resourceProvider.newFile(pkgFileA, '''
 library lib_a;
 class A {}
 ''');
-    resourceProvider.newFile(
-        pkgFileB,
-        '''
+    resourceProvider.newFile(pkgFileB, '''
 import 'package:pkgA/libA.dart';
 main() {
   new A();
@@ -749,9 +741,7 @@ main() {
 
   test_afterAnalysis_packageFile_notUsed() async {
     String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(
-        pkgFile,
-        '''
+    resourceProvider.newFile(pkgFile, '''
 library lib_a;
 class A {}
 ''');

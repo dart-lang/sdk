@@ -87,9 +87,7 @@ main(A a, B b, C c, D d) {
   }
 
   test_change_multipleFiles() async {
-    await indexUnit(
-        '/other.dart',
-        r'''
+    await indexUnit('/other.dart', r'''
 class A {
   int get test => 1;
 }

@@ -36,23 +36,17 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
       library libAB;
       part '/partAB.dart';
       class A { }
       class B { }''');
-    addSource(
-        '/partAB.dart',
-        '''
+    addSource('/partAB.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
@@ -82,26 +76,20 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
       library libAB;
       part '/partAB.dart';
       class A { }
       class B { }
       class _AB''');
-    addSource(
-        '/partAB.dart',
-        '''
+    addSource('/partAB.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
       class C { }
       class D { }''');
     addTestSource('''

@@ -357,9 +357,7 @@ include: other_options.yaml
   }
 
   test_perform_include_bad_value() {
-    newSource(
-        '/other_options.yaml',
-        '''
+    newSource('/other_options.yaml', '''
 analyzer:
   errors:
     unused_local_variable: ftw
@@ -454,133 +452,107 @@ class OptionsFileValidatorTest {
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   test_analyzer_error_code_supported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     unused_local_variable: ignore
     invalid_assignment: warning
     missing_return: error
     dead_code: info
-''',
-        []);
+''', []);
   }
 
   test_analyzer_error_code_supported_bad_value() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     unused_local_variable: ftw
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_analyzer_error_code_unsupported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     not_supported: ignore
-    ''',
-        [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+    ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
   test_analyzer_language_supported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   language:
     enableSuperMixins: true
-''',
-        []);
+''', []);
   }
 
   test_analyzer_language_unsupported_key() {
-    validate(
-        '''
+    validate('''
 analyzer:
   language:
     unsupported: true
-''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_analyzer_language_unsupported_value() {
-    validate(
-        '''
+    validate('''
 analyzer:
   language:
     enableSuperMixins: foo
-''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_strong_mode_error_code_supported() {
-    validate(
-        '''
+    validate('''
 analyzer:
   errors:
     strong_mode_assignment_cast: ignore
-''',
-        []);
+''', []);
   }
 
   test_analyzer_supported_exclude() {
-    validate(
-        '''
+    validate('''
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
-    ''',
-        []);
+    ''', []);
   }
 
   test_analyzer_supported_strong_mode() {
-    validate(
-        '''
+    validate('''
 analyzer:
   strong-mode: true
-    ''',
-        []);
+    ''', []);
   }
 
   test_analyzer_supported_strong_mode_supported_bad_value() {
-    validate(
-        '''
+    validate('''
 analyzer:
   strong-mode: w00t
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_unsupported_option() {
-    validate(
-        '''
+    validate('''
 analyzer:
   not_supported: true
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_linter_supported_rules() {
     Registry.ruleRegistry.register(new TestRule());
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     - fantastic_test_rule
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_unsupported_option() {
-    validate(
-        '''
+    validate('''
 linter:
   unsupported: true
-    ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   void validate(String source, List<ErrorCode> expected) {

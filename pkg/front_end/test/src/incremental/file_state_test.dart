@@ -149,9 +149,7 @@ baz() => 44;
     var b = writeFile('/b.dart', '');
     var c = writeFile('/c.dart', 'import "a.dart";');
     var d = writeFile('/d.dart', 'import "b.dart";');
-    var e = writeFile(
-        '/e.dart',
-        r'''
+    var e = writeFile('/e.dart', r'''
 import "c.dart";
 import "d.dart";
 ''');
@@ -175,9 +173,7 @@ import "d.dart";
 
     // Update e.dart so that it does not reference c.dart anymore.
     // Then GC removes both c.dart and a.dart it references.
-    writeFile(
-        '/e.dart',
-        r'''
+    writeFile('/e.dart', r'''
 import "d.dart";
 ''');
     await eFile.refresh();
@@ -196,9 +192,7 @@ import "d.dart";
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
     var c = writeFile('/c.dart', '');
-    var d = writeFile(
-        '/d.dart',
-        r'''
+    var d = writeFile('/d.dart', r'''
 import "a.dart";
 export "b.dart";
 part "c.dart";
@@ -233,9 +227,7 @@ part "c.dart";
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
     var c = writeFile('/c.dart', '');
-    var d = writeFile(
-        '/d.dart',
-        r'''
+    var d = writeFile('/d.dart', r'''
 export "a.dart" show A, B;
 export "b.dart" hide C, D;
 export "c.dart" show A, B, C, D hide C show A, D;
@@ -288,15 +280,11 @@ export "c.dart" show A, B, C, D hide C show A, D;
   }
 
   test_hasMixinApplication_false() async {
-    writeFile(
-        '/a.dart',
-        r'''
+    writeFile('/a.dart', r'''
 class A {}
 class B extends Object with A {}
 ''');
-    var uri = writeFile(
-        '/test.dart',
-        r'''
+    var uri = writeFile('/test.dart', r'''
 import 'a.dart';
 class T1 extends A {}
 class T2 extends B {}
@@ -306,9 +294,7 @@ class T2 extends B {}
   }
 
   test_hasMixinApplication_true_class() async {
-    var uri = writeFile(
-        '/test.dart',
-        r'''
+    var uri = writeFile('/test.dart', r'''
 class A {}
 class B extends Object with A {}
 ''');
@@ -317,9 +303,7 @@ class B extends Object with A {}
   }
 
   test_hasMixinApplication_true_named() async {
-    var uri = writeFile(
-        '/test.dart',
-        r'''
+    var uri = writeFile('/test.dart', r'''
 class A {}
 class B = Object with A;
 ''');
@@ -328,15 +312,11 @@ class B = Object with A;
   }
 
   test_hasMixinApplicationLibrary_false() async {
-    var partUri = writeFile(
-        '/part.dart',
-        r'''
+    var partUri = writeFile('/part.dart', r'''
 part of test;
 class A {}
 ''');
-    var libUri = writeFile(
-        '/test.dart',
-        r'''
+    var libUri = writeFile('/test.dart', r'''
 library test;
 part 'part.dart';
 class B extends A {}
@@ -351,15 +331,11 @@ class B extends A {}
   }
 
   test_hasMixinApplicationLibrary_true_inDefiningUnit() async {
-    var partUri = writeFile(
-        '/part.dart',
-        r'''
+    var partUri = writeFile('/part.dart', r'''
 part of test;
 class A {}
 ''');
-    var libUri = writeFile(
-        '/test.dart',
-        r'''
+    var libUri = writeFile('/test.dart', r'''
 library test;
 part 'part.dart';
 class B extends Object with A {}
@@ -374,16 +350,12 @@ class B extends Object with A {}
   }
 
   test_hasMixinApplicationLibrary_true_inPart() async {
-    var partUri = writeFile(
-        '/part.dart',
-        r'''
+    var partUri = writeFile('/part.dart', r'''
 part of test;
 class A {}
 class B extends Object with A {}
 ''');
-    var libUri = writeFile(
-        '/test.dart',
-        r'''
+    var libUri = writeFile('/test.dart', r'''
 library test;
 part 'part.dart';
 class C {}
@@ -400,9 +372,7 @@ class C {}
   test_newFileListener() async {
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
-    var c = writeFile(
-        '/c.dart',
-        r'''
+    var c = writeFile('/c.dart', r'''
 import 'a.dart';
 ''');
 
@@ -415,9 +385,7 @@ import 'a.dart';
     _newFileUris.clear();
 
     // Update c.dart to use b.dart too.
-    writeFile(
-        '/c.dart',
-        r'''
+    writeFile('/c.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
@@ -542,9 +510,7 @@ import 'b.dart';
 
   Uri _writeFileDirectives(String path,
       {List<String> imports: const [], List<String> exports: const []}) {
-    return writeFile(
-        path,
-        '''
+    return writeFile(path, '''
 ${imports.map((uri) => 'import "$uri";').join('\n')}
 ${exports.map((uri) => 'export "$uri";').join('\n')}
 ''');

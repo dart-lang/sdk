@@ -20,9 +20,7 @@ class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 main() {
   print(null) // parse error: missing ';'
 }''');
@@ -37,9 +35,7 @@ main() {
 
   test_super_mixins_disabled() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Test extends Object with C {
   void foo() {}
 }
@@ -79,9 +75,7 @@ abstract class C extends B {
     //  ]
 
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Test extends Object with C {
   void foo() {}
 }

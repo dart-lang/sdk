@@ -363,9 +363,7 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
     var b = _p('/test/lib/b.dart');
 
     provider.newFile(a, 'class A {}');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 ''');
 
@@ -383,9 +381,7 @@ import 'a.dart';
     assertNumberOfErrorsInB(1);
 
     // Update 'b' to use 'a', no more hints.
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 main() {
   print(A);
@@ -398,9 +394,7 @@ main() {
     // Change 'b' content so that it has a hint.
     // Remove 'b' and add it again.
     // The file 'b' must be refreshed, and the hint must be reported.
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 ''');
     driver.removeFile(b);
@@ -431,21 +425,15 @@ import 'a.dart';
     var lib = _p('/test/lib.dart');
     var part1 = _p('/test/part1.dart');
     var part2 = _p('/test/part2.dart');
-    provider.newFile(
-        lib,
-        '''
+    provider.newFile(lib, '''
 library lib;
 part 'part1.dart';
 part 'part2.dart';
 ''');
-    provider.newFile(
-        part1,
-        '''
+    provider.newFile(part1, '''
 part of lib;
 ''');
-    provider.newFile(
-        part2,
-        '''
+    provider.newFile(part2, '''
 part of 'lib.dart';
 ''');
 
@@ -487,14 +475,10 @@ part of 'lib.dart';
   test_analyze_resolveDirectives_error_missingLibraryDirective() async {
     var lib = _p('/test/lib.dart');
     var part = _p('/test/part.dart');
-    provider.newFile(
-        lib,
-        '''
+    provider.newFile(lib, '''
 part 'part.dart';
 ''');
-    provider.newFile(
-        part,
-        '''
+    provider.newFile(part, '''
 part of lib;
 ''');
 
@@ -515,15 +499,11 @@ part of lib;
   test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
     var lib = _p('/test/lib.dart');
     var part = _p('/test/part.dart');
-    provider.newFile(
-        lib,
-        '''
+    provider.newFile(lib, '''
 library lib;
 part 'part.dart';
 ''');
-    provider.newFile(
-        part,
-        '''
+    provider.newFile(part, '''
 part of someOtherLib;
 ''');
 
@@ -538,15 +518,11 @@ part of someOtherLib;
   test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri() async {
     var lib = _p('/test/lib.dart');
     var part = _p('/test/part.dart');
-    provider.newFile(
-        lib,
-        '''
+    provider.newFile(lib, '''
 library lib;
 part 'part.dart';
 ''');
-    provider.newFile(
-        part,
-        '''
+    provider.newFile(part, '''
 part of 'other_lib.dart';
 ''');
 
@@ -561,15 +537,11 @@ part of 'other_lib.dart';
   test_analyze_resolveDirectives_error_partOfNonPart() async {
     var lib = _p('/test/lib.dart');
     var part = _p('/test/part.dart');
-    provider.newFile(
-        lib,
-        '''
+    provider.newFile(lib, '''
 library lib;
 part 'part.dart';
 ''');
-    provider.newFile(
-        part,
-        '''
+    provider.newFile(part, '''
 // no part of directive
 ''');
 
@@ -671,9 +643,7 @@ part 'part.dart';
   test_changeFile_implicitlyAnalyzed() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 var A = B;
 ''');
@@ -733,16 +703,12 @@ var A = B;
   test_changeFile_selfConsistent() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 var A1 = 1;
 var A2 = B1;
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 var B1 = A1;
 ''');
@@ -766,9 +732,7 @@ var B1 = A1;
 
     // Clear the results and update "a".
     allResults.clear();
-    provider.updateFile(
-        a,
-        r'''
+    provider.updateFile(a, r'''
 import 'b.dart';
 var A1 = 1.2;
 var A2 = B1;
@@ -958,14 +922,12 @@ import 'foo.dart';
   }
 
   test_errors_uriDoesNotExist_import_deferred() async {
-    addTestFile(
-        r'''
+    addTestFile(r'''
 import 'foo.dart' deferred as foo;
 main() {
   foo.loadLibrary();
 }
-''',
-        priority: true);
+''', priority: true);
 
     AnalysisResult result = await driver.getResult(testFile);
     List<AnalysisError> errors = result.errors;
@@ -988,14 +950,10 @@ part 'foo.dart';
   test_externalSummaries() async {
     var a = _p('/a.dart');
     var b = _p('/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 var a = new A();
 ''');
@@ -1027,16 +985,12 @@ var a = new A();
     String templatePath = _p('/aaa/lib/foo.dart');
     String generatedPath = _p('/generated/aaa/lib/foo.dart');
 
-    provider.newFile(
-        templatePath,
-        r'''
+    provider.newFile(templatePath, r'''
 a() {}
 b() {}
 ''');
 
-    provider.newFile(
-        generatedPath,
-        r'''
+    provider.newFile(generatedPath, r'''
 aaa() {}
 bbb() {}
 ''');
@@ -1179,9 +1133,7 @@ main() {
   }
 
   test_getLibraryByUri_external_resynthesize() async {
-    provider.newFile(
-        testFile,
-        r'''
+    provider.newFile(testFile, r'''
 class Test {}
 ''');
 
@@ -1260,9 +1212,7 @@ class Test {}
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
     provider.newFile(a, 'const C = 42;');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 main() {
   foo({int p: C}) {}
@@ -1351,9 +1301,7 @@ class C {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     provider.newFile(a, 'class A {}');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 class B extends A {}
 ''');
@@ -1393,13 +1341,11 @@ class B extends A {}
   }
 
   test_getResult_inferTypes_finalField() async {
-    addTestFile(
-        r'''
+    addTestFile(r'''
 class C {
   final f = 42;
 }
-''',
-        priority: true);
+''', priority: true);
     await scheduler.waitForIdle();
 
     AnalysisResult result = await driver.getResult(testFile);
@@ -1407,16 +1353,14 @@ class C {
   }
 
   test_getResult_inferTypes_instanceMethod() async {
-    addTestFile(
-        r'''
+    addTestFile(r'''
 class A {
   int m(double p) => 1;
 }
 class B extends A {
   m(double p) => 2;
 }
-''',
-        priority: true);
+''', priority: true);
     await scheduler.waitForIdle();
 
     AnalysisResult result = await driver.getResult(testFile);
@@ -1425,14 +1369,12 @@ class B extends A {
   }
 
   test_getResult_invalid_annotation_functionAsConstructor() async {
-    addTestFile(
-        r'''
+    addTestFile(r'''
 fff() {}
 
 @fff()
 class C {}
-''',
-        priority: true);
+''', priority: true);
 
     AnalysisResult result = await driver.getResult(testFile);
     ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
@@ -1525,27 +1467,19 @@ part '';
     var b = _p('/test/bin/b.dart');
     var c = _p('/test/lib/c.dart');
     var d = _p('/test/test/d.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'package:test/c.dart';
 int x = y;
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import '../lib/c.dart';
 int x = y;
 ''');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 import '../test/d.dart';
 var y = z;
 ''');
-    provider.newFile(
-        d,
-        r'''
+    provider.newFile(d, r'''
 String z = "string";
 ''');
 
@@ -1624,15 +1558,11 @@ class C<T> implements Future<C<T>> {}
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/test/c.dart');
     provider.newFile(a, 'class A<T> {}');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 var VB = new A<int>();
 ''');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 import '../lib/a.dart';
 var VC = new A<double>();
 ''');
@@ -1659,16 +1589,12 @@ var VC = new A<double>();
   test_getResult_selfConsistent() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 var A1 = 1;
 var A2 = B1;
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 var B1 = A1;
 ''');
@@ -1690,9 +1616,7 @@ var B1 = A1;
     // That's because we check for "a" API signature consistency, and because
     // it has changed, we invalidated the dependency cache, relinked libraries
     // and recomputed types.
-    provider.updateFile(
-        a,
-        r'''
+    provider.updateFile(a, r'''
 import 'b.dart';
 var A1 = 1.2;
 var A2 = B1;
@@ -1788,9 +1712,7 @@ var A2 = B1;
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
 
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library lib;
 part 'b.dart';
 part 'c.dart';
@@ -1896,18 +1818,14 @@ main() {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
 
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 part 'b.dart';
 class C {
   int foo;
 }
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 part of a;
 var c = new C();
 ''');
@@ -1919,9 +1837,7 @@ var c = new C();
 
     // Modify the library, but don't notify the driver.
     // The driver should use the previous library content and elements.
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 part 'b.dart';
 class C {
@@ -1961,9 +1877,7 @@ var b = new B();
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
 
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 ''');
     provider.newFile(b, '');
@@ -2035,9 +1949,7 @@ import 'b.dart';
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2045,9 +1957,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2075,9 +1985,7 @@ var b = new B();
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2085,9 +1993,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2109,9 +2015,7 @@ var b = new B();
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2119,9 +2023,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2152,9 +2054,7 @@ var b = new B();
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2162,9 +2062,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2185,9 +2083,7 @@ var b = new B();
 
   test_part_getResult_noLibrary() async {
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2207,9 +2103,7 @@ var b = new B();
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2217,9 +2111,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2259,9 +2151,7 @@ var b = new B();
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2269,9 +2159,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2296,9 +2184,7 @@ var b = new B();
 
   test_part_results_noLibrary() async {
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2320,9 +2206,7 @@ var b = new B();
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
     var c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library a;
 import 'b.dart';
 part 'c.dart';
@@ -2330,9 +2214,7 @@ class A {}
 var c = new C();
 ''');
     provider.newFile(b, 'class B {}');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 part of a;
 class C {}
 var a = new A();
@@ -2359,9 +2241,7 @@ var b = new B();
   test_removeFile_changeFile_implicitlyAnalyzed() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 var A = B;
 ''');
@@ -2449,30 +2329,20 @@ var A = B;
     var d = _p('/test/lib/d.dart');
     var e = _p('/test/lib/e.dart');
     var f = _p('/test/lib/f.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'd.dart';
 ''');
     provider.newFile(b, '');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 import 'd.dart';
 ''');
-    provider.newFile(
-        d,
-        r'''
+    provider.newFile(d, r'''
 import 'b.dart';
 ''');
-    provider.newFile(
-        e,
-        r'''
+    provider.newFile(e, r'''
 export 'b.dart';
 ''');
-    provider.newFile(
-        f,
-        r'''
+    provider.newFile(f, r'''
 import 'e.dart';
 class F extends X {}
 ''');
@@ -2793,9 +2663,7 @@ class CacheAllAnalysisDriverTest extends BaseAnalysisDriverTest {
     var part1 = _p('/part1.dart');
     var part2 = _p('/part2.dart');
 
-    provider.newFile(
-        lib,
-        r'''
+    provider.newFile(lib, r'''
 library test;
 part 'part1.dart';
 part 'part2.dart';

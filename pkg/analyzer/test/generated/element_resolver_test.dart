@@ -39,9 +39,7 @@ main() {
 @reflectiveTest
 class ElementResolverCodeTest extends ResolverTestCase {
   test_annotation_class_namedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A.named();
 }
@@ -71,9 +69,7 @@ class A {
   }
 
   test_annotation_class_prefixed_namedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A.named();
 }
@@ -105,9 +101,7 @@ class A {
   }
 
   test_annotation_class_prefixed_staticConstField() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   static const V = 0;
 }
@@ -137,9 +131,7 @@ class A {
   }
 
   test_annotation_class_prefixed_unnamedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A();
 }
@@ -167,9 +159,7 @@ class A {
   }
 
   test_annotation_class_staticConstField() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   static const V = 0;
 }
@@ -197,9 +187,7 @@ class A {
   }
 
   test_annotation_class_unnamedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A();
 }
@@ -225,9 +213,7 @@ class A {
   }
 
   test_annotation_topLevelVariable() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -252,9 +238,7 @@ const V = 0;
   }
 
   test_annotation_topLevelVariable_prefixed() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,

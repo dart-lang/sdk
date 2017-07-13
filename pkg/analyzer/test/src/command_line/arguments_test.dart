@@ -190,9 +190,7 @@ class ArgumentsTest {
   void test_preprocessArgs_replacement_exists() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     String filePath = provider.convertPath('/args.txt');
-    provider.newFile(
-        filePath,
-        '''
+    provider.newFile(filePath, '''
 -a
 --xx
 

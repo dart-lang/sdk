@@ -59,15 +59,11 @@ class IncrementalKernelGeneratorTest {
     String bPath = '/test/lib/b.dart';
     String cPath = '/test/lib/c.dart';
     Uri aUri = writeFile(aPath, 'var a = 1;');
-    Uri bUri = writeFile(
-        bPath,
-        r'''
+    Uri bUri = writeFile(bPath, r'''
 import 'a.dart';
 var b = a;
 ''');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'a.dart';
 import 'b.dart';
 var c1 = a;
@@ -80,9 +76,7 @@ void main() {}
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(program, cUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -99,9 +93,7 @@ static method main() → void {}
     }
 
     // Update b.dart and recompile c.dart
-    writeFile(
-        bPath,
-        r'''
+    writeFile(bPath, r'''
 import 'a.dart';
 var b = 1.2;
 ''');
@@ -112,9 +104,7 @@ var b = 1.2;
       _assertLibraryUris(program,
           includes: [bUri, cUri], excludes: [aUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(program, cUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -141,9 +131,7 @@ static method main() → void {}
     // A --> B -> C
     //   \-> D
 
-    Uri aUri = writeFile(
-        aPath,
-        r'''
+    Uri aUri = writeFile(aPath, r'''
 import 'b.dart';
 import 'd.dart';
 main() {
@@ -151,9 +139,7 @@ main() {
   d();
 }
 ''');
-    Uri bUri = writeFile(
-        bPath,
-        r'''
+    Uri bUri = writeFile(bPath, r'''
 import 'c.dart';
 b() {
   c();
@@ -189,9 +175,7 @@ b() {
   test_updateEntryPoint() async {
     writeFile('/test/.packages', 'test:lib/');
     String path = '/test/lib/test.dart';
-    Uri uri = writeFile(
-        path,
-        r'''
+    Uri uri = writeFile(path, r'''
 main() {
   var v = 1;
 }
@@ -215,9 +199,7 @@ static method main() → dynamic {
     }
 
     // Update the entry point library.
-    writeFile(
-        path,
-        r'''
+    writeFile(path, r'''
 main() {
   var v = 2.3;
 }
@@ -236,9 +218,7 @@ main() {
       Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -257,9 +237,7 @@ static method main() → dynamic {
     String cPath = '/test/lib/c.dart';
     Uri aUri = writeFile(aPath, '');
     Uri bUri = writeFile(bPath, '');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'a.dart';
 ''');
 
@@ -284,9 +262,7 @@ import 'a.dart';
     }
 
     // Update c.dart to reference also b.dart file.
-    writeFile(
-        cPath,
-        r'''
+    writeFile(cPath, r'''
 import 'a.dart';
 import 'b.dart';
 ''');
@@ -300,9 +276,7 @@ import 'b.dart';
     }
 
     // Update c.dart to stop referencing b.dart file.
-    writeFile(
-        cPath,
-        r'''
+    writeFile(cPath, r'''
 import 'a.dart';
 ''');
     incrementalKernelGenerator.invalidate(cUri);

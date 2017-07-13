@@ -74,16 +74,13 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
   test_importLibraries_DP() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:aaa';
 import 'dart:ccc';
 
 import 'package:aaa/aaa.dart';
 import 'package:ccc/ccc.dart';
-''',
-        ['dart:bbb', 'package:bbb/bbb.dart'],
-        '''
+''', ['dart:bbb', 'package:bbb/bbb.dart'], '''
 import 'dart:aaa';
 import 'dart:bbb';
 import 'dart:ccc';
@@ -95,16 +92,13 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibraries_PD() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:aaa';
 import 'dart:ccc';
 
 import 'package:aaa/aaa.dart';
 import 'package:ccc/ccc.dart';
-''',
-        ['package:bbb/bbb.dart', 'dart:bbb'],
-        '''
+''', ['package:bbb/bbb.dart', 'dart:bbb'], '''
 import 'dart:aaa';
 import 'dart:bbb';
 import 'dart:ccc';
@@ -116,14 +110,11 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibrary_afterLibraryDirective_dart() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 library test;
 
 class A {}
-''',
-        ['dart:async'],
-        '''
+''', ['dart:async'], '''
 library test;
 
 import 'dart:async';
@@ -134,13 +125,10 @@ class A {}
   }
 
   test_importLibrary_dart_beforeDart() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:aaa';
 import 'dart:ccc';
-''',
-        ['dart:bbb'],
-        '''
+''', ['dart:bbb'], '''
 import 'dart:aaa';
 import 'dart:bbb';
 import 'dart:ccc';
@@ -148,24 +136,18 @@ import 'dart:ccc';
   }
 
   test_importLibrary_dart_beforeDart_first() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:bbb';
-''',
-        ['dart:aaa'],
-        '''
+''', ['dart:aaa'], '''
 import 'dart:aaa';
 import 'dart:bbb';
 ''');
   }
 
   test_importLibrary_dart_beforePackage() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'package:foo/foo.dart';
-''',
-        ['dart:async'],
-        '''
+''', ['dart:async'], '''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -173,12 +155,9 @@ import 'package:foo/foo.dart';
   }
 
   test_importLibrary_package_afterDart() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:async';
-''',
-        ['package:aaa/aaa.dart'],
-        '''
+''', ['package:aaa/aaa.dart'], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -186,14 +165,11 @@ import 'package:aaa/aaa.dart';
   }
 
   test_importLibrary_package_afterPackage() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'package:aaa/a1.dart';
 
 import 'foo.dart';
-''',
-        ['package:aaa/a2.dart'],
-        '''
+''', ['package:aaa/a2.dart'], '''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a2.dart';
 
@@ -202,15 +178,12 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a3.dart';
 
 import 'foo.dart';
-''',
-        ['package:aaa/a2.dart'],
-        '''
+''', ['package:aaa/a2.dart'], '''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a2.dart';
 import 'package:aaa/a3.dart';
@@ -220,14 +193,11 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_first() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';
-''',
-        ['package:aaa/a1.dart'],
-        '''
+''', ['package:aaa/a1.dart'], '''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a2.dart';
 
@@ -236,12 +206,9 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforeRelative() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'foo.dart';
-''',
-        ['package:aaa/aaa.dart'],
-        '''
+''', ['package:aaa/aaa.dart'], '''
 import 'package:aaa/aaa.dart';
 
 import 'foo.dart';
@@ -249,12 +216,9 @@ import 'foo.dart';
   }
 
   test_importLibrary_relative_afterDart() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:async';
-''',
-        ['aaa.dart'],
-        '''
+''', ['aaa.dart'], '''
 import 'dart:async';
 
 import 'aaa.dart';
@@ -262,12 +226,9 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_afterPackage() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'package:foo/foo.dart';
-''',
-        ['aaa.dart'],
-        '''
+''', ['aaa.dart'], '''
 import 'package:foo/foo.dart';
 
 import 'aaa.dart';
@@ -275,17 +236,14 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_beforeRelative() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
 
 import 'aaa.dart';
 import 'ccc.dart';
-''',
-        ['bbb.dart'],
-        '''
+''', ['bbb.dart'], '''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -297,16 +255,13 @@ import 'ccc.dart';
   }
 
   test_importLibrary_relative_beforeRelative_first() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
 
 import 'bbb.dart';
-''',
-        ['aaa.dart'],
-        '''
+''', ['aaa.dart'], '''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -317,14 +272,11 @@ import 'bbb.dart';
   }
 
   test_importLibrary_relative_last() async {
-    await _assertImportLibraries(
-        '''
+    await _assertImportLibraries('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
-''',
-        ['aaa.dart'],
-        '''
+''', ['aaa.dart'], '''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -1461,9 +1413,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
   test_addSuperTypesAsSuggestions() async {
     String path = provider.convertPath('/test.dart');
-    addSource(
-        path,
-        '''
+    addSource(path, '''
 class A {}
 class B extends A {}
 class C extends B {}

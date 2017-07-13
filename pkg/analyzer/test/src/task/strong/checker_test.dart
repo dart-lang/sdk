@@ -446,12 +446,10 @@ void main() {
   }
 
   test_conversionAndDynamicInvoke() async {
-    addFile(
-        '''
+    addFile('''
 dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
-''',
-        name: '/helper.dart');
+''', name: '/helper.dart');
     await checkFile('''
 import 'helper.dart' as helper;
 
@@ -3345,8 +3343,7 @@ class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
   }
 
   test_privateOverride() async {
-    addFile(
-        '''
+    addFile('''
 import 'main.dart' as main;
 
 class Base {
@@ -3365,8 +3362,7 @@ class GrandChild extends main.Child {
 
   /*error:INVALID_METHOD_OVERRIDE*/String _m1() => null;
 }
-''',
-        name: '/helper.dart');
+''', name: '/helper.dart');
     await checkFile('''
 import 'helper.dart' as helper;
 
@@ -4190,16 +4186,14 @@ void main () {
   }
 
   void _addMetaLibrary() {
-    addFile(
-        r'''
+    addFile(r'''
 library meta;
 class _Checked { const _Checked(); }
 const Object checked = const _Checked();
 
 class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
-    ''',
-        name: '/meta.dart');
+    ''', name: '/meta.dart');
   }
 }
 

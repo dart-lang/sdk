@@ -2441,15 +2441,13 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_enumInClass() {
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 class Foo {
   enum Bar {
     Bar1, Bar2, Bar3
   }
 }
-''',
-        [ParserErrorCode.ENUM_IN_CLASS]);
+''', [ParserErrorCode.ENUM_IN_CLASS]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
@@ -4097,8 +4095,7 @@ m() {
 
   void test_typedef_incomplete() {
     // TODO(brianwilkerson) Improve recovery for this case.
-    parseCompilationUnit(
-        '''
+    parseCompilationUnit('''
 class A {}
 class B extends A {}
 
@@ -4107,12 +4104,11 @@ typedef T
 main() {
   Function<
 }
-''',
-        [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.UNEXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_EXECUTABLE
-        ]);
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_EXECUTABLE
+    ]);
   }
 
   void test_typedef_namedFunction() {
@@ -4185,82 +4181,72 @@ main() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 void main() {
-  var x = "''',
-        [
-          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          fe.Scanner.useFasta
-              ? ScannerErrorCode.EXPECTED_TOKEN
-              : ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN
-        ]);
+  var x = "''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_unterminatedString_at_eol() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 void main() {
   var x = "
 ;
 }
-''',
-        [ScannerErrorCode.UNTERMINATED_STRING_LITERAL]);
+''', [ScannerErrorCode.UNTERMINATED_STRING_LITERAL]);
   }
 
   void test_unterminatedString_multiline_at_eof_3_quotes() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 void main() {
-  var x = """''',
-        [
-          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          fe.Scanner.useFasta
-              ? ScannerErrorCode.EXPECTED_TOKEN
-              : ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN
-        ]);
+  var x = """''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_unterminatedString_multiline_at_eof_4_quotes() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 void main() {
-  var x = """"''',
-        [
-          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          fe.Scanner.useFasta
-              ? ScannerErrorCode.EXPECTED_TOKEN
-              : ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN
-        ]);
+  var x = """"''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_unterminatedString_multiline_at_eof_5_quotes() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 void main() {
-  var x = """""''',
-        [
-          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          fe.Scanner.useFasta
-              ? ScannerErrorCode.EXPECTED_TOKEN
-              : ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN
-        ]);
+  var x = """""''', [
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
   }
 
   void test_useOfUnaryPlusOperator() {
@@ -8944,11 +8930,9 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_classTypeAlias_withBody() {
-    parseCompilationUnit(
-        r'''
+    parseCompilationUnit(r'''
 class A {}
-class B = Object with A {}''',
-        [ParserErrorCode.EXPECTED_TOKEN]);
+class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_conditionalExpression_missingElse() {
@@ -9252,12 +9236,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incompleteField_const() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   const
-}''',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+}''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
@@ -9278,12 +9260,10 @@ class C {
   }
 
   void test_incompleteField_final() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   final
-}''',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+}''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
@@ -9304,12 +9284,10 @@ class C {
   }
 
   void test_incompleteField_var() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   var
-}''',
-        [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
+}''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
@@ -9377,12 +9355,10 @@ class C {
   }
 
   void test_incompleteTypeArguments_field() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   final List<int f;
-}''',
-        [ParserErrorCode.EXPECTED_TOKEN]);
+}''', [ParserErrorCode.EXPECTED_TOKEN]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -9407,11 +9383,9 @@ class C {
   }
 
   void test_incompleteTypeParameters() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C<K {
-}''',
-        [ParserErrorCode.EXPECTED_TOKEN]);
+}''', [ParserErrorCode.EXPECTED_TOKEN]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -9571,13 +9545,11 @@ class C<K {
   }
 
   void test_missingGet() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   int length {}
   void foo() {}
-}''',
-        [ParserErrorCode.MISSING_GET]);
+}''', [ParserErrorCode.MISSING_GET]);
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
         unit.declarations[0] as ClassDeclaration;

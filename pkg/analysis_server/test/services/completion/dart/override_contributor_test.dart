@@ -53,9 +53,7 @@ class C extends B {
   }
 
   test_fromPart() async {
-    addSource(
-        '/myLib.dart',
-        '''
+    addSource('/myLib.dart', '''
 library myLib;
 part '$testFile'
 part '/otherPart.dart'
@@ -64,9 +62,7 @@ class A {
   B suggested2(String y) => null;
 }
 ''');
-    addSource(
-        '/otherPart.dart',
-        '''
+    addSource('/otherPart.dart', '''
 part of myLib;
 class B extends A {
   B suggested2(String y) => null;

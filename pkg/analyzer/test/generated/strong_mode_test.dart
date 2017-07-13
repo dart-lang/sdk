@@ -1252,31 +1252,25 @@ noCasts() {
 
   test_futureOr_methods2() async {
     // Test that FutureOr does not have the constituent type methods
-    MethodInvocation invoke = await _testFutureOr(
-        r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
-    ''',
-        errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
   test_futureOr_methods3() async {
     // Test that FutureOr does not have the Future type methods
-    MethodInvocation invoke = await _testFutureOr(
-        r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
-    ''',
-        errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
   test_futureOr_methods4() async {
     // Test that FutureOr<dynamic> does not have all methods
-    MethodInvocation invoke = await _testFutureOr(
-        r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
-    ''',
-        errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -1326,12 +1320,10 @@ noCasts() {
   test_futureOr_upwards2() async {
     // Test that upwards inference fails when the solution doesn't
     // match the bound.
-    MethodInvocation invoke = await _testFutureOr(
-        r'''
+    MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
-    ''',
-        errors: [StrongModeCode.COULD_NOT_INFER]);
+    ''', errors: [StrongModeCode.COULD_NOT_INFER]);
     _isFutureOfInt(invoke.staticType);
   }
 
@@ -1440,13 +1432,10 @@ test() {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [
-          StrongModeCode.COULD_NOT_INFER,
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-        ],
-        r'''
+    _expectInferenceError(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'double' for 'T' which doesn't work:
@@ -1469,14 +1458,11 @@ test() {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [
-          StrongModeCode.COULD_NOT_INFER,
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-        ],
-        r'''
+    _expectInferenceError(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1523,12 +1509,9 @@ test() {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [
-          StrongModeCode.COULD_NOT_INFER,
-        ],
-        r'''
+    _expectInferenceError(source, [
+      StrongModeCode.COULD_NOT_INFER,
+    ], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'String' for 'T' which doesn't work:
@@ -1554,13 +1537,10 @@ test(Iterable values) {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [
-          StrongModeCode.COULD_NOT_INFER,
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-        ],
-        r'''
+    _expectInferenceError(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'dynamic' for 'T' which doesn't work:
@@ -1583,10 +1563,7 @@ test() {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [StrongModeCode.COULD_NOT_INFER],
-        r'''
+    _expectInferenceError(source, [StrongModeCode.COULD_NOT_INFER], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -2809,11 +2786,9 @@ main() {
   }
 
   test_genericFunction_parameter() async {
-    await resolveTestUnit(
-        r'''
+    await resolveTestUnit(r'''
 void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
-''',
-        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectFunctionType('f', '<T>(T) → T',
         elementTypeParams: '[T]', typeFormals: '[T]');
@@ -2950,8 +2925,7 @@ main() {
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
-    await resolveTestUnit(
-        r'''
+    await resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -2973,8 +2947,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = (lf)/*<int>*/(3);
   var paramCall = (pf)/*<int>*/(3);
 }
-''',
-        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
@@ -2987,8 +2960,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    await resolveTestUnit(
-        r'''
+    await resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -3010,8 +2982,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = (lf)(3);
   var paramCall = (pf)(3);
 }
-''',
-        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
@@ -3024,8 +2995,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   }
 
   test_genericMethod_functionInvocation_explicit() async {
-    await resolveTestUnit(
-        r'''
+    await resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -3045,8 +3015,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = lf/*<int>*/(3);
   var paramCall = pf/*<int>*/(3);
 }
-''',
-        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
@@ -3058,8 +3027,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   }
 
   test_genericMethod_functionInvocation_inferred() async {
-    await resolveTestUnit(
-        r'''
+    await resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -3079,8 +3047,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = lf(3);
   var paramCall = pf(3);
 }
-''',
-        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
@@ -3342,8 +3309,7 @@ C toSpan(dynamic element) {
   }
 
   test_genericMethod_tearoff() async {
-    await resolveTestUnit(
-        r'''
+    await resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(E e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -3363,8 +3329,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localTearOff = lf;
   var paramTearOff = pf;
 }
-''',
-        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
         );
     expectIdentifierType('methodTearOff', "<T>(int) → T");
     expectIdentifierType('staticTearOff', "<T>(T) → T");

@@ -17,9 +17,7 @@ main() {
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   test_subscriptions() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Foo {
   void bar() {}
 }

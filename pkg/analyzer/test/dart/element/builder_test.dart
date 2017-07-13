@@ -1147,13 +1147,11 @@ main() {
   }
 
   void test_visitFieldFormalParameter() {
-    CompilationUnit unit = parseCompilationUnit(
-        r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 main() {
   f(a, this.b) {}
 }
-''',
-        [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+''', [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
     var main = unit.declarations[0] as FunctionDeclaration;
     var mainBody = main.functionExpression.body as BlockFunctionBody;
     var mainBlock = mainBody.block;

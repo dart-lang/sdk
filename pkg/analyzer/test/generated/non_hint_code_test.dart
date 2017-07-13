@@ -102,9 +102,7 @@ import 'lib2.dart';
 f() {
   if(A.DEBUG) {}
 }''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class A {
   static const bool DEBUG = false;
@@ -121,9 +119,7 @@ import 'lib2.dart' as LIB;
 f() {
   if(LIB.A.DEBUG) {}
 }''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class A {
   static const bool DEBUG = false;
@@ -348,9 +344,7 @@ import 'lib1.dart';
 import 'lib1.dart' as one;
 A a;
 one.A a2;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
     await computeAnalysisResult(source);
@@ -365,9 +359,7 @@ import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;
 B b;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}''');
@@ -383,9 +375,7 @@ import 'lib1.dart';
 import 'lib1.dart' show A;
 A a;
 B b;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}''');
@@ -1058,9 +1048,7 @@ class B extends A {
 library L;
 @A()
 import 'lib1.dart';''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {
   const A() {}
@@ -1079,14 +1067,10 @@ import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;
 one.B b;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
-    Source source3 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source3 = addNamedSource("/lib2.dart", r'''
 library lib2;
 class B {}''');
     await computeAnalysisResult(source);
@@ -1112,15 +1096,11 @@ import 'dart:core';''');
 library L;
 import 'lib1.dart';
 Two two;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 export 'lib2.dart';
 class One {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class Two {}''');
     await computeAnalysisResult(source);
@@ -1133,21 +1113,15 @@ class Two {}''');
 library L;
 import 'lib1.dart';
 Three three;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 export 'lib2.dart';
 class One {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 export 'lib3.dart';
 class Two {}''');
-    addNamedSource(
-        "/lib3.dart",
-        r'''
+    addNamedSource("/lib3.dart", r'''
 library lib3;
 class Three {}''');
     await computeAnalysisResult(source);
@@ -1160,21 +1134,15 @@ class Three {}''');
 library L;
 import 'lib1.dart';
 Two two;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 export 'lib2.dart';
 class One {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 export 'lib3.dart';
 class Two {}''');
-    addNamedSource(
-        "/lib3.dart",
-        r'''
+    addNamedSource("/lib3.dart", r'''
 library lib3;
 export 'lib2.dart';
 class Three {}''');
@@ -1192,9 +1160,7 @@ class A {
   final int value;
   const A(this.value);
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 const x = 0;''');
     await computeAnalysisResult(source);
@@ -1213,9 +1179,7 @@ class A {
     one.topLevelFunction();
   }
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class One {}
 topLevelFunction() {}''');
@@ -1237,9 +1201,7 @@ class A {
     two.topLevelFunction();
   }
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class One {}
 topLevelFunction() {}''');

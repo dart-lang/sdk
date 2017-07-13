@@ -240,9 +240,7 @@ void main() {async.Future.^.w()}''');
 
   test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         class I {
           static const scI = 'boo';

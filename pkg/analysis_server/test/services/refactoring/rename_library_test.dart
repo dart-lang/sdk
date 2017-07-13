@@ -40,9 +40,7 @@ library my.app;
   }
 
   test_createChange() async {
-    addSource(
-        '/part.dart',
-        '''
+    addSource('/part.dart', '''
 part of my.app;
 ''');
     await indexTestUnit('''
@@ -59,17 +57,13 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult(
-        '/part.dart',
-        '''
+    assertFileChangeResult('/part.dart', '''
 part of the.new.name;
 ''');
   }
 
   test_createChange_hasWhitespaces() async {
-    addSource(
-        '/part.dart',
-        '''
+    addSource('/part.dart', '''
 part of my .  app;
 ''');
     await indexTestUnit('''
@@ -86,9 +80,7 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult(
-        '/part.dart',
-        '''
+    assertFileChangeResult('/part.dart', '''
 part of the.new.name;
 ''');
   }

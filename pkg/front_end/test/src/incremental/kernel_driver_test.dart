@@ -44,15 +44,11 @@ class KernelDriverTest {
     String bPath = '/test/lib/b.dart';
     String cPath = '/test/lib/c.dart';
     Uri aUri = writeFile(aPath, 'var a = 1;');
-    Uri bUri = writeFile(
-        bPath,
-        r'''
+    Uri bUri = writeFile(bPath, r'''
 import 'a.dart';
 var b = a;
 ''');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'a.dart';
 import 'b.dart';
 var c1 = a;
@@ -65,9 +61,7 @@ void main() {}
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(result, cUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -81,9 +75,7 @@ static method main() → void {}
     }
 
     // Update b.dart and recompile c.dart
-    writeFile(
-        bPath,
-        r'''
+    writeFile(bPath, r'''
 import 'a.dart';
 var b = 1.2;
 ''');
@@ -93,9 +85,7 @@ var b = 1.2;
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(result, cUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -116,18 +106,14 @@ static method main() → void {}
     String cPath = '/test/lib/c.dart';
     writeFile(aPath, 'class A {}');
     writeFile(bPath, 'export "a.dart";');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'b.dart';
 A a;
 ''');
 
     KernelResult result = await driver.getKernel(cUri);
     Library library = _getLibrary(result, cUri);
-    expect(
-        _getLibraryText(library),
-        r'''
+    expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "./a.dart" as a;
@@ -143,9 +129,7 @@ static field a::A a;
     String cPath = '/test/lib/c.dart';
     writeFile(aPath, 'export "b.dart"; class A {}');
     writeFile(bPath, 'export "a.dart"; class B {}');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'b.dart';
 A a;
 B b;
@@ -154,9 +138,7 @@ B b;
     {
       KernelResult result = await driver.getKernel(cUri);
       Library library = _getLibrary(result, cUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "./a.dart" as a;
@@ -170,9 +152,7 @@ static field b::B b;
     // Update c.dart and compile.
     // We should load the cycle [a.dart, b.dart] from the byte store.
     // This tests that we compute export scopes after loading.
-    writeFile(
-        cPath,
-        r'''
+    writeFile(cPath, r'''
 import 'b.dart';
 A a;
 B b;
@@ -182,9 +162,7 @@ int c;
     {
       KernelResult result = await driver.getKernel(cUri);
       Library library = _getLibrary(result, cUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "./a.dart" as a;
@@ -205,9 +183,7 @@ static field core::int c;
     String cPath = '/test/lib/c.dart';
     writeFile(aPath, 'class A {} class B {}');
     writeFile(bPath, 'export "a.dart"; class B {}');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'b.dart';
 A a;
 B b;
@@ -215,9 +191,7 @@ B b;
 
     KernelResult result = await driver.getKernel(cUri);
     Library library = _getLibrary(result, cUri);
-    expect(
-        _getLibraryText(library),
-        r'''
+    expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "./a.dart" as a;
@@ -234,23 +208,17 @@ static field b::B b;
     String bPath = '/test/lib/b.dart';
     String cPath = '/test/lib/c.dart';
 
-    Uri aUri = writeFile(
-        aPath,
-        r'''
+    Uri aUri = writeFile(aPath, r'''
 import 'b.dart';
 main() {
   new B().foo();
 }
 ''');
-    Uri bUri = writeFile(
-        bPath,
-        r'''
+    Uri bUri = writeFile(bPath, r'''
 import 'c.dart';
 class B extends Object with C {}
 ''');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 class C {
   void foo() {
     print(0);
@@ -267,9 +235,7 @@ class C {
     // Update c.dart and compute the delta.
     // Includes: c.dart, b.dart and a.dart files.
     // Compiled: c.dart (changed) and b.dart (has mixin), but not a.dart file.
-    writeFile(
-        cPath,
-        r'''
+    writeFile(cPath, r'''
 class C {
   void foo() {
     print(1);
@@ -291,18 +257,14 @@ class C {
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
     writeFile(aPath, 'typedef int F<T>(T x);');
-    Uri bUri = writeFile(
-        bPath,
-        r'''
+    Uri bUri = writeFile(bPath, r'''
 import 'a.dart';
 F<String> f;
 ''');
 
     KernelResult result = await driver.getKernel(bUri);
     Library library = _getLibrary(result, bUri);
-    expect(
-        _getLibraryText(library),
-        r'''
+    expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -315,9 +277,7 @@ static field (core::String) → core::int f;
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
-    writeFile(
-        aPath,
-        r'''
+    writeFile(aPath, r'''
 int topField = 0;
 int get topGetter => 0;
 int topFunction({p}) => 0;
@@ -345,9 +305,7 @@ class A implements I {
   A.named();
 }
 ''');
-    Uri bUri = writeFile(
-        bPath,
-        r'''
+    Uri bUri = writeFile(bPath, r'''
 import 'a.dart';
 
 class B extends A {
@@ -441,9 +399,7 @@ main() {
     _createDriver(packages: {'test': _folderUri('/test/lib')});
 
     writeFile('/test/.packages', 'test:lib/');
-    Uri aFileUri = writeFile(
-        '/test/bin/a.dart',
-        r'''
+    Uri aFileUri = writeFile('/test/bin/a.dart', r'''
 import 'package:test/b.dart';
 var a = b;
 ''');
@@ -454,9 +410,7 @@ var a = b;
     {
       KernelResult result = await driver.getKernel(aFileUri);
       Library library = _getLibrary(result, aFileUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -474,9 +428,7 @@ static field core::int a = b::b;
       KernelResult result = await driver.getKernel(aFileUri);
       _assertLibraryUris(result, includes: [aFileUri, bPackageUri]);
       Library library = _getLibrary(result, aFileUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -491,18 +443,14 @@ static field core::double a = b::b;
     writeFile('/test/.packages', 'test:lib/');
     String libPath = '/test/lib/test.dart';
     String partPath = '/test/lib/bar.dart';
-    Uri libUri = writeFile(
-        libPath,
-        r'''
+    Uri libUri = writeFile(libPath, r'''
 library foo;
 part 'bar.dart';
 var a = 1;
 var c = b;
 void main() {}
 ''');
-    Uri partUri = writeFile(
-        partPath,
-        r'''
+    Uri partUri = writeFile(partPath, r'''
 part of foo;
 var b = 2;
 var d = a;
@@ -511,9 +459,7 @@ var d = a;
     // Check the initial state - types flow between the part and the library.
     KernelResult result = await driver.getKernel(libUri);
     Library library = _getLibrary(result, libUri);
-    expect(
-        _getLibraryText(library),
-        r'''
+    expect(_getLibraryText(library), r'''
 library foo;
 import self as self;
 import "dart:core" as core;
@@ -527,9 +473,7 @@ static method main() → void {}
 
     // Update [b] in the part, the type is changed in the part and library.
     {
-      writeFile(
-          partPath,
-          r'''
+      writeFile(partPath, r'''
 part of foo;
 var b = 2.3;
 var d = a;
@@ -537,9 +481,7 @@ var d = a;
       driver.invalidate(partUri);
       KernelResult result = await driver.getKernel(libUri);
       Library library = _getLibrary(result, libUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library foo;
 import self as self;
 import "dart:core" as core;
@@ -554,9 +496,7 @@ static method main() → void {}
 
     // Update [a] in the library, the type is changed in the part and library.
     {
-      writeFile(
-          libPath,
-          r'''
+      writeFile(libPath, r'''
 library foo;
 part 'bar.dart';
 var a = 'aaa';
@@ -566,9 +506,7 @@ void main() {}
       driver.invalidate(libUri);
       KernelResult result = await driver.getKernel(libUri);
       Library library = _getLibrary(result, libUri);
-      expect(
-          _getLibraryText(library),
-          r'''
+      expect(_getLibraryText(library), r'''
 library foo;
 import self as self;
 import "dart:core" as core;
@@ -589,9 +527,7 @@ static method main() → void {}
     String cPath = '/test/lib/c.dart';
     Uri aUri = writeFile(aPath, '');
     Uri bUri = writeFile(bPath, '');
-    Uri cUri = writeFile(
-        cPath,
-        r'''
+    Uri cUri = writeFile(cPath, r'''
 import 'a.dart';
 ''');
 
@@ -610,9 +546,7 @@ import 'a.dart';
     }
 
     // Update c.dart to reference also b.dart file.
-    writeFile(
-        cPath,
-        r'''
+    writeFile(cPath, r'''
 import 'a.dart';
 import 'b.dart';
 ''');

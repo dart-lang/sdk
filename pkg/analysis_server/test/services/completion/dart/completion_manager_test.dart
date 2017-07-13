@@ -30,9 +30,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   test_resolveDirectives() async {
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
 library libA;
 /// My class.
 /// Short description.
@@ -40,9 +38,7 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    addSource(
-        '/libB.dart',
-        '''
+    addSource('/libB.dart', '''
 library libB;
 import "/libA.dart" as foo;
 part '$testFile';

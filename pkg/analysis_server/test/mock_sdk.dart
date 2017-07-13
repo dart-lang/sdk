@@ -14,10 +14,8 @@ import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 
 class MockSdk implements DartSdk {
-  static const MockSdkLibrary LIB_CORE = const MockSdkLibrary(
-      'dart:core',
-      '/lib/core/core.dart',
-      '''
+  static const MockSdkLibrary LIB_CORE =
+      const MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
 library dart.core;
 
 import 'dart:async';
@@ -167,10 +165,8 @@ class Uri {
 }
 ''');
 
-  static const MockSdkLibrary LIB_ASYNC = const MockSdkLibrary(
-      'dart:async',
-      '/lib/async/async.dart',
-      '''
+  static const MockSdkLibrary LIB_ASYNC =
+      const MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
 library dart.async;
 
 import 'dart:math';
@@ -189,19 +185,15 @@ abstract class StreamTransformer<S, T> {}
 ''');
 
   static const MockSdkLibrary LIB_COLLECTION = const MockSdkLibrary(
-      'dart:collection',
-      '/lib/collection/collection.dart',
-      '''
+      'dart:collection', '/lib/collection/collection.dart', '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
 abstract class LinkedHashMap<K, V> implements Map<K, V> {}
 ''');
 
-  static const MockSdkLibrary LIB_CONVERT = const MockSdkLibrary(
-      'dart:convert',
-      '/lib/convert/convert.dart',
-      '''
+  static const MockSdkLibrary LIB_CONVERT =
+      const MockSdkLibrary('dart:convert', '/lib/convert/convert.dart', '''
 library dart.convert;
 
 import 'dart:async';
@@ -210,10 +202,8 @@ abstract class Converter<S, T> implements StreamTransformer {}
 class JsonDecoder extends Converter<String, Object> {}
 ''');
 
-  static const MockSdkLibrary LIB_MATH = const MockSdkLibrary(
-      'dart:math',
-      '/lib/math/math.dart',
-      '''
+  static const MockSdkLibrary LIB_MATH =
+      const MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
@@ -232,17 +222,13 @@ class Random {
 ''');
 
   static const MockSdkLibrary LIB_HTML = const MockSdkLibrary(
-      'dart:html',
-      '/lib/html/dartium/html_dartium.dart',
-      '''
+      'dart:html', '/lib/html/dartium/html_dartium.dart', '''
 library dart.html;
 class HtmlElement {}
 ''');
 
-  static const MockSdkLibrary LIB_INTERNAL = const MockSdkLibrary(
-      'dart:_internal',
-      '/lib/internal/internal.dart',
-      '''
+  static const MockSdkLibrary LIB_INTERNAL =
+      const MockSdkLibrary('dart:_internal', '/lib/internal/internal.dart', '''
 library dart._internal;
 external void printToConsole(String line);
 ''');

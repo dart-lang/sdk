@@ -25,9 +25,7 @@ import 'dart:async';
 import 'dart:math';
 ''');
     Source newLibrary = _getDartSource('dart:collection');
-    _assertAddLibraryImport(
-        <Source>[newLibrary],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -40,9 +38,7 @@ import 'dart:collection';
 import 'dart:math';
 ''');
     Source newLibrary = _getDartSource('dart:async');
-    _assertAddLibraryImport(
-        <Source>[newLibrary],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -55,9 +51,7 @@ import 'dart:async';
 import 'dart:collection';
 ''');
     Source newLibrary = _getDartSource('dart:math');
-    _assertAddLibraryImport(
-        <Source>[newLibrary],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
@@ -71,9 +65,7 @@ import 'dart:math';
 ''');
     Source newLibrary1 = _getDartSource('dart:async');
     Source newLibrary2 = _getDartSource('dart:html');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -88,9 +80,7 @@ import 'dart:math';
 ''');
     Source newLibrary1 = _getDartSource('dart:async');
     Source newLibrary2 = _getDartSource('dart:collection');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -105,9 +95,7 @@ import 'dart:collection';
 ''');
     Source newLibrary1 = _getDartSource('dart:html');
     Source newLibrary2 = _getDartSource('dart:math');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -123,9 +111,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 library test;
 
 import 'dart:async';
@@ -143,9 +129,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 /// Comment.
 
 import 'dart:async';
@@ -163,9 +147,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 #!/bin/dart
 
 import 'dart:async';
@@ -181,9 +163,7 @@ class A {}
 ''');
     Source newLibrary1 = _getDartSource('dart:math');
     Source newLibrary2 = _getDartSource('dart:async');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'dart:async';
 import 'dart:math';
 
@@ -199,9 +179,7 @@ import 'dart:async';
 import 'package:aaa/aaa.dart';
 ''');
     Source newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
-    _assertAddLibraryImport(
-        <Source>[newLibrary],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -217,9 +195,7 @@ import 'dart:async';
 import 'package:bbb/bbb.dart';
 ''');
     Source newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
-    _assertAddLibraryImport(
-        <Source>[newLibrary],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary], '''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
@@ -236,9 +212,7 @@ import 'package:ddd/ddd.dart';
 ''');
     Source newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
     Source newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
-    _assertAddLibraryImport(
-        <Source>[newLibrary1, newLibrary2],
-        '''
+    _assertAddLibraryImport(<Source>[newLibrary1, newLibrary2], '''
 import 'package:aaa/aaa.dart';
 import 'package:bbb/bbb.dart';
 import 'package:ccc/ccc.dart';

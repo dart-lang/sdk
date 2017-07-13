@@ -44,8 +44,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test =>');
-    },
-        '''
+    }, '''
 int test() => 42;
 main() {
   var a = 1 + test();
@@ -94,8 +93,7 @@ main(A a, B b, C c, D d) {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test => 2');
-    },
-        '''
+    }, '''
 class A {
   int test() => 1;
 }
@@ -141,8 +139,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test() =>');
-    },
-        '''
+    }, '''
 int get test => 42;
 main() {
   var a = 1 + test;
@@ -208,8 +205,7 @@ main(A a, B b, C c, D d) {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test() => 2');
-    },
-        '''
+    }, '''
 class A {
   int get test => 1;
 }
@@ -277,9 +273,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     String otherFile = '$testFolder/other.dart';
-    addFile(
-        otherFile,
-        r'''
+    addFile(otherFile, r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -326,8 +320,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendStringRequest('1 + 2', 'res', true);
-    },
-        '''
+    }, '''
 main() {
   var res = 1 + 2;
   print(res);
@@ -345,8 +338,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendStringSuffixRequest('1 + 2', '); // marker', 'res', false);
-    },
-        '''
+    }, '''
 main() {
   print(1 + 2);
   var res = 1 + 2;
@@ -384,9 +376,7 @@ main() {
     assertResultProblemsWarning(result.optionsProblems,
         'Variable name should start with a lowercase letter.');
     // ...but there is still a change
-    assertTestRefactoringResult(
-        result,
-        '''
+    assertTestRefactoringResult(result, '''
 main() {
   var Name = 1 + 2;
   print(Name);
@@ -517,9 +507,7 @@ main() {
 }
 ''');
     _setOffsetLengthForString('1 + 2');
-    return assertSuccessfulRefactoring(
-        _computeChange,
-        '''
+    return assertSuccessfulRefactoring(_computeChange, '''
 main() {
   print(res());
   print(res());
@@ -539,9 +527,7 @@ main() {
 }
 ''');
     _setOffsetLengthForString('a + b');
-    return assertSuccessfulRefactoring(
-        _computeChange,
-        '''
+    return assertSuccessfulRefactoring(_computeChange, '''
 main() {
   int a = 1;
   int b = 2;
@@ -571,9 +557,7 @@ main() {
       parameters[1].type = 'num';
       parameters.insert(0, parameters.removeLast());
       options.parameters = parameters;
-      return assertSuccessfulRefactoring(
-          _sendExtractRequest,
-          '''
+      return assertSuccessfulRefactoring(_sendExtractRequest, '''
 main() {
   int a = 1;
   int b = 2;
@@ -652,9 +636,7 @@ main() {
 }
 ''');
     _setOffsetLengthForStartEnd();
-    return assertSuccessfulRefactoring(
-        _computeChange,
-        '''
+    return assertSuccessfulRefactoring(_computeChange, '''
 main() {
   int a = 1;
   int b = 2;
@@ -780,13 +762,9 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   }
 
   Future test_convertMethodToGetter_hasElement() {
-    return assertHasKind(
-        '''
+    return assertHasKind('''
 int getValue() => 42;
-''',
-        'getValue',
-        RefactoringKind.CONVERT_METHOD_TO_GETTER,
-        true);
+''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_extractLocal() async {
@@ -802,130 +780,108 @@ main() {
   }
 
   Future test_rename_hasElement_class() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class Test {}
 main() {
   Test v;
 }
-''',
-        'Test v');
+''', 'Test v');
   }
 
   Future test_rename_hasElement_constructor() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   A.test() {}
 }
 main() {
   new A.test();
 }
-''',
-        'test();');
+''', 'test();');
   }
 
   Future test_rename_hasElement_function() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 main() {
   test();
 }
 test() {}
-''',
-        'test();');
+''', 'test();');
   }
 
   Future test_rename_hasElement_importElement_directive() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 import 'dart:math' as math;
 main() {
   math.PI;
 }
-''',
-        'import ');
+''', 'import ');
   }
 
   Future test_rename_hasElement_importElement_prefixDecl() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 import 'dart:math' as math;
 main() {
   math.PI;
 }
-''',
-        'math;');
+''', 'math;');
   }
 
   Future test_rename_hasElement_importElement_prefixRef() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 import 'dart:async' as test;
 import 'dart:math' as test;
 main() {
   test.PI;
 }
-''',
-        'test.PI;');
+''', 'test.PI;');
   }
 
   Future test_rename_hasElement_instanceGetter() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   get test => 0;
 }
 main(A a) {
   a.test;
 }
-''',
-        'test;');
+''', 'test;');
   }
 
   Future test_rename_hasElement_instanceSetter() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   set test(x) {}
 }
 main(A a) {
   a.test = 2;
 }
-''',
-        'test = 2;');
+''', 'test = 2;');
   }
 
   Future test_rename_hasElement_library() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 library my.lib;
-''',
-        'library ');
+''', 'library ');
   }
 
   Future test_rename_hasElement_localVariable() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 main() {
   int test = 0;
   print(test);
 }
-''',
-        'test = 0;');
+''', 'test = 0;');
   }
 
   Future test_rename_hasElement_method() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   test() {}
 }
 main(A a) {
   a.test();
 }
-''',
-        'test();');
+''', 'test();');
   }
 
   Future test_rename_noElement() async {
@@ -945,9 +901,7 @@ class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     String otherFile = '$testFolder/other.dart';
-    addFile(
-        otherFile,
-        r'''
+    addFile(otherFile, r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1006,8 +960,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test + 2');
-    },
-        '''
+    }, '''
 main() {
   int a = 42 + 2;
   print(42);
@@ -1114,8 +1067,7 @@ main(A a) {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(int p)');
-    },
-        '''
+    }, '''
 class A {
   int f;
   main() {
@@ -1140,8 +1092,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(a');
-    },
-        '''
+    }, '''
 main() {
   print(1 + 2);
   print(10 + 20);
@@ -1163,8 +1114,7 @@ main() {
     options.inlineAll = false;
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(10,');
-    },
-        '''
+    }, '''
 test(a, b) {
   print(a + b);
 }
@@ -1203,8 +1153,7 @@ import 'lib.dart';
     _setOptions('/project/test.dart');
     return assertSuccessfulRefactoring(() {
       return _sendMoveRequest();
-    },
-        '''
+    }, '''
 import 'dart:math';
 import 'bin/lib.dart';
 ''');
@@ -1276,8 +1225,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('Test {', 'NewName');
-    },
-        '''
+    }, '''
 class NewName {
   NewName() {}
   NewName.named() {}
@@ -1338,9 +1286,7 @@ main() {
       assertResultProblemsWarning(result.optionsProblems,
           'Class name should start with an uppercase letter.');
       // ...but there is still a change
-      assertTestRefactoringResult(
-          result,
-          '''
+      assertTestRefactoringResult(result, '''
 class newName {}
 main() {
   newName v;
@@ -1353,9 +1299,7 @@ main() {
       }).then((result) {
         assertResultProblemsOK(result);
         // ...and there is a new change
-        assertTestRefactoringResult(
-            result,
-            '''
+        assertTestRefactoringResult(result, '''
 class NewName {}
 main() {
   NewName v;
@@ -1377,8 +1321,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 0', 'newName');
-    },
-        '''
+    }, '''
 class A {
   var newName = 0;
   A(this.newName);
@@ -1401,8 +1344,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test);', 'newName');
-    },
-        '''
+    }, '''
 class A {
   var newName = 0;
   A(this.newName);
@@ -1425,8 +1367,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test: 42', 'newName');
-    },
-        '''
+    }, '''
 class A {
   final int newName;
   A({this.newName: 0});
@@ -1448,8 +1389,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test =>', 'newName');
-    },
-        '''
+    }, '''
 class A {
   get newName => 0;
   main() {
@@ -1473,8 +1413,7 @@ main(A a) {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test() {}', 'newName');
-    },
-        '''
+    }, '''
 class A {
   newName() {}
   main() {
@@ -1525,8 +1464,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 0', 'newName');
-    },
-        '''
+    }, '''
 class A {
   set newName(x) {}
   main() {
@@ -1547,8 +1485,7 @@ class B {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('B;', 'newName');
-    },
-        '''
+    }, '''
 class A {
   A() = B.newName;
 }
@@ -1569,8 +1506,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test();', 'newName');
-    },
-        '''
+    }, '''
 class A {
   A.newName() {}
 }
@@ -1591,8 +1527,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('A();', 'newName');
-    },
-        '''
+    }, '''
 class A {
   A.newName() {}
 }
@@ -1613,8 +1548,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('new A();', 'newName');
-    },
-        '''
+    }, '''
 class A {
   A.newName() {}
 }
@@ -1651,8 +1585,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test() {}', 'newName');
-    },
-        '''
+    }, '''
 newName() {}
 main() {
   newName();
@@ -1672,8 +1605,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest("import 'dart:async';", 'new_name');
-    },
-        '''
+    }, '''
 import 'dart:math';
 import 'dart:async' as new_name;
 main() {
@@ -1694,8 +1626,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest("import 'dart:async' as test;", '');
-    },
-        '''
+    }, '''
 import 'dart:math' as test;
 import 'dart:async';
 main() {
@@ -1723,8 +1654,7 @@ library aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('library aaa', 'my.new_name');
-    },
-        '''
+    }, '''
 library my.new_name;
 ''');
   }
@@ -1735,8 +1665,7 @@ library aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('aaa', 'my.new_name');
-    },
-        '''
+    }, '''
 library my.new_name;
 ''');
   }
@@ -1747,16 +1676,13 @@ library aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('.bbb', 'my.new_name');
-    },
-        '''
+    }, '''
 library my.new_name;
 ''');
   }
 
   test_library_partOfDirective() {
-    addFile(
-        '$testFolder/my_lib.dart',
-        '''
+    addFile('$testFolder/my_lib.dart', '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');
@@ -1765,8 +1691,7 @@ part of aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('aaa.bb', 'my.new_name');
-    },
-        '''
+    }, '''
 part of my.new_name;
 ''');
   }
@@ -1782,8 +1707,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 1', 'newName');
-    },
-        '''
+    }, '''
 main() {
   int newName = 0;
   newName = 1;
