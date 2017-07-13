@@ -1288,6 +1288,12 @@ class KernelElementEnvironment implements ElementEnvironment {
     MemberData memberData = elementMap._memberData[member.memberIndex];
     return memberData.getMetadata(elementMap);
   }
+
+  @override
+  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
+    // TODO(redemption): Support this.
+    throw new UnsupportedError('ElementEnvironment.getTypedefAlias');
+  }
 }
 
 /// Visitor that converts kernel dart types into [DartType].
@@ -1602,7 +1608,7 @@ class KernelClosedWorld extends ClosedWorldBase
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
+      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,

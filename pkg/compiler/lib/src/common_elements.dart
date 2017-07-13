@@ -1323,7 +1323,8 @@ abstract class ElementEnvironment {
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
 
-  /// Returns the unaliased type of [type].
+  /// Returns the 'unaliased' type of [type]. For typedefs this is the function
+  /// type it is an alias of, for other types it is the type itself.
   ///
   /// Use this during resolution to ensure that the alias has been computed.
   // TODO(johnniwinther): Remove this when the resolver is removed.
@@ -1335,4 +1336,7 @@ abstract class ElementEnvironment {
 
   /// Returns the metadata constants declared on [member].
   Iterable<ConstantValue> getMemberMetadata(MemberEntity member);
+
+  /// Returns the function type that is an alias of a [typedef].
+  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);
 }

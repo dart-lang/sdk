@@ -100,7 +100,7 @@ abstract class MirrorsData {
   /// checked by the runtime system to throw an exception if an element is
   /// accessed (invoked, get, set) that is not accessible for the reflective
   /// system.
-  bool isTypedefAccessibleByReflection(TypedefElement element);
+  bool isTypedefAccessibleByReflection(covariant TypedefEntity element);
 
   /// Returns `true` if the class [element] needs reflection information at
   /// runtime.
@@ -126,7 +126,7 @@ abstract class MirrorsData {
 
   bool retainMetadataOfLibrary(covariant LibraryEntity element,
       {bool addForEmission: true});
-  bool retainMetadataOfTypedef(TypedefElement element);
+  bool retainMetadataOfTypedef(covariant TypedefEntity element);
   bool retainMetadataOfClass(covariant ClassEntity element);
   bool retainMetadataOfMember(covariant MemberEntity element);
   bool retainMetadataOfParameter(ParameterElement element);
@@ -193,8 +193,8 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   final Set<ClassEntity> classesInMirrorsUsedTargets = new Set<ClassEntity>();
   final Set<LibraryEntity> librariesInMirrorsUsedTargets =
       new Set<LibraryEntity>();
-  final Set<TypedefElement> _typedefsInMirrorsUsedTargets =
-      new Set<TypedefElement>();
+  final Set<TypedefEntity> _typedefsInMirrorsUsedTargets =
+      new Set<TypedefEntity>();
 
   /// List of annotations provided by user that indicate that the annotated
   /// element must be retained.
@@ -345,7 +345,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
         } else if (target.isClass) {
           classesInMirrorsUsedTargets.add(target as ClassEntity);
         } else if (target.isTypedef) {
-          _typedefsInMirrorsUsedTargets.add(target);
+          _typedefsInMirrorsUsedTargets.add(target as TypedefEntity);
         } else if (target.isLibrary) {
           librariesInMirrorsUsedTargets.add(target as LibraryEntity);
         } else if (target != null) {
@@ -657,8 +657,11 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
       _classesNeededForReflection.add(cls);
     }
     // Add typedefs.
-    _typedefsNeededForReflection.addAll(
-        closedWorld.allTypedefs.where(isTypedefReferencedFromMirrorSystem));
+    for (TypedefElement element in closedWorld.allTypedefs) {
+      if (isTypedefReferencedFromMirrorSystem(element)) {
+        _typedefsNeededForReflection.add(element);
+      }
+    }
     // Register all symbols of reflectable elements
     for (ClassElement element in _classesNeededForReflection) {
       symbolsUsed.add(element.name);

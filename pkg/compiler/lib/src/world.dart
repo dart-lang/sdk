@@ -14,8 +14,7 @@ import 'elements/elements.dart'
         Element,
         MemberElement,
         MethodElement,
-        MixinApplicationElement,
-        TypedefElement;
+        MixinApplicationElement;
 import 'elements/resolution_types.dart';
 import 'elements/types.dart';
 import 'js_backend/backend_usage.dart' show BackendUsage;
@@ -292,7 +291,7 @@ abstract class ClosedWorld implements World {
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask);
 
   /// Returns all resolved typedefs.
-  Iterable<TypedefElement> get allTypedefs;
+  Iterable<TypedefEntity> get allTypedefs;
 
   /// Returns the mask for the potential receivers of a dynamic call to
   /// [selector] on [mask].
@@ -389,7 +388,7 @@ abstract class OpenWorld implements World {
   void registerClass(covariant ClassEntity cls);
 
   void registerUsedElement(MemberEntity element);
-  void registerTypedef(TypedefElement typedef);
+  void registerTypedef(TypedefEntity typedef);
 
   ClosedWorld closeWorld();
 
@@ -418,7 +417,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   FunctionSet _allFunctions;
 
-  final Set<TypedefElement> _allTypedefs;
+  final Set<TypedefEntity> _allTypedefs;
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
@@ -474,7 +473,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.liveNativeClasses,
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
+      Set<TypedefEntity> allTypedefs,
       this.mixinUses,
       this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -1017,7 +1016,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return _classSets[cls];
   }
 
-  Iterable<TypedefElement> get allTypedefs => _allTypedefs;
+  Iterable<TypedefEntity> get allTypedefs => _allTypedefs;
 
   void _ensureFunctionSet() {
     if (_allFunctions == null) {
@@ -1207,7 +1206,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
+      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,

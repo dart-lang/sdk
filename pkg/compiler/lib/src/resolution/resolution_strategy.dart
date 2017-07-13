@@ -678,6 +678,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     });
     return values;
   }
+
+  @override
+  ResolutionFunctionType getFunctionTypeOfTypedef(
+      covariant TypedefElement typedef) {
+    return typedef.alias;
+  }
 }
 
 /// AST-based logic for processing annotations. These annotations are processed

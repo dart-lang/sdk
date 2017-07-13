@@ -50,7 +50,7 @@ class Collector {
 
   final List<ClassElement> nativeClassesAndSubclasses = <ClassElement>[];
 
-  List<TypedefElement> typedefsNeededForReflection;
+  List<TypedefEntity> typedefsNeededForReflection;
 
   Collector(
       this._options,
@@ -197,8 +197,7 @@ class Collector {
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(_closedWorld
-        .allTypedefs
+    typedefsNeededForReflection = _sorter.sortTypedefs(_closedWorld.allTypedefs
         .where(_mirrorsData.isTypedefAccessibleByReflection)
         .toList());
 

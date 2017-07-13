@@ -10,7 +10,6 @@ import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/constant_system.dart';
-import '../elements/elements.dart' show TypedefElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
@@ -297,7 +296,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
         mixinUses: mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         // TODO(johnniwinther): Support this:
-        allTypedefs: new ImmutableEmptySet<TypedefElement>());
+        allTypedefs: new ImmutableEmptySet<TypedefEntity>());
   }
 
   @override
@@ -360,7 +359,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
+      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
