@@ -831,3 +831,12 @@ SuperclassHasNoSetter:
 
 SuperclassHasNoMethod:
   template: "Superclass has no method named '#name'."
+
+SuperclassHasNoDefaultConstructor:
+  template: "The superclass, '#name', has no unnamed constructor that takes no arguments."
+
+ConstConstructorNonFinalField:
+  template: "Constructor is marked 'const' so all fields must be final."
+
+ConstConstructorNonFinalFieldCause:
+  template: "Field isn't final, but constructor is 'const'."

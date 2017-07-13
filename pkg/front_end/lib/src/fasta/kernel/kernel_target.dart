@@ -53,7 +53,12 @@ import '../deprecated_problems.dart'
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../messages.dart' show LocatedMessage;
+import '../messages.dart'
+    show
+        LocatedMessage,
+        messageConstConstructorNonFinalField,
+        messageConstConstructorNonFinalFieldCause,
+        templateSuperclassHasNoDefaultConstructor;
 
 import '../problems.dart' show unhandled;
 
@@ -115,15 +120,6 @@ class KernelTarget extends TargetImplementation {
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
-  }
-
-  void deprecated_addError(file, int charOffset, String message) {
-    Uri uri = file is String ? Uri.parse(file) : file;
-    deprecated_InputError error =
-        new deprecated_InputError(uri, charOffset, message);
-    String formatterMessage = error.deprecated_format();
-    print(formatterMessage);
-    errors.add(formatterMessage);
   }
 
   SourceLoader<Library> createLoader() =>
@@ -556,11 +552,10 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            deprecated_addError(
-                constructor.enclosingClass.fileUri,
-                constructor.fileOffset,
-                "${cls.superclass.name} has no constructor that takes no"
-                " arguments.");
+            builder.addCompileTimeError(
+                templateSuperclassHasNoDefaultConstructor
+                    .withArguments(cls.superclass.name),
+                constructor.fileOffset);
             initializer = new InvalidInitializer();
           } else {
             initializer =
@@ -584,15 +579,11 @@ class KernelTarget extends TargetImplementation {
         }
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          deprecated_addError(
-              constructor.enclosingClass.fileUri,
-              constructor.fileOffset,
-              "Constructor is marked 'const' so all fields must be final.");
+          builder.addCompileTimeError(
+              messageConstConstructorNonFinalField, constructor.fileOffset);
           for (Field field in nonFinalFields) {
-            deprecated_addError(
-                constructor.enclosingClass.fileUri,
-                field.fileOffset,
-                "Field isn't final, but constructor is 'const'.");
+            builder.addCompileTimeError(
+                messageConstConstructorNonFinalFieldCause, field.fileOffset);
           }
           nonFinalFields.clear();
         }

@@ -282,6 +282,24 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorNonFinalField =
+    messageConstConstructorNonFinalField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorNonFinalField = const MessageCode(
+    "ConstConstructorNonFinalField",
+    message: r"""Constructor is marked 'const' so all fields must be final.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorNonFinalFieldCause =
+    messageConstConstructorNonFinalFieldCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
+    "ConstConstructorNonFinalFieldCause",
+    message: r"""Field isn't final, but constructor is 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorWithBody = messageConstConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2294,6 +2312,32 @@ const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
     dart2jsCode: "*ignored*",
     message: r"""'super' can't be null.""",
     tip: r"""Try replacing '?.' with '.'""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSuperclassHasNoDefaultConstructor = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""The superclass, '#name', has no unnamed constructor that takes no arguments.""",
+    withArguments: _withArgumentsSuperclassHasNoDefaultConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeSuperclassHasNoDefaultConstructor =
+    const Code<Message Function(String name)>(
+  "SuperclassHasNoDefaultConstructor",
+  templateSuperclassHasNoDefaultConstructor,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoDefaultConstructor(String name) {
+  return new Message(codeSuperclassHasNoDefaultConstructor,
+      message:
+          """The superclass, '$name', has no unnamed constructor that takes no arguments.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSuperclassHasNoGetter =
