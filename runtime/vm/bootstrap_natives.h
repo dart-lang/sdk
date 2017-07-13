@@ -216,14 +216,6 @@ namespace dart {
   V(TypedData_SetInt32x4, 3)                                                   \
   V(TypedData_GetFloat64x2, 2)                                                 \
   V(TypedData_SetFloat64x2, 3)                                                 \
-  V(ByteData_ToEndianInt16, 2)                                                 \
-  V(ByteData_ToEndianUint16, 2)                                                \
-  V(ByteData_ToEndianInt32, 2)                                                 \
-  V(ByteData_ToEndianUint32, 2)                                                \
-  V(ByteData_ToEndianInt64, 2)                                                 \
-  V(ByteData_ToEndianUint64, 2)                                                \
-  V(ByteData_ToEndianFloat32, 2)                                               \
-  V(ByteData_ToEndianFloat64, 2)                                               \
   V(Float32x4_fromDoubles, 5)                                                  \
   V(Float32x4_splat, 2)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
