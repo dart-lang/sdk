@@ -82,7 +82,8 @@ class InferrerEngine {
 
   InferrerEngine(this.compiler, ClosedWorld closedWorld,
       this.closedWorldRefiner, this.mainElement)
-      : this.types = new TypeSystem<ast.Node>(closedWorld),
+      : this.types = new TypeSystem<ast.Node>(
+            closedWorld, const TypeSystemStrategyImpl()),
         this.closedWorld = closedWorld;
 
   CommonElements get commonElements => closedWorld.commonElements;
@@ -1122,4 +1123,105 @@ class InferrerEngine {
    * Records that the variable [local] is being updated.
    */
   void recordLocalUpdate(Local local, TypeInformation type) {}
+}
+
+class TypeSystemStrategyImpl implements TypeSystemStrategy<ast.Node> {
+  const TypeSystemStrategyImpl();
+
+  @override
+  MemberTypeInformation createMemberTypeInformation(
+      covariant MemberElement member) {
+    assert(member.isDeclaration, failedAt(member));
+    if (member.isField) {
+      FieldElement field = member;
+      return new FieldTypeInformation(field, field.type);
+    } else if (member.isGetter) {
+      GetterElement getter = member;
+      return new GetterTypeInformation(getter, getter.type);
+    } else if (member.isSetter) {
+      SetterElement setter = member;
+      return new SetterTypeInformation(setter);
+    } else if (member.isFunction) {
+      MethodElement method = member;
+      return new MethodTypeInformation(method, method.type);
+    } else {
+      ConstructorElement constructor = member;
+      if (constructor.isFactoryConstructor) {
+        return new FactoryConstructorTypeInformation(
+            constructor, constructor.type);
+      } else {
+        return new GenerativeConstructorTypeInformation(constructor);
+      }
+    }
+  }
+
+  @override
+  ParameterTypeInformation createParameterTypeInformation(
+      covariant ParameterElement parameter, TypeSystem<ast.Node> types) {
+    assert(parameter.isImplementation, failedAt(parameter));
+    FunctionTypedElement function = parameter.functionDeclaration.declaration;
+    if (function.isLocal) {
+      LocalFunctionElement localFunction = function;
+      MethodElement callMethod = localFunction.callMethod;
+      return new ParameterTypeInformation.localFunction(
+          types.getInferredTypeOfMember(callMethod),
+          parameter,
+          parameter.type,
+          callMethod);
+    } else if (function.isInstanceMember) {
+      MethodElement method = function;
+      return new ParameterTypeInformation.instanceMember(
+          types.getInferredTypeOfMember(method),
+          parameter,
+          parameter.type,
+          method,
+          new ParameterAssignments());
+    } else {
+      MethodElement method = function;
+      return new ParameterTypeInformation.static(
+          types.getInferredTypeOfMember(method),
+          parameter,
+          parameter.type,
+          method,
+          // TODO(johnniwinther): Is this still valid now that initializing
+          // formals also introduce locals?
+          isInitializingFormal: parameter.isInitializingFormal);
+    }
+  }
+
+  @override
+  void forEachParameter(
+      covariant MethodElement function, void f(Local parameter)) {
+    MethodElement impl = function.implementation;
+    FunctionSignature signature = impl.functionSignature;
+    signature.forEachParameter((FormalElement _parameter) {
+      ParameterElement parameter = _parameter;
+      f(parameter);
+    });
+  }
+
+  @override
+  bool checkMapNode(ast.Node node) {
+    return node is ast.LiteralMap;
+  }
+
+  @override
+  bool checkListNode(ast.Node node) {
+    return node is ast.LiteralList || node is ast.Send;
+  }
+
+  @override
+  bool checkLoopPhiNode(ast.Node node) {
+    return node is ast.Loop || node is ast.SwitchStatement;
+  }
+
+  @override
+  bool checkPhiNode(ast.Node node) {
+    return true;
+  }
+
+  @override
+  bool checkClassEntity(covariant ClassElement cls) {
+    return cls.isDeclaration;
+  }
 }
