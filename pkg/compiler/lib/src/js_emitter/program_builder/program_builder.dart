@@ -1085,7 +1085,6 @@ class ProgramBuilder {
           }
         }
       }
-
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
           needsCheckedSetter));
     }

@@ -406,7 +406,7 @@ void checkLists(
     sb.write("\n Extra: \n  ${extra.map(elementToString).join('\n  ')}");
   }
   String message = sb.toString();
-  if (mismatch.isNotEmpty) {
+  if (mismatch.isNotEmpty || unfound.isNotEmpty || extra.isNotEmpty) {
     Expect.fail(message);
   } else if (verbose) {
     print(message);

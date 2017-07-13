@@ -319,8 +319,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         Link<InterfaceType> interfaces = linkBuilder.toLink();
         OrderedTypeSetBuilder setBuilder =
             new _KernelOrderedTypeSetBuilder(this, cls);
-        data.orderedTypeSet =
-            setBuilder.createOrderedTypeSet(data.supertype, interfaces);
+        data.orderedTypeSet = setBuilder.createOrderedTypeSet(
+            data.supertype, interfaces.reverse());
         data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }

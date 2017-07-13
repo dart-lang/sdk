@@ -108,6 +108,10 @@ class LibraryEnv {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
+        if (member.name.name.contains('#')) {
+          // Skip synthetic .dill members.
+          continue;
+        }
         if (member is ir.Procedure) {
           if (member.kind == ir.ProcedureKind.Setter) {
             _setterMap[member.name.name] = member;
@@ -224,6 +228,10 @@ class ClassEnv {
 
       void addMembers(ir.Class c, {bool includeStatic}) {
         for (ir.Member member in c.members) {
+          if (member.name.name.contains('#')) {
+            // Skip synthetic .dill members.
+            continue;
+          }
           if (member is ir.Constructor ||
               member is ir.Procedure &&
                   member.kind == ir.ProcedureKind.Factory) {
