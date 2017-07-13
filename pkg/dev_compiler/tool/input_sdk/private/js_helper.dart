@@ -576,19 +576,6 @@ throwConcurrentModificationError(collection) {
   throw new ConcurrentModificationError(collection);
 }
 
-@JsPeerInterface(name: 'TypeError')
-class NullError extends Interceptor implements NoSuchMethodError {
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
-
-  String toString() {
-    // TODO(vsm): Distinguish between null reference errors and other
-    // TypeErrors.  We should not get non-null TypeErrors from DDC code,
-    // but we may from native JavaScript.
-    var message = JS('String', '#.message', this);
-    return "NullError: $message";
-  }
-}
-
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
