@@ -84,7 +84,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     if (inferrer.closedWorld.commonElements.isForeign(called)) {
       String name = called.name;
       if (name == JavaScriptBackend.JS || name == 'DART_CLOSURE_TO_JS') {
-        bailout('Used in JS ${info.call}');
+        bailout('Used in JS ${info.debugName}');
       }
     }
     if (called.isGetter &&

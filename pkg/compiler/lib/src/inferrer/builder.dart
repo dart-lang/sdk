@@ -1126,7 +1126,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     });
 
     return inferrer.concreteTypes.putIfAbsent(node, () {
-      return types.allocateClosure(node, element.callMethod);
+      return types.allocateClosure(element.callMethod);
     });
   }
 
@@ -1135,7 +1135,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         elements.getFunctionDefinition(node.function);
     TypeInformation type =
         inferrer.concreteTypes.putIfAbsent(node.function, () {
-      return types.allocateClosure(node.function, element.callMethod);
+      return types.allocateClosure(element.callMethod);
     });
     locals.update(element, type, node);
     visit(node.function);
@@ -2754,7 +2754,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // its type by refining it with the potential targets of the
     // calls.
     ast.Send send = node.asSend();
+    bool isConditional = false;
     if (send != null) {
+      isConditional = send.isConditional;
       ast.Node receiver = send.receiver;
       if (receiver != null) {
         Element element = elements[receiver];
@@ -2767,7 +2769,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     return inferrer.registerCalledSelector(node, selector, mask, receiverType,
-        outermostElement, arguments, sideEffects, inLoop);
+        outermostElement, arguments, sideEffects, inLoop, isConditional);
   }
 
   TypeInformation handleDynamicInvoke(ast.Send node) {

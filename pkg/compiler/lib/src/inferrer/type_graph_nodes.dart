@@ -14,7 +14,7 @@ import '../elements/elements.dart'
     show ConstructorElement, LocalElement, MemberElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/tree.dart' as ast show Node, Send;
+import '../tree/tree.dart' as ast show Node;
 import '../types/masks.dart'
     show
         CommonMasks,
@@ -327,7 +327,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  * Note that a few elements of these kinds must be treated specially,
  * and they are dealt in [ElementTypeInformation.handleSpecialCases]:
  *
- * - Parameters of closures, [noSuchMethod] and [call] instance
+ * - Parameters of closures, `noSuchMethod` and `call` instance
  *   methods: we currently do not infer types for those.
  *
  * - Fields and parameters being assigned by synthesized calls done by
@@ -757,8 +757,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
         (_method.name == Identifiers.noSuchMethod_ ||
             (_method.name == Identifiers.call &&
                 disableInferenceForClosures))) {
-      // Do not infer types for parameters of [noSuchMethod] and
-      // [call] instance methods.
+      // Do not infer types for parameters of [noSuchMethod] and [call] instance
+      // methods.
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -828,7 +828,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 /**
  * A [CallSiteTypeInformation] is a call found in the AST, or a
  * synthesized call for implicit calls in Dart (such as forwarding
- * factories). The [call] field is a [ast.Node] for the former, and an
+ * factories). The [_call] field is a [ast.Node] for the former, and an
  * [Element] for the latter.
  *
  * In the inferrer graph, [CallSiteTypeInformation] nodes do not have
@@ -837,33 +837,35 @@ class ParameterTypeInformation extends ElementTypeInformation {
  */
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final Spannable call;
+  final Spannable _call;
   final MemberEntity caller;
   final Selector selector;
   final TypeMask mask;
   final ArgumentsTypes arguments;
   final bool inLoop;
 
-  CallSiteTypeInformation(MemberTypeInformation context, this.call, this.caller,
-      this.selector, this.mask, this.arguments, this.inLoop)
+  CallSiteTypeInformation(MemberTypeInformation context, this._call,
+      this.caller, this.selector, this.mask, this.arguments, this.inLoop)
       : super.noAssignments(context) {
     assert(_checkCaller(caller));
-    // [call] is either an AST node or a constructor element in case of a
-    // a forwarding constructor call.
-    assert(call is ast.Node || call is ConstructorElement);
+    // [_call] is either an AST node or a constructor element in case of a
+    // a forwarding constructor _call.
+    assert(_call is ast.Node || _call is ConstructorElement);
   }
 
   bool _checkCaller(MemberEntity caller) {
     return !(caller is MemberElement && !caller.isDeclaration);
   }
 
-  String toString() => 'Call site $call $type';
+  String toString() => 'Call site $debugName $type';
 
   /// Add [this] to the graph being computed by [engine].
   void addToGraph(InferrerEngine engine);
 
   /// Return an iterable over the targets of this call.
   Iterable<MemberEntity> get callees;
+
+  String get debugName => '$_call';
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
@@ -892,7 +894,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    callee.addCall(caller, call);
+    callee.addCall(caller, _call);
     callee.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -948,6 +950,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
 class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   final TypeInformation receiver;
+  final bool isConditional;
 
   /// Cached targets of this call.
   Iterable<MemberEntity> targets;
@@ -960,7 +963,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       TypeMask mask,
       this.receiver,
       ArgumentsTypes arguments,
-      bool inLoop)
+      bool inLoop,
+      this.isConditional)
       : super(context, call, enclosing, selector, mask, arguments, inLoop);
 
   void addToGraph(InferrerEngine inferrer) {
@@ -974,7 +978,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     for (MemberEntity element in targets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
-      callee.addCall(caller, call);
+      callee.addCall(caller, _call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
           this, element, arguments, selector, typeMask,
@@ -1114,7 +1118,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeMask computeType(InferrerEngine inferrer) {
     Iterable<MemberEntity> oldTargets = targets;
     TypeMask typeMask = computeTypedSelector(inferrer);
-    inferrer.updateSelectorInMember(caller, call, selector, typeMask);
+    inferrer.updateSelectorInMember(caller, _call, selector, typeMask);
 
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
@@ -1138,7 +1142,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        callee.addCall(caller, call);
+        callee.addCall(caller, _call);
         callee.addUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1151,7 +1155,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        callee.removeCall(caller, call);
+        callee.removeCall(caller, _call);
         callee.removeUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1209,26 +1213,24 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       }
     }));
 
-    if (call is ast.Send) {
-      ast.Send send = call;
-      if (send.isConditional && receiver.type.isNullable) {
-        // Conditional sends (e.g. `a?.b`) may be null if the receiver is null.
-        result = result.nullable();
-      }
+    if (isConditional && receiver.type.isNullable) {
+      // Conditional call sites (e.g. `a?.b`) may be null if the receiver is
+      // null.
+      result = result.nullable();
     }
     return result;
   }
 
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
-      inferrer.updateSelectorInMember(caller, call, selector, mask);
+      inferrer.updateSelectorInMember(caller, _call, selector, mask);
       Iterable<MemberEntity> oldTargets = targets;
       targets = inferrer.closedWorld.locateMembers(selector, mask);
       for (MemberEntity element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
-          callee.addCall(caller, call);
+          callee.addCall(caller, _call);
           inferrer.updateParameterAssignments(
               this, element, arguments, selector, mask,
               remove: false, addToQueue: true);
@@ -1250,7 +1252,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     super.removeAndClearReferences(inferrer);
   }
 
-  String toString() => 'Call site $call on ${receiver.type} $type';
+  String toString() => 'Call site $debugName on ${receiver.type} $type';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitDynamicCallSiteTypeInformation(this);
@@ -1291,7 +1293,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
     throw new UnsupportedError("Cannot compute callees of a closure call.");
   }
 
-  String toString() => 'Closure call $call on $closure';
+  String toString() => 'Closure call $debugName on $closure';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitClosureCallSiteTypeInformation(this);
@@ -1776,11 +1778,9 @@ class PhiElementTypeInformation extends TypeInformation {
 
 class ClosureTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final ast.Node node;
   final FunctionEntity _element;
 
-  ClosureTypeInformation(
-      MemberTypeInformation context, this.node, this._element)
+  ClosureTypeInformation(MemberTypeInformation context, this._element)
       : super(context);
 
   FunctionEntity get closure => _element;
@@ -1843,13 +1843,15 @@ abstract class TracedTypeInformation implements TypeInformation {
 }
 
 class AwaitTypeInformation extends TypeInformation {
-  final ast.Node node;
+  final ast.Node _node;
 
-  AwaitTypeInformation(MemberTypeInformation context, this.node)
+  AwaitTypeInformation(MemberTypeInformation context, this._node)
       : super(context);
 
   // TODO(22894): Compute a better type here.
   TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
+
+  String get debugName => '$_node';
 
   String toString() => 'Await';
 
@@ -1859,12 +1861,14 @@ class AwaitTypeInformation extends TypeInformation {
 }
 
 class YieldTypeInformation extends TypeInformation {
-  final ast.Node node;
+  final ast.Node _node;
 
-  YieldTypeInformation(MemberTypeInformation context, this.node)
+  YieldTypeInformation(MemberTypeInformation context, this._node)
       : super(context);
 
   TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
+
+  String get debugName => '$_node';
 
   String toString() => 'Yield';
 

@@ -372,7 +372,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void handleCall(CallSiteTypeInformation info, String text, Map inputs) {
-    String sourceCode = shorten('${info.call}');
+    String sourceCode = shorten('${info.debugName}');
     text = '$text\n$sourceCode';
     if (info.arguments != null) {
       for (int i = 0; i < info.arguments.positional.length; ++i) {
@@ -408,17 +408,17 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void visitClosureTypeInformation(ClosureTypeInformation info) {
-    String text = shorten('${info.node}');
+    String text = shorten('${info.debugName}');
     addNode(info, 'Closure\n$text');
   }
 
   void visitAwaitTypeInformation(AwaitTypeInformation info) {
-    String text = shorten('${info.node}');
+    String text = shorten('${info.debugName}');
     addNode(info, 'Await\n$text');
   }
 
   void visitYieldTypeInformation(YieldTypeInformation info) {
-    String text = shorten('${info.node}');
+    String text = shorten('${info.debugName}');
     addNode(info, 'Yield\n$text');
   }
 }

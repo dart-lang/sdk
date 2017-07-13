@@ -505,9 +505,8 @@ class TypeSystem {
   /// Creates a [TypeInformation] object either for the closurization of a
   /// static or top-level method [element] used as a function constant or for
   /// the synthesized 'call' method [element] created for a local function.
-  TypeInformation allocateClosure(ast.Node node, FunctionEntity element) {
-    TypeInformation result =
-        new ClosureTypeInformation(currentMember, node, element);
+  TypeInformation allocateClosure(FunctionEntity element) {
+    TypeInformation result = new ClosureTypeInformation(currentMember, element);
     allocatedClosures.add(result);
     return result;
   }

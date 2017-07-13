@@ -507,7 +507,6 @@ class InferrerEngine {
 
     if (element.isField) {
       FieldElement fieldElement = element;
-      ast.Node node = resolvedAst.node;
       ast.Node initializer = resolvedAst.body;
       if (element.isFinal || element.isConst) {
         // If [element] is final and has an initializer, we record
@@ -524,7 +523,7 @@ class InferrerEngine {
                 if (value.isFunction) {
                   FunctionConstantValue functionConstant = value;
                   MethodElement function = functionConstant.element;
-                  type = types.allocateClosure(node, function);
+                  type = types.allocateClosure(function);
                 } else {
                   // Although we might find a better type, we have to keep
                   // the old type around to ensure that we get a complete view
@@ -914,7 +913,8 @@ class InferrerEngine {
       MemberElement caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
-      bool inLoop) {
+      bool inLoop,
+      bool isConditional) {
     if (selector.isClosureCall) {
       return registerCalledClosure(node, selector, mask, receiverType, caller,
           arguments, sideEffects, inLoop);
@@ -933,7 +933,8 @@ class InferrerEngine {
         mask,
         receiverType,
         arguments,
-        inLoop);
+        inLoop,
+        isConditional);
 
     info.addToGraph(this);
     types.allocatedCalls.add(info);
