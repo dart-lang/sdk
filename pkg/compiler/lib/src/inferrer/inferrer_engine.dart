@@ -312,7 +312,8 @@ class InferrerEngine {
       }
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
-      types.withMember(resolvedAst.element, () => analyze(resolvedAst, null));
+      MemberElement member = resolvedAst.element;
+      types.withMember(member, () => analyze(resolvedAst, null));
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -348,7 +349,9 @@ class InferrerEngine {
             if (debug.VERBOSE) {
               print("traced closure $element as ${true} (bail)");
             }
-            implementation.functionSignature.forEachParameter((parameter) {
+            implementation.functionSignature
+                .forEachParameter((FormalElement _parameter) {
+              ParameterElement parameter = _parameter;
               types
                   .getInferredTypeOfParameter(parameter)
                   .giveUp(this, clearAssignments: false);
@@ -362,8 +365,11 @@ class InferrerEngine {
             .forEach((FunctionEntity _element) {
           MethodElement element = _element;
           MethodElement implementation = element.implementation;
-          implementation.functionSignature.forEachParameter((parameter) {
-            var info = types.getInferredTypeOfParameter(parameter);
+          implementation.functionSignature
+              .forEachParameter((FormalElement _parameter) {
+            ParameterElement parameter = _parameter;
+            ParameterTypeInformation info =
+                types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
             workQueue.add(info);
           });
@@ -466,7 +472,7 @@ class InferrerEngine {
           }
         } else if (info is StaticCallSiteTypeInformation) {
           ClassElement cls = info.calledElement.enclosingClass;
-          FunctionElement callMethod = cls.lookupMember(Identifiers.call);
+          MethodElement callMethod = cls.lookupMember(Identifiers.call);
           print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
@@ -664,7 +670,8 @@ class InferrerEngine {
         }
         FunctionElement function = method.implementation;
         FunctionSignature signature = function.functionSignature;
-        signature.forEachParameter((Element parameter) {
+        signature.forEachParameter((FormalElement _parameter) {
+          ParameterElement parameter = _parameter;
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
@@ -677,7 +684,8 @@ class InferrerEngine {
       FunctionSignature signature = function.functionSignature;
       int parameterIndex = 0;
       bool visitingRequiredParameter = true;
-      signature.forEachParameter((Element parameter) {
+      signature.forEachParameter((FormalElement _parameter) {
+        ParameterElement parameter = _parameter;
         if (signature.hasOptionalParameters &&
             parameter == signature.optionalParameters.first) {
           visitingRequiredParameter = false;

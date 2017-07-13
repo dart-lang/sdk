@@ -744,10 +744,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ast.Node exception = node.exception;
     if (exception != null) {
       ResolutionDartType type = elements.getType(node.type);
-      TypeInformation mask =
-          type == null || type.treatAsDynamic || type.isTypeVariable
-              ? types.dynamicType
-              : types.nonNullSubtype(type.element);
+      TypeInformation mask;
+      if (type == null || type.treatAsDynamic || type.isTypeVariable) {
+        mask = types.dynamicType;
+      } else {
+        ResolutionInterfaceType interfaceType = type;
+        mask = types.nonNullSubtype(interfaceType.element);
+      }
       locals.update(elements[exception], mask, node);
     }
     ast.Node trace = node.trace;

@@ -3,7 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../elements/elements.dart';
+import '../elements/elements.dart'
+    show
+        ClassElement,
+        ConstructorElement,
+        FieldElement,
+        FormalElement,
+        FunctionSignature,
+        FunctionTypedElement,
+        GetterElement,
+        LocalFunctionElement,
+        MemberElement,
+        MethodElement,
+        ParameterElement,
+        SetterElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../tree/nodes.dart' as ast;
@@ -23,12 +36,12 @@ class TypeSystem {
   final List<TypeInformation> _orderedTypeInformations = <TypeInformation>[];
 
   /// [ParameterTypeInformation]s for parameters.
-  final Map<ParameterElement, TypeInformation> parameterTypeInformations =
-      new Map<ParameterElement, TypeInformation>();
+  final Map<Local, TypeInformation> parameterTypeInformations =
+      new Map<Local, TypeInformation>();
 
   /// [MemberTypeInformation]s for members.
-  final Map<MemberElement, TypeInformation> memberTypeInformations =
-      new Map<MemberElement, TypeInformation>();
+  final Map<MemberEntity, TypeInformation> memberTypeInformations =
+      new Map<MemberEntity, TypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
   final Map<ast.Node, TypeInformation> allocatedLists =
@@ -80,7 +93,7 @@ class TypeSystem {
   MemberTypeInformation _currentMember = null;
   MemberTypeInformation get currentMember => _currentMember;
 
-  void withMember(MemberElement element, action) {
+  void withMember(MemberEntity element, void action()) {
     assert(_currentMember == null,
         failedAt(element, "Already constructing graph for $_currentMember."));
     _currentMember = getInferredTypeOfMember(element);
@@ -336,71 +349,75 @@ class TypeSystem {
     return newType;
   }
 
-  ParameterTypeInformation getInferredTypeOfParameter(
+  ParameterTypeInformation _createParameterTypeInformation(
       ParameterElement parameter) {
-    assert(parameter.isImplementation);
-
-    ParameterTypeInformation createTypeInformation() {
-      FunctionTypedElement function = parameter.functionDeclaration.declaration;
-      if (function.isLocal) {
-        LocalFunctionElement localFunction = function;
-        MethodElement callMethod = localFunction.callMethod;
-        return new ParameterTypeInformation.localFunction(
-            getInferredTypeOfMember(callMethod),
-            parameter,
-            parameter.type,
-            callMethod);
-      } else if (function.isInstanceMember) {
-        MethodElement method = function;
-        return new ParameterTypeInformation.instanceMember(
-            getInferredTypeOfMember(method),
-            parameter,
-            parameter.type,
-            method,
-            new ParameterAssignments());
-      } else {
-        MethodElement method = function;
-        return new ParameterTypeInformation.static(
-            getInferredTypeOfMember(method), parameter, parameter.type, method,
-            // TODO(johnniwinther): Is this still valid now that initializing
-            // formals also introduce locals?
-            isInitializingFormal: parameter.isInitializingFormal);
-      }
+    FunctionTypedElement function = parameter.functionDeclaration.declaration;
+    if (function.isLocal) {
+      LocalFunctionElement localFunction = function;
+      MethodElement callMethod = localFunction.callMethod;
+      return new ParameterTypeInformation.localFunction(
+          getInferredTypeOfMember(callMethod),
+          parameter,
+          parameter.type,
+          callMethod);
+    } else if (function.isInstanceMember) {
+      MethodElement method = function;
+      return new ParameterTypeInformation.instanceMember(
+          getInferredTypeOfMember(method),
+          parameter,
+          parameter.type,
+          method,
+          new ParameterAssignments());
+    } else {
+      MethodElement method = function;
+      return new ParameterTypeInformation.static(
+          getInferredTypeOfMember(method), parameter, parameter.type, method,
+          // TODO(johnniwinther): Is this still valid now that initializing
+          // formals also introduce locals?
+          isInitializingFormal: parameter.isInitializingFormal);
     }
+  }
+
+  ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {
+    assert(!(parameter is ParameterElement && !parameter.isImplementation));
 
     return parameterTypeInformations.putIfAbsent(parameter, () {
-      ParameterTypeInformation typeInformation = createTypeInformation();
+      ParameterTypeInformation typeInformation =
+          _createParameterTypeInformation(parameter);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
   }
 
-  MemberTypeInformation getInferredTypeOfMember(MemberElement member) {
-    assert(member.isDeclaration);
-    return memberTypeInformations.putIfAbsent(member, () {
-      MemberTypeInformation typeInformation;
-      if (member.isField) {
-        FieldElement field = member;
-        typeInformation = new FieldTypeInformation(field, field.type);
-      } else if (member.isGetter) {
-        GetterElement getter = member;
-        typeInformation = new GetterTypeInformation(getter, getter.type);
-      } else if (member.isSetter) {
-        SetterElement setter = member;
-        typeInformation = new SetterTypeInformation(setter);
-      } else if (member.isFunction) {
-        MethodElement method = member;
-        typeInformation = new MethodTypeInformation(method, method.type);
+  MemberTypeInformation _createMemberTypeInformation(MemberElement member) {
+    if (member.isField) {
+      FieldElement field = member;
+      return new FieldTypeInformation(field, field.type);
+    } else if (member.isGetter) {
+      GetterElement getter = member;
+      return new GetterTypeInformation(getter, getter.type);
+    } else if (member.isSetter) {
+      SetterElement setter = member;
+      return new SetterTypeInformation(setter);
+    } else if (member.isFunction) {
+      MethodElement method = member;
+      return new MethodTypeInformation(method, method.type);
+    } else {
+      ConstructorElement constructor = member;
+      if (constructor.isFactoryConstructor) {
+        return new FactoryConstructorTypeInformation(
+            constructor, constructor.type);
       } else {
-        ConstructorElement constructor = member;
-        if (constructor.isFactoryConstructor) {
-          typeInformation = new FactoryConstructorTypeInformation(
-              constructor, constructor.type);
-        } else {
-          typeInformation =
-              new GenerativeConstructorTypeInformation(constructor);
-        }
+        return new GenerativeConstructorTypeInformation(constructor);
       }
+    }
+  }
+
+  MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
+    assert(!(member is MemberElement && !member.isDeclaration));
+    return memberTypeInformations.putIfAbsent(member, () {
+      MemberTypeInformation typeInformation =
+          _createMemberTypeInformation(member);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -416,12 +433,19 @@ class TypeSystem {
     });
   }
 
-  String getInferredSignatureOfMethod(MethodElement function) {
-    ElementTypeInformation info = getInferredTypeOfMember(function);
+  void _forEachParameter(MethodElement function, void f(Local parameter)) {
     MethodElement impl = function.implementation;
     FunctionSignature signature = impl.functionSignature;
+    signature.forEachParameter((FormalElement _parameter) {
+      ParameterElement parameter = _parameter;
+      f(parameter);
+    });
+  }
+
+  String getInferredSignatureOfMethod(FunctionEntity function) {
+    ElementTypeInformation info = getInferredTypeOfMember(function);
     var res = "";
-    signature.forEachParameter((Element parameter) {
+    _forEachParameter(function, (Local parameter) {
       TypeInformation type = getInferredTypeOfParameter(parameter);
       res += "${res.isEmpty ? '(' : ', '}${type.type} ${parameter.name}";
     });
@@ -429,19 +453,19 @@ class TypeSystem {
     return res;
   }
 
-  TypeInformation nonNullSubtype(ClassElement type) {
-    return getConcreteTypeFor(
-        new TypeMask.nonNullSubtype(type.declaration, closedWorld));
+  TypeInformation nonNullSubtype(ClassEntity cls) {
+    assert(!(cls is ClassElement && !cls.isDeclaration));
+    return getConcreteTypeFor(new TypeMask.nonNullSubtype(cls, closedWorld));
   }
 
-  TypeInformation nonNullSubclass(ClassElement type) {
-    return getConcreteTypeFor(
-        new TypeMask.nonNullSubclass(type.declaration, closedWorld));
+  TypeInformation nonNullSubclass(ClassEntity cls) {
+    assert(!(cls is ClassElement && !cls.isDeclaration));
+    return getConcreteTypeFor(new TypeMask.nonNullSubclass(cls, closedWorld));
   }
 
-  TypeInformation nonNullExact(ClassElement type) {
-    return getConcreteTypeFor(
-        new TypeMask.nonNullExact(type.declaration, closedWorld));
+  TypeInformation nonNullExact(ClassEntity cls) {
+    assert(!(cls is ClassElement && !cls.isDeclaration));
+    return getConcreteTypeFor(new TypeMask.nonNullExact(cls, closedWorld));
   }
 
   TypeInformation nonNullEmpty() {
@@ -453,9 +477,9 @@ class TypeSystem {
   }
 
   TypeInformation allocateList(
-      TypeInformation type, ast.Node node, MemberElement enclosing,
+      TypeInformation type, ast.Node node, MemberEntity enclosing,
       [TypeInformation elementType, int length]) {
-    ClassElement typedDataClass = closedWorld.commonElements.typedDataClass;
+    ClassEntity typedDataClass = closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
         closedWorld.isInstantiated(typedDataClass) &&
         type.type.satisfies(typedDataClass, closedWorld);
@@ -481,7 +505,7 @@ class TypeSystem {
   /// Creates a [TypeInformation] object either for the closurization of a
   /// static or top-level method [element] used as a function constant or for
   /// the synthesized 'call' method [element] created for a local function.
-  TypeInformation allocateClosure(ast.Node node, MethodElement element) {
+  TypeInformation allocateClosure(ast.Node node, FunctionEntity element) {
     TypeInformation result =
         new ClosureTypeInformation(currentMember, node, element);
     allocatedClosures.add(result);
@@ -489,7 +513,7 @@ class TypeSystem {
   }
 
   TypeInformation allocateMap(
-      ConcreteTypeInformation type, ast.Node node, MemberElement element,
+      ConcreteTypeInformation type, ast.Node node, MemberEntity element,
       [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
     assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == commonMasks.constMapType);
