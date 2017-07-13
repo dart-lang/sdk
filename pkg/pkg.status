@@ -38,7 +38,6 @@ front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
-front_end/test/fasta/kompile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 

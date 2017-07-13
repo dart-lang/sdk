@@ -74,23 +74,6 @@
     },
 
     {
-      "name": "kompile",
-      "kind": "Chain",
-      "source": "test/fasta/kompile_test.dart",
-      "path": "testcases/",
-      "status": "testcases/kompile.status",
-      "pattern": [
-        "\\.dart$"
-      ],
-      "exclude": [
-        "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$",
-        "/testcases/shaker/"
-      ]
-    },
-
-    {
       "name": "strong",
       "kind": "Chain",
       "source": "test/fasta/strong_test.dart",

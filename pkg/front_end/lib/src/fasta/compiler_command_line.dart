@@ -155,11 +155,6 @@ Message computeUsage(String programName, bool verbose) {
       summary = "Compiles a Dart program to the Dill/Kernel IR format.";
       break;
 
-    case "kompile":
-      summary =
-          "Compiles a Dart program to the Dill/Kernel IR format via dartk.";
-      break;
-
     case "run":
       summary = "Runs a Dart program.";
       break;
