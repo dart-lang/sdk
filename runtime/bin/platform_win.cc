@@ -117,9 +117,9 @@ class PlatformWin {
   DartExceptionHandler(struct _EXCEPTION_POINTERS* ExceptionInfo) {
     if (ExceptionInfo->ExceptionRecord->ExceptionCode ==
         EXCEPTION_ACCESS_VIOLATION) {
+      const int kAbortExitCode = 3;
       Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
-      RestoreConsole();
-      abort();
+      Platform::Exit(kAbortExitCode);
     }
     return EXCEPTION_CONTINUE_SEARCH;
   }
