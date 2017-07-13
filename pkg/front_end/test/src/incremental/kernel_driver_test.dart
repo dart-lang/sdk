@@ -12,6 +12,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
@@ -667,8 +668,12 @@ import 'b.dart';
       {Map<String, Uri> packages, KernelDriverFileAddedFn fileAddedFn}) {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     var uriTranslator = new UriTranslatorImpl(dartLibraries, {}, packages);
-    driver = new KernelDriver(new PerformanceLog(null), fileSystem,
-        new MemoryByteStore(), uriTranslator, true,
+    driver = new KernelDriver(
+        new PerformanceLog(null),
+        fileSystem,
+        new MemoryByteStore(),
+        uriTranslator,
+        new NoneTarget(new TargetFlags(strongMode: true)),
         fileAddedFn: fileAddedFn);
   }
 

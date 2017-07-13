@@ -17,8 +17,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
-import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/targets.dart' show Target;
 import 'package:meta/meta.dart';
 
 /// This function is invoked for each newly discovered file, and the returned
@@ -57,8 +56,8 @@ class KernelDriver {
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   final UriTranslator _uriTranslator;
 
-  /// Is `true` if strong mode analysis should be used.
-  final bool _strongMode;
+  /// The backend target to generate kernels for.
+  final Target _target;
 
   /// The function that is invoked when a new file is about to be added to
   /// the current file state. The [Future] that it returns is awaited before
@@ -79,7 +78,7 @@ class KernelDriver {
   final _TestView _testView = new _TestView();
 
   KernelDriver(this._logger, this._fileSystem, this._byteStore,
-      this._uriTranslator, this._strongMode,
+      this._uriTranslator, this._target,
       {KernelDriverFileAddedFn fileAddedFn})
       : _fileAddedFn = fileAddedFn {
     _computeSalt();
@@ -130,10 +129,8 @@ class KernelDriver {
       });
 
       CanonicalName nameRoot = new CanonicalName.root();
-      DillTarget dillTarget = new DillTarget(
-          new Ticker(isVerbose: false),
-          _uriTranslator,
-          new VmFastaTarget(new TargetFlags(strongMode: _strongMode)));
+      DillTarget dillTarget =
+          new DillTarget(new Ticker(isVerbose: false), _uriTranslator, _target);
 
       List<LibraryCycleResult> results = [];
       _testView.compiledCycles.clear();
@@ -276,7 +273,7 @@ class KernelDriver {
   void _computeSalt() {
     var saltBuilder = new ApiSignature();
     saltBuilder.addInt(DATA_VERSION);
-    saltBuilder.addBool(_strongMode);
+    saltBuilder.addBool(_target.strongMode);
     _salt = saltBuilder.toByteList();
   }
 

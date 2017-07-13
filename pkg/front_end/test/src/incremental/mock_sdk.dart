@@ -252,8 +252,7 @@ Future _awaitHelper(
       'math',
       '''
 library dart.math;
-double sin(num radians) => _sin(radians.toDouble());
-double _sin(double x) native "Math_sin";
+external double sin(num radians);
 ''');
   addSdkLibrary('mirrors', 'library dart.mirrors;');
   addSdkLibrary('nativewrappers', 'library dart.nativewrappers;');
