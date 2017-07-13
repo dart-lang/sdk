@@ -30,8 +30,8 @@ class Interpreter {
     if (mainMethod == null) return;
 
     Statement statementBlock = mainMethod.function.body;
-    StatementConfiguration configuration =
-        new StatementConfiguration(statementBlock, new State.initial());
+    ExecConfiguration configuration =
+        new ExecConfiguration(statementBlock, new State.initial());
     visitor.trampolinedExecution(configuration);
   }
 }
@@ -98,70 +98,61 @@ class InstanceEnvironment extends Environment {
 }
 
 /// Evaluate expressions.
-class Evaluator
-    extends ExpressionVisitor1<Configuration, ExpressionConfiguration> {
-  Configuration eval(Expression expr, ExpressionConfiguration config) =>
+class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
+  Configuration eval(Expression expr, EvalConfiguration config) =>
       expr.accept1(this, config);
 
   Configuration evalList(List<InterpreterExpression> list, Environment env,
       ApplicationContinuation cont) {
     if (list.isNotEmpty) {
-      return new ExpressionConfiguration(list.first.expression, env,
+      return new EvalConfiguration(list.first.expression, env,
           new ExpressionListContinuation(list.first, list.skip(1), env, cont));
     }
-    return new ExpressionListContinuationConfiguration(
-        cont, <InterpreterValue>[]);
+    return new ApplicationConfiguration(cont, <InterpreterValue>[]);
   }
 
-  Configuration defaultExpression(
-      Expression node, ExpressionConfiguration config) {
+  Configuration defaultExpression(Expression node, EvalConfiguration config) {
     throw new NotImplemented('Evaluation for expressions of type '
         '${node.runtimeType} is not implemented.');
   }
 
   Configuration visitInvalidExpression1(
-      InvalidExpression node, ExpressionConfiguration config) {
+      InvalidExpression node, EvalConfiguration config) {
     throw 'Invalid expression at ${node.location.toString()}';
   }
 
-  Configuration visitVariableGet(
-      VariableGet node, ExpressionConfiguration config) {
+  Configuration visitVariableGet(VariableGet node, EvalConfiguration config) {
     Value value = config.environment.lookup(node.variable);
-    return new ContinuationConfiguration(config.continuation, value);
+    return new ValuePassingConfiguration(config.continuation, value);
   }
 
-  Configuration visitVariableSet(
-      VariableSet node, ExpressionConfiguration config) {
+  Configuration visitVariableSet(VariableSet node, EvalConfiguration config) {
     var cont = new VariableSetContinuation(
         node.variable, config.environment, config.continuation);
-    return new ExpressionConfiguration(node.value, config.environment, cont);
+    return new EvalConfiguration(node.value, config.environment, cont);
   }
 
-  Configuration visitPropertyGet(
-      PropertyGet node, ExpressionConfiguration config) {
+  Configuration visitPropertyGet(PropertyGet node, EvalConfiguration config) {
     var cont = new PropertyGetContinuation(node.name, config.continuation);
-    return new ExpressionConfiguration(node.receiver, config.environment, cont);
+    return new EvalConfiguration(node.receiver, config.environment, cont);
   }
 
-  Configuration visitPropertySet(
-      PropertySet node, ExpressionConfiguration config) {
+  Configuration visitPropertySet(PropertySet node, EvalConfiguration config) {
     var cont = new PropertySetContinuation(
         node.value, node.name, config.environment, config.continuation);
-    return new ExpressionConfiguration(node.receiver, config.environment, cont);
+    return new EvalConfiguration(node.receiver, config.environment, cont);
   }
 
-  Configuration visitStaticGet(
-          StaticGet node, ExpressionConfiguration config) =>
+  Configuration visitStaticGet(StaticGet node, EvalConfiguration config) =>
       defaultExpression(node, config);
-  Configuration visitStaticSet(
-          StaticSet node, ExpressionConfiguration config) =>
+  Configuration visitStaticSet(StaticSet node, EvalConfiguration config) =>
       defaultExpression(node, config);
 
   Configuration visitStaticInvocation(
-      StaticInvocation node, ExpressionConfiguration config) {
+      StaticInvocation node, EvalConfiguration config) {
     if ('print' == node.name.toString()) {
       var cont = new PrintContinuation(config.continuation);
-      return new ExpressionConfiguration(
+      return new EvalConfiguration(
           node.arguments.positional.first, config.environment, cont);
     } else {
       log.info('static-invocation-${node.target.name.toString()}\n');
@@ -170,108 +161,103 @@ class Evaluator
           _createArgumentExpressionList(node.arguments, node.target.function);
       ApplicationContinuation cont = new StaticInvocationApplication(
           node.target.function, config.continuation);
-      return new ExpressionListConfiguration(args, config.environment, cont);
+      return new EvalListConfiguration(args, config.environment, cont);
     }
   }
 
   Configuration visitMethodInvocation(
-      MethodInvocation node, ExpressionConfiguration config) {
+      MethodInvocation node, EvalConfiguration config) {
     // Currently supports only method invocation with <2 arguments and is used
     // to evaluate implemented operators for int, double and String values.
     var cont = new MethodInvocationContinuation(
         node.arguments, node.name, config.environment, config.continuation);
 
-    return new ExpressionConfiguration(node.receiver, config.environment, cont);
+    return new EvalConfiguration(node.receiver, config.environment, cont);
   }
 
   Configuration visitConstructorInvocation(
-      ConstructorInvocation node, ExpressionConfiguration config) {
+      ConstructorInvocation node, EvalConfiguration config) {
     ApplicationContinuation cont =
         new ConstructorInvocationApplication(node.target, config.continuation);
     var args =
         _createArgumentExpressionList(node.arguments, node.target.function);
 
-    return new ExpressionListConfiguration(args, config.environment, cont);
+    return new EvalListConfiguration(args, config.environment, cont);
   }
 
-  Configuration visitNot(Not node, ExpressionConfiguration config) {
-    return new ExpressionConfiguration(node.operand, config.environment,
+  Configuration visitNot(Not node, EvalConfiguration config) {
+    return new EvalConfiguration(node.operand, config.environment,
         new NotContinuation(config.continuation));
   }
 
   Configuration visitLogicalExpression(
-      LogicalExpression node, ExpressionConfiguration config) {
+      LogicalExpression node, EvalConfiguration config) {
     if ('||' == node.operator) {
       var cont = new OrContinuation(
           node.right, config.environment, config.continuation);
-      return new ExpressionConfiguration(node.left, config.environment, cont);
+      return new EvalConfiguration(node.left, config.environment, cont);
     } else {
       assert('&&' == node.operator);
       var cont = new AndContinuation(
           node.right, config.environment, config.continuation);
-      return new ExpressionConfiguration(node.left, config.environment, cont);
+      return new EvalConfiguration(node.left, config.environment, cont);
     }
   }
 
   Configuration visitConditionalExpression(
-      ConditionalExpression node, ExpressionConfiguration config) {
+      ConditionalExpression node, EvalConfiguration config) {
     var cont = new ConditionalContinuation(
         node.then, node.otherwise, config.environment, config.continuation);
-    return new ExpressionConfiguration(
-        node.condition, config.environment, cont);
+    return new EvalConfiguration(node.condition, config.environment, cont);
   }
 
   Configuration visitStringConcatenation(
-      StringConcatenation node, ExpressionConfiguration config) {
+      StringConcatenation node, EvalConfiguration config) {
     var cont = new StringConcatenationContinuation(config.continuation);
     var expressions = node.expressions
         .map((Expression e) => new PositionalExpression(e))
         .toList();
-    return new ExpressionListConfiguration(
-        expressions, config.environment, cont);
+    return new EvalListConfiguration(expressions, config.environment, cont);
   }
 
   Configuration visitThisExpression(
-      ThisExpression node, ExpressionConfiguration config) {
-    return new ContinuationConfiguration(
+      ThisExpression node, EvalConfiguration config) {
+    return new ValuePassingConfiguration(
         config.continuation, config.environment.thisInstance);
   }
 
   // Evaluation of BasicLiterals.
   Configuration visitStringLiteral(
-      StringLiteral node, ExpressionConfiguration config) {
-    return new ContinuationConfiguration(
+      StringLiteral node, EvalConfiguration config) {
+    return new ValuePassingConfiguration(
         config.continuation, new StringValue(node.value));
   }
 
-  Configuration visitIntLiteral(
-      IntLiteral node, ExpressionConfiguration config) {
-    return new ContinuationConfiguration(
+  Configuration visitIntLiteral(IntLiteral node, EvalConfiguration config) {
+    return new ValuePassingConfiguration(
         config.continuation, new IntValue(node.value));
   }
 
   Configuration visitDoubleLiteral(
-      DoubleLiteral node, ExpressionConfiguration config) {
-    return new ContinuationConfiguration(
+      DoubleLiteral node, EvalConfiguration config) {
+    return new ValuePassingConfiguration(
         config.continuation, new DoubleValue(node.value));
   }
 
-  Configuration visitBoolLiteral(
-      BoolLiteral node, ExpressionConfiguration config) {
+  Configuration visitBoolLiteral(BoolLiteral node, EvalConfiguration config) {
     Value value = node.value ? Value.trueInstance : Value.falseInstance;
-    return new ContinuationConfiguration(config.continuation, value);
+    return new ValuePassingConfiguration(config.continuation, value);
   }
 
-  Configuration visitNullLiteral(
-      NullLiteral node, ExpressionConfiguration config) {
-    return new ContinuationConfiguration(
+  Configuration visitNullLiteral(NullLiteral node, EvalConfiguration config) {
+    return new ValuePassingConfiguration(
         config.continuation, Value.nullInstance);
   }
 
-  Configuration visitLet(Let node, ExpressionConfiguration config) {
+  Configuration visitLet(Let node, EvalConfiguration config) {
     var letCont = new LetContinuation(
         node.variable, node.body, config.environment, config.continuation);
-    return new ExpressionConfiguration(
+    return new EvalConfiguration(
         node.variable.initializer, config.environment, letCont);
   }
 }
@@ -280,7 +266,7 @@ class Evaluator
 class State {
   final Environment environment;
   final Label labels;
-  final StatementConfiguration statementConfiguration;
+  final ExecConfiguration statementConfiguration;
 
   final ExpressionContinuation returnContinuation;
 
@@ -317,7 +303,7 @@ class State {
 /// enclosing label.
 class Label {
   final LabeledStatement statement;
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
   final Label enclosingLabel;
 
   Label(this.statement, this.configuration, this.enclosingLabel);
@@ -335,17 +321,17 @@ abstract class Configuration {
 }
 
 /// Represents the configuration for execution of statement.
-class StatementConfiguration extends Configuration {
+class ExecConfiguration extends Configuration {
   final Statement statement;
   final State state;
 
-  StatementConfiguration(this.statement, this.state);
+  ExecConfiguration(this.statement, this.state);
 
   Configuration step(StatementExecuter executer) =>
       executer.exec(statement, state);
 }
 
-class ExitConfiguration extends StatementConfiguration {
+class ExitConfiguration extends ExecConfiguration {
   final ExpressionContinuation returnContinuation;
 
   ExitConfiguration(this.returnContinuation) : super(null, null);
@@ -355,7 +341,7 @@ class ExitConfiguration extends StatementConfiguration {
   }
 }
 
-class NewInstanceConfiguration extends StatementConfiguration {
+class NewInstanceConfiguration extends ExecConfiguration {
   final ExpressionContinuation continuation;
   final ObjectValue newObject;
 
@@ -368,27 +354,27 @@ class NewInstanceConfiguration extends StatementConfiguration {
 }
 
 /// Represents the configuration for applying an [ExpressionContinuation].
-class ContinuationConfiguration extends Configuration {
+class ValuePassingConfiguration extends Configuration {
   final ExpressionContinuation continuation;
   final Value value;
 
-  ContinuationConfiguration(this.continuation, this.value);
+  ValuePassingConfiguration(this.continuation, this.value);
 
   Configuration step(StatementExecuter _) => continuation(value);
 }
 
 /// Represents the configuration for applying an [ApplicationContinuation].
-class ExpressionListContinuationConfiguration extends Configuration {
+class ApplicationConfiguration extends Configuration {
   final ApplicationContinuation continuation;
   final List<InterpreterValue> values;
 
-  ExpressionListContinuationConfiguration(this.continuation, this.values);
+  ApplicationConfiguration(this.continuation, this.values);
 
   Configuration step(StatementExecuter _) => continuation(values);
 }
 
 /// Represents the configuration for evaluating an [Expression].
-class ExpressionConfiguration extends Configuration {
+class EvalConfiguration extends Configuration {
   final Expression expression;
 
   /// Environment in which the expression is evaluated.
@@ -397,20 +383,19 @@ class ExpressionConfiguration extends Configuration {
   /// Next continuation to be applied.
   final Continuation continuation;
 
-  ExpressionConfiguration(this.expression, this.environment, this.continuation);
+  EvalConfiguration(this.expression, this.environment, this.continuation);
 
   Configuration step(StatementExecuter executer) =>
       executer.eval(expression, this);
 }
 
 /// Represents the configuration for evaluating a list of expressions.
-class ExpressionListConfiguration extends Configuration {
+class EvalListConfiguration extends Configuration {
   final List<InterpreterExpression> expressions;
   final Environment environment;
   final Continuation continuation;
 
-  ExpressionListConfiguration(
-      this.expressions, this.environment, this.continuation);
+  EvalListConfiguration(this.expressions, this.environment, this.continuation);
 
   Configuration step(StatementExecuter executer) =>
       executer.evalList(expressions, environment, continuation);
@@ -541,7 +526,7 @@ class StaticInvocationApplication extends ApplicationContinuation {
         .withExpressionContinuation(continuation)
         .withConfiguration(new ExitConfiguration(continuation))
         .withEnvironment(functionEnv);
-    return new StatementConfiguration(function.body, bodyState);
+    return new ExecConfiguration(function.body, bodyState);
   }
 }
 
@@ -573,7 +558,7 @@ class ConstructorInvocationApplication extends ApplicationContinuation {
 class RedirectingConstructorApplication extends ApplicationContinuation {
   final Constructor constructor;
   final Environment environment;
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
 
   RedirectingConstructorApplication(
       this.constructor, this.environment, this.configuration);
@@ -595,7 +580,7 @@ class RedirectingConstructorApplication extends ApplicationContinuation {
 class SuperConstructorApplication extends ApplicationContinuation {
   final Constructor constructor;
   final Environment environment;
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
 
   SuperConstructorApplication(
       this.constructor, this.environment, this.configuration);
@@ -618,7 +603,7 @@ class SuperConstructorApplication extends ApplicationContinuation {
 class ObjectInitializationConfiguration extends Configuration {
   final Constructor constructor;
   final Environment environment;
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
 
   ObjectInitializationConfiguration(
       this.constructor, this.environment, this.configuration);
@@ -634,7 +619,7 @@ class ObjectInitializationConfiguration extends Configuration {
         var args = _createArgumentExpressionList(
             initializer.arguments, initializer.target.function);
 
-        return new ExpressionListConfiguration(args, environment, app);
+        return new EvalListConfiguration(args, environment, app);
       }
       // Redirecting initializer is not the only initializer.
       for (Initializer i in constructor.initializers.reversed.skip(1)) {
@@ -644,7 +629,7 @@ class ObjectInitializationConfiguration extends Configuration {
       var initEnv = new Environment(environment);
       var cont = new InitializerContinuation(
           class_, initEnv, constructor.initializers, configuration);
-      return new ExpressionConfiguration(
+      return new EvalConfiguration(
           (initializer as LocalInitializer).variable.initializer,
           initEnv,
           cont);
@@ -655,15 +640,14 @@ class ObjectInitializationConfiguration extends Configuration {
     var state = new State.initial()
         .withEnvironment(environment)
         .withConfiguration(configuration);
-    var bodyConfig =
-        new StatementConfiguration(constructor.function.body, state);
+    var bodyConfig = new ExecConfiguration(constructor.function.body, state);
 
     // Initialize fields in immediately enclosing class.
     var cont =
         new InstanceFieldsApplication(constructor, environment, bodyConfig);
     var fieldExpressions = _createInstanceInitializers(constructor);
 
-    return new ExpressionListConfiguration(
+    return new EvalListConfiguration(
         fieldExpressions, new Environment.empty(), cont);
   }
 
@@ -692,7 +676,7 @@ class ObjectInitializationConfiguration extends Configuration {
 class InstanceFieldsApplication extends ApplicationContinuation {
   final Constructor constructor;
   final Environment environment;
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
 
   final Class _currentClass;
   final ObjectValue _newObject;
@@ -723,7 +707,7 @@ class InstanceFieldsApplication extends ApplicationContinuation {
       var superApp = new SuperConstructorApplication(
           current.target, environment, configuration);
       _initializeNullFields(_currentClass, _newObject);
-      return new ExpressionListConfiguration(args, environment, superApp);
+      return new EvalListConfiguration(args, environment, superApp);
     }
 
     Class class_ = new Class(constructor.enclosingClass.reference);
@@ -731,7 +715,7 @@ class InstanceFieldsApplication extends ApplicationContinuation {
 
     var cont = new InitializerContinuation(
         class_, initEnv, constructor.initializers, configuration);
-    return new ExpressionConfiguration(
+    return new EvalConfiguration(
         _getExpression(constructor.initializers.first), initEnv, cont);
   }
 }
@@ -742,7 +726,7 @@ class InitializerContinuation extends ExpressionContinuation {
   final Class currentClass;
   final Environment initializerEnvironment;
   final List<Initializer> initializers;
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
 
   InitializerContinuation(this.currentClass, this.initializerEnvironment,
       this.initializers, this.configuration);
@@ -772,7 +756,7 @@ class InitializerContinuation extends ExpressionContinuation {
           next.target, initializerEnvironment, configuration);
       var args =
           _createArgumentExpressionList(next.arguments, next.target.function);
-      return new ExpressionListConfiguration(args, initializerEnvironment, app);
+      return new EvalListConfiguration(args, initializerEnvironment, app);
     }
 
     if (next is SuperInitializer) {
@@ -783,13 +767,12 @@ class InitializerContinuation extends ExpressionContinuation {
       var superApp = new SuperConstructorApplication(
           next.target, initializerEnvironment, configuration);
       _initializeNullFields(currentClass, newObject);
-      return new ExpressionListConfiguration(
-          args, initializerEnvironment, superApp);
+      return new EvalListConfiguration(args, initializerEnvironment, superApp);
     }
 
     var cont = new InitializerContinuation(currentClass, initializerEnvironment,
         initializers.skip(1).toList(), configuration);
-    return new ExpressionConfiguration(
+    return new EvalConfiguration(
         _getExpression(next), initializerEnvironment, cont);
   }
 }
@@ -804,8 +787,7 @@ class ValueApplication extends ApplicationContinuation {
 
   Configuration call(List<InterpreterValue> args) {
     args.add(value);
-    return new ExpressionListContinuationConfiguration(
-        applicationContinuation, args);
+    return new ApplicationConfiguration(applicationContinuation, args);
   }
 }
 
@@ -814,10 +796,10 @@ abstract class ExpressionContinuation extends Continuation {
   Configuration call(Value v);
 }
 
-/// Represents a continuation that returns the next [StatementConfiguration]
+/// Represents a continuation that returns the next [ExecConfiguration]
 /// to be executed.
 class ExpressionStatementContinuation extends ExpressionContinuation {
-  final StatementConfiguration configuration;
+  final ExecConfiguration configuration;
 
   ExpressionStatementContinuation(this.configuration);
 
@@ -834,7 +816,7 @@ class PrintContinuation extends ExpressionContinuation {
   Configuration call(Value v) {
     log.info('print(${v.value.runtimeType}: ${v.value})\n');
     print(v.value);
-    return new ContinuationConfiguration(continuation, Value.nullInstance);
+    return new ValuePassingConfiguration(continuation, Value.nullInstance);
   }
 }
 
@@ -847,7 +829,7 @@ class PropertyGetContinuation extends ExpressionContinuation {
   Configuration call(Value receiver) {
     // TODO: CPS the invocation of the getter.
     Value propertyValue = receiver.class_.lookupGetter(name)(receiver);
-    return new ContinuationConfiguration(continuation, propertyValue);
+    return new ValuePassingConfiguration(continuation, propertyValue);
   }
 }
 
@@ -862,7 +844,7 @@ class PropertySetContinuation extends ExpressionContinuation {
 
   Configuration call(Value receiver) {
     var cont = new SetterContinuation(receiver, setterName, continuation);
-    return new ExpressionConfiguration(value, environment, cont);
+    return new EvalConfiguration(value, environment, cont);
   }
 }
 
@@ -876,7 +858,7 @@ class SetterContinuation extends ExpressionContinuation {
   Configuration call(Value v) {
     Setter setter = receiver.class_.lookupSetter(name);
     setter(receiver, v);
-    return new ContinuationConfiguration(continuation, v);
+    return new ValuePassingConfiguration(continuation, v);
   }
 }
 
@@ -894,7 +876,7 @@ class ExpressionListContinuation extends ExpressionContinuation {
   Configuration call(Value v) {
     ValueApplication app = new ValueApplication(
         currentExpression.assignValue(v), applicationContinuation);
-    return new ExpressionListConfiguration(expressions, environment, app);
+    return new EvalListConfiguration(expressions, environment, app);
   }
 }
 
@@ -910,13 +892,12 @@ class MethodInvocationContinuation extends ExpressionContinuation {
   Configuration call(Value receiver) {
     if (arguments.positional.isEmpty) {
       Value returnValue = receiver.invokeMethod(methodName);
-      return new ContinuationConfiguration(continuation, returnValue);
+      return new ValuePassingConfiguration(continuation, returnValue);
     }
     var cont = new ArgumentsContinuation(
         receiver, methodName, arguments, environment, continuation);
 
-    return new ExpressionConfiguration(
-        arguments.positional.first, environment, cont);
+    return new EvalConfiguration(arguments.positional.first, environment, cont);
   }
 }
 
@@ -934,7 +915,7 @@ class ArgumentsContinuation extends ExpressionContinuation {
     // Currently evaluates only one argument, for simple method invocations
     // with 1 argument.
     Value returnValue = receiver.invokeMethod(methodName, value);
-    return new ContinuationConfiguration(continuation, returnValue);
+    return new ValuePassingConfiguration(continuation, returnValue);
   }
 }
 
@@ -947,7 +928,7 @@ class VariableSetContinuation extends ExpressionContinuation {
 
   Configuration call(Value value) {
     environment.assign(variable, value);
-    return new ContinuationConfiguration(continuation, value);
+    return new ValuePassingConfiguration(continuation, value);
   }
 }
 
@@ -960,7 +941,7 @@ class NotContinuation extends ExpressionContinuation {
     Value notValue = identical(Value.trueInstance, value)
         ? Value.falseInstance
         : Value.trueInstance;
-    return new ContinuationConfiguration(continuation, notValue);
+    return new ValuePassingConfiguration(continuation, notValue);
   }
 }
 
@@ -973,8 +954,8 @@ class OrContinuation extends ExpressionContinuation {
 
   Configuration call(Value left) {
     return identical(Value.trueInstance, left)
-        ? new ContinuationConfiguration(continuation, Value.trueInstance)
-        : new ExpressionConfiguration(right, environment, continuation);
+        ? new ValuePassingConfiguration(continuation, Value.trueInstance)
+        : new EvalConfiguration(right, environment, continuation);
   }
 }
 
@@ -987,8 +968,8 @@ class AndContinuation extends ExpressionContinuation {
 
   Configuration call(Value left) {
     return identical(Value.falseInstance, left)
-        ? new ContinuationConfiguration(continuation, Value.falseInstance)
-        : new ExpressionConfiguration(right, environment, continuation);
+        ? new ValuePassingConfiguration(continuation, Value.falseInstance)
+        : new EvalConfiguration(right, environment, continuation);
   }
 }
 
@@ -1003,8 +984,8 @@ class ConditionalContinuation extends ExpressionContinuation {
 
   Configuration call(Value value) {
     return identical(Value.trueInstance, value)
-        ? new ExpressionConfiguration(then, environment, continuation)
-        : new ExpressionConfiguration(otherwise, environment, continuation);
+        ? new EvalConfiguration(then, environment, continuation)
+        : new EvalConfiguration(otherwise, environment, continuation);
   }
 }
 
@@ -1018,7 +999,7 @@ class StringConcatenationContinuation extends ApplicationContinuation {
     for (InterpreterValue v in values.reversed) {
       result.write(v.value.value);
     }
-    return new ContinuationConfiguration(
+    return new ValuePassingConfiguration(
         continuation, new StringValue(result.toString()));
   }
 }
@@ -1035,7 +1016,7 @@ class LetContinuation extends ExpressionContinuation {
   Configuration call(Value value) {
     var letEnv = new Environment(environment);
     letEnv.expand(variable, value);
-    return new ExpressionConfiguration(letBody, letEnv, continuation);
+    return new EvalConfiguration(letBody, letEnv, continuation);
   }
 }
 
@@ -1046,13 +1027,12 @@ class WhileConditionContinuation extends ExpressionContinuation {
 
   WhileConditionContinuation(this.node, this.state);
 
-  StatementConfiguration call(Value v) {
+  ExecConfiguration call(Value v) {
     if (identical(v, Value.trueInstance)) {
       // Add configuration for the While statement to the linked list.
-      StatementConfiguration config = new StatementConfiguration(node, state);
+      ExecConfiguration config = new ExecConfiguration(node, state);
       // Configuration for the body of the loop.
-      return new StatementConfiguration(
-          node.body, state.withConfiguration(config));
+      return new ExecConfiguration(node.body, state.withConfiguration(config));
     }
 
     return state.statementConfiguration;
@@ -1067,13 +1047,13 @@ class IfConditionContinuation extends ExpressionContinuation {
 
   IfConditionContinuation(this.then, this.otherwise, this.state);
 
-  StatementConfiguration call(Value v) {
+  ExecConfiguration call(Value v) {
     if (identical(v, Value.trueInstance)) {
       log.info("if-then\n");
-      return new StatementConfiguration(then, state);
+      return new ExecConfiguration(then, state);
     } else if (otherwise != null) {
       log.info("if-otherwise\n");
-      return new StatementConfiguration(otherwise, state);
+      return new ExecConfiguration(otherwise, state);
     }
     return state.statementConfiguration;
   }
@@ -1084,12 +1064,12 @@ class IfConditionContinuation extends ExpressionContinuation {
 class VariableInitializerContinuation extends ExpressionContinuation {
   final VariableDeclaration variable;
   final Environment environment;
-  final StatementConfiguration nextConfiguration;
+  final ExecConfiguration nextConfiguration;
 
   VariableInitializerContinuation(
       this.variable, this.environment, this.nextConfiguration);
 
-  StatementConfiguration call(Value v) {
+  ExecConfiguration call(Value v) {
     environment.expand(variable, v);
     return nextConfiguration;
   }
@@ -1115,7 +1095,7 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
 
   Configuration exec(Statement statement, State state) =>
       statement.accept1(this, state);
-  Configuration eval(Expression expression, ExpressionConfiguration config) =>
+  Configuration eval(Expression expression, EvalConfiguration config) =>
       evaluator.eval(expression, config);
   Configuration evalList(
           List<InterpreterExpression> es, Environment env, Continuation cont) =>
@@ -1134,8 +1114,7 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
       ExpressionStatement node, State state) {
     var cont =
         new ExpressionStatementContinuation(state.statementConfiguration);
-    return new ExpressionConfiguration(
-        node.expression, state.environment, cont);
+    return new EvalConfiguration(node.expression, state.environment, cont);
   }
 
   Configuration visitBlock(Block node, State state) {
@@ -1144,10 +1123,10 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
     }
     State blockState =
         state.withEnvironment(new Environment(state.environment));
-    StatementConfiguration configuration = state.statementConfiguration;
+    ExecConfiguration configuration = state.statementConfiguration;
     for (Statement s in node.statements.reversed) {
-      configuration = new StatementConfiguration(
-          s, blockState.withConfiguration(configuration));
+      configuration =
+          new ExecConfiguration(s, blockState.withConfiguration(configuration));
     }
     return configuration;
   }
@@ -1159,11 +1138,11 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
   Configuration visitIfStatement(IfStatement node, State state) {
     var cont = new IfConditionContinuation(node.then, node.otherwise, state);
 
-    return new ExpressionConfiguration(node.condition, state.environment, cont);
+    return new EvalConfiguration(node.condition, state.environment, cont);
   }
 
   Configuration visitLabeledStatement(LabeledStatement node, State state) {
-    return new StatementConfiguration(node.body, state.withBreak(node));
+    return new ExecConfiguration(node.body, state.withBreak(node));
   }
 
   Configuration visitBreakStatement(BreakStatement node, State state) {
@@ -1173,16 +1152,16 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
   Configuration visitWhileStatement(WhileStatement node, State state) {
     var cont = new WhileConditionContinuation(node, state);
 
-    return new ExpressionConfiguration(node.condition, state.environment, cont);
+    return new EvalConfiguration(node.condition, state.environment, cont);
   }
 
   Configuration visitDoStatement(DoStatement node, State state) {
     WhileStatement whileStatement =
         new WhileStatement(node.condition, node.body);
-    StatementConfiguration configuration =
-        new StatementConfiguration(whileStatement, state);
+    ExecConfiguration configuration =
+        new ExecConfiguration(whileStatement, state);
 
-    return new StatementConfiguration(
+    return new ExecConfiguration(
         node.body, state.withConfiguration(configuration));
   }
 
@@ -1190,11 +1169,11 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
     assert(state.returnContinuation != null);
     log.info('return\n');
     if (node.expression == null) {
-      return new ContinuationConfiguration(
+      return new ValuePassingConfiguration(
           state.returnContinuation, Value.nullInstance);
     }
 
-    return new ExpressionConfiguration(
+    return new EvalConfiguration(
         node.expression, state.environment, state.returnContinuation);
   }
 
@@ -1203,8 +1182,7 @@ class StatementExecuter extends StatementVisitor1<Configuration, State> {
     if (node.initializer != null) {
       var cont = new VariableInitializerContinuation(
           node, state.environment, state.statementConfiguration);
-      return new ExpressionConfiguration(
-          node.initializer, state.environment, cont);
+      return new EvalConfiguration(node.initializer, state.environment, cont);
     }
     state.environment.expand(node, Value.nullInstance);
     return state.statementConfiguration;
