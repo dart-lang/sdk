@@ -31,7 +31,14 @@ import 'locals.dart';
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  Map<ir.Node, ClosureScope> _closureScopeMap = <ir.Node, ClosureScope>{};
+
+  /// Map of the scoping information that corresponds to a particular entity.
+  /// This particular map contains ScopeInfos only for entities that are *not*
+  /// closures. Entities that are closures are stored in the
+  /// [_loopClosureScopeMap]. TODO!!!
+  Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
+  Map<ir.Statement, LoopClosureScope> _loopClosureScopeMap =
+      <ir.Statement, LoopClosureScope>{};
 
   Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
       <Entity, ClosureRepresentationInfo>{};
@@ -81,10 +88,17 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       MemberEntity entity,
       Map<ir.TreeNode, ScopeInfo> closuresToGenerate,
       ClosedWorldRefiner closedWorldRefiner) {
+    if (_scopeMap.keys.contains(entity)) return;
     ir.Node node = _elementMap.getMemberNode(entity);
-    if (_closureScopeMap.keys.contains(node)) return;
-    ClosureScopeBuilder translator = new ClosureScopeBuilder(_closureScopeMap,
-        closuresToGenerate, _globalLocalsMap.getLocalsMap(entity), _elementMap);
+    if (node is ir.Statement && _loopClosureScopeMap.keys.contains(node))
+      return;
+    ClosureScopeBuilder translator = new ClosureScopeBuilder(
+        _loopClosureScopeMap,
+        _scopeMap,
+        entity,
+        closuresToGenerate,
+        _globalLocalsMap.getLocalsMap(entity),
+        _elementMap);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         translator.translateLazyInitializer(node);
@@ -129,29 +143,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   @override
   ScopeInfo getScopeInfo(Entity entity) {
-    return getClosureRepresentationInfo(entity);
-  }
-
-  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
-  // and we should just test that with an assert.
-  ClosureScope _getClosureScope(ir.Node node) =>
-      _closureScopeMap[node] ?? const ClosureScope();
-
-  @override
-  ClosureScope getClosureScope(MemberEntity entity) {
-    return _getClosureScope(_elementMap.getMemberNode(entity));
-  }
-
-  @override
-  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
-  // and we should just test that with an assert.
-  LoopClosureScope getLoopClosureScope(ir.Node loopNode) =>
-      _closureScopeMap[loopNode] ?? const LoopClosureScope();
-
-  @override
-  // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
-  // non-null, and we should just test that with an assert.
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
     // TODO(johnniwinther): Remove this check when constructor bodies a created
     // eagerly with the J-model; a constructor body should have it's own
     // [ClosureRepresentationInfo].
@@ -159,6 +150,26 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ConstructorBodyEntity constructorBody = entity;
       entity = constructorBody.constructor;
     }
+
+    return _scopeMap[entity] ?? getClosureRepresentationInfo(entity);
+  }
+
+  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
+  // and we should just test that with an assert.
+  @override
+  ClosureScope getClosureScope(MemberEntity entity) =>
+      _scopeMap[entity] ?? const ClosureScope();
+
+  @override
+  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
+  // and we should just test that with an assert.
+  LoopClosureScope getLoopClosureScope(ir.Statement loopNode) =>
+      _loopClosureScopeMap[loopNode] ?? const LoopClosureScope();
+
+  @override
+  // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
+  // non-null, and we should just test that with an assert.
+  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
     return _closureRepresentationMap[entity] ??
         const ClosureRepresentationInfo();
   }
