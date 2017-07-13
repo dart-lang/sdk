@@ -36,11 +36,17 @@ class Interpreter {
   }
 }
 
-class Binding {
-  final VariableDeclaration variable;
+class Location {
   Value value;
 
-  Binding(this.variable, this.value);
+  Location(this.value);
+}
+
+class Binding {
+  final VariableDeclaration variable;
+  final Location location;
+
+  Binding(this.variable, this.location);
 }
 
 class Environment {
@@ -70,17 +76,17 @@ class Environment {
   }
 
   Value lookup(VariableDeclaration variable) {
-    return lookupBinding(variable).value;
+    return lookupBinding(variable).location.value;
   }
 
   void assign(VariableDeclaration variable, Value value) {
     assert(contains(variable));
-    lookupBinding(variable).value = value;
+    lookupBinding(variable).location.value = value;
   }
 
   void expand(VariableDeclaration variable, Value value) {
     assert(!contains(variable));
-    bindings.add(new Binding(variable, value));
+    bindings.add(new Binding(variable, new Location(value)));
   }
 }
 
