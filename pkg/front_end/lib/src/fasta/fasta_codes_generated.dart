@@ -40,6 +40,25 @@ const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
     message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateAccessError =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Access error: '#name'.""",
+        withArguments: _withArgumentsAccessError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeAccessError =
+    const Code<Message Function(String name)>(
+  "AccessError",
+  templateAccessError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAccessError(String name) {
+  return new Message(codeAccessError,
+      message: """Access error: '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         int
@@ -2208,6 +2227,25 @@ const MessageCode messagePositionalParameterWithEquals = const MessageCode(
     message:
         r"""Positional optional parameters can't use ':' to specify a default value.""",
     tip: r"""Try replacing ':' with '='.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templatePreviousUseOfName =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Previous use of '#name'.""",
+        withArguments: _withArgumentsPreviousUseOfName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codePreviousUseOfName =
+    const Code<Message Function(String name)>(
+  "PreviousUseOfName",
+  templatePreviousUseOfName,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPreviousUseOfName(String name) {
+  return new Message(codePreviousUseOfName,
+      message: """Previous use of '$name'.""", arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;

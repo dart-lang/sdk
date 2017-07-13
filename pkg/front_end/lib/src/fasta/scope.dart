@@ -6,11 +6,16 @@ library fasta.scope;
 
 import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
-import 'deprecated_problems.dart' show deprecated_InputError;
+import 'fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        messageInternalProblemExtendingUnmodifiableScope,
+        templateAccessError,
+        templateDuplicatedName,
+        templatePreviousUseOfName;
 
 import 'problems.dart' show internalProblem, unsupported;
-
-import 'fasta_codes.dart' show messageInternalProblemExtendingUnmodifiableScope;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -188,12 +193,13 @@ class Scope extends MutableScope {
   /// If name was used previously in this scope, this method returns an error
   /// that should be reported as a compile-time error. The position of this
   /// error is given by [charOffset] and [fileUri].
-  deprecated_InputError declare(
+  LocatedMessage declare(
       String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
       if (usedNames?.containsKey(name) ?? false) {
-        return new deprecated_InputError(
-            fileUri, usedNames[name], "Previous use of '$name'.");
+        return templatePreviousUseOfName
+            .withArguments(name)
+            .withLocation(fileUri, usedNames[name]);
       }
       recordUse(name, charOffset, fileUri);
       local[name] = builder;
@@ -279,7 +285,7 @@ abstract class ProblemBuilder extends Builder {
 
   bool get hasProblem => true;
 
-  String get deprecated_message;
+  Message get message;
 
   @override
   String get fullNameForErrors => name;
@@ -313,12 +319,12 @@ class AccessErrorBuilder extends ProblemBuilder {
 
   bool get isLocal => builder.isLocal;
 
-  String get deprecated_message => "Access error: '$name'.";
+  Message get message => templateAccessError.withArguments(name);
 }
 
 class AmbiguousBuilder extends ProblemBuilder {
   AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
-  String get deprecated_message => "Duplicated named: '$name'.";
+  Message get message => templateDuplicatedName.withArguments(name);
 }

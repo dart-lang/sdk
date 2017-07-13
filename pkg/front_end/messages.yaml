@@ -840,3 +840,9 @@ ConstConstructorNonFinalField:
 
 ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
+
+AccessError:
+  template: "Access error: '#name'."
+
+PreviousUseOfName:
+  template: "Previous use of '#name'."

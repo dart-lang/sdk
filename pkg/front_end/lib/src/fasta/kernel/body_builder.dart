@@ -17,12 +17,11 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import '../../scanner/token.dart' show BeginToken, Token;
 
-import '../deprecated_problems.dart'
-    show deprecated_InputError, deprecated_formatUnexpected;
+import '../deprecated_problems.dart' show deprecated_formatUnexpected;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show LocatedMessage, Message;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -326,7 +325,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "'$name' already declared in this scope.", offset));
       return;
     }
-    deprecated_InputError error = scope.declare(
+    LocatedMessage error = scope.declare(
         variable.name,
         new KernelVariableBuilder(
             variable, member ?? classBuilder ?? library, uri),
@@ -346,9 +345,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       // Reports the error on `print(x)`.
       library.addCompileTimeError(
-          fasta.templateUnspecified.withArguments(error.error),
-          error.charOffset,
-          error.uri);
+          error.messageObject, error.charOffset, error.uri);
     }
   }
 
@@ -1649,7 +1646,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (builder.hasProblem) {
       ProblemBuilder problem = builder;
-      deprecated_addCompileTimeError(charOffset, problem.deprecated_message);
+      addCompileTimeError(problem.message, charOffset);
     } else {
       warningNotError(
           fasta.templateNotAType.withArguments(builder.fullNameForErrors),
@@ -3236,8 +3233,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildProblemExpression(ProblemBuilder builder, int charOffset) {
-    return deprecated_buildCompileTimeError(
-        builder.deprecated_message, charOffset);
+    return buildCompileTimeError(builder.message, charOffset);
   }
 
   @override
