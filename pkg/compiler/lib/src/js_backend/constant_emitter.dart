@@ -6,7 +6,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
-import '../elements/types.dart' show DartType, InterfaceType, TypeVariableType;
+import '../elements/types.dart' show TypeVariableType;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../io/code_output.dart';
@@ -274,13 +274,13 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return value;
   }
 
-  jsAst.PropertyAccess getHelperProperty(FunctionEntity helper) {
+  jsAst.PropertyAccess getHelperProperty(MethodElement helper) {
     return _emitter.staticFunctionAccess(helper);
   }
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType;
+    ResolutionDartType type = constant.representedType;
     jsAst.Name typeName = _namer.runtimeTypeName(type.element);
     return new jsAst.Call(getHelperProperty(_commonElements.createRuntimeType),
         [js.quoteName(typeName)]);
@@ -333,8 +333,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   jsAst.Expression maybeAddTypeArguments(
-      InterfaceType type, jsAst.Expression value) {
-    if (type is InterfaceType &&
+      ResolutionInterfaceType type, jsAst.Expression value) {
+    if (type is ResolutionInterfaceType &&
         !type.treatAsRaw &&
         _rtiNeed.classNeedsRti(type.element)) {
       return new jsAst.Call(
@@ -344,8 +344,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return value;
   }
 
-  jsAst.Expression _reifiedTypeArguments(InterfaceType type) {
-    jsAst.Expression unexpected(TypeVariableType variable) {
+  jsAst.Expression _reifiedTypeArguments(ResolutionInterfaceType type) {
+    jsAst.Expression unexpected(TypeVariableType _variable) {
+      ResolutionTypeVariableType variable = _variable;
       throw new SpannableAssertionFailure(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable.getStringAsDeclared(null)}'"
@@ -353,7 +354,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    for (DartType argument in type.typeArguments) {
+    for (ResolutionDartType argument in type.typeArguments) {
       arguments.add(
           _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }
