@@ -47,6 +47,8 @@ import '../messages.dart'
 
 import '../problems.dart' show internalProblem;
 
+import '../deprecated_problems.dart' show deprecated_inputError;
+
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inference_listener.dart'
@@ -66,8 +68,7 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         ProcedureBuilder,
         TypeVariableBuilder,
-        isRedirectingGenerativeConstructorImplementation,
-        deprecated_memberError;
+        isRedirectingGenerativeConstructorImplementation;
 
 import 'kernel_shadow_ast.dart' show KernelProcedure;
 
@@ -357,10 +358,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   void checkSuperOrThisInitializer(Initializer initializer) {
     if (superInitializer != null || redirectingInitializer != null) {
-      deprecated_memberError(
-          target,
-          "Can't have more than one 'super' or 'this' initializer.",
-          initializer.fileOffset);
+      return deprecated_inputError(fileUri, initializer.fileOffset,
+          "Can't have more than one 'super' or 'this' initializer.");
     }
   }
 
@@ -373,16 +372,12 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       checkSuperOrThisInitializer(initializer);
       redirectingInitializer = initializer;
       if (constructor.initializers.isNotEmpty) {
-        deprecated_memberError(
-            target,
-            "'this' initializer must be the only initializer.",
-            initializer.fileOffset);
+        deprecated_inputError(fileUri, initializer.fileOffset,
+            "'this' initializer must be the only initializer.");
       }
     } else if (redirectingInitializer != null) {
-      deprecated_memberError(
-          target,
-          "'this' initializer must be the only initializer.",
-          initializer.fileOffset);
+      deprecated_inputError(fileUri, initializer.fileOffset,
+          "'this' initializer must be the only initializer.");
     } else if (superInitializer != null) {
       // If there is a super initializer ([initializer] isn't it), we need to
       // insert [initializer] before the super initializer (thus ensuring that
