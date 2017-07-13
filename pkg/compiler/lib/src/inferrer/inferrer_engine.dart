@@ -63,7 +63,7 @@ class InferrerEngine {
   final ClosedWorld closedWorld;
 
   final ClosedWorldRefiner closedWorldRefiner;
-  final TypeSystem types;
+  final TypeSystem<ast.Node> types;
   final Map<ast.Node, TypeInformation> concreteTypes =
       new Map<ast.Node, TypeInformation>();
 
@@ -82,7 +82,7 @@ class InferrerEngine {
 
   InferrerEngine(this.compiler, ClosedWorld closedWorld,
       this.closedWorldRefiner, this.mainElement)
-      : this.types = new TypeSystem(closedWorld),
+      : this.types = new TypeSystem<ast.Node>(closedWorld),
         this.closedWorld = closedWorld;
 
   CommonElements get commonElements => closedWorld.commonElements;
@@ -947,7 +947,7 @@ class InferrerEngine {
    */
   TypeInformation registerAwait(ast.Node node, TypeInformation argument) {
     AwaitTypeInformation info =
-        new AwaitTypeInformation(types.currentMember, node);
+        new AwaitTypeInformation<ast.Node>(types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
@@ -959,7 +959,7 @@ class InferrerEngine {
    */
   TypeInformation registerYield(ast.Node node, TypeInformation argument) {
     YieldTypeInformation info =
-        new YieldTypeInformation(types.currentMember, node);
+        new YieldTypeInformation<ast.Node>(types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;

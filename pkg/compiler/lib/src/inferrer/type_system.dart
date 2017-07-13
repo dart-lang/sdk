@@ -19,7 +19,8 @@ import '../elements/elements.dart'
         SetterElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/nodes.dart' as ast;
+import '../tree/nodes.dart' as ast
+    show LiteralMap, LiteralList, Loop, Send, SwitchStatement;
 import '../types/masks.dart';
 import '../universe/selector.dart';
 import '../world.dart';
@@ -28,7 +29,7 @@ import 'type_graph_nodes.dart';
 /**
  * The class [SimpleInferrerVisitor] will use when working on types.
  */
-class TypeSystem {
+class TypeSystem<T> {
   final ClosedWorld closedWorld;
 
   /// [parameterTypeInformations] and [memberTypeInformations] ordered by
@@ -44,12 +45,10 @@ class TypeSystem {
       new Map<MemberEntity, TypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
-  final Map<ast.Node, TypeInformation> allocatedLists =
-      new Map<ast.Node, TypeInformation>();
+  final Map<T, TypeInformation> allocatedLists = new Map<T, TypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<ast.Node, TypeInformation> allocatedMaps =
-      new Map<ast.Node, TypeInformation>();
+  final Map<T, TypeInformation> allocatedMaps = new Map<T, TypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
@@ -477,8 +476,9 @@ class TypeSystem {
   }
 
   TypeInformation allocateList(
-      TypeInformation type, ast.Node node, MemberEntity enclosing,
+      TypeInformation type, T node, MemberEntity enclosing,
       [TypeInformation elementType, int length]) {
+    assert(node is ast.LiteralList || node is ast.Send);
     ClassEntity typedDataClass = closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
         closedWorld.isInstantiated(typedDataClass) &&
@@ -512,8 +512,9 @@ class TypeSystem {
   }
 
   TypeInformation allocateMap(
-      ConcreteTypeInformation type, ast.Node node, MemberEntity element,
+      ConcreteTypeInformation type, T node, MemberEntity element,
       [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
+    assert(node is ast.LiteralMap);
     assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == commonMasks.constMapType);
 
@@ -565,18 +566,20 @@ class TypeSystem {
    */
   TypeInformation allocateDiamondPhi(
       TypeInformation firstInput, TypeInformation secondInput) {
-    PhiElementTypeInformation result =
-        new PhiElementTypeInformation(currentMember, null, false, null);
+    PhiElementTypeInformation<T> result = new PhiElementTypeInformation<T>(
+        currentMember, null, null,
+        isTry: false);
     result.addAssignment(firstInput);
     result.addAssignment(secondInput);
     allocatedTypes.add(result);
     return result;
   }
 
-  PhiElementTypeInformation _addPhi(
-      ast.Node node, Local variable, inputType, bool isLoop) {
-    PhiElementTypeInformation result =
-        new PhiElementTypeInformation(currentMember, node, isLoop, variable);
+  PhiElementTypeInformation<T> _addPhi(
+      T node, Local variable, TypeInformation inputType, bool isTry) {
+    PhiElementTypeInformation<T> result = new PhiElementTypeInformation<T>(
+        currentMember, node, variable,
+        isTry: isTry);
     allocatedTypes.add(result);
     result.addAssignment(inputType);
     return result;
@@ -586,17 +589,18 @@ class TypeSystem {
    * Returns a new type for holding the potential types of [element].
    * [inputType] is the first incoming type of the phi.
    */
-  PhiElementTypeInformation allocatePhi(
-      ast.Node node, Local variable, inputType) {
+  PhiElementTypeInformation<T> allocatePhi(
+      T node, Local variable, TypeInformation inputType,
+      {bool isTry}) {
     // Check if [inputType] is a phi for a local updated in
     // the try/catch block [node]. If it is, no need to allocate a new
     // phi.
     if (inputType is PhiElementTypeInformation &&
         inputType.branchNode == node &&
-        inputType.branchNode is ast.TryStatement) {
+        inputType.isTry) {
       return inputType;
     }
-    return _addPhi(node, variable, inputType, false);
+    return _addPhi(node, variable, inputType, isTry);
   }
 
   /**
@@ -606,9 +610,11 @@ class TypeSystem {
    * implementation of [TypeSystem] to differentiate Phi nodes due to loops
    * from other merging uses.
    */
-  PhiElementTypeInformation allocateLoopPhi(
-      ast.Node node, Local variable, inputType) {
-    return _addPhi(node, variable, inputType, true);
+  PhiElementTypeInformation<T> allocateLoopPhi(
+      T node, Local variable, TypeInformation inputType,
+      {bool isTry}) {
+    assert(node is ast.Loop || node is ast.SwitchStatement);
+    return _addPhi(node, variable, inputType, isTry);
   }
 
   /**
@@ -618,7 +624,7 @@ class TypeSystem {
    * input type.
    */
   TypeInformation simplifyPhi(
-      ast.Node node, Local variable, PhiElementTypeInformation phiType) {
+      T node, Local variable, PhiElementTypeInformation<T> phiType) {
     assert(phiType.branchNode == node);
     if (phiType.assignments.length == 1) return phiType.assignments.first;
     return phiType;
@@ -627,8 +633,8 @@ class TypeSystem {
   /**
    * Adds [newType] as an input of [phiType].
    */
-  PhiElementTypeInformation addPhiInput(Local variable,
-      PhiElementTypeInformation phiType, TypeInformation newType) {
+  PhiElementTypeInformation<T> addPhiInput(Local variable,
+      PhiElementTypeInformation<T> phiType, TypeInformation newType) {
     phiType.addAssignment(newType);
     return phiType;
   }

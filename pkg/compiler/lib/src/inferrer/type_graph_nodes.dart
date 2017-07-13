@@ -1756,13 +1756,14 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
  * A [PhiElementTypeInformation] is an union of
  * [ElementTypeInformation], that is local to a method.
  */
-class PhiElementTypeInformation extends TypeInformation {
-  final ast.Node branchNode;
-  final bool isLoopPhi;
+class PhiElementTypeInformation<T> extends TypeInformation {
+  final T branchNode;
   final Local variable;
+  final bool isTry;
 
-  PhiElementTypeInformation(MemberTypeInformation context, this.branchNode,
-      this.isLoopPhi, this.variable)
+  PhiElementTypeInformation(
+      MemberTypeInformation context, this.branchNode, this.variable,
+      {this.isTry})
       : super(context);
 
   TypeMask computeType(InferrerEngine inferrer) {
@@ -1842,8 +1843,8 @@ abstract class TracedTypeInformation implements TypeInformation {
   }
 }
 
-class AwaitTypeInformation extends TypeInformation {
-  final ast.Node _node;
+class AwaitTypeInformation<T> extends TypeInformation {
+  final T _node;
 
   AwaitTypeInformation(MemberTypeInformation context, this._node)
       : super(context);
@@ -1860,8 +1861,8 @@ class AwaitTypeInformation extends TypeInformation {
   }
 }
 
-class YieldTypeInformation extends TypeInformation {
-  final ast.Node _node;
+class YieldTypeInformation<T> extends TypeInformation {
+  final T _node;
 
   YieldTypeInformation(MemberTypeInformation context, this._node)
       : super(context);

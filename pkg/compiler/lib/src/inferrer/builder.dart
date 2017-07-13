@@ -58,7 +58,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   final Compiler compiler;
   final MemberElement analyzedElement;
   final ResolvedAst resolvedAst;
-  final TypeSystem types;
+  final TypeSystem<ast.Node> types;
   final Map<JumpTarget, List<LocalsHandler>> breaksFor =
       new Map<JumpTarget, List<LocalsHandler>>();
   final Map<JumpTarget, List<LocalsHandler>> continuesFor =
@@ -1165,7 +1165,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       for (ast.Node element in node.elements.nodes) {
         TypeInformation type = visit(element);
         elementType = elementType == null
-            ? types.allocatePhi(null, null, type)
+            ? types.allocatePhi(null, null, type, isTry: false)
             : types.addPhiInput(null, elementType, type);
         length++;
       }
