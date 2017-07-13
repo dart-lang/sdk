@@ -391,7 +391,8 @@ bool hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
-getExtensionType(obj) => JS('', '#[#]', obj, _extensionType);
+getExtensionType(obj) =>
+    JS('', '# == null ? null : #[#]', obj, obj, _extensionType);
 
 final dartx = JS('', 'dartx');
 
