@@ -12,5 +12,5 @@ abstract class A {
 }
 
 void main() {
-  /* @compile-error */ new A();
+  /*@compile-error=unspecified*/ new A();
 }

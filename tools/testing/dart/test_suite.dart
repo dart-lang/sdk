@@ -1588,13 +1588,14 @@ class StandardTestSuite extends TestSuite {
     // test that says "This specific static error should be reported right by
     // this token."
     //
-    // Until that system is in place, we need a way to migrate these tests and
-    // track that they should now generate compile errors. The co19 tests have
-    // a mechanism for this using little "@compile-error" tags, so we allow it
-    // on other tests too.
+    // That system isn't in place yet, so we do a crude approximation here in
+    // test.dart. If a test contains `/*@compile-error=`, which matches the
+    // beginning of the tag syntax that front_end uses, then we assume that
+    // this test must have a static error somewhere in it.
     //
-    // Remove this once we have a better way to describe static error tests.
-    var hasCompileError = contents.contains("@compile-error");
+    // Redo this code once we have a more precise test framework for detecting
+    // and locating these errors.
+    var hasCompileError = contents.contains("/*@compile-error=");
 
     return {
       "vmOptions": result,
