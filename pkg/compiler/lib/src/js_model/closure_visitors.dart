@@ -13,19 +13,13 @@ import 'closure.dart';
 /// various points to build ClosureScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
 class ClosureScopeBuilder extends ir.Visitor {
-  /// A map of each visited call node with the associated information about what
-  /// variables are captured/used. Each ir.Node key corresponds to a scope that
-  /// was encountered while visiting a closure (initially called through
-  /// [translateLazyIntializer] or [translateConstructorOrProcedure]).
-  // TODODODOOOOOO
+  /// A map of each for loop statement and the corresponding variable
+  /// information about what variables are captured/used in the this for loop
+  /// declaration.
   final Map<ir.Statement, LoopClosureScope> _loopClosureScopeMap;
 
   /// Map entities to their corresponding scope information (such as what
-  /// variables are captured/used). The distinction between this map and
-  /// [_closureInfoMap] is that [_closureInfoMap] stores this data for closures
-  /// specifically, whereas [_scopeInfoMap] stores this information for entities
-  /// that are *not* closures (this information is used by the locals handler).
-  /// The union of these two maps represents all the scopes encountered.
+  /// variables are captured/used).
   final Map<Entity, ScopeInfo> _scopeInfoMap;
 
   /// A map of the nodes that we have flagged as necessary to generate closure

@@ -33,9 +33,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final GlobalLocalsMap _globalLocalsMap;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  /// This particular map contains ScopeInfos only for entities that are *not*
-  /// closures. Entities that are closures are stored in the
-  /// [_loopClosureScopeMap]. TODO!!!
   Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
   Map<ir.Statement, LoopClosureScope> _loopClosureScopeMap =
       <ir.Statement, LoopClosureScope>{};
