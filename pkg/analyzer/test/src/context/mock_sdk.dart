@@ -55,8 +55,8 @@ class Future<T> {
 class FutureOr<T> {}
 
 abstract class Completer<T> {
-  factory Completer() => new _AsyncCompleter<T>();
-  factory Completer.sync() => new _SyncCompleter<T>();
+  factory Completer() => null;
+  factory Completer.sync() => null;
   Future<T> get future;
   void complete([value]);
   void completeError(Object error, [StackTrace stackTrace]);
@@ -121,7 +121,7 @@ library dart.core;
 import 'dart:async';
 
 class Object {
-  const Object() {}
+  const Object();
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
@@ -245,9 +245,7 @@ abstract class double extends num {
 class DateTime extends Object {}
 
 class Null extends Object {
-  factory Null._uninstantiable() {
-    throw new UnsupportedError('class Null cannot be instantiated');
-  }
+  factory Null._uninstantiable() => null;
 }
 
 class Deprecated extends Object {
@@ -269,7 +267,7 @@ abstract class Iterable<E> {
   Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
 
   /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element));
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
 
@@ -278,9 +276,6 @@ abstract class Iterable<E> {
   void forEach(void f(E element));
 
   List<E> toList();
-
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 }
 
 class List<E> implements Iterable<E> {
@@ -305,6 +300,8 @@ class Map<K, V> extends Object {
   int get length;
   Iterable<V> get values;
 }
+
+class Duration implements Comparable<Duration> {}
 
 external bool identical(Object a, Object b);
 
