@@ -311,7 +311,9 @@ class PluginManager {
     // TODO(brianwilkerson) Figure out the right list of plugin paths.
     _whitelistGlobs = <Glob>[
       new Glob(resourceProvider.pathContext.separator,
-          '**/angular_analyzer_plugin/tools/analyzer_plugin')
+          '**/angular_analyzer_plugin/tools/analyzer_plugin'),
+      new Glob(resourceProvider.pathContext.separator,
+          '**angular/tools/analyzer_plugin')
     ];
   }
 
