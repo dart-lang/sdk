@@ -343,8 +343,6 @@ black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
-closure_in_constructor_test: RuntimeError # Issue 27394
-closures_initializer_test: RuntimeError # Issue 27394
 conditional_property_assignment_test/07: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/01: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/05: RuntimeError # Issue 27394
@@ -375,13 +373,10 @@ final_for_in_variable_test/01: MissingRuntimeError # Issue 27394
 final_param_test/01: MissingRuntimeError # Issue 27394
 final_variable_assignment_test/01: MissingRuntimeError # Issue 27394
 first_class_types_constants_test: RuntimeError # Issue 27394
-first_class_types_test: RuntimeError # Issue 27394
-generic2_test: RuntimeError # Issue 27394
 generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
 generic_field_mixin6_test/01: Crash # Issue 27394
 generic_field_mixin_test: Crash # Issue 27394
-generic_instanceof_test: RuntimeError # Issue 27394
 generic_local_functions_test: Crash # Issue 27394
 generic_metadata_test/02: Crash # Issue 27394
 generic_metadata_test/03: Crash # Issue 27394
@@ -389,7 +384,6 @@ generic_methods_generic_function_parameter_test: Crash # Issue 27394
 generic_methods_type_expression_test/01: RuntimeError # Issue 27394
 generic_methods_type_expression_test/03: RuntimeError # Issue 27394
 generic_methods_type_expression_test/none: RuntimeError # Issue 27394
-generic_native_test: RuntimeError # Issue 27394
 get_set_syntax_test/00: Crash # Issue 27394
 if_null_assignment_behavior_test/06: RuntimeError # Issue 27394
 if_null_assignment_static_test/01: RuntimeError # Issue 27394
@@ -404,7 +398,6 @@ inference_mixin_field_test: Crash # Issue 27394
 initializing_formal_final_test: RuntimeError # Issue 27394
 inline_super_field_test: Crash # Issue 27394
 instance_creation_in_function_annotation_test: Crash # Issue 27394
-instanceof2_test: RuntimeError # Issue 27394
 invocation_mirror_test: Crash # Issue 27394
 is_malformed_type_test/94: Crash # Issue 27394
 is_malformed_type_test/96: Crash # Issue 27394
@@ -413,14 +406,11 @@ issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
-list_is_test: RuntimeError # Issue 27394
-list_test: RuntimeError # Issue 27394
 main_not_a_function_test/01: Crash # Issue 27394
 malformed_inheritance_test/03: Crash # Issue 27394
 malformed_inheritance_test/09: Crash # Issue 27394
 malformed_inheritance_test/10: Crash # Issue 27394
 malformed_test/none: Crash # Issue 27394
-many_generic_instanceof_test: RuntimeError # Issue 27394
 many_method_calls_test: Pass # Issue 27394
 mixin_black_listed_test/08: Crash # Issue 27394
 mixin_cyclic_test/01: Crash # Issue 27394
@@ -468,8 +458,6 @@ mixin_type_variable_test/08: Crash # Issue 27394
 mixin_typedef_constructor_test: Crash # Issue 27394
 named_parameters_aggregated_test/05: RuntimeError # Issue 27394
 named_parameters_test/01: MissingRuntimeError # Issue 27394
-null_is_bottom_test/14: RuntimeError # Issue 27394
-null_is_bottom_test/16: RuntimeError # Issue 27394
 null_test/none: Crash # Issue 27394
 nullaware_opt_test: RuntimeError # Issue 27394
 optional_named_parameters_test/01: MissingRuntimeError # Issue 27394
@@ -513,9 +501,6 @@ this_conditional_operator_test/01: Crash # Issue 27394
 try_catch_syntax_test/13: Crash # Issue 27394
 try_catch_syntax_test/14: Crash # Issue 27394
 try_catch_syntax_test/15: Crash # Issue 27394
-type_variable_field_initializer_closure_test: RuntimeError # Issue 27394
-type_variable_field_initializer_test: RuntimeError # Issue 27394
-type_variable_nested_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
 abstract_beats_arguments2_test/01: RuntimeError # Issue 27394
