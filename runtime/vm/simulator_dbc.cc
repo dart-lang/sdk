@@ -313,7 +313,8 @@ class SimulatorHelpers {
 
   static RawObject* AllocateDouble(Thread* thread, double value) {
     const intptr_t instance_size = Double::InstanceSize();
-    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    const uword start =
+        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
     if (LIKELY(start != 0)) {
       uword tags = 0;
       tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
@@ -2852,7 +2853,8 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(AllocateUninitializedContext, A_D);
     const uint16_t num_context_variables = rD;
     const intptr_t instance_size = Context::InstanceSize(num_context_variables);
-    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    const uword start =
+        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
     if (LIKELY(start != 0)) {
       uint32_t tags = 0;
       tags = RawObject::ClassIdTag::update(kContextCid, tags);
@@ -2896,7 +2898,8 @@ RawObject* Simulator::Call(const Code& code,
     const uword tags =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
-    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    const uword start =
+        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
     if (LIKELY(start != 0)) {
       // Writes both the tags and the initial identity hash on 64 bit platforms.
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
@@ -2926,7 +2929,8 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(AllocateTOpt, A_D);
     const uword tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
     const intptr_t instance_size = RawObject::SizeTag::decode(tags);
-    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    const uword start =
+        thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
     if (LIKELY(start != 0)) {
       RawObject* type_args = SP[0];
       const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
@@ -2965,8 +2969,8 @@ RawObject* Simulator::Call(const Code& code,
         const intptr_t instance_size =
             (fixed_size_plus_alignment_padding + length * kWordSize) &
             ~(kObjectAlignment - 1);
-        const uword start =
-            thread->heap()->new_space()->TryAllocate(instance_size);
+        const uword start = thread->heap()->new_space()->TryAllocateInTLAB(
+            thread, instance_size);
         if (LIKELY(start != 0)) {
           const intptr_t cid = kArrayCid;
           uword tags = 0;

@@ -191,9 +191,8 @@ static int GetScaleFactor(intptr_t size) {
       sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
   __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
-  Heap::Space space = Heap::kNew;                                              \
-  __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
-  __ ldr(R0, Address(R3, Heap::TopOffset(space)));                             \
+  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);                              \
+  __ ldr(R0, Address(THR, Thread::top_offset()));                              \
                                                                                \
   /* R2: allocation size. */                                                   \
   __ adds(R1, R0, Operand(R2));                                                \
@@ -203,14 +202,13 @@ static int GetScaleFactor(intptr_t size) {
   /* R0: potential new object start. */                                        \
   /* R1: potential next object start. */                                       \
   /* R2: allocation size. */                                                   \
-  /* R3: heap. */                                                              \
-  __ ldr(R6, Address(R3, Heap::EndOffset(space)));                             \
+  __ ldr(R6, Address(THR, Thread::end_offset()));                              \
   __ cmp(R1, Operand(R6));                                                     \
   __ b(&fall_through, CS);                                                     \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
+  __ str(R1, Address(THR, Thread::top_offset()));                              \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));            \
   /* Initialize the tags. */                                                   \
@@ -2010,9 +2008,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = Heap::kNew;
-  __ ldr(R3, Address(THR, Thread::heap_offset()));
-  __ ldr(R0, Address(R3, Heap::TopOffset(space)));
+  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+  __ ldr(R0, Address(THR, Thread::top_offset()));
 
   // length_reg: allocation size.
   __ adds(R1, R0, Operand(length_reg));
@@ -2022,14 +2019,13 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R0: potential new object start.
   // R1: potential next object start.
   // R2: allocation size.
-  // R3: heap.
-  __ ldr(R7, Address(R3, Heap::EndOffset(space)));
+  __ ldr(R7, Address(THR, Thread::end_offset()));
   __ cmp(R1, Operand(R7));
   __ b(&fail, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ str(R1, Address(R3, Heap::TopOffset(space)));
+  __ str(R1, Address(THR, Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
 

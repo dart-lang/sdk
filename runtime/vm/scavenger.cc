@@ -133,7 +133,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
-        new_addr = scavenger_->TryAllocate(size);
+        new_addr = scavenger_->AllocateGC(size);
         NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
@@ -153,7 +153,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         } else {
           // Promotion did not succeed. Copy into the to space instead.
           scavenger_->failed_to_promote_ = true;
-          new_addr = scavenger_->TryAllocate(size);
+          new_addr = scavenger_->AllocateGC(size);
           NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
       }
@@ -375,6 +375,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
     (isolate->gc_prologue_callback())();
   }
   isolate->PrepareForGC();
+
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from = to_;
@@ -392,6 +393,14 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
+
+  // Throw out the old information about the from space
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = isolate->mutator_thread();
+    mutator_thread->set_top(top_);
+    mutator_thread->set_end(end_);
+  }
+
   return from;
 }
 
@@ -400,6 +409,15 @@ void Scavenger::Epilogue(Isolate* isolate,
                          bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
+
+  // Ensure the mutator thread now has the up-to-date top_ and end_ of the
+  // semispace
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* thread = isolate->mutator_thread();
+    thread->set_top(top_);
+    thread->set_end(end_);
+  }
+
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
   if (stats_history_.Size() >= 2) {
     // Previous scavenge is only given half as much weight.
@@ -700,7 +718,16 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
+void Scavenger::FlushTLS() const {
+  ASSERT(heap_ != NULL);
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    mutator_thread->heap()->new_space()->set_top(mutator_thread->top());
+  }
+}
+
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -709,6 +736,7 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
@@ -723,6 +751,7 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
 
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
+  FlushTLS();
   uword cur = FirstObjectStart();
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
@@ -879,6 +908,12 @@ void Scavenger::Evacuate() {
 
   // Forces the next scavenge to promote all the objects in the new space.
   survivor_end_ = top_;
+
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = heap_->isolate()->mutator_thread();
+    survivor_end_ = mutator_thread->top();
+  }
+
   Scavenge();
 
   // It is possible for objects to stay in the new space

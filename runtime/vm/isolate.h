@@ -215,6 +215,13 @@ class Isolate : public BaseIsolate {
 
   Thread* mutator_thread() const;
 
+  // Mutator thread is not scheduled if NULL or no heap is attached
+  // to it. The latter only occurs when the mutator thread object
+  // is unscheduled by the isolate (or never scheduled).
+  bool IsMutatorThreadScheduled() {
+    return mutator_thread_ != NULL && mutator_thread_->heap() != NULL;
+  }
+
   const char* name() const { return name_; }
   const char* debugger_name() const { return debugger_name_; }
   void set_debugger_name(const char* name);
