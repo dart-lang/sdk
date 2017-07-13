@@ -37,7 +37,27 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.staticType = _getTypeFor(node);
   }
 
-  DartType _getTypeFor(Expression node) {
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    if (node.variables.length != 1) {
+      // TODO(paulberry): handle this case
+      throw new UnimplementedError('Multiple variables in one declaration');
+    }
+    if (node.metadata.isNotEmpty) {
+      // TODO(paulberry): handle this case
+      throw new UnimplementedError('Metadata on a variable declaration list');
+    }
+    node.variables.accept(this);
+    if (node.type != null) {
+      _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
+    }
+  }
+
+  void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
+    // TODO(paulberry): implement this.
+  }
+
+  DartType _getTypeFor(AstNode node) {
     return _types[_typeIndex++];
   }
 }
@@ -63,7 +83,7 @@ class ValidatingResolutionApplier extends ResolutionApplier {
   }
 
   @override
-  DartType _getTypeFor(Expression node) {
+  DartType _getTypeFor(AstNode node) {
     if (_debug) print('Getting type for $node');
     if (node.offset != _typeOffsets[_typeIndex]) {
       throw new StateError(

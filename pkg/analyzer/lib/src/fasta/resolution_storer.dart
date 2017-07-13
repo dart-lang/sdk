@@ -14,11 +14,10 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
       : super(types);
 
   @override
-  void genericExpressionExit(
-      String expressionType, Expression expression, DartType inferredType) {
+  void _recordType(DartType type, int offset) {
     assert(_types.length == _typeOffsets.length);
-    this._typeOffsets.add(expression.fileOffset);
-    super.genericExpressionExit(expressionType, expression, inferredType);
+    _typeOffsets.add(offset);
+    super._recordType(type, offset);
   }
 }
 
@@ -39,7 +38,17 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void genericExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {
-    _types.add(inferredType);
+    _recordType(inferredType, expression.fileOffset);
     super.genericExpressionExit(expressionType, expression, inferredType);
+  }
+
+  @override
+  void variableDeclarationEnter(VariableDeclaration statement) {
+    _recordType(statement.type, statement.fileOffset);
+    super.variableDeclarationEnter(statement);
+  }
+
+  void _recordType(DartType type, int offset) {
+    _types.add(type);
   }
 }
