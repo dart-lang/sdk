@@ -192,8 +192,8 @@ Future _main(List<String> argv) async {
   }
   deps.addAll(await fasta.getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
-  await writeDepsFile(Uri.base.resolveUri(new Uri.file("$outDir.d")),
-      platformFinalLocation, deps);
+  await writeDepsFile(platformFinalLocation,
+      Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
   await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
 }
 
