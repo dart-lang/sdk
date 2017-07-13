@@ -64,32 +64,26 @@ config("dart_config") {
     assert(false)
   }
 
-  if (dart_target_arch != "") {
-    if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
-      defines += [ "TARGET_ARCH_ARM" ]
-    } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_6" ]
-    } else if (dart_target_arch == "armv5te" ||
-               dart_target_arch == "simarmv5te") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_5TE" ]
-    } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
-      defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "x64") {
-      defines += [ "TARGET_ARCH_X64" ]
-    } else if (dart_target_arch == "ia32") {
-      defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
-               dart_target_arch == "simdbc64" ||
-               dart_target_arch == "armsimdbc" ||
-               dart_target_arch == "armsimdbc64") {
-      defines += [ "TARGET_ARCH_DBC" ]
-      defines += [ "USING_SIMULATOR" ]
-    } else {
-      print("Invalid dart_target_arch: $dart_target_arch")
-      assert(false)
-    }
+  if (dart_target_arch == "arm") {
+    defines += [ "TARGET_ARCH_ARM" ]
+  } else if (dart_target_arch == "armv6") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_6" ]
+  } else if (dart_target_arch == "armv5te") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_5TE" ]
+  } else if (dart_target_arch == "arm64") {
+    defines += [ "TARGET_ARCH_ARM64" ]
+  } else if (dart_target_arch == "x64") {
+    defines += [ "TARGET_ARCH_X64" ]
+  } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
+    defines += [ "TARGET_ARCH_IA32" ]
+  } else if (dart_target_arch == "dbc") {
+    defines += [ "TARGET_ARCH_DBC" ]
+    defines += [ "USING_SIMULATOR" ]
+  } else {
+    print("Invalid dart_target_arch: $dart_target_arch")
+    assert(false)
   }
 
   if (dart_debug) {
