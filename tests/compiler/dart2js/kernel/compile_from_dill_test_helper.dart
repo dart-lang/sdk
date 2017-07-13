@@ -177,6 +177,24 @@ main() {
 }
 '''
   }, expectIdenticalOutput: true),
+  const Test(const {
+    'main.dart': '''
+class C<X> {
+  const C();
+}
+foo(x) {
+  print(x.runtimeType);
+}
+main() {
+  foo(<int>[]);
+  foo(const <int>[]);
+  foo(new C<String>());
+  foo(const C<String>());
+  foo(<Type>[C, String]);
+  foo(const <Type>[C, String]);
+}
+'''
+  }, expectIdenticalOutput: true),
 ];
 
 enum ResultKind { crashes, errors, warnings, success, failure }
