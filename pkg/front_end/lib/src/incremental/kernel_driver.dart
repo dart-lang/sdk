@@ -165,13 +165,6 @@ class KernelDriver {
     _invalidatedFiles.add(uri);
   }
 
-  /// Flush the current file state completely.
-  ///
-  /// TODO(scheglov) Do we really need this functionality?
-  void invalidateAll() {
-    _invalidatedFiles.addAll(_fsState.fileUris);
-  }
-
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
   /// contains all the libraries that sorted before the given [cycle] in
   /// topological order.  Return the result with the cycle libraries.

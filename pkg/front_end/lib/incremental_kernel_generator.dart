@@ -89,15 +89,6 @@ abstract class IncrementalKernelGenerator {
   /// next call to [computeDelta]).
   void invalidate(Uri uri);
 
-  /// Remove all source files from the set of valid sources.  This guarantees
-  /// that all files will be re-read on the next call to [computeDelta].
-  ///
-  /// Note that this does not erase the previous program state; the next time
-  /// [computeDelta] is called, if parts of the program are discovered to be
-  /// unchanged, parts of the previous program state will still be re-used to
-  /// speed up compilation.
-  void invalidateAll();
-
   /// Creates an [IncrementalKernelGenerator] which is prepared to generate
   /// kernel representations of the program whose main library is in the given
   /// [entryPoint].

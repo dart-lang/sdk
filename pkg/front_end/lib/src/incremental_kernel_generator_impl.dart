@@ -131,11 +131,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _driver.invalidate(uri);
   }
 
-  @override
-  void invalidateAll() {
-    _driver.invalidateAll();
-  }
-
   /// TODO(scheglov) document
   Future<Null> _gc() async {
     var removedFiles = _driver.fsState.gc(_entryPoint);
