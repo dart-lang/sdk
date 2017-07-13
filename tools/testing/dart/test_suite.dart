@@ -1572,13 +1572,37 @@ class StandardTestSuite extends TestSuite {
       subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
     }
 
+    // TODO(rnystrom): During the migration of the existing tests to Dart 2.0,
+    // we have a number of tests that used to both generate static type warnings
+    // and also validate some runtime behavior in an implementation that
+    // ignores those warnings. Those warnings are now errors. The test code
+    // validates the runtime behavior can and should be removed, but the code
+    // that causes the static warning should still be preserved since that is
+    // part of our coverage of the static type system.
+    //
+    // The test needs to indicate that it should have a static error. We could
+    // put that in the status file, but that makes it confusing because it
+    // would look like implementations that *don't* report the error are more
+    // correct. Eventually, we want to have a notation similar to what front_end
+    // is using for the inference tests where we can put a comment inside the
+    // test that says "This specific static error should be reported right by
+    // this token."
+    //
+    // Until that system is in place, we need a way to migrate these tests and
+    // track that they should now generate compile errors. The co19 tests have
+    // a mechanism for this using little "@compile-error" tags, so we allow it
+    // on other tests too.
+    //
+    // Remove this once we have a better way to describe static error tests.
+    var hasCompileError = contents.contains("@compile-error");
+
     return {
       "vmOptions": result,
       "sharedOptions": sharedOptions ?? [],
       "dartOptions": dartOptions,
       "packageRoot": packageRoot,
       "packages": packages,
-      "hasCompileError": false,
+      "hasCompileError": hasCompileError,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
       "otherScripts": otherScripts,
