@@ -327,12 +327,7 @@ class RunServiceTask : public ThreadPool::Task {
 
     Dart_IsolateCreateCallback create_callback =
         ServiceIsolate::create_callback();
-    // TODO(johnmccutchan): Support starting up service isolate without embedder
-    // provided isolate creation callback.
-    if (create_callback == NULL) {
-      ServiceIsolate::FinishedInitializing();
-      return;
-    }
+    ASSERT(create_callback != NULL);
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
@@ -460,6 +455,10 @@ void ServiceIsolate::Run() {
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
+  if (create_callback_ == NULL) {
+    ServiceIsolate::FinishedInitializing();
+    return;
+  }
   Dart::thread_pool()->Run(new RunServiceTask());
 }
 
