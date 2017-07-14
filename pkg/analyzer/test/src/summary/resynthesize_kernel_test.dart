@@ -6,9 +6,12 @@ library analyzer.test.src.summary.resynthesize_kernel_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:front_end/file_system.dart';
@@ -20,7 +23,6 @@ import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
@@ -86,11 +88,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       }
     }
 
-    kernel.Library kernelLibrary = libraryMap[testUriStr];
-    expect(kernelLibrary, isNotNull);
-
-    return new LibraryElementImpl.forKernel(context,
-        new _KernelLibraryResynthesizerContextImpl(libraryMap, kernelLibrary));
+    var resynthesizer = new _KernelResynthesizer(context, libraryMap);
+    return resynthesizer.getLibrary(testUriStr);
   }
 
   @override
@@ -134,11 +133,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_alias_with_mixin_members() async {
     await super.test_class_alias_with_mixin_members();
-  }
-
-  @failingTest
-  test_class_constructor_explicit_type_params() async {
-    await super.test_class_constructor_explicit_type_params();
   }
 
   @failingTest
@@ -214,11 +208,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_constructor_fieldFormal_optional_withDefault() async {
     await super.test_class_constructor_fieldFormal_optional_withDefault();
-  }
-
-  @failingTest
-  test_class_constructor_implicit_type_params() async {
-    await super.test_class_constructor_implicit_type_params();
   }
 
   @failingTest
@@ -379,16 +368,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_setters() async {
     await super.test_class_setters();
-  }
-
-  @failingTest
-  test_class_supertype() async {
-    await super.test_class_supertype();
-  }
-
-  @failingTest
-  test_class_type_parameters() async {
-    await super.test_class_type_parameters();
   }
 
   @failingTest
@@ -896,17 +875,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_redirected_factory_named_unresolved_class() async {
-    await super.test_constructor_redirected_factory_named_unresolved_class();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_named_unresolved_constructor() async {
-    await super
-        .test_constructor_redirected_factory_named_unresolved_constructor();
-  }
-
-  @failingTest
   test_constructor_redirected_factory_unnamed() async {
     await super.test_constructor_redirected_factory_unnamed();
   }
@@ -934,11 +902,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_unnamed_unresolved() async {
-    await super.test_constructor_redirected_factory_unnamed_unresolved();
   }
 
   @failingTest
@@ -2674,11 +2637,63 @@ class _FileSystemEntityAdaptor implements FileSystemEntity {
 
 class _KernelLibraryResynthesizerContextImpl
     implements KernelLibraryResynthesizerContext {
-  /// TODO(scheglov) we don't use this yet, make it private later
-  final Map<String, kernel.Library> libraryMap;
+  final _KernelResynthesizer _resynthesizer;
 
   @override
   final kernel.Library library;
 
-  _KernelLibraryResynthesizerContextImpl(this.libraryMap, this.library);
+  _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
+
+  @override
+  InterfaceType getInterfaceType(
+      ElementImpl context, kernel.Supertype kernelType) {
+    return _getInterfaceType(
+        kernelType.className.canonicalName, kernelType.typeArguments);
+  }
+
+  DartType getType(ElementImpl context, kernel.DartType kernelType) {
+    if (kernelType is kernel.InterfaceType) {
+      return _getInterfaceType(
+          kernelType.className.canonicalName, kernelType.typeArguments);
+    }
+    // TODO(scheglov) Support other kernel types.
+    return null;
+  }
+
+  InterfaceType _getInterfaceType(
+      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
+    var libraryName = className.parent;
+    var libraryElement = _resynthesizer.getLibrary(libraryName.name);
+    ClassElementImpl classElement = libraryElement.getType(className.name);
+
+    if (kernelArguments.isEmpty) {
+      return classElement.type;
+    }
+
+    return new InterfaceTypeImpl.elementWithNameAndArgs(
+        classElement, classElement.name, () {
+      List<DartType> arguments = kernelArguments
+          .map((kernel.DartType k) => getType(classElement, k))
+          .toList(growable: false);
+      return arguments;
+    });
+  }
+}
+
+class _KernelResynthesizer {
+  final AnalysisContext _analysisContext;
+  final Map<String, kernel.Library> _kernelMap;
+  final Map<String, LibraryElementImpl> _libraryMap = {};
+
+  _KernelResynthesizer(this._analysisContext, this._kernelMap);
+
+  LibraryElementImpl getLibrary(String uriStr) {
+    return _libraryMap.putIfAbsent(uriStr, () {
+      var kernel = _kernelMap[uriStr];
+      if (kernel == null) return null;
+      var libraryContext =
+          new _KernelLibraryResynthesizerContextImpl(this, kernel);
+      return new LibraryElementImpl.forKernel(_analysisContext, libraryContext);
+    });
+  }
 }

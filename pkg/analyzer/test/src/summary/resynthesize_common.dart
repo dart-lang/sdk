@@ -2747,22 +2747,29 @@ class C {
   }
 
   test_class_supertype() async {
-    var library = await checkLibrary('class C extends D {} class D {}');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    var library = await checkLibrary('''
+class C extends D {}
+class D {}
+''');
+    checkElementText(library, r'''
 class C extends D {
 }
 class D {
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C extends D {
+  }
+
+  test_class_supertype_typeArguments() async {
+    var library = await checkLibrary('''
+class C extends D<int, double> {}
+class D<T1, T2> {}
+''');
+    checkElementText(library, r'''
+class C extends D<int, double> {
 }
-class D {
+class D<T1, T2> {
 }
 ''');
-    }
   }
 
   test_class_supertype_unresolved() async {

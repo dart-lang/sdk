@@ -816,6 +816,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
+  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
+
+  @override
   List<ElementAnnotation> get metadata {
     if (_unlinkedClass != null) {
       return _metadata ??=
@@ -893,19 +896,30 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   InterfaceType get supertype {
-    if (_unlinkedClass != null && _supertype == null) {
-      if (_unlinkedClass.supertype != null) {
-        DartType type = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(this, _unlinkedClass.supertype);
-        if (_isClassInterfaceType(type)) {
-          _supertype = type;
+    if (_supertype == null) {
+      if (_kernel != null) {
+        if (_kernel.supertype != null) {
+          _supertype = enclosingUnit._kernelContext
+              .getInterfaceType(this, _kernel.supertype);
+          _supertype ??= context.typeProvider.objectType;
+        } else {
+          return null;
+        }
+      }
+      if (_unlinkedClass != null) {
+        if (_unlinkedClass.supertype != null) {
+          DartType type = enclosingUnit.resynthesizerContext
+              .resolveTypeRef(this, _unlinkedClass.supertype);
+          if (_isClassInterfaceType(type)) {
+            _supertype = type;
+          } else {
+            _supertype = context.typeProvider.objectType;
+          }
+        } else if (_unlinkedClass.hasNoSupertype) {
+          return null;
         } else {
           _supertype = context.typeProvider.objectType;
         }
-      } else if (_unlinkedClass.hasNoSupertype) {
-        return null;
-      } else {
-        _supertype = context.typeProvider.objectType;
       }
     }
     return _supertype;
@@ -3849,6 +3863,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
+  List<kernel.TypeParameter> get kernelTypeParams => null;
+
+  @override
   List<ElementAnnotation> get metadata {
     if (serializedExecutable != null) {
       return _metadata ??=
@@ -4683,6 +4700,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       _enclosingElement as CompilationUnitElementImpl;
 
   @override
+  List<kernel.TypeParameter> get kernelTypeParams => null;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
@@ -4895,6 +4915,9 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   String get identifier => '-';
+
+  @override
+  List<kernel.TypeParameter> get kernelTypeParams => null;
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
@@ -5122,6 +5145,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
     }
     _function = function;
   }
+
+  @override
+  List<kernel.TypeParameter> get kernelTypeParams => null;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
@@ -5581,6 +5607,18 @@ class ImportElementImpl extends UriReferencedElementImpl
  */
 abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
+
+  /**
+   * Return the [InterfaceType] for the given Kernel [type], or `null` if the
+   * [type] does not correspond to an [InterfaceType].
+   */
+  InterfaceType getInterfaceType(ElementImpl context, kernel.Supertype type);
+
+  /**
+   * Return the [DartType] for the given Kernel [type], or `null` if the [type]
+   * does not correspond to a [DartType].
+   */
+  DartType getType(ElementImpl context, kernel.DartType type);
 }
 
 /**
@@ -8469,6 +8507,11 @@ class TypeParameterElementImpl extends ElementImpl
   final int nestingLevel;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.TypeParameter _kernel;
+
+  /**
    * The type defined by this type parameter.
    */
   TypeParameterType _type;
@@ -8486,7 +8529,17 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl(String name, int offset)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
+        _kernel = null,
         super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  TypeParameterElementImpl.forKernel(
+      TypeParameterizedElementMixin enclosingElement, this._kernel)
+      : _unlinkedTypeParam = null,
+        nestingLevel = null,
+        super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created type parameter element to have the given [name].
@@ -8494,6 +8547,7 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl.forNode(Identifier name)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -8501,7 +8555,8 @@ class TypeParameterElementImpl extends ElementImpl
    */
   TypeParameterElementImpl.forSerialized(this._unlinkedTypeParam,
       TypeParameterizedElementMixin enclosingElement, this.nestingLevel)
-      : super.forSerialized(enclosingElement);
+      : _kernel = null,
+        super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created synthetic type parameter element to have the
@@ -8510,18 +8565,26 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl.synthetic(String name)
       : _unlinkedTypeParam = null,
         nestingLevel = null,
+        _kernel = null,
         super(name, -1) {
     isSynthetic = true;
   }
 
   DartType get bound {
-    if (_unlinkedTypeParam != null) {
-      if (_unlinkedTypeParam.bound == null) {
-        return null;
+    if (_bound == null) {
+      if (_kernel != null) {
+        _bound = enclosingUnit._kernelContext.getType(this, _kernel.bound);
+        // TODO(scheglov) Add a flag for explicit bound.
+        if (_bound != null && _bound.isObject) _bound = null;
       }
-      return _bound ??= enclosingUnit.resynthesizerContext.resolveTypeRef(
-          this, _unlinkedTypeParam.bound,
-          instantiateToBoundsAllowed: false, declaredType: true);
+      if (_unlinkedTypeParam != null) {
+        if (_unlinkedTypeParam.bound == null) {
+          return null;
+        }
+        _bound = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            this, _unlinkedTypeParam.bound,
+            instantiateToBoundsAllowed: false, declaredType: true);
+      }
     }
     return _bound;
   }
@@ -8564,6 +8627,9 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedTypeParam != null) {
       return _unlinkedTypeParam.name;
     }
@@ -8669,6 +8735,12 @@ abstract class TypeParameterizedElementMixin
    */
   CompilationUnitElementImpl get enclosingUnit;
 
+  /**
+   * Get the [kernel.TypeParameter]s declared by this element, or `null` if
+   * this elements isn't from a kernel.
+   */
+  List<kernel.TypeParameter> get kernelTypeParams => const [];
+
   @override
   TypeParameterizedElementMixin get typeParameterContext => this;
 
@@ -8682,6 +8754,17 @@ abstract class TypeParameterizedElementMixin
   @override
   List<TypeParameterElement> get typeParameters {
     if (_typeParameterElements == null) {
+      List<kernel.TypeParameter> kernelParams = kernelTypeParams;
+      if (kernelParams != null) {
+        int numTypeParameters = kernelParams.length;
+        _typeParameterElements =
+            new List<TypeParameterElement>(numTypeParameters);
+        for (int i = 0; i < numTypeParameters; i++) {
+          _typeParameterElements[i] =
+              new TypeParameterElementImpl.forKernel(this, kernelParams[i]);
+        }
+      }
+
       List<UnlinkedTypeParam> unlinkedParams = unlinkedTypeParams;
       if (unlinkedParams != null) {
         int enclosingNestingLevel =
