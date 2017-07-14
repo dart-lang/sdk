@@ -665,8 +665,7 @@ class Namer {
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.functionClass);
       default:
-        throw new SpannableAssertionFailure(
-            spannable, 'Error: Namer has no name for "$name".');
+        throw failedAt(spannable, 'Error: Namer has no name for "$name".');
     }
   }
 
@@ -853,7 +852,7 @@ class Namer {
         return disambiguatedName; // Methods other than call are not annotated.
 
       default:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        throw failedAt(CURRENT_ELEMENT_SPANNABLE,
             'Unexpected selector kind: ${selector.kind}');
     }
   }
@@ -1964,7 +1963,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         add('name');
         break;
       default:
-        throw new SpannableAssertionFailure(
+        failedAt(
             CURRENT_ELEMENT_SPANNABLE, "Unexpected SyntheticConstantValue");
     }
   }
@@ -2079,7 +2078,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
         // resolve to integer indexes, they're always part of a larger constant.
         return 0;
       default:
-        throw new SpannableAssertionFailure(
+        throw failedAt(
             NO_LOCATION_SPANNABLE,
             'SyntheticConstantValue should never be named and '
             'never be subconstant');

@@ -154,7 +154,7 @@ class KernelImpactBuilder extends ir.Visitor {
         impactBuilder.registerFeature(Feature.ASYNC_STAR);
         break;
       case ir.AsyncMarker.SyncYielding:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Unexpected async marker: ${asyncMarker}");
     }
   }
@@ -299,7 +299,7 @@ class KernelImpactBuilder extends ir.Visitor {
       ConstantValue value =
           elementAdapter.getConstantValue(node.arguments.positional.first);
       if (!value.isString) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             CURRENT_ELEMENT_SPANNABLE,
             "Unexpected constant value in const Symbol(...) call: "
             "${value.toStructuredText()}");

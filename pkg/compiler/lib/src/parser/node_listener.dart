@@ -1072,6 +1072,6 @@ class NodeListener extends ElementListener {
   void internalError({Token token, Node node}) {
     // TODO(ahe): This should call reporter.internalError.
     Spannable spannable = (token == null) ? node : token;
-    throw new SpannableAssertionFailure(spannable, 'Internal error in parser.');
+    failedAt(spannable, 'Internal error in parser.');
   }
 }

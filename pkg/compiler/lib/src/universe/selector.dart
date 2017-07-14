@@ -138,8 +138,7 @@ class Selector {
     } else if (element.isConstructor) {
       return new Selector.callConstructor(name);
     } else {
-      throw new SpannableAssertionFailure(
-          element, "Can't get selector from $element");
+      throw failedAt(element, "Can't get selector from $element");
     }
   }
 

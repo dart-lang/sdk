@@ -35,17 +35,22 @@ assertDebugMode(String message) {
 ///
 /// [spannable] must be non-null and will be used to provide positional
 /// information in the generated error message.
-bool failedAt(Spannable spannable, [var message]) {
+///
+/// This method can also be used to throw a [SpannableAssertionFailure] outside
+/// an assert:
+///
+///     failedAt(position, message);
+///
+/// or, if the enclosing function requires a result or control flow:
+///
+///     throw failedAt(position, message);
+///
+bool failedAt(Spannable spannable, [String message]) {
   // TODO(johnniwinther): Use [spannable] and [message] to provide better
   // information on assertion errors.
   if (spannable == null) {
-    throw new SpannableAssertionFailure(
-        CURRENT_ELEMENT_SPANNABLE,
-        'Spannable was null for failedInvariant. '
-        'Use CURRENT_ELEMENT_SPANNABLE.');
-  }
-  if (message is Function) {
-    message = message();
+    throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        'Spannable was null for failedAt. Use CURRENT_ELEMENT_SPANNABLE.');
   }
   throw new SpannableAssertionFailure(spannable, message);
 }

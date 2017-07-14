@@ -469,7 +469,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
         member = abstractField.getter;
       }
       if (member == null && required) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             cls,
             "The class '${cls.name}' does not contain required "
             "${setter ? 'setter' : 'getter'}: '$name'.");
@@ -571,14 +571,14 @@ class _CompilerElementEnvironment implements ElementEnvironment {
         member = abstractField.getter;
       }
       if (member == null && required) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             library,
             "The library '${library.canonicalUri}' does not contain required "
             "${setter ? 'setter' : 'getter'}: '$name'.");
       }
     }
     if (member == null && required) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           member,
           "The library '${library.libraryName}' does not "
           "contain required member: '$name'.");
@@ -602,7 +602,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ClassElement cls = library.implementation.findLocal(name);
     if (cls == null && required) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           library,
           "The library '${library.libraryName}' does not "
           "contain required class: '$name'.");
@@ -632,8 +632,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       return null;
     }
     if (library == null && required) {
-      throw new SpannableAssertionFailure(
-          NO_LOCATION_SPANNABLE, "The library '${uri}' was not found.");
+      failedAt(NO_LOCATION_SPANNABLE, "The library '${uri}' was not found.");
     }
     return library;
   }

@@ -361,8 +361,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       }
       superclass = _getSuperType(superclass)?.element;
     }
-    throw new SpannableAssertionFailure(
-        cls, "No super method member found for ${name} in $cls.");
+    throw failedAt(cls, "No super method member found for ${name} in $cls.");
   }
 
   @override
@@ -385,8 +384,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     if (member != null) {
       return getConstructor(member);
     }
-    throw new SpannableAssertionFailure(
-        source, "Super constructor for $source not found.");
+    throw failedAt(source, "Super constructor for $source not found.");
   }
 
   @override
@@ -770,7 +768,7 @@ abstract class ElementCreatorMixin {
             isFromEnvironmentConstructor: isFromEnvironment);
       } else {
         // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
-        throw new SpannableAssertionFailure(
+        throw failedAt(
             NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
       }
       _memberData.add(new ConstructorData(node, functionNode));
@@ -1185,7 +1183,7 @@ class KernelElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
     if (constructor == null && required) {
-      throw new SpannableAssertionFailure(
+      throw failedAt(
           CURRENT_ELEMENT_SPANNABLE,
           "The constructor '$name' was not found in class '${cls.name}' "
           "in library ${cls.library.canonicalUri}.");
@@ -1199,7 +1197,7 @@ class KernelElementEnvironment implements ElementEnvironment {
     MemberEntity member =
         elementMap.lookupClassMember(cls, name, setter: setter);
     if (member == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");
     }
     return member;
@@ -1258,7 +1256,7 @@ class KernelElementEnvironment implements ElementEnvironment {
     MemberEntity member =
         elementMap.lookupLibraryMember(library, name, setter: setter);
     if (member == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '${name}' was not found in library '${library.name}'.");
     }
     return member;
@@ -1269,7 +1267,7 @@ class KernelElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ClassEntity cls = elementMap.lookupClass(library, name);
     if (cls == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The class '$name'  was not found in library '${library.name}'.");
     }
     return cls;
@@ -1284,8 +1282,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
     LibraryEntity library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
-      throw new SpannableAssertionFailure(
-          CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
+      failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
     return library;
   }

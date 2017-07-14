@@ -967,8 +967,7 @@ abstract class LibraryDependencyElementX extends ElementX {
 
   void set metadata(value) {
     // The metadata is stored on [libraryDependency].
-    throw new SpannableAssertionFailure(
-        this, 'Cannot set metadata on a import/export.');
+    failedAt(this, 'Cannot set metadata on a import/export.');
   }
 
   @override
@@ -1095,7 +1094,7 @@ class LibraryElementX extends ElementX
 
   void set metadata(value) {
     // The metadata is stored on [libraryTag].
-    throw new SpannableAssertionFailure(this, 'Cannot set metadata on Library');
+    failedAt(this, 'Cannot set metadata on Library');
   }
 
   CompilationUnitElement get compilationUnit => entryCompilationUnit;
@@ -3324,7 +3323,7 @@ abstract class MixinApplicationElementX extends BaseClassElementX
   List<ResolutionDartType> computeTypeParameters(ParsingContext parsing) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           node,
           "Type variables on unnamed mixin applications must be set on "
           "creation.");

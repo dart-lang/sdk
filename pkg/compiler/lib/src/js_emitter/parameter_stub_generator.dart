@@ -220,12 +220,10 @@ class ParameterStubGenerator {
     if (member.enclosingClass != null && member.enclosingClass.isClosure) {
       ClosureClassElement cls = member.enclosingClass;
       if (cls.supertype.element == _commonElements.boundClosureClass) {
-        throw new SpannableAssertionFailure(
-            cls.methodElement, 'Bound closure1.');
+        failedAt(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember) {
-        throw new SpannableAssertionFailure(
-            cls.methodElement, 'Bound closure2.');
+        failedAt(cls.methodElement, 'Bound closure2.');
       }
     }
 

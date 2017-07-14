@@ -583,7 +583,7 @@ class InferrerEngineImpl extends InferrerEngine {
         trace(<FunctionEntity>[info.member],
             new StaticTearOffClosureTracerVisitor(info.member, info, this));
       } else if (info is ParameterTypeInformation) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             NO_LOCATION_SPANNABLE, 'Unexpected closure allocation info $info');
       }
     });

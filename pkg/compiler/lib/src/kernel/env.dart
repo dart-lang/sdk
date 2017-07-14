@@ -124,7 +124,7 @@ class LibraryEnv {
             _setterMap[member.name.name] = member;
           }
         } else {
-          throw new SpannableAssertionFailure(
+          failedAt(
               NO_LOCATION_SPANNABLE, "Unexpected library member node: $member");
         }
       }
@@ -267,7 +267,7 @@ class ClassEnv {
             }
             _memberMap[member.name.name] = member;
           } else {
-            throw new SpannableAssertionFailure(
+            failedAt(
                 NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
           }
         }
@@ -427,7 +427,7 @@ class ConstructorData extends FunctionData {
         _constantConstructor =
             new Constantifier(elementMap).computeConstantConstructor(node);
       } else {
-        throw new SpannableAssertionFailure(
+        failedAt(
             constructor,
             "Unexpected constructor $constructor in "
             "KernelWorldBuilder._getConstructorConstant");
@@ -455,7 +455,7 @@ class FieldData extends MemberData {
       if (node.isConst) {
         _constant = new Constantifier(elementMap).visit(node.initializer);
       } else {
-        throw new SpannableAssertionFailure(
+        failedAt(
             field,
             "Unexpected field $field in "
             "KernelWorldBuilder._getConstructorConstant");

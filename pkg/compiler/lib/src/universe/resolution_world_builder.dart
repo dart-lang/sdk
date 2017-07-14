@@ -393,7 +393,7 @@ abstract class ResolutionWorldBuilderBase
 
   ClosedWorld get closedWorldForTesting {
     if (!_closed) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           NO_LOCATION_SPANNABLE, "The world builder has not yet been closed.");
     }
     return _closedWorldCache;
@@ -648,7 +648,7 @@ abstract class ResolutionWorldBuilderBase
         failedAt(element, 'Direct static use is not supported for resolution.');
         break;
       case StaticUseKind.INLINING:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Static use ${staticUse.kind} is not supported during resolution.");
     }
     if (useSet.isNotEmpty) {
@@ -902,8 +902,7 @@ abstract class ResolutionWorldBuilderBase
       }
       assert(checkClass(cls));
       if (!validateClass(cls)) {
-        throw new SpannableAssertionFailure(
-            cls, 'Class "${cls.name}" is not resolved.');
+        failedAt(cls, 'Class "${cls.name}" is not resolved.');
       }
 
       _updateClassHierarchyNodeForClass(cls,

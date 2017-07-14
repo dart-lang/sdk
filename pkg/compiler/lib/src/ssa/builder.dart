@@ -5331,8 +5331,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitModifiers(ast.Modifiers node) {
-    throw new SpannableAssertionFailure(
-        node, 'SsaFromAstMixin.visitModifiers not implemented.');
+    failedAt(node, 'SsaFromAstMixin.visitModifiers not implemented.');
   }
 
   visitBreakStatement(ast.BreakStatement node) {
@@ -6456,13 +6455,11 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitTypedef(ast.Typedef node) {
-    throw new SpannableAssertionFailure(
-        node, 'SsaFromAstMixin.visitTypedef not implemented.');
+    failedAt(node, 'SsaFromAstMixin.visitTypedef not implemented.');
   }
 
   visitTypeVariable(ast.TypeVariable node) {
-    throw new SpannableAssertionFailure(
-        node, 'SsaFromAstMixin.visitTypeVariable not implemented.');
+    failedAt(node, 'SsaFromAstMixin.visitTypeVariable not implemented.');
   }
 
   /**

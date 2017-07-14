@@ -405,8 +405,7 @@ class ClosureFieldElement extends ElementX
   bool get hasNode => false;
 
   VariableDefinitions get node {
-    throw new SpannableAssertionFailure(
-        local, 'Should not access node of ClosureFieldElement.');
+    throw failedAt(local, 'Should not access node of ClosureFieldElement.');
   }
 
   bool get hasResolvedAst => hasTreeElements;
@@ -417,7 +416,7 @@ class ClosureFieldElement extends ElementX
   }
 
   Expression get initializer {
-    throw new SpannableAssertionFailure(
+    throw failedAt(
         local, 'Should not access initializer of ClosureFieldElement.');
   }
 

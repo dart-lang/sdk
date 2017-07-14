@@ -80,7 +80,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitFunction(FunctionConstantValue constant, [_]) {
-    throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE,
+    throw failedAt(NO_LOCATION_SPANNABLE,
         "The function constant does not need specific JS code.");
   }
 
@@ -248,10 +248,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
       } else {
-        throw new SpannableAssertionFailure(
-            field,
-            "Compiler has unexpected field ${field.name} for "
-            "${className}.");
+        failedAt(field,
+            "Compiler has unexpected field ${field.name} for ${className}.");
       }
       emittedArgumentCount++;
     }, includeSuperAndInjectedMembers: true);
@@ -261,7 +259,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
             emittedArgumentCount != 4) ||
         (className == JavaScriptMapConstant.DART_GENERAL_CLASS &&
             emittedArgumentCount != 1)) {
-      throw new SpannableAssertionFailure(classElement,
+      failedAt(classElement,
           "Compiler and ${className} disagree on number of fields.");
     }
 
@@ -302,7 +300,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       case SyntheticConstantKind.NAME:
         return constant.payload;
       default:
-        throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE,
+        throw failedAt(NO_LOCATION_SPANNABLE,
             "Unexpected DummyConstantKind ${constant.kind}");
     }
   }
@@ -347,7 +345,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   jsAst.Expression _reifiedTypeArguments(ResolutionInterfaceType type) {
     jsAst.Expression unexpected(TypeVariableType _variable) {
       ResolutionTypeVariableType variable = _variable;
-      throw new SpannableAssertionFailure(
+      throw failedAt(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable.getStringAsDeclared(null)}'"
           " in constant type '${type.getStringAsDeclared(null)}'");

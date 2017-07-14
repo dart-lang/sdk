@@ -860,13 +860,11 @@ abstract class Compiler {
    * See [LibraryLoader] for terminology on URIs.
    */
   Future<Script> readScript(Uri readableUri, [Spannable node]) {
-    throw new SpannableAssertionFailure(
-        node, 'Compiler.readScript not implemented.');
+    throw failedAt(node, 'Compiler.readScript not implemented.');
   }
 
   Future<Binary> readBinary(Uri readableUri, [Spannable node]) {
-    throw new SpannableAssertionFailure(
-        node, 'Compiler.readBinary not implemented.');
+    throw failedAt(node, 'Compiler.readBinary not implemented.');
   }
 
   Element lookupElementIn(ScopeContainerElement container, String name) {

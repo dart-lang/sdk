@@ -192,7 +192,7 @@ class FunctionInlineCache {
     if (insideLoop) {
       switch (oldDecision) {
         case _mustNotInline:
-          throw new SpannableAssertionFailure(
+          throw failedAt(
               element,
               "Can't mark a function as non-inlinable and inlinable at the "
               "same time.");
@@ -219,7 +219,7 @@ class FunctionInlineCache {
         case _mustNotInline:
         case _mayInlineInLoopMustNotOutside:
         case _canInlineInLoopMustNotOutside:
-          throw new SpannableAssertionFailure(
+          throw failedAt(
               element,
               "Can't mark a function as non-inlinable and inlinable at the "
               "same time.");
@@ -251,7 +251,7 @@ class FunctionInlineCache {
         case _canInlineInLoopMayInlineOutside:
         case _canInline:
         case _mustInline:
-          throw new SpannableAssertionFailure(
+          throw failedAt(
               element,
               "Can't mark a function as non-inlinable and inlinable at the "
               "same time.");
@@ -269,7 +269,7 @@ class FunctionInlineCache {
       switch (oldDecision) {
         case _canInline:
         case _mustInline:
-          throw new SpannableAssertionFailure(
+          throw failedAt(
               element,
               "Can't mark a function as non-inlinable and inlinable at the "
               "same time.");

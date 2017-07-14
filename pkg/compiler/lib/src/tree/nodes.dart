@@ -2160,8 +2160,7 @@ class StringJuxtaposition extends StringNode {
    */
   DartString get dartString {
     if (isInterpolation) {
-      throw new SpannableAssertionFailure(
-          this, "Getting dartString on interpolation;");
+      failedAt(this, "Getting dartString on interpolation;");
     }
     if (dartStringCache == null) {
       DartString firstString = first.accept(const GetDartStringVisitor());

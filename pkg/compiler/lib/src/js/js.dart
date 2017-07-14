@@ -65,7 +65,7 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
 
   @override
   void error(String message) {
-    throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE, message);
+    failedAt(NO_LOCATION_SPANNABLE, message);
   }
 
   @override

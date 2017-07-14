@@ -323,12 +323,12 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableLocal) {
-          throw new SpannableAssertionFailure(
+          failedAt(
               CURRENT_ELEMENT_SPANNABLE,
               "Runtime type information not available for $local "
               "in $executableContext.");
         } else {
-          throw new SpannableAssertionFailure(
+          failedAt(
               local,
               "Cannot find value $local in ${directLocals.keys} for "
               "$executableContext.");

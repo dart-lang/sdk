@@ -66,8 +66,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   @override
   void checkQueueIsEmpty() {
     if (_queue.isNotEmpty) {
-      throw new SpannableAssertionFailure(
-          _queue.first.element, "$name queue is not empty.");
+      failedAt(_queue.first.element, "$name queue is not empty.");
     }
   }
 
@@ -83,8 +82,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     if (workItem == null) return;
 
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
-          entity, "Codegen work list is closed. Trying to add $entity");
+      failedAt(entity, "Codegen work list is closed. Trying to add $entity");
     }
 
     applyImpact(listener.registerUsedElement(entity));
@@ -114,7 +112,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void checkClass(ClassEntity cls) {
     _worldBuilder.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
-        throw new SpannableAssertionFailure(member,
+        failedAt(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
     });
