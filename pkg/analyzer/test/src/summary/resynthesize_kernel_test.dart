@@ -1700,6 +1700,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_library_documented_lines() async {
+    await super.test_library_documented_lines();
+  }
+
+  @failingTest
+  test_library_documented_stars() async {
+    await super.test_library_documented_stars();
+  }
+
+  @failingTest
   test_localFunctions() async {
     await super.test_localFunctions();
   }

@@ -9002,22 +9002,33 @@ unit: null
     }
   }
 
-  test_library_documented() async {
+  test_library_documented_lines() async {
     var library = await checkLibrary('''
-// Extra comment so doc comment offset != 0
+/// aaa
+/// bbb
+library test;
+''');
+    checkElementText(library, r'''
+/// aaa
+/// bbb
+library test;
+''');
+  }
+
+  test_library_documented_stars() async {
+    var library = await checkLibrary('''
 /**
- * Docs
+ * aaa
+ * bbb
  */
-library foo;''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
-library foo;
+library test;''');
+    checkElementText(library, r'''
+/**
+ * aaa
+ * bbb
+ */
+library test;
 ''');
-    } else {
-      checkElementText(library, r'''
-library foo;
-''');
-    }
   }
 
   test_library_name_with_spaces() async {

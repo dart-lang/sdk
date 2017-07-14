@@ -495,6 +495,10 @@ class _ElementWriter {
   }
 
   void writeLibraryElement(LibraryElement e) {
+    if (e.documentationComment != null) {
+      buffer.writeln(e.documentationComment);
+    }
+
     if (e.displayName != '') {
       writeMetadata(e, '', '\n');
       buffer.write('library ');
