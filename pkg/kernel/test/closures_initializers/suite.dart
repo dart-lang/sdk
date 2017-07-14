@@ -16,6 +16,8 @@ import 'package:kernel/ast.dart' show Program, Library;
 import 'package:kernel/transformations/argument_extraction.dart'
     as argument_extraction;
 
+import 'package:kernel/target/targets.dart' show Target;
+
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
 
@@ -33,6 +35,8 @@ const String STRONG_MODE = " strong mode ";
 
 class ClosureConversionContext extends ChainContext implements CompileContext {
   final bool strongMode;
+
+  Target get target => null;
 
   final List<Step> steps;
 

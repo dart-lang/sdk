@@ -30,6 +30,7 @@ const String STRONG_MODE = " strong mode ";
 
 class ClosureConversionContext extends ChainContext implements CompileContext {
   final bool strongMode;
+  Target get target => null;
 
   final List<Step> steps;
 
