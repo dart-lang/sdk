@@ -37,12 +37,213 @@ import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 
-/**
- * An inferencing engine that computes a call graph of
- * [TypeInformation] nodes by visiting the AST of the application, and
- * then does the inferencing on the graph.
- */
-class InferrerEngine {
+/// An inferencing engine that computes a call graph of [TypeInformation] nodes
+/// by visiting the AST of the application, and then does the inferencing on the
+/// graph.
+abstract class InferrerEngine {
+  /// A set of selector names that [List] implements, that we know return their
+  /// element type.
+  final Set<Selector> returnsListElementTypeSet =
+      new Set<Selector>.from(<Selector>[
+    new Selector.getter(const PublicName('first')),
+    new Selector.getter(const PublicName('last')),
+    new Selector.getter(const PublicName('single')),
+    new Selector.call(const PublicName('singleWhere'), CallStructure.ONE_ARG),
+    new Selector.call(const PublicName('elementAt'), CallStructure.ONE_ARG),
+    new Selector.index(),
+    new Selector.call(const PublicName('removeAt'), CallStructure.ONE_ARG),
+    new Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
+  ]);
+
+  Compiler get compiler;
+  ClosedWorld get closedWorld;
+  ClosedWorldRefiner get closedWorldRefiner;
+  JavaScriptBackend get backend => compiler.backend;
+  OptimizerHintsForTests get optimizerHints => backend.optimizerHints;
+  DiagnosticReporter get reporter => compiler.reporter;
+  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonElements get commonElements => closedWorld.commonElements;
+
+  TypeSystem<ast.Node> get types;
+  Map<ast.Node, TypeInformation> get concreteTypes;
+
+  /// Parallel structure for concreteTypes.
+  // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
+  // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
+  Map<ir.Node, TypeInformation> get concreteKernelTypes;
+
+  FunctionEntity get mainElement;
+
+  void runOverAllElements();
+
+  void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments);
+  void analyzeListAndEnqueue(ListTypeInformation info);
+  void analyzeMapAndEnqueue(MapTypeInformation info);
+
+  /// Notifies to the inferrer that [analyzedElement] can have return type
+  /// [newType]. [currentType] is the type the [ElementGraphBuilder] currently
+  /// found.
+  ///
+  /// Returns the new type for [analyzedElement].
+  TypeInformation addReturnTypeForMethod(
+      MethodElement element, TypeInformation unused, TypeInformation newType);
+
+  /// Applies [f] to all elements in the universe that match [selector] and
+  /// [mask]. If [f] returns false, aborts the iteration.
+  void forEachElementMatching(
+      Selector selector, TypeMask mask, bool f(Element element));
+
+  /// Returns the [TypeInformation] node for the default value of a parameter.
+  /// If this is queried before it is set by [setDefaultTypeOfParameter], a
+  /// [PlaceholderTypeInformation] is returned, which will later be replaced
+  /// by the actual node when [setDefaultTypeOfParameter] is called.
+  ///
+  /// Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
+  /// should be present and a default type for each parameter should exist.
+  TypeInformation getDefaultTypeOfParameter(ParameterElement parameter);
+
+  /// This helper breaks abstractions but is currently required to work around
+  /// the wrong modeling of default values of optional parameters of
+  /// synthetic constructors.
+  ///
+  /// TODO(johnniwinther): Remove once default values of synthetic parameters
+  /// are fixed.
+  bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement parameter);
+
+  /// Sets the type of a parameter's default value to [type]. If the global
+  /// mapping in [defaultTypeOfParameter] already contains a type, it must be
+  /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
+  /// updated.
+  void setDefaultTypeOfParameter(
+      ParameterElement parameter, TypeInformation type);
+
+  Iterable<MemberEntity> getCallersOf(MemberElement element);
+
+  // TODO(johnniwinther): Make this private again.
+  GlobalTypeInferenceElementData dataOfMember(MemberElement element);
+
+  GlobalTypeInferenceElementData lookupDataOfMember(MemberElement element);
+
+  bool checkIfExposesThis(ConstructorElement element);
+
+  void recordExposesThis(ConstructorElement element, bool exposesThis);
+
+  /// Records that the return type [element] is of type [type].
+  void recordReturnType(MethodElement element, TypeInformation type);
+
+  /// Records that [element] is of type [type].
+  // TODO(johnniwinther): Merge [recordTypeOfFinalField] and
+  // [recordTypeOfNonFinalField] with this?
+  void recordTypeOfField(FieldElement element, TypeInformation type);
+
+  /// Records that [node] sets final field [element] to be of type [type].
+  void recordTypeOfFinalField(FieldElement element, TypeInformation type);
+
+  /// Records that [node] sets non-final field [element] to be of type [type].
+  void recordTypeOfNonFinalField(FieldElement element, TypeInformation type);
+
+  /// Records that the captured variable [local] is read.
+  // TODO(johnniwinther): Remove this.
+  void recordCapturedLocalRead(Local local) {}
+
+  /// Records that the variable [local] is being updated.
+  // TODO(johnniwinther): Remove this.
+  void recordLocalUpdate(Local local, TypeInformation type) {}
+
+  /// Registers a call to await with an expression of type [argumentType] as
+  /// argument.
+  TypeInformation registerAwait(ast.Node node, TypeInformation argument);
+
+  /// Registers a call to yield with an expression of type [argumentType] as
+  /// argument.
+  TypeInformation registerYield(ast.Node node, TypeInformation argument);
+
+  /// Registers that [caller] calls [closure] with [arguments].
+  ///
+  /// [sideEffects] will be updated to incorporate the potential callees' side
+  /// effects.
+  ///
+  /// [inLoop] tells whether the call happens in a loop.
+  TypeInformation registerCalledClosure(
+      ast.Node node,
+      Selector selector,
+      TypeMask mask,
+      TypeInformation closure,
+      MemberElement caller,
+      ArgumentsTypes arguments,
+      SideEffects sideEffects,
+      bool inLoop);
+
+  /// Registers that [caller] calls [callee] at location [node], with
+  /// [selector], and [arguments]. Note that [selector] is null for forwarding
+  /// constructors.
+  ///
+  /// [sideEffects] will be updated to incorporate [callee]'s side effects.
+  ///
+  /// [inLoop] tells whether the call happens in a loop.
+  TypeInformation registerCalledMember(
+      Spannable node,
+      Selector selector,
+      TypeMask mask,
+      MemberElement caller,
+      MemberElement callee,
+      ArgumentsTypes arguments,
+      SideEffects sideEffects,
+      bool inLoop);
+
+  /// Registers that [caller] calls [selector] with [receiverType] as receiver,
+  /// and [arguments].
+  ///
+  /// [sideEffects] will be updated to incorporate the potential callees' side
+  /// effects.
+  ///
+  /// [inLoop] tells whether the call happens in a loop.
+  TypeInformation registerCalledSelector(
+      ast.Node node,
+      Selector selector,
+      TypeMask mask,
+      TypeInformation receiverType,
+      MemberElement caller,
+      ArgumentsTypes arguments,
+      SideEffects sideEffects,
+      bool inLoop,
+      bool isConditional);
+
+  /// Update the assignments to parameters in the graph. [remove] tells whether
+  /// assignments must be added or removed. If [init] is false, parameters are
+  /// added to the work queue.
+  void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
+      ArgumentsTypes arguments, Selector selector, TypeMask mask,
+      {bool remove, bool addToQueue: true});
+
+  void updateSelectorInMember(
+      MemberElement owner, Spannable node, Selector selector, TypeMask mask);
+
+  /// Returns the return type of [element].
+  TypeInformation returnTypeOfMember(MemberElement element);
+
+  /// Returns the type of [element] when being called with [selector].
+  TypeInformation typeOfMemberWithSelector(
+      MemberElement element, Selector selector);
+
+  /// Returns the type of [element].
+  TypeInformation typeOfMember(MemberElement element);
+
+  /// Returns the type of [element].
+  TypeInformation typeOfParameter(ParameterElement element);
+
+  /// Returns the type for [nativeBehavior]. See documentation on
+  /// [native.NativeBehavior].
+  TypeInformation typeOfNativeBehavior(native.NativeBehavior nativeBehavior);
+
+  bool returnsListElementType(Selector selector, TypeMask mask);
+
+  bool returnsMapValueType(Selector selector, TypeMask mask);
+
+  void clear();
+}
+
+class InferrerEngineImpl extends InferrerEngine {
   final Map<ParameterElement, TypeInformation> defaultTypeOfParameter =
       new Map<ParameterElement, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
@@ -67,9 +268,6 @@ class InferrerEngine {
   final Map<ast.Node, TypeInformation> concreteTypes =
       new Map<ast.Node, TypeInformation>();
 
-  /// Parallel structure for concreteTypes.
-  // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
-  // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
   final Map<ir.Node, TypeInformation> concreteKernelTypes =
       new Map<ir.Node, TypeInformation>();
   final Set<ConstructorElement> generativeConstructorsExposingThis =
@@ -80,18 +278,12 @@ class InferrerEngine {
   final Map<MemberElement, GlobalTypeInferenceElementData> _memberData =
       new Map<MemberElement, GlobalTypeInferenceElementData>();
 
-  InferrerEngine(this.compiler, ClosedWorld closedWorld,
+  InferrerEngineImpl(this.compiler, ClosedWorld closedWorld,
       this.closedWorldRefiner, this.mainElement)
       : this.types = new TypeSystem<ast.Node>(
             closedWorld, const TypeSystemStrategyImpl()),
         this.closedWorld = closedWorld;
 
-  CommonElements get commonElements => closedWorld.commonElements;
-
-  /**
-   * Applies [f] to all elements in the universe that match
-   * [selector] and [mask]. If [f] returns false, aborts the iteration.
-   */
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
@@ -143,10 +335,6 @@ class InferrerEngine {
     }
   }
 
-  /**
-   * Returns the type for [nativeBehavior]. See documentation on
-   * [native.NativeBehavior].
-   */
   TypeInformation typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List typesReturned = nativeBehavior.typesReturned;
@@ -224,27 +412,6 @@ class InferrerEngine {
       generativeConstructorsExposingThis.add(element);
     }
   }
-
-  JavaScriptBackend get backend => compiler.backend;
-  OptimizerHintsForTests get optimizerHints => backend.optimizerHints;
-  DiagnosticReporter get reporter => compiler.reporter;
-  CommonMasks get commonMasks => closedWorld.commonMasks;
-
-  /**
-   * A set of selector names that [List] implements, that we know return
-   * their element type.
-   */
-  final Set<Selector> returnsListElementTypeSet =
-      new Set<Selector>.from(<Selector>[
-    new Selector.getter(const PublicName('first')),
-    new Selector.getter(const PublicName('last')),
-    new Selector.getter(const PublicName('single')),
-    new Selector.call(const PublicName('singleWhere'), CallStructure.ONE_ARG),
-    new Selector.call(const PublicName('elementAt'), CallStructure.ONE_ARG),
-    new Selector.index(),
-    new Selector.call(const PublicName('removeAt'), CallStructure.ONE_ARG),
-    new Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
-  ]);
 
   bool returnsListElementType(Selector selector, TypeMask mask) {
     return mask != null &&
@@ -631,11 +798,6 @@ class InferrerEngine {
     workQueue.addAll(types.allocatedCalls);
   }
 
-  /**
-   * Update the assignments to parameters in the graph. [remove] tells
-   * wheter assignments must be added or removed. If [init] is false,
-   * parameters are added to the work queue.
-   */
   void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector, TypeMask mask,
       {bool remove, bool addToQueue: true}) {
@@ -710,12 +872,6 @@ class InferrerEngine {
     }
   }
 
-  /**
-   * Sets the type of a parameter's default value to [type]. If the global
-   * mapping in [defaultTypeOfParameter] already contains a type, it must be
-   * a [PlaceholderTypeInformation], which will be replaced. All its uses are
-   * updated.
-   */
   void setDefaultTypeOfParameter(
       ParameterElement parameter, TypeInformation type) {
     assert(parameter.functionDeclaration.isImplementation);
@@ -742,87 +898,43 @@ class InferrerEngine {
     }
   }
 
-  /**
-   * Returns the [TypeInformation] node for the default value of a parameter.
-   * If this is queried before it is set by [setDefaultTypeOfParameter], a
-   * [PlaceholderTypeInformation] is returned, which will later be replaced
-   * by the actual node when [setDefaultTypeOfParameter] is called.
-   *
-   * Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
-   *            should be present and a default type for each parameter should
-   *            exist.
-   */
   TypeInformation getDefaultTypeOfParameter(ParameterElement parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(types.currentMember);
     });
   }
 
-  /**
-   * This helper breaks abstractions but is currently required to work around
-   * the wrong modeling of default values of optional parameters of
-   * synthetic constructors.
-   *
-   * TODO(johnniwinther): Remove once default values of synthetic parameters
-   * are fixed.
-   */
   bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement parameter) {
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }
 
-  /**
-   * Returns the type of [element].
-   */
   TypeInformation typeOfParameter(ParameterElement element) {
     return types.getInferredTypeOfParameter(element);
   }
 
-  /**
-   * Returns the type of [element].
-   */
   TypeInformation typeOfMember(MemberElement element) {
     if (element is MethodElement) return types.functionType;
     return types.getInferredTypeOfMember(element);
   }
 
-  /**
-   * Returns the return type of [element].
-   */
   TypeInformation returnTypeOfMember(MemberElement element) {
     if (element is! MethodElement) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
   }
 
-  /**
-   * Records that [node] sets final field [element] to be of type [type].
-   *
-   * [nodeHolder] is the element holder of [node].
-   */
   void recordTypeOfFinalField(FieldElement element, TypeInformation type) {
     types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
-  /**
-   * Records that [node] sets non-final field [element] to be of type
-   * [type].
-   */
   void recordTypeOfNonFinalField(FieldElement element, TypeInformation type) {
     types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
-  /**
-   * Records that [element] is of type [type].
-   */
-  // TODO(johnniwinther): Merge [recordTypeOfFinalField] and
-  // [recordTypeOfNonFinalField] with this?
   void recordTypeOfField(FieldElement element, TypeInformation type) {
     types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
-  /**
-   * Records that the return type [element] is of type [type].
-   */
   void recordReturnType(MethodElement element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
@@ -835,13 +947,6 @@ class InferrerEngine {
     if (info.assignments.isEmpty) info.addAssignment(type);
   }
 
-  /**
-   * Notifies to the inferrer that [analyzedElement] can have return
-   * type [newType]. [currentType] is the type the [ElementGraphBuilder]
-   * currently found.
-   *
-   * Returns the new type for [analyzedElement].
-   */
   TypeInformation addReturnTypeForMethod(
       MethodElement element, TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
@@ -852,16 +957,6 @@ class InferrerEngine {
     return type;
   }
 
-  /**
-   * Registers that [caller] calls [callee] at location [node], with
-   * [selector], and [arguments]. Note that [selector] is null for
-   * forwarding constructors.
-   *
-   * [sideEffects] will be updated to incorporate [callee]'s side
-   * effects.
-   *
-   * [inLoop] tells whether the call happens in a loop.
-   */
   TypeInformation registerCalledMember(
       Spannable node,
       Selector selector,
@@ -897,15 +992,6 @@ class InferrerEngine {
     return info;
   }
 
-  /**
-   * Registers that [caller] calls [selector] with [receiverType] as
-   * receiver, and [arguments].
-   *
-   * [sideEffects] will be updated to incorporate the potential
-   * callees' side effects.
-   *
-   * [inLoop] tells whether the call happens in a loop.
-   */
   TypeInformation registerCalledSelector(
       ast.Node node,
       Selector selector,
@@ -942,10 +1028,6 @@ class InferrerEngine {
     return info;
   }
 
-  /**
-   * Registers a call to await with an expression of type [argumentType] as
-   * argument.
-   */
   TypeInformation registerAwait(ast.Node node, TypeInformation argument) {
     AwaitTypeInformation info =
         new AwaitTypeInformation<ast.Node>(types.currentMember, node);
@@ -954,10 +1036,6 @@ class InferrerEngine {
     return info;
   }
 
-  /**
-   * Registers a call to yield with an expression of type [argumentType] as
-   * argument.
-   */
   TypeInformation registerYield(ast.Node node, TypeInformation argument) {
     YieldTypeInformation info =
         new YieldTypeInformation<ast.Node>(types.currentMember, node);
@@ -966,14 +1044,6 @@ class InferrerEngine {
     return info;
   }
 
-  /**
-   * Registers that [caller] calls [closure] with [arguments].
-   *
-   * [sideEffects] will be updated to incorporate the potential
-   * callees' side effects.
-   *
-   * [inLoop] tells whether the call happens in a loop.
-   */
   TypeInformation registerCalledClosure(
       ast.Node node,
       Selector selector,
@@ -1074,18 +1144,7 @@ class InferrerEngine {
     return info.callers;
   }
 
-  /**
-   * Returns the type of [element] when being called with [selector].
-   */
   TypeInformation typeOfMemberWithSelector(
-      MemberElement element, Selector selector) {
-    return _typeOfElementWithSelector(element, selector);
-  }
-
-  /**
-   * Returns the type of [element] when being called with [selector].
-   */
-  TypeInformation _typeOfElementWithSelector(
       MemberElement element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
         selector.name != element.name) {
@@ -1113,16 +1172,6 @@ class InferrerEngine {
       return returnTypeOfMember(element);
     }
   }
-
-  /**
-   * Records that the captured variable [local] is read.
-   */
-  void recordCapturedLocalRead(Local local) {}
-
-  /**
-   * Records that the variable [local] is being updated.
-   */
-  void recordLocalUpdate(Local local, TypeInformation type) {}
 }
 
 class TypeSystemStrategyImpl implements TypeSystemStrategy<ast.Node> {
