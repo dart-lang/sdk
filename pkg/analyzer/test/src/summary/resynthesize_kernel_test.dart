@@ -135,28 +135,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_constructor_const() async {
-    await super.test_class_constructor_const();
-  }
-
-  @failingTest
-  test_class_constructor_const_external() async {
-    await super.test_class_constructor_const_external();
-  }
-
-  @failingTest
-  test_class_constructor_explicit_named() async {
-    await super.test_class_constructor_explicit_named();
-  }
-
-  @failingTest
   test_class_constructor_explicit_type_params() async {
     await super.test_class_constructor_explicit_type_params();
-  }
-
-  @failingTest
-  test_class_constructor_external() async {
-    await super.test_class_constructor_external();
   }
 
   @failingTest
@@ -247,11 +227,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_constructor_params() async {
     await super.test_class_constructor_params();
-  }
-
-  @failingTest
-  test_class_constructors() async {
-    await super.test_class_constructors();
   }
 
   @failingTest
