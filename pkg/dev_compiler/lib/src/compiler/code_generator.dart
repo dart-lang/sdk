@@ -583,14 +583,13 @@ class CodeGenerator extends Object
     // this is only to catch things that haven't been emitted yet.
     //
     // See _emitTypeDeclaration.
-    var library = unit.element.library;
-    bool internalSdk = isSdkInternalRuntime(library);
-    _currentElements.add(library);
+    _currentElements.add(unit.element);
+    var isInternalSdk = isSdkInternalRuntime(currentLibrary);
     List<VariableDeclaration> fields;
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         inferNullableTypes(declaration);
-        if (internalSdk && declaration.variables.isFinal) {
+        if (isInternalSdk && declaration.variables.isFinal) {
           _emitInternalSdkFields(declaration.variables.variables);
         } else {
           (fields ??= []).addAll(declaration.variables.variables);
@@ -611,7 +610,7 @@ class CodeGenerator extends Object
 
       inferNullableTypes(declaration);
       var item = _visit(declaration);
-      if (internalSdk && element is FunctionElement) {
+      if (isInternalSdk && element is FunctionElement) {
         _internalSdkFunctions.add(item);
       } else {
         _moduleItems.add(item);
@@ -2365,7 +2364,9 @@ class CodeGenerator extends Object
     fields.forEach((FieldElement e, JS.Expression initialValue) {
       JS.Expression access =
           _classProperties.virtualFields[e] ?? _declareMemberName(e.getter);
-      body.add(js.statement('this.# = #;', [access, initialValue]));
+      body.add(initialValue
+          .toAssignExpression(js.call('this.#', [access]))
+          .toStatement());
     });
 
     return _statement(body);
@@ -2474,7 +2475,7 @@ class CodeGenerator extends Object
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
-        node,
+        null, // don't annotate as this breaks stepping for one-line functions.
         node.element);
   }
 

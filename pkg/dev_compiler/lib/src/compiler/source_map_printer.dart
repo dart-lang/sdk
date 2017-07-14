@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
@@ -19,12 +19,9 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
   /// The source_maps builder we write JavaScript code to.
   final sourceMap = new SourceMapBuilder();
 
-  /// The cache of URIs for paths.
-  final _sourceUrlCache = <String, Object>{};
-
-  CompilationUnit unit;
-  String sourcePath;
-  AstNode _currentTopLevelDeclaration;
+  Uri _sourceUri;
+  LineInfo _lineInfo;
+  AstNode _topLevelNode;
 
   @override
   void emit(String code) {
@@ -46,44 +43,48 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
   void enterNode(JS.Node jsNode) {
     AstNode node = jsNode.sourceInformation;
     if (node == null || node.offset == -1 || node.isSynthetic) return;
-    if (unit == null) {
+    if (_topLevelNode == null) {
       // This is a top-level declaration.  Note: consecutive top-level
       // declarations may come from different compilation units due to
       // parts.
-      _currentTopLevelDeclaration = node;
-      unit = node.getAncestor((n) => n is CompilationUnit);
-      var source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
-      // Use the uri for dart: uris instead of the path of the source file
-      // on disk as that results in much cleaner stack traces.
-      // Example:
-      // source.uri = dart:core/object.dart
-      // source.fullName = gen/patched_sdk/lib/core/object.dart
-      sourcePath =
-          source.isInSystemLibrary ? source.uri.toString() : source.fullName;
+      var unit =
+          node.getAncestor((n) => n is CompilationUnit) as CompilationUnit;
+      // This happens for synthetic nodes created by AstFactory.
+      // We don't need to mark positions for them because we'll have a position
+      // for the next thing down.
+      if (unit == null) return;
+
+      _topLevelNode = node;
+      var source = unit.element.source;
+      _lineInfo = unit.lineInfo;
+      _sourceUri = source.uri;
+      // TODO(jmesserly): this is for backwards compat, but it seems cleaner
+      // to preserve the package URI, as long as devtools can open the
+      // corresponding file.
+      if (_sourceUri.scheme == 'package') {
+        _sourceUri = Uri.parse(source.fullName);
+      }
     }
-    // Skip MethodDeclarations - in the case of a one line function it finds the
-    // declaration rather than the body and confuses devtools.
-    if (node is MethodDeclaration) return;
+
     _mark(node.offset, _getIdentifier(node));
   }
 
   void exitNode(JS.Node jsNode) {
     AstNode node = jsNode.sourceInformation;
-    if (unit == null || node == null || node.offset == -1 || node.isSynthetic) {
+    if (_topLevelNode == null ||
+        node == null ||
+        node.offset == -1 ||
+        node.isSynthetic) {
       return;
     }
 
-    // TODO(jmesserly): in many cases marking the end will be unnecessary.
-    // Skip MethodDeclarations - in the case of a one line function it finds the
-    // declaration rather than the body and confuses devtools.
-    if (node is! MethodDeclaration) {
-      _mark(node.end);
-    }
+    // TODO(jmesserly): in most cases marking the end will be unnecessary.
+    _mark(node.end);
 
-    if (identical(node, _currentTopLevelDeclaration)) {
-      unit = null;
-      sourcePath = null;
-      _currentTopLevelDeclaration == null;
+    if (identical(node, _topLevelNode)) {
+      _sourceUri = null;
+      _lineInfo = null;
+      _topLevelNode = null;
     }
   }
 
@@ -92,23 +93,17 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       node is SimpleIdentifier ? node.name : null;
 
   void _mark(int offset, [String identifier]) {
-    var loc = unit.lineInfo.getLocation(offset);
+    var loc = _lineInfo.getLocation(offset);
     // Chrome Devtools wants a mapping for the beginning of
     // a line, so bump locations at the end of a line to the beginning of
     // the next line.
-    var next = unit.lineInfo.getLocation(offset + 1);
+    var next = _lineInfo.getLocation(offset + 1);
     if (next.lineNumber == loc.lineNumber + 1) {
       loc = next;
     }
-    var sourceUrl = _sourceUrlCache.putIfAbsent(
-        sourcePath,
-        () =>
-            sourcePath.startsWith('dart:') || sourcePath.startsWith('package:')
-                ? sourcePath
-                : new Uri.file(sourcePath));
     sourceMap.addLocation(
         new SourceLocation(offset,
-            sourceUrl: sourceUrl,
+            sourceUrl: _sourceUri,
             line: loc.lineNumber - 1,
             column: loc.columnNumber - 1),
         new SourceLocation(buffer.length, line: _line, column: _column),
