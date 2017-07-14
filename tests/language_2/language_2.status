@@ -5,3 +5,4 @@
 # The VM and dart2js do not implement the Dart 2.0 static type errors yet.
 [ $runtime == vm || $compiler == dart2js ]
 abstract_beats_arguments_test: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
