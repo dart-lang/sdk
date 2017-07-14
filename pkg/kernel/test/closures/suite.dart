@@ -13,6 +13,8 @@ import 'package:testing/testing.dart'
 
 import 'package:kernel/ast.dart' show Program, Library;
 
+import 'package:kernel/target/targets.dart' show Target;
+
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
 
