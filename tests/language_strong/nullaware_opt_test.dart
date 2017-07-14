@@ -68,22 +68,9 @@ test2() {
   c?.m(bomb());
 }
 
-class Bar {
-  String s;
-}
-
-class Foo {
-  Bar _bar;
-  String str;
-
-  Foo(this._bar) : str = _bar?.s;
-}
-
 main() {
   for (int i = 0; i < 10; i++) {
     test();
     test2();
   }
-
-  Expect.equals(null, new Foo(new Bar()).str);
 }
