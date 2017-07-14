@@ -32,8 +32,7 @@ import '../builder/builder.dart'
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../deprecated_problems.dart'
-    show deprecated_formatUnexpected, deprecated_inputError;
+import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
 
@@ -57,6 +56,8 @@ import '../loader.dart' show Loader;
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
+
+import '../severity.dart' show Severity;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
@@ -530,7 +531,8 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   Expression buildCompileTimeError(Message message, int offset, Uri uri) {
-    String text = deprecated_formatUnexpected(uri, offset, message.message);
+    String text = target.context
+        .format(message.withLocation(uri, offset), Severity.error);
     return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
   }
 }

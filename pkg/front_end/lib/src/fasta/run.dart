@@ -21,6 +21,8 @@ import 'fasta.dart' show CompileTask;
 
 import 'deprecated_problems.dart' show deprecated_InputError;
 
+import 'severity.dart' show Severity;
+
 import 'ticker.dart' show Ticker;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
@@ -38,7 +40,8 @@ mainEntryPoint(List<String> arguments) async {
             new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
         uri = await task.compile();
       } on deprecated_InputError catch (e) {
-        print(e.deprecated_format());
+        CompilerContext.current
+            .report(deprecated_InputError.toMessage(e), Severity.error);
         exit(1);
       }
       if (exitCode != 0) exit(exitCode);

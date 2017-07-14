@@ -147,7 +147,8 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
     }
 
     if (kernelTarget.errors.isNotEmpty) {
-      kernelTarget.errors.forEach(options.deprecated_reportError);
+      // TODO(ahe): The errors have already been reported via CompilerContext.
+      kernelTarget.errors.forEach(options.reportMessage);
       return null;
     }
 
@@ -156,7 +157,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         program: program,
         deps: kernelTarget.loader.getDependencies());
   } on deprecated_InputError catch (e) {
-    options.deprecated_reportError(e.deprecated_format());
+    options.reportMessage(deprecated_InputError.toMessage(e));
     return null;
   } catch (e, t) {
     return reportCrash(e, t);

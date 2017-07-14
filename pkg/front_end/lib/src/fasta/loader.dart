@@ -10,11 +10,12 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'deprecated_problems.dart'
-    show firstSourceUri, deprecated_printUnexpected;
+import 'deprecated_problems.dart' show firstSourceUri;
 
 import 'messages.dart'
     show LocatedMessage, Message, messagePlatformPrivateLibraryAccess;
+
+import 'severity.dart' show Severity;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -174,7 +175,8 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
       {bool silent: false, bool wasHandled: false}) {
     if (!silent) {
-      deprecated_printUnexpected(fileUri, charOffset, message.message);
+      target.context
+          .report(message.withLocation(fileUri, charOffset), Severity.error);
     }
     (wasHandled ? handledErrors : unhandledErrors)
         .add(message.withLocation(fileUri, charOffset));

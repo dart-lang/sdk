@@ -8,6 +8,8 @@ import 'package:kernel/target/targets.dart' as backend show Target;
 
 import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
+import 'compiler_context.dart' show CompilerContext;
+
 import 'loader.dart' show Loader;
 
 import 'target.dart' show Target;
@@ -21,6 +23,8 @@ abstract class TargetImplementation extends Target {
   final UriTranslator uriTranslator;
 
   final backend.Target backendTarget;
+
+  final CompilerContext context = CompilerContext.current;
 
   Builder cachedAbstractClassInstantiationError;
   Builder cachedCompileTimeError;

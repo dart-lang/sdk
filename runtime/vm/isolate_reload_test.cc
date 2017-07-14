@@ -3216,7 +3216,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
   // The reload fails because the initializing expression is parsed at
   // class finalization time.
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(lib, "......");
+  EXPECT_ERROR(lib, "...");
 }
 
 // When an initializer expression has a syntax error, we detect it at reload
@@ -3252,7 +3252,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
   // The reload fails because the initializing expression is parsed at
   // class finalization time.
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(lib, "......");
+  EXPECT_ERROR(lib, "...");
 }
 
 // When an initializer expression has a syntax error, we detect it at reload

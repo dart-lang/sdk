@@ -113,11 +113,6 @@ class ProcessedOptions {
     return _raw.byteStore;
   }
 
-  // TODO(sigmund,ahe): delete in favor of reportMessage.
-  void deprecated_reportError(String error) {
-    _raw.onError(new _StringMessage(error));
-  }
-
   void reportMessage(LocatedMessage message) {
     _raw.onError(new _CompilationMessage(message));
   }
@@ -371,17 +366,6 @@ class _CompilationMessage implements CompilationError {
           .pointSpan();
 
   _CompilationMessage(this.original);
-
-  String toString() => message;
-}
-
-/// Wraps an error message as a [CompilationError] API.
-class _StringMessage implements CompilationError {
-  final String message;
-  String get tip => null;
-  SourceSpan get span => null;
-
-  _StringMessage(this.message);
 
   String toString() => message;
 }

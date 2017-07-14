@@ -29,6 +29,8 @@ import 'dill/dill_target.dart' show DillTarget;
 
 import 'compile_platform.dart' show compilePlatformInternal;
 
+import 'severity.dart' show Severity;
+
 import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
@@ -79,7 +81,8 @@ Future<KernelTarget> outline(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    print(e.deprecated_format());
+    CompilerContext.current
+        .report(deprecated_InputError.toMessage(e), Severity.error);
     return null;
   }
 }
@@ -97,7 +100,8 @@ Future<Uri> compile(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    print(e.deprecated_format());
+    CompilerContext.current
+        .report(deprecated_InputError.toMessage(e), Severity.error);
     return null;
   }
 }

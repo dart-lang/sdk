@@ -14,6 +14,10 @@ import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'colors.dart' show computeEnableColors;
 
+import 'fasta_codes.dart' show LocatedMessage, Message;
+
+import 'severity.dart' show Severity;
+
 final Object compilerContextKey = new Object();
 
 final CompilerContext rootContext =
@@ -21,6 +25,7 @@ final CompilerContext rootContext =
 
 class CompilerContext {
   final FileSystem fileSystem = PhysicalFileSystem.instance;
+
   final CompilerCommandLine options;
 
   final Map<String, Source> uriToSource = <String, Source>{};
@@ -31,6 +36,26 @@ class CompilerContext {
 
   void disableColors() {
     enableColorsCached = false;
+  }
+
+  /// Report [message], for example, by printing it.
+  void report(LocatedMessage message, Severity severity) {
+    options.report(message, severity);
+  }
+
+  /// Report [message], for example, by printing it.
+  void reportWithoutLocation(Message message, Severity severity) {
+    options.reportWithoutLocation(message, severity);
+  }
+
+  /// Format [message] as a text string that can be included in generated code.
+  String format(LocatedMessage message, Severity severity) {
+    return options.format(message, severity);
+  }
+
+  /// Format [message] as a text string that can be included in generated code.
+  String formatWithoutLocation(Message message, Severity severity) {
+    return options.formatWithoutLocation(message, severity);
   }
 
   static CompilerContext get current {

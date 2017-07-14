@@ -9,6 +9,7 @@ import 'dart:async' show Future;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Block,
         CanonicalName,
         Class,
         Constructor,
@@ -30,6 +31,7 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Program,
         Source,
+        Statement,
         StringLiteral,
         SuperInitializer,
         Throw,
@@ -45,11 +47,7 @@ import '../../../file_system.dart' show FileSystem;
 import '../compiler_context.dart' show CompilerContext;
 
 import '../deprecated_problems.dart'
-    show
-        deprecated_formatUnexpected,
-        deprecated_InputError,
-        reportCrash,
-        resetCrashReporting;
+    show deprecated_InputError, reportCrash, resetCrashReporting;
 
 import '../dill/dill_target.dart' show DillTarget;
 
@@ -61,6 +59,8 @@ import '../messages.dart'
         templateSuperclassHasNoDefaultConstructor;
 
 import '../problems.dart' show unhandled;
+
+import '../severity.dart' show Severity;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -103,7 +103,7 @@ class KernelTarget extends TargetImplementation {
 
   Program program;
 
-  final List<String> errors = <String>[];
+  final List<LocatedMessage> errors = <LocatedMessage>[];
 
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
@@ -218,8 +218,8 @@ class KernelTarget extends TargetImplementation {
 
   void handleInputError(deprecated_InputError error, {bool isFullProgram}) {
     if (error != null) {
-      String message = error.deprecated_format();
-      print(message);
+      LocatedMessage message = deprecated_InputError.toMessage(error);
+      context.report(message, Severity.error);
       errors.add(message);
     }
     program = erroneousProgram(isFullProgram);
@@ -309,10 +309,8 @@ class KernelTarget extends TargetImplementation {
     }
     List<Expression> expressions = <Expression>[];
     for (LocatedMessage error in recoverableErrors) {
-      String message = deprecated_formatUnexpected(
-          error.uri, error.charOffset, error.message);
-      errors.add(message);
-      expressions.add(new StringLiteral(message));
+      errors.add(error);
+      expressions.add(new StringLiteral(context.format(error, Severity.error)));
     }
     mainLibrary.library.addMember(new Field(new Name("#errors"),
         initializer: new ListLiteral(expressions, isConst: true),
@@ -333,8 +331,9 @@ class KernelTarget extends TargetImplementation {
       KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
           null, "main", null, null, ProcedureKind.Method, library, -1, -1, -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
-      mainBuilder.body = new ExpressionStatement(
-          new Throw(new StringLiteral("${errors.join('\n')}")));
+      mainBuilder.body = new Block(new List<Statement>.from(errors.map(
+          (LocatedMessage message) => new ExpressionStatement(new Throw(
+              new StringLiteral(context.format(message, Severity.error)))))));
     }
     library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
@@ -634,8 +633,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void verify() {
-    var verifyErrors = verifyProgram(program);
-    errors.addAll(verifyErrors.map((error) => error.message));
+    errors.addAll(verifyProgram(program));
     ticker.logMs("Verified program");
   }
 

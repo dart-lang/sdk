@@ -6,19 +6,24 @@ library fasta.compiler_command_line;
 
 import 'dart:io' show exit;
 
+import 'package:kernel/target/targets.dart'
+    show Target, getTarget, TargetFlags, targets;
+
 import 'command_line.dart' show CommandLine, deprecated_argumentError;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'package:kernel/target/targets.dart'
-    show Target, getTarget, TargetFlags, targets;
+import 'command_line_reporting.dart' as command_line_reporting;
 
 import 'fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         messageFastaUsageLong,
         messageFastaUsageShort,
         templateUnspecified;
+
+import 'severity.dart' show Severity;
 
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
@@ -127,6 +132,24 @@ class CompilerCommandLine extends CommandLine {
   }
 
   Target get target => options["target"];
+
+  void Function(LocatedMessage, Severity) get report {
+    return options["report"] ?? command_line_reporting.report;
+  }
+
+  void Function(Message, Severity) get reportWithoutLocation {
+    return options["reportWithoutLocation"] ??
+        command_line_reporting.reportWithoutLocation;
+  }
+
+  String Function(LocatedMessage, Severity) get format {
+    return options["format"] ?? command_line_reporting.format;
+  }
+
+  String Function(Message, Severity) get formatWithoutLocation {
+    return options["formatWithoutLocation"] ??
+        command_line_reporting.formatWithoutLocation;
+  }
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {

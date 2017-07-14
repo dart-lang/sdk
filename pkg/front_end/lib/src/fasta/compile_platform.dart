@@ -22,6 +22,8 @@ import 'deprecated_problems.dart' show deprecated_InputError;
 
 import 'kernel/utils.dart' show writeProgramToFile;
 
+import 'severity.dart' show Severity;
+
 import 'ticker.dart' show Ticker;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
@@ -35,7 +37,8 @@ Future mainEntryPoint(List<String> arguments) async {
       await compilePlatform(arguments);
     } on deprecated_InputError catch (e) {
       exitCode = 1;
-      print(e.deprecated_format());
+      CompilerContext.current
+          .report(deprecated_InputError.toMessage(e), Severity.error);
       return null;
     }
   }
