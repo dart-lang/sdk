@@ -701,11 +701,20 @@ map(values, [K, V]) => JS(
 })()''');
 
 @JSExportName('assert')
-assert_(condition, [message]) => JS(
-    '',
-    '''(() => {
-  if (!$condition) $throwAssertionError(message);
-})()''');
+assert_(condition, message()) {
+  if (JS('bool', '# !== true', condition)) {
+    if (condition == null) _throwBooleanConversionError();
+    throwAssertionError(message);
+  }
+}
+
+dassert(value, message()) {
+  if (JS('bool', '# != null && #[#] instanceof #', value, value, _runtimeType,
+      AbstractFunctionType)) {
+    value = JS('', '#(#)', dcall, value);
+  }
+  return assert_(dtest(value), message);
+}
 
 /// Store a JS error for an exception.  For non-primitives, we store as an
 /// expando.  For primitive, we use a side cache.  To limit memory leakage, we

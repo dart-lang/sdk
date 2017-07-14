@@ -73,11 +73,10 @@ throwUnimplementedError(String message) {
   throw new UnimplementedError(message);
 }
 
-throwAssertionError([String message()]) {
+throwAssertionError(messageFn()) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw message != null
-      ? new AssertionErrorWithMessage(message())
-      : new AssertionError();
+  var message = messageFn != null ? messageFn() : null;
+  throw new AssertionErrorImpl(message);
 }
 
 throwCyclicInitializationError([String message]) {

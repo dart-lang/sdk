@@ -462,7 +462,6 @@ registerExtension(jsType, dartExtType) => JS(
     let originalDesc = $getOwnPropertyDescriptor($dartExtType, sigF);
     if (originalDesc === void 0) return;
     let originalSigFn = originalDesc.get;
-    $assert_(originalSigFn);
     $defineMemoizedGetter($jsType, sigF, originalSigFn);
   }
   updateSig($_methodSig);

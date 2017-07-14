@@ -848,15 +848,12 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
-/**
- * Error thrown when an assert() fails with a message:
- *
- *     assert(false, "Message here");
- */
-class AssertionErrorWithMessage extends AssertionError {
-  final Object _message;
-  AssertionErrorWithMessage(this._message);
-  String toString() => "Assertion failed: ${_message}";
+/// Error thrown by DDC when an `assert()` fails (with or without a message).
+class AssertionErrorImpl extends AssertionError {
+  AssertionErrorImpl(message) : super(message);
+  String toString() =>
+      "Assertion failed: " +
+      (message != null ? Error.safeToString(message) : "is not true");
 }
 
 /**
