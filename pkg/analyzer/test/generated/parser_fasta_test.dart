@@ -671,18 +671,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_field_const_noType() {
-    super.test_parseNormalFormalParameter_field_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type() {
-    super.test_parseNormalFormalParameter_field_const_type();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_function_noType_nullable() {
     // TODO(scheglov): Not implemented: Nnbd
     super.test_parseNormalFormalParameter_function_noType_nullable();
@@ -725,18 +713,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     // TODO(scheglov): Not implemented: Nnbd
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_noType() {
-    super.test_parseNormalFormalParameter_simple_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_type() {
-    super.test_parseNormalFormalParameter_simple_const_type();
   }
 }
 

@@ -1143,7 +1143,7 @@ class AstBuilder extends ScopeListener {
           declarations.add(node);
         } else {
           unhandled(
-              "${node.runtimeType}", "compilation unit", node.offset, uri);
+              "${node.runtimeType}", "compilation unit", node?.offset, uri);
         }
       }
     }
@@ -1866,10 +1866,26 @@ class AstBuilder extends ScopeListener {
   @override
   void addCompileTimeError(Message message, int charOffset) {
     Code code = message.code;
+    Map<String, dynamic> arguments = message.arguments;
     switch (code.analyzerCode) {
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
+        return;
+      case "EXPECTED_STRING_LITERAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
+        return;
+      case "UNEXPECTED_TOKEN":
+        var text = arguments['string'];
+        if (text == null) {
+          Token token = arguments['token'];
+          if (token != null) {
+            text = token.lexeme;
+          }
+        }
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
         return;
       default:
       // fall through

@@ -672,6 +672,7 @@ const Template<Message Function(String string)> templateExpectedButGot =
 const Code<Message Function(String string)> codeExpectedButGot =
     const Code<Message Function(String string)>(
         "ExpectedButGot", templateExpectedButGot,
+        analyzerCode: "UNEXPECTED_TOKEN",
         dart2jsCode: "MISSING_TOKEN_BEFORE_THIS");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -732,7 +733,7 @@ const Template<Message Function(Token token)> templateExpectedDeclaration =
 const Code<Message Function(Token token)> codeExpectedDeclaration =
     const Code<Message Function(Token token)>(
         "ExpectedDeclaration", templateExpectedDeclaration,
-        dart2jsCode: "*fatal*");
+        analyzerCode: "UNEXPECTED_TOKEN", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedDeclaration(Token token) {
@@ -834,7 +835,7 @@ const Template<Message Function(Token token)> templateExpectedString =
 const Code<Message Function(Token token)> codeExpectedString =
     const Code<Message Function(Token token)>(
         "ExpectedString", templateExpectedString,
-        dart2jsCode: "*fatal*");
+        analyzerCode: "EXPECTED_STRING_LITERAL", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedString(Token token) {
@@ -960,7 +961,7 @@ const Template<Message Function(Token token)> templateExtraneousModifier =
 const Code<Message Function(Token token)> codeExtraneousModifier =
     const Code<Message Function(Token token)>(
         "ExtraneousModifier", templateExtraneousModifier,
-        dart2jsCode: "EXTRANEOUS_MODIFIER");
+        analyzerCode: "UNEXPECTED_TOKEN", dart2jsCode: "EXTRANEOUS_MODIFIER");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtraneousModifier(Token token) {

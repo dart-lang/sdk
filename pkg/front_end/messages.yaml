@@ -122,6 +122,7 @@ ExpectedButGot:
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
   tip: DONT_KNOW_HOW_TO_FIX,
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: MISSING_TOKEN_BEFORE_THIS
   script:
     - "main() => true ? 1;"
@@ -135,6 +136,7 @@ ExpectedClassBodyToSkip: ExpectedClassBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: "*fatal*"
 
 ExpectedExpression:
@@ -167,6 +169,7 @@ ExpectedOpenParens:
 
 ExpectedString:
   template: "Expected a String, but got '#lexeme'."
+  analyzerCode: EXPECTED_STRING_LITERAL
   dart2jsCode: "*fatal*"
 
 ExpectedType:
@@ -176,6 +179,7 @@ ExpectedType:
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
     - "var String foo; main(){}"
