@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/fasta/compiler_command_line.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
@@ -113,7 +115,7 @@ class KernelDriver {
   ///
   /// Otherwise the driver will compute new kernel files and return them.
   Future<KernelResult> getKernel(Uri uri) async {
-    return await _logger.runAsync('Compute delta', () async {
+    return await runWithFrontEndContext('Compute delta', () async {
       await _refreshInvalidatedFiles();
 
       // Ensure that the graph starting at the entry point is ready.
@@ -143,6 +145,16 @@ class KernelDriver {
       });
 
       return new KernelResult(nameRoot, results);
+    });
+  }
+
+  Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
+    return await CompilerCommandLine.withGlobalOptions("", [""],
+        (CompilerContext context) {
+      context.options.options["--target"] = _target;
+      context.options.options["report"] = (message, severity) {};
+      context.options.options["reportWithoutLocation"] = (message, severity) {};
+      return _logger.runAsync(msg, f);
     });
   }
 
