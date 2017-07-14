@@ -605,8 +605,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // Set the locals handler state as if we were inlining the constructor.
     ConstructorEntity element = _elementMap.getConstructor(constructor);
-    ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
-    ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
+    ClosureRepresentationInfo oldScopeInfo = localsHandler.scopeInfo;
+    ClosureRepresentationInfo newScopeInfo =
+        closureDataLookup.getScopeInfo(element);
     localsHandler.scopeInfo = newScopeInfo;
     localsHandler.enterScope(closureDataLookup.getClosureScope(element));
     inlinedFrom(element, () {

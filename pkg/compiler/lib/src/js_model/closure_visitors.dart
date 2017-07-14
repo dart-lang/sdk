@@ -13,20 +13,17 @@ import 'closure.dart';
 /// various points to build ClosureScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
 class ClosureScopeBuilder extends ir.Visitor {
-  /// A map of each for loop statement and the corresponding variable
-  /// information about what variables are captured/used in the this for loop
-  /// declaration.
-  final Map<ir.Statement, LoopClosureScope> _loopClosureScopeMap;
-
-  /// Map entities to their corresponding scope information (such as what
-  /// variables are captured/used).
-  final Map<Entity, ScopeInfo> _scopeInfoMap;
+  /// A map of each visited call node with the associated information about what
+  /// variables are captured/used. Each ir.Node key corresponds to a scope that
+  /// was encountered while visiting a closure (initially called through
+  /// [translateLazyIntializer] or [translateConstructorOrProcedure]).
+  Map<ir.Node, ClosureScope> _closureInfoMap = <ir.Node, ClosureScope>{};
 
   /// A map of the nodes that we have flagged as necessary to generate closure
   /// classes for in a later stage. We map that node to information ascertained
   /// about variable usage in the surrounding scope.
-  final Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, ScopeInfo>
-      _closuresToGenerate;
+  Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, ScopeInfo>
+      _closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
 
   /// The local variables that have been declared in the current scope.
   List<ir.VariableDeclaration> _scopeVariables;
@@ -64,17 +61,8 @@ class ClosureScopeBuilder extends ir.Visitor {
 
   final KernelToElementMap _kernelToElementMap;
 
-  /// The original entity from which we start the tree-walk to find closure and
-  /// scope information.
-  final Entity _originalEntity;
-
-  ClosureScopeBuilder(
-      this._loopClosureScopeMap,
-      this._scopeInfoMap,
-      this._originalEntity,
-      this._closuresToGenerate,
-      this._localsMap,
-      this._kernelToElementMap);
+  ClosureScopeBuilder(this._closureInfoMap, this._closuresToGenerate,
+      this._localsMap, this._kernelToElementMap);
 
   /// Update the [ClosureScope] object corresponding to
   /// this node if any variables are captured.
@@ -101,18 +89,14 @@ class ClosureScopeBuilder extends ir.Visitor {
         thisLocal = new ThisLocal(_kernelToElementMap.getConstructor(node));
       }
 
-      _scopeInfoMap[_nodeToEntity(node)] = new KernelClosureScope(
-          capturedVariablesForScope,
-          _nodeToEntity(_executableContext),
-          thisLocal);
-    }
-  }
-
-  Entity _nodeToEntity(ir.Node node) {
-    if (node is ir.Member) {
-      return _kernelToElementMap.getMember(node);
-    } else {
-      return _kernelToElementMap.getLocalFunction(node);
+      Entity context;
+      if (_executableContext is ir.Member) {
+        context = _kernelToElementMap.getMember(_executableContext);
+      } else {
+        context = _kernelToElementMap.getLocalFunction(_executableContext);
+      }
+      _closureInfoMap[node] =
+          new KernelClosureScope(capturedVariablesForScope, context, thisLocal);
     }
   }
 
@@ -213,13 +197,10 @@ class ClosureScopeBuilder extends ir.Visitor {
         }
       }
     });
-    KernelClosureScope scope = _scopeInfoMap[_nodeToEntity(node)];
+    KernelClosureScope scope = _closureInfoMap[node];
     if (scope == null) return;
-    _loopClosureScopeMap[node] = new KernelLoopClosureScope(
-        scope.boxedVariables,
-        boxedLoopVariables,
-        scope.context,
-        scope.thisLocal);
+    _closureInfoMap[node] = new KernelLoopClosureScope(scope.boxedVariables,
+        boxedLoopVariables, scope.context, scope.thisLocal);
   }
 
   void visitInvokable(ir.TreeNode node) {
@@ -231,13 +212,11 @@ class ClosureScopeBuilder extends ir.Visitor {
     // field, constructor, or method that is being analyzed.
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
-    _currentScopeInfo = new KernelScopeInfo(_nodeToThisLocal(node));
-    if (_isInsideClosure) {
-      _closuresToGenerate[node] = _currentScopeInfo;
-    } else {
+    if (!_isInsideClosure) {
       _outermostNode = node;
-      _scopeInfoMap[_originalEntity] = _currentScopeInfo;
     }
+    _currentScopeInfo = new KernelScopeInfo(_nodeToThisLocal(node));
+    _closuresToGenerate[node] = _currentScopeInfo;
 
     enterNewScope(node, () {
       node.visitChildren(this);
