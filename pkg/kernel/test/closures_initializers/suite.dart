@@ -13,7 +13,7 @@ import 'package:testing/testing.dart'
 
 import 'package:kernel/ast.dart' show Program, Library;
 
-import 'package:kernel/transformations/argument_extraction_for_redirecting.dart'
+import 'package:kernel/transformations/argument_extraction.dart'
     as argument_extraction;
 
 import 'package:kernel/transformations/closure_conversion.dart'

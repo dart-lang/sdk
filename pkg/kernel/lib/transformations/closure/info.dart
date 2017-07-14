@@ -21,7 +21,8 @@ import '../../ast.dart'
         TypeParameterType,
         VariableDeclaration,
         VariableGet,
-        VariableSet;
+        VariableSet,
+        visitList;
 
 import '../../visitor.dart' show RecursiveVisitor;
 
@@ -119,9 +120,19 @@ class ClosureInfo extends RecursiveVisitor {
     /// the constructor (which is not `null`).  It leads to `x` being treated as
     /// captured, because it's seen as used outside of the function where it is
     /// declared.  In turn, it leads to unnecessary context creation and usage.
+    ///
+    /// We also need to visit the parameters to the function node before the
+    /// initializer list. Since the default [visitChildren] method of
+    /// [Constructor] will visit initializers first, we manually visit the
+    /// parameters here.
+    ///
+    /// TODO(sjindel): Don't visit the parameters twice.
+    ///
     beginMember(node, node.function);
     saveCurrentFunction(() {
       currentFunction = currentMemberFunction;
+      visitList(node.function.positionalParameters, this);
+      visitList(node.function.namedParameters, this);
       super.visitConstructor(node);
     });
     endMember();
