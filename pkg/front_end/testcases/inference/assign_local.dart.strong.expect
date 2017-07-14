@@ -16,4 +16,7 @@ static method main() → dynamic {
   core::num x;
   core::int x1 = x = 1;
   core::double x2 = x = 1.0;
+  self::A<core::int> y;
+  self::A<core::int> y1 = y = new self::A::•<core::int>();
+  self::B<core::int> y2 = y = new self::B::•<core::int>();
 }
