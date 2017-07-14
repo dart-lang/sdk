@@ -122,6 +122,20 @@ class EventRepositoryMock implements M.EventRepository {
   get onConnectionClosed => _onConnectionClosed.stream;
   get onConnectionClosedHasListener => _onConnectionClosed.hasListener;
 
+  final _onServiceEvent = new StreamController<M.ServiceEvent>.broadcast();
+  get onServiceEvent => _onServiceEvent.stream;
+  get onServiceEventHasListener => _onServiceEvent.hasListener;
+
+  final _onServiceRegistered =
+      new StreamController<M.ServiceRegisteredEvent>.broadcast();
+  get onServiceRegistered => _onServiceRegistered.stream;
+  get onServiceRegisteredHasListener => _onServiceRegistered.hasListener;
+
+  final _onServiceUnregistered =
+      new StreamController<M.ServiceUnregisteredEvent>.broadcast();
+  get onServiceUnregistered => _onServiceUnregistered.stream;
+  get onServiceUnregisteredHasListener => _onServiceUnregistered.hasListener;
+
   void add(M.Event event) {
     _onEvent.add(event);
     if (event is M.VMEvent) {
@@ -171,6 +185,13 @@ class EventRepositoryMock implements M.EventRepository {
       _onExtensionEvent.add(event);
     } else if (event is M.TimelineEventsEvent) {
       _onTimelineEvents.add(event);
+    } else if (event is M.ServiceEvent) {
+      _onServiceEvent.add(event);
+      if (event is M.ServiceRegisteredEvent) {
+        _onServiceRegistered.add(event);
+      } else if (event is M.ServiceUnregisteredEvent) {
+        _onServiceUnregistered.add(event);
+      }
     }
   }
 }

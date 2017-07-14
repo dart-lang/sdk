@@ -150,7 +150,6 @@ class Service : public AllStatic {
   static StreamInfo logging_stream;
   static StreamInfo extension_stream;
   static StreamInfo timeline_stream;
-  static StreamInfo editor_stream;
 
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);

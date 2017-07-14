@@ -119,14 +119,13 @@ StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
-StreamInfo Service::editor_stream("_Editor");
 
 static StreamInfo* streams_[] = {
-    &Service::vm_stream,       &Service::isolate_stream,
-    &Service::debug_stream,    &Service::gc_stream,
-    &Service::echo_stream,     &Service::graph_stream,
-    &Service::logging_stream,  &Service::extension_stream,
-    &Service::timeline_stream, &Service::editor_stream};
+    &Service::vm_stream,      &Service::isolate_stream,
+    &Service::debug_stream,   &Service::gc_stream,
+    &Service::echo_stream,    &Service::graph_stream,
+    &Service::logging_stream, &Service::extension_stream,
+    &Service::timeline_stream};
 
 bool Service::ListenStream(const char* stream_id) {
   if (FLAG_trace_service) {
@@ -4000,42 +3999,6 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* send_object_to_editor_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new StringParameter("editor", true),
-    new StringParameter("objectId", true), NULL,
-};
-
-static bool SendObjectToEditor(Thread* thread, JSONStream* js) {
-  // Handle heap objects.
-  ObjectIdRing::LookupResult lookup_result;
-  // Refreshing the id to avoid sending an expired ObjectRef
-  const Object& obj = Object::Handle(
-      LookupHeapObject(thread, js->LookupParam("objectId"), &lookup_result));
-  if (obj.raw() != Object::sentinel().raw()) {
-    // We found a heap object for this id.  Return it.
-    if (Service::editor_stream.enabled()) {
-      ServiceEvent event(thread->isolate(),
-                         ServiceEvent::kEditorObjectSelected);
-      ServiceEvent::EditorEvent editor_event;
-      editor_event.object = &obj;
-      editor_event.editor = js->LookupParam("editor");
-      event.set_editor_event(editor_event);
-      Service::HandleEvent(&event);
-    }
-    PrintSuccess(js);
-    return true;
-  } else if (lookup_result == ObjectIdRing::kCollected) {
-    PrintSentinel(js, kCollectedSentinel);
-    return true;
-  } else if (lookup_result == ObjectIdRing::kExpired) {
-    PrintSentinel(js, kExpiredSentinel);
-    return true;
-  }
-  PrintInvalidParamError(js, "objectId");
-
-  return true;
-}
-
 // clang-format off
 static const ServiceMethodDescriptor service_methods_[] = {
   { "_dumpIdZone", DumpIdZone, NULL },
@@ -4153,8 +4116,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_vm_timeline_flags_params },
   { "_collectAllGarbage", CollectAllGarbage,
     collect_all_garbage_params },
-  { "_sendObjectToEditor", SendObjectToEditor,
-    send_object_to_editor_params },
 };
 // clang-format on
 

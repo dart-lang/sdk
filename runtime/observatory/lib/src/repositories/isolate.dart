@@ -5,6 +5,15 @@
 part of repositories;
 
 class IsolateRepository extends M.IsolateRepository {
+  final S.VM _vm;
+
+  Iterable<M.Service> get reloadSourcesServices =>
+      _vm.services.where((S.Service s) => s.service == 'reloadSources');
+
+  IsolateRepository(this._vm) {
+    assert(_vm == null);
+  }
+
   Future<M.Isolate> get(M.IsolateRef i) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
@@ -16,9 +25,15 @@ class IsolateRepository extends M.IsolateRepository {
     return isolate;
   }
 
-  Future reloadSources(M.IsolateRef i) async {
-    S.Isolate isolate = i as S.Isolate;
-    assert(isolate != null);
-    await isolate.reloadSources();
+  Future reloadSources(M.IsolateRef i, {M.Service service}) async {
+    if (service == null) {
+      S.Isolate isolate = i as S.Isolate;
+      assert(isolate != null);
+      await isolate.reloadSources();
+    } else {
+      S.Service srv = service as S.Service;
+      assert(srv != null);
+      await _vm.invokeRpcNoUpgrade(srv.method, {'isolateId': i.id});
+    }
   }
 }

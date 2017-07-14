@@ -197,3 +197,18 @@ bool isAtAsyncSuspension(DebugEvent event) {
   }
   return false;
 }
+
+abstract class ServiceEvent extends Event {
+  /// The identifier of the service
+  String get service;
+
+  /// The JSON-RPC 2.0 Method that identifes this instance
+  String get method;
+}
+
+abstract class ServiceRegisteredEvent extends ServiceEvent {
+  /// The alias associated with this new instance
+  String get alias;
+}
+
+abstract class ServiceUnregisteredEvent extends ServiceEvent {}
