@@ -51,6 +51,15 @@ class MockWithGetterSetter {
   }
 }
 
+class Callable {
+  int call() => 1;
+  int m() => 2;
+}
+
+class MockCallable implements Callable {
+  noSuchMethod(i) => i.memberName == #call ? 42 : 0;
+}
+
 void main() {
   MockCat mock = new MockCat();
   Expect.isTrue((mock as dynamic).eatFood("cat food"));
@@ -73,7 +82,9 @@ void main() {
 
   var g = new MockWithGenerics();
   Expect.equals(g.doStuff(42), 142);
-  Expect.throws(() => g.doStuff('hi'));
+  Expect.throws(() {
+    g.doStuff('hi');
+  });
 
   var s = new MockWithGetterSetter();
   s.getter;
@@ -86,4 +97,10 @@ void main() {
   Expect.equals(s.invocation.isGetter, false);
   Expect.equals(s.invocation.isSetter, true);
   Expect.equals(s.invocation.isMethod, false);
+
+  Callable call = new MockCallable();
+  Expect.equals(call(), 42);
+  Expect.equals((call as dynamic)(), 42);
+  Expect.equals(call.m(), 0);
+  Expect.equals((call as dynamic).m(), 0);
 }

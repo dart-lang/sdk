@@ -1836,10 +1836,14 @@ class CodeGenerator extends Object
     // handled at runtime by the dynamic call mechanism. So we only
     // concern ourselves with statically known function types.
     //
-    // For the same reason, we can ignore "noSuchMethod".
-    // call-implemented-by-nSM will be dispatched by dcall at runtime.
-    bool isCallable = classElem.lookUpMethod('call', null) != null ||
-        classElem.lookUpGetter('call', null)?.returnType is FunctionType;
+    // We can ignore `noSuchMethod` because:
+    // * `dynamic d; d();` without a declared `call` method is handled by dcall.
+    // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
+    //   the `call` method on the `Callable` interface.
+    var callMethod = classElem.type.lookUpInheritedGetterOrMethod('call');
+    bool isCallable = callMethod is PropertyAccessorElement
+        ? callMethod.returnType is FunctionType
+        : callMethod != null;
 
     var body = <JS.Statement>[];
     void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
