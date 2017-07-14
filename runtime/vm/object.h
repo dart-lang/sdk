@@ -6359,6 +6359,7 @@ class Integer : public Number {
                                    Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
+  // Returns null if integer is out of range (in --limit-ints-to-64-bits mode).
   static RawInteger* NewCanonical(const String& str);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
@@ -6603,6 +6604,9 @@ class Bigint : public Integer {
 
   // Returns a canonical Bigint object allocated in the old gen space.
   static RawBigint* NewCanonical(const String& str);
+
+  // Returns true if Bigint can't be instantiated.
+  static bool IsDisabled() { return FLAG_limit_ints_to_64_bits; }
 
  private:
   void SetNeg(bool value) const;

@@ -401,6 +401,9 @@ TEST_CASE(SerializeCapability) {
 }
 
 TEST_CASE(SerializeBigint) {
+  if (Bigint::IsDisabled()) {
+    return;
+  }
   // Write snapshot with object content.
   const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
   const String& str = String::Handle(String::New(cstr));
@@ -473,6 +476,9 @@ void CheckBigint(const char* bigint_value) {
 }
 
 TEST_CASE(SerializeBigint2) {
+  if (Bigint::IsDisabled()) {
+    return;
+  }
   CheckBigint("0x0");
   CheckBigint("0x1");
   CheckBigint("-0x1");

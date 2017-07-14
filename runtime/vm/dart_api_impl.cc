@@ -269,6 +269,7 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
   obj = arguments->NativeArgAt(arg_index);
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
+    ASSERT(!Bigint::IsDisabled());
     const Bigint& bigint = Bigint::Cast(obj);
     if (bigint.FitsIntoUint64()) {
       *value = bigint.AsUint64Value();
@@ -2012,6 +2013,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
   if (int_obj.IsMint()) {
     *fits = !int_obj.IsNegative();
   } else {
+    ASSERT(!Bigint::IsDisabled());
     *fits = Bigint::Cast(int_obj).FitsIntoUint64();
   }
   return Api::Success();
@@ -2037,7 +2039,12 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
-  return Api::NewHandle(T, Integer::NewFromUint64(value));
+  RawInteger* integer = Integer::NewFromUint64(value);
+  if (integer == Integer::null()) {
+    return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,
+                         CURRENT_FUNC, value);
+  }
+  return Api::NewHandle(T, integer);
 }
 
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
@@ -2045,7 +2052,12 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
   const String& str_obj = String::Handle(Z, String::New(str));
-  return Api::NewHandle(T, Integer::New(str_obj));
+  RawInteger* integer = Integer::New(str_obj);
+  if (integer == Integer::null()) {
+    return Api::NewError("%s: Cannot create Dart integer from string %s",
+                         CURRENT_FUNC, str);
+  }
+  return Api::NewHandle(T, integer);
 }
 
 DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
@@ -2069,6 +2081,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     *value = int_obj.AsInt64Value();
     return Api::Success();
   } else {
+    ASSERT(!Bigint::IsDisabled());
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (bigint.FitsIntoInt64()) {
       *value = bigint.AsInt64Value();
@@ -2106,6 +2119,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
       return Api::Success();
     }
   } else {
+    ASSERT(!Bigint::IsDisabled());
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (bigint.FitsIntoUint64()) {
       *value = bigint.AsUint64Value();
