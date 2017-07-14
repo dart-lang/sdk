@@ -2903,7 +2903,6 @@ class Parser {
       // deep_nesting1_negative_test.
       return reportUnrecoverableError(token, fasta.messageStackOverflow).next;
     }
-    listener.beginExpression(token);
     Token result = optional('throw', token)
         ? parseThrowExpression(token, true)
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
@@ -2912,7 +2911,6 @@ class Parser {
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    listener.beginExpression(token);
     return optional('throw', token)
         ? parseThrowExpression(token, false)
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
@@ -2947,7 +2945,6 @@ class Parser {
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
-          listener.beginExpression(token.next);
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
@@ -2980,7 +2977,6 @@ class Parser {
         } else {
           // Left associative, so we recurse at the next higher
           // precedence level.
-          listener.beginExpression(token.next);
           token =
               parsePrecedenceExpression(token.next, level + 1, allowCascades);
           listener.handleBinaryExpression(operator);
@@ -3082,7 +3078,7 @@ class Parser {
       } else if (optional('(', token)) {
         listener.handleNoTypeArguments(token);
         token = parseArguments(token);
-        listener.endSend(beginToken, token);
+        listener.handleSend(beginToken, token);
       } else {
         break;
       }
@@ -3196,7 +3192,7 @@ class Parser {
       // Constructor forwarding.
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
-      listener.endSend(beginToken, token);
+      listener.handleSend(beginToken, token);
     }
     return token;
   }
@@ -3209,7 +3205,7 @@ class Parser {
       // Super constructor.
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
-      listener.endSend(beginToken, token);
+      listener.handleSend(beginToken, token);
     } else if (optional("?.", token)) {
       reportRecoverableError(token, fasta.messageSuperNullAware);
     }
@@ -3500,7 +3496,6 @@ class Parser {
 
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token;
-    listener.beginSend(token);
     token = parseIdentifier(token, context);
     token = listener.injectGenericCommentTypeList(token);
     if (isValidMethodTypeArguments(token)) {
@@ -3509,7 +3504,7 @@ class Parser {
       listener.handleNoTypeArguments(token);
     }
     token = parseArgumentsOpt(token);
-    listener.endSend(beginToken, token);
+    listener.handleSend(beginToken, token);
     return token;
   }
 
@@ -3802,12 +3797,11 @@ class Parser {
 
   Token parseThrowExpression(Token token, bool allowCascades) {
     Token throwToken = token;
-    listener.beginThrowExpression(throwToken);
     token = expect('throw', token);
     token = allowCascades
         ? parseExpression(token)
         : parseExpressionWithoutCascade(token);
-    listener.endThrowExpression(throwToken, token);
+    listener.handleThrowExpression(throwToken, token);
     return token;
   }
 

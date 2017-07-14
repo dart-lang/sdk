@@ -210,7 +210,7 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  void endSend(Token beginToken, Token endToken) {
+  void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
     MethodInvocation arguments = pop();
     TypeArgumentList typeArguments = pop();
@@ -714,7 +714,7 @@ class AstBuilder extends ScopeListener {
     push(ast.expressionStatement(expression, endToken));
   }
 
-  void endThrowExpression(Token throwToken, Token endToken) {
+  void handleThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     push(ast.throwExpression(throwToken, pop()));
   }

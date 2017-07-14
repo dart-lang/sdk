@@ -184,13 +184,6 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void beginExpression(analyzer.Token token) {
-    listener.beginExpression(token);
-    // There is no corresponding endExpression
-    //_begin('Expression');
-  }
-
-  @override
   void beginExpressionStatement(analyzer.Token token) {
     listener.beginExpressionStatement(token);
     _begin('ExpressionStatement');
@@ -438,12 +431,6 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void beginSend(analyzer.Token token) {
-    listener.beginSend(token);
-    _begin('Send');
-  }
-
-  @override
   void beginShow(analyzer.Token showKeyword) {
     listener.beginShow(showKeyword);
     _begin('Show');
@@ -472,12 +459,6 @@ class ForwardingTestListener implements fasta.Listener {
   void beginThenStatement(analyzer.Token token) {
     listener.beginThenStatement(token);
     _begin('ThenStatement');
-  }
-
-  @override
-  void beginThrowExpression(analyzer.Token token) {
-    listener.beginThrowExpression(token);
-    _begin('ThrowExpression');
   }
 
   @override
@@ -1007,13 +988,6 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endSend(analyzer.Token beginToken, analyzer.Token endToken) {
-    // There is not always a beginSend for each endSend
-    _end('Send', optional: true);
-    listener.endSend(beginToken, endToken);
-  }
-
-  @override
   void endShow(analyzer.Token showKeyword) {
     _end('Show');
     listener.endShow(showKeyword);
@@ -1037,12 +1011,6 @@ class ForwardingTestListener implements fasta.Listener {
   void endThenStatement(analyzer.Token token) {
     _end('ThenStatement');
     listener.endThenStatement(token);
-  }
-
-  @override
-  void endThrowExpression(analyzer.Token throwToken, analyzer.Token endToken) {
-    _end('ThrowExpression');
-    listener.endThrowExpression(throwToken, endToken);
   }
 
   @override
@@ -1454,6 +1422,12 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void handleSend(analyzer.Token beginToken, analyzer.Token endToken) {
+    listener.handleSend(beginToken, endToken);
+    // TODO(danrubel): implement handleSend
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     listener.handleStringJuxtaposition(literalCount);
     // TODO(danrubel): implement handleStringJuxtaposition
@@ -1494,6 +1468,13 @@ class ForwardingTestListener implements fasta.Listener {
   void handleThisExpression(analyzer.Token token, IdentifierContext context) {
     listener.handleThisExpression(token, context);
     // TODO(danrubel): implement handleThisExpression
+  }
+
+  @override
+  void handleThrowExpression(
+      analyzer.Token throwToken, analyzer.Token endToken) {
+    listener.handleThrowExpression(throwToken, endToken);
+    // TODO(danrubel): implement handleThrowExpression
   }
 
   @override

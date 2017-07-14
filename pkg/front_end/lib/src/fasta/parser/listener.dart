@@ -166,8 +166,6 @@ class Listener {
     logEvent("Export");
   }
 
-  void beginExpression(Token token) {}
-
   void beginExpressionStatement(Token token) {}
 
   /// Called by [ClassMemberParser] after skipping an expression as error
@@ -648,9 +646,7 @@ class Listener {
     logEvent("ReturnStatement");
   }
 
-  void beginSend(Token token) {}
-
-  void endSend(Token beginToken, Token endToken) {
+  void handleSend(Token beginToken, Token endToken) {
     logEvent("Send");
   }
 
@@ -680,9 +676,7 @@ class Listener {
     logEvent("LiteralSymbol");
   }
 
-  void beginThrowExpression(Token token) {}
-
-  void endThrowExpression(Token throwToken, Token endToken) {
+  void handleThrowExpression(Token throwToken, Token endToken) {
     logEvent("ThrowExpression");
   }
 
