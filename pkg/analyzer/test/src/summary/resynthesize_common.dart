@@ -1362,17 +1362,6 @@ abstract class ResynthesizeTest extends AbstractResynthesizeTest {
    */
   SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource);
 
-  fail_library_hasExtUri() async {
-    var library = await checkLibrary('import "dart-ext:doesNotExist.dart";');
-    if (isStrongMode) {
-      checkElementText(library, r'''
-''');
-    } else {
-      checkElementText(library, r'''
-''');
-    }
-  }
-
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     if (isStrongMode) {
@@ -7382,7 +7371,7 @@ const dynamic x =
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
     var x = variables[0] as ConstTopLevelVariableElementImpl;
-    if (createOptions().strongMode) {
+    if (isStrongMode) {
       expect(x.type.toString(), 'Type');
     } else {
       expect(x.type.toString(), 'dynamic');

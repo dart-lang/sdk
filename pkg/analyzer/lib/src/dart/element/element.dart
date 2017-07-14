@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:kernel/kernel.dart' as kernel;
 
 /**
  * Assert that the given [object] is null, which in the places where this
@@ -411,6 +412,11 @@ class ClassElementImpl extends AbstractClassElementImpl
   final UnlinkedClass _unlinkedClass;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Class _kernel;
+
+  /**
    * The superclass of the class, or `null` for [Object].
    */
   InterfaceType _supertype;
@@ -466,6 +472,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    */
   ClassElementImpl(String name, int offset)
       : _unlinkedClass = null,
+        _kernel = null,
         super(name, offset);
 
   /**
@@ -473,6 +480,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    */
   ClassElementImpl.forNode(Identifier name)
       : _unlinkedClass = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -480,7 +488,16 @@ class ClassElementImpl extends AbstractClassElementImpl
    */
   ClassElementImpl.forSerialized(
       this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
+      : _kernel = null,
+        super.forSerialized(enclosingUnit);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ClassElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, this._kernel)
+      : _unlinkedClass = null,
+        super.forSerialized(enclosingUnit);
 
   /**
    * Set whether this class is abstract.
@@ -531,6 +548,11 @@ class ClassElementImpl extends AbstractClassElementImpl
   List<ConstructorElement> get constructors {
     if (isMixinApplication) {
       return _computeMixinAppConstructors();
+    }
+    if (_kernel != null && _constructors == null) {
+      _constructors = _kernel.constructors
+          .map((k) => new ConstructorElementImpl.forKernel(this, k))
+          .toList(growable: false);
     }
     if (_unlinkedClass != null && _constructors == null) {
       _constructors = _unlinkedClass.executables
@@ -736,6 +758,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isAbstract {
+    if (_kernel != null) {
+      return _kernel.isAbstract;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.isAbstract;
     }
@@ -843,6 +868,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.name;
     }
@@ -1277,6 +1305,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   final UnlinkedPart _unlinkedPart;
 
   /**
+   * The kernel context in which the library is resynthesized.
+   */
+  final KernelLibraryResynthesizerContext _kernelContext;
+
+  /**
    * The source that corresponds to this compilation unit.
    */
   @override
@@ -1360,6 +1393,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       : resynthesizerContext = null,
         _unlinkedUnit = null,
         _unlinkedPart = null,
+        _kernelContext = null,
         super(name, -1);
 
   /**
@@ -1371,7 +1405,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       this._unlinkedUnit,
       this._unlinkedPart,
       String name)
-      : super.forSerialized(null) {
+      : _kernelContext = null,
+        super.forSerialized(null) {
+    _enclosingElement = enclosingLibrary;
+    _name = name;
+    _nameOffset = -1;
+  }
+
+  /**
+   * Initialize using the given kernel information.
+   */
+  CompilationUnitElementImpl.forKernel(
+      LibraryElementImpl enclosingLibrary, this._kernelContext, String name)
+      : resynthesizerContext = null,
+        _unlinkedUnit = null,
+        _unlinkedPart = null,
+        super.forSerialized(null) {
     _enclosingElement = enclosingLibrary;
     _name = name;
     _nameOffset = -1;
@@ -1575,6 +1624,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get types {
+    if (_kernelContext != null) {
+      _types ??= _kernelContext.library.classes
+          .map((k) => new ClassElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedUnit != null) {
       _types ??= _unlinkedUnit.classes
           .map((c) => new ClassElementImpl.forSerialized(c, this))
@@ -1934,6 +1988,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   List<ConstructorInitializer> _constantInitializers;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Constructor _kernel;
+
+  /**
    * The offset of the `.` before this constructor name or `null` if not named.
    */
   int _periodOffset;
@@ -1954,19 +2013,33 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * Initialize a newly created constructor element to have the given [name] and
    * [offset].
    */
-  ConstructorElementImpl(String name, int offset) : super(name, offset);
+  ConstructorElementImpl(String name, int offset)
+      : _kernel = null,
+        super(name, offset);
 
   /**
    * Initialize a newly created constructor element to have the given [name].
    */
-  ConstructorElementImpl.forNode(Identifier name) : super.forNode(name);
+  ConstructorElementImpl.forNode(Identifier name)
+      : _kernel = null,
+        super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
   ConstructorElementImpl.forSerialized(
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
-      : super.forSerialized(serializedExecutable, enclosingClass);
+      : _kernel = null,
+        super.forSerialized(serializedExecutable, enclosingClass);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ConstructorElementImpl.forKernel(
+      ClassElementImpl enclosingClass, this._kernel)
+      : super.forSerialized(null, enclosingClass) {
+    isSynthetic = _kernel.isSyntheticDefault;
+  }
 
   /**
    * Return the constant initializers for this element, which will be empty if
@@ -3549,6 +3622,11 @@ abstract class ExecutableElementImpl extends ElementImpl
   final UnlinkedExecutable serializedExecutable;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Member _kernel;
+
+  /**
    * A list containing all of the functions defined within this executable
    * element.
    */
@@ -3580,6 +3658,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    */
   ExecutableElementImpl(String name, int offset)
       : serializedExecutable = null,
+        _kernel = null,
         super(name, offset);
 
   /**
@@ -3587,6 +3666,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    */
   ExecutableElementImpl.forNode(Identifier name)
       : serializedExecutable = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -3594,7 +3674,15 @@ abstract class ExecutableElementImpl extends ElementImpl
    */
   ExecutableElementImpl.forSerialized(
       this.serializedExecutable, ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
+      : _kernel = null,
+        super.forSerialized(enclosingElement);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ExecutableElementImpl.forKernel(ElementImpl enclosingElement, this._kernel)
+      : serializedExecutable = null,
+        super.forSerialized(enclosingElement);
 
   /**
    * Set whether this executable element's body is asynchronous.
@@ -3744,6 +3832,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name.name;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.name;
     }
@@ -5532,6 +5623,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   final LibraryResynthesizerContext resynthesizerContext;
 
+  /**
+   * The kernel context in which the library is resynthesized.
+   */
+  final KernelLibraryResynthesizerContext _kernelContext;
+
   final UnlinkedUnit _unlinkedDefiningUnit;
 
   /**
@@ -5609,6 +5705,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   LibraryElementImpl(this.context, String name, int offset, this.nameLength)
       : resynthesizerContext = null,
+        _kernelContext = null,
         _unlinkedDefiningUnit = null,
         super(name, offset);
 
@@ -5619,6 +5716,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
+        _kernelContext = null,
         _unlinkedDefiningUnit = null,
         super.forNode(name);
 
@@ -5627,13 +5725,35 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   LibraryElementImpl.forSerialized(this.context, String name, int offset,
       this.nameLength, this.resynthesizerContext, this._unlinkedDefiningUnit)
-      : super.forSerialized(null) {
+      : _kernelContext = null,
+        super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
     setResolutionCapability(
         LibraryResolutionCapability.resolvedTypeNames, true);
     setResolutionCapability(
         LibraryResolutionCapability.constantExpressions, true);
+  }
+
+  /**
+   * Initialize using the given kernel information.
+   */
+  LibraryElementImpl.forKernel(this.context, this._kernelContext)
+      : resynthesizerContext = null,
+        _unlinkedDefiningUnit = null,
+        nameLength = _kernelContext.library.name?.length ?? 0,
+        super.forSerialized(null) {
+    _name = _kernelContext.library.name ?? '';
+    _nameOffset = _kernelContext.library.fileOffset;
+    setResolutionCapability(
+        LibraryResolutionCapability.resolvedTypeNames, true);
+    setResolutionCapability(
+        LibraryResolutionCapability.constantExpressions, true);
+
+    definingCompilationUnit = new CompilationUnitElementImpl.forKernel(
+        this, _kernelContext, '<no-name>');
+
+    // TODO(scheglov) how to support parts?
   }
 
   @override
@@ -8870,4 +8990,11 @@ abstract class VariableElementImpl extends ElementImpl
     super.visitChildren(visitor);
     _initializer?.accept(visitor);
   }
+}
+
+/**
+ * The kernel context in which a library is resynthesized.
+ */
+abstract class KernelLibraryResynthesizerContext {
+  kernel.Library get library;
 }
