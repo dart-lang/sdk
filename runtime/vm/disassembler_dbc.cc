@@ -29,7 +29,6 @@ typedef void (*BytecodeFormatter)(char* buffer,
                                   uint32_t bc);
 typedef void (*Fmt)(char** buf, intptr_t* size, uword pc, int32_t value);
 
-
 template <typename ValueType>
 void FormatOperand(char** buf,
                    intptr_t* size,
@@ -44,24 +43,19 @@ void FormatOperand(char** buf,
   }
 }
 
-
 static void Fmt___(char** buf, intptr_t* size, uword pc, int32_t value) {}
-
 
 static void Fmttgt(char** buf, intptr_t* size, uword pc, int32_t value) {
   FormatOperand(buf, size, "-> %" Px, pc + (value << 2));
 }
 
-
 static void Fmtlit(char** buf, intptr_t* size, uword pc, int32_t value) {
   FormatOperand(buf, size, "k%d", value);
 }
 
-
 static void Fmtreg(char** buf, intptr_t* size, uword pc, int32_t value) {
   FormatOperand(buf, size, "r%d", value);
 }
-
 
 static void Fmtxeg(char** buf, intptr_t* size, uword pc, int32_t value) {
   if (value < 0) {
@@ -71,11 +65,9 @@ static void Fmtxeg(char** buf, intptr_t* size, uword pc, int32_t value) {
   }
 }
 
-
 static void Fmtnum(char** buf, intptr_t* size, uword pc, int32_t value) {
   FormatOperand(buf, size, "#%d", value);
 }
-
 
 static void Apply(char** buf,
                   intptr_t* size,
@@ -93,7 +85,6 @@ static void Apply(char** buf,
   }
 }
 
-
 static void Format0(char* buf,
                     intptr_t size,
                     uword pc,
@@ -101,7 +92,6 @@ static void Format0(char* buf,
                     Fmt op1,
                     Fmt op2,
                     Fmt op3) {}
-
 
 static void FormatT(char* buf,
                     intptr_t size,
@@ -114,7 +104,6 @@ static void FormatT(char* buf,
   Apply(&buf, &size, pc, op1, x, "");
 }
 
-
 static void FormatA(char* buf,
                     intptr_t size,
                     uword pc,
@@ -125,7 +114,6 @@ static void FormatA(char* buf,
   const int32_t a = (op & 0xFF00) >> 8;
   Apply(&buf, &size, pc, op1, a, "");
 }
-
 
 static void FormatA_D(char* buf,
                       intptr_t size,
@@ -140,7 +128,6 @@ static void FormatA_D(char* buf,
   Apply(&buf, &size, pc, op2, bc, "");
 }
 
-
 static void FormatA_X(char* buf,
                       intptr_t size,
                       uword pc,
@@ -154,7 +141,6 @@ static void FormatA_X(char* buf,
   Apply(&buf, &size, pc, op2, bc, "");
 }
 
-
 static void FormatX(char* buf,
                     intptr_t size,
                     uword pc,
@@ -166,7 +152,6 @@ static void FormatX(char* buf,
   Apply(&buf, &size, pc, op1, bc, "");
 }
 
-
 static void FormatD(char* buf,
                     intptr_t size,
                     uword pc,
@@ -177,7 +162,6 @@ static void FormatD(char* buf,
   const int32_t bc = op >> 16;
   Apply(&buf, &size, pc, op1, bc, "");
 }
-
 
 static void FormatA_B_C(char* buf,
                         intptr_t size,
@@ -194,7 +178,6 @@ static void FormatA_B_C(char* buf,
   Apply(&buf, &size, pc, op3, c, "");
 }
 
-
 #define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                      \
   static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) {  \
     Format##encoding(buf, size, pc, op, Fmt##op1, Fmt##op2, Fmt##op3);         \
@@ -202,13 +185,11 @@ static void FormatA_B_C(char* buf,
 BYTECODES_LIST(BYTECODE_FORMATTER)
 #undef BYTECODE_FORMATTER
 
-
 static const BytecodeFormatter kFormatters[] = {
 #define BYTECODE_FORMATTER(name, encoding, op1, op2, op3) &Format##name,
     BYTECODES_LIST(BYTECODE_FORMATTER)
 #undef BYTECODE_FORMATTER
 };
-
 
 void Disassembler::DecodeInstruction(char* hex_buffer,
                                      intptr_t hex_size,
@@ -241,7 +222,6 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     }
   }
 }
-
 
 }  // namespace dart
 

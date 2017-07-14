@@ -9,6 +9,13 @@ import 'package:kernel/ast.dart'
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
+import '../fasta_codes.dart'
+    show
+        templateConflictsWithConstructor,
+        templateConflictsWithFactory,
+        templateConflictsWithMember,
+        templateConflictsWithSetter;
+
 import '../kernel/kernel_builder.dart'
     show
         Builder,
@@ -116,14 +123,17 @@ class SourceClassBuilder extends KernelClassBuilder {
       Builder member = scopeBuilder[name];
       if (member == null) return;
       // TODO(ahe): charOffset is missing.
-      deprecated_addCompileTimeError(
-          constructor.charOffset, "Conflicts with member '${name}'.");
+      addCompileTimeError(templateConflictsWithMember.withArguments(name),
+          constructor.charOffset);
       if (constructor.isFactory) {
-        deprecated_addCompileTimeError(member.charOffset,
-            "Conflicts with factory '${this.name}.${name}'.");
+        addCompileTimeError(
+            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
+            member.charOffset);
       } else {
-        deprecated_addCompileTimeError(member.charOffset,
-            "Conflicts with constructor '${this.name}.${name}'.");
+        addCompileTimeError(
+            templateConflictsWithConstructor
+                .withArguments("${this.name}.${name}"),
+            member.charOffset);
       }
     });
 
@@ -132,10 +142,12 @@ class SourceClassBuilder extends KernelClassBuilder {
       if (member == null || !member.isField || member.isFinal) return;
       // TODO(ahe): charOffset is missing.
       var report = member.isInstanceMember != setter.isInstanceMember
-          ? deprecated_addWarning
-          : deprecated_addCompileTimeError;
-      report(setter.charOffset, "Conflicts with member '${name}'.");
-      report(member.charOffset, "Conflicts with setter '${name}'.");
+          ? addWarning
+          : addCompileTimeError;
+      report(
+          templateConflictsWithMember.withArguments(name), setter.charOffset);
+      report(
+          templateConflictsWithSetter.withArguments(name), member.charOffset);
     });
 
     cls.procedures.sort(compareProcedures);

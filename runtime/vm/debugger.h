@@ -22,7 +22,6 @@ DECLARE_FLAG(bool, verbose_debug);
   if (FLAG_verbose_debug) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
-
 namespace dart {
 
 class CodeBreakpoint;
@@ -102,7 +101,6 @@ class Breakpoint {
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
 };
-
 
 // BreakpointLocation represents a collection of breakpoint conditions at the
 // same token position in Dart source. There may be more than one CodeBreakpoint
@@ -189,7 +187,6 @@ class BreakpointLocation {
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
 };
 
-
 // CodeBreakpoint represents a location in compiled code. There may be
 // more than one CodeBreakpoint for one BreakpointLocation, e.g. when a
 // function gets compiled as a regular function and as a closure.
@@ -250,7 +247,6 @@ class CodeBreakpoint {
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
 };
-
 
 // ActivationFrame represents one dart function activation frame
 // on the call stack.
@@ -420,7 +416,6 @@ class ActivationFrame : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
 };
 
-
 // Array of function activations on the call stack.
 class DebuggerStackTrace : public ZoneAllocated {
  public:
@@ -442,7 +437,6 @@ class DebuggerStackTrace : public ZoneAllocated {
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
 };
-
 
 class Debugger {
  public:
@@ -718,7 +712,6 @@ class Debugger {
                         DebuggerStackTrace* awaiter_stack_trace);
   void ClearCachedStackTraces();
 
-
   // Can we rewind to the indicated frame?
   bool CanRewindFrame(intptr_t frame_index, const char** error) const;
 
@@ -797,7 +790,6 @@ class Debugger {
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Debugger);
 };
-
 
 }  // namespace dart
 

@@ -98,7 +98,6 @@ class Timer : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Timer);
 };
 
-
 // The class TimerScope is used to start and stop a timer within a scope.
 // It is used as follows:
 // {
@@ -139,7 +138,6 @@ class TimerScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(TimerScope);
 };
 
-
 class PauseTimerScope : public StackResource {
  public:
   PauseTimerScope(bool flag, Timer* timer, Thread* thread = NULL)
@@ -167,7 +165,6 @@ class PauseTimerScope : public StackResource {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(PauseTimerScope);
 };
-
 
 }  // namespace dart
 

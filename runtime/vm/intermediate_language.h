@@ -178,7 +178,6 @@ class CompileType : public ZoneAllocated {
   const AbstractType* type_;
 };
 
-
 class EffectSet : public ValueObject {
  public:
   enum Effects {
@@ -206,7 +205,6 @@ class EffectSet : public ValueObject {
 
   intptr_t effects_;
 };
-
 
 class Value : public ZoneAllocated {
  public:
@@ -311,7 +309,6 @@ class Value : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
-
 // An embedded container with N elements of type T.  Used (with partial
 // specialization for N=0) because embedded arrays cannot have size 0.
 template <typename T, intptr_t N>
@@ -339,7 +336,6 @@ class EmbeddedArray {
   T elements_[N];
 };
 
-
 template <typename T>
 class EmbeddedArray<T, 0> {
  public:
@@ -355,7 +351,6 @@ class EmbeddedArray<T, 0> {
     return sentinel;
   }
 };
-
 
 // Instructions.
 
@@ -569,7 +564,6 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // !PRODUCT
 
-
 // Represents a range of class-ids for use in class checks and polymorphic
 // dispatches.
 struct CidRange : public ZoneAllocated {
@@ -585,7 +579,6 @@ struct CidRange : public ZoneAllocated {
   intptr_t cid_start;
   intptr_t cid_end;
 };
-
 
 // Together with CidRange, this represents a mapping from a range of class-ids
 // to a method for a given selector (method name).  Also can contain an
@@ -604,7 +597,6 @@ struct TargetInfo : public CidRange {
   const Function* target;
   intptr_t count;
 };
-
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
 // and PolymorphicInstanceCall instructions.
@@ -654,7 +646,6 @@ class Cids : public ZoneAllocated {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Cids);
 };
 
-
 class CallTargets : public Cids {
  public:
   explicit CallTargets(Zone* zone) : Cids(zone) {}
@@ -678,7 +669,6 @@ class CallTargets : public Cids {
  private:
   void MergeIntoRanges();
 };
-
 
 class Instruction : public ZoneAllocated {
  public:
@@ -985,13 +975,11 @@ class Instruction : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
-
 struct BranchLabels {
   Label* true_label;
   Label* false_label;
   Label* fall_through;
 };
-
 
 class PureInstruction : public Instruction {
  public:
@@ -1003,17 +991,14 @@ class PureInstruction : public Instruction {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 };
 
-
 // Types to be used as ThrowsTrait for TemplateInstruction/TemplateDefinition.
 struct Throws {
   static const bool kCanThrow = true;
 };
 
-
 struct NoThrow {
   static const bool kCanThrow = false;
 };
-
 
 // Types to be used as CSETrait for TemplateInstruction/TemplateDefinition.
 // Pure instructions are those that allow CSE and have no effects and
@@ -1023,12 +1008,10 @@ struct Pure {
   typedef PureBase Base;
 };
 
-
 template <typename DefaultBase, typename PureBase>
 struct NoCSE {
   typedef DefaultBase Base;
 };
-
 
 template <intptr_t N,
           typename ThrowsTrait,
@@ -1050,7 +1033,6 @@ class TemplateInstruction
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
-
 
 class MoveOperands : public ZoneAllocated {
  public:
@@ -1109,7 +1091,6 @@ class MoveOperands : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(MoveOperands);
 };
 
-
 class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
  public:
   ParallelMoveInstr() : moves_(4) {}
@@ -1153,7 +1134,6 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
-
 
 // Basic block entries are administrative nodes.  There is a distinguished
 // graph entry with no predecessor.  Joins are the only nodes with multiple
@@ -1338,7 +1318,6 @@ class BlockEntryInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
 
-
 class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
@@ -1362,7 +1341,6 @@ class ForwardInstructionIterator : public ValueObject {
   Instruction* current_;
 };
 
-
 class BackwardInstructionIterator : public ValueObject {
  public:
   explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
@@ -1385,7 +1363,6 @@ class BackwardInstructionIterator : public ValueObject {
   BlockEntryInstr* block_entry_;
   Instruction* current_;
 };
-
 
 class GraphEntryInstr : public BlockEntryInstr {
  public:
@@ -1469,7 +1446,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
 
-
 class JoinEntryInstr : public BlockEntryInstr {
  public:
   JoinEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
@@ -1520,7 +1496,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
 
-
 class PhiIterator : public ValueObject {
  public:
   explicit PhiIterator(JoinEntryInstr* join) : phis_(join->phis()), index_(0) {}
@@ -1538,7 +1513,6 @@ class PhiIterator : public ValueObject {
   ZoneGrowableArray<PhiInstr*>* phis_;
   intptr_t index_;
 };
-
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
@@ -1578,7 +1552,6 @@ class TargetEntryInstr : public BlockEntryInstr {
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
 
-
 class IndirectEntryInstr : public JoinEntryInstr {
  public:
   IndirectEntryInstr(intptr_t block_id,
@@ -1597,7 +1570,6 @@ class IndirectEntryInstr : public JoinEntryInstr {
  private:
   const intptr_t indirect_id_;
 };
-
 
 class CatchBlockEntryInstr : public BlockEntryInstr {
  public:
@@ -1684,7 +1656,6 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
 
-
 // If the result of the allocation is not stored into any field, passed
 // as an argument or used in a phi then it can't alias with any other
 // SSA value.
@@ -1736,7 +1707,6 @@ class AliasIdentity : public ValueObject {
 
   intptr_t value_;
 };
-
 
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
@@ -1818,7 +1788,6 @@ class Definition : public Instruction {
   bool HasOnlyUse(Value* use) const;
   bool HasOnlyInputUse(Value* use) const;
 
-
   Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
 
@@ -1897,7 +1866,6 @@ class Definition : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
 
-
 // Change a value's definition after use lists have been computed.
 inline void Value::BindTo(Definition* def) {
   RemoveFromUseList();
@@ -1905,13 +1873,11 @@ inline void Value::BindTo(Definition* def) {
   def->AddInputUse(this);
 }
 
-
 inline void Value::BindToEnvironment(Definition* def) {
   RemoveFromUseList();
   set_definition(def);
   def->AddEnvUse(this);
 }
-
 
 class PureDefinition : public Definition {
  public:
@@ -1922,7 +1888,6 @@ class PureDefinition : public Definition {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 };
-
 
 template <intptr_t N,
           typename ThrowsTrait,
@@ -1947,9 +1912,7 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-
 class InductionVariableInfo;
-
 
 class PhiInstr : public Definition {
  public:
@@ -2050,7 +2013,6 @@ class PhiInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
-
 class ParameterInstr : public Definition {
  public:
   ParameterInstr(intptr_t index,
@@ -2098,7 +2060,6 @@ class ParameterInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
 
-
 class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit PushArgumentInstr(Value* value) { SetInputAt(0, value); }
@@ -2123,11 +2084,9 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
-
 inline Definition* Instruction::ArgumentAt(intptr_t index) const {
   return PushArgumentAt(index)->value()->definition();
 }
-
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
@@ -2157,7 +2116,6 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
 
-
 class ThrowInstr : public TemplateInstruction<0, Throws> {
  public:
   explicit ThrowInstr(TokenPosition token_pos, intptr_t deopt_id)
@@ -2178,7 +2136,6 @@ class ThrowInstr : public TemplateInstruction<0, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
-
 
 class ReThrowInstr : public TemplateInstruction<0, Throws> {
  public:
@@ -2209,7 +2166,6 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
 
-
 class StopInstr : public TemplateInstruction<0, NoThrow> {
  public:
   explicit StopInstr(const char* message) : message_(message) {
@@ -2233,7 +2189,6 @@ class StopInstr : public TemplateInstruction<0, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(StopInstr);
 };
-
 
 class GotoInstr : public TemplateInstruction<0, NoThrow> {
  public:
@@ -2299,7 +2254,6 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   ParallelMoveInstr* parallel_move_;
 };
 
-
 // IndirectGotoInstr represents a dynamically computed jump. Only
 // IndirectEntryInstr targets are valid targets of an indirect goto. The
 // concrete target to jump to is given as a parameter to the indirect goto.
@@ -2354,7 +2308,6 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
   GrowableArray<TargetEntryInstr*> successors_;
   TypedData& offsets_;
 };
-
 
 class ComparisonInstr : public Definition {
  public:
@@ -2430,7 +2383,6 @@ class ComparisonInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
 };
 
-
 class PureComparison : public ComparisonInstr {
  public:
   virtual bool AllowsCSE() const { return true; }
@@ -2442,7 +2394,6 @@ class PureComparison : public ComparisonInstr {
   PureComparison(TokenPosition token_pos, Token::Kind kind, intptr_t deopt_id)
       : ComparisonInstr(token_pos, kind, deopt_id) {}
 };
-
 
 template <intptr_t N,
           typename ThrowsTrait,
@@ -2469,7 +2420,6 @@ class TemplateComparison
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
-
 
 class BranchInstr : public Instruction {
  public:
@@ -2550,7 +2500,6 @@ class BranchInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
 
-
 class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
  public:
   DeoptimizeInstr(ICData::DeoptReasonId deopt_reason, intptr_t deopt_id)
@@ -2567,7 +2516,6 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptimizeInstr);
 };
-
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -2595,7 +2543,6 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
-
 
 class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -2637,7 +2584,6 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(ConstraintInstr);
 };
 
-
 class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   ConstantInstr(const Object& value,
@@ -2667,7 +2613,6 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
 };
 
-
 // Merged ConstantInstr -> UnboxedXXX into UnboxedConstantInstr.
 // TODO(srdjan): Implemented currently for doubles only, should implement
 // for other unboxing instructions.
@@ -2689,7 +2634,6 @@ class UnboxedConstantInstr : public ConstantInstr {
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
-
 
 class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
@@ -2750,7 +2694,6 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };
 
-
 class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
   AssertBooleanInstr(TokenPosition token_pos, Value* value, intptr_t deopt_id)
@@ -2778,7 +2721,6 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
 
-
 // Denotes a special parameter, currently either the context of a closure
 // or the type arguments of a generic function.
 class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
@@ -2804,7 +2746,6 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(SpecialParameterInstr);
 };
 
-
 struct ArgumentsInfo {
   ArgumentsInfo(intptr_t type_args_len,
                 intptr_t pushed_argc,
@@ -2823,7 +2764,6 @@ struct ArgumentsInfo {
   intptr_t pushed_argc;
   const Array& argument_names;
 };
-
 
 template <intptr_t kInputCount>
 class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
@@ -2866,7 +2806,6 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
 };
-
 
 class ClosureCallInstr : public TemplateDartCall<1> {
  public:
@@ -2912,7 +2851,6 @@ class ClosureCallInstr : public TemplateDartCall<1> {
  private:
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
 };
-
 
 class InstanceCallInstr : public TemplateDartCall<0> {
  public:
@@ -2999,7 +2937,6 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
 
-
 class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
@@ -3076,7 +3013,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };
 
-
 class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   StrictCompareInstr(TokenPosition token_pos,
@@ -3111,7 +3047,6 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(StrictCompareInstr);
 };
 
-
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
 class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
@@ -3141,7 +3076,6 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
 };
-
 
 // Checks the input value cid against cids stored in a table and returns either
 // a result or deoptimizes.  If the cid is not in the list and there is a deopt
@@ -3190,7 +3124,6 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
-
 class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   EqualityCompareInstr(TokenPosition token_pos,
@@ -3227,7 +3160,6 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
 
-
 class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   RelationalOpInstr(TokenPosition token_pos,
@@ -3263,7 +3195,6 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
 };
-
 
 // TODO(vegorov): ComparisonInstr should be switched to use IfTheElseInstr for
 // materialization of true and false constants.
@@ -3346,7 +3277,6 @@ class IfThenElseInstr : public Definition {
 
   DISALLOW_COPY_AND_ASSIGN(IfThenElseInstr);
 };
-
 
 class StaticCallInstr : public TemplateDartCall<0> {
  public:
@@ -3466,7 +3396,6 @@ class StaticCallInstr : public TemplateDartCall<0> {
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
 
-
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
   LoadLocalInstr(const LocalVariable& local, TokenPosition token_pos)
@@ -3498,7 +3427,6 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
-
 
 class DropTempsInstr : public Definition {
  public:
@@ -3548,7 +3476,6 @@ class DropTempsInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
 };
 
-
 class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreLocalInstr(const LocalVariable& local,
@@ -3589,7 +3516,6 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
-
 
 class NativeCallInstr : public TemplateDefinition<0, Throws> {
  public:
@@ -3650,7 +3576,6 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };
 
-
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(TokenPosition token_pos,
@@ -3674,9 +3599,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
 
-
 enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
-
 
 class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
  public:
@@ -3767,7 +3690,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
 
-
 class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
  public:
   GuardFieldInstr(Value* value, const Field& field, intptr_t deopt_id)
@@ -3794,7 +3716,6 @@ class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldInstr);
 };
 
-
 class GuardFieldClassInstr : public GuardFieldInstr {
  public:
   GuardFieldClassInstr(Value* value, const Field& field, intptr_t deopt_id)
@@ -3812,7 +3733,6 @@ class GuardFieldClassInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldClassInstr);
 };
 
-
 class GuardFieldLengthInstr : public GuardFieldInstr {
  public:
   GuardFieldLengthInstr(Value* value, const Field& field, intptr_t deopt_id)
@@ -3829,7 +3749,6 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldLengthInstr);
 };
-
 
 class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -3862,7 +3781,6 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
-
 
 class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -3962,7 +3880,6 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };
 
-
 // Loads the specified number of code units from the given string, packing
 // multiple code units into a single datatype. In essence, this is a specialized
 // version of LoadIndexedInstr which accepts only string targets and can load
@@ -4032,7 +3949,6 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadCodeUnitsInstr);
 };
 
-
 class OneByteStringFromCharCodeInstr
     : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -4052,7 +3968,6 @@ class OneByteStringFromCharCodeInstr
  private:
   DISALLOW_COPY_AND_ASSIGN(OneByteStringFromCharCodeInstr);
 };
-
 
 class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -4077,7 +3992,6 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(StringToCharCodeInstr);
 };
-
 
 class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
  public:
@@ -4110,7 +4024,6 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
-
 
 class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
  public:
@@ -4166,7 +4079,6 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
 
-
 // Note overrideable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -4186,7 +4098,6 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
 };
-
 
 class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  public:
@@ -4227,7 +4138,6 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfInstr);
 };
-
 
 class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
  public:
@@ -4278,7 +4188,6 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-
 class AllocateUninitializedContextInstr
     : public TemplateDefinition<0, NoThrow> {
  public:
@@ -4310,7 +4219,6 @@ class AllocateUninitializedContextInstr
 
   DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
 };
-
 
 // This instruction captures the state of the object which had its allocation
 // removed during the AllocationSinking pass.
@@ -4414,7 +4322,6 @@ class MaterializeObjectInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(MaterializeObjectInstr);
 };
 
-
 class CreateArrayInstr : public TemplateDefinition<2, Throws> {
  public:
   CreateArrayInstr(TokenPosition token_pos,
@@ -4453,7 +4360,6 @@ class CreateArrayInstr : public TemplateDefinition<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-
 // Note: this instruction must not be moved without the indexed access that
 // depends on it (e.g. out of loops). GC may cause collect
 // the array while the external data-array is still accessed.
@@ -4489,7 +4395,6 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
 };
 
-
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit LoadClassIdInstr(Value* object) { SetInputAt(0, object); }
@@ -4512,7 +4417,6 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow> {
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
-
 
 class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -4623,7 +4527,6 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
 
-
 class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
  public:
   InstantiateTypeInstr(TokenPosition token_pos,
@@ -4656,7 +4559,6 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
-
 
 class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
  public:
@@ -4699,7 +4601,6 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
 
-
 class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
  public:
   AllocateContextInstr(TokenPosition token_pos, intptr_t num_context_variables)
@@ -4724,7 +4625,6 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
 };
 
-
 class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
  public:
   InitStaticFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
@@ -4747,7 +4647,6 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(InitStaticFieldInstr);
 };
-
 
 class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -4773,7 +4672,6 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };
-
 
 class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
@@ -4801,7 +4699,6 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
-
 
 class Boxing : public AllStatic {
  public:
@@ -4862,7 +4759,6 @@ class Boxing : public AllStatic {
   }
 };
 
-
 class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   static BoxInstr* Create(Representation from, Value* value);
@@ -4905,7 +4801,6 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BoxInstr);
 };
 
-
 class BoxIntegerInstr : public BoxInstr {
  public:
   BoxIntegerInstr(Representation representation, Value* value)
@@ -4926,7 +4821,6 @@ class BoxIntegerInstr : public BoxInstr {
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
-
 class BoxInteger32Instr : public BoxIntegerInstr {
  public:
   BoxInteger32Instr(Representation representation, Value* value)
@@ -4937,7 +4831,6 @@ class BoxInteger32Instr : public BoxIntegerInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxInteger32Instr);
 };
-
 
 class BoxInt32Instr : public BoxInteger32Instr {
  public:
@@ -4950,7 +4843,6 @@ class BoxInt32Instr : public BoxInteger32Instr {
   DISALLOW_COPY_AND_ASSIGN(BoxInt32Instr);
 };
 
-
 class BoxUint32Instr : public BoxInteger32Instr {
  public:
   explicit BoxUint32Instr(Value* value)
@@ -4961,7 +4853,6 @@ class BoxUint32Instr : public BoxInteger32Instr {
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
 };
-
 
 class BoxInt64Instr : public BoxIntegerInstr {
  public:
@@ -4974,7 +4865,6 @@ class BoxInt64Instr : public BoxIntegerInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxInt64Instr);
 };
-
 
 class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -5027,7 +4917,6 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(UnboxInstr);
 };
 
-
 class UnboxIntegerInstr : public UnboxInstr {
  public:
   enum TruncationMode { kTruncate, kNoTruncation };
@@ -5061,7 +4950,6 @@ class UnboxIntegerInstr : public UnboxInstr {
   DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
 };
 
-
 class UnboxInteger32Instr : public UnboxIntegerInstr {
  public:
   UnboxInteger32Instr(Representation representation,
@@ -5075,7 +4963,6 @@ class UnboxInteger32Instr : public UnboxIntegerInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxInteger32Instr);
 };
-
 
 class UnboxUint32Instr : public UnboxInteger32Instr {
  public:
@@ -5093,7 +4980,6 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
 };
-
 
 class UnboxInt32Instr : public UnboxInteger32Instr {
  public:
@@ -5114,7 +5000,6 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
   DISALLOW_COPY_AND_ASSIGN(UnboxInt32Instr);
 };
 
-
 class UnboxInt64Instr : public UnboxIntegerInstr {
  public:
   UnboxInt64Instr(Value* value, intptr_t deopt_id)
@@ -5128,12 +5013,10 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
   DISALLOW_COPY_AND_ASSIGN(UnboxInt64Instr);
 };
 
-
 bool Definition::IsMintDefinition() {
   return (Type()->ToCid() == kMintCid) || IsBinaryMintOp() || IsUnaryMintOp() ||
          IsShiftMintOp() || IsBoxInt64() || IsUnboxInt64();
 }
-
 
 class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -5184,7 +5067,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
 };
 
-
 // Calls into the runtime and performs a case-insensitive comparison of the
 // UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
@@ -5234,7 +5116,6 @@ class CaseInsensitiveCompareUC16Instr
 
   DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareUC16Instr);
 };
-
 
 // Represents Math's static min and max functions.
 class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
@@ -5294,7 +5175,6 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(MathMinMaxInstr);
 };
 
-
 class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryDoubleOpInstr(Token::Kind op_kind,
@@ -5347,7 +5227,6 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
 
-
 class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
   DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
@@ -5389,7 +5268,6 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
 };
-
 
 class BinaryFloat32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -5436,7 +5314,6 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(BinaryFloat32x4OpInstr);
 };
-
 
 class Simd32x4ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -5506,7 +5383,6 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Simd32x4ShuffleInstr);
 };
 
-
 class Simd32x4ShuffleMixInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Simd32x4ShuffleMixInstr(MethodRecognizer::Kind op_kind,
@@ -5568,7 +5444,6 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Simd32x4ShuffleMixInstr);
 };
 
-
 class Float32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
  public:
   Float32x4ConstructorInstr(Value* value0,
@@ -5614,7 +5489,6 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float32x4ConstructorInstr);
 };
 
-
 class Float32x4SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4SplatInstr(Value* value, intptr_t deopt_id)
@@ -5650,7 +5524,6 @@ class Float32x4SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float32x4SplatInstr);
 };
 
-
 // TODO(vegorov) replace with UnboxedConstantInstr.
 class Float32x4ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
@@ -5668,7 +5541,6 @@ class Float32x4ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
 };
-
 
 class Float32x4ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -5716,7 +5588,6 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float32x4ComparisonInstr);
 };
 
-
 class Float32x4MinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float32x4MinMaxInstr(MethodRecognizer::Kind op_kind,
@@ -5762,7 +5633,6 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(Float32x4MinMaxInstr);
 };
-
 
 class Float32x4ScaleInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -5813,7 +5683,6 @@ class Float32x4ScaleInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float32x4ScaleInstr);
 };
 
-
 class Float32x4SqrtInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4SqrtInstr(MethodRecognizer::Kind op_kind,
@@ -5856,7 +5725,6 @@ class Float32x4SqrtInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(Float32x4SqrtInstr);
 };
-
 
 // TODO(vegorov) rename to Unary to match naming convention for arithmetic.
 class Float32x4ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -5902,7 +5770,6 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroArgInstr);
 };
 
-
 class Float32x4ClampInstr : public TemplateDefinition<3, NoThrow, Pure> {
  public:
   Float32x4ClampInstr(Value* left,
@@ -5944,7 +5811,6 @@ class Float32x4ClampInstr : public TemplateDefinition<3, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ClampInstr);
 };
-
 
 class Float32x4WithInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -5994,7 +5860,6 @@ class Float32x4WithInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(Float32x4WithInstr);
 };
-
 
 class Simd64x2ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -6056,7 +5921,6 @@ class Simd64x2ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Simd64x2ShuffleInstr);
 };
 
-
 class Float32x4ToInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4ToInt32x4Instr(Value* left, intptr_t deopt_id)
@@ -6091,7 +5955,6 @@ class Float32x4ToInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ToInt32x4Instr);
 };
-
 
 class Float32x4ToFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -6128,7 +5991,6 @@ class Float32x4ToFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float32x4ToFloat64x2Instr);
 };
 
-
 class Float64x2ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float64x2ToFloat32x4Instr(Value* left, intptr_t deopt_id)
@@ -6163,7 +6025,6 @@ class Float64x2ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2ToFloat32x4Instr);
 };
-
 
 class Float64x2ConstructorInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -6202,7 +6063,6 @@ class Float64x2ConstructorInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float64x2ConstructorInstr);
 };
 
-
 class Float64x2SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float64x2SplatInstr(Value* value, intptr_t deopt_id)
@@ -6238,7 +6098,6 @@ class Float64x2SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float64x2SplatInstr);
 };
 
-
 class Float64x2ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   Float64x2ZeroInstr() {}
@@ -6255,7 +6114,6 @@ class Float64x2ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroInstr);
 };
-
 
 // TODO(vegorov) rename to Unary to match arithmetic instructions.
 class Float64x2ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -6306,7 +6164,6 @@ class Float64x2ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroArgInstr);
 };
-
 
 class Float64x2OneArgInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -6362,7 +6219,6 @@ class Float64x2OneArgInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Float64x2OneArgInstr);
 };
 
-
 class Int32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
  public:
   Int32x4ConstructorInstr(Value* value0,
@@ -6407,7 +6263,6 @@ class Int32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4ConstructorInstr);
 };
-
 
 class Int32x4BoolConstructorInstr
     : public TemplateDefinition<4, NoThrow, Pure> {
@@ -6455,7 +6310,6 @@ class Int32x4BoolConstructorInstr
   DISALLOW_COPY_AND_ASSIGN(Int32x4BoolConstructorInstr);
 };
 
-
 class Int32x4GetFlagInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Int32x4GetFlagInstr(MethodRecognizer::Kind op_kind,
@@ -6498,7 +6352,6 @@ class Int32x4GetFlagInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(Int32x4GetFlagInstr);
 };
-
 
 class Simd32x4GetSignMaskInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -6547,7 +6400,6 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Simd32x4GetSignMaskInstr);
 };
 
-
 class Int32x4SelectInstr : public TemplateDefinition<3, NoThrow, Pure> {
  public:
   Int32x4SelectInstr(Value* mask,
@@ -6592,7 +6444,6 @@ class Int32x4SelectInstr : public TemplateDefinition<3, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4SelectInstr);
 };
-
 
 class Int32x4SetFlagInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -6643,7 +6494,6 @@ class Int32x4SetFlagInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int32x4SetFlagInstr);
 };
 
-
 class Int32x4ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Int32x4ToFloat32x4Instr(Value* left, intptr_t deopt_id)
@@ -6678,7 +6528,6 @@ class Int32x4ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4ToFloat32x4Instr);
 };
-
 
 class BinaryInt32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
@@ -6726,7 +6575,6 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BinaryInt32x4OpInstr);
 };
 
-
 class BinaryFloat64x2OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryFloat64x2OpInstr(Token::Kind op_kind,
@@ -6773,7 +6621,6 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BinaryFloat64x2OpInstr);
 };
 
-
 class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryIntegerOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
@@ -6811,7 +6658,6 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   const Token::Kind op_kind_;
 };
 
-
 // Handles both Smi operations: BIT_OR and NEGATE.
 class UnarySmiOpInstr : public UnaryIntegerOpInstr {
  public:
@@ -6829,7 +6675,6 @@ class UnarySmiOpInstr : public UnaryIntegerOpInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
 };
-
 
 class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
  public:
@@ -6855,7 +6700,6 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
 };
 
-
 class UnaryMintOpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryMintOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
@@ -6879,7 +6723,6 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(UnaryMintOpInstr);
 };
-
 
 class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
  public:
@@ -6913,7 +6756,6 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   const Token::Kind op_kind_;
   DISALLOW_COPY_AND_ASSIGN(CheckedSmiOpInstr);
 };
-
 
 class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
  public:
@@ -6969,7 +6811,6 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CheckedSmiComparisonInstr);
 };
 
-
 class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryIntegerOpInstr(Token::Kind op_kind,
@@ -7021,7 +6862,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-
   PRINT_OPERANDS_TO_SUPPORT
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BinaryIntegerOp)
@@ -7039,7 +6879,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   bool can_overflow_;
   bool is_truncating_;
 };
-
 
 class BinarySmiOpInstr : public BinaryIntegerOpInstr {
  public:
@@ -7064,7 +6903,6 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
 
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
 };
-
 
 class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
  public:
@@ -7122,7 +6960,6 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(BinaryInt32OpInstr);
 };
 
-
 class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
  public:
   BinaryUint32OpInstr(Token::Kind op_kind,
@@ -7150,7 +6987,6 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(BinaryUint32OpInstr);
 };
 
-
 class ShiftUint32OpInstr : public BinaryIntegerOpInstr {
  public:
   ShiftUint32OpInstr(Token::Kind op_kind,
@@ -7177,7 +7013,6 @@ class ShiftUint32OpInstr : public BinaryIntegerOpInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
 };
-
 
 class BinaryMintOpInstr : public BinaryIntegerOpInstr {
  public:
@@ -7226,7 +7061,6 @@ class BinaryMintOpInstr : public BinaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
 };
 
-
 class ShiftMintOpInstr : public BinaryIntegerOpInstr {
  public:
   ShiftMintOpInstr(Token::Kind op_kind,
@@ -7272,7 +7106,6 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
 };
 
-
 // Handles only NEGATE.
 class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -7312,7 +7145,6 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(UnaryDoubleOpInstr);
 };
-
 
 class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
@@ -7360,7 +7192,6 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };
 
-
 // TODO(vegorov): remove this instruction in favor of Int32ToDouble.
 class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -7387,7 +7218,6 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
 
-
 class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit Int32ToDoubleInstr(Value* value) { SetInputAt(0, value); }
@@ -7411,7 +7241,6 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
 };
-
 
 class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -7445,7 +7274,6 @@ class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(MintToDoubleInstr);
 };
 
-
 class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
  public:
   DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
@@ -7471,7 +7299,6 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
-
 
 // Similar to 'DoubleToIntegerInstr' but expects unboxed double as input
 // and creates a Smi.
@@ -7501,7 +7328,6 @@ class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
 };
-
 
 class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -7539,7 +7365,6 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
 };
-
 
 class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
@@ -7579,7 +7404,6 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
 };
 
-
 class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   FloatToDoubleInstr(Value* value, intptr_t deopt_id)
@@ -7611,7 +7435,6 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  private:
   DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
 };
-
 
 class InvokeMathCFunctionInstr : public PureDefinition {
  public:
@@ -7671,7 +7494,6 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
 };
 
-
 class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   // Extract the Nth output register from value.
@@ -7720,7 +7542,6 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(ExtractNthOutputInstr);
 };
 
-
 class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id);
@@ -7761,7 +7582,6 @@ class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(TruncDivModInstr);
 };
-
 
 class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
  public:
@@ -7825,7 +7645,6 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
 
-
 class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
  public:
   CheckSmiInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
@@ -7855,7 +7674,6 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
 };
-
 
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
@@ -7887,7 +7705,6 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
-
 
 class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
@@ -7931,7 +7748,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 
-
 class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
@@ -7956,7 +7772,6 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
 };
-
 
 class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -8022,7 +7837,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
 };
-
 
 #undef DECLARE_INSTRUCTION
 
@@ -8234,7 +8048,6 @@ class Environment : public ZoneAllocated {
         parsed_function_(parsed_function),
         outer_(outer) {}
 
-
   GrowableArray<Value*> values_;
   Location* locations_;
   const intptr_t fixed_parameter_count_;
@@ -8244,7 +8057,6 @@ class Environment : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
-
 
 // Visitor base class to visit each instruction and computation in a flow
 // graph as defined by a reversed list of basic blocks.
@@ -8279,7 +8091,6 @@ class FlowGraphVisitor : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);
 };
 
-
 // Helper macros for platform ports.
 #define DEFINE_UNIMPLEMENTED_INSTRUCTION(Name)                                 \
   LocationSummary* Name::MakeLocationSummary(Zone* zone, bool opt) const {     \
@@ -8287,7 +8098,6 @@ class FlowGraphVisitor : public ValueObject {
     return NULL;                                                               \
   }                                                                            \
   void Name::EmitNativeCode(FlowGraphCompiler* compiler) { UNIMPLEMENTED(); }
-
 
 }  // namespace dart
 

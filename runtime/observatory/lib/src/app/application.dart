@@ -51,10 +51,16 @@ class ObservatoryApplication {
       // Mark that we haven't connected yet.
       _vmConnected = false;
       // On connect:
-      newVM.onConnect.then((_) {
+      newVM.onConnect.then((_) async {
         // We connected.
         _vmConnected = true;
         notifications.deleteDisconnectEvents();
+        await newVM.load();
+        // TODO(cbernaschina) smart connection of streams in the events object.
+        newVM.listenEventStream(VM.kVMStream, _onEvent);
+        newVM.listenEventStream(VM.kIsolateStream, _onEvent);
+        newVM.listenEventStream(VM.kDebugStream, _onEvent);
+        newVM.listenEventStream(VM.kServiceStream, _onEvent);
       });
       // On disconnect:
       newVM.onDisconnect.then((String reason) {
@@ -78,10 +84,6 @@ class ObservatoryApplication {
           events.add(new ConnectionClosedEvent(new DateTime.now(), reason));
         }
       });
-      // TODO(cbernaschina) smart connection of streams in the events object.
-      newVM.listenEventStream(VM.kVMStream, _onEvent);
-      newVM.listenEventStream(VM.kIsolateStream, _onEvent);
-      newVM.listenEventStream(VM.kDebugStream, _onEvent);
     }
 
     _vm = newVM;

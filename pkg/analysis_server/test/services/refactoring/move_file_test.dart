@@ -47,9 +47,7 @@ part '/absolute/uri.dart';
     assertNoFileChange(pathA);
     assertFileChangeResult(pathB, "import '22/new_name.dart';");
     assertNoFileChange(pathC);
-    assertFileChangeResult(
-        testFile,
-        '''
+    assertFileChangeResult(testFile, '''
 library lib;
 import 'dart:math';
 import 'c.dart';
@@ -64,18 +62,14 @@ part '/absolute/uri.dart';
     fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/sub/folder/test.dart';
-    addSource(
-        pathA,
-        '''
+    addSource(pathA, '''
 import 'sub/folder/test.dart';
 ''');
     addTestSource('');
     // perform refactoring
     _createRefactoring('/project/000/new/folder/name/new_name.dart');
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pathA,
-        '''
+    assertFileChangeResult(pathA, '''
 import '../new/folder/name/new_name.dart';
 ''');
     assertNoFileChange(testFile);
@@ -86,18 +80,14 @@ import '../new/folder/name/new_name.dart';
     fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/test.dart';
-    addSource(
-        pathA,
-        '''
+    addSource(pathA, '''
 import 'test.dart';
 ''');
     addTestSource('');
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pathA,
-        '''
+    assertFileChangeResult(pathA, '''
 import '22/new_name.dart';
 ''');
     assertNoFileChange(testFile);
@@ -120,18 +110,14 @@ import '22/new_name.dart';
 //    ]);
     // do testing
     String pathA = '/project/bin/a.dart';
-    addSource(
-        pathA,
-        '''
+    addSource(pathA, '''
 import 'package:my_pkg/aaa/test.dart';
 ''');
     addTestSource('', Uri.parse('package:my_pkg/aaa/test.dart'));
     // perform refactoring
     _createRefactoring('/packages/my_pkg/lib/bbb/ccc/new_name.dart');
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pathA,
-        '''
+    assertFileChangeResult(pathA, '''
 import 'package:my_pkg/bbb/ccc/new_name.dart';
 ''');
     assertNoFileChange(testFile);
@@ -142,18 +128,14 @@ import 'package:my_pkg/bbb/ccc/new_name.dart';
     fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
-    addSource(
-        pathA,
-        '''
+    addSource(pathA, '''
 import '22/test.dart';
 ''');
     addTestSource('');
     // perform refactoring
     _createRefactoring('/project/000/1111/new_name.dart');
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pathA,
-        '''
+    assertFileChangeResult(pathA, '''
 import 'new_name.dart';
 ''');
     assertNoFileChange(testFile);
@@ -164,9 +146,7 @@ import 'new_name.dart';
     fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
-    addSource(
-        pathA,
-        '''
+    addSource(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
@@ -176,9 +156,7 @@ part of lib;
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pathA,
-        '''
+    assertFileChangeResult(pathA, '''
 library lib;
 part '22/new_name.dart';
 ''');
@@ -191,15 +169,11 @@ part '22/new_name.dart';
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/b.dart';
     testFile = '/project/000/1111/22/test.dart';
-    addSource(
-        pathA,
-        '''
+    addSource(pathA, '''
 library lib;
 part '22/test.dart';
 ''');
-    addSource(
-        pathB,
-        '''
+    addSource(pathB, '''
 library lib;
 part '1111/22/test.dart';
 ''');
@@ -209,15 +183,11 @@ part of lib;
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pathA,
-        '''
+    assertFileChangeResult(pathA, '''
 library lib;
 part '22/new_name.dart';
 ''');
-    assertFileChangeResult(
-        pathB,
-        '''
+    assertFileChangeResult(pathB, '''
 library lib;
 part '1111/22/new_name.dart';
 ''');
@@ -229,17 +199,13 @@ part '1111/22/new_name.dart';
     fail('The move file refactoring is not supported under the new driver');
     String pubspecPath = '/testName/pubspec.yaml';
     String appPath = '/testName/bin/myApp.dart';
-    provider.newFile(
-        pubspecPath,
-        '''
+    provider.newFile(pubspecPath, '''
 name: testName
 version: 0.0.1
 description: My pubspec file.
 ''');
     addSource('/testName/lib/myLib.dart', '');
-    addSource(
-        appPath,
-        '''
+    addSource(appPath, '''
 import 'package:testName/myLib.dart';
 export 'package:testName/myLib.dart';
 ''');
@@ -257,16 +223,12 @@ export 'package:testName/myLib.dart';
         provider, searchEngine, null, null, '/testName');
     refactoring.newFile = '/newName';
     await _assertSuccessfulRefactoring();
-    assertFileChangeResult(
-        pubspecPath,
-        '''
+    assertFileChangeResult(pubspecPath, '''
 name: newName
 version: 0.0.1
 description: My pubspec file.
 ''');
-    assertFileChangeResult(
-        appPath,
-        '''
+    assertFileChangeResult(appPath, '''
 import 'package:newName/myLib.dart';
 export 'package:newName/myLib.dart';
 ''');

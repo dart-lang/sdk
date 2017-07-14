@@ -67,9 +67,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
     String content = r'''
     void buttonPressed() {}
   ''';
-    AnalysisTarget target = newSource(
-        '/test.html',
-        '''
+    AnalysisTarget target = newSource('/test.html', '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -88,9 +86,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
   }
 
   void test_perform_empty_source_reference() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -105,9 +101,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
   }
 
   void test_perform_invalid_source_reference() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -122,9 +116,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
   }
 
   void test_perform_non_existing_source_reference() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -139,9 +131,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
   }
 
   test_perform_none() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -158,9 +148,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
   }
 
   void test_perform_referenced_source() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -178,9 +166,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 @reflectiveTest
 class HtmlErrorsTaskTest extends AbstractContextTest {
   fail_perform_htmlErrors() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <html>
   <head>
     <title>test page</not-title>
@@ -222,9 +208,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   }
 
   test_perform_dartErrors() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -241,9 +225,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   }
 
   test_perform_noErrors() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    AnalysisTarget target = newSource('/test.html', r'''
 <!DOCTYPE html>
 <html>
   <head>

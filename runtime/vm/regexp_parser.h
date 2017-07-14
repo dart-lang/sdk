@@ -42,7 +42,7 @@ class RegExpBuilder : public ZoneAllocated {
   GrowableArray<RegExpTree*> text_;
   GrowableArray<RegExpTree*> alternatives_;
 #ifdef DEBUG
-  enum { ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM } last_added_;
+  enum {ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM} last_added_;
 #define LAST(x) last_added_ = x;
 #else
 #define LAST(x)

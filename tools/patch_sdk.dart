@@ -81,10 +81,11 @@ void usage(String mode) {
   exit(1);
 }
 
-const validModes = const ['vm', 'dart2js', 'flutter'];
+const validModes = const ['vm', 'dart2js', 'flutter', 'flutter_release'];
 String mode;
 bool get forVm => mode == 'vm';
-bool get forFlutter => mode == 'flutter';
+bool get forFlutter => mode == 'flutter' || mode == 'flutter_release';
+bool get forFlutterRelease => mode == 'flutter_release';
 bool get forDart2js => mode == 'dart2js';
 
 Future _main(List<String> argv) async {
@@ -192,8 +193,8 @@ Future _main(List<String> argv) async {
   }
   deps.addAll(await fasta.getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
-  await writeDepsFile(Uri.base.resolveUri(new Uri.file("$outDir.d")),
-      platformFinalLocation, deps);
+  await writeDepsFile(platformFinalLocation,
+      Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
   await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
 }
 
@@ -213,13 +214,17 @@ Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
     ..chaseDependencies = true
     ..target = target;
 
+  var inputs = [Uri.parse('dart:core')];
+  if (forFlutter && !forFlutterRelease) {
+    inputs.add(Uri.parse('dart:vmservice_sky'));
+  }
   var result = await generateKernel(
       new ProcessedOptions(
           options,
           // TODO(sigmund): pass all sdk libraries needed here, and make this
           // hermetic.
           false,
-          [Uri.parse('dart:core')]),
+          inputs),
       buildSummary: true,
       buildProgram: true);
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
@@ -294,6 +299,26 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
           documented: false,
           platforms: VM_PLATFORM),
     ''');
+
+    if (!forFlutterRelease) {
+      // vmservice should be present unless we build release flavor of Flutter.
+      extraLibraries.write('''
+       "_vmservice": const LibraryInfo(
+           "vmservice/vmservice.dart",
+           categories: "Client,Server",
+           implementation: true,
+           documented: false,
+           platforms: VM_PLATFORM),
+
+        "vmservice_sky": const LibraryInfo(
+            "vmservice_sky/vmservice_io.dart",
+            categories: "Client,Server",
+            implementation: true,
+            documented: false,
+            platforms: VM_PLATFORM),
+
+      ''');
+    }
   }
 
   libContents = libContents.replaceAll(
@@ -332,6 +357,21 @@ _copyExtraLibraries(String sdkOut, Map<String, String> locations) {
       _writeSync(uiLibraryOut, readInputFile(file.path));
     }
     locations['ui'] = 'ui/ui.dart';
+
+    if (!forFlutterRelease) {
+      // vmservice should be present unless we build release flavor of Flutter.
+      //
+      // TODO(dartbug.com/30158): Consider producing separate Flutter
+      // vmservice.dill with these vmservice libraries.
+      for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
+        var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
+        var libraryOut = path.join(sdkOut, 'vmservice_io', file);
+        _writeSync(libraryOut, readInputFile(libraryIn));
+      }
+      locations['vmservice_sky'] =
+          path.join('vmservice_io', 'vmservice_io.dart');
+      locations['_vmservice'] = path.join('vmservice', 'vmservice.dart');
+    }
   }
 }
 

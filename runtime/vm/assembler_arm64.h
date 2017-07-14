@@ -41,7 +41,6 @@ class Immediate : public ValueObject {
   friend class Assembler;
 };
 
-
 class Label : public ValueObject {
  public:
   Label() : position_(0) {}
@@ -82,7 +81,6 @@ class Label : public ValueObject {
   friend class Assembler;
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
-
 
 class Address : public ValueObject {
  public:
@@ -299,7 +297,6 @@ class Address : public ValueObject {
   friend class Assembler;
 };
 
-
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp, OperandSize sz = kDoubleWord)
@@ -315,7 +312,6 @@ class FieldAddress : public Address {
     return *this;
   }
 };
-
 
 class Operand : public ValueObject {
  public:
@@ -437,7 +433,6 @@ class Operand : public ValueObject {
 
   friend class Assembler;
 };
-
 
 class Assembler : public ValueObject {
  public:

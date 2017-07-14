@@ -25,7 +25,6 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   SetMessage(Utils::StrError(errno, error_buf, kBufferSize));
 }
 
-
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
   set_code(code);
@@ -40,14 +39,12 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
-
 const char* StringUtils::ConsoleStringToUtf8(const char* str,
                                              intptr_t len,
                                              intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
-
 
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,
                                              intptr_t len,
@@ -56,14 +53,12 @@ const char* StringUtils::Utf8ToConsoleString(const char* utf8,
   return NULL;
 }
 
-
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
-
 
 char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t len,
@@ -72,24 +67,19 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
   return NULL;
 }
 
-
 char* StringUtils::StrNDup(const char* s, intptr_t n) {
   return strndup(s, n);
 }
-
 
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-
 void TimerUtils::InitOnce() {}
-
 
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
-
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
   struct timespec ts;
@@ -103,7 +93,6 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
   return result;
 }
-
 
 void TimerUtils::Sleep(int64_t millis) {
   struct timespec req;  // requested.

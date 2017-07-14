@@ -19,9 +19,7 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ ret();
 }
 
-
 static intptr_t prologue_code_size = -1;
-
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   ASSERT(assembler->CodeSize() == 0);
@@ -33,7 +31,6 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   __ popq(PP);
   __ ret();
 }
-
 
 }  // namespace dart
 

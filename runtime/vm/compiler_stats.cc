@@ -10,7 +10,6 @@
 #include "vm/object_store.h"
 #include "vm/timer.h"
 
-
 namespace dart {
 
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
@@ -18,7 +17,6 @@ DEFINE_FLAG(bool,
             compiler_benchmark,
             false,
             "Compiler stat counters for benchmark.");
-
 
 class TokenStreamVisitor : public ObjectVisitor {
  public:
@@ -48,7 +46,6 @@ class TokenStreamVisitor : public ObjectVisitor {
   CompilerStats* stats_;
 };
 
-
 CompilerStats::CompilerStats(Isolate* isolate)
     : isolate_(isolate),
 #define INITIALIZE_TIMER(timer_name, description) timer_name(true, description),
@@ -62,9 +59,7 @@ CompilerStats::CompilerStats(Isolate* isolate)
       use_benchmark_output(false) {
 }
 
-
 #ifndef PRODUCT
-
 
 // Used to aggregate stats. Must be atomic.
 void CompilerStats::Add(const CompilerStats& other) {
@@ -80,7 +75,6 @@ void CompilerStats::Add(const CompilerStats& other) {
 #undef ADD_COUNTER
 }
 
-
 void CompilerStats::Clear() {
 #define CLEAR_TIMER(timer_name, literal) timer_name.Reset();
 
@@ -92,7 +86,6 @@ void CompilerStats::Clear() {
   STAT_COUNTERS(CLEAR_COUNTER)
 #undef CLEAR_COUNTER
 }
-
 
 bool CompilerStats::IsCleared() const {
 #define CHECK_TIMERS(timer_name, literal)                                      \
@@ -108,7 +101,6 @@ bool CompilerStats::IsCleared() const {
 #undef CHECK_COUNTERS
   return true;
 }
-
 
 // This function is used as a callback in the log object to which the
 // compiler stats are printed. It will be called only once, to print
@@ -127,7 +119,6 @@ static void PrintToStats(const char* format, ...) {
   va_end(args);
 }
 
-
 void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
@@ -137,12 +128,10 @@ void CompilerStats::Update() {
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
 }
 
-
 void CompilerStats::EnableBenchmark() {
   FLAG_compiler_stats = true;
   use_benchmark_output = true;
 }
-
 
 // Generate output for Golem benchmark harness. If the output format
 // changes, the parsing function in Golem must be updated.
@@ -197,7 +186,6 @@ char* CompilerStats::BenchmarkOutput() {
   text = NULL;
   return benchmark_text;
 }
-
 
 char* CompilerStats::PrintToZone() {
   if (!FLAG_compiler_stats) {

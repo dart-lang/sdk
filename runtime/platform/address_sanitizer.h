@@ -32,7 +32,7 @@ extern "C" void __lsan_unregister_root_region(const void* p, size_t size);
   } while (false && (ptr) == 0 && (len) == 0)
 #endif  // __has_feature(address_sanitizer)
 
-#else   // defined(__has_feature)
+#else  // defined(__has_feature)
 
 #define ASAN_UNPOISON(ptr, len)                                                \
   do {                                                                         \

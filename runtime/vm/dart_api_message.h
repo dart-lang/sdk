@@ -41,7 +41,6 @@ struct Dart_CObject_Internal : public Dart_CObject {
   } internal;
 };
 
-
 // Reads a message snapshot into a C structure.
 class ApiMessageReader : public BaseReader {
  public:
@@ -153,7 +152,6 @@ class ApiMessageReader : public BaseReader {
   static _Dart_CObject* singleton_uint32_typed_data_;
 };
 
-
 class ApiMessageWriter : public BaseWriter {
  public:
   static const intptr_t kInitialSize = 512;
@@ -204,7 +202,6 @@ class ApiMessageWriter : public BaseWriter {
 
   DISALLOW_COPY_AND_ASSIGN(ApiMessageWriter);
 };
-
 
 // This class handles translation of certain RawObjects to CObjects for
 // NativeMessageHandlers.

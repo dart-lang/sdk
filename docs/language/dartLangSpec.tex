@@ -628,7 +628,7 @@ and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
 of the function that has this body.
 It is a static warning if $T$ is not \VOID{} and either
 the function is synchronous and the static type of $R$ is not assignable to $T$,
-or the function is asynchronous and \code{Future<$flatten${$R$}>}
+or the function is asynchronous and \code{Future<$flatten$($R$)>}
 is not assignable to $T$.
 
 \end{itemize}
@@ -3215,7 +3215,8 @@ Of course, if a key repeats, the order is defined by first occurrence, but the v
 }
 
 \LMHash{}
-The static type of a map literal of the form  \CONST{}$ <K, V>\{k_1:e_1\ldots k_n :e_n\}$ or the form $<K, V>\{k_1:e_1\ldots k_n :e_n\}$ is $Map<K, V>$. The static type a map literal of the form  \CONST{}$\{k_1:e_1\ldots k_n :e_n\}$ or the form $\{k_1:e_1\ldots k_n :e_n\}$ is $Map<\DYNAMIC{},  \DYNAMIC{}>$.
+The static type of a map literal of the form \CONST{}$ <K, V>\{k_1:e_1\ldots k_n :e_n\}$ or the form $<K, V>\{k_1:e_1\ldots k_n :e_n\}$ is $Map<K, V>$.
+The static type of a map literal of the form \CONST{}$\{k_1:e_1\ldots k_n :e_n\}$ or the form $\{k_1:e_1\ldots k_n :e_n\}$ is $Map<\DYNAMIC{}, \DYNAMIC{}>$.
 
 
 \subsection{Throw}
@@ -3242,7 +3243,7 @@ Evaluation of a throw expression of the form  \code{\THROW{} $e$;} proceeds as f
 The expression $e$ is evaluated to a value $v$ (\ref{evaluation}).
 
 \commentary{
-There is no requirement that the expression $e$ evaluate to any special kind of object.
+There is no requirement that the expression $e$ must evaluate to any special kind of object.
 }
 
 \LMHash{}
@@ -3314,7 +3315,7 @@ In any other circumstance, $flatten(T) = T$.
 
 
 \rationale{
-We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an async function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}.
+We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an \ASYNC{} function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}.
 
 The  exception to that would be a type $X$ that extended or implemented \code{Future}. In that case, only one unwrapping takes place. As an example of why this is done, consider
 
@@ -3730,7 +3731,7 @@ Function invocation occurs in the following cases: when a function expression  (
 
 \LMHash{}
 Executing a body of the form \code{=> $e$} is equivalent to executing a body of the form \code{\{ return $e$; \}}.
-Execution a body of the form \code{async => $e$} is equivalent to executing a body of the form \code{async \{ return $e$; \}}.
+Execution a body of the form \code{\ASYNC{} => $e$} is equivalent to executing a body of the form \code{\ASYNC{} \{ return $e$; \}}.
 
 \LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
@@ -4112,7 +4113,7 @@ Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not 
 \item
 $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
 \item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
-\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
+\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issued if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
 }
 \end{itemize}
 
@@ -4783,7 +4784,7 @@ then the type of $v$ is known to be $T$ in $e_2$.
  \label{ifNull}
 
  \LMHash{}
- An {\em if-null expression}evaluates an expression and if the result is \NULL, evaluates another.
+ An {\em if-null expression} evaluates an expression and if the result is \NULL, evaluates another.
 
 \begin{grammar}
 {\bf ifNullExpression:}
@@ -6506,7 +6507,8 @@ In the case of a generator function, the value returned by the function is the i
 }
 
 \LMHash{}
-Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning  $f$ is neither a generator nor a generative constructor and either:
+Let $f$ be the function immediately enclosing a return statement of the form \RETURN{};.
+It is a static warning if $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 \item  $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or,
 \item  $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future<Null>}.
@@ -7449,7 +7451,7 @@ main() \{
 \end{dartCode}
 
 \commentary{
-Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because he undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
+Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
 }
 
 
@@ -7836,7 +7838,7 @@ Type objects reify the runtime types of instances. No instance ever has type \VO
 A {\em parameterized type} is an invocation of a generic type declaration.
 
 \LMHash{}
-Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}.
+Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}.
 
 \commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued.
 }

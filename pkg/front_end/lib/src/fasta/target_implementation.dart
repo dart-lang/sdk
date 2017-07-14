@@ -8,19 +8,23 @@ import 'package:kernel/target/targets.dart' as backend show Target;
 
 import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
+import 'compiler_context.dart' show CompilerContext;
+
 import 'loader.dart' show Loader;
 
 import 'target.dart' show Target;
 
 import 'ticker.dart' show Ticker;
 
-import 'translate_uri.dart' show TranslateUri;
+import 'uri_translator.dart' show UriTranslator;
 
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
-  final TranslateUri uriTranslator;
+  final UriTranslator uriTranslator;
 
   final backend.Target backendTarget;
+
+  final CompilerContext context = CompilerContext.current;
 
   Builder cachedAbstractClassInstantiationError;
   Builder cachedCompileTimeError;
@@ -101,7 +105,7 @@ abstract class TargetImplementation extends Target {
 
   void readPatchFiles(LibraryBuilder library) {
     assert(library.uri.scheme == "dart");
-    List<Uri> patches = uriTranslator.dartPatches[library.uri.path];
+    List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
     if (patches != null) {
       for (Uri patch in patches) {
         library.loader.read(patch, -1, fileUri: patch, isPatch: true);

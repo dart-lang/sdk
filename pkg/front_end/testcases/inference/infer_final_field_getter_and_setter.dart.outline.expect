@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract get x() → core::int;
   abstract set x(core::double value) → void;

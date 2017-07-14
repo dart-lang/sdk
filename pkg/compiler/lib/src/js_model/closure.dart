@@ -54,7 +54,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {
-    var closuresToGenerate = <ir.Node, ScopeInfo>{};
+    var closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
     processedEntities.forEach((MemberEntity kEntity) {
       MemberEntity entity = kEntity;
       if (_kToJElementMap != null) {
@@ -69,7 +69,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _buildClosureModel(entity, closuresToGenerate, closedWorldRefiner);
     });
 
-    for (ir.Node node in closuresToGenerate.keys) {
+    for (ir.TreeNode node in closuresToGenerate.keys) {
       _produceSyntheticElements(
           node, closuresToGenerate[node], closedWorldRefiner);
     }
@@ -79,7 +79,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// be marked as free variables.
   void _buildClosureModel(
       MemberEntity entity,
-      Map<ir.Node, ScopeInfo> closuresToGenerate,
+      Map<ir.TreeNode, ScopeInfo> closuresToGenerate,
       ClosedWorldRefiner closedWorldRefiner) {
     ir.Node node = _elementMap.getMemberNode(entity);
     if (_closureScopeMap.keys.contains(node)) return;
@@ -99,7 +99,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// with fields containing the captured variables to replicate the Dart
   /// closure semantics in JS.
   void _produceSyntheticElements(
-      ir.Node node, ScopeInfo info, ClosedWorldRefiner closedWorldRefiner) {
+      ir.TreeNode /* ir.Field | ir.FunctionNode */ node,
+      ScopeInfo info,
+      ClosedWorldRefiner closedWorldRefiner) {
     Entity entity;
     KernelClosureClass closureClass =
         new KernelClosureClass.fromScopeInfo(info);
@@ -119,6 +121,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     assert(entity != null);
 
     _closureRepresentationMap[entity] = closureClass;
+
+    // Register that a new class has been created.
+    closedWorldRefiner.registerClosureClass(
+        closureClass, node is ir.Member && node.isInstanceMember);
   }
 
   @override
@@ -220,15 +226,23 @@ class KernelLoopClosureScope extends KernelClosureScope
 
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class KernelClosureClass extends KernelScopeInfo
-    implements ClosureRepresentationInfo {
-  KernelClosureClass.fromScopeInfo(ScopeInfo info)
+    implements ClosureRepresentationInfo, JClass {
+  // TODO(efortuna): Generate unique name for each closure class.
+  final String name = 'ClosureClass';
+
+  /// Index into the classData, classList and classEnvironment lists where this
+  /// entity is stored in [JsToFrontendMapImpl].
+  int classIndex;
+
+  final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
+
+  KernelClosureClass.fromScopeInfo(KernelScopeInfo info)
       : super.from(info.thisLocal, info);
 
   // TODO(efortuna): Implement.
   Local get closureEntity => null;
 
-  // TODO(efortuna): Implement.
-  ClassEntity get closureClassEntity => null;
+  ClassEntity get closureClassEntity => this;
 
   // TODO(efortuna): Implement.
   FunctionEntity get callMethod => null;
@@ -258,4 +272,11 @@ class KernelClosureClass extends KernelScopeInfo
   // ClosedWorldRefiner, which currently only takes elements. The change to
   // that (and the subsequent adjustment here) will follow soon.
   bool get isClosure => false;
+
+  bool get isAbstract => false;
+
+  // TODO(efortuna): Talk to Johnni.
+  JLibrary get library => null;
+
+  String toString() => '${jsElementPrefix}class($name)';
 }

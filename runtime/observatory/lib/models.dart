@@ -43,6 +43,7 @@ part 'src/models/objects/retaining_path.dart';
 part 'src/models/objects/sample_profile.dart';
 part 'src/models/objects/script.dart';
 part 'src/models/objects/sentinel.dart';
+part 'src/models/objects/service.dart';
 part 'src/models/objects/single_target_cache.dart';
 part 'src/models/objects/source_location.dart';
 part 'src/models/objects/subtype_test_cache.dart';

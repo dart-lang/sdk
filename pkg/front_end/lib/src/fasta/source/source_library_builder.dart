@@ -35,6 +35,20 @@ import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
 
+import '../fasta_codes.dart'
+    show
+        messagePartOfSelf,
+        templateConflictsWithMember,
+        templateConflictsWithSetter,
+        templateDeferredPrefixDuplicated,
+        templateDeferredPrefixDuplicatedCause,
+        templateDuplicatedDefinition,
+        templateMissingPartOf,
+        templatePartOfLibraryNameMismatch,
+        templatePartOfUriMismatch,
+        templatePartOfUseUri,
+        templatePartTwice;
+
 import '../import.dart' show Import;
 
 import '../problems.dart' show unhandled;
@@ -311,12 +325,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         other = builder;
       }
       if (deferred != null) {
-        deprecated_addCompileTimeError(
+        addCompileTimeError(
+            templateDeferredPrefixDuplicated.withArguments(name),
             deferred.charOffset,
-            "Can't use the name '$name' for a deferred library, "
-            "as the name is used elsewhere.");
-        deprecated_addCompileTimeError(
-            other.charOffset, "'$name' is used here.");
+            fileUri);
+        addCompileTimeError(
+            templateDeferredPrefixDuplicatedCause.withArguments(name),
+            other.charOffset,
+            fileUri);
       }
       return existing
         ..exports.merge(builder.exports,
@@ -324,8 +340,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           return buildAmbiguousBuilder(name, existing, member, charOffset);
         });
     } else if (isDuplicatedDefinition(existing, builder)) {
-      deprecated_addCompileTimeError(
-          charOffset, "Duplicated definition of '$name'.");
+      addCompileTimeError(templateDuplicatedDefinition.withArguments(name),
+          charOffset, fileUri);
     }
     return members[name] = builder;
   }
@@ -373,10 +389,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Builder member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
       // TODO(ahe): charOffset is missing.
-      deprecated_addCompileTimeError(
-          setter.charOffset, "Conflicts with member '${name}'.");
-      deprecated_addCompileTimeError(
-          member.charOffset, "Conflicts with setter '${name}'.");
+      addCompileTimeError(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, fileUri);
+      addCompileTimeError(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, fileUri);
     });
 
     return null;
@@ -407,12 +423,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       if (part == this) {
-        deprecated_addCompileTimeError(-1, "A file can't be a part of itself.");
+        addCompileTimeError(messagePartOfSelf, -1, fileUri);
       } else if (seenParts.add(part.fileUri)) {
         includePart(part);
       } else {
-        deprecated_addCompileTimeError(
-            -1, "Can't use '${part.fileUri}' as a part more than once.");
+        addCompileTimeError(
+            templatePartTwice.withArguments(part.fileUri), -1, fileUri);
       }
     }
   }
@@ -421,40 +437,35 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     if (part.partOfUri != null) {
       if (uri.resolve(part.partOfUri) != uri) {
         // This is a warning, but the part is still included.
-        deprecated_addWarning(
+        addWarning(
+            templatePartOfUriMismatch.withArguments(
+                part.fileUri, uri, part.partOfUri),
             -1,
-            "Using '${part.relativeFileUri}' as part of '$uri' but its "
-            "'part of' declaration says '${part.partOfUri}'.");
-        if (uri.scheme == "dart" && relativeFileUri.endsWith(part.partOfUri)) {
-          deprecated_addWarning(
-              -1, "See https://github.com/dart-lang/sdk/issues/30072.");
-        }
+            fileUri);
       }
     } else if (part.partOfName != null) {
       if (name != null) {
         if (part.partOfName != name) {
           // This is a warning, but the part is still included.
-          deprecated_addWarning(
+          addWarning(
+              templatePartOfLibraryNameMismatch.withArguments(
+                  part.fileUri, name, part.partOfName),
               -1,
-              "Using '${part.relativeFileUri}' as part of '$name' but its "
-              "'part of' declaration says '${part.partOfName}'.");
+              fileUri);
         }
       } else {
         // This is a warning, but the part is still included.
-        deprecated_addWarning(
+        addWarning(
+            templatePartOfUseUri.withArguments(
+                part.fileUri, fileUri, part.partOfName),
             -1,
-            "Using '${part.relativeFileUri}' as part of '${relativeFileUri}' "
-            "but its 'part of' declaration says '${part.partOfName}'.\n"
-            "Try changing the 'part of' declaration to use a relative "
-            "file name.");
+            fileUri);
       }
     } else if (name != null) {
       // This is an error, and the part isn't included.
       assert(!part.isPart);
-      deprecated_addCompileTimeError(
-          -1,
-          "Can't use ${part.fileUri} as a part, because it has no 'part of'"
-          " declaration.");
+      addCompileTimeError(
+          templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
       parts.remove(part);
       return;
     }

@@ -19,8 +19,8 @@
 #include "vm/disassembler.h"
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
-#include "vm/stack_frame.h"
 #include "vm/os_thread.h"
+#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -33,13 +33,11 @@ DEFINE_FLAG(uint64_t,
             ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
-
 // This macro provides a platform independent use of sscanf. The reason for
 // SScanF not being implemented in a platform independent way through
 // OS in the same way as SNPrint is that the Windows C Run-Time
 // Library does not provide vsscanf.
 #define SScanF sscanf  // NOLINT
-
 
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
@@ -78,7 +76,6 @@ class SimulatorSetjmpBuffer {
 
   friend class Simulator;
 };
-
 
 // The SimulatorDebugger class is used by the simulator while debugging
 // simulated ARM code.
@@ -119,20 +116,16 @@ class SimulatorDebugger {
   void RedoBreakpoints();
 };
 
-
 SimulatorDebugger::SimulatorDebugger(Simulator* sim) {
   sim_ = sim;
 }
 
-
 SimulatorDebugger::~SimulatorDebugger() {}
-
 
 void SimulatorDebugger::Stop(Instr* instr, const char* message) {
   OS::Print("Simulator hit %s\n", message);
   Debug();
 }
-
 
 static Register LookupCpuRegisterByName(const char* name) {
   static const char* kNames[] = {"r0",  "r1",  "r2",  "r3",  "r4",  "r5",
@@ -151,7 +144,6 @@ static Register LookupCpuRegisterByName(const char* name) {
   return kNoRegister;
 }
 
-
 static SRegister LookupSRegisterByName(const char* name) {
   int reg_nr = -1;
   bool ok = SScanF(name, "s%d", &reg_nr);
@@ -161,7 +153,6 @@ static SRegister LookupSRegisterByName(const char* name) {
   return kNoSRegister;
 }
 
-
 static DRegister LookupDRegisterByName(const char* name) {
   int reg_nr = -1;
   bool ok = SScanF(name, "d%d", &reg_nr);
@@ -170,7 +161,6 @@ static DRegister LookupDRegisterByName(const char* name) {
   }
   return kNoDRegister;
 }
-
 
 bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
   Register reg = LookupCpuRegisterByName(desc);
@@ -199,7 +189,6 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
   return retval;
 }
 
-
 bool SimulatorDebugger::GetFValue(char* desc, float* value) {
   SRegister sreg = LookupSRegisterByName(desc);
   if (sreg != kNoSRegister) {
@@ -218,7 +207,6 @@ bool SimulatorDebugger::GetFValue(char* desc, float* value) {
   }
   return false;
 }
-
 
 bool SimulatorDebugger::GetDValue(char* desc, double* value) {
   DRegister dreg = LookupDRegisterByName(desc);
@@ -239,7 +227,6 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
   return false;
 }
 
-
 TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
                                                           uword pc) {
   TokenPosition token_pos = TokenPosition::kNoSource;
@@ -256,7 +243,6 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   }
   return token_pos;
 }
-
 
 void SimulatorDebugger::PrintDartFrame(uword pc,
                                        uword fp,
@@ -278,7 +264,6 @@ void SimulatorDebugger::PrintDartFrame(uword pc,
       fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
       func_name.ToCString(), url.ToCString(), line, column);
 }
-
 
 void SimulatorDebugger::PrintBacktrace() {
   StackFrameIterator frames(
@@ -331,7 +316,6 @@ void SimulatorDebugger::PrintBacktrace() {
   }
 }
 
-
 bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
   // Check if a breakpoint can be set. If not return without any side-effects.
   if (sim_->break_pc_ != NULL) {
@@ -346,7 +330,6 @@ bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
   return true;
 }
 
-
 bool SimulatorDebugger::DeleteBreakpoint(Instr* breakpc) {
   if (sim_->break_pc_ != NULL) {
     sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
@@ -357,20 +340,17 @@ bool SimulatorDebugger::DeleteBreakpoint(Instr* breakpc) {
   return true;
 }
 
-
 void SimulatorDebugger::UndoBreakpoints() {
   if (sim_->break_pc_ != NULL) {
     sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
   }
 }
 
-
 void SimulatorDebugger::RedoBreakpoints() {
   if (sim_->break_pc_ != NULL) {
     sim_->break_pc_->SetInstructionBits(Instr::kSimulatorBreakpointInstruction);
   }
 }
-
 
 void SimulatorDebugger::Debug() {
   intptr_t last_pc = -1;
@@ -621,7 +601,6 @@ void SimulatorDebugger::Debug() {
 #undef XSTR
 }
 
-
 char* SimulatorDebugger::ReadLine(const char* prompt) {
   char* result = NULL;
   char line_buf[256];
@@ -680,19 +659,16 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   return result;
 }
 
-
 // Synchronization primitives support.
 Mutex* Simulator::exclusive_access_lock_ = NULL;
 Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags] = {
     {NULL, 0}};
 int Simulator::next_address_tag_ = 0;
 
-
 void Simulator::InitOnce() {
   // Setup exclusive access state lock.
   exclusive_access_lock_ = new Mutex();
 }
-
 
 Simulator::Simulator() {
   // Setup simulator support first. Some of this information is needed to
@@ -745,7 +721,6 @@ Simulator::Simulator() {
   fp_v_flag_ = false;
 }
 
-
 Simulator::~Simulator() {
   delete[] stack_;
   Isolate* isolate = Isolate::Current();
@@ -753,7 +728,6 @@ Simulator::~Simulator() {
     isolate->set_simulator(NULL);
   }
 }
-
 
 // When the generated code calls an external reference we need to catch that in
 // the simulator.  The external reference will be a function compiled for the
@@ -829,9 +803,7 @@ class Redirection {
   static Redirection* list_;
 };
 
-
 Redirection* Redirection::list_ = NULL;
-
 
 uword Simulator::RedirectExternalReference(uword function,
                                            CallKind call_kind,
@@ -841,11 +813,9 @@ uword Simulator::RedirectExternalReference(uword function,
   return redirection->address_of_svc_instruction();
 }
 
-
 uword Simulator::FunctionForRedirect(uword redirect) {
   return Redirection::FunctionForRedirect(redirect);
 }
-
 
 // Get the active Simulator for the current isolate.
 Simulator* Simulator::Current() {
@@ -857,7 +827,6 @@ Simulator* Simulator::Current() {
   return simulator;
 }
 
-
 // Sets the register in the architecture state. It will also deal with updating
 // Simulator internal state for special registers such as PC.
 void Simulator::set_register(Register reg, int32_t value) {
@@ -868,7 +837,6 @@ void Simulator::set_register(Register reg, int32_t value) {
   registers_[reg] = value;
 }
 
-
 // Get the register from the architecture state. This function does handle
 // the special case of accessing the PC register.
 int32_t Simulator::get_register(Register reg) const {
@@ -876,19 +844,16 @@ int32_t Simulator::get_register(Register reg) const {
   return registers_[reg] + ((reg == PC) ? Instr::kPCReadOffset : 0);
 }
 
-
 // Raw access to the PC register.
 void Simulator::set_pc(int32_t value) {
   pc_modified_ = true;
   registers_[PC] = value;
 }
 
-
 // Raw access to the PC register without the special adjustment when reading.
 int32_t Simulator::get_pc() const {
   return registers_[PC];
 }
-
 
 // Accessors for VFP register state.
 void Simulator::set_sregister(SRegister reg, float value) {
@@ -897,13 +862,11 @@ void Simulator::set_sregister(SRegister reg, float value) {
   sregisters_[reg] = bit_cast<int32_t, float>(value);
 }
 
-
 float Simulator::get_sregister(SRegister reg) const {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   return bit_cast<float, int32_t>(sregisters_[reg]);
 }
-
 
 void Simulator::set_dregister(DRegister reg, double value) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -911,13 +874,11 @@ void Simulator::set_dregister(DRegister reg, double value) {
   dregisters_[reg] = bit_cast<int64_t, double>(value);
 }
 
-
 double Simulator::get_dregister(DRegister reg) const {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return bit_cast<double, int64_t>(dregisters_[reg]);
 }
-
 
 void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
   ASSERT(TargetCPUFeatures::neon_supported());
@@ -928,7 +889,6 @@ void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
   qregisters_[reg].data_[3] = value.data_[3];
 }
 
-
 void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
   ASSERT(TargetCPUFeatures::neon_supported());
   // TODO(zra): Replace this test with an assert after we support
@@ -938,13 +898,11 @@ void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
   }
 }
 
-
 void Simulator::set_sregister_bits(SRegister reg, int32_t value) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = value;
 }
-
 
 int32_t Simulator::get_sregister_bits(SRegister reg) const {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -952,20 +910,17 @@ int32_t Simulator::get_sregister_bits(SRegister reg) const {
   return sregisters_[reg];
 }
 
-
 void Simulator::set_dregister_bits(DRegister reg, int64_t value) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   dregisters_[reg] = value;
 }
 
-
 int64_t Simulator::get_dregister_bits(DRegister reg) const {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return dregisters_[reg];
 }
-
 
 void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   uword fault_pc = get_pc();
@@ -980,7 +935,6 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   // The debugger will return control in non-interactive mode.
   FATAL("Cannot continue execution after illegal memory access.");
 }
-
 
 // Processor versions prior to ARMv7 could not do unaligned reads and writes.
 // On some ARM platforms an interrupt is caused.  On others it does a funky
@@ -1002,7 +956,6 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   FATAL("Cannot continue execution after unaligned access.");
 }
 
-
 void Simulator::UnimplementedInstruction(Instr* instr) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
@@ -1010,7 +963,6 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
   dbg.Stop(instr, buffer);
   FATAL("Cannot continue execution after unimplemented instruction.");
 }
-
 
 intptr_t Simulator::ReadW(uword addr, Instr* instr) {
   if ((addr & 3) == 0) {
@@ -1021,7 +973,6 @@ intptr_t Simulator::ReadW(uword addr, Instr* instr) {
   return 0;
 }
 
-
 void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
   if ((addr & 3) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
@@ -1030,7 +981,6 @@ void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
   }
   UnalignedAccess("write", addr, instr);
 }
-
 
 uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
   if ((addr & 1) == 0) {
@@ -1041,7 +991,6 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
   return 0;
 }
 
-
 int16_t Simulator::ReadH(uword addr, Instr* instr) {
   if ((addr & 1) == 0) {
     int16_t* ptr = reinterpret_cast<int16_t*>(addr);
@@ -1050,7 +999,6 @@ int16_t Simulator::ReadH(uword addr, Instr* instr) {
   UnalignedAccess("signed halfword read", addr, instr);
   return 0;
 }
-
 
 void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
   if ((addr & 1) == 0) {
@@ -1061,24 +1009,20 @@ void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
   UnalignedAccess("halfword write", addr, instr);
 }
 
-
 uint8_t Simulator::ReadBU(uword addr) {
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   return *ptr;
 }
-
 
 int8_t Simulator::ReadB(uword addr) {
   int8_t* ptr = reinterpret_cast<int8_t*>(addr);
   return *ptr;
 }
 
-
 void Simulator::WriteB(uword addr, uint8_t value) {
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   *ptr = value;
 }
-
 
 // Synchronization primitives support.
 void Simulator::SetExclusiveAccess(uword addr) {
@@ -1103,7 +1047,6 @@ void Simulator::SetExclusiveAccess(uword addr) {
   exclusive_access_state_[i].addr = addr;
 }
 
-
 bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -1125,20 +1068,17 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
   return result;
 }
 
-
 void Simulator::ClearExclusive() {
   MutexLocker ml(exclusive_access_lock_);
   // Remove the reservation for this thread.
   SetExclusiveAccess(0);
 }
 
-
 intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
   SetExclusiveAccess(addr);
   return ReadW(addr, instr);
 }
-
 
 intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
@@ -1149,7 +1089,6 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
   }
   return 1;  // Failure.
 }
-
 
 uword Simulator::CompareExchange(uword* address,
                                  uword compare_value,
@@ -1170,7 +1109,6 @@ uword Simulator::CompareExchange(uword* address,
   return value;
 }
 
-
 uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
                                           uint32_t compare_value,
                                           uint32_t new_value) {
@@ -1179,7 +1117,6 @@ uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
                          static_cast<uword>(compare_value),
                          static_cast<uword>(new_value));
 }
-
 
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
@@ -1190,11 +1127,9 @@ uword Simulator::StackTop() const {
          (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
-
 bool Simulator::IsTracingExecution() const {
   return icount_ > FLAG_trace_sim_after;
 }
-
 
 // Unsupported instructions use Format to print an error and stop execution.
 void Simulator::Format(Instr* instr, const char* format) {
@@ -1202,7 +1137,6 @@ void Simulator::Format(Instr* instr, const char* format) {
             format);
   UNIMPLEMENTED();
 }
-
 
 // Checks if the current instruction should be executed based on its
 // condition bits.
@@ -1244,25 +1178,21 @@ bool Simulator::ConditionallyExecute(Instr* instr) {
   return false;
 }
 
-
 // Calculate and set the Negative and Zero flags.
 void Simulator::SetNZFlags(int32_t val) {
   n_flag_ = (val < 0);
   z_flag_ = (val == 0);
 }
 
-
 // Set the Carry flag.
 void Simulator::SetCFlag(bool val) {
   c_flag_ = val;
 }
 
-
 // Set the oVerflow flag.
 void Simulator::SetVFlag(bool val) {
   v_flag_ = val;
 }
-
 
 // Calculate C flag value for additions (and subtractions with adjusted args).
 bool Simulator::CarryFrom(int32_t left, int32_t right, int32_t carry) {
@@ -1272,13 +1202,11 @@ bool Simulator::CarryFrom(int32_t left, int32_t right, int32_t carry) {
   return ((uleft + uright + ucarry) >> 32) != 0;
 }
 
-
 // Calculate V flag value for additions (and subtractions with adjusted args).
 bool Simulator::OverflowFrom(int32_t left, int32_t right, int32_t carry) {
   int64_t result = static_cast<int64_t>(left) + right + carry;
   return (result >> 31) != (result >> 32);
 }
-
 
 // Addressing Mode 1 - Data-processing operands:
 // Get the value based on the shifter_operand with register.
@@ -1422,7 +1350,6 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
   return result;
 }
 
-
 // Addressing Mode 1 - Data-processing operands:
 // Get the value based on the shifter_operand with immediate.
 int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
@@ -1432,7 +1359,6 @@ int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
   *carry_out = (rotate == 0) ? c_flag_ : (imm < 0);
   return imm;
 }
-
 
 static int count_bits(int bit_vector) {
   int count = 0;
@@ -1444,7 +1370,6 @@ static int count_bits(int bit_vector) {
   }
   return count;
 }
-
 
 // Addressing Mode 4 - Load and Store Multiple
 void Simulator::HandleRList(Instr* instr, bool load) {
@@ -1512,7 +1437,6 @@ void Simulator::HandleRList(Instr* instr, bool load) {
   }
 }
 
-
 // Calls into the Dart runtime are based on this interface.
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 
@@ -1528,7 +1452,6 @@ typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 // Calls to native Dart functions are based on this interface.
 typedef void (*SimulatorBootstrapNativeCall)(NativeArguments* arguments);
 typedef void (*SimulatorNativeCall)(NativeArguments* arguments, uword target);
-
 
 void Simulator::SupervisorCall(Instr* instr) {
   int svc = instr->SvcField();
@@ -1666,7 +1589,6 @@ void Simulator::SupervisorCall(Instr* instr) {
     }
   }
 }
-
 
 // Handle execution based on instruction types.
 
@@ -2292,7 +2214,6 @@ void Simulator::DecodeType01(Instr* instr) {
   }
 }
 
-
 void Simulator::DecodeType2(Instr* instr) {
   Register rd = instr->RdField();
   Register rn = instr->RnField();
@@ -2361,7 +2282,6 @@ void Simulator::DecodeType2(Instr* instr) {
   }
 }
 
-
 void Simulator::DoDivision(Instr* instr) {
   const Register rd = instr->DivRdField();
   const Register rn = instr->DivRnField();
@@ -2399,7 +2319,6 @@ void Simulator::DoDivision(Instr* instr) {
     set_register(rd, result);
   }
 }
-
 
 void Simulator::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
@@ -2474,7 +2393,6 @@ void Simulator::DecodeType3(Instr* instr) {
   }
 }
 
-
 void Simulator::DecodeType4(Instr* instr) {
   ASSERT(instr->Bit(22) == 0);  // only allowed to be set in privileged mode
   if (instr->HasL()) {
@@ -2486,7 +2404,6 @@ void Simulator::DecodeType4(Instr* instr) {
   }
 }
 
-
 void Simulator::DecodeType5(Instr* instr) {
   // Format(instr, "b'l'cond 'target");
   int off = (instr->SImmed24Field() << 2) + 8;
@@ -2496,7 +2413,6 @@ void Simulator::DecodeType5(Instr* instr) {
   }
   set_pc(pc + off);
 }
-
 
 void Simulator::DecodeType6(Instr* instr) {
   if (instr->IsVFPDoubleTransfer()) {
@@ -2628,7 +2544,6 @@ void Simulator::DecodeType6(Instr* instr) {
     UnimplementedInstruction(instr);
   }
 }
-
 
 void Simulator::DecodeType7(Instr* instr) {
   if (instr->Bit(24) == 1) {
@@ -3025,7 +2940,6 @@ void Simulator::DecodeType7(Instr* instr) {
   }
 }
 
-
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
   if (isinf(a) || (fabs(a) >= exp2f(126)))
@@ -3080,7 +2994,6 @@ static float arm_reciprocal_sqrt_estimate(float a) {
   return bit_cast<float, int32_t>(result_bits);
 }
 
-
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
   if (isinf(a) || (fabs(a) >= exp2f(126)))
@@ -3117,7 +3030,6 @@ static float arm_recip_estimate(float a) {
   return bit_cast<float, int32_t>(result_bits);
 }
 
-
 static void simd_value_swap(simd_value_t* s1,
                             int i1,
                             simd_value_t* s2,
@@ -3127,7 +3039,6 @@ static void simd_value_swap(simd_value_t* s1,
   s1->data_[i1].u = s2->data_[i2].u;
   s2->data_[i2].u = tmp;
 }
-
 
 void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
   ASSERT(instr->ConditionField() == kSpecialCondition);
@@ -3620,7 +3531,6 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
   }
 }
 
-
 // Executes the current instruction.
 void Simulator::InstructionDecode(Instr* instr) {
   pc_modified_ = false;
@@ -3688,7 +3598,6 @@ void Simulator::InstructionDecode(Instr* instr) {
   }
 }
 
-
 void Simulator::Execute() {
   // Get the PC to simulate. Cannot use the accessor here as we need the
   // raw PC value and not the one used as input to arithmetic instructions.
@@ -3728,7 +3637,6 @@ void Simulator::Execute() {
     }
   }
 }
-
 
 int64_t Simulator::Call(int32_t entry,
                         int32_t parameter0,
@@ -3890,7 +3798,6 @@ int64_t Simulator::Call(int32_t entry,
   }
   return return_value;
 }
-
 
 void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)

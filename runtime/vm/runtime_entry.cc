@@ -14,9 +14,9 @@
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
-#include "vm/object_store.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/service_isolate.h"
@@ -92,7 +92,6 @@ DEFINE_FLAG(charp,
             "the specified class");
 #endif
 
-
 #if defined(TESTING) || defined(DEBUG)
 void VerifyOnTransition() {
   Thread* thread = Thread::Current();
@@ -103,7 +102,6 @@ void VerifyOnTransition() {
   thread->isolate()->heap()->Verify();
 }
 #endif
-
 
 // Add function to a class and that class to the class dictionary so that
 // frame walking can be used.
@@ -126,7 +124,6 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   return function;
 }
 
-
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   const String& function_name = String::Handle(function.name());
@@ -136,7 +133,6 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
                function_name.ToCString());
 }
 
-
 DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   const String& function_name = String::Handle(function.name());
@@ -145,7 +141,6 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
   OS::PrintErr("< Exiting '%s.%s'\n", class_name.ToCString(),
                function_name.ToCString());
 }
-
 
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
@@ -174,7 +169,6 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   args.SetAt(3, Symbols::Length());
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
-
 
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
@@ -217,7 +211,6 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-
 // Helper returning the token position of the Dart caller.
 static TokenPosition GetCallerLocation() {
   DartFrameIterator iterator(Thread::Current(),
@@ -226,7 +219,6 @@ static TokenPosition GetCallerLocation() {
   ASSERT(caller_frame != NULL);
   return caller_frame->GetTokenPos();
 }
-
 
 // Allocate a new object.
 // Arg0: class of the object that needs to be allocated.
@@ -264,7 +256,6 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
           (type_arguments.Length() >= cls.NumTypeArguments())));
   instance.SetTypeArguments(type_arguments);
 }
-
 
 // Instantiate type.
 // Arg0: uninstantiated type.
@@ -304,7 +295,6 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
   ASSERT(!type.IsNull() && type.IsInstantiated());
   arguments.SetReturn(type);
 }
-
 
 // Instantiate type arguments.
 // Arg0: uninstantiated type arguments.
@@ -348,7 +338,6 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   arguments.SetReturn(type_arguments);
 }
 
-
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.
@@ -356,7 +345,6 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Smi& num_variables = Smi::CheckedHandle(zone, arguments.ArgAt(0));
   arguments.SetReturn(Context::Handle(Context::New(num_variables.Value())));
 }
-
 
 // Make a copy of the given context, including the values of the captured
 // variables.
@@ -374,7 +362,6 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   }
   arguments.SetReturn(cloned_ctx);
 }
-
 
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
@@ -419,7 +406,6 @@ static void PrintTypeCheck(const char* message,
       Function::Handle(caller_frame->LookupDartFunction());
   OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
 }
-
 
 // This updates the type test cache, an array containing 5-value elements
 // (instance class (or function if the instance is a closure), instance type
@@ -570,7 +556,6 @@ static void UpdateTypeTestCache(
   }
 }
 
-
 // Check that the given instance is an instance of the given type.
 // Tested instance may not be null, because the null test is inlined.
 // Arg0: instance being checked.
@@ -615,7 +600,6 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
                       function_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
-
 
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
@@ -679,7 +663,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   arguments.SetReturn(src_instance);
 }
 
-
 // Report that the type of the given object is not bool in conditional context.
 // Throw assertion error if the object is null. (cf. Boolean Conversion
 // in language Spec.)
@@ -719,7 +702,6 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
   UNREACHABLE();
 }
 
-
 // Report that the type of the type check is malformed or malbounded.
 // Arg0: src value.
 // Arg1: name of destination being assigned to.
@@ -738,12 +720,10 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   UNREACHABLE();
 }
 
-
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::Throw(thread, exception);
 }
-
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
@@ -751,7 +731,6 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
       Instance::CheckedHandle(zone, arguments.ArgAt(1));
   Exceptions::ReThrow(thread, exception, stacktrace);
 }
-
 
 // Patches static call in optimized code with the target's entry point.
 // Compiles target if necessary.
@@ -783,7 +762,6 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   arguments.SetReturn(target_code);
 }
 
-
 // Result of an invoke may be an unhandled exception, in which case we
 // rethrow it.
 static void CheckResultError(const Object& result) {
@@ -791,7 +769,6 @@ static void CheckResultError(const Object& result) {
     Exceptions::PropagateError(Error::Cast(result));
   }
 }
-
 
 #if !defined(TARGET_ARCH_DBC)
 // Gets called from debug stub when code reaches a breakpoint
@@ -830,7 +807,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 }
 #endif  // !defined(TARGET_ARCH_DBC)
 
-
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
   if (!FLAG_support_debugger) {
     UNREACHABLE();
@@ -843,7 +819,6 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
     UNREACHABLE();
   }
 }
-
 
 // An instance call of the form o.f(...) could not be resolved.  Check if
 // there is a getter with the same name.  If so, invoke it.  If the value is
@@ -881,7 +856,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   return true;
 }
 
-
 // Handle other invocations (implicit closures, noSuchMethod).
 RawFunction* InlineCacheMissHelper(const Instance& receiver,
                                    const Array& args_descriptor,
@@ -910,7 +884,6 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
   return result.raw();
 }
 
-
 // Perform the subtype and return constant function based on the result.
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
@@ -926,7 +899,6 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
   ASSERT(!target.IsNull());
   return target.raw();
 }
-
 
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,  // Checked arguments only.
@@ -998,7 +970,6 @@ static RawFunction* InlineCacheMissHandler(
   return target_function.raw();
 }
 
-
 // Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
 //   Arg1: IC data object.
@@ -1013,7 +984,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
       Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
 }
-
 
 // Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
@@ -1032,7 +1002,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
       Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
 }
-
 
 // Handles a static call in unoptimized code that has one argument type not
 // seen before. Compile the target if necessary and update the ICData.
@@ -1057,7 +1026,6 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   }
   arguments.SetReturn(target);
 }
-
 
 // Handles a static call in unoptimized code that has two argument types not
 // seen before. Compile the target if necessary and update the ICData.
@@ -1088,7 +1056,6 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   arguments.SetReturn(target);
 }
 
-
 #if !defined(TARGET_ARCH_DBC)
 static bool IsSingleTarget(Isolate* isolate,
                            Zone* zone,
@@ -1113,7 +1080,6 @@ static bool IsSingleTarget(Isolate* isolate,
   return true;
 }
 #endif
-
 
 // Handle a miss of a single target cache.
 //   Arg0: Receiver.
@@ -1205,7 +1171,6 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
 #endif
 }
 
-
 DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
 #if defined(TARGET_ARCH_DBC)
   // DBC does not use switchable calls.
@@ -1271,7 +1236,6 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   arguments.SetReturn(ic_data);
 #endif  // !DBC
 }
-
 
 // Handle a miss of a megamorphic cache.
 //   Arg0: Receiver.
@@ -1370,7 +1334,6 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   arguments.SetReturn(ic_data);
 #endif  // !defined(TARGET_ARCH_DBC)
 }
-
 
 // Handle a miss of a megamorphic cache.
 //   Arg0: Receiver.
@@ -1472,7 +1435,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   arguments.SetReturn(target_function);
 #endif  // !defined(TARGET_ARCH_DBC)
 }
-
 
 // Invoke appropriate noSuchMethod or closure from getter.
 // Arg0: receiver
@@ -1617,7 +1579,6 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 #undef CLOSURIZE
 }
 
-
 // Invoke appropriate noSuchMethod function.
 // Arg0: receiver (closure object)
 // Arg1: arguments descriptor array.
@@ -1638,7 +1599,6 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   CheckResultError(result);
   arguments.SetReturn(result);
 }
-
 
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
@@ -1828,7 +1788,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 }
 
-
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(0));
   const Function& function = Function::CheckedHandle(arguments.ArgAt(1));
@@ -1841,7 +1800,6 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
                frame->pc(), ic_data.raw(), function.usage_counter(),
                ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
-
 
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
@@ -1909,7 +1867,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
-
 // The caller must be a static call in a Dart frame, or an entry frame.
 // Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
@@ -1946,7 +1903,6 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(!current_target_code.IsDisabled());
   arguments.SetReturn(current_target_code);
 }
-
 
 // The caller tried to allocate an instance via an invalidated allocation
 // stub.
@@ -1991,7 +1947,6 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
 #endif
 }
 
-
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   switch (deopt_reason) {
 #define DEOPT_REASON_TO_TEXT(name)                                             \
@@ -2004,7 +1959,6 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
       return "";
   }
 }
-
 
 void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
@@ -2077,7 +2031,6 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   optimized_code.set_is_alive(false);
 }
 
-
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
@@ -2128,7 +2081,6 @@ static void CopySavedRegisters(uword saved_registers_address,
   *cpu_registers = cpu_registers_copy;
 }
 #endif
-
 
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
@@ -2213,7 +2165,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
 }
 END_LEAF_RUNTIME_ENTRY
 
-
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
@@ -2256,7 +2207,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
 }
 END_LEAF_RUNTIME_ENTRY
 
-
 // This is the last step in the deoptimization, GC can occur.
 // Returns number of bytes to remove from the expression stack of the
 // bottom-most deoptimized frame. Those arguments were artificially injected
@@ -2284,7 +2234,6 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
-
 DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #if !defined(PRODUCT)
@@ -2308,7 +2257,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
 }
 END_LEAF_RUNTIME_ENTRY
 
-
 double DartModulo(double left, double right) {
   double remainder = fmod_ieee(left, right);
   if (remainder == 0.0) {
@@ -2324,7 +2272,6 @@ double DartModulo(double left, double right) {
   return remainder;
 }
 
-
 // Update global type feedback recorded for a field recording the assignment
 // of the given value.
 //   Arg0: Field object;
@@ -2334,7 +2281,6 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
   const Object& value = Object::Handle(arguments.ArgAt(1));
   field.RecordStore(value);
 }
-
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));

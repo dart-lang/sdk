@@ -9,7 +9,6 @@ import '../common_elements.dart';
 import '../compiler.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -261,7 +260,7 @@ abstract class GraphBuilder {
 
     HInstruction typeInfo = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        (type.element as ClassElement).thisType,
+        closedWorld.elementEnvironment.getThisType(type.element),
         rtiInputs,
         closedWorld.commonMasks.dynamicType);
     add(typeInfo);

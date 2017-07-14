@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field core::List<dynamic> list;
-  constructor •() → void
+  default constructor •() → void
     ;
   set first(dynamic x) → dynamic
     ;

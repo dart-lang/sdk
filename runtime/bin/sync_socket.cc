@@ -100,7 +100,6 @@ void FUNCTION_NAME(SynchronousSocket_LookupRequest)(Dart_NativeArguments args) {
   return;
 }
 
-
 void FUNCTION_NAME(SynchronousSocket_CreateConnectSync)(
     Dart_NativeArguments args) {
   RawAddr addr;
@@ -119,7 +118,6 @@ void FUNCTION_NAME(SynchronousSocket_CreateConnectSync)(
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
@@ -154,7 +152,6 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
   Dart_TypedDataReleaseData(buffer_obj);
 }
 
-
 void FUNCTION_NAME(SynchronousSocket_ReadList)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
   Dart_Handle result = SynchronousSocket::GetSocketIdNativeField(
@@ -187,7 +184,6 @@ void FUNCTION_NAME(SynchronousSocket_ReadList)(Dart_NativeArguments args) {
   Dart_SetIntegerReturnValue(args, bytes_read);
 }
 
-
 void FUNCTION_NAME(SynchronousSocket_Available)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
   Dart_Handle result = SynchronousSocket::GetSocketIdNativeField(
@@ -202,7 +198,6 @@ void FUNCTION_NAME(SynchronousSocket_Available)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(SynchronousSocket_CloseSync)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
   Dart_Handle result = SynchronousSocket::GetSocketIdNativeField(
@@ -212,7 +207,6 @@ void FUNCTION_NAME(SynchronousSocket_CloseSync)(Dart_NativeArguments args) {
   SynchronousSocket::Close(socket->fd());
   socket->SetClosedFd();
 }
-
 
 void FUNCTION_NAME(SynchronousSocket_Read)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
@@ -243,7 +237,6 @@ void FUNCTION_NAME(SynchronousSocket_Read)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(SynchronousSocket_ShutdownRead)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
   Dart_Handle result = SynchronousSocket::GetSocketIdNativeField(
@@ -253,7 +246,6 @@ void FUNCTION_NAME(SynchronousSocket_ShutdownRead)(Dart_NativeArguments args) {
   SynchronousSocket::ShutdownRead(socket->fd());
 }
 
-
 void FUNCTION_NAME(SynchronousSocket_ShutdownWrite)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
   Dart_Handle result = SynchronousSocket::GetSocketIdNativeField(
@@ -262,7 +254,6 @@ void FUNCTION_NAME(SynchronousSocket_ShutdownWrite)(Dart_NativeArguments args) {
 
   SynchronousSocket::ShutdownWrite(socket->fd());
 }
-
 
 void FUNCTION_NAME(SynchronousSocket_GetPort)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
@@ -277,7 +268,6 @@ void FUNCTION_NAME(SynchronousSocket_GetPort)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(SynchronousSocket_GetRemotePeer)(Dart_NativeArguments args) {
   SynchronousSocket* socket = NULL;
@@ -316,7 +306,6 @@ void FUNCTION_NAME(SynchronousSocket_GetRemotePeer)(Dart_NativeArguments args) {
   delete addr;
 }
 
-
 static void SynchronousSocketFinalizer(void* isolate_data,
                                        Dart_WeakPersistentHandle handle,
                                        void* data) {
@@ -327,7 +316,6 @@ static void SynchronousSocketFinalizer(void* isolate_data,
   }
   delete socket;
 }
-
 
 Dart_Handle SynchronousSocket::SetSocketIdNativeField(
     Dart_Handle handle,
@@ -344,7 +332,6 @@ Dart_Handle SynchronousSocket::SetSocketIdNativeField(
                                SynchronousSocketFinalizer);
   return error;
 }
-
 
 Dart_Handle SynchronousSocket::GetSocketIdNativeField(
     Dart_Handle socket_obj,

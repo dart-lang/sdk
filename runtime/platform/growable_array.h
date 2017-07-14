@@ -131,14 +131,12 @@ class BaseGrowableArray : public B {
   DISALLOW_COPY_AND_ASSIGN(BaseGrowableArray);
 };
 
-
 template <typename T, typename B, typename Allocator>
 inline void BaseGrowableArray<T, B, Allocator>::Sort(int compare(const T*,
                                                                  const T*)) {
   typedef int (*CompareFunction)(const void*, const void*);
   qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
 }
-
 
 template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
@@ -153,7 +151,6 @@ void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
   length_ = new_length;
 }
 
-
 template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   if (new_length > capacity_) {
@@ -164,7 +161,6 @@ void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   }
   length_ = new_length;
 }
-
 
 class Malloc : public AllStatic {
  public:
@@ -184,9 +180,7 @@ class Malloc : public AllStatic {
   }
 };
 
-
 class EmptyBase {};
-
 
 template <typename T>
 class MallocGrowableArray : public BaseGrowableArray<T, EmptyBase, Malloc> {

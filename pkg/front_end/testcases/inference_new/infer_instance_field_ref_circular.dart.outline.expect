@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field dynamic b;
   field dynamic c;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static field dynamic a;

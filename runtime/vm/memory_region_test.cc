@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/memory_region.h"
+#include "platform/assert.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -13,11 +13,9 @@ static void* NewRegion(uword size) {
   return pointer;
 }
 
-
 static void DeleteRegion(const MemoryRegion& region) {
   delete[] reinterpret_cast<uint8_t*>(region.pointer());
 }
-
 
 VM_UNIT_TEST_CASE(NullRegion) {
   static const uword kSize = 512;
@@ -25,7 +23,6 @@ VM_UNIT_TEST_CASE(NullRegion) {
   EXPECT(region.pointer() == NULL);
   EXPECT_EQ(kSize, region.size());
 }
-
 
 VM_UNIT_TEST_CASE(NewRegion) {
   static const uword kSize = 1024;
@@ -38,7 +35,6 @@ VM_UNIT_TEST_CASE(NewRegion) {
 
   DeleteRegion(region);
 }
-
 
 VM_UNIT_TEST_CASE(Subregion) {
   static const uword kSize = 1024;
@@ -58,7 +54,6 @@ VM_UNIT_TEST_CASE(Subregion) {
 
   DeleteRegion(region);
 }
-
 
 VM_UNIT_TEST_CASE(ExtendedRegion) {
   static const uword kSize = 1024;

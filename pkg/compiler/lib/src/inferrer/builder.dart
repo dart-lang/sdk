@@ -58,7 +58,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   final Compiler compiler;
   final MemberElement analyzedElement;
   final ResolvedAst resolvedAst;
-  final TypeSystem types;
+  final TypeSystem<ast.Node> types;
   final Map<JumpTarget, List<LocalsHandler>> breaksFor =
       new Map<JumpTarget, List<LocalsHandler>>();
   final Map<JumpTarget, List<LocalsHandler>> continuesFor =
@@ -744,10 +744,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ast.Node exception = node.exception;
     if (exception != null) {
       ResolutionDartType type = elements.getType(node.type);
-      TypeInformation mask =
-          type == null || type.treatAsDynamic || type.isTypeVariable
-              ? types.dynamicType
-              : types.nonNullSubtype(type.element);
+      TypeInformation mask;
+      if (type == null || type.treatAsDynamic || type.isTypeVariable) {
+        mask = types.dynamicType;
+      } else {
+        ResolutionInterfaceType interfaceType = type;
+        mask = types.nonNullSubtype(interfaceType.element);
+      }
       locals.update(elements[exception], mask, node);
     }
     ast.Node trace = node.trace;
@@ -1123,7 +1126,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     });
 
     return inferrer.concreteTypes.putIfAbsent(node, () {
-      return types.allocateClosure(node, element.callMethod);
+      return types.allocateClosure(element.callMethod);
     });
   }
 
@@ -1132,7 +1135,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         elements.getFunctionDefinition(node.function);
     TypeInformation type =
         inferrer.concreteTypes.putIfAbsent(node.function, () {
-      return types.allocateClosure(node.function, element.callMethod);
+      return types.allocateClosure(element.callMethod);
     });
     locals.update(element, type, node);
     visit(node.function);
@@ -1162,7 +1165,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       for (ast.Node element in node.elements.nodes) {
         TypeInformation type = visit(element);
         elementType = elementType == null
-            ? types.allocatePhi(null, null, type)
+            ? types.allocatePhi(null, null, type, isTry: false)
             : types.addPhiInput(null, elementType, type);
         length++;
       }
@@ -2751,7 +2754,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // its type by refining it with the potential targets of the
     // calls.
     ast.Send send = node.asSend();
+    bool isConditional = false;
     if (send != null) {
+      isConditional = send.isConditional;
       ast.Node receiver = send.receiver;
       if (receiver != null) {
         Element element = elements[receiver];
@@ -2764,7 +2769,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     return inferrer.registerCalledSelector(node, selector, mask, receiverType,
-        outermostElement, arguments, sideEffects, inLoop);
+        outermostElement, arguments, sideEffects, inLoop, isConditional);
   }
 
   TypeInformation handleDynamicInvoke(ast.Send node) {

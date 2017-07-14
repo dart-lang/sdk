@@ -16,7 +16,6 @@ final _heapSnapshotRepository = new HeapSnapshotRepository();
 final _icdataRepository = new ICDataRepository();
 final _inboundReferencesRepository = new InboundReferencesRepository();
 final _instanceRepository = new InstanceRepository();
-final _isolateRepository = new IsolateRepository();
 final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();
@@ -173,8 +172,8 @@ class VMPage extends MatchingPage {
     }
     app.vm.reload().then((VM vm) {
       container.children = [
-        new VMViewElement(vm, app.events, app.notifications, _isolateRepository,
-            _scriptRepository,
+        new VMViewElement(vm, app.events, app.notifications,
+            new IsolateRepository(app.vm), _scriptRepository,
             queue: app.queue)
       ];
     }).catchError((e, stack) {
@@ -349,7 +348,7 @@ class InspectPage extends MatchingPage {
             obj,
             app.events,
             app.notifications,
-            _isolateRepository,
+            new IsolateRepository(app.vm),
             _scriptRepository,
             _functionRepository,
             _libraryRepository,

@@ -220,13 +220,4 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   void addNit(Message message, int charOffset) {
     library.addNit(message, charOffset, fileUri);
   }
-
-  void deprecated_addCompileTimeError(int charOffset, String message) {
-    library.deprecated_addCompileTimeError(charOffset, message,
-        fileUri: fileUri);
-  }
-
-  void deprecated_addWarning(int charOffset, String message) {
-    library.deprecated_addWarning(charOffset, message, fileUri: fileUri);
-  }
 }

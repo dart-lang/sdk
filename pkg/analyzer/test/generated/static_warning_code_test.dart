@@ -72,14 +72,10 @@ f(var p) {
 import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p as N;}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -91,14 +87,10 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 class A extends N {}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -113,14 +105,10 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 class A implements N {}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -136,19 +124,13 @@ library lib;
 import 'lib1.dart';
 import 'lib2.dart';
 part 'part.dart';''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
-    Source partSource = addNamedSource(
-        "/part.dart",
-        r'''
+    Source partSource = addNamedSource("/part.dart", r'''
 part of lib;
 class A extends N {}''');
     await computeAnalysisResult(source);
@@ -166,14 +148,10 @@ library L;
 import 'lib1.dart';
 import 'lib2.dart';
 f() {new N();}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -185,14 +163,10 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p is N;}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -204,14 +178,10 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 g() { N.FOO; }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -231,14 +201,10 @@ class A {
   N m() { return null; }
 }
 class B<T extends N> {}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -259,14 +225,10 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
 A<N> f() { return null; }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -279,14 +241,10 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
 f() {new A<N>();}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -299,14 +257,10 @@ import 'lib1.dart';
 import 'lib2.dart';
 f() { g(v); }
 g(p) {}''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 var v;''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 var v;''');
     await computeAnalysisResult(source);
@@ -318,14 +272,10 @@ var v;''');
 import 'lib1.dart';
 import 'lib2.dart';
 f() { v = 0; }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 var v;''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 var v;''');
     await computeAnalysisResult(source);
@@ -340,14 +290,10 @@ import 'lib2.dart' as p;
 main() {
   p.f();
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 f() {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 f() {}''');
     await computeAnalysisResult(source);
@@ -356,18 +302,14 @@ f() {}''');
 
   test_argumentTypeNotAssignable_ambiguousClassName() async {
     // See dartbug.com/19624
-    Source source = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source = addNamedSource("/lib1.dart", r'''
 library lib1;
 import 'lib2.dart';
 class _A {}
 f() {
   g((_A a) {});
 }''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class _A {}
 g(h(_A a)) {}''');
@@ -1013,9 +955,7 @@ import 'lib.dart';
 import 'dart:async';
 Future f = null;
 Stream s;''');
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class Future {}''');
     await computeAnalysisResult(source);
@@ -2547,9 +2487,7 @@ void f() {
 
   test_newWithNonType_fromLibrary() async {
     Source source1 = addNamedSource("/lib.dart", "class B {}");
-    Source source2 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source2 = addNamedSource("/lib2.dart", r'''
 import 'lib.dart' as lib;
 void f() {
   var a = new lib.A();
@@ -3616,9 +3554,7 @@ f(var p) {
 
   test_undefinedGetter_fromLibrary() async {
     Source source1 = addNamedSource("/lib.dart", "");
-    Source source2 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source2 = addNamedSource("/lib2.dart", r'''
 import 'lib.dart' as lib;
 void f() {
   var g = lib.gg;
@@ -3669,9 +3605,7 @@ main() {
   }
 
   test_undefinedIdentifier_private_getter() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A {
   var _foo;
@@ -3688,9 +3622,7 @@ class B extends A {
   }
 
   test_undefinedIdentifier_private_setter() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A {
   var _foo;
@@ -3725,9 +3657,7 @@ main() {
 
   test_undefinedSetter() async {
     addNamedSource("/lib.dart", "");
-    Source source2 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source2 = addNamedSource("/lib2.dart", r'''
 import 'lib.dart' as lib;
 void f() {
   lib.gg = null;

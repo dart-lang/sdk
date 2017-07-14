@@ -8,8 +8,8 @@
 #include "vm/instructions.h"
 #include "vm/instructions_x64.h"
 
-#include "vm/cpu.h"
 #include "vm/constants_x64.h"
+#include "vm/cpu.h"
 #include "vm/object.h"
 
 namespace dart {

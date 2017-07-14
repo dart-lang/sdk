@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/hashmap.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/hashmap.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -12,9 +12,7 @@ namespace dart {
 // Default initial size of hashmaps used in these tests.
 static intptr_t kInitialSize = 8;
 
-
 typedef uint32_t (*IntKeyHash)(uint32_t key);
-
 
 class IntSet {
  public:
@@ -59,7 +57,6 @@ class IntSet {
   HashMap map_;
 };
 
-
 static uint32_t WordHash(uint32_t key) {
   return dart::Utils::WordHash(key);
 }
@@ -78,7 +75,6 @@ static uint32_t CollisionHash3(uint32_t key) {
 static uint32_t CollisionHash4(uint32_t key) {
   return kInitialSize - 2;
 }
-
 
 void TestSet(IntKeyHash hash, int size) {
   IntSet set(hash);
@@ -169,7 +165,6 @@ void TestSet(IntKeyHash hash, int size) {
   }
   EXPECT_EQ(0u, set.occupancy());
 }
-
 
 VM_UNIT_TEST_CASE(HashMap_Basic) {
   TestSet(WordHash, 100);

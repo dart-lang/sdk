@@ -17,9 +17,7 @@ class Isolate;
 class ObjectSet;
 class RawObject;
 
-
 enum MarkExpectation { kForbidMarked, kAllowMarked, kRequireMarked };
-
 
 class VerifyObjectVisitor : public ObjectVisitor {
  public:
@@ -71,7 +69,6 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
 
   DISALLOW_COPY_AND_ASSIGN(VerifyWeakPointersVisitor);
 };
-
 
 #if defined(DEBUG)
 class VerifyCanonicalVisitor : public ObjectVisitor {

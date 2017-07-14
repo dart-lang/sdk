@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/freelist.h"
+#include "platform/assert.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -17,7 +17,6 @@ static uword Allocate(FreeList* free_list, intptr_t size, bool is_protected) {
   }
   return result;
 }
-
 
 static void Free(FreeList* free_list,
                  uword address,
@@ -35,7 +34,6 @@ static void Free(FreeList* free_list,
     ASSERT(status);
   }
 }
-
 
 static void TestFreeList(VirtualMemory* region,
                          FreeList* free_list,
@@ -96,7 +94,6 @@ TEST_CASE(FreeList) {
   delete free_list;
 }
 
-
 TEST_CASE(FreeListProtected) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
@@ -109,7 +106,6 @@ TEST_CASE(FreeListProtected) {
   delete region;
   delete free_list;
 }
-
 
 TEST_CASE(FreeListProtectedTinyObjects) {
   FreeList* free_list = new FreeList();
@@ -147,7 +143,6 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   delete free_list;
   delete[] objects;
 }
-
 
 TEST_CASE(FreeListProtectedVariableSizeObjects) {
   FreeList* free_list = new FreeList();

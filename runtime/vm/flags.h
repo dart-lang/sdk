@@ -20,7 +20,6 @@ typedef const char* charp;
 #define DEFINE_FLAG_HANDLER(handler, name, comment)                            \
   bool DUMMY_##name = Flags::Register_func(handler, #name, comment);
 
-
 namespace dart {
 
 typedef void (*FlagHandler)(bool value);

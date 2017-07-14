@@ -31,7 +31,8 @@ import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyProgram;
 import 'package:front_end/src/fasta/testing/kernel_chain.dart' show runDiff;
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
@@ -51,7 +52,7 @@ Future<TreeShakerContext> createContext(
 
 /// Context used to run the tree-shaking test suite.
 class TreeShakerContext extends ChainContext {
-  final TranslateUri uriTranslator;
+  final UriTranslator uriTranslator;
   final Uri outlineUri;
   final List<Step> steps;
   final List<int> outlineBytes;
@@ -80,7 +81,7 @@ class TreeShakerContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri outlineUri = sdk.resolve('outline.dill');
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator = await TranslateUri
+    UriTranslator uriTranslator = await UriTranslatorImpl
         .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
     return new TreeShakerContext(

@@ -26,7 +26,6 @@ RawField* LookupField(Dart_Handle library,
   return field.raw();
 }
 
-
 TEST_CASE(GuardFieldSimpleTest) {
   const char* script_chars =
       "class A {\n"
@@ -76,7 +75,6 @@ TEST_CASE(GuardFieldSimpleTest) {
   EXPECT_EQ(true, f2.is_nullable());
   EXPECT_EQ(no_length, f3.guarded_list_length());
 }
-
 
 TEST_CASE(GuardFieldFinalListTest) {
   const char* script_chars =
@@ -130,7 +128,6 @@ TEST_CASE(GuardFieldFinalListTest) {
   EXPECT_EQ(false, f3.is_nullable());
 }
 
-
 TEST_CASE(GuardFieldFinalVariableLengthListTest) {
   const char* script_chars =
       "class A {\n"
@@ -182,7 +179,6 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
   EXPECT_EQ(kGrowableObjectArrayCid, f3.guarded_cid());
   EXPECT_EQ(false, f3.is_nullable());
 }
-
 
 TEST_CASE(GuardFieldConstructorTest) {
   const char* script_chars =
@@ -240,7 +236,6 @@ TEST_CASE(GuardFieldConstructorTest) {
   EXPECT_EQ(kTypedDataFloat32ArrayCid, f3.guarded_cid());
   EXPECT_EQ(false, f3.is_nullable());
 }
-
 
 TEST_CASE(GuardFieldConstructor2Test) {
   const char* script_chars =

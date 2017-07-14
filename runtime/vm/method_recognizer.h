@@ -541,7 +541,6 @@ class MethodRecognizer : public AllStatic {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
@@ -549,7 +548,6 @@ class MethodRecognizer : public AllStatic {
 #define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 
 // clang-format off
 // List of recognized list factories:

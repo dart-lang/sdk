@@ -21,7 +21,6 @@ static RawObject* ExecuteTest(const Code& code) {
       Array::Handle(Array::New(0)), thread);
 }
 
-
 #define EXECUTE_TEST_CODE_INTPTR(code)                                         \
   Smi::Value(Smi::RawCast(ExecuteTest(code)))
 #define EXECUTE_TEST_CODE_BOOL(code)                                           \
@@ -32,7 +31,6 @@ static RawObject* ExecuteTest(const Code& code) {
 
 #define __ assembler->
 
-
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
   const Class& cls = Class::Handle(Class::New(
@@ -41,11 +39,9 @@ static RawClass* CreateDummyClass(const String& class_name,
   return cls.raw();
 }
 
-
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
-
 
 static RawFunction* CreateFunction(const char* name) {
   Thread* thread = Thread::Current();
@@ -62,12 +58,10 @@ static RawFunction* CreateFunction(const char* name) {
                        TokenPosition::kMinSource);
 }
 
-
 static void GenerateDummyCode(Assembler* assembler, const Object& result) {
   __ PushConstant(result);
   __ ReturnTOS();
 }
-
 
 static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   // Make a dummy function.
@@ -106,17 +100,14 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   __ InstanceCall2(2, call_ic_data_kidx);
 }
 
-
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(Simple, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Nop, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
@@ -128,11 +119,9 @@ ASSEMBLER_TEST_GENERATE(Nop, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(Nop, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 // Called from assembler_test.cc.
 // FP[-kParamEndSlotFromFp - 1]: growable array
@@ -145,7 +134,6 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Return(0);
 }
 
-
 //  - OneByteStringFromCharCode rA, rX
 //
 //    Load the one-character symbol with the char code given by the Smi
@@ -157,12 +145,10 @@ ASSEMBLER_TEST_GENERATE(OneByteStringFromCharCode, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(OneByteStringFromCharCode, test) {
   EXPECT_EQ(Symbols::New(Thread::Current(), "A"),
             EXECUTE_TEST_CODE_OBJECT(test->code()).raw());
 }
-
 
 //  - StringToCharCode rA, rX
 //
@@ -176,11 +162,9 @@ ASSEMBLER_TEST_GENERATE(StringToCharCode, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(StringToCharCode, test) {
   EXPECT_EQ(65, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(StringToCharCodeIllegalLength, assembler) {
   __ Frame(2);
@@ -189,11 +173,9 @@ ASSEMBLER_TEST_GENERATE(StringToCharCodeIllegalLength, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(StringToCharCodeIllegalLength, test) {
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - AddTOS; SubTOS; MulTOS; BitOrTOS; BitAndTOS; EqualTOS; LessThanTOS;
 //    GreaterThanTOS;
@@ -211,11 +193,9 @@ ASSEMBLER_TEST_GENERATE(AddTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AddTOS, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddTOSOverflow, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
@@ -226,11 +206,9 @@ ASSEMBLER_TEST_GENERATE(AddTOSOverflow, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AddTOSOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddTOSNonSmi, assembler) {
   const String& numstr =
@@ -243,11 +221,9 @@ ASSEMBLER_TEST_GENERATE(AddTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AddTOSNonSmi, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(30)));
@@ -258,11 +234,9 @@ ASSEMBLER_TEST_GENERATE(SubTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(SubTOS, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubTOSOverflow, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(Smi::kMinValue)));
@@ -273,11 +247,9 @@ ASSEMBLER_TEST_GENERATE(SubTOSOverflow, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(SubTOSOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubTOSNonSmi, assembler) {
   const String& numstr =
@@ -290,11 +262,9 @@ ASSEMBLER_TEST_GENERATE(SubTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(SubTOSNonSmi, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MulTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-6)));
@@ -305,11 +275,9 @@ ASSEMBLER_TEST_GENERATE(MulTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(MulTOS, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MulTOSOverflow, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
@@ -320,11 +288,9 @@ ASSEMBLER_TEST_GENERATE(MulTOSOverflow, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(MulTOSOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MulTOSNonSmi, assembler) {
   const String& numstr =
@@ -337,11 +303,9 @@ ASSEMBLER_TEST_GENERATE(MulTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(MulTOSNonSmi, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BitOrTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(0x22)));
@@ -352,11 +316,9 @@ ASSEMBLER_TEST_GENERATE(BitOrTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(BitOrTOS, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BitOrTOSNonSmi, assembler) {
   const String& numstr =
@@ -369,11 +331,9 @@ ASSEMBLER_TEST_GENERATE(BitOrTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(BitOrTOSNonSmi, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BitAndTOS, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(0x2a)));
@@ -384,11 +344,9 @@ ASSEMBLER_TEST_GENERATE(BitAndTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(BitAndTOS, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BitAndTOSNonSmi, assembler) {
   const String& numstr =
@@ -401,11 +359,9 @@ ASSEMBLER_TEST_GENERATE(BitAndTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(BitAndTOSNonSmi, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(EqualTOSTrue, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
@@ -416,11 +372,9 @@ ASSEMBLER_TEST_GENERATE(EqualTOSTrue, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(EqualTOSTrue, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(EqualTOSFalse, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
@@ -431,11 +385,9 @@ ASSEMBLER_TEST_GENERATE(EqualTOSFalse, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(EqualTOSFalse, test) {
   EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(EqualTOSNonSmi, assembler) {
   const String& numstr =
@@ -448,11 +400,9 @@ ASSEMBLER_TEST_GENERATE(EqualTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(EqualTOSNonSmi, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LessThanTOSTrue, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-42)));
@@ -463,11 +413,9 @@ ASSEMBLER_TEST_GENERATE(LessThanTOSTrue, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(LessThanTOSTrue, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LessThanTOSFalse, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
@@ -478,11 +426,9 @@ ASSEMBLER_TEST_GENERATE(LessThanTOSFalse, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(LessThanTOSFalse, test) {
   EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LessThanTOSNonSmi, assembler) {
   const String& numstr =
@@ -495,11 +441,9 @@ ASSEMBLER_TEST_GENERATE(LessThanTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(LessThanTOSNonSmi, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(GreaterThanTOSTrue, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
@@ -510,11 +454,9 @@ ASSEMBLER_TEST_GENERATE(GreaterThanTOSTrue, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(GreaterThanTOSTrue, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(GreaterThanTOSFalse, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(-42)));
@@ -525,11 +467,9 @@ ASSEMBLER_TEST_GENERATE(GreaterThanTOSFalse, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(GreaterThanTOSFalse, test) {
   EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(GreaterThanTOSNonSmi, assembler) {
   const String& numstr =
@@ -542,11 +482,9 @@ ASSEMBLER_TEST_GENERATE(GreaterThanTOSNonSmi, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(GreaterThanTOSNonSmi, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 //  - Add, Sub, Mul, Div, Mod, Shl, Shr rA, rB, rC
 //
@@ -564,11 +502,9 @@ ASSEMBLER_TEST_GENERATE(AddNoOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(AddNoOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AddOverflow, assembler) {
   __ Frame(3);
@@ -580,11 +516,9 @@ ASSEMBLER_TEST_GENERATE(AddOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(AddOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubNoOverflow, assembler) {
   __ Frame(3);
@@ -596,11 +530,9 @@ ASSEMBLER_TEST_GENERATE(SubNoOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(SubNoOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(SubOverflow, assembler) {
   __ Frame(3);
@@ -612,11 +544,9 @@ ASSEMBLER_TEST_GENERATE(SubOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(SubOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MulNoOverflow, assembler) {
   __ Frame(3);
@@ -628,11 +558,9 @@ ASSEMBLER_TEST_GENERATE(MulNoOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(MulNoOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(MulOverflow, assembler) {
   __ Frame(3);
@@ -644,11 +572,9 @@ ASSEMBLER_TEST_GENERATE(MulOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(MulOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DivNoDeopt, assembler) {
   __ Frame(3);
@@ -660,11 +586,9 @@ ASSEMBLER_TEST_GENERATE(DivNoDeopt, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DivNoDeopt, test) {
   EXPECT_EQ(9, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DivZero, assembler) {
   __ Frame(3);
@@ -676,11 +600,9 @@ ASSEMBLER_TEST_GENERATE(DivZero, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DivZero, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DivCornerCase, assembler) {
   __ Frame(3);
@@ -692,11 +614,9 @@ ASSEMBLER_TEST_GENERATE(DivCornerCase, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DivCornerCase, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ModPosPos, assembler) {
   __ Frame(3);
@@ -708,11 +628,9 @@ ASSEMBLER_TEST_GENERATE(ModPosPos, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ModPosPos, test) {
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ModNegPos, assembler) {
   __ Frame(3);
@@ -724,11 +642,9 @@ ASSEMBLER_TEST_GENERATE(ModNegPos, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ModNegPos, test) {
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ModPosNeg, assembler) {
   __ Frame(3);
@@ -740,11 +656,9 @@ ASSEMBLER_TEST_GENERATE(ModPosNeg, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ModPosNeg, test) {
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ModZero, assembler) {
   __ Frame(3);
@@ -756,11 +670,9 @@ ASSEMBLER_TEST_GENERATE(ModZero, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ModZero, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ShlNoDeopt, assembler) {
   __ Frame(3);
@@ -772,11 +684,9 @@ ASSEMBLER_TEST_GENERATE(ShlNoDeopt, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ShlNoDeopt, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ShlOverflow, assembler) {
   __ Frame(3);
@@ -788,11 +698,9 @@ ASSEMBLER_TEST_GENERATE(ShlOverflow, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ShlOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ShlNegShift, assembler) {
   __ Frame(3);
@@ -804,11 +712,9 @@ ASSEMBLER_TEST_GENERATE(ShlNegShift, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ShlNegShift, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ShrNoDeopt, assembler) {
   __ Frame(3);
@@ -820,11 +726,9 @@ ASSEMBLER_TEST_GENERATE(ShrNoDeopt, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ShrNoDeopt, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(ShrNegShift, assembler) {
   __ Frame(3);
@@ -836,11 +740,9 @@ ASSEMBLER_TEST_GENERATE(ShrNegShift, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(ShrNegShift, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - Neg rA , rD
 //
@@ -855,11 +757,9 @@ ASSEMBLER_TEST_GENERATE(NegPos, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(NegPos, test) {
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(NegNeg, assembler) {
   __ Frame(2);
@@ -870,11 +770,9 @@ ASSEMBLER_TEST_GENERATE(NegNeg, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(NegNeg, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(NegOverflow, assembler) {
   __ Frame(2);
@@ -885,11 +783,9 @@ ASSEMBLER_TEST_GENERATE(NegOverflow, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(NegOverflow, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
@@ -903,11 +799,9 @@ ASSEMBLER_TEST_GENERATE(BitOr, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(BitOr, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BitAnd, assembler) {
   __ Frame(3);
@@ -918,11 +812,9 @@ ASSEMBLER_TEST_GENERATE(BitAnd, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(BitAnd, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BitXor, assembler) {
   __ Frame(3);
@@ -933,11 +825,9 @@ ASSEMBLER_TEST_GENERATE(BitXor, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(BitXor, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - BitNot rA, rD
 //
@@ -949,7 +839,6 @@ ASSEMBLER_TEST_GENERATE(BitNot, assembler) {
   __ BitNot(1, 0);
   __ Return(1);
 }
-
 
 ASSEMBLER_TEST_RUN(BitNot, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
@@ -980,11 +869,9 @@ ASSEMBLER_TEST_GENERATE(IfNeStrictTOSTaken, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfNeStrictTOSTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfNeStrictTOSNotTaken, assembler) {
   Label branch_taken;
@@ -1004,7 +891,6 @@ ASSEMBLER_TEST_RUN(IfNeStrictTOSNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 
-
 // TODO(zra): Also add tests that use Mint, Bignum.
 ASSEMBLER_TEST_GENERATE(IfNeStrictNumTOSTaken, assembler) {
   Label branch_taken;
@@ -1019,11 +905,9 @@ ASSEMBLER_TEST_GENERATE(IfNeStrictNumTOSTaken, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfNeStrictNumTOSTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfNeStrictNumTOSNotTaken, assembler) {
   Label branch_taken;
@@ -1042,7 +926,6 @@ ASSEMBLER_TEST_RUN(IfNeStrictNumTOSNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(IfNeStrictNumTOSTakenDouble, assembler) {
   Label branch_taken;
   __ PushConstant(Double::Handle(Double::New(-1.0, Heap::kOld)));
@@ -1056,11 +939,9 @@ ASSEMBLER_TEST_GENERATE(IfNeStrictNumTOSTakenDouble, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfNeStrictNumTOSTakenDouble, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfNeStrictNumTOSNotTakenDouble, assembler) {
   Label branch_taken;
@@ -1079,7 +960,6 @@ ASSEMBLER_TEST_RUN(IfNeStrictNumTOSNotTakenDouble, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 
-
 ASSEMBLER_TEST_GENERATE(IfEqStrictTOSTaken, assembler) {
   Label branch_taken;
   const Array& array1 = Array::Handle(Array::New(1, Heap::kOld));
@@ -1094,11 +974,9 @@ ASSEMBLER_TEST_GENERATE(IfEqStrictTOSTaken, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqStrictTOSTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfEqStrictTOSNotTaken, assembler) {
   Label branch_taken;
@@ -1119,7 +997,6 @@ ASSEMBLER_TEST_RUN(IfEqStrictTOSNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 
-
 // TODO(zra): Also add tests that use Mint, Bignum.
 ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSTaken, assembler) {
   Label branch_taken;
@@ -1134,11 +1011,9 @@ ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSTaken, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqStrictNumTOSTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSNotTaken, assembler) {
   Label branch_taken;
@@ -1153,11 +1028,9 @@ ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSNotTaken, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqStrictNumTOSNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSTakenDouble, assembler) {
   Label branch_taken;
@@ -1172,11 +1045,9 @@ ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSTakenDouble, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqStrictNumTOSTakenDouble, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSNotTakenDouble, assembler) {
   Label branch_taken;
@@ -1191,11 +1062,9 @@ ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSNotTakenDouble, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqStrictNumTOSNotTakenDouble, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - BooleanNegateTOS
 //
@@ -1206,11 +1075,9 @@ ASSEMBLER_TEST_GENERATE(BooleanNegateTOSTrue, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(BooleanNegateTOSTrue, test) {
   EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(BooleanNegateTOSFalse, assembler) {
   __ PushConstant(Bool::False());
@@ -1218,11 +1085,9 @@ ASSEMBLER_TEST_GENERATE(BooleanNegateTOSFalse, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(BooleanNegateTOSFalse, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 //  - AssertBoolean A
 //
@@ -1233,11 +1098,9 @@ ASSEMBLER_TEST_GENERATE(AssertBooleanTrue, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AssertBooleanTrue, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AssertBooleanFalse, assembler) {
   __ PushConstant(Bool::False());
@@ -1245,11 +1108,9 @@ ASSEMBLER_TEST_GENERATE(AssertBooleanFalse, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AssertBooleanFalse, test) {
   EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AssertBooleanNotNull, assembler) {
   __ PushConstant(Bool::True());
@@ -1257,11 +1118,9 @@ ASSEMBLER_TEST_GENERATE(AssertBooleanNotNull, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AssertBooleanNotNull, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(AssertBooleanFail1, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(37)));
@@ -1269,11 +1128,9 @@ ASSEMBLER_TEST_GENERATE(AssertBooleanFail1, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AssertBooleanFail1, test) {
   EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsError());
 }
-
 
 ASSEMBLER_TEST_GENERATE(AssertBooleanFail2, assembler) {
   __ PushConstant(Object::null_object());
@@ -1281,11 +1138,9 @@ ASSEMBLER_TEST_GENERATE(AssertBooleanFail2, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(AssertBooleanFail2, test) {
   EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsError());
 }
-
 
 //  - Drop1; DropR n; Drop n
 //
@@ -1299,11 +1154,9 @@ ASSEMBLER_TEST_GENERATE(Drop1, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(Drop1, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Drop, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(0)));
@@ -1323,11 +1176,9 @@ ASSEMBLER_TEST_GENERATE(Drop, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(Drop, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DropR, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(0)));
@@ -1350,11 +1201,9 @@ ASSEMBLER_TEST_GENERATE(DropR, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(DropR, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - Frame D
 //
@@ -1364,11 +1213,9 @@ ASSEMBLER_TEST_GENERATE(FrameInitialized1, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(FrameInitialized1, test) {
   EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsNull());
 }
-
 
 ASSEMBLER_TEST_GENERATE(FrameInitialized, assembler) {
   Label error;
@@ -1394,11 +1241,9 @@ ASSEMBLER_TEST_GENERATE(FrameInitialized, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(FrameInitialized, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - StoreLocal rX; PopLocal rX
 //
@@ -1419,11 +1264,9 @@ ASSEMBLER_TEST_GENERATE(StoreLocalPush, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(StoreLocalPush, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(PopLocalPush, assembler) {
   __ Frame(1);
@@ -1437,11 +1280,9 @@ ASSEMBLER_TEST_GENERATE(PopLocalPush, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(PopLocalPush, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadConstantPush, assembler) {
   __ Frame(1);
@@ -1454,11 +1295,9 @@ ASSEMBLER_TEST_GENERATE(LoadConstantPush, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadConstantPush, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - Move rA, rX
 //
@@ -1478,11 +1317,9 @@ ASSEMBLER_TEST_GENERATE(MoveLocalLocal, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(MoveLocalLocal, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - Return R; ReturnTOS
 //
@@ -1495,11 +1332,9 @@ ASSEMBLER_TEST_GENERATE(Return1, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(Return1, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Return2, assembler) {
   __ Frame(2);
@@ -1508,11 +1343,9 @@ ASSEMBLER_TEST_GENERATE(Return2, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(Return2, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   __ Frame(2);
@@ -1549,11 +1382,9 @@ ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(Loop, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - LoadClassIdTOS, LoadClassId rA, D
 //
@@ -1566,11 +1397,9 @@ ASSEMBLER_TEST_GENERATE(LoadClassIdTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(LoadClassIdTOS, test) {
   EXPECT_EQ(kSmiCid, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(LoadClassId, assembler) {
   __ Frame(2);
@@ -1579,11 +1408,9 @@ ASSEMBLER_TEST_GENERATE(LoadClassId, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(LoadClassId, test) {
   EXPECT_EQ(kSmiCid, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - CreateArrayTOS
 //
@@ -1595,7 +1422,6 @@ ASSEMBLER_TEST_GENERATE(CreateArrayTOS, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(CreateArrayTOS, test) {
   const Object& obj = EXECUTE_TEST_CODE_OBJECT(test->code());
   EXPECT(obj.IsArray());
@@ -1603,7 +1429,6 @@ ASSEMBLER_TEST_RUN(CreateArrayTOS, test) {
   array ^= obj.raw();
   EXPECT_EQ(10, array.Length());
 }
-
 
 //  - TestSmi rA, rD
 //
@@ -1623,11 +1448,9 @@ ASSEMBLER_TEST_GENERATE(TestSmiTrue, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(TestSmiTrue, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(TestSmiFalse, assembler) {
   Label branch_taken;
@@ -1643,11 +1466,9 @@ ASSEMBLER_TEST_GENERATE(TestSmiFalse, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(TestSmiFalse, test) {
   EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 //  - TestCids rA, D
 //
@@ -1675,11 +1496,9 @@ ASSEMBLER_TEST_GENERATE(TestCidsTrue, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(TestCidsTrue, test) {
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(TestCidsFalse, assembler) {
   Label true_branch, no_match_branch;
@@ -1701,11 +1520,9 @@ ASSEMBLER_TEST_GENERATE(TestCidsFalse, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(TestCidsFalse, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(TestCidsNoMatch, assembler) {
   Label true_branch, no_match_branch;
@@ -1727,11 +1544,9 @@ ASSEMBLER_TEST_GENERATE(TestCidsNoMatch, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(TestCidsNoMatch, test) {
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - CheckSmi rA
 //
@@ -1745,11 +1560,9 @@ ASSEMBLER_TEST_GENERATE(CheckSmiPass, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(CheckSmiPass, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CheckSmiFail, assembler) {
   __ Frame(1);
@@ -1760,11 +1573,9 @@ ASSEMBLER_TEST_GENERATE(CheckSmiFail, assembler) {
   __ ReturnTOS();
 }
 
-
 ASSEMBLER_TEST_RUN(CheckSmiFail, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - CheckClassId rA, D
 //
@@ -1779,11 +1590,9 @@ ASSEMBLER_TEST_GENERATE(CheckClassIdSmiPass, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(CheckClassIdSmiPass, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CheckClassIdNonSmiPass, assembler) {
   __ Frame(2);
@@ -1794,11 +1603,9 @@ ASSEMBLER_TEST_GENERATE(CheckClassIdNonSmiPass, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(CheckClassIdNonSmiPass, test) {
   EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CheckClassIdFail, assembler) {
   __ Frame(2);
@@ -1809,11 +1616,9 @@ ASSEMBLER_TEST_GENERATE(CheckClassIdFail, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(CheckClassIdFail, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - If<Cond>Null rA
 //
@@ -1828,11 +1633,9 @@ ASSEMBLER_TEST_GENERATE(IfEqNullNotNull, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqNullNotNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfEqNullIsNull, assembler) {
   __ Frame(2);
@@ -1843,11 +1646,9 @@ ASSEMBLER_TEST_GENERATE(IfEqNullIsNull, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(IfEqNullIsNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfNeNullIsNull, assembler) {
   __ Frame(2);
@@ -1858,11 +1659,9 @@ ASSEMBLER_TEST_GENERATE(IfNeNullIsNull, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(IfNeNullIsNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfNeNullNotNull, assembler) {
   __ Frame(2);
@@ -1872,7 +1671,6 @@ ASSEMBLER_TEST_GENERATE(IfNeNullNotNull, assembler) {
   __ LoadConstant(1, Smi::Handle(Smi::New(42)));
   __ Return(1);
 }
-
 
 ASSEMBLER_TEST_RUN(IfNeNullNotNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
@@ -1894,11 +1692,9 @@ ASSEMBLER_TEST_GENERATE(IfLeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfLeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfLeFalse, assembler) {
   __ Frame(3);
@@ -1910,11 +1706,9 @@ ASSEMBLER_TEST_GENERATE(IfLeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfLeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfLtTrue, assembler) {
   __ Frame(3);
@@ -1926,11 +1720,9 @@ ASSEMBLER_TEST_GENERATE(IfLtTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfLtTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfLtFalse, assembler) {
   __ Frame(3);
@@ -1942,11 +1734,9 @@ ASSEMBLER_TEST_GENERATE(IfLtFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfLtFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfGeTrue, assembler) {
   __ Frame(3);
@@ -1958,11 +1748,9 @@ ASSEMBLER_TEST_GENERATE(IfGeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfGeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfGeFalse, assembler) {
   __ Frame(3);
@@ -1974,11 +1762,9 @@ ASSEMBLER_TEST_GENERATE(IfGeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfGeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfGtTrue, assembler) {
   __ Frame(3);
@@ -1990,11 +1776,9 @@ ASSEMBLER_TEST_GENERATE(IfGtTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfGtTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfGtFalse, assembler) {
   __ Frame(3);
@@ -2006,11 +1790,9 @@ ASSEMBLER_TEST_GENERATE(IfGtFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfGtFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 #if defined(ARCH_IS_64_BIT)
 ASSEMBLER_TEST_GENERATE(IfDNeTrue, assembler) {
@@ -2025,11 +1807,9 @@ ASSEMBLER_TEST_GENERATE(IfDNeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDNeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDNeFalse, assembler) {
   __ Frame(3);
@@ -2043,11 +1823,9 @@ ASSEMBLER_TEST_GENERATE(IfDNeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDNeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDNeNan, assembler) {
   const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
@@ -2062,11 +1840,9 @@ ASSEMBLER_TEST_GENERATE(IfDNeNan, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDNeNan, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDEqTrue, assembler) {
   __ Frame(3);
@@ -2080,11 +1856,9 @@ ASSEMBLER_TEST_GENERATE(IfDEqTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDEqTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDEqFalse, assembler) {
   __ Frame(3);
@@ -2098,11 +1872,9 @@ ASSEMBLER_TEST_GENERATE(IfDEqFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDEqFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDEqNan, assembler) {
   const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
@@ -2117,11 +1889,9 @@ ASSEMBLER_TEST_GENERATE(IfDEqNan, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDEqNan, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDLeTrue, assembler) {
   __ Frame(3);
@@ -2135,11 +1905,9 @@ ASSEMBLER_TEST_GENERATE(IfDLeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDLeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDLeFalse, assembler) {
   __ Frame(3);
@@ -2153,11 +1921,9 @@ ASSEMBLER_TEST_GENERATE(IfDLeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDLeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDLeNan, assembler) {
   const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
@@ -2172,11 +1938,9 @@ ASSEMBLER_TEST_GENERATE(IfDLeNan, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDLeNan, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDLtTrue, assembler) {
   __ Frame(3);
@@ -2190,11 +1954,9 @@ ASSEMBLER_TEST_GENERATE(IfDLtTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDLtTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDLtFalse, assembler) {
   __ Frame(3);
@@ -2208,11 +1970,9 @@ ASSEMBLER_TEST_GENERATE(IfDLtFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDLtFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDLtNan, assembler) {
   const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
@@ -2227,11 +1987,9 @@ ASSEMBLER_TEST_GENERATE(IfDLtNan, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDLtNan, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDGeTrue, assembler) {
   __ Frame(3);
@@ -2245,11 +2003,9 @@ ASSEMBLER_TEST_GENERATE(IfDGeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDGeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDGeFalse, assembler) {
   __ Frame(3);
@@ -2263,11 +2019,9 @@ ASSEMBLER_TEST_GENERATE(IfDGeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDGeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDGeNan, assembler) {
   const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
@@ -2282,11 +2036,9 @@ ASSEMBLER_TEST_GENERATE(IfDGeNan, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDGeNan, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDGtTrue, assembler) {
   __ Frame(3);
@@ -2300,11 +2052,9 @@ ASSEMBLER_TEST_GENERATE(IfDGtTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDGtTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDGtFalse, assembler) {
   __ Frame(3);
@@ -2318,11 +2068,9 @@ ASSEMBLER_TEST_GENERATE(IfDGtFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDGtFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfDGtNan, assembler) {
   const double not_a_number = bit_cast<double, intptr_t>(0x7FF8000000000000LL);
@@ -2337,12 +2085,10 @@ ASSEMBLER_TEST_GENERATE(IfDGtNan, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfDGtNan, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 #endif  // defined(ARCH_IS_64_BIT)
-
 
 ASSEMBLER_TEST_GENERATE(IfULeTrue, assembler) {
   __ Frame(3);
@@ -2354,11 +2100,9 @@ ASSEMBLER_TEST_GENERATE(IfULeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfULeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfULeFalse, assembler) {
   __ Frame(3);
@@ -2370,11 +2114,9 @@ ASSEMBLER_TEST_GENERATE(IfULeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfULeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfULeNegTrue, assembler) {
   __ Frame(3);
@@ -2386,11 +2128,9 @@ ASSEMBLER_TEST_GENERATE(IfULeNegTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfULeNegTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfULtTrue, assembler) {
   __ Frame(3);
@@ -2402,11 +2142,9 @@ ASSEMBLER_TEST_GENERATE(IfULtTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfULtTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfULtFalse, assembler) {
   __ Frame(3);
@@ -2418,11 +2156,9 @@ ASSEMBLER_TEST_GENERATE(IfULtFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfULtFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfUGeTrue, assembler) {
   __ Frame(3);
@@ -2434,11 +2170,9 @@ ASSEMBLER_TEST_GENERATE(IfUGeTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfUGeTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfUGeFalse, assembler) {
   __ Frame(3);
@@ -2450,11 +2184,9 @@ ASSEMBLER_TEST_GENERATE(IfUGeFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfUGeFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfUGtTrue, assembler) {
   __ Frame(3);
@@ -2466,11 +2198,9 @@ ASSEMBLER_TEST_GENERATE(IfUGtTrue, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfUGtTrue, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(IfUGtFalse, assembler) {
   __ Frame(3);
@@ -2482,11 +2212,9 @@ ASSEMBLER_TEST_GENERATE(IfUGtFalse, assembler) {
   __ Return(0);
 }
 
-
 ASSEMBLER_TEST_RUN(IfUGtFalse, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - Min, Max rA, rB, rC
 //
@@ -2500,11 +2228,9 @@ ASSEMBLER_TEST_GENERATE(Min, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(Min, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(Max, assembler) {
   __ Frame(3);
@@ -2514,11 +2240,9 @@ ASSEMBLER_TEST_GENERATE(Max, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(Max, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 #if defined(ARCH_IS_64_BIT)
 //  - UnboxDouble rA, rD
@@ -2537,11 +2261,9 @@ ASSEMBLER_TEST_GENERATE(Unbox, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(Unbox, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CheckedUnboxDouble, assembler) {
   __ Frame(2);
@@ -2551,11 +2273,9 @@ ASSEMBLER_TEST_GENERATE(CheckedUnboxDouble, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(CheckedUnboxDouble, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CheckedUnboxSmi, assembler) {
   __ Frame(2);
@@ -2565,11 +2285,9 @@ ASSEMBLER_TEST_GENERATE(CheckedUnboxSmi, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(CheckedUnboxSmi, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(CheckedUnboxFail, assembler) {
   __ Frame(2);
@@ -2580,11 +2298,9 @@ ASSEMBLER_TEST_GENERATE(CheckedUnboxFail, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(CheckedUnboxFail, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 //  - DAdd, DSub, DMul, DDiv rA, rB, rC
 //
@@ -2599,11 +2315,9 @@ ASSEMBLER_TEST_GENERATE(DAdd, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DAdd, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DSub, assembler) {
   __ Frame(3);
@@ -2615,11 +2329,9 @@ ASSEMBLER_TEST_GENERATE(DSub, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DSub, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DMul, assembler) {
   __ Frame(3);
@@ -2631,11 +2343,9 @@ ASSEMBLER_TEST_GENERATE(DMul, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DMul, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DDiv, assembler) {
   __ Frame(3);
@@ -2647,11 +2357,9 @@ ASSEMBLER_TEST_GENERATE(DDiv, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DDiv, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DNeg, assembler) {
   __ Frame(2);
@@ -2661,11 +2369,9 @@ ASSEMBLER_TEST_GENERATE(DNeg, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DNeg, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DSqrt, assembler) {
   __ Frame(2);
@@ -2675,11 +2381,9 @@ ASSEMBLER_TEST_GENERATE(DSqrt, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DSqrt, test) {
   EXPECT_EQ(6.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 //  - SmiToDouble rA, rD
 //
@@ -2697,11 +2401,9 @@ ASSEMBLER_TEST_GENERATE(SmiToDouble, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(SmiToDouble, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleToSmi, assembler) {
   __ Frame(2);
@@ -2713,11 +2415,9 @@ ASSEMBLER_TEST_GENERATE(DoubleToSmi, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleToSmi, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMax, assembler) {
   const double m = static_cast<double>(Smi::kMaxValue - 1000);
@@ -2730,11 +2430,9 @@ ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMax, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleToSmiNearMax, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMin, assembler) {
   const double m = static_cast<double>(Smi::kMinValue);
@@ -2747,11 +2445,9 @@ ASSEMBLER_TEST_GENERATE(DoubleToSmiNearMin, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleToSmiNearMin, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleToSmiFailPos, assembler) {
   const double pos_overflow = static_cast<double>(Smi::kMaxValue + 1);
@@ -2764,11 +2460,9 @@ ASSEMBLER_TEST_GENERATE(DoubleToSmiFailPos, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleToSmiFailPos, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DoubleToSmiFailNeg, assembler) {
   const double neg_overflow = static_cast<double>(Smi::kMinValue - 1000);
@@ -2781,11 +2475,9 @@ ASSEMBLER_TEST_GENERATE(DoubleToSmiFailNeg, assembler) {
   __ Return(1);
 }
 
-
 ASSEMBLER_TEST_RUN(DoubleToSmiFailNeg, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DMin, assembler) {
   __ Frame(3);
@@ -2797,11 +2489,9 @@ ASSEMBLER_TEST_GENERATE(DMin, assembler) {
   __ Return(2);
 }
 
-
 ASSEMBLER_TEST_RUN(DMin, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
-
 
 ASSEMBLER_TEST_GENERATE(DMax, assembler) {
   __ Frame(3);
@@ -2812,7 +2502,6 @@ ASSEMBLER_TEST_GENERATE(DMax, assembler) {
   __ DMax(2, 0, 1);
   __ Return(2);
 }
-
 
 ASSEMBLER_TEST_RUN(DMax, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));

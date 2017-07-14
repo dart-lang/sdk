@@ -202,7 +202,7 @@ void _reportErrors(List errors, ErrorHandler onError) {
 }
 
 class _DartkError implements CompilationError {
-  String get correction => null;
+  String get tip => null;
   SourceSpan get span => null;
   final String message;
   _DartkError(this.message);

@@ -16,35 +16,29 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   return 0;
 }
 
-
 uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   UNIMPLEMENTED();
   return 0;
 }
-
 
 uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   UNIMPLEMENTED();
   return 0;
 }
 
-
 uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
   UNIMPLEMENTED();
   return 0;
 }
-
 
 uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   UNIMPLEMENTED();
   return 0;
 }
 
-
 void SignalHandler::InstallImpl(SignalAction action) {
   UNIMPLEMENTED();
 }
-
 
 void SignalHandler::Remove() {
   UNIMPLEMENTED();

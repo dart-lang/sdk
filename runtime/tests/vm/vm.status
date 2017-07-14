@@ -198,10 +198,7 @@ dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # AOT lacks colu
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
-cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
-cc/StackTraceFormat: Fail,OK  # Expects exact type name.
-cc/String_ScrubName: Fail,OK  # Expects exact type name.
-cc/GetFunctionNames: Fail,OK  # Expects exact type name.
+cc/IsolateSetCheckedMode: Fail,OK  # Checked mode disabled in product mode.
 
 [ $arch == simdbc  || $arch == simdbc64 ]
 # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp

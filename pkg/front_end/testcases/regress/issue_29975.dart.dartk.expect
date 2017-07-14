@@ -1,7 +1,0 @@
-library;
-import self as self;
-
-typedef F = () → void;
-typedef F = () → void;
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29975.dart:6:14: Error: Duplicated definition of 'F'.\ntypedef void F();\n             ^"]/* from null */;
-static method main() → void {}

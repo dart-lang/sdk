@@ -456,7 +456,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endSend(Token beginToken, Token endToken) {
+  void handleSend(Token beginToken, Token endToken) {
     NodeList arguments = popNode();
     NodeList typeArguments = popNode();
     Node selector = popNode();
@@ -592,7 +592,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endThrowExpression(Token throwToken, Token endToken) {
+  void handleThrowExpression(Token throwToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Throw(expression, throwToken, endToken));
   }
@@ -866,7 +866,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
+  void endSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
       int statementCount, Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     NodeList labelsAndCases =

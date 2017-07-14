@@ -17,9 +17,7 @@ main() {
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
   test_options() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Foo {
   void bar() {}
 }

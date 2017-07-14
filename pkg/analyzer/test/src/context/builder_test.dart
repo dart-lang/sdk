@@ -88,9 +88,7 @@ class ContextBuilderTest extends EngineTestCase {
     defaultSdkPath = pathContext.join(sdkDir.path, 'default', 'sdk');
     String librariesFilePath = pathContext.join(defaultSdkPath, 'lib',
         '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart');
-    resourceProvider.newFile(
-        librariesFilePath,
-        r'''
+    resourceProvider.newFile(librariesFilePath, r'''
 const Map<String, LibraryInfo> libraries = const {
   "async": const LibraryInfo("async/async.dart"),
   "core": const LibraryInfo("core/core.dart"),
@@ -137,9 +135,7 @@ const Map<String, LibraryInfo> libraries = const {
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -163,9 +159,7 @@ const Map<String, LibraryInfo> libraries = const {
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 linter:
   rules:
     - mock_lint_rule
@@ -191,9 +185,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 linter:
   rules:
     - mock_lint_rule
@@ -219,9 +211,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 linter:
   rules:
     - mock_lint_rule
@@ -245,9 +235,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -268,9 +256,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 analyzer:
   language:
     enableSuperMixins : true
@@ -377,9 +363,7 @@ analyzer:
     resourceProvider.newFolder(projectPath);
     Uri fooUri = convertedDirectoryUri('/pkg/foo');
     Uri barUri = convertedDirectoryUri('/pkg/bar');
-    createFile(
-        packageFilePath,
-        '''
+    createFile(packageFilePath, '''
 foo:$fooUri
 bar:$barUri
 ''');
@@ -401,9 +385,7 @@ bar:$barUri
     resourceProvider.newFolder(projectPath);
     Uri fooUri = convertedDirectoryUri('/pkg/foo');
     Uri barUri = convertedDirectoryUri('/pkg/bar');
-    createFile(
-        packageFilePath,
-        '''
+    createFile(packageFilePath, '''
 foo:$fooUri
 bar:$barUri
 ''');
@@ -424,9 +406,7 @@ bar:$barUri
     resourceProvider.newFolder(projectPath);
     Uri fooUri = convertedDirectoryUri('/pkg/foo');
     Uri barUri = convertedDirectoryUri('/pkg/bar');
-    createFile(
-        packageFilePath,
-        '''
+    createFile(packageFilePath, '''
 foo:$fooUri
 bar:$barUri
 ''');
@@ -499,25 +479,19 @@ bar:$barUri
     String embedderPath = pathContext.join(packageA, '_embedder.yaml');
     String packageB = pathContext.join(rootPath, 'pkgs', 'b');
     String extensionPath = pathContext.join(packageB, '_sdkext');
-    createFile(
-        packageFilePath,
-        '''
+    createFile(packageFilePath, '''
 a:${pathContext.toUri(packageA)}
 b:${pathContext.toUri(packageB)}
 ''');
     String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
     String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
-    createFile(
-        embedderPath,
-        '''
+    createFile(embedderPath, '''
 embedded_libs:
   "dart:async": ${_relativeUri(asyncPath, from: packageA)}
   "dart:core": ${_relativeUri(corePath, from: packageA)}
 ''');
     String fooPath = pathContext.join(packageB, 'ext', 'foo.dart');
-    createFile(
-        extensionPath,
-        '''{
+    createFile(extensionPath, '''{
 "dart:foo": "${_relativeUri(fooPath, from: packageB)}"
 }''');
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -546,17 +520,13 @@ embedded_libs:
     String packageA = pathContext.join(rootPath, 'pkgs', 'a');
     String embedderPath = pathContext.join(packageA, '_embedder.yaml');
     String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-    createFile(
-        packageFilePath,
-        '''
+    createFile(packageFilePath, '''
 a:${pathContext.toUri(packageA)}
 b:${pathContext.toUri(packageB)}
 ''');
     String asyncPath = pathContext.join(packageA, 'sdk', 'async.dart');
     String corePath = pathContext.join(packageA, 'sdk', 'core.dart');
-    createFile(
-        embedderPath,
-        '''
+    createFile(embedderPath, '''
 embedded_libs:
   "dart:async": ${_relativeUri(asyncPath, from: packageA)}
   "dart:core": ${_relativeUri(corePath, from: packageA)}
@@ -587,9 +557,7 @@ embedded_libs:
     String packageFilePath = pathContext.join(projectPath, '.packages');
     String packageA = pathContext.join(rootPath, 'pkgs', 'a');
     String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-    createFile(
-        packageFilePath,
-        '''
+    createFile(packageFilePath, '''
 a:${pathContext.toUri(packageA)}
 b:${pathContext.toUri(packageB)}
 ''');
@@ -729,9 +697,7 @@ linter:
     createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
     String optionsFilePath = resourceProvider
         .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(
-        optionsFilePath,
-        '''
+    createFile(optionsFilePath, '''
 linter:
   rules:
     - mock_lint_rule
@@ -760,9 +726,7 @@ linter:
     createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
     String optionsFilePath = resourceProvider
         .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(
-        optionsFilePath,
-        '''
+    createFile(optionsFilePath, '''
 linter:
   rules:
     - mock_lint_rule
@@ -784,9 +748,7 @@ linter:
     createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
     String optionsFilePath = resourceProvider
         .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(
-        optionsFilePath,
-        '''
+    createFile(optionsFilePath, '''
 linter:
   rules:
     - mock_lint_rule
@@ -811,9 +773,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 linter:
   rules:
     - empty_constructor_bodies
@@ -834,9 +794,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 analyzer:
   language:
     enableSuperMixins : true
@@ -880,21 +838,16 @@ analyzer:
       _mockLintRule3
     ];
     resourceProvider.newFile(
-        resourceProvider.convertPath('/mypkgs/somepkg/lib/here.yaml'),
-        '''
+        resourceProvider.convertPath('/mypkgs/somepkg/lib/here.yaml'), '''
 linter:
   rules:
     - mock_lint_rule3
 ''');
     String path = resourceProvider.convertPath('/some/directory/path');
-    resourceProvider.newFile(
-        pathContext.join(path, '.packages'),
-        '''
+    resourceProvider.newFile(pathContext.join(path, '.packages'), '''
 somepkg:../../../mypkgs/somepkg/lib
 ''');
-    resourceProvider.newFile(
-        pathContext.join(path, 'bar.yaml'),
-        '''
+    resourceProvider.newFile(pathContext.join(path, 'bar.yaml'), '''
 include: package:somepkg/here.yaml
 analyzer:
   language:
@@ -905,9 +858,7 @@ linter:
 ''');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 include: bar.yaml
 linter:
   rules:
@@ -932,9 +883,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 linter:
   rules:
     - empty_constructor_bodies
@@ -950,9 +899,7 @@ linter:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 analyzer:
   language:
     enableSuperMixins : true
@@ -966,9 +913,7 @@ analyzer:
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    resourceProvider.newFile(
-        filePath,
-        '''
+    resourceProvider.newFile(filePath, '''
 linter:
   rules:
     - empty_constructor_bodies

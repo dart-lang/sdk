@@ -65,7 +65,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
   void analyzeMain(FunctionEntity main) {
     inferrer =
-        new InferrerEngine(compiler, closedWorld, closedWorldRefiner, main);
+        new InferrerEngineImpl(compiler, closedWorld, closedWorldRefiner, main);
     inferrer.runOverAllElements();
   }
 

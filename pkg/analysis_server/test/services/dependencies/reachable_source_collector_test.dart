@@ -38,9 +38,7 @@ class ReachableSourceCollectorTest extends AbstractContextTest {
   test_sources() {
     // See https://github.com/dart-lang/sdk/issues/29311
     fail('The analysis.getReachableSources is not implemented.');
-    Source lib1 = addSource(
-        '/lib1.dart',
-        '''
+    Source lib1 = addSource('/lib1.dart', '''
 import "lib2.dart";
 import "dart:html";''');
     Source lib2 = addSource('/lib2.dart', 'import "lib1.dart";');

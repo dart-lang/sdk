@@ -3,23 +3,23 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method instanceMethod() → dynamic
     ;
 }
 abstract class ExternalValue extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 abstract class Bar extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract method externalInstanceMethod() → self::ExternalValue;
 }
 class Box extends core::Object {
   field dynamic field;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class FinalBox extends core::Object {
@@ -32,13 +32,13 @@ class SubFinalBox extends self::FinalBox {
     ;
 }
 class DynamicReceiver1 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method dynamicallyCalled(dynamic x) → dynamic
     ;
 }
 class DynamicReceiver2 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method dynamicallyCalled(dynamic x) → dynamic
     ;

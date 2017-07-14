@@ -53,7 +53,6 @@ class ThreadInterrupterWin : public AllStatic {
     return false;
   }
 
-
   static void Interrupt(OSThread* os_thread) {
     ASSERT(!OSThread::Compare(GetCurrentThreadId(), os_thread->id()));
     HANDLE handle = OpenThread(
@@ -92,11 +91,9 @@ class ThreadInterrupterWin : public AllStatic {
   }
 };
 
-
 bool ThreadInterrupter::IsDebuggerAttached() {
   return false;
 }
-
 
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
@@ -110,11 +107,9 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
   }
 }
 
-
 void ThreadInterrupter::InstallSignalHandler() {
   // Nothing to do on Windows.
 }
-
 
 void ThreadInterrupter::RemoveSignalHandler() {
   // Nothing to do on Windows.

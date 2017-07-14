@@ -28,7 +28,6 @@ bool Stdin::ReadByte(int* byte) {
   return true;
 }
 
-
 bool Stdin::GetEchoMode(bool* enabled) {
   struct termios term;
   int status = NO_RETRY_EXPECTED(tcgetattr(STDIN_FILENO, &term));
@@ -38,7 +37,6 @@ bool Stdin::GetEchoMode(bool* enabled) {
   *enabled = ((term.c_lflag & ECHO) != 0);
   return true;
 }
-
 
 bool Stdin::SetEchoMode(bool enabled) {
   struct termios term;
@@ -55,7 +53,6 @@ bool Stdin::SetEchoMode(bool enabled) {
   return (status == 0);
 }
 
-
 bool Stdin::GetLineMode(bool* enabled) {
   struct termios term;
   int status = NO_RETRY_EXPECTED(tcgetattr(STDIN_FILENO, &term));
@@ -65,7 +62,6 @@ bool Stdin::GetLineMode(bool* enabled) {
   *enabled = ((term.c_lflag & ICANON) != 0);
   return true;
 }
-
 
 bool Stdin::SetLineMode(bool enabled) {
   struct termios term;
@@ -82,7 +78,6 @@ bool Stdin::SetLineMode(bool enabled) {
   return (status == 0);
 }
 
-
 static bool TermHasXTerm() {
   const char* term = getenv("TERM");
   if (term == NULL) {
@@ -91,12 +86,10 @@ static bool TermHasXTerm() {
   return strstr(term, "xterm") != NULL;
 }
 
-
 bool Stdin::AnsiSupported(bool* supported) {
   *supported = isatty(STDIN_FILENO) && TermHasXTerm();
   return true;
 }
-
 
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   struct winsize w;
@@ -108,7 +101,6 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   }
   return false;
 }
-
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
   *supported = isatty(fd) && TermHasXTerm();

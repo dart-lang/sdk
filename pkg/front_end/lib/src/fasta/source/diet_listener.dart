@@ -418,8 +418,8 @@ class DietListener extends StackListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope]) {
-    var listener = new TypeInferenceListener();
+      [Scope formalParameterScope, TypeInferenceListener listener]) {
+    listener ??= new TypeInferenceListener();
     InterfaceType thisType;
     if (builder.isClassMember) {
       // Note: we set thisType regardless of whether we are building a static
@@ -537,8 +537,25 @@ class DietListener extends StackListener {
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
 
-  void parseFunctionBody(
-      StackListener listener, Token token, Token metadata, MemberKind kind) {
+  /// Invokes the listener's [finishFunction] method.
+  ///
+  /// This is a separate method so that it may be overridden by a derived class
+  /// if more computation must be done before finishing the function.
+  void listenerFinishFunction(
+      StackListener listener,
+      Token token,
+      Token metadata,
+      MemberKind kind,
+      List metadataConstants,
+      dynamic formals,
+      AsyncMarker asyncModifier,
+      dynamic body) {
+    listener.finishFunction(metadataConstants, formals, asyncModifier, body);
+  }
+
+  void parseFunctionBody(StackListener listener, Token startToken,
+      Token metadata, MemberKind kind) {
+    Token token = startToken;
     try {
       Parser parser = new Parser(listener);
       List metadataConstants;
@@ -557,7 +574,8 @@ class DietListener extends StackListener {
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
       listener.checkEmpty(token.charOffset);
-      listener.finishFunction(metadataConstants, formals, asyncModifier, body);
+      listenerFinishFunction(listener, startToken, metadata, kind,
+          metadataConstants, formals, asyncModifier, body);
     } on deprecated_InputError {
       rethrow;
     } catch (e, s) {
@@ -617,8 +635,7 @@ class DietListener extends StackListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
-    library.deprecated_addCompileTimeError(charOffset, message.message,
-        fileUri: uri,
+    library.addCompileTimeError(message, charOffset, uri,
         // We assume this error has already been reported by OutlineBuilder.
         silent: true);
   }

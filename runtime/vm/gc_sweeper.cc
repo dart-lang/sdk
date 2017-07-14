@@ -72,7 +72,6 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   return in_use;
 }
 
-
 intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   intptr_t words_to_end = 0;
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
@@ -95,7 +94,6 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
 #endif  // DEBUG
   return words_to_end;
 }
-
 
 class SweeperTask : public ThreadPool::Task {
  public:
@@ -167,7 +165,6 @@ class SweeperTask : public ThreadPool::Task {
   HeapPage* last_;
   FreeList* freelist_;
 };
-
 
 void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,

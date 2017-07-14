@@ -592,7 +592,26 @@ class DeferredLoadTask extends CompilerTask {
       // asked isNeededForReflection. Instead an internal error is triggered.
       // So we have to filter them out here.
       if (element is AnalyzableElementX && !element.hasTreeElements) return;
-      if (compiler.backend.mirrorsData.isAccessibleByReflection(element)) {
+
+      bool isAccessibleByReflection(Element element) {
+        if (element.isLibrary) {
+          return false;
+        } else if (element.isClass) {
+          ClassElement cls = element;
+          return compiler.backend.mirrorsData
+              .isClassAccessibleByReflection(cls);
+        } else if (element.isTypedef) {
+          TypedefElement typedef = element;
+          return compiler.backend.mirrorsData
+              .isTypedefAccessibleByReflection(typedef);
+        } else {
+          MemberElement member = element;
+          return compiler.backend.mirrorsData
+              .isMemberAccessibleByReflection(member);
+        }
+      }
+
+      if (isAccessibleByReflection(element)) {
         _mapDependencies(
             element: element, import: deferredImport, isMirrorUsage: true);
       }

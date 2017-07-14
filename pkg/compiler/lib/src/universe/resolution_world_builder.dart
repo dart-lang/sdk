@@ -359,7 +359,7 @@ abstract class ResolutionWorldBuilderBase
   ClosedWorld _closedWorldCache;
   final Set<MemberEntity> _liveInstanceMembers = new Set<MemberEntity>();
 
-  final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
+  final Set<TypedefEntity> _allTypedefs = new Set<TypedefEntity>();
 
   final Map<ClassEntity, Set<ClassEntity>> _mixinUses =
       new Map<ClassEntity, Set<ClassEntity>>();
@@ -776,7 +776,7 @@ abstract class ResolutionWorldBuilderBase
     return uses != null ? uses : const <ClassEntity>[];
   }
 
-  void registerTypedef(TypedefElement typdef) {
+  void registerTypedef(TypedefEntity typdef) {
     _allTypedefs.add(typdef);
   }
 

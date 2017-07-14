@@ -156,7 +156,7 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
 Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
 
-[ $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 

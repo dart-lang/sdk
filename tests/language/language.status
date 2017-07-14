@@ -8,6 +8,9 @@
 [ $strong ]
 *: SkipByDesign # tests/language_strong has the strong mode versions of these tests.
 
+[$compiler == precompiler && $runtime == dart_precompiled ]
+stacktrace_demangle_ctors_test: RuntimeError
+
 [$compiler == precompiler && $runtime == dart_precompiled && !$checked]
 assertion_initializer_const_error2_test/cc01: Pass, OK
 assertion_initializer_const_error2_test/cc02: CompileTimeError
@@ -34,23 +37,16 @@ assertion_initializer_const_error2_test/cc09: Pass
 assertion_initializer_const_error2_test/cc10: Pass
 assertion_initializer_const_error2_test/cc11: Pass
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_test/none: RuntimeError
 
 [$compiler == none && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
-[$compiler == none && $runtime == vm && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
-
 [$compiler == none && $runtime == drt && !$checked]
 assertion_initializer_const_error2_test/cc02: Fail
 assertion_initializer_const_error_test/01: Fail
 assertion_initializer_const_function_error_test/01: Fail
-
-[$compiler == none && $runtime == drt && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
 
 [$compiler == none && $runtime == dartium && !$checked]
 assertion_initializer_const_function_test/01: RuntimeError
@@ -58,16 +54,12 @@ assertion_initializer_test: RuntimeError
 
 [$compiler == none && $runtime == dartium && $checked]
 assertion_initializer_const_function_test/01: RuntimeError
-assertion_initializer_const_function_test/none: RuntimeError
 assertion_initializer_test: RuntimeError
 
 [$compiler == app_jit && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-
-[$compiler == app_jit && $runtime == vm && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
@@ -249,7 +241,7 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 [ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331
 
-[ $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign
@@ -272,6 +264,8 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 regress_28255_test: SkipByDesign
+
+[ $runtime == dart_precompiled || $mode == product ]
 # Causal async stacks are not supported in product mode
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
@@ -330,11 +324,11 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 
-[ ($compiler == none || $compiler == app_jit) && $mode != product ]
+[ $compiler == none || $compiler == app_jit ]
 # The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-[ $runtime == dart_precompiled || $mode == product ]
+[ $runtime == dart_precompiled ]
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
 

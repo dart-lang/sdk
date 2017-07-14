@@ -51,7 +51,6 @@ class KernelConstMapKeyEqualsTraits {
 };
 typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
 
-
 template <typename K, typename V>
 class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
  public:
@@ -78,7 +77,6 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
     return DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
   }
 };
-
 
 template <typename V>
 class IntKeyRawPointerValueTrait {
@@ -156,7 +154,6 @@ class MallocMap
   }
 };
 
-
 class BreakableBlock;
 class CatchBlock;
 class FlowGraphBuilder;
@@ -191,7 +188,6 @@ Fragment operator<<(const Fragment& fragment, Instruction* next);
 
 typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
-
 class ActiveClass {
  public:
   ActiveClass()
@@ -219,7 +215,6 @@ class ActiveClass {
   intptr_t member_type_parameters_offset_start;
 };
 
-
 class ActiveClassScope {
  public:
   ActiveClassScope(ActiveClass* active_class,
@@ -240,7 +235,6 @@ class ActiveClassScope {
   ActiveClass* active_class_;
   ActiveClass saved_;
 };
-
 
 class ActiveMemberScope {
  public:
@@ -264,7 +258,6 @@ class ActiveMemberScope {
   ActiveClass* active_class_;
   ActiveClass saved_;
 };
-
 
 class TranslationHelper {
  public:
@@ -384,7 +377,6 @@ class TranslationHelper {
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
 
-
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
@@ -395,12 +387,10 @@ class TranslationHelper {
   TypedData& canonical_names_;
 };
 
-
 struct FunctionScope {
   intptr_t kernel_offset;
   LocalScope* scope;
 };
-
 
 class ScopeBuildingResult : public ZoneAllocated {
  public:
@@ -451,7 +441,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   // For-in iterators, one per for-in nesting level.
   GrowableArray<LocalVariable*> iterator_variables;
 };
-
 
 struct YieldContinuation {
   Instruction* entry;
@@ -693,7 +682,6 @@ class FlowGraphBuilder {
     return scopes_->catch_context_variables[try_depth_];
   }
 
-
   // A chained list of breakable blocks. Chaining and lookup is done by the
   // [BreakableBlock] class.
   BreakableBlock* breakable_block_;
@@ -728,7 +716,6 @@ class FlowGraphBuilder {
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
 };
-
 
 class SwitchBlock {
  public:
@@ -811,7 +798,6 @@ class SwitchBlock {
   intptr_t try_index_;
 };
 
-
 class TryCatchBlock {
  public:
   explicit TryCatchBlock(FlowGraphBuilder* builder,
@@ -833,11 +819,9 @@ class TryCatchBlock {
   intptr_t try_index_;
 };
 
-
 class TryFinallyBlock {
  public:
-  TryFinallyBlock(FlowGraphBuilder* builder,
-                  intptr_t finalizer_kernel_offset)
+  TryFinallyBlock(FlowGraphBuilder* builder, intptr_t finalizer_kernel_offset)
       : builder_(builder),
         outer_(builder->try_finally_block_),
         finalizer_kernel_offset_(finalizer_kernel_offset),
@@ -865,7 +849,6 @@ class TryFinallyBlock {
   const intptr_t try_depth_;
   const intptr_t try_index_;
 };
-
 
 class BreakableBlock {
  public:
@@ -946,21 +929,19 @@ class CatchBlock {
   intptr_t catch_try_index_;
 };
 
-
 RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(const Function& function);
 void CollectTokenPositionsFor(const Script& script);
 String& GetSourceFor(const Script& script);
 Array& GetLineStartsFor(const Script& script);
 
-
 }  // namespace kernel
 }  // namespace dart
 
 #else  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/object.h"
 #include "vm/kernel.h"
+#include "vm/object.h"
 
 namespace dart {
 namespace kernel {

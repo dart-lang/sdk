@@ -340,7 +340,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endSend(Token beginToken, Token endToken) {
+  void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
     pop(); // Arguments
     pop(); // Type arguments

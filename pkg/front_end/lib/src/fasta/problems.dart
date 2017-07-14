@@ -4,14 +4,17 @@
 
 library fasta.problems;
 
+import 'compiler_context.dart' show CompilerContext;
+
 import 'messages.dart'
     show
         Message,
-        deprecated_format,
         templateInternalProblemUnexpected,
         templateInternalProblemUnhandled,
         templateInternalProblemUnimplemented,
         templateInternalProblemUnsupported;
+
+import 'severity.dart' show Severity;
 
 /// Used to report an internal error.
 ///
@@ -23,18 +26,11 @@ import 'messages.dart'
 ///
 /// Before printing the message, the string `"Internal error: "` is prepended.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  String text = "Internal error: ${message.message}";
-  if (message.tip != null) {
-    text += "\n${message.tip}";
-  }
-  if (uri == null && charOffset == -1) {
-    throw text;
-  } else {
-    throw deprecated_format(uri, charOffset, text);
-  }
+  throw CompilerContext.current
+      .format(message.withLocation(uri, charOffset), Severity.internalProblem);
 }
 
-dynamic unimplemented(String what, int charOffset, Uri uri) {
+dynamic unimplemented(String what, [int charOffset = -1, Uri uri = null]) {
   return internalProblem(
       templateInternalProblemUnimplemented.withArguments(what),
       charOffset,

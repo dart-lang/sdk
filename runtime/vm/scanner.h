@@ -213,7 +213,6 @@ class Scanner : ValueObject {
   static int keywords_char_offset_[kNumLowercaseChars];
 };
 
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_SCANNER_H_

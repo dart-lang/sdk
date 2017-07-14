@@ -33,6 +33,9 @@ class EventRepository implements M.EventRepository {
   final Stream<M.ExtensionEvent> onExtensionEvent;
   final Stream<M.TimelineEventsEvent> onTimelineEvents;
   final Stream<M.ConnectionClosedEvent> onConnectionClosed;
+  final Stream<M.ServiceEvent> onServiceEvent;
+  final Stream<M.ServiceRegisteredEvent> onServiceRegistered;
+  final Stream<M.ServiceUnregisteredEvent> onServiceUnregistered;
 
   EventRepository() : this._(new StreamController.broadcast());
 
@@ -46,7 +49,8 @@ class EventRepository implements M.EventRepository {
             controller.stream.where((e) => e is M.LoggingEvent),
             controller.stream.where((e) => e is M.ExtensionEvent),
             controller.stream.where((e) => e is M.TimelineEventsEvent),
-            controller.stream.where((e) => e is M.ConnectionClosedEvent));
+            controller.stream.where((e) => e is M.ConnectionClosedEvent),
+            controller.stream.where((e) => e is M.ServiceEvent));
 
   EventRepository.__(
       StreamController controller,
@@ -57,7 +61,8 @@ class EventRepository implements M.EventRepository {
       Stream<M.LoggingEvent> onLoggingEvent,
       Stream<M.ExtensionEvent> onExtensionEvent,
       Stream<M.TimelineEventsEvent> onTimelineEvents,
-      Stream<M.ConnectionClosedEvent> onConnectionClosed)
+      Stream<M.ConnectionClosedEvent> onConnectionClosed,
+      Stream<M.ServiceEvent> onServiceEvent)
       : _onEvent = controller,
         onVMEvent = onVMEvent,
         onVMUpdate = onVMEvent.where((e) => e is M.VMUpdateEvent),
@@ -93,7 +98,12 @@ class EventRepository implements M.EventRepository {
         onLoggingEvent = onLoggingEvent,
         onExtensionEvent = onExtensionEvent,
         onTimelineEvents = onTimelineEvents,
-        onConnectionClosed = onConnectionClosed;
+        onConnectionClosed = onConnectionClosed,
+        onServiceEvent = onServiceEvent,
+        onServiceRegistered =
+            onServiceEvent.where((e) => e is M.ServiceRegisteredEvent),
+        onServiceUnregistered =
+            onServiceEvent.where((e) => e is M.ServiceUnregisteredEvent);
 
   void add(M.Event e) {
     _onEvent.add(e);

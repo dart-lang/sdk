@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::List<core::num> x = <core::num>[0];
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

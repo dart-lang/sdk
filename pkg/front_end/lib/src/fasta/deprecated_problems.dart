@@ -11,9 +11,11 @@ import 'dart:convert' show JSON;
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
-import 'colors.dart' show red;
+import 'command_line_reporting.dart' show isFatal;
 
-import 'messages.dart' show errorsAreFatal, deprecated_format, isVerbose;
+import 'messages.dart' show LocatedMessage, isVerbose, templateUnspecified;
+
+import 'severity.dart' show Severity;
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -29,39 +31,17 @@ Uri firstSourceUri;
 /// Used to report an error in input.
 ///
 /// Avoid using this for reporting compile-time errors, instead use
-/// `LibraryBuilder.deprecated_addCompileTimeError` for those.
+/// `LibraryBuilder.addCompileTimeError` for those.
 ///
 /// An input error is any error that isn't an internal error. We use the term
 /// "input error" in favor of "user error". This way, if an input error isn't
 /// handled correctly, the user will never see a stack trace that says "user
 /// error".
 dynamic deprecated_inputError(Uri uri, int charOffset, Object error) {
-  if (errorsAreFatal && isVerbose) {
+  if (isFatal(Severity.error) && isVerbose) {
     print(StackTrace.current);
   }
   throw new deprecated_InputError(uri, charOffset, error);
-}
-
-String deprecated_printUnexpected(Uri uri, int charOffset, String message) {
-  String formattedMessage =
-      deprecated_formatUnexpected(uri, charOffset, message);
-  if (errorsAreFatal) {
-    print(formattedMessage);
-    if (isVerbose) print(StackTrace.current);
-    throw new deprecated_InputError(uri, charOffset, message);
-  }
-  print(formattedMessage);
-  return formattedMessage;
-}
-
-String deprecated_formatUnexpected(Uri uri, int charOffset, String message) {
-  return deprecated_format(uri, charOffset, colorError("Error: $message"));
-}
-
-String colorError(String message) {
-  // TODO(ahe): Colors need to be optional. Doesn't work well in Emacs or on
-  // Windows.
-  return red(message);
 }
 
 class deprecated_InputError {
@@ -76,8 +56,16 @@ class deprecated_InputError {
 
   toString() => "deprecated_InputError: $error";
 
-  String deprecated_format() =>
-      deprecated_formatUnexpected(uri, charOffset, safeToString(error));
+  /// Converts [error] to a [LocatedMessage] using [templateUnspecified]. Using
+  /// [templateUnspecified] is deprecated behavior.
+  ///
+  /// Static method to discourage use and requiring call-sites to include the
+  /// text `deprecated_`.
+  static LocatedMessage toMessage(deprecated_InputError error) {
+    return templateUnspecified
+        .withArguments(safeToString(error.error))
+        .withLocation(error.uri, error.charOffset);
+  }
 }
 
 class Crash {

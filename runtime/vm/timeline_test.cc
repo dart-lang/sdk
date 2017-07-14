@@ -30,7 +30,6 @@ class TimelineRecorderOverride : public ValueObject {
   TimelineEventRecorder* recorder_;
 };
 
-
 class TimelineTestHelper : public AllStatic {
  public:
   static void SetStream(TimelineEvent* event, TimelineStream* stream) {
@@ -99,7 +98,6 @@ class TimelineTestHelper : public AllStatic {
   static void FinishBlock(TimelineEventBlock* block) { block->Finish(); }
 };
 
-
 TEST_CASE(TimelineEventIsValid) {
   // Create a test stream.
   TimelineStream stream;
@@ -120,7 +118,6 @@ TEST_CASE(TimelineEventIsValid) {
   EXPECT(!event.IsValid());
 }
 
-
 TEST_CASE(TimelineEventDuration) {
   // Create a test stream.
   TimelineStream stream;
@@ -136,7 +133,6 @@ TEST_CASE(TimelineEventDuration) {
   // Verify that duration is larger.
   EXPECT_GE(event.TimeDuration(), current_duration);
 }
-
 
 TEST_CASE(TimelineEventDurationPrintJSON) {
   // Create a test stream.
@@ -164,7 +160,6 @@ TEST_CASE(TimelineEventDurationPrintJSON) {
   }
   event.DurationEnd();
 }
-
 
 TEST_CASE(TimelineEventPrintSystrace) {
   const intptr_t kBufferLength = 1024;
@@ -209,7 +204,6 @@ TEST_CASE(TimelineEventPrintSystrace) {
   EXPECT_STREQ("", buffer);
 }
 
-
 TEST_CASE(TimelineEventArguments) {
   // Create a test stream.
   TimelineStream stream;
@@ -230,7 +224,6 @@ TEST_CASE(TimelineEventArguments) {
   event.CopyArgument(1, "arg2", "value2");
   event.DurationEnd();
 }
-
 
 TEST_CASE(TimelineEventArgumentsPrintJSON) {
   // Create a test stream.
@@ -258,7 +251,6 @@ TEST_CASE(TimelineEventArgumentsPrintJSON) {
   }
 }
 
-
 TEST_CASE(TimelineEventBufferPrintJSON) {
   TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
@@ -269,7 +261,6 @@ TEST_CASE(TimelineEventBufferPrintJSON) {
   // Check that there is a traceEvents array.
   EXPECT_SUBSTRING("\"traceEvents\":[", js.ToCString());
 }
-
 
 // Count the number of each event type seen.
 class EventCounterRecorder : public TimelineEventCallbackRecorder {
@@ -287,7 +278,6 @@ class EventCounterRecorder : public TimelineEventCallbackRecorder {
  private:
   intptr_t counts_[TimelineEvent::kNumEventTypes];
 };
-
 
 TEST_CASE(TimelineEventCallbackRecorderBasic) {
   EventCounterRecorder* recorder = new EventCounterRecorder();
@@ -347,12 +337,10 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   delete recorder;
 }
 
-
 static bool LabelMatch(TimelineEvent* event, const char* label) {
   ASSERT(event != NULL);
   return strcmp(event->label(), label) == 0;
 }
-
 
 TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   TimelineEventEndlessRecorder* recorder = new TimelineEventEndlessRecorder();
@@ -473,7 +461,6 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   delete recorder;
 }
 
-
 TEST_CASE(TimelineRingRecorderJSONOrder) {
   TimelineStream stream;
   stream.Init("testStream", true);
@@ -511,7 +498,6 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   TimelineTestHelper::Clear(recorder);
   delete recorder;
 }
-
 
 TEST_CASE(TimelinePauses_Basic) {
   TimelineEventEndlessRecorder* recorder = new TimelineEventEndlessRecorder();
@@ -685,7 +671,6 @@ TEST_CASE(TimelinePauses_Basic) {
 
   delete recorder;
 }
-
 
 TEST_CASE(TimelinePauses_BeginEnd) {
   TimelineEventEndlessRecorder* recorder = new TimelineEventEndlessRecorder();

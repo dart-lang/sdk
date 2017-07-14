@@ -88,7 +88,6 @@ class Socket : public ReferenceCounted<Socket> {
   DISALLOW_COPY_AND_ASSIGN(Socket);
 };
 
-
 class ServerSocket {
  public:
   static const intptr_t kTemporaryFailure = -2;
@@ -115,7 +114,6 @@ class ServerSocket {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
-
 
 class ListeningSocketRegistry {
  public:
@@ -202,7 +200,6 @@ class ListeningSocketRegistry {
   static uint32_t GetHashmapHashFromIntptr(intptr_t i) {
     return static_cast<uint32_t>((i + 1) & 0xFFFFFFFF);
   }
-
 
   static void* GetHashmapKeyFromIntptr(intptr_t i) {
     return reinterpret_cast<void*>(i + 1);

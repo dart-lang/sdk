@@ -45,11 +45,22 @@ class WebSocketClient extends Client {
         socket.close(NOT_MAP_ERROR_CODE, 'Message must be a JSON map.');
         return;
       }
-      var serial = map['id'];
-      if (serial != null && serial is! num && serial is! String) {
-        socket.close(ID_ERROR_CODE, '"id" must be a number, string, or null.');
+      try {
+        final rpc = new Message.fromJsonRpc(this, map);
+        switch (rpc.type) {
+          case MessageType.Request:
+            onRequest(rpc);
+            break;
+          case MessageType.Notification:
+            onNotification(rpc);
+            break;
+          case MessageType.Response:
+            onResponse(rpc);
+            break;
+        }
+      } catch (e) {
+        socket.close(ID_ERROR_CODE, e.message);
       }
-      onMessage(serial, new Message.fromJsonRpc(this, map));
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
     }
@@ -71,8 +82,8 @@ class WebSocketClient extends Client {
       }
     } catch (e, st) {
       serverPrint("Ignoring error posting over WebSocket.");
-      serverPrint(e);
-      serverPrint(st);
+      serverPrint(e.toString());
+      serverPrint(st.toString());
     }
   }
 
@@ -311,15 +322,9 @@ class Server {
       return;
     }
     // HTTP based service request.
-    try {
-      var client = new HttpRequestClient(request, _service);
-      var message = new Message.fromUri(client, request.uri);
-      client.onMessage(null, message);
-    } catch (e) {
-      serverPrint('Unexpected error processing HTTP request uri: '
-          '${request.uri}\n$e\n');
-      rethrow;
-    }
+    final client = new HttpRequestClient(request, _service);
+    final message = new Message.fromUri(client, request.uri);
+    client.onRequest(message); // exception free, no need to try catch
   }
 
   Future startup() async {

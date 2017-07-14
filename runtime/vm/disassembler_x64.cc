@@ -38,7 +38,6 @@ struct ByteMnemonic {
   const char* mnem;
 };
 
-
 static const ByteMnemonic two_operands_instr[] = {
     {0x00, BYTE_OPER_REG_OP_ORDER, "add"},
     {0x01, OPER_REG_OP_ORDER, "add"},
@@ -84,7 +83,6 @@ static const ByteMnemonic two_operands_instr[] = {
     {0x8D, REG_OPER_OP_ORDER, "lea"},
     {-1, UNSET_OP_ORDER, ""}};
 
-
 static const ByteMnemonic zero_operands_instr[] = {
     {0xC3, UNSET_OP_ORDER, "ret"},   {0xC9, UNSET_OP_ORDER, "leave"},
     {0xF4, UNSET_OP_ORDER, "hlt"},   {0xFC, UNSET_OP_ORDER, "cld"},
@@ -96,11 +94,9 @@ static const ByteMnemonic zero_operands_instr[] = {
     {0xA6, UNSET_OP_ORDER, "cmps"},  {0xA7, UNSET_OP_ORDER, "cmps"},
     {-1, UNSET_OP_ORDER, ""}};
 
-
 static const ByteMnemonic call_jump_instr[] = {{0xE8, UNSET_OP_ORDER, "call"},
                                                {0xE9, UNSET_OP_ORDER, "jmp"},
                                                {-1, UNSET_OP_ORDER, ""}};
-
 
 static const ByteMnemonic short_immediate_instr[] = {
     {0x05, UNSET_OP_ORDER, "add"}, {0x0D, UNSET_OP_ORDER, "or"},
@@ -109,11 +105,9 @@ static const ByteMnemonic short_immediate_instr[] = {
     {0x35, UNSET_OP_ORDER, "xor"}, {0x3D, UNSET_OP_ORDER, "cmp"},
     {-1, UNSET_OP_ORDER, ""}};
 
-
 static const char* const conditional_code_suffix[] = {
     "o", "no", "c",  "nc", "z", "nz", "na", "a",
     "s", "ns", "pe", "po", "l", "ge", "le", "g"};
-
 
 enum InstructionType {
   NO_INSTR,
@@ -127,7 +121,6 @@ enum InstructionType {
   SHORT_IMMEDIATE_INSTR
 };
 
-
 enum Prefixes {
   ESCAPE_PREFIX = 0x0F,
   OPERAND_SIZE_OVERRIDE_PREFIX = 0x66,
@@ -137,14 +130,12 @@ enum Prefixes {
   REPEQ_PREFIX = REP_PREFIX
 };
 
-
 struct InstructionDesc {
   const char* mnem;
   InstructionType type;
   OperandType op_order_;
   bool byte_size_operation;  // Fixed 8-bit operation.
 };
-
 
 class InstructionTable : public ValueObject {
  public:
@@ -166,12 +157,10 @@ class InstructionTable : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(InstructionTable);
 };
 
-
 InstructionTable::InstructionTable() {
   Clear();
   Init();
 }
-
 
 void InstructionTable::Clear() {
   for (int i = 0; i < 256; i++) {
@@ -181,7 +170,6 @@ void InstructionTable::Clear() {
     instructions_[i].byte_size_operation = false;
   }
 }
-
 
 void InstructionTable::Init() {
   CopyTable(two_operands_instr, TWO_OPERANDS_INSTR);
@@ -193,7 +181,6 @@ void InstructionTable::Init() {
   SetTableRange(PUSHPOP_INSTR, 0x58, 0x5F, false, "pop");
   SetTableRange(MOVE_REG_INSTR, 0xB8, 0xBF, false, "mov");
 }
-
 
 void InstructionTable::CopyTable(const ByteMnemonic bm[],
                                  InstructionType type) {
@@ -209,7 +196,6 @@ void InstructionTable::CopyTable(const ByteMnemonic bm[],
   }
 }
 
-
 void InstructionTable::SetTableRange(InstructionType type,
                                      uint8_t start,
                                      uint8_t end,
@@ -224,7 +210,6 @@ void InstructionTable::SetTableRange(InstructionType type,
   }
 }
 
-
 void InstructionTable::AddJumpConditionalShort() {
   for (uint8_t b = 0x70; b <= 0x7F; b++) {
     InstructionDesc* id = &instructions_[b];
@@ -234,9 +219,7 @@ void InstructionTable::AddJumpConditionalShort() {
   }
 }
 
-
 static InstructionTable instruction_table;
-
 
 static InstructionDesc cmov_instructions[16] = {
     {"cmovo", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
@@ -256,10 +239,8 @@ static InstructionDesc cmov_instructions[16] = {
     {"cmovle", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false},
     {"cmovg", TWO_OPERANDS_INSTR, REG_OPER_OP_ORDER, false}};
 
-
 //-------------------------------------------------
 // DisassemblerX64 implementation.
-
 
 static const int kMaxXmmRegisters = 16;
 static const char* xmm_regs[kMaxXmmRegisters] = {
@@ -392,7 +373,6 @@ class DisassemblerX64 : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(DisassemblerX64);
 };
 
-
 // Append the str to the output buffer.
 void DisassemblerX64::Print(const char* format, ...) {
   intptr_t available = buffer_size_ - buffer_pos_;
@@ -409,7 +389,6 @@ void DisassemblerX64::Print(const char* format, ...) {
       (length >= available) ? (buffer_size_ - 1) : (buffer_pos_ + length);
   ASSERT(buffer_pos_ < buffer_size_);
 }
-
 
 int DisassemblerX64::PrintRightOperandHelper(
     uint8_t* modrmp,
@@ -491,7 +470,6 @@ int DisassemblerX64::PrintRightOperandHelper(
   UNREACHABLE();
 }
 
-
 int DisassemblerX64::PrintImmediate(uint8_t* data,
                                     OperandSize size,
                                     bool sign_extend) {
@@ -553,7 +531,6 @@ void DisassemblerX64::PrintDisp(int disp, const char* after) {
   if (after != NULL) Print("%s", after);
 }
 
-
 // Returns number of bytes used by machine instruction, including *data byte.
 // Writes immediate instructions to 'tmp_buffer_'.
 int DisassemblerX64::PrintImmediateOp(uint8_t* data) {
@@ -599,7 +576,6 @@ int DisassemblerX64::PrintImmediateOp(uint8_t* data) {
   return 1 + count;
 }
 
-
 // Returns number of bytes used, including *data.
 int DisassemblerX64::F6F7Instruction(uint8_t* data) {
   ASSERT(*data == 0xF7 || *data == 0xF6);
@@ -640,7 +616,6 @@ int DisassemblerX64::F6F7Instruction(uint8_t* data) {
     return 2;
   }
 }
-
 
 int DisassemblerX64::ShiftInstruction(uint8_t* data) {
   uint8_t op = *data & (~1);
@@ -702,22 +677,18 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
   return num_bytes;
 }
 
-
 int DisassemblerX64::PrintRightOperand(uint8_t* modrmp) {
   return PrintRightOperandHelper(modrmp, &DisassemblerX64::NameOfCPURegister);
 }
-
 
 int DisassemblerX64::PrintRightByteOperand(uint8_t* modrmp) {
   return PrintRightOperandHelper(modrmp,
                                  &DisassemblerX64::NameOfByteCPURegister);
 }
 
-
 int DisassemblerX64::PrintRightXMMOperand(uint8_t* modrmp) {
   return PrintRightOperandHelper(modrmp, &DisassemblerX64::NameOfXMMRegister);
 }
-
 
 // Returns number of bytes used including the current *data.
 // Writes instruction's mnemonic, left and right operands to 'tmp_buffer_'.
@@ -751,12 +722,10 @@ int DisassemblerX64::PrintOperands(const char* mnem,
   return advance;
 }
 
-
 void DisassemblerX64::PrintAddress(uint8_t* addr_byte_ptr) {
   uword addr = reinterpret_cast<uword>(addr_byte_ptr);
   Print("%#" Px "", addr);
 }
-
 
 // Returns number of bytes used, including *data.
 int DisassemblerX64::JumpShort(uint8_t* data) {
@@ -767,7 +736,6 @@ int DisassemblerX64::JumpShort(uint8_t* data) {
   PrintAddress(dest);
   return 2;
 }
-
 
 // Returns number of bytes used, including *data.
 int DisassemblerX64::JumpConditional(uint8_t* data) {
@@ -780,7 +748,6 @@ int DisassemblerX64::JumpConditional(uint8_t* data) {
   return 6;  // includes 0x0F
 }
 
-
 // Returns number of bytes used, including *data.
 int DisassemblerX64::JumpConditionalShort(uint8_t* data) {
   uint8_t cond = *data & 0x0F;
@@ -792,7 +759,6 @@ int DisassemblerX64::JumpConditionalShort(uint8_t* data) {
   return 2;
 }
 
-
 // Returns number of bytes used, including *data.
 int DisassemblerX64::SetCC(uint8_t* data) {
   ASSERT(0x0F == *data);
@@ -802,7 +768,6 @@ int DisassemblerX64::SetCC(uint8_t* data) {
   PrintRightByteOperand(data + 2);
   return 3;  // includes 0x0F
 }
-
 
 // Returns number of bytes used, including *data.
 int DisassemblerX64::FPUInstruction(uint8_t* data) {
@@ -816,7 +781,6 @@ int DisassemblerX64::FPUInstruction(uint8_t* data) {
     return MemoryFPUInstruction(escape_opcode, modrm_byte, data + 1);
   }
 }
-
 
 int DisassemblerX64::MemoryFPUInstruction(int escape_opcode,
                                           int modrm_byte,
@@ -1070,7 +1034,6 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
   return 2;
 }
 
-
 // TODO(srdjan): Should we add a branch hint argument?
 bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
   uint8_t current;
@@ -1184,7 +1147,6 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
   }
   return true;
 }
-
 
 // Handle all two-byte opcodes, which start with 0x0F.
 // These instructions may be affected by an 0x66, 0xF2, or 0xF3 prefix.
@@ -1568,7 +1530,6 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
   return static_cast<int>(current - data);
 }
 
-
 // Mnemonics for two-byte opcode instructions starting with 0x0F.
 // The argument is the second byte of the two-byte opcode.
 // Returns NULL if the instruction is not handled here.
@@ -1625,7 +1586,6 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
       return NULL;
   }
 }
-
 
 int DisassemblerX64::InstructionDecode(uword pc) {
   uint8_t* data = reinterpret_cast<uint8_t*>(pc);
@@ -1942,7 +1902,6 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 
   return instr_len;
 }
-
 
 void Disassembler::DecodeInstruction(char* hex_buffer,
                                      intptr_t hex_size,

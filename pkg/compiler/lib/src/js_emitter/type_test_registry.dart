@@ -9,7 +9,6 @@ import '../common_elements.dart';
 import '../elements/elements.dart' show MethodElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType;
-import '../elements/resolution_types.dart' show ResolutionTypeVariableType;
 import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
     show
@@ -47,10 +46,11 @@ class TypeTestRegistry {
   Iterable<ClassEntity> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
       cachedClassesUsingTypeVariableTests = _codegenWorldBuilder.isChecks
-          .where((DartType t) => t is ResolutionTypeVariableType)
-          .map((DartType _v) {
-        ResolutionTypeVariableType v = _v;
-        return v.element.enclosingClass;
+          .where((DartType t) =>
+              t is TypeVariableType && t.element.typeDeclaration is ClassEntity)
+          .map<ClassEntity>((DartType _v) {
+        TypeVariableType v = _v;
+        return v.element.typeDeclaration;
       }).toList();
     }
     return cachedClassesUsingTypeVariableTests;
@@ -168,6 +168,7 @@ class TypeTestRegistry {
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((_function) {
+      // TODO(redemption): Support entities.
       MethodElement function = _function;
       FunctionType type = function.type;
       for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {

@@ -23,7 +23,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 
-
 namespace dart {
 
 DECLARE_FLAG(bool, trace_deoptimization);
@@ -32,7 +31,6 @@ DEFINE_FLAG(bool,
             false,
             "Prints a stack trace everytime a throw occurs.");
 
-
 class StackTraceBuilder : public ValueObject {
  public:
   StackTraceBuilder() {}
@@ -40,7 +38,6 @@ class StackTraceBuilder : public ValueObject {
 
   virtual void AddFrame(const Code& code, const Smi& offset) = 0;
 };
-
 
 class RegularStackTraceBuilder : public StackTraceBuilder {
  public:
@@ -66,7 +63,6 @@ class RegularStackTraceBuilder : public StackTraceBuilder {
   DISALLOW_COPY_AND_ASSIGN(RegularStackTraceBuilder);
 };
 
-
 class PreallocatedStackTraceBuilder : public StackTraceBuilder {
  public:
   explicit PreallocatedStackTraceBuilder(const Instance& stacktrace)
@@ -89,7 +85,6 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
 
   DISALLOW_COPY_AND_ASSIGN(PreallocatedStackTraceBuilder);
 };
-
 
 void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
                                              const Smi& offset) {
@@ -126,7 +121,6 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
   cur_index_ += 1;
 }
 
-
 static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
                             Thread::Current(),
@@ -146,7 +140,6 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   }
 }
 
-
 static RawObject** VariableAt(uword fp, int stack_slot) {
 #if defined(TARGET_ARCH_DBC)
   return reinterpret_cast<RawObject**>(fp + stack_slot * kWordSize);
@@ -159,7 +152,6 @@ static RawObject** VariableAt(uword fp, int stack_slot) {
   }
 #endif
 }
-
 
 class ExceptionHandlerFinder : public StackResource {
  public:
@@ -347,7 +339,6 @@ class ExceptionHandlerFinder : public StackResource {
   intptr_t pc_;             // Current pc in the handler frame.
 };
 
-
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
                              uword* handler_fp) {
@@ -365,7 +356,6 @@ static void FindErrorHandler(uword* handler_pc,
   *handler_sp = frame->sp();
   *handler_fp = frame->fp();
 }
-
 
 static uword RemapExceptionPCForDeopt(Thread* thread,
                                       uword program_counter,
@@ -395,7 +385,6 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
 #endif  // !DBC
   return program_counter;
 }
-
 
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
 #if !defined(TARGET_ARCH_DBC)
@@ -440,7 +429,6 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
 #endif  // !DBC
 }
 
-
 static void JumpToExceptionHandler(Thread* thread,
                                    uword program_counter,
                                    uword stack_pointer,
@@ -456,7 +444,6 @@ static void JumpToExceptionHandler(Thread* thread,
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
                           frame_pointer, false /* do not clear deopt */);
 }
-
 
 void Exceptions::JumpToFrame(Thread* thread,
                              uword program_counter,
@@ -499,7 +486,6 @@ void Exceptions::JumpToFrame(Thread* thread,
   UNREACHABLE();
 }
 
-
 static RawField* LookupStackTraceField(const Instance& instance) {
   if (instance.GetClassId() < kNumPredefinedCids) {
     // 'class Error' is not a predefined class.
@@ -532,11 +518,9 @@ static RawField* LookupStackTraceField(const Instance& instance) {
   return Field::null();
 }
 
-
 RawStackTrace* Exceptions::CurrentStackTrace() {
   return GetStackTraceForException();
 }
-
 
 static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
@@ -637,7 +621,6 @@ static void ThrowExceptionHelper(Thread* thread,
   UNREACHABLE();
 }
 
-
 // Static helpers for allocating, initializing, and throwing an error instance.
 
 // Return the script of the Dart function that called the native entry or the
@@ -649,7 +632,6 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
   ASSERT(!caller.IsNull());
   return caller.script();
 }
-
 
 // Allocate a new instance of the given class name.
 // TODO(hausner): Rename this NewCoreInstance to call out the fact that
@@ -666,7 +648,6 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
   // There are no parameterized error types, so no need to set type arguments.
   return Instance::New(cls);
 }
-
 
 // Allocate, initialize, and throw a TypeError or CastError.
 // If error_msg is not null, throw a TypeError, even for a type cast.
@@ -778,7 +759,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   UNREACHABLE();
 }
 
-
 void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
@@ -795,14 +775,12 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
                        false);
 }
 
-
 void Exceptions::ReThrow(Thread* thread,
                          const Instance& exception,
                          const Instance& stacktrace) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception, stacktrace, true);
 }
-
 
 void Exceptions::PropagateError(const Error& error) {
   Thread* thread = Thread::Current();
@@ -829,7 +807,6 @@ void Exceptions::PropagateError(const Error& error) {
   UNREACHABLE();
 }
 
-
 void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
   Thread* thread = Thread::Current();
   const Object& result =
@@ -844,7 +821,6 @@ void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
   }
 }
 
-
 void Exceptions::ThrowOOM() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -852,7 +828,6 @@ void Exceptions::ThrowOOM() {
       thread->zone(), isolate->object_store()->out_of_memory());
   Throw(thread, oom);
 }
-
 
 void Exceptions::ThrowStackOverflow() {
   Thread* thread = Thread::Current();
@@ -862,13 +837,11 @@ void Exceptions::ThrowStackOverflow() {
   Throw(thread, stack_overflow);
 }
 
-
 void Exceptions::ThrowArgumentError(const Instance& arg) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, arg);
   Exceptions::ThrowByType(Exceptions::kArgument, args);
 }
-
 
 void Exceptions::ThrowRangeError(const char* argument_name,
                                  const Integer& argument_value,
@@ -882,20 +855,17 @@ void Exceptions::ThrowRangeError(const char* argument_name,
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-
 void Exceptions::ThrowRangeErrorMsg(const char* msg) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(String::New(msg)));
   Exceptions::ThrowByType(Exceptions::kRangeMsg, args);
 }
 
-
 void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(error.FormatMessage()));
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
-
 
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
@@ -987,6 +957,5 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   return DartLibraryCalls::InstanceCreate(library, *class_name,
                                           *constructor_name, arguments);
 }
-
 
 }  // namespace dart

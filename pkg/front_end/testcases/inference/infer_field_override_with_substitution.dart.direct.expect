@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 abstract class A<T extends core::Object> extends core::Object {
   field core::List<self::A::T> z = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract get x() → core::List<self::A::T>;
@@ -14,7 +14,7 @@ class B extends self::A<core::int> {
   field dynamic x = null;
   field dynamic y = null;
   field dynamic z = null;
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
 }

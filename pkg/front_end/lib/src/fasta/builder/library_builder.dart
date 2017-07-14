@@ -15,7 +15,6 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         Message,
-        deprecated_warning,
         nit,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
@@ -75,18 +74,10 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
-  /// See `Loader.deprecated_addCompileTimeError` for an explanation of the
+  /// See `Loader.addCompileTimeError` for an explanation of the
   /// arguments passed to this method.
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.
-  void deprecated_addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false, bool wasHandled: false}) {
-    hasCompileTimeErrors = true;
-    loader.deprecated_addCompileTimeError(
-        fileUri ?? this.fileUri, charOffset, message,
-        silent: silent, wasHandled: wasHandled);
-  }
-
   void addCompileTimeError(Message message, int charOffset, Uri uri,
       {bool silent: false, bool wasHandled: false}) {
     hasCompileTimeErrors = true;
@@ -104,14 +95,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   void addNit(Message message, int charOffset, Uri uri, {bool silent: false}) {
     if (!silent) {
       nit(message, charOffset, uri);
-    }
-  }
-
-  void deprecated_addWarning(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
-    fileUri ??= this.fileUri;
-    if (!silent) {
-      deprecated_warning(fileUri, charOffset, message);
     }
   }
 

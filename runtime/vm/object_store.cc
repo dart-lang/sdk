@@ -4,8 +4,8 @@
 
 #include "vm/object_store.h"
 
-#include "vm/exceptions.h"
 #include "vm/dart_entry.h"
+#include "vm/exceptions.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -111,22 +111,18 @@ ObjectStore::ObjectStore()
   }
 }
 
-
 ObjectStore::~ObjectStore() {}
-
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(from(), to());
 }
 
-
 void ObjectStore::Init(Isolate* isolate) {
   ASSERT(isolate->object_store() == NULL);
   ObjectStore* store = new ObjectStore();
   isolate->set_object_store(store);
 }
-
 
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
@@ -146,7 +142,6 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
   }
 }
 #endif  // !PRODUCT
-
 
 RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
@@ -209,7 +204,6 @@ RawError* ObjectStore::PreallocateObjects() {
   return Error::null();
 }
 
-
 RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
@@ -218,7 +212,6 @@ RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
   ASSERT(!result.IsNull());
   return result.raw();
 }
-
 
 void ObjectStore::InitKnownObjects() {
 #ifdef DART_PRECOMPILED_RUNTIME
@@ -260,7 +253,6 @@ void ObjectStore::InitKnownObjects() {
                               0, 0, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_clear_thread_stack_trace(function);
-
 
   function_name ^= async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/flags.h"
+#include "platform/assert.h"
 #include "vm/heap.h"
 #include "vm/unit_test.h"
 
@@ -18,7 +18,6 @@ VM_UNIT_TEST_CASE(BasicFlags) {
   EXPECT_EQ(false, FLAG_verbose_gc);
   EXPECT_EQ(false, FLAG_print_flags);
 }
-
 
 DEFINE_FLAG(bool, parse_flag_bool_test, true, "Flags::Parse (bool) testing");
 DEFINE_FLAG(charp, string_opt_test, NULL, "Testing: string option.");

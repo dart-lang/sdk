@@ -665,6 +665,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   // The list of live isolates, ordered by isolate start time.
   final List<Isolate> isolates = <Isolate>[];
 
+  final List<Service> services = <Service>[];
+
   String version = 'unknown';
   String hostCPU;
   String targetCPU;
@@ -855,6 +857,17 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
   }
 
+  void _updateService(ServiceEvent event) {
+    switch (event.kind) {
+      case ServiceEvent.kServiceRegistered:
+        services.add(new Service(event.alias, event.method, event.service));
+        break;
+      case ServiceEvent.kServiceUnregistered:
+        services.removeWhere((s) => s.method == event.method);
+        break;
+    }
+  }
+
   Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
@@ -864,6 +877,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
         await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
         await listenEventStream(kDebugStream, _dispatchEventToIsolate);
         await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
+        await listenEventStream(kServiceStream, _updateService);
       } on FakeVMRpcException catch (_) {
         // ignore FakeVMRpcExceptions here.
       } on NetworkRpcException catch (_) {
@@ -911,6 +925,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   static const kStdoutStream = 'Stdout';
   static const kStderrStream = 'Stderr';
   static const _kGraphStream = '_Graph';
+  static const kServiceStream = '_Service';
 
   /// Returns a single-subscription Stream object for a VM event stream.
   Future<Stream> getEventStream(String streamId) async {
@@ -2125,7 +2140,8 @@ class ServiceEvent extends ServiceObject {
   static const kConnectionClosed = 'ConnectionClosed';
   static const kLogging = '_Logging';
   static const kExtension = 'Extension';
-  static const kEditor = '_Editor';
+  static const kServiceRegistered = 'ServiceRegistered';
+  static const kServiceUnregistered = 'ServiceUnregistered';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2157,6 +2173,9 @@ class ServiceEvent extends ServiceObject {
   String spawnError;
   String editor;
   ServiceObject object;
+  String method;
+  String service;
+  String alias;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -2252,6 +2271,15 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['object'] != null) {
       object = map['object'];
+    }
+    if (map['service'] != null) {
+      service = map['service'];
+    }
+    if (map['method'] != null) {
+      method = map['method'];
+    }
+    if (map['alias'] != null) {
+      alias = map['alias'];
     }
   }
 
@@ -4662,5 +4690,17 @@ void _upgradeList(List list, ServiceObjectOwner owner) {
     } else if (v is Map) {
       _upgradeMap(v, owner);
     }
+  }
+}
+
+class Service implements M.Service {
+  final String alias;
+  final String method;
+  final String service;
+
+  Service(this.alias, this.method, this.service) {
+    assert(this.alias != null);
+    assert(this.method != null);
+    assert(this.service != null);
   }
 }

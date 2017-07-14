@@ -5,13 +5,13 @@ import "dart:core" as core;
 class A extends core::Object {
   field dynamic x;
   field dynamic y;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class B extends self::A {
   field dynamic x;
   field dynamic y;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method main() → dynamic

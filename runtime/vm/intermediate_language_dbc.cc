@@ -7,8 +7,8 @@
 
 #include "vm/intermediate_language.h"
 
-#include "vm/cpu.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -118,7 +118,6 @@ static LocationSummary* CreateLocationSummary(
   return locs;
 }
 
-
 #define DEFINE_MAKE_LOCATION_SUMMARY(Name, ...)                                \
   LocationSummary* Name##Instr::MakeLocationSummary(Zone* zone, bool opt)      \
       const {                                                                  \
@@ -179,10 +178,8 @@ FOR_EACH_UNREACHABLE_INSTRUCTION(DEFINE_UNREACHABLE)
 
 #undef DEFINE_UNREACHABLE
 
-
 // Only used in AOT compilation.
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(CheckedSmiComparison)
-
 
 EMIT_NATIVE_CODE(InstanceOf,
                  3,
@@ -210,12 +207,10 @@ EMIT_NATIVE_CODE(InstanceOf,
   }
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable,
                              3,
                              Location::SameAsFirstInput(),
                              LocationSummary::kCall);
-
 
 EMIT_NATIVE_CODE(AssertBoolean,
                  1,
@@ -232,7 +227,6 @@ EMIT_NATIVE_CODE(AssertBoolean,
     __ Drop1();
   }
 }
-
 
 EMIT_NATIVE_CODE(PolymorphicInstanceCall,
                  0,
@@ -282,11 +276,9 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
   __ PopLocal(locs()->out(0).reg());
 }
 
-
 EMIT_NATIVE_CODE(Stop, 0) {
   __ Stop(message());
 }
-
 
 EMIT_NATIVE_CODE(CheckStackOverflow,
                  0,
@@ -302,20 +294,17 @@ EMIT_NATIVE_CODE(CheckStackOverflow,
   compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
 }
 
-
 EMIT_NATIVE_CODE(PushArgument, 1) {
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());
   }
 }
 
-
 EMIT_NATIVE_CODE(LoadLocal, 0) {
   ASSERT(!compiler->is_optimizing());
   ASSERT(local().index() != 0);
   __ Push((local().index() > 0) ? (-local().index()) : (-local().index() - 1));
 }
-
 
 EMIT_NATIVE_CODE(StoreLocal, 0) {
   ASSERT(!compiler->is_optimizing());
@@ -329,7 +318,6 @@ EMIT_NATIVE_CODE(StoreLocal, 0) {
   }
 }
 
-
 EMIT_NATIVE_CODE(LoadClassId, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ LoadClassId(locs()->out(0).reg(), locs()->in(0).reg());
@@ -337,7 +325,6 @@ EMIT_NATIVE_CODE(LoadClassId, 1, Location::RequiresRegister()) {
     __ LoadClassIdTOS();
   }
 }
-
 
 EMIT_NATIVE_CODE(Constant, 0, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
@@ -348,7 +335,6 @@ EMIT_NATIVE_CODE(Constant, 0, Location::RequiresRegister()) {
     __ PushConstant(value());
   }
 }
-
 
 EMIT_NATIVE_CODE(UnboxedConstant, 0, Location::RequiresRegister()) {
   // The register allocator drops constant definitions that have no uses.
@@ -368,7 +354,6 @@ EMIT_NATIVE_CODE(UnboxedConstant, 0, Location::RequiresRegister()) {
   }
 }
 
-
 EMIT_NATIVE_CODE(Return, 1) {
   if (compiler->is_optimizing()) {
     __ Return(locs()->in(0).reg());
@@ -376,7 +361,6 @@ EMIT_NATIVE_CODE(Return, 1) {
     __ ReturnTOS();
   }
 }
-
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
@@ -393,7 +377,6 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->is_optimizing()) {
     __ LoadConstant(locs()->temp(0).reg(),
@@ -407,7 +390,6 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 EMIT_NATIVE_CODE(LoadStaticField, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ LoadField(locs()->out(0).reg(), locs()->in(0).reg(),
@@ -417,7 +399,6 @@ EMIT_NATIVE_CODE(LoadStaticField, 1, Location::RequiresRegister()) {
     __ PushStatic(kidx);
   }
 }
-
 
 EMIT_NATIVE_CODE(InitStaticField,
                  1,
@@ -431,7 +412,6 @@ EMIT_NATIVE_CODE(InitStaticField,
   }
   compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
 }
-
 
 EMIT_NATIVE_CODE(ClosureCall,
                  1,
@@ -451,7 +431,6 @@ EMIT_NATIVE_CODE(ClosureCall,
     __ PopLocal(locs()->out(0).reg());
   }
 }
-
 
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   Condition true_condition,
@@ -481,14 +460,12 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
   }
 }
 
-
 Condition StrictCompareInstr::GetNextInstructionCondition(
     FlowGraphCompiler* compiler,
     BranchLabels labels) {
   return (labels.fall_through == labels.false_label) ? NEXT_IS_TRUE
                                                      : NEXT_IS_FALSE;
 }
-
 
 Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                  BranchLabels labels) {
@@ -532,13 +509,11 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return condition;
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(StrictCompare,
                              2,
                              Location::RequiresRegister(),
                              needs_number_check() ? LocationSummary::kCall
                                                   : LocationSummary::kNoCall)
-
 
 void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                      BranchInstr* branch) {
@@ -548,7 +523,6 @@ void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitBranchOnCondition(compiler, true_condition, labels);
   }
 }
-
 
 void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_true, is_false;
@@ -598,7 +572,6 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
   if (!comparison()->HasLocs()) {
@@ -609,11 +582,9 @@ LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return comparison()->locs();
 }
 
-
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   comparison()->EmitBranchCode(compiler, this);
 }
-
 
 EMIT_NATIVE_CODE(Goto, 0) {
   if (!compiler->is_optimizing()) {
@@ -632,13 +603,11 @@ EMIT_NATIVE_CODE(Goto, 0) {
   }
 }
 
-
 Condition TestSmiInstr::GetNextInstructionCondition(FlowGraphCompiler* compiler,
                                                     BranchLabels labels) {
   ASSERT((kind() == Token::kEQ) || (kind() == Token::kNE));
   return (kind() == Token::kEQ) ? NEXT_IS_TRUE : NEXT_IS_FALSE;
 }
-
 
 Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                            BranchLabels labels) {
@@ -649,12 +618,10 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return (kind() == Token::kEQ) ? NEXT_IS_TRUE : NEXT_IS_FALSE;
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(TestSmi,
                              2,
                              Location::RequiresRegister(),
                              LocationSummary::kNoCall)
-
 
 Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                             BranchLabels labels) {
@@ -689,19 +656,16 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return NEXT_IS_TRUE;
 }
 
-
 Condition TestCidsInstr::GetNextInstructionCondition(
     FlowGraphCompiler* compiler,
     BranchLabels labels) {
   return NEXT_IS_TRUE;
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(TestCids,
                              1,
                              Location::RequiresRegister(),
                              LocationSummary::kNoCall)
-
 
 EMIT_NATIVE_CODE(CreateArray,
                  2,
@@ -722,7 +686,6 @@ EMIT_NATIVE_CODE(CreateArray,
     compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   }
 }
-
 
 EMIT_NATIVE_CODE(StoreIndexed,
                  3,
@@ -805,7 +768,6 @@ EMIT_NATIVE_CODE(StoreIndexed,
       break;
   }
 }
-
 
 EMIT_NATIVE_CODE(LoadIndexed,
                  2,
@@ -919,7 +881,6 @@ EMIT_NATIVE_CODE(LoadIndexed,
   }
 }
 
-
 EMIT_NATIVE_CODE(StringInterpolate,
                  1,
                  Location::RegisterLocation(0),
@@ -946,7 +907,6 @@ EMIT_NATIVE_CODE(StringInterpolate,
     __ PopLocal(locs()->out(0).reg());
   }
 }
-
 
 EMIT_NATIVE_CODE(NativeCall,
                  0,
@@ -976,7 +936,6 @@ EMIT_NATIVE_CODE(NativeCall,
                                  token_pos());
 }
 
-
 EMIT_NATIVE_CODE(OneByteStringFromCharCode,
                  1,
                  Location::RequiresRegister(),
@@ -987,7 +946,6 @@ EMIT_NATIVE_CODE(OneByteStringFromCharCode,
   __ OneByteStringFromCharCode(result, char_code);
 }
 
-
 EMIT_NATIVE_CODE(StringToCharCode,
                  1,
                  Location::RequiresRegister(),
@@ -997,7 +955,6 @@ EMIT_NATIVE_CODE(StringToCharCode,
   const Register result = locs()->out(0).reg();  // Result char code is a smi.
   __ StringToCharCode(result, str);
 }
-
 
 EMIT_NATIVE_CODE(AllocateObject,
                  0,
@@ -1066,7 +1023,6 @@ EMIT_NATIVE_CODE(AllocateObject,
   }
 }
 
-
 EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   ASSERT(!HasTemp());
   ASSERT(offset_in_bytes() % kWordSize == 0);
@@ -1084,7 +1040,6 @@ EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   }
 }
 
-
 EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
   ASSERT(offset_in_bytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
@@ -1101,7 +1056,6 @@ EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
   }
 }
 
-
 EMIT_NATIVE_CODE(LoadUntagged, 1, Location::RequiresRegister()) {
   const Register obj = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
@@ -1113,7 +1067,6 @@ EMIT_NATIVE_CODE(LoadUntagged, 1, Location::RequiresRegister()) {
   }
 }
 
-
 EMIT_NATIVE_CODE(BooleanNegate, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ BooleanNegate(locs()->out(0).reg(), locs()->in(0).reg());
@@ -1121,7 +1074,6 @@ EMIT_NATIVE_CODE(BooleanNegate, 1, Location::RequiresRegister()) {
     __ BooleanNegateTOS();
   }
 }
-
 
 EMIT_NATIVE_CODE(AllocateContext,
                  0,
@@ -1133,7 +1085,6 @@ EMIT_NATIVE_CODE(AllocateContext,
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
                                  token_pos());
 }
-
 
 EMIT_NATIVE_CODE(AllocateUninitializedContext,
                  0,
@@ -1148,7 +1099,6 @@ EMIT_NATIVE_CODE(AllocateUninitializedContext,
                                  token_pos());
   __ PopLocal(locs()->out(0).reg());
 }
-
 
 EMIT_NATIVE_CODE(CloneContext,
                  1,
@@ -1165,7 +1115,6 @@ EMIT_NATIVE_CODE(CloneContext,
     __ PopLocal(locs()->out(0).reg());
   }
 }
-
 
 EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   __ Bind(compiler->GetJumpLabel(this));
@@ -1250,7 +1199,6 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   __ SetFrame(compiler->StackSize());
 }
 
-
 EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
   __ Throw(0);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
@@ -1258,7 +1206,6 @@ EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
   compiler->RecordAfterCall(this, FlowGraphCompiler::kNoResult);
   __ Trap();
 }
-
 
 EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
   compiler->SetNeedsStackTrace(catch_try_index());
@@ -1305,19 +1252,16 @@ EMIT_NATIVE_CODE(InstantiateTypeArguments,
   }
 }
 
-
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ DebugStep();
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
 }
-
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->CanFallThroughTo(normal_entry())) {
     __ Jump(compiler->GetJumpLabel(normal_entry()));
   }
 }
-
 
 LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   LocationSummary* result =
@@ -1328,21 +1272,17 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
-
 CompileType BinaryUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
-
 
 CompileType ShiftUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-
 CompileType UnaryUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
-
 
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
@@ -1383,7 +1323,6 @@ CompileType LoadIndexedInstr::ComputeType() const {
   }
 }
 
-
 Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
@@ -1418,7 +1357,6 @@ Representation LoadIndexedInstr::representation() const {
       return kTagged;
   }
 }
-
 
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
@@ -1463,7 +1401,6 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   }
 }
 
-
 void Environment::DropArguments(intptr_t argc) {
 #if defined(DEBUG)
   // Check that we are in the backend - register allocation has been run.
@@ -1476,13 +1413,11 @@ void Environment::DropArguments(intptr_t argc) {
   values_.TruncateTo(values_.length() - argc);
 }
 
-
 EMIT_NATIVE_CODE(CheckSmi, 1) {
   __ CheckSmi(locs()->in(0).reg());
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckSmi,
                       licm_hoisted_ ? ICData::kHoisted : 0);
 }
-
 
 EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
   const Register left = locs()->in(0).reg();
@@ -1491,7 +1426,6 @@ EMIT_NATIVE_CODE(CheckEitherNonSmi, 2) {
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinaryDoubleOp,
                       licm_hoisted_ ? ICData::kHoisted : 0);
 }
-
 
 EMIT_NATIVE_CODE(CheckClassId, 1) {
   if (cids_.IsSingleCid()) {
@@ -1504,7 +1438,6 @@ EMIT_NATIVE_CODE(CheckClassId, 1) {
   }
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass);
 }
-
 
 EMIT_NATIVE_CODE(CheckClass, 1) {
   const Register value = locs()->in(0).reg();
@@ -1570,7 +1503,6 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
                       licm_hoisted_ ? ICData::kHoisted : 0);
 }
 
-
 EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
@@ -1628,7 +1560,6 @@ EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
   }
 }
 
-
 EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
   switch (op_kind()) {
     case Token::kNEGATE: {
@@ -1644,7 +1575,6 @@ EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
       break;
   }
 }
-
 
 EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
   ASSERT(from_representation() == kUnboxedDouble);
@@ -1672,7 +1602,6 @@ EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
   __ WriteIntoDouble(out, value);
 }
 
-
 EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
   ASSERT(representation() == kUnboxedDouble);
   const intptr_t value_cid = value()->Type()->ToCid();
@@ -1694,7 +1623,6 @@ EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
   }
 }
 
-
 EMIT_NATIVE_CODE(UnboxInteger32, 1, Location::RequiresRegister()) {
 #if defined(ARCH_IS_64_BIT)
   const Register out = locs()->out(0).reg();
@@ -1712,7 +1640,6 @@ EMIT_NATIVE_CODE(UnboxInteger32, 1, Location::RequiresRegister()) {
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
-
 EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
 #if defined(ARCH_IS_64_BIT)
   const Register out = locs()->out(0).reg();
@@ -1729,7 +1656,6 @@ EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
-
 EMIT_NATIVE_CODE(DoubleToSmi, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
@@ -1737,13 +1663,11 @@ EMIT_NATIVE_CODE(DoubleToSmi, 1, Location::RequiresRegister()) {
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptDoubleToSmi);
 }
 
-
 EMIT_NATIVE_CODE(SmiToDouble, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ SmiToDouble(result, value);
 }
-
 
 EMIT_NATIVE_CODE(BinaryDoubleOp, 2, Location::RequiresRegister()) {
   const Register left = locs()->in(0).reg();
@@ -1767,7 +1691,6 @@ EMIT_NATIVE_CODE(BinaryDoubleOp, 2, Location::RequiresRegister()) {
   }
 }
 
-
 Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
   ASSERT(compiler->is_optimizing());
@@ -1786,7 +1709,6 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return is_negated ? NEXT_IS_FALSE : NEXT_IS_TRUE;
 }
 
-
 Condition DoubleTestOpInstr::GetNextInstructionCondition(
     FlowGraphCompiler* compiler,
     BranchLabels labels) {
@@ -1794,16 +1716,13 @@ Condition DoubleTestOpInstr::GetNextInstructionCondition(
   return is_negated ? NEXT_IS_FALSE : NEXT_IS_TRUE;
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(DoubleTestOp, 1, Location::RequiresRegister())
-
 
 EMIT_NATIVE_CODE(UnaryDoubleOp, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ DNeg(result, value);
 }
-
 
 EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
@@ -1817,7 +1736,6 @@ EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
     UNREACHABLE();
   }
 }
-
 
 EMIT_NATIVE_CODE(DoubleToDouble, 1, Location::RequiresRegister()) {
   const Register in = locs()->in(0).reg();
@@ -1837,20 +1755,17 @@ EMIT_NATIVE_CODE(DoubleToDouble, 1, Location::RequiresRegister()) {
   }
 }
 
-
 EMIT_NATIVE_CODE(DoubleToFloat, 1, Location::RequiresRegister()) {
   const Register in = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ DoubleToFloat(result, in);
 }
 
-
 EMIT_NATIVE_CODE(FloatToDouble, 1, Location::RequiresRegister()) {
   const Register in = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ FloatToDouble(result, in);
 }
-
 
 EMIT_NATIVE_CODE(InvokeMathCFunction,
                  InputCount(),
@@ -1872,7 +1787,6 @@ EMIT_NATIVE_CODE(InvokeMathCFunction,
     UNREACHABLE();
   }
 }
-
 
 EMIT_NATIVE_CODE(MathMinMax, 2, Location::RequiresRegister()) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
@@ -1896,7 +1810,6 @@ EMIT_NATIVE_CODE(MathMinMax, 2, Location::RequiresRegister()) {
   }
 }
 
-
 static Token::Kind FlipCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -1916,7 +1829,6 @@ static Token::Kind FlipCondition(Token::Kind kind) {
       return Token::kNE;
   }
 }
-
 
 static Bytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
   switch (kind) {
@@ -1938,7 +1850,6 @@ static Bytecode::Opcode OpcodeForSmiCondition(Token::Kind kind) {
   }
 }
 
-
 static Bytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -1958,7 +1869,6 @@ static Bytecode::Opcode OpcodeForDoubleCondition(Token::Kind kind) {
       return Bytecode::kTrap;
   }
 }
-
 
 static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      LocationSummary* locs,
@@ -1981,7 +1891,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   return condition;
 }
 
-
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                         LocationSummary* locs,
                                         Token::Kind kind) {
@@ -1998,7 +1907,6 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   return condition;
 }
 
-
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
   if (operation_cid() == kSmiCid) {
@@ -2008,7 +1916,6 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitDoubleComparisonOp(compiler, locs(), kind());
   }
 }
-
 
 Condition EqualityCompareInstr::GetNextInstructionCondition(
     FlowGraphCompiler* compiler,
@@ -2022,9 +1929,7 @@ Condition EqualityCompareInstr::GetNextInstructionCondition(
   }
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(EqualityCompare, 2, Location::RequiresRegister());
-
 
 Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
@@ -2035,7 +1940,6 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitDoubleComparisonOp(compiler, locs(), kind());
   }
 }
-
 
 Condition RelationalOpInstr::GetNextInstructionCondition(
     FlowGraphCompiler* compiler,
@@ -2049,9 +1953,7 @@ Condition RelationalOpInstr::GetNextInstructionCondition(
   }
 }
 
-
 DEFINE_MAKE_LOCATION_SUMMARY(RelationalOp, 2, Location::RequiresRegister())
-
 
 EMIT_NATIVE_CODE(CheckArrayBound, 2) {
   const Register length = locs()->in(kLengthPos).reg();

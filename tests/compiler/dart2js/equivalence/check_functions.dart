@@ -382,7 +382,15 @@ void checkNativeBasicData(NativeBasicDataImpl data1, NativeBasicDataImpl data2,
       data2.nativeClassTagInfo,
       strategy.elementEquivalence,
       (a, b) => a == b);
-  // TODO(johnniwinther): Check the remaining properties.
+  checkSetEquivalence(
+      data1,
+      data2,
+      'jsInteropLibraries',
+      data1.jsInteropLibraries,
+      data2.jsInteropLibraries,
+      strategy.elementEquivalence);
+  checkSetEquivalence(data1, data2, 'jsInteropClasses', data1.jsInteropClasses,
+      data2.jsInteropClasses, strategy.elementEquivalence);
 }
 
 void checkBackendUsage(
@@ -442,7 +450,8 @@ void checkBackendUsage(
 }
 
 checkElementEnvironment(
-    ElementEnvironment env1, ElementEnvironment env2, TestStrategy strategy) {
+    ElementEnvironment env1, ElementEnvironment env2, TestStrategy strategy,
+    {bool checkConstructorBodies: false}) {
   strategy.testElements(
       env1, env2, 'mainLibrary', env1.mainLibrary, env2.mainLibrary);
   strategy.testElements(
@@ -459,6 +468,11 @@ checkElementEnvironment(
         env1.getMemberMetadata(member1),
         env2.getMemberMetadata(member2),
         strategy.testConstantValues);
+
+    if (member1 is FunctionEntity && member2 is FunctionEntity) {
+      check(member1, member2, 'getFunctionType', env1.getFunctionType(member1),
+          env2.getFunctionType(member2), strategy.typeEquivalence);
+    }
   }
 
   checkSetEquivalence(env1, env2, 'libraries', env1.libraries, env2.libraries,
@@ -466,6 +480,8 @@ checkElementEnvironment(
       onSameElement: (LibraryEntity lib1, LibraryEntity lib2) {
     Expect.identical(lib1, env1.lookupLibrary(lib1.canonicalUri));
     Expect.identical(lib2, env2.lookupLibrary(lib2.canonicalUri));
+
+    // TODO(johnniwinther): Check libraryName.
 
     List<ClassEntity> classes2 = <ClassEntity>[];
     env1.forEachClass(lib1, (ClassEntity cls1) {
@@ -496,19 +512,53 @@ checkElementEnvironment(
           env2.getSuperClass(cls2, skipUnnamedMixinApplications: true),
           strategy.elementEquivalence);
 
+      InterfaceType thisType1 = env1.getThisType(cls1);
+      InterfaceType thisType2 = env2.getThisType(cls2);
+      check(cls1, cls2, 'thisType', thisType1, thisType2,
+          strategy.typeEquivalence);
+      check(cls1, cls2, 'rawType', env1.getRawType(cls1), env2.getRawType(cls2),
+          strategy.typeEquivalence);
+      check(
+          cls1,
+          cls2,
+          'createInterfaceType',
+          env1.createInterfaceType(cls1, thisType1.typeArguments),
+          env2.createInterfaceType(cls2, thisType2.typeArguments),
+          strategy.typeEquivalence);
+
+      check(cls1, cls2, 'isGenericClass', env1.isGenericClass(cls1),
+          env2.isGenericClass(cls2));
+      check(cls1, cls2, 'isMixinApplication', env1.isMixinApplication(cls1),
+          env2.isMixinApplication(cls2));
+      check(
+          cls1,
+          cls2,
+          'isUnnamedMixinApplication',
+          env1.isUnnamedMixinApplication(cls1),
+          env2.isUnnamedMixinApplication(cls2));
+      check(
+          cls1,
+          cls2,
+          'getEffectiveMixinClass',
+          env1.getEffectiveMixinClass(cls1),
+          env2.getEffectiveMixinClass(cls2),
+          strategy.elementEquivalence);
+
+      // TODO(johnniwinther): Check type variable bounds.
+
       List<InterfaceType> supertypes1 = <InterfaceType>[];
       env1.forEachSupertype(cls1, supertypes1.add);
       List<InterfaceType> supertypes2 = <InterfaceType>[];
-      env2.forEachSupertype(cls2, supertypes1.add);
-      strategy.testTypeLists(
-          cls1, cls2, 'supertypes', supertypes1, supertypes2);
+      env2.forEachSupertype(cls2, supertypes2.add);
+      checkLists(supertypes1, supertypes2, 'supertypes on $cls1, $cls2',
+          strategy.typeEquivalence);
 
       List<ClassEntity> mixins1 = <ClassEntity>[];
       env1.forEachMixin(cls1, mixins1.add);
       List<ClassEntity> mixins2 = <ClassEntity>[];
       env2.forEachMixin(cls2, mixins2.add);
-      strategy.testLists(
-          cls1, cls2, 'mixins', mixins1, mixins2, strategy.elementEquivalence);
+      checkLists(mixins1, mixins2, 'mixins on $cls1, $cls2',
+          strategy.elementEquivalence);
 
       Map<MemberEntity, ClassEntity> members1 = <MemberEntity, ClassEntity>{};
       Map<MemberEntity, ClassEntity> members2 = <MemberEntity, ClassEntity>{};
@@ -563,6 +613,29 @@ checkElementEnvironment(
             "Extra constructor $constructor2 in $cls2");
       });
 
+      if (checkConstructorBodies) {
+        Set<ConstructorBodyEntity> constructorBodies1 =
+            new Set<ConstructorBodyEntity>();
+        Set<ConstructorBodyEntity> constructorBodies2 =
+            new Set<ConstructorBodyEntity>();
+        env1.forEachConstructorBody(cls1,
+            (ConstructorBodyEntity constructorBody1) {
+          constructorBodies1.add(constructorBody1);
+        });
+        env2.forEachConstructorBody(cls2,
+            (ConstructorBodyEntity constructorBody2) {
+          constructorBodies2.add(constructorBody2);
+        });
+        checkSetEquivalence(cls1, cls2, 'constructor-bodies',
+            constructorBodies1, constructorBodies2, strategy.elementEquivalence,
+            onSameElement: (ConstructorBodyEntity constructorBody1,
+                ConstructorBodyEntity constructorBody2) {
+          check(constructorBody1, constructorBody2, 'name',
+              constructorBody1.name, constructorBody2.name);
+
+          checkMembers(constructorBody1, constructorBody2);
+        });
+      }
       classes2.add(cls2);
     });
     env2.forEachClass(lib2, (ClassEntity cls2) {
@@ -597,7 +670,7 @@ checkElementEnvironment(
           members2.contains(member2), "Extra member $member2 in $lib2");
     });
   });
-  // TODO(johnniwinther): Test the remaining properties of [ElementEnvironment].
+  // TODO(johnniwinther): Check getLocalFunctionType and getUnaliasedType ?
 }
 
 bool areInstantiationInfosEquivalent(
@@ -894,6 +967,8 @@ void checkEmitterFragments(
   if (fragment1 is MainFragment && fragment2 is MainFragment) {
     check(fragment1, fragment2, 'invokeMain', fragment1.invokeMain,
         fragment2.invokeMain, areJsNodesEquivalent);
+  } else if (fragment1 is DeferredFragment && fragment2 is DeferredFragment) {
+    check(fragment1, fragment2, 'name', fragment1.name, fragment2.name);
   }
 }
 
@@ -909,7 +984,7 @@ void checkEmitterLibraries(
   checkLists(
       library1.staticFieldsForReflection,
       library2.staticFieldsForReflection,
-      'staticFieldsForReflection',
+      'staticFieldsForReflection on $library1/$library2',
       (a, b) => a.name.key == b.name.key,
       onSameElement: checkEmitterFields);
 }
@@ -933,8 +1008,11 @@ void checkEmitterClasses(Class class1, Class class2, TestStrategy strategy) {
   checkLists(class1.noSuchMethodStubs, class2.noSuchMethodStubs,
       'noSuchMethodStubs', (a, b) => a.name.key == b.name.key,
       onSameElement: (a, b) => checkEmitterMethods(a, b, strategy));
-  checkLists(class1.staticFieldsForReflection, class2.staticFieldsForReflection,
-      'staticFieldsForReflection', (a, b) => a.name.key == b.name.key,
+  checkLists(
+      class1.staticFieldsForReflection,
+      class2.staticFieldsForReflection,
+      'staticFieldsForReflection on $class1/$class2',
+      (a, b) => a.name.key == b.name.key,
       onSameElement: checkEmitterFields);
 
   check(class1, class2, 'superclassName', class1.superclassName?.key,

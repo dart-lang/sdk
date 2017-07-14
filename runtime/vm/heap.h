@@ -135,10 +135,6 @@ class Heap {
     old_space_.WriteProtectCode(read_only);
   }
 
-  // Accessors for inlined allocation in generated code.
-  static intptr_t TopOffset(Space space);
-  static intptr_t EndOffset(Space space);
-
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
                    intptr_t max_new_gen_words,
@@ -315,7 +311,6 @@ class Heap {
   // ensure thread-safety.
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
 
-
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread,
                               ApiCallbacks api_callbacks,
@@ -343,7 +338,7 @@ class Heap {
   Isolate* isolate_;
 
   // The different spaces used for allocation.
-  ALIGN8 Scavenger new_space_;
+  Scavenger new_space_;
   PageSpace old_space_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];
@@ -375,7 +370,6 @@ class Heap {
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
-
 class HeapIterationScope : public StackResource {
  public:
   explicit HeapIterationScope(bool writable = false);
@@ -389,7 +383,6 @@ class HeapIterationScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-
 class NoHeapGrowthControlScope : public StackResource {
  public:
   NoHeapGrowthControlScope();
@@ -399,7 +392,6 @@ class NoHeapGrowthControlScope : public StackResource {
   bool current_growth_controller_state_;
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
 };
-
 
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {

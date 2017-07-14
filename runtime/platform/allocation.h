@@ -23,7 +23,6 @@ class ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ValueObject);
 };
 
-
 // Static allocated classes only contain static members and can never
 // be instantiated in the heap or on the stack.
 class AllStatic {

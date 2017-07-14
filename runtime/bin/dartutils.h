@@ -33,7 +33,6 @@ static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
   return handle;
 }
 
-
 class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
@@ -77,7 +76,6 @@ class CommandLineOptions {
 
   DISALLOW_COPY_AND_ASSIGN(CommandLineOptions);
 };
-
 
 class DartUtils {
  public:
@@ -261,7 +259,6 @@ class DartUtils {
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartUtils);
 };
 
-
 class CObject {
  public:
   // These match the constants in sdk/lib/io/common.dart.
@@ -358,7 +355,6 @@ class CObject {
   DISALLOW_COPY_AND_ASSIGN(CObject);
 };
 
-
 #define DECLARE_COBJECT_CONSTRUCTORS(t)                                        \
   explicit CObject##t(Dart_CObject* cobject) : CObject(cobject) {              \
     ASSERT(type() == Dart_CObject_k##t);                                       \
@@ -369,7 +365,6 @@ class CObject {
     ASSERT(cobject->type() == Dart_CObject_k##t);                              \
     cobject_ = cobject->AsApiCObject();                                        \
   }
-
 
 #define DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(t)                             \
   explicit CObject##t##Array(Dart_CObject* cobject) : CObject(cobject) {       \
@@ -383,7 +378,6 @@ class CObject {
     ASSERT(cobject->byte_array_type() == Dart_TypedData_k##t);                 \
     cobject_ = cobject->AsApiCObject();                                        \
   }
-
 
 #define DECLARE_COBJECT_EXTERNAL_TYPED_DATA_CONSTRUCTORS(t)                    \
   explicit CObjectExternal##t##Array(Dart_CObject* cobject)                    \
@@ -399,7 +393,6 @@ class CObject {
     cobject_ = cobject->AsApiCObject();                                        \
   }
 
-
 class CObjectBool : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Bool)
@@ -409,7 +402,6 @@ class CObjectBool : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectBool);
 };
-
 
 class CObjectInt32 : public CObject {
  public:
@@ -421,7 +413,6 @@ class CObjectInt32 : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectInt32);
 };
 
-
 class CObjectInt64 : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Int64)
@@ -431,7 +422,6 @@ class CObjectInt64 : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectInt64);
 };
-
 
 class CObjectIntptr : public CObject {
  public:
@@ -460,7 +450,6 @@ class CObjectIntptr : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectIntptr);
 };
-
 
 class CObjectBigint : public CObject {
  public:
@@ -492,7 +481,6 @@ class CObjectBigint : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectBigint);
 };
 
-
 class CObjectDouble : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Double)
@@ -502,7 +490,6 @@ class CObjectDouble : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectDouble);
 };
-
 
 class CObjectString : public CObject {
  public:
@@ -514,7 +501,6 @@ class CObjectString : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectString);
 };
-
 
 class CObjectArray : public CObject {
  public:
@@ -532,7 +518,6 @@ class CObjectArray : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectArray);
 };
 
-
 class CObjectSendPort : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(SendPort)
@@ -543,7 +528,6 @@ class CObjectSendPort : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectSendPort);
 };
-
 
 class CObjectTypedData : public CObject {
  public:
@@ -567,7 +551,6 @@ class CObjectTypedData : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectTypedData);
 };
 
-
 class CObjectUint8Array : public CObject {
  public:
   DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(Uint8)
@@ -578,7 +561,6 @@ class CObjectUint8Array : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectUint8Array);
 };
-
 
 class CObjectExternalUint8Array : public CObject {
  public:
@@ -600,7 +582,6 @@ class CObjectExternalUint8Array : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
 };
 
-
 class ScopedBlockingCall {
  public:
   ScopedBlockingCall() { Dart_ThreadDisableProfiling(); }
@@ -611,7 +592,6 @@ class ScopedBlockingCall {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ScopedBlockingCall);
 };
-
 
 // Where the argument to the constructor is the handle for an object
 // implementing List<int>, this class creates a scope in which the memory

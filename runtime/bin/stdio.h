@@ -34,7 +34,6 @@ class Stdin {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Stdin);
 };
 
-
 class Stdout {
  public:
   static bool GetTerminalSize(intptr_t fd, int size[2]);

@@ -12,14 +12,14 @@ class B extends self::Object&M1&M2 {
     ;
 }
 abstract class M1 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method m() → dynamic
     return core::print("M1");
 }
 abstract class M2 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method m() → dynamic
@@ -31,7 +31,7 @@ class C extends self::Object&M1&M2 {
     ;
 }
 abstract class G1<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method m() → dynamic
@@ -40,7 +40,7 @@ abstract class G1<T extends core::Object> extends core::Object {
 abstract class Object&G1^^#T0<#T0 extends core::Object> = core::Object with self::G1<self::Object&G1^^#T0::#T0> {
 }
 class D<S extends core::Object> extends self::Object&G1^^#T0<self::D::S> {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

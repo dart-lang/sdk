@@ -30,9 +30,7 @@ class SdkExtUriResolverTest {
     resourceProvider = new MemoryResourceProvider();
     resourceProvider.newFolder(resourceProvider.convertPath('/empty'));
     resourceProvider.newFolder(resourceProvider.convertPath('/tmp'));
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/tmp/_sdkext'),
-        '''
+    resourceProvider.newFile(resourceProvider.convertPath('/tmp/_sdkext'), '''
 {
   "dart:fox": "slippy.dart",
   "dart:bear": "grizzly.dart",

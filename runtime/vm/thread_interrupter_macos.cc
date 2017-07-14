@@ -5,12 +5,12 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_MACOS)
 
-#include <errno.h>  // NOLINT
 #include <assert.h>      // NOLINT
+#include <errno.h>       // NOLINT
 #include <stdbool.h>     // NOLINT
+#include <sys/sysctl.h>  // NOLINT
 #include <sys/types.h>   // NOLINT
 #include <unistd.h>      // NOLINT
-#include <sys/sysctl.h>  // NOLINT
 
 #include "vm/flags.h"
 #include "vm/os.h"
@@ -71,7 +71,6 @@ class ThreadInterrupterMacOS : public AllStatic {
   }
 };
 
-
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter interrupting %p\n", thread->id());
@@ -80,12 +79,10 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
   ASSERT((result == 0) || (result == ESRCH));
 }
 
-
 void ThreadInterrupter::InstallSignalHandler() {
   SignalHandler::Install<
       ThreadInterrupterMacOS::ThreadInterruptSignalHandler>();
 }
-
 
 void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();

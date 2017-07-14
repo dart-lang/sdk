@@ -102,7 +102,6 @@ class RangeBoundary : public ValueObject {
     return FromConstant(kMaxInt64);
   }
 
-
   // Given two boundaries a and b, select one of them as c so that
   //
   //   inf {[a, ...) ^ [b, ...)} >= inf {c}
@@ -286,7 +285,6 @@ class RangeBoundary : public ValueObject {
   int64_t offset_;
 };
 
-
 class Range : public ZoneAllocated {
  public:
   Range() : min_(), max_() {}
@@ -362,7 +360,6 @@ class Range : public ZoneAllocated {
     }
     return range->max().UpperBound().Clamp(size);
   }
-
 
   // [0, +inf]
   bool IsPositive() const;
@@ -458,7 +455,6 @@ class Range : public ZoneAllocated {
   RangeBoundary max_;
 };
 
-
 class RangeUtils : public AllStatic {
  public:
   static bool Fits(Range* range, RangeBoundary::RangeSize size) {
@@ -483,7 +479,6 @@ class RangeUtils : public AllStatic {
     return !Range::IsUnknown(range) && range->OnlyLessThanOrEqualTo(value);
   }
 };
-
 
 // Range analysis for integer values.
 class RangeAnalysis : public ValueObject {
@@ -548,7 +543,6 @@ class RangeAnalysis : public ValueObject {
                            Instruction* dom,
                            Definition* other);
 
-
   // Infer ranges for integer (smi or mint) definitions.
   void InferRanges();
 
@@ -608,7 +602,6 @@ class RangeAnalysis : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
 
-
 // Replaces Mint IL instructions with Uint32 IL instructions
 // when possible. Uses output of RangeAnalysis.
 class IntegerInstructionSelector : public ValueObject {
@@ -636,7 +629,6 @@ class IntegerInstructionSelector : public ValueObject {
   FlowGraph* flow_graph_;
   Zone* zone_;
 };
-
 
 }  // namespace dart
 

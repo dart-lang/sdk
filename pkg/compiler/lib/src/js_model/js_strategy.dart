@@ -10,7 +10,6 @@ import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/constant_system.dart';
-import '../elements/elements.dart' show ClassElement, TypedefElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
@@ -297,7 +296,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
         mixinUses: mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         // TODO(johnniwinther): Support this:
-        allTypedefs: new ImmutableEmptySet<TypedefElement>());
+        allTypedefs: new ImmutableEmptySet<TypedefEntity>());
   }
 
   @override
@@ -360,7 +359,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
+      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -384,7 +383,24 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             classSets);
 
   @override
-  void registerClosureClass(ClassElement cls) {
-    throw new UnimplementedError('JsClosedWorld.registerClosureClass');
+  void registerClosureClass(ClassEntity cls, bool fromInstanceMember) {
+    // Tell the hierarchy that this is the super class. then we can use
+    // .getSupertypes(class)
+    ClassEntity superclass = fromInstanceMember
+        ? commonElements.boundClosureClass
+        : commonElements.closureClass;
+    ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
+    ClassHierarchyNode node = new ClassHierarchyNode(
+        parentNode, cls, getHierarchyDepth(superclass) + 1);
+    addClassHierarchyNode(cls, node);
+    for (InterfaceType type in getOrderedTypeSet(superclass).types) {
+      // TODO(efortuna): assert that the FunctionClass is in this ordered set.
+      // If not, we need to explicitly add node as a subtype of FunctionClass.
+      ClassSet subtypeSet = getClassSet(type.element);
+      subtypeSet.addSubtype(node);
+    }
+    addClassSet(cls, new ClassSet(node));
+    elementMap.addClosureClass(cls, new InterfaceType(superclass, const []));
+    node.isDirectlyInstantiated = true;
   }
 }

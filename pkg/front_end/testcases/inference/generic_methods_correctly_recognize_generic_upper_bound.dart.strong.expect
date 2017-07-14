@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo<T extends core::Pattern> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method method<U extends self::Foo::T>(self::Foo::method::U u) → self::Foo::method::U

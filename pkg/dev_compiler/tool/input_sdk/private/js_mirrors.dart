@@ -439,11 +439,19 @@ class JsClassMirror extends JsMirror implements ClassMirror {
 
   InstanceMirror newInstance(Symbol constructorName, List args,
       [Map<Symbol, dynamic> namedArgs]) {
-    // TODO(vsm): Support factory constructors and named arguments.
+    // TODO(vsm): Support named arguments.
     var name = getName(constructorName);
     assert(namedArgs == null || namedArgs.isEmpty);
+    // Default constructors are mapped to new.
     if (name == '') name = 'new';
-    var instance = JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
+    var cls = _unwrap(_cls);
+    var ctr = JS('', '#.#', cls, name);
+    // Only generative Dart constructors are wired up as real JS constructors.
+    var instance = JS('bool', '#.prototype == #.prototype', cls, ctr)
+        // Generative
+        ? JS('', 'new #(...#)', ctr, args)
+        // Factory
+        : JS('', '#(...#)', ctr, args);
     return reflect(instance);
   }
 

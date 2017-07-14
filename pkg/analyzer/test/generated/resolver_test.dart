@@ -1618,9 +1618,7 @@ f() {
   }
 
   test_invocation_target_prefixed() async {
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 int max(int x, int y) => 0;
 ''');
@@ -2183,9 +2181,7 @@ void g() {
 
   test_objectAccessInference_disabled_for_library_prefix() async {
     String name = 'hashCode';
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 dynamic get $name => 42;
 ''');
@@ -2231,9 +2227,7 @@ main() {
 
   test_objectMethodInference_disabled_for_library_prefix() async {
     String name = 'toString';
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 dynamic $name = (int x) => x + 42');
 ''');
@@ -2681,8 +2675,7 @@ A V = new A();
 
   test_modeLocal_noContext() async {
     CompilationUnit unit;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C {
   A f = new A();
   A m([A p = const A()]) {
@@ -2795,8 +2788,7 @@ A get G => new A();
 
   test_modeLocal_withContext_bad_methodBody() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2814,8 +2806,7 @@ class C<T1> {
 
   test_modeLocal_withContext_bad_topLevelVariable_declaration() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 var v = new A();
 ''', (CompilationUnit u) {
         var tlv = u.declarations[0] as TopLevelVariableDeclaration;
@@ -2826,8 +2817,7 @@ var v = new A();
 
   test_modeLocal_withContext_bad_topLevelVariable_initializer() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 var v = new A();
 ''', (CompilationUnit u) {
         var tlv = u.declarations[0] as TopLevelVariableDeclaration;
@@ -2838,8 +2828,7 @@ var v = new A();
 
   test_modeLocal_withContext_class() async {
     ClassDeclaration c;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2873,8 +2862,7 @@ class C<T1> {
 
   test_modeLocal_withContext_inClass_constructor() async {
     ConstructorDeclaration cc;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T> {
   C() {
     T v1;
@@ -2898,8 +2886,7 @@ class C<T> {
 
   test_modeLocal_withContext_inClass_method() async {
     MethodDeclaration m;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2933,8 +2920,7 @@ class C<T1> {
 
   test_modeLocal_withContext_topLevelFunction() async {
     FunctionDeclaration f;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 A m<T>() {
   T v;
 }
@@ -2956,8 +2942,7 @@ A m<T>() {
 
   test_modeLocal_withContext_topLevelVariable() async {
     TopLevelVariableDeclaration v;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 A v = new A();
 ''', (CompilationUnit u) {
       v = u.declarations[0] as TopLevelVariableDeclaration;

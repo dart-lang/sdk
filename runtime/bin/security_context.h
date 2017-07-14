@@ -88,7 +88,6 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
 };
 
-
 class X509Helper : public AllStatic {
  public:
   static Dart_Handle GetSubject(Dart_NativeArguments args);

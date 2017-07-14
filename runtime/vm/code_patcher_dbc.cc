@@ -20,7 +20,6 @@ RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
   return call.TargetCode();
 }
 
-
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     const Code& new_target) {
@@ -29,11 +28,9 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   call.SetTargetCode(new_target);
 }
 
-
 void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   CallPattern::InsertDeoptCallAt(start);
 }
-
 
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
                                         const Code& code,
@@ -46,12 +43,10 @@ RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
   return call.TargetCode();
 }
 
-
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
   UNREACHABLE();
   return 0;
 }
-
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
@@ -66,7 +61,6 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   return ic_data.GetTargetAt(0);
 }
 
-
 void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
@@ -77,7 +71,6 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
   call.SetTarget(target);
 }
 
-
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
@@ -85,14 +78,12 @@ RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
   return call.target();
 }
 
-
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   SwitchableCallPattern call(return_address, caller_code);
   return call.data();
 }
-
 
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
@@ -103,7 +94,6 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
   call.set_target(trampoline);
   call.set_native_function(target);
 }
-
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,
                                       const Code& code,

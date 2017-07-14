@@ -30,7 +30,6 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
-
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
@@ -51,7 +50,6 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 
   return 0;
 }
-
 
 int Thread::Start(ThreadStartFunction function, uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(function, parameter);
@@ -82,7 +80,6 @@ ThreadLocalKey Thread::CreateThreadLocal() {
   return key;
 }
 
-
 void Thread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
@@ -91,28 +88,23 @@ void Thread::DeleteThreadLocal(ThreadLocalKey key) {
   }
 }
 
-
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
-
 ThreadId Thread::GetCurrentThreadId() {
   return ::GetCurrentThreadId();
 }
-
 
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
-
 bool Thread::Compare(ThreadId a, ThreadId b) {
   return (a == b);
 }
-
 
 void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
@@ -122,12 +114,10 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   }
 }
 
-
 void Thread::InitOnce() {
   MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
   MonitorData::GetMonitorWaitDataForThread();
 }
-
 
 Mutex::Mutex() {
   // Allocate unnamed semaphore with initial count 1 and max count 1.
@@ -137,11 +127,9 @@ Mutex::Mutex() {
   }
 }
 
-
 Mutex::~Mutex() {
   CloseHandle(data_.semaphore_);
 }
-
 
 void Mutex::Lock() {
   DWORD result = WaitForSingleObject(data_.semaphore_, INFINITE);
@@ -149,7 +137,6 @@ void Mutex::Lock() {
     FATAL1("Mutex lock failed %d", GetLastError());
   }
 }
-
 
 bool Mutex::TryLock() {
   // Attempt to pass the semaphore but return immediately.
@@ -164,7 +151,6 @@ bool Mutex::TryLock() {
   return false;
 }
 
-
 void Mutex::Unlock() {
   BOOL result = ReleaseSemaphore(data_.semaphore_, 1, NULL);
   if (result == 0) {
@@ -172,10 +158,8 @@ void Mutex::Unlock() {
   }
 }
 
-
 ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ =
     Thread::kUnsetThreadLocalKey;
-
 
 Monitor::Monitor() {
   InitializeCriticalSection(&data_.cs_);
@@ -184,22 +168,18 @@ Monitor::Monitor() {
   data_.waiters_tail_ = NULL;
 }
 
-
 Monitor::~Monitor() {
   DeleteCriticalSection(&data_.cs_);
   DeleteCriticalSection(&data_.waiters_cs_);
 }
 
-
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
 }
 
-
 void Monitor::Exit() {
   LeaveCriticalSection(&data_.cs_);
 }
-
 
 void MonitorWaitData::ThreadExit() {
   if (MonitorWaitData::monitor_wait_data_key_ != Thread::kUnsetThreadLocalKey) {
@@ -212,7 +192,6 @@ void MonitorWaitData::ThreadExit() {
     }
   }
 }
-
 
 void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   // Add the MonitorWaitData object to the list of objects waiting for
@@ -228,7 +207,6 @@ void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   }
   LeaveCriticalSection(&waiters_cs_);
 }
-
 
 void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   // Remove the MonitorWaitData object from the list of objects
@@ -261,7 +239,6 @@ void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   LeaveCriticalSection(&waiters_cs_);
 }
 
-
 void MonitorData::SignalAndRemoveFirstWaiter() {
   EnterCriticalSection(&waiters_cs_);
   MonitorWaitData* first = waiters_head_;
@@ -283,7 +260,6 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
   }
   LeaveCriticalSection(&waiters_cs_);
 }
-
 
 void MonitorData::SignalAndRemoveAllWaiters() {
   EnterCriticalSection(&waiters_cs_);
@@ -308,7 +284,6 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   LeaveCriticalSection(&waiters_cs_);
 }
 
-
 MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
@@ -331,7 +306,6 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   }
   return wait_data;
 }
-
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
   Monitor::WaitResult retval = kNotified;
@@ -374,7 +348,6 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   return retval;
 }
 
-
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   // TODO(johnmccutchan): Investigate sub-millisecond sleep times on Windows.
   int64_t millis = micros / kMicrosecondsPerMillisecond;
@@ -387,11 +360,9 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   return Wait(millis);
 }
 
-
 void Monitor::Notify() {
   data_.SignalAndRemoveFirstWaiter();
 }
-
 
 void Monitor::NotifyAll() {
   // If one of the objects in the list of waiters wakes because of a

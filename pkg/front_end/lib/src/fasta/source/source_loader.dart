@@ -8,18 +8,6 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/file_system.dart';
-import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
-
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelTypeInferenceEngine;
-
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
-    show TypeInferenceEngine;
-
 import 'package:kernel/ast.dart' show Arguments, Expression, Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -28,6 +16,10 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/src/incremental_class_hierarchy.dart'
     show IncrementalClassHierarchy;
+
+import '../../../file_system.dart';
+
+import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../builder/builder.dart'
     show
@@ -44,11 +36,30 @@ import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
 
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateCyclicClassHierarchy,
+        templateExtendingEnum,
+        templateExtendingRestricted,
+        templateIllegalMixin,
+        templateIllegalMixinDueToConstructors,
+        templateIllegalMixinDueToConstructorsCause,
+        templateUnspecified;
+
+import '../kernel/kernel_shadow_ast.dart' show KernelTypeInferenceEngine;
+
+import '../kernel/kernel_target.dart' show KernelTarget;
+
 import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
+
+import '../severity.dart' show Severity;
+
+import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -65,6 +76,7 @@ class SourceLoader<L> extends Loader<L> {
   final FileSystem fileSystem;
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+
   final bool excludeSource = CompilerContext.current.options.excludeSource;
 
   // Used when building directly to kernel.
@@ -111,9 +123,10 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.deprecated_addCompileTimeError(
-            token.charOffset, error.assertionMessage,
-            fileUri: uri);
+        library.addCompileTimeError(
+            templateUnspecified.withArguments(error.assertionMessage),
+            token.charOffset,
+            uri);
       }
       token = token.next;
     }
@@ -367,10 +380,10 @@ class SourceLoader<L> extends Loader<L> {
         }
         String involvedString =
             involved.map((c) => c.fullNameForErrors).join("', '");
-        cls.deprecated_addCompileTimeError(
-            cls.charOffset,
-            "'${cls.fullNameForErrors}' is a supertype of itself via "
-            "'$involvedString'.");
+        cls.addCompileTimeError(
+            templateCyclicClassHierarchy.withArguments(
+                cls.fullNameForErrors, involvedString),
+            cls.charOffset);
       }
     });
     ticker.logMs("Found cycles");
@@ -387,16 +400,14 @@ class SourceLoader<L> extends Loader<L> {
       target.addDirectSupertype(cls, directSupertypes);
       for (ClassBuilder supertype in directSupertypes) {
         if (supertype is EnumBuilder) {
-          cls.deprecated_addCompileTimeError(
-              cls.charOffset,
-              "'${supertype.name}' is an enum and can't be extended or "
-              "implemented.");
+          cls.addCompileTimeError(
+              templateExtendingEnum.withArguments(supertype.name),
+              cls.charOffset);
         } else if (!cls.library.mayImplementRestrictedTypes &&
             blackListedClasses.contains(supertype)) {
-          cls.deprecated_addCompileTimeError(
-              cls.charOffset,
-              "'${supertype.name}' is restricted and can't be extended or "
-              "implemented.");
+          cls.addCompileTimeError(
+              templateExtendingRestricted.withArguments(supertype.name),
+              cls.charOffset);
         }
       }
       TypeBuilder mixedInType = cls.mixedInType;
@@ -408,21 +419,22 @@ class SourceLoader<L> extends Loader<L> {
             isClassBuilder = true;
             for (Builder constructory in builder.constructors.local.values) {
               if (constructory.isConstructor && !constructory.isSynthetic) {
-                cls.deprecated_addCompileTimeError(
-                    cls.charOffset,
-                    "Can't use '${builder.fullNameForErrors}' as a mixin "
-                    "because it has constructors.");
-                builder.deprecated_addCompileTimeError(
-                    constructory.charOffset,
-                    "This constructor prevents using "
-                    "'${builder.fullNameForErrors}' as a mixin.");
+                cls.addCompileTimeError(
+                    templateIllegalMixinDueToConstructors
+                        .withArguments(builder.fullNameForErrors),
+                    cls.charOffset);
+                builder.addCompileTimeError(
+                    templateIllegalMixinDueToConstructorsCause
+                        .withArguments(builder.fullNameForErrors),
+                    constructory.charOffset);
               }
             }
           }
         }
         if (!isClassBuilder) {
-          cls.deprecated_addCompileTimeError(cls.charOffset,
-              "The type '${mixedInType.fullNameForErrors}' can't be mixed in.");
+          cls.addCompileTimeError(
+              templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
+              cls.charOffset);
         }
       }
     }
@@ -518,8 +530,9 @@ class SourceLoader<L> extends Loader<L> {
     return target.backendTarget.throwCompileConstantError(coreTypes, error);
   }
 
-  Expression deprecated_buildCompileTimeError(String message, int offset) {
-    return target.backendTarget
-        .buildCompileTimeError(coreTypes, message, offset);
+  Expression buildCompileTimeError(Message message, int offset, Uri uri) {
+    String text = target.context
+        .format(message.withLocation(uri, offset), Severity.error);
+    return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
   }
 }

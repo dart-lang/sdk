@@ -26,18 +26,16 @@ DEFINE_NATIVE_ENTRY(DartAsync_fatal, 1) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Object_equals, 1) {
   // Implemented in the flow graph builder.
   UNREACHABLE();
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
-  // Please note that no handle is created for the argument.
-  // This is safe since the argument is only used in a tail call.
-  // The performance benefit is more than 5% when using hashCode.
+// Please note that no handle is created for the argument.
+// This is safe since the argument is only used in a tail call.
+// The performance benefit is more than 5% when using hashCode.
 #if defined(HASH_IN_OBJECT_HEADER)
   return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
 #else
@@ -46,7 +44,6 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
   return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
 #endif
 }
-
 
 DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
@@ -60,7 +57,6 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   if (instance.IsString()) {
@@ -69,7 +65,6 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   const char* c_str = instance.ToCString();
   return String::New(c_str);
 }
-
 
 DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
@@ -120,7 +115,6 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   if (instance.IsString()) {
@@ -132,7 +126,6 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   }
   return instance.GetType(Heap::kNew);
 }
-
 
 DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
   const Instance& left = Instance::CheckedHandle(arguments->NativeArgAt(0));
@@ -171,7 +164,6 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
       TypeArguments::Handle(right.GetTypeArguments());
   return Bool::Get(left_type_arguments.Equals(right_type_arguments)).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const Instance& instance =
@@ -250,7 +242,6 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
   return Bool::Get(is_instance_of).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Object_as, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -313,13 +304,11 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
   return instance.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
   return type.UserVisibleName();
 }
-
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
   const LibraryPrefix& prefix =
@@ -328,14 +317,12 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
   return Bool::Get(true).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   bool hasCompleted = prefix.LoadLibrary();
   return Bool::Get(hasCompleted).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
   const LibraryPrefix& prefix =
@@ -348,13 +335,11 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
   return error.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(prefix.is_loaded()).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #if defined(ARCH_IS_64_BIT)
@@ -363,7 +348,6 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
   return Bool::False().raw();
 #endif  // defined(ARCH_IS_64_BIT)
 }
-
 
 DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
   const TypeArguments& function_type_arguments =

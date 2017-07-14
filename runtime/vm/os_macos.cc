@@ -9,11 +9,11 @@
 
 #include <errno.h>           // NOLINT
 #include <limits.h>          // NOLINT
-#include <mach/mach.h>       // NOLINT
 #include <mach/clock.h>      // NOLINT
+#include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
-#include <sys/time.h>        // NOLINT
 #include <sys/resource.h>    // NOLINT
+#include <sys/time.h>        // NOLINT
 #include <unistd.h>          // NOLINT
 #if HOST_OS_IOS
 #include <sys/sysctl.h>  // NOLINT
@@ -34,11 +34,9 @@ const char* OS::Name() {
 #endif
 }
 
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
-
 
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
@@ -47,14 +45,12 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   return error_code != NULL;
 }
 
-
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
   // If unsuccessful, return an empty string like V8 does.
   return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
 }
-
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
@@ -64,7 +60,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
 }
 
-
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   // TODO(floitsch): avoid excessive calls to tzset?
   tzset();
@@ -73,11 +68,9 @@ int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   return static_cast<int>(-timezone);
 }
 
-
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }
-
 
 int64_t OS::GetCurrentTimeMicros() {
   // gettimeofday has microsecond resolution.
@@ -89,11 +82,9 @@ int64_t OS::GetCurrentTimeMicros() {
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
-
 #if !HOST_OS_IOS
 static mach_timebase_info_data_t timebase_info;
 #endif
-
 
 int64_t OS::GetCurrentMonotonicTicks() {
 #if HOST_OS_IOS
@@ -124,7 +115,6 @@ int64_t OS::GetCurrentMonotonicTicks() {
 #endif  // HOST_OS_IOS
 }
 
-
 int64_t OS::GetCurrentMonotonicFrequency() {
 #if HOST_OS_IOS
   return kMicrosecondsPerSecond;
@@ -132,7 +122,6 @@ int64_t OS::GetCurrentMonotonicFrequency() {
   return kNanosecondsPerSecond;
 #endif  // HOST_OS_IOS
 }
-
 
 int64_t OS::GetCurrentMonotonicMicros() {
 #if HOST_OS_IOS
@@ -143,7 +132,6 @@ int64_t OS::GetCurrentMonotonicMicros() {
   return GetCurrentMonotonicTicks() / kNanosecondsPerMicrosecond;
 #endif  // HOST_OS_IOS
 }
-
 
 int64_t OS::GetCurrentThreadCPUMicros() {
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
@@ -164,7 +152,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   thread_cpu_micros += info->system_time.microseconds;
   return thread_cpu_micros;
 }
-
 
 intptr_t OS::ActivationFrameAlignment() {
 #if HOST_OS_IOS
@@ -190,7 +177,6 @@ intptr_t OS::ActivationFrameAlignment() {
 #endif  // HOST_OS_IOS
 }
 
-
 intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
@@ -210,11 +196,9 @@ intptr_t OS::PreferredCodeAlignment() {
   return alignment;
 }
 
-
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
-
 
 uintptr_t OS::MaxRSS() {
   struct rusage usage;
@@ -224,12 +208,10 @@ uintptr_t OS::MaxRSS() {
   return usage.ru_maxrss;
 }
 
-
 void OS::Sleep(int64_t millis) {
   int64_t micros = millis * kMicrosecondsPerMillisecond;
   SleepMicros(micros);
 }
-
 
 void OS::SleepMicros(int64_t micros) {
   struct timespec req;  // requested.
@@ -255,17 +237,14 @@ void OS::SleepMicros(int64_t micros) {
   }
 }
 
-
 void OS::DebugBreak() {
   __builtin_trap();
 }
-
 
 uintptr_t DART_NOINLINE OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
-
 
 char* OS::StrNDup(const char* s, intptr_t n) {
 // strndup has only been added to Mac OS X in 10.7. We are supplying
@@ -290,7 +269,6 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }
 
-
 intptr_t OS::StrNLen(const char* s, intptr_t n) {
 // strnlen has only been added to Mac OS X in 10.7. We are supplying
 // our own copy here if needed.
@@ -307,7 +285,6 @@ intptr_t OS::StrNLen(const char* s, intptr_t n) {
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }
 
-
 void OS::Print(const char* format, ...) {
 #if HOST_OS_IOS
   va_list args;
@@ -322,12 +299,10 @@ void OS::Print(const char* format, ...) {
 #endif
 }
 
-
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
 }
-
 
 int OS::SNPrint(char* str, size_t size, const char* format, ...) {
   va_list args;
@@ -337,7 +312,6 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
   return retval;
 }
 
-
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   int retval = vsnprintf(str, size, format, args);
   if (retval < 0) {
@@ -346,7 +320,6 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   return retval;
 }
 
-
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -354,7 +327,6 @@ char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_end(args);
   return buffer;
 }
-
 
 char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
@@ -379,7 +351,6 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   return buffer;
 }
 
-
 bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
   int32_t base = 10;
@@ -397,9 +368,7 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
-
 void OS::RegisterCodeObservers() {}
-
 
 void OS::PrintErr(const char* format, ...) {
 #if HOST_OS_IOS
@@ -414,7 +383,6 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 #endif
 }
-
 
 void OS::InitOnce() {
   // TODO(5411554): For now we check that initonce is called only once,
@@ -440,14 +408,11 @@ void OS::InitOnce() {
   }
 }
 
-
 void OS::Shutdown() {}
-
 
 void OS::Abort() {
   abort();
 }
-
 
 void OS::Exit(int code) {
   exit(code);

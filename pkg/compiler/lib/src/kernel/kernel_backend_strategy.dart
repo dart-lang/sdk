@@ -241,4 +241,11 @@ class KernelSorter implements Sorter {
             a, elementMap.getClassNode(a), b, elementMap.getClassNode(b));
       });
   }
+
+  @override
+  Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs) {
+    // TODO(redemption): Support this.
+    assert(typedefs.isEmpty);
+    return typedefs;
+  }
 }

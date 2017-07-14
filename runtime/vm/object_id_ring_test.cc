@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
-#include "vm/globals.h"
 #include "vm/object_id_ring.h"
-#include "vm/unit_test.h"
+#include "platform/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/globals.h"
+#include "vm/unit_test.h"
 
 namespace dart {
 
@@ -47,7 +47,6 @@ class ObjectIdRingTestHelper {
     EXPECT(str.Equals(s));
   }
 };
-
 
 // Test that serial number wrapping works.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
@@ -120,7 +119,6 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 3);
 }
 
-
 // Test that the ring table is updated when the scavenger moves an object.
 TEST_CASE(ObjectIdRingScavengeMoveTest) {
   const char* kScriptChars =
@@ -188,7 +186,6 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
             ring->GetIdForObject(raw_object_moved1, ObjectIdRing::kReuseId));
 }
 
-
 // Test that the ring table is updated with nulls when the old GC collects.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
@@ -240,7 +237,6 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved2);
 }
-
 
 // Test that the ring table correctly reports an entry as expired when it is
 // overridden by new entries.

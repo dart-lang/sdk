@@ -67,7 +67,6 @@ const char* CanonicalFunction(const char* func);
   TransitionNativeToVM transition(T);                                          \
   HANDLESCOPE(T);
 
-
 #define RETURN_TYPE_ERROR(zone, dart_handle, type)                             \
   do {                                                                         \
     const Object& tmp =                                                        \
@@ -81,7 +80,6 @@ const char* CanonicalFunction(const char* func);
     return Api::NewError("%s expects argument '%s' to be of type %s.",         \
                          CURRENT_FUNC, #dart_handle, #type);                   \
   } while (0)
-
 
 #define RETURN_NULL_ERROR(parameter)                                           \
   return Api::NewError("%s expects argument '%s' to be non-null.",             \
@@ -102,7 +100,6 @@ const char* CanonicalFunction(const char* func);
           CURRENT_FUNC, #length, max);                                         \
     }                                                                          \
   } while (0)
-
 
 class Api : AllStatic {
  public:

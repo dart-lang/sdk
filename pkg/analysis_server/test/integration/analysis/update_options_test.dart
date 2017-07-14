@@ -21,9 +21,7 @@ class UpdateOptionsTest extends AbstractAnalysisServerIntegrationTest {
     // We fail after the first analysis.updateOptions - we should not see a hint
     // for the unused import (#28800).
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 import 'dart:async'; // unused
 
 class Foo {

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/zone.h"
 #include "platform/assert.h"
 #include "vm/dart.h"
 #include "vm/isolate.h"
 #include "vm/unit_test.h"
-#include "vm/zone.h"
 
 namespace dart {
 
@@ -71,7 +71,6 @@ VM_UNIT_TEST_CASE(AllocateZone) {
   Dart_ShutdownIsolate();
 }
 
-
 VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
@@ -94,7 +93,6 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
   Dart_ShutdownIsolate();
 }
 
-
 // This test is expected to crash.
 VM_UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
@@ -113,7 +111,6 @@ VM_UNIT_TEST_CASE(AllocGeneric_Overflow) {
   }
   Dart_ShutdownIsolate();
 }
-
 
 VM_UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
@@ -162,13 +159,11 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
   Dart_ShutdownIsolate();
 }
 
-
 TEST_CASE(PrintToString) {
   StackZone zone(Thread::Current());
   const char* result = zone.GetZone()->PrintToString("Hello %s!", "World");
   EXPECT_STREQ("Hello World!", result);
 }
-
 
 VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
   ASSERT(ApiNativeScope::Current() == NULL);

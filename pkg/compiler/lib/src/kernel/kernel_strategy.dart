@@ -98,7 +98,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   }
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataBuilderImpl(elementMap.commonElements);
+    return new MirrorsDataBuilderImpl(elementEnvironment, commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -181,8 +181,9 @@ class KernelWorkItem implements ResolutionWorkItem {
 
 /// Mock implementation of [MirrorsDataImpl].
 class MirrorsDataBuilderImpl extends MirrorsDataImpl {
-  MirrorsDataBuilderImpl(CommonElements commonElements)
-      : super(null, null, commonElements);
+  MirrorsDataBuilderImpl(
+      ElementEnvironment elementEnvironment, CommonElements commonElements)
+      : super(null, null, elementEnvironment, commonElements);
 
   @override
   void registerUsedMember(MemberEntity member) {}

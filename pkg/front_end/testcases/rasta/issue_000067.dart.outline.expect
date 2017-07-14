@@ -21,7 +21,7 @@ class C extends self::A {
     ;
 }
 class D extends self::C {
-  constructor •() → void
+  default constructor •() → void
     ;
   method m() → core::int
     ;

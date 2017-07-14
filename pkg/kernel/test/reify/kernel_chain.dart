@@ -96,9 +96,7 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
       });
       return pass(program);
     } else {
-      return fail(
-          program,
-          """
+      return fail(program, """
 Please create file ${expectedFile.path} with this content:
 $buffer""");
     }

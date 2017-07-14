@@ -21,8 +21,7 @@ import '../elements/elements.dart'
         Elements,
         FieldElement,
         MemberElement,
-        MixinApplicationElement,
-        TypedefElement;
+        MixinApplicationElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -1532,7 +1531,7 @@ class Namer {
   }
 
   String globalObjectForType(Entity element) {
-    if (element is TypedefElement) {
+    if (element is TypedefEntity) {
       return globalObjectForLibrary(element.library);
     }
     return globalObjectForClass(element);

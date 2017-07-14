@@ -94,7 +94,6 @@ TEST_CASE(RangeTests) {
 #undef TEST_RANGE_OP
 }
 
-
 TEST_CASE(RangeTestsInfinity) {
   // +/- inf overflowed.
   EXPECT(RangeBoundary::NegativeInfinity().OverflowedSmi());
@@ -151,7 +150,6 @@ TEST_CASE(RangeTestsInfinity) {
                                         RangeBoundary::NegativeInfinity());
   EXPECT(unsatisfiable_left->IsUnsatisfiable());
 }
-
 
 TEST_CASE(RangeUtils) {
   // [-inf, +inf].
@@ -238,7 +236,6 @@ TEST_CASE(RangeUtils) {
       RangeBoundary::PositiveInfinity()));
 }
 
-
 TEST_CASE(RangeBinaryOp) {
   Range* range_a = new Range(RangeBoundary::FromConstant(-1),
                              RangeBoundary::PositiveInfinity());
@@ -286,7 +283,6 @@ TEST_CASE(RangeBinaryOp) {
     EXPECT(result.max().ConstantValue() == 0xf);
   }
 }
-
 
 TEST_CASE(RangeAdd) {
 #define TEST_RANGE_ADD(l_min, l_max, r_min, r_max, result_min, result_max)     \
@@ -368,7 +364,6 @@ TEST_CASE(RangeAdd) {
 #undef TEST_RANGE_ADD
 }
 
-
 TEST_CASE(RangeSub) {
 #define TEST_RANGE_SUB(l_min, l_max, r_min, r_max, result_min, result_max)     \
   {                                                                            \
@@ -419,10 +414,8 @@ TEST_CASE(RangeSub) {
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 30),
                  RangeBoundary(static_cast<int64_t>(kMaxInt32) + 40));
 
-
 #undef TEST_RANGE_SUB
 }
-
 
 TEST_CASE(RangeAnd) {
 #define TEST_RANGE_AND(l_min, l_max, r_min, r_max, result_min, result_max)     \
@@ -477,7 +470,6 @@ TEST_CASE(RangeAnd) {
 
 #undef TEST_RANGE_AND
 }
-
 
 TEST_CASE(RangeIntersectionMinMax) {
   // Test IntersectionMin and IntersectionMax methods which for constants are
@@ -557,7 +549,6 @@ TEST_CASE(RangeIntersectionMinMax) {
       RangeBoundary::IntersectionMax(p_infinity, RangeBoundary::FromConstant(1))
           .ConstantValue() == 1);
 }
-
 
 TEST_CASE(RangeJoinMinMax) {
   // Test IntersectionMin and IntersectionMax methods which for constants are

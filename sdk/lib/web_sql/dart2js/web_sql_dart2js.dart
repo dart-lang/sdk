@@ -12,7 +12,7 @@ library dart.dom.web_sql;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal';
+import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_foreign_helper' show JS;

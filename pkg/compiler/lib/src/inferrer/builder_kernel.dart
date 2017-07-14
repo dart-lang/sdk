@@ -30,7 +30,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final MemberElement outermostElement;
   final ir.Node analyzedNode;
   final ResolvedAst resolvedAst;
-  final TypeSystem types;
+  // TODO(johnniwinther): This should be TypeSystem<ir.Node>.
+  final TypeSystem<ast.Node> types;
   LocalsHandler locals;
   final InferrerEngine inferrer;
   SideEffects sideEffects = new SideEffects.empty();
@@ -154,7 +155,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       for (ir.Expression element in listLiteral.expressions) {
         TypeInformation type = element.accept(this);
         elementType = elementType == null
-            ? types.allocatePhi(null, null, type)
+            ? types.allocatePhi(null, null, type, isTry: false)
             : types.addPhiInput(null, elementType, type);
         length++;
       }

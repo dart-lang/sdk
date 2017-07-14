@@ -53,6 +53,11 @@ final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
 
 String compileTemplate(String name, String template, String tip,
     String analyzerCode, String dart2jsCode) {
+  if (template == null) {
+    print('Error: missing template for message: $name');
+    exit(1);
+    return '';
+  }
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
@@ -78,6 +83,16 @@ String compileTemplate(String name, String template, String tip,
       case "#name2":
         parameters.add("String name2");
         arguments.add("'name2': name2");
+        break;
+
+      case "#name3":
+        parameters.add("String name3");
+        arguments.add("'name3': name3");
+        break;
+
+      case "#number":
+        parameters.add("int number");
+        arguments.add("'number': number");
         break;
 
       case "#lexeme":
@@ -106,6 +121,12 @@ String compileTemplate(String name, String template, String tip,
         parameters.add("Uri uri2_");
         conversions.add("String uri2 = relativizeUri(uri2_);");
         arguments.add("'uri2': uri2_");
+        break;
+
+      case "#uri3":
+        parameters.add("Uri uri3_");
+        conversions.add("String uri3 = relativizeUri(uri3_);");
+        arguments.add("'uri3': uri3_");
         break;
 
       default:

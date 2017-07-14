@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "./infer_types_on_generic_instantiations_in_library_cycle.dart" as test;
 
 abstract class I<E extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method m(dynamic a, (dynamic, core::int) → core::String f) → test::A<self::I::E>;

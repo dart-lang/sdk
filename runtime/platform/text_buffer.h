@@ -10,7 +10,6 @@
 
 namespace dart {
 
-
 // TextBuffer maintains a dynamic character buffer with a printf-style way to
 // append text.
 class TextBuffer : ValueObject {

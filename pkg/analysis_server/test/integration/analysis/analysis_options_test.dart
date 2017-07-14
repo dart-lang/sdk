@@ -25,9 +25,7 @@ class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
     fail('test timeout expected - #28868');
 
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-    writeFile(
-        options,
-        '''
+    writeFile(options, '''
 linter:
   rules:
     - camel_case_typo # :)
@@ -58,9 +56,7 @@ linter:
     fail('test timeout expected - #28868');
 
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
-    writeFile(
-        options,
-        '''
+    writeFile(options, '''
 linter:
   rules:
     - camel_case_typo # :)

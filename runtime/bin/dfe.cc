@@ -15,14 +15,12 @@ namespace bin {
 const char kPlatformBinaryName[] = "platform.dill";
 const char kVMServiceIOBinaryName[] = "vmservice_io.dill";
 
-
 DFE::DFE()
     : frontend_filename_(NULL),
       platform_binary_filename_(NULL),
       vmservice_io_binary_filename_(NULL),
       kernel_platform_(NULL),
       kernel_vmservice_io_(NULL) {}
-
 
 DFE::~DFE() {
   frontend_filename_ = NULL;
@@ -43,7 +41,6 @@ DFE::~DFE() {
   }
 }
 
-
 void DFE::SetKernelBinaries(const char* name) {
   intptr_t len = snprintf(NULL, 0, "%s%s%s", name, File::PathSeparator(),
                           kPlatformBinaryName) +
@@ -59,7 +56,6 @@ void DFE::SetKernelBinaries(const char* name) {
   snprintf(vmservice_io_binary_filename_, len, "%s%s%s", name,
            File::PathSeparator(), kVMServiceIOBinaryName);
 }
-
 
 Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
@@ -94,7 +90,6 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   return Dart_Null();
 }
 
-
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code) {
@@ -118,16 +113,13 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   return NULL;
 }
 
-
 void* DFE::ReadPlatform() {
   return kernel_platform_ = ReadScript(platform_binary_filename_);
 }
 
-
 void* DFE::ReadVMServiceIO() {
   return kernel_vmservice_io_ = ReadScript(vmservice_io_binary_filename_);
 }
-
 
 void* DFE::ReadScript(const char* script_uri) {
   const uint8_t* buffer = NULL;
@@ -138,7 +130,6 @@ void* DFE::ReadScript(const char* script_uri) {
   }
   return NULL;
 }
-
 
 bool DFE::TryReadKernelFile(const char* script_uri,
                             const uint8_t** kernel_ir,
@@ -172,7 +163,6 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   }
   return false;
 }
-
 
 }  // namespace bin
 }  // namespace dart

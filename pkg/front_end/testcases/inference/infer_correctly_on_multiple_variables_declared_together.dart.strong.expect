@@ -6,7 +6,7 @@ class A extends core::Object {
   field dynamic x = null;
   field core::int y = 2;
   field core::String z = "hi";
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
@@ -15,7 +15,7 @@ class B extends core::Object implements self::A {
   field core::int y = 3;
   field core::String z = null;
   field core::int w = 2;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

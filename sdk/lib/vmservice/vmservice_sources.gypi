@@ -16,5 +16,6 @@
     'running_isolates.dart',
     'message.dart',
     'message_router.dart',
+    'named_lookup.dart',
   ],
 }

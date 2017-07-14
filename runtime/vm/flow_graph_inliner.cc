@@ -5,12 +5,9 @@
 #include "vm/flow_graph_inliner.h"
 
 #include "vm/aot_optimizer.h"
-#include "vm/precompiler.h"
 #include "vm/block_scheduler.h"
 #include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
-#include "vm/kernel.h"
-#include "vm/kernel_to_il.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
@@ -18,9 +15,12 @@
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/jit_optimizer.h"
+#include "vm/kernel.h"
+#include "vm/kernel_to_il.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/precompiler.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -116,7 +116,6 @@ DECLARE_FLAG(bool, verify_compiler);
     }                                                                          \
   } while (false)
 
-
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
@@ -129,13 +128,11 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
   return false;
 }
 
-
 // Helper to get the default value of a formal parameter.
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
   return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
 }
-
 
 // Pair of an argument name and its value.
 struct NamedArgument {
@@ -143,7 +140,6 @@ struct NamedArgument {
   Value* value;
   NamedArgument(String* name, Value* value) : name(name), value(value) {}
 };
-
 
 // Helper to collect information about a callee graph when considering it for
 // inlining.
@@ -194,7 +190,6 @@ class GraphInfoCollector : public ValueObject {
   intptr_t instruction_count_;
 };
 
-
 // Structure for collecting inline data needed to print inlining tree.
 struct InlinedInfo {
   const Function* caller;
@@ -213,7 +208,6 @@ struct InlinedInfo {
         call_instr(call),
         bailout_reason(reason) {}
 };
-
 
 // A collection of call sites to consider for inlining.
 class CallSites : public ValueObject {
@@ -352,7 +346,6 @@ class CallSites : public ValueObject {
     }
   }
 
-
   void FindCallSites(FlowGraph* graph,
                      intptr_t depth,
                      GrowableArray<InlinedInfo>* inlined_info) {
@@ -429,7 +422,6 @@ class CallSites : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
 
-
 struct InlinedCallData {
   InlinedCallData(Definition* call,
                   intptr_t first_param_index,  // 1 if type args are passed.
@@ -454,7 +446,6 @@ struct InlinedCallData {
   const Function& caller;
   const intptr_t caller_inlining_id;
 };
-
 
 class CallSiteInliner;
 
@@ -497,7 +488,6 @@ class PolymorphicInliner : public ValueObject {
   const intptr_t caller_inlining_id_;
 };
 
-
 static bool HasAnnotation(const Function& function, const char* annotation) {
   const Class& owner = Class::Handle(function.Owner());
   const Library& library = Library::Handle(owner.library());
@@ -515,7 +505,6 @@ static bool HasAnnotation(const Function& function, const char* annotation) {
   }
   return false;
 }
-
 
 static void ReplaceParameterStubs(Zone* zone,
                                   FlowGraph* caller_graph,
@@ -605,7 +594,6 @@ static void ReplaceParameterStubs(Zone* zone,
   // Check that inlining maintains use lists.
   DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph->VerifyUseLists());
 }
-
 
 class CallSiteInliner : public ValueObject {
  public:
@@ -882,7 +870,6 @@ class CallSiteInliner : public ValueObject {
             return false;
           }
         }
-
 
         // Build the callee graph.
         InlineExitCollector* exit_collector =
@@ -1485,7 +1472,6 @@ class CallSiteInliner : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
 
-
 PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
                                        PolymorphicInstanceCallInstr* call,
                                        const Function& caller_function,
@@ -1501,21 +1487,17 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       caller_function_(caller_function),
       caller_inlining_id_(caller_inlining_id) {}
 
-
 Isolate* PolymorphicInliner::isolate() const {
   return owner_->caller_graph()->isolate();
 }
-
 
 Zone* PolymorphicInliner::zone() const {
   return owner_->caller_graph()->zone();
 }
 
-
 intptr_t PolymorphicInliner::AllocateBlockId() const {
   return owner_->caller_graph()->allocate_block_id();
 }
-
 
 // Inlined bodies are shared if two different class ids have the same
 // inlined target.  This sharing is represented by using three different
@@ -1577,7 +1559,6 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
   return false;
 }
 
-
 bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < non_inlined_variants_->length(); ++i) {
     if (target.raw() == non_inlined_variants_->TargetAt(i)->target->raw()) {
@@ -1587,7 +1568,6 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
   return false;
 }
-
 
 bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   if ((!FLAG_precompiled_mode ||
@@ -1620,7 +1600,6 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   return true;
 }
 
-
 static Instruction* AppendInstruction(Instruction* first, Instruction* second) {
   for (intptr_t i = second->InputCount() - 1; i >= 0; --i) {
     Value* input = second->InputAt(i);
@@ -1629,7 +1608,6 @@ static Instruction* AppendInstruction(Instruction* first, Instruction* second) {
   first->LinkTo(second);
   return second;
 }
-
 
 bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const Function& target) {
@@ -1672,7 +1650,6 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   }
   return false;
 }
-
 
 // Build a DAG to dispatch to the inlined function bodies.  Load the class
 // id of the receiver and make explicit comparisons for each inlined body,
@@ -1919,7 +1896,6 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   return entry;
 }
 
-
 static void TracePolyInlining(const CallTargets& targets,
                               intptr_t idx,
                               intptr_t total,
@@ -1932,11 +1908,9 @@ static void TracePolyInlining(const CallTargets& targets,
             targets.TargetAt(idx)->count, total, percent, message);
 }
 
-
 bool PolymorphicInliner::trace_inlining() const {
   return owner_->trace_inlining();
 }
-
 
 void PolymorphicInliner::Inline() {
   ASSERT(&variants_ == &call_->targets_);
@@ -2019,17 +1993,14 @@ void PolymorphicInliner::Inline() {
   exit_collector_->ReplaceCall(entry);
 }
 
-
 static uint16_t ClampUint16(intptr_t v) {
   return (v > 0xFFFF) ? 0xFFFF : static_cast<uint16_t>(v);
 }
-
 
 static bool ShouldTraceInlining(FlowGraph* flow_graph) {
   const Function& top = flow_graph->parsed_function().function();
   return FLAG_trace_inlining && FlowGraphPrinter::ShouldPrint(top);
 }
-
 
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
@@ -2050,7 +2021,6 @@ FlowGraphInliner::FlowGraphInliner(
   ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
 }
 
-
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
   const Function& function = flow_graph->function();
   if (force || (function.optimized_instruction_count() == 0)) {
@@ -2062,7 +2032,6 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
     function.set_optimized_call_site_count(ClampUint16(info.call_site_count()));
   }
 }
-
 
 // TODO(srdjan): This is only needed when disassembling and/or profiling.
 // Sets inlining id for all instructions of this flow-graph, as well for the
@@ -2083,7 +2052,6 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
   }
 }
 
-
 // Use function name to determine if inlineable operator.
 // Add names as necessary.
 static bool IsInlineableOperator(const Function& function) {
@@ -2092,7 +2060,6 @@ static bool IsInlineableOperator(const Function& function) {
          (function.name() == Symbols::Plus().raw()) ||
          (function.name() == Symbols::Minus().raw());
 }
-
 
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
   const char* kAlwaysInlineAnnotation = "AlwaysInline";
@@ -2123,7 +2090,6 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   }
   return MethodRecognizer::AlwaysInline(function);
 }
-
 
 void FlowGraphInliner::Inline() {
   // Collect graph info and store it on the function.
@@ -2176,7 +2142,6 @@ void FlowGraphInliner::Inline() {
   }
 }
 
-
 intptr_t FlowGraphInliner::NextInlineId(const Function& function,
                                         TokenPosition tp,
                                         intptr_t parent_id) {
@@ -2193,16 +2158,13 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   return id;
 }
 
-
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-
 static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
-
 
 static bool ShouldInlineInt64ArrayOps() {
 #if defined(TARGET_ARCH_X64)
@@ -2212,13 +2174,11 @@ static bool ShouldInlineInt64ArrayOps() {
 #endif
 }
 
-
 static bool CanUnboxInt32() {
   // Int32/Uint32 can be unboxed if it fits into a smi or the platform
   // supports unboxed mints.
   return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedMints();
 }
-
 
 // Quick access to the current one.
 #undef Z
@@ -2266,7 +2226,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
   return array_cid;
 }
 
-
 static bool InlineGetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
                              Instruction* call,
@@ -2310,7 +2269,6 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   }
   return true;
 }
-
 
 static bool InlineSetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
@@ -2452,7 +2410,6 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineDoubleOp(FlowGraph* flow_graph,
                            Token::Kind op_kind,
                            Instruction* call,
@@ -2479,7 +2436,6 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineDoubleTestOp(FlowGraph* flow_graph,
                                Instruction* call,
                                Definition* receiver,
@@ -2504,7 +2460,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
                                    Instruction* call,
                                    Definition* receiver,
@@ -2526,7 +2481,6 @@ static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
 
   return true;
 }
-
 
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       intptr_t offset,
@@ -2552,7 +2506,6 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
 
   return true;
 }
-
 
 static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          Instruction* call,
@@ -2614,7 +2567,6 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   }
 }
 
-
 static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                     Instruction* call,
                                     Definition* receiver,
@@ -2656,7 +2608,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   }
   return true;
 }
-
 
 static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                      const Function& target,
@@ -2770,7 +2721,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   return true;
 }
 
-
 // Returns the LoadIndexedInstr.
 static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Instruction* call,
@@ -2823,7 +2773,6 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   return load_indexed;
 }
 
-
 static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
                                    Instruction* call,
                                    Definition* receiver,
@@ -2852,7 +2801,6 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
                                    Instruction* call,
                                    Definition* receiver,
@@ -2874,7 +2822,6 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
 
   return true;
 }
-
 
 // Only used for monomorphic calls.
 bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
@@ -2929,7 +2876,6 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
   return false;
 }
 
-
 bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
@@ -2967,7 +2913,6 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
   }
   return false;
 }
-
 
 static bool InlineFloat32x4Method(FlowGraph* flow_graph,
                                   Instruction* call,
@@ -3074,7 +3019,6 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
   if (!definition->IsConstant()) return false;
   ConstantInstr* constant_instruction = definition->AsConstant();
@@ -3087,7 +3031,6 @@ static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
   *mask_ptr = mask;
   return true;
 }
-
 
 static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
                                     Instruction* call,
@@ -3117,7 +3060,6 @@ static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
                                        Instruction* call,
                                        Definition* receiver,
@@ -3146,7 +3088,6 @@ static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
       FlowGraph::kValue);
   return true;
 }
-
 
 static bool InlineInt32x4Method(FlowGraph* flow_graph,
                                 Instruction* call,
@@ -3204,7 +3145,6 @@ static bool InlineInt32x4Method(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineFloat64x2Method(FlowGraph* flow_graph,
                                   Instruction* call,
                                   Definition* receiver,
@@ -3256,7 +3196,6 @@ static bool InlineFloat64x2Method(FlowGraph* flow_graph,
       FlowGraph::kValue);
   return true;
 }
-
 
 static bool InlineSimdConstructor(FlowGraph* flow_graph,
                                   Instruction* call,
@@ -3339,7 +3278,6 @@ static bool InlineSimdConstructor(FlowGraph* flow_graph,
   return true;
 }
 
-
 static bool InlineMathCFunction(FlowGraph* flow_graph,
                                 Instruction* call,
                                 MethodRecognizer::Kind kind,
@@ -3378,7 +3316,6 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
       FlowGraph::kValue);
   return true;
 }
-
 
 bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                                  intptr_t receiver_cid,
@@ -3801,7 +3738,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return false;
   }
 }
-
 
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

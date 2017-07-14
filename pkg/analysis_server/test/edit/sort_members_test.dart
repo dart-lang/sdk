@@ -181,9 +181,7 @@ class MyAnnotation {
   }
 
   test_OK_genericFunctionType() async {
-    addFile(
-        projectPath + '/analysis_options.yaml',
-        '''
+    addFile(projectPath + '/analysis_options.yaml', '''
 analyzer:
   strong-mode: true
 ''');

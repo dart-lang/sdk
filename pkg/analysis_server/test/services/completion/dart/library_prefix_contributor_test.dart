@@ -42,29 +42,21 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
 
   test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
 export "dart:math" hide max;
 class A {int x;}
 @deprecated D1() {int x;}
 class _B {boo() { partBoo() {}} }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
 String T1;
 var _T2;
 class C { }
 class D { }''');
-    addSource(
-        '/testEEF.dart',
-        '''
+    addSource('/testEEF.dart', '''
 class EE { }
 class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource(
-        '/testH.dart',
-        '''
+    addSource('/testH.dart', '''
 class H { }
 int T3;
 var _T4;'''); // not imported
@@ -97,29 +89,21 @@ class Z { }''');
 
   test_Block_final_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
 export "dart:math" hide max;
 class A {int x;}
 @deprecated D1() {int x;}
 class _B {boo() { partBoo() {}} }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
 String T1;
 var _T2;
 class C { }
 class D { }''');
-    addSource(
-        '/testEEF.dart',
-        '''
+    addSource('/testEEF.dart', '''
 class EE { }
 class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource(
-        '/testH.dart',
-        '''
+    addSource('/testH.dart', '''
 class H { }
 int T3;
 var _T4;'''); // not imported
@@ -152,29 +136,21 @@ class Z { }''');
 
   test_Block_final_var() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
 export "dart:math" hide max;
 class A {int x;}
 @deprecated D1() {int x;}
 class _B {boo() { partBoo() {}} }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
 String T1;
 var _T2;
 class C { }
 class D { }''');
-    addSource(
-        '/testEEF.dart',
-        '''
+    addSource('/testEEF.dart', '''
 class EE { }
 class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource(
-        '/testH.dart',
-        '''
+    addSource('/testH.dart', '''
 class H { }
 int T3;
 var _T4;'''); // not imported
@@ -207,9 +183,7 @@ class Z { }''');
 
   test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
 import "testB.dart" as x;
@@ -224,9 +198,7 @@ A T;''');
 
   test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
 import "testB.dart" as x;
@@ -241,9 +213,7 @@ A T;''');
 
   test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
 import "testB.dart" as x;
@@ -258,9 +228,7 @@ A T;''');
 
   test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
 import "testB.dart" as Soo;
@@ -275,9 +243,7 @@ A Sew;''');
 
   test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
 import "testB.dart" as x;
@@ -292,9 +258,7 @@ A T;''');
 
   test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 class B { }''');
     addTestSource('''
 import "testB.dart" as x;
@@ -308,9 +272,7 @@ A T;''');
   }
 
   test_InstanceCreationExpression() async {
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
@@ -329,15 +291,11 @@ main() {new ^ String x = "hello";}''');
   }
 
   test_InstanceCreationExpression_inPart() async {
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 library testB;
 import "/testA.dart" as t;
 import "dart:math" as math;
@@ -352,15 +310,11 @@ main() {new ^ String x = "hello";}''');
   }
 
   test_InstanceCreationExpression_inPart_detached() async {
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
 library testB;
 import "/testA.dart" as t;
 import "dart:math" as math;

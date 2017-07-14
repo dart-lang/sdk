@@ -24,14 +24,12 @@ DEFINE_FLAG(bool, reify, true, "Reify type arguments of generic types.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 
-
 bool ClassFinalizer::AllClassesFinalized() {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(object_store->pending_classes());
   return classes.Length() == 0;
 }
-
 
 // Removes optimized code once we load more classes, since CHA based
 // optimizations may have become invalid.
@@ -55,7 +53,6 @@ static void RemoveCHAOptimizedCode(
   }
 }
 
-
 void AddSuperType(const AbstractType& type,
                   GrowableArray<intptr_t>* finalized_super_classes) {
   ASSERT(type.HasResolvedTypeClass());
@@ -77,7 +74,6 @@ void AddSuperType(const AbstractType& type,
   AddSuperType(super_type, finalized_super_classes);
 }
 
-
 // Use array instead of set since we expect very few subclassed classes
 // to occur.
 static void CollectFinalizedSuperClasses(
@@ -95,7 +91,6 @@ static void CollectFinalizedSuperClasses(
     }
   }
 }
-
 
 static void CollectImmediateSuperInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* cids) {
@@ -116,7 +111,6 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
     cids->Add(ifc.id());
   }
 }
-
 
 // Processing ObjectStore::pending_classes_ occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
@@ -184,7 +178,6 @@ bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
   return true;
 }
 
-
 // Adds all interfaces of cls into 'collected'. Duplicate entries may occur.
 // No cycles are allowed.
 void ClassFinalizer::CollectInterfaces(const Class& cls,
@@ -200,7 +193,6 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
     CollectInterfaces(interface_class, collected);
   }
 }
-
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ClassFinalizer::VerifyBootstrapClasses() {
@@ -270,7 +262,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-
 static bool IsLoaded(const Type& type) {
   if (type.HasResolvedTypeClass()) {
     return true;
@@ -287,7 +278,6 @@ static bool IsLoaded(const Type& type) {
     return true;
   }
 }
-
 
 // Resolve unresolved_class in the library of cls, or return null.
 RawClass* ClassFinalizer::ResolveClass(
@@ -313,7 +303,6 @@ RawClass* ClassFinalizer::ResolveClass(
   return resolved_class.raw();
 }
 
-
 void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
                                                const Function& factory) {
   const Function& target = Function::Handle(factory.RedirectionTarget());
@@ -332,7 +321,6 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
     }
   }
 }
-
 
 void ClassFinalizer::ResolveRedirectingFactoryTarget(
     const Class& cls,
@@ -482,7 +470,6 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   factory.SetRedirectionTarget(target_target);
 }
 
-
 void ClassFinalizer::ResolveTypeClass(const Class& cls, const Type& type) {
   if (type.IsFinalized()) {
     return;
@@ -535,7 +522,6 @@ void ClassFinalizer::ResolveTypeClass(const Class& cls, const Type& type) {
     type.set_arguments(Object::null_type_arguments());
   }
 }
-
 
 void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
   if (type.IsResolved()) {
@@ -613,7 +599,6 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
   }
 }
 
-
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
                                             PendingTypes* pending_types) {
   if (FLAG_trace_type_finalization) {
@@ -639,7 +624,6 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
     }
   }
 }
-
 
 // This function reports a compilation error if the recursive 'type' T being
 // finalized is a non-contractive type, i.e. if the induced type set S of P is
@@ -718,7 +702,6 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
     }
   }
 }
-
 
 // Expand the type arguments of the given type and finalize its full type
 // argument vector. Return the number of type arguments (0 for a raw type).
@@ -838,7 +821,6 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
          !full_arguments.IsRaw(0, num_type_arguments));
   return full_arguments.IsNull() ? 0 : full_arguments.Length();
 }
-
 
 // Finalize the type argument vector 'arguments' of the type defined by the
 // class 'cls' parameterized with the type arguments 'cls_args'.
@@ -1004,7 +986,6 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
   }
 }
 
-
 // Check the type argument vector 'arguments' against the corresponding bounds
 // of the type parameters of class 'cls' and, recursively, of its superclasses.
 // Replace a type argument that cannot be checked at compile time by a
@@ -1083,9 +1064,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
       }
       // Shortcut the special case where we check a type parameter against its
       // declared upper bound.
-      if (error.IsNull() &&
-          !(type_arg.Equals(type_param) &&
-            instantiated_bound.Equals(declared_bound))) {
+      if (error.IsNull() && !(type_arg.Equals(type_param) &&
+                              instantiated_bound.Equals(declared_bound))) {
         // If type_arg is a type parameter, its declared bound may not be
         // finalized yet.
         if (type_arg.IsTypeParameter()) {
@@ -1119,7 +1099,6 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
     CheckTypeArgumentBounds(super_class, arguments, bound_error);
   }
 }
-
 
 void ClassFinalizer::CheckTypeBounds(const Class& cls,
                                      const AbstractType& type) {
@@ -1162,7 +1141,6 @@ void ClassFinalizer::CheckTypeBounds(const Class& cls,
               String::Handle(zone, type.Name()).ToCString(), type.ToCString());
   }
 }
-
 
 RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                               const AbstractType& type,
@@ -1349,7 +1327,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   }
 }
 
-
 void ClassFinalizer::ResolveSignature(const Class& cls,
                                       const Function& function) {
   AbstractType& type = AbstractType::Handle();
@@ -1377,7 +1354,6 @@ void ClassFinalizer::ResolveSignature(const Class& cls,
     ResolveType(cls, type);
   }
 }
-
 
 void ClassFinalizer::FinalizeSignature(const Class& cls,
                                        const Function& function,
@@ -1423,7 +1399,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   }
 }
 
-
 // Check if an instance field, getter, or method of same name exists
 // in any super class.
 static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
@@ -1451,7 +1426,6 @@ static RawClass* FindSuperOwnerOfInstanceMember(const Class& cls,
   return Class::null();
 }
 
-
 // Check if an instance method of same name exists in any super class.
 static RawClass* FindSuperOwnerOfFunction(const Class& cls,
                                           const String& name) {
@@ -1468,7 +1442,6 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
   }
   return Class::null();
 }
-
 
 // Resolve the upper bounds of the type parameters of class cls.
 void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
@@ -1487,7 +1460,6 @@ void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
     ResolveType(cls, bound);
   }
 }
-
 
 // Finalize the upper bounds of the type parameters of class cls.
 void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
@@ -1511,7 +1483,6 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
     type_param.set_bound(bound);
   }
 }
-
 
 void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // Note that getters and setters are explicitly listed as such in the list of
@@ -1772,7 +1743,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   }
 }
 
-
 // Clone the type parameters of the super class and of the mixin class of this
 // mixin application class and use them as the type parameters of this mixin
 // application class. Set the type arguments of the super type, of the mixin
@@ -1963,7 +1933,6 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
     ApplyMixinAppAlias(mixin_app_class, instantiator);
   }
 }
-
 
 /* Support for mixin alias.
 Consider the following example:
@@ -2234,7 +2203,6 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
   }
 }
 
-
 void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
                                     PendingTypes* pending_types) {
   if (mixin_app_class.is_mixin_type_applied()) {
@@ -2292,7 +2260,6 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
   ASSERT(!mixin_type.IsMalbounded());
   mixin_app_class.set_mixin(mixin_type);
 }
-
 
 void ClassFinalizer::CreateForwardingConstructors(
     const Class& mixin_app,
@@ -2355,7 +2322,6 @@ void ClassFinalizer::CreateForwardingConstructors(
     }
   }
 }
-
 
 void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   Zone* zone = Thread::Current()->zone();
@@ -2455,7 +2421,6 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
               mixin_cls.ToCString(), cls.ToCString());
   }
 }
-
 
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -2615,7 +2580,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
 }
 
-
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
@@ -2691,7 +2655,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     AllocateEnumValues(cls);
   }
 }
-
 
 // Allocate instances for each enumeration value, and populate the
 // static field 'values'.
@@ -2773,7 +2736,6 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   ASSERT(!values_list.IsNull());
 }
 
-
 bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
   Class& test1 = Class::Handle(cls.raw());
   Class& test2 = Class::Handle(cls.SuperClass());
@@ -2794,7 +2756,6 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
   // No cycles.
   return true;
 }
-
 
 // Returns false if a function type alias illegally refers to itself.
 bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
@@ -2870,7 +2831,6 @@ bool ClassFinalizer::IsTypedefCycleFree(const Class& cls,
   return true;
 }
 
-
 // Returns false if the mixin illegally refers to itself.
 bool ClassFinalizer::IsMixinCycleFree(const Class& cls,
                                       GrowableArray<intptr_t>* visited) {
@@ -2901,7 +2861,6 @@ bool ClassFinalizer::IsMixinCycleFree(const Class& cls,
   visited->RemoveLast();
   return true;
 }
-
 
 void ClassFinalizer::CollectTypeArguments(
     const Class& cls,
@@ -2938,7 +2897,6 @@ void ClassFinalizer::CollectTypeArguments(
     collected_args.Add(arg);
   }
 }
-
 
 RawType* ClassFinalizer::ResolveMixinAppType(
     const Class& cls,
@@ -3105,7 +3063,6 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   // the mixin application.
   return Type::New(mixin_app_class, mixin_app_args, mixin_app_type.token_pos());
 }
-
 
 // Recursively walks the graph of explicitly declared super type and
 // interfaces, resolving unresolved super types and interfaces.
@@ -3293,7 +3250,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   cls.set_is_cycle_free();
 }
 
-
 // A class is marked as constant if it has one constant constructor.
 // A constant class can only have final instance fields.
 // Note: we must check for cycles before checking for const properties.
@@ -3313,7 +3269,6 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
     }
   }
 }
-
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -3388,7 +3343,6 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
   }
 }
 
-
 RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
                                                    const Script& script,
                                                    TokenPosition type_pos,
@@ -3408,7 +3362,6 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
   return type.raw();
 }
 
-
 void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
                                            const Script& script,
                                            const Type& type,
@@ -3419,7 +3372,6 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
   MarkTypeMalformed(prev_error, script, type, format, args);
   va_end(args);
 }
-
 
 void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
                                             const Script& script,
@@ -3442,12 +3394,10 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
   }
 }
 
-
 void ClassFinalizer::ReportError(const Error& error) {
   Report::LongJump(error);
   UNREACHABLE();
 }
-
 
 void ClassFinalizer::ReportErrors(const Error& prev_error,
                                   const Class& cls,
@@ -3462,7 +3412,6 @@ void ClassFinalizer::ReportErrors(const Error& prev_error,
   UNREACHABLE();
 }
 
-
 void ClassFinalizer::ReportError(const Class& cls,
                                  TokenPosition token_pos,
                                  const char* format,
@@ -3475,7 +3424,6 @@ void ClassFinalizer::ReportError(const Class& cls,
   va_end(args);
   UNREACHABLE();
 }
-
 
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
@@ -3550,7 +3498,6 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #endif
 }
 
-
 void ClassFinalizer::SortClasses() {
   Thread* T = Thread::Current();
   Zone* Z = T->zone();
@@ -3624,7 +3571,6 @@ void ClassFinalizer::SortClasses() {
   RehashTypes();  // Types use cid's as part of their hashes.
 }
 
-
 class CidRewriteVisitor : public ObjectVisitor {
  public:
   explicit CidRewriteVisitor(intptr_t* old_to_new_cids)
@@ -3669,7 +3615,6 @@ class CidRewriteVisitor : public ObjectVisitor {
   intptr_t* old_to_new_cids_;
 };
 
-
 void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
   Isolate* I = Thread::Current()->isolate();
 
@@ -3698,7 +3643,6 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
   I->heap()->Verify();
 #endif
 }
-
 
 class ClearTypeHashVisitor : public ObjectVisitor {
  public:
@@ -3730,7 +3674,6 @@ class ClearTypeHashVisitor : public ObjectVisitor {
   TypeArguments& type_args_;
   BoundedType& bounded_type_;
 };
-
 
 void ClassFinalizer::RehashTypes() {
   Thread* T = Thread::Current();
@@ -3797,7 +3740,6 @@ void ClassFinalizer::RehashTypes() {
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());
 }
-
 
 void ClassFinalizer::ClearAllCode() {
   class ClearCodeFunctionVisitor : public FunctionVisitor {

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object implements self::B {
-  constructor •() → void
+  default constructor •() → void
     ;
   get x() → dynamic
     ;
@@ -12,7 +12,7 @@ class A extends core::Object implements self::B {
 }
 class B extends core::Object {
   field dynamic x;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method f() → dynamic

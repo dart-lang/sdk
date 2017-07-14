@@ -431,11 +431,13 @@ class Kernel {
       ir.Name name = irName(function.name, function);
       bool isNative = isNativeMethod(function);
       if (function.isGenerativeConstructor) {
+        ConstructorElement constructorElement = function;
         member = constructor = new ir.Constructor(null,
             name: name,
-            isConst: function.isConst,
-            isExternal: isNative || function.isExternal,
-            initializers: null);
+            isConst: constructorElement.isConst,
+            isExternal: isNative || constructorElement.isExternal,
+            initializers: null,
+            isSyntheticDefault: constructorElement.isDefaultConstructor);
       } else {
         member = procedure = new ir.Procedure(name, null, null,
             isAbstract: function.isAbstract,

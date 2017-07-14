@@ -79,9 +79,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await prepareAssists('v =');
-    _assertHasChange(
-        'Remove type annotation',
-        '''
+    _assertHasChange('Remove type annotation', '''
 main() {
   var v = 1;
 }
@@ -96,9 +94,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await prepareAssists('v =');
-    _assertHasChange(
-        'Split variable declaration',
-        '''
+    _assertHasChange('Split variable declaration', '''
 main() {
   int v;
   v = 1;
@@ -117,9 +113,7 @@ main() {
     int offset = findOffset('  print(1)');
     int length = findOffset('}') - offset;
     await prepareAssistsAt(offset, length);
-    _assertHasChange(
-        "Surround with 'if'",
-        '''
+    _assertHasChange("Surround with 'if'", '''
 main() {
   if (condition) {
     print(1);

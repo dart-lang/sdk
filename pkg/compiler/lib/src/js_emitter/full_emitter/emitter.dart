@@ -16,11 +16,10 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart' show LibraryElement, TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
+import '../../elements/types.dart';
 import '../../elements/names.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -91,7 +90,7 @@ class Emitter extends js_emitter.EmitterBase {
   // collector.
   Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists;
   Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
-  List<TypedefElement> typedefsNeededForReflection;
+  List<TypedefEntity> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter;
@@ -513,13 +512,13 @@ class Emitter extends js_emitter.EmitterBase {
     return null;
   }
 
-  /// Returns the "reflection name" of a [TypedefElement], if needed.
+  /// Returns the "reflection name" of a [TypedefEntity], if needed.
   ///
   /// The reflection name of typedef 'F' is 'F'.
   ///
   /// This is used by js_mirrors.dart.
   String getReflectionTypedefName(
-      TypedefElement typedef, jsAst.Name mangledName) {
+      TypedefEntity typedef, jsAst.Name mangledName) {
     String name = typedef.name;
     if (backend.mirrorsData.shouldRetainName(name)) {
       // TODO(ahe): Enable the next line when I can tell the difference between
@@ -1157,10 +1156,10 @@ class Emitter extends js_emitter.EmitterBase {
     // Emit all required typedef declarations into the main output unit.
     // TODO(karlklose): unify required classes and typedefs to declarations
     // and have builders for each kind.
-    for (TypedefElement typedef in typedefsNeededForReflection) {
-      LibraryElement library = typedef.library;
+    for (TypedefEntity typedef in typedefsNeededForReflection) {
+      LibraryEntity library = typedef.library;
       // TODO(karlklose): add a TypedefBuilder and move this code there.
-      ResolutionDartType type = typedef.alias;
+      FunctionType type = _elementEnvironment.getFunctionTypeOfTypedef(typedef);
       // TODO(zarah): reify type variables once reflection on type arguments of
       // typedefs is supported.
       jsAst.Expression typeIndex =

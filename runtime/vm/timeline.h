@@ -137,12 +137,10 @@ class Timeline : public AllStatic {
   friend class ReclaimBlocksIsolateVisitor;
 };
 
-
 struct TimelineEventArgument {
   const char* name;
   char* value;
 };
-
 
 // You should get a |TimelineEvent| from a |TimelineStream|.
 class TimelineEvent {
@@ -409,7 +407,6 @@ class TimelineEvent {
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
-
 #ifndef PRODUCT
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
   TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
@@ -474,7 +471,6 @@ class TimelineEventScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
 };
 
-
 class TimelineDurationScope : public TimelineEventScope {
  public:
   TimelineDurationScope(TimelineStream* stream, const char* label);
@@ -492,7 +488,6 @@ class TimelineDurationScope : public TimelineEventScope {
   DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
 
-
 class TimelineBeginEndScope : public TimelineEventScope {
  public:
   TimelineBeginEndScope(TimelineStream* stream, const char* label);
@@ -509,7 +504,6 @@ class TimelineBeginEndScope : public TimelineEventScope {
 
   DISALLOW_COPY_AND_ASSIGN(TimelineBeginEndScope);
 };
-
 
 // A block of |TimelineEvent|s. Not thread safe.
 class TimelineEventBlock {
@@ -590,7 +584,6 @@ class TimelineEventBlock {
   DISALLOW_COPY_AND_ASSIGN(TimelineEventBlock);
 };
 
-
 class TimelineEventFilter : public ValueObject {
  public:
   TimelineEventFilter(int64_t time_origin_micros = -1,
@@ -622,7 +615,6 @@ class TimelineEventFilter : public ValueObject {
   int64_t time_extent_micros_;
 };
 
-
 class IsolateTimelineEventFilter : public TimelineEventFilter {
  public:
   explicit IsolateTimelineEventFilter(Dart_Port isolate_id,
@@ -644,7 +636,6 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
  private:
   Dart_Port isolate_id_;
 };
-
 
 // Recorder of |TimelineEvent|s.
 class TimelineEventRecorder {
@@ -697,7 +688,6 @@ class TimelineEventRecorder {
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
 };
 
-
 // An abstract recorder that stores events in a buffer of fixed capacity.
 class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
  public:
@@ -724,7 +714,6 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   intptr_t block_cursor_;
 };
 
-
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
 // is full, new events overwrite old events.
 class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
@@ -738,7 +727,6 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
  protected:
   TimelineEventBlock* GetNewBlockLocked();
 };
-
 
 // A recorder that writes events to Android Systrace. Events are also stored in
 // a buffer of fixed capacity. When the buffer is full, new events overwrite
@@ -756,7 +744,6 @@ class TimelineEventSystraceRecorder : public TimelineEventFixedBufferRecorder {
 
   int systrace_fd_;
 };
-
 
 #if defined(HOST_OS_FUCHSIA)
 // A recorder that sends events to Fuchsia's tracing app. Events are also stored
@@ -776,7 +763,6 @@ class TimelineEventFuchsiaRecorder : public TimelineEventFixedBufferRecorder {
 };
 #endif  // defined(HOST_OS_FUCHSIA)
 
-
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
 // is full, new events are dropped.
 class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
@@ -790,7 +776,6 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
  protected:
   TimelineEventBlock* GetNewBlockLocked();
 };
-
 
 // An abstract recorder that calls |OnEvent| whenever an event is complete.
 // This should only be used for testing.
@@ -815,7 +800,6 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };
-
 
 // A recorder that stores events in chains of blocks of events.
 // NOTE: This recorder will continue to allocate blocks until it exhausts
@@ -845,7 +829,6 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   friend class TimelineTestHelper;
 };
 
-
 // An iterator for blocks.
 class TimelineEventBlockIterator {
  public:
@@ -864,7 +847,6 @@ class TimelineEventBlockIterator {
   TimelineEventBlock* current_;
   TimelineEventRecorder* recorder_;
 };
-
 
 }  // namespace dart
 

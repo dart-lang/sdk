@@ -4,14 +4,14 @@ import "./infer_type_regardless_of_declaration_order_or_cycles_b.dart" as inf;
 import "dart:core" as core;
 
 class C extends inf::B {
-  constructor •() → void
+  default constructor •() → void
     : super inf::B::•()
     ;
   get x() → core::int
     return null;
 }
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   get x() → core::int

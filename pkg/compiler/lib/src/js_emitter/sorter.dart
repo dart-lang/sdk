@@ -15,6 +15,9 @@ abstract class Sorter {
   /// Returns a sorted list of [classes].
   Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes);
 
+  /// Returns a sorted list of [typedefs].
+  Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs);
+
   /// Returns a sorted list of [members].
   Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members);
 }
@@ -30,6 +33,11 @@ class ElementSorter implements Sorter {
   @override
   List<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
     return Elements.sortedByPosition(new List.from(classes, growable: false));
+  }
+
+  @override
+  Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs) {
+    return Elements.sortedByPosition(new List.from(typedefs, growable: false));
   }
 
   @override

@@ -10,10 +10,12 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'deprecated_problems.dart'
-    show firstSourceUri, deprecated_printUnexpected;
+import 'deprecated_problems.dart' show firstSourceUri;
 
-import 'messages.dart' show LocatedMessage, Message, templateUnspecified;
+import 'messages.dart'
+    show LocatedMessage, Message, messagePlatformPrivateLibraryAccess;
+
+import 'severity.dart' show Severity;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -103,8 +105,8 @@ abstract class Loader<L> {
         uri.scheme == "dart" &&
         uri.path.startsWith("_") &&
         accessor.uri.scheme != "dart") {
-      accessor.deprecated_addCompileTimeError(
-          charOffset, "Can't access platform private library.");
+      accessor.addCompileTimeError(
+          messagePlatformPrivateLibraryAccess, charOffset, accessor.fileUri);
     }
     return builder;
   }
@@ -173,21 +175,11 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
       {bool silent: false, bool wasHandled: false}) {
     if (!silent) {
-      deprecated_printUnexpected(fileUri, charOffset, message.message);
+      target.context
+          .report(message.withLocation(fileUri, charOffset), Severity.error);
     }
     (wasHandled ? handledErrors : unhandledErrors)
         .add(message.withLocation(fileUri, charOffset));
-  }
-
-  void deprecated_addCompileTimeError(
-      Uri fileUri, int charOffset, String message,
-      {bool silent: false, bool wasHandled: false}) {
-    if (!silent) {
-      deprecated_printUnexpected(fileUri, charOffset, message);
-    }
-    (wasHandled ? handledErrors : unhandledErrors).add(templateUnspecified
-        .withArguments(message)
-        .withLocation(fileUri, charOffset));
   }
 
   Builder getAbstractClassInstantiationError() {

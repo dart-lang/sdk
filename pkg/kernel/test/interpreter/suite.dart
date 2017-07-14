@@ -82,8 +82,7 @@ class MatchLogExpectation extends Step<EvaluationLog, int, InterpreterContext> {
       }
     }
     return fail(
-        null,
-        """Please create file ${expectedFile.path} with this content:
+        null, """Please create file ${expectedFile.path} with this content:
         ${result.log}""");
   }
 }

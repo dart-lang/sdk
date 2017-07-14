@@ -1012,14 +1012,12 @@ main() {
   test_cascaded_export_hide_hide() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" hide C hide B, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1028,14 +1026,12 @@ C c;
   test_cascaded_export_hide_show() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" hide C show A, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1044,14 +1040,12 @@ C c;
   test_cascaded_export_show_hide() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" show A, B hide B, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1060,14 +1054,12 @@ C c;
   test_cascaded_export_show_show() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" show A, B show A, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1075,14 +1067,12 @@ C c;
 
   test_cascaded_import_hide_hide() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' hide C hide B, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1090,14 +1080,12 @@ C c;
 
   test_cascaded_import_hide_show() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' hide C show A, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1105,14 +1093,12 @@ C c;
 
   test_cascaded_import_show_hide() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' show A, B hide B, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1120,14 +1106,12 @@ C c;
 
   test_cascaded_import_show_show() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' show A, B show A, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -2032,9 +2016,7 @@ const v = const C<int, String>.named();
   }
 
   test_constExpr_invokeConstructor_generic_named_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C.named();
 }
@@ -2064,9 +2046,7 @@ const v = const C<int, String>.named();
   }
 
   test_constExpr_invokeConstructor_generic_named_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C.named();
 }
@@ -2121,9 +2101,7 @@ const v = const C<int, String>();
   }
 
   test_constExpr_invokeConstructor_generic_unnamed_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C();
 }
@@ -2150,9 +2128,7 @@ const v = const C<int, String>();
   }
 
   test_constExpr_invokeConstructor_generic_unnamed_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C();
 }
@@ -2203,9 +2179,7 @@ const v = const C.named();
   }
 
   test_constExpr_invokeConstructor_named_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C.named();
 }
@@ -2230,9 +2204,7 @@ const v = const C.named();
   }
 
   test_constExpr_invokeConstructor_named_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C.named();
 }
@@ -2299,9 +2271,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
   }
 
   test_constExpr_invokeConstructor_unnamed_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C();
 }
@@ -2322,9 +2292,7 @@ const v = const C();
   }
 
   test_constExpr_invokeConstructor_unnamed_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C();
 }
@@ -2348,12 +2316,10 @@ const v = const p.C();
   }
 
   test_constExpr_invokeConstructor_unresolved_named() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 class C {}
 const v = const C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2369,11 +2335,9 @@ const v = const C.foo();
   }
 
   test_constExpr_invokeConstructor_unresolved_named2() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 const v = const C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2389,18 +2353,14 @@ const v = const C.foo();
   }
 
   test_constExpr_invokeConstructor_unresolved_named_prefixed() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
 }
 ''');
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 import 'a.dart' as p;
 const v = const p.C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2419,12 +2379,10 @@ const v = const p.C.foo();
 
   test_constExpr_invokeConstructor_unresolved_named_prefixed2() {
     addNamedSource('/a.dart', '');
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 import 'a.dart' as p;
 const v = const p.C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2441,11 +2399,9 @@ const v = const p.C.foo();
   }
 
   test_constExpr_invokeConstructor_unresolved_unnamed() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 const v = const Foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2496,9 +2452,7 @@ const int v = C.length;
   }
 
   test_constExpr_length_classConstField_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static const int length = 0;
 }
@@ -2559,9 +2513,7 @@ const int v = C.F.length;
   }
 
   test_constExpr_length_identifierTarget_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 const String a = 'aaa';
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -2583,9 +2535,7 @@ const int v = a.length;
   }
 
   test_constExpr_length_identifierTarget_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 const String a = 'aaa';
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -2941,9 +2891,7 @@ const v = C.V1;
   }
 
   test_constExpr_pushReference_enumValue_viaImport() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 enum C {V1, V2, V3}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -2979,9 +2927,7 @@ const v = C.values;
   }
 
   test_constExpr_pushReference_enumValues_viaImport() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 enum C {V1, V2, V3}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -3019,9 +2965,7 @@ const v = C.F;
   }
 
   test_constExpr_pushReference_field_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static const int F = 1;
 }
@@ -3043,9 +2987,7 @@ const v = C.F;
   }
 
   test_constExpr_pushReference_field_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static const int F = 1;
 }
@@ -3104,9 +3046,7 @@ const v = C.x;
   }
 
   test_constExpr_pushReference_staticGetter_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static int get x => null;
 }
@@ -3128,9 +3068,7 @@ const v = C.x;
   }
 
   test_constExpr_pushReference_staticGetter_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static int get x => null;
 }
@@ -3171,9 +3109,7 @@ const v = C.m;
   }
 
   test_constExpr_pushReference_staticMethod_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static m() {}
 }
@@ -3195,9 +3131,7 @@ const v = C.m;
   }
 
   test_constExpr_pushReference_staticMethod_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static m() {}
 }
@@ -3251,9 +3185,7 @@ const v = f;
   }
 
   test_constExpr_pushReference_topLevelFunction_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 f() {}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -3269,9 +3201,7 @@ const v = f;
   }
 
   test_constExpr_pushReference_topLevelFunction_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 f() {}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -3393,11 +3323,9 @@ class C<T> {
   }
 
   test_constExpr_pushReference_unresolved_prefix0() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 const v = foo;
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -3407,12 +3335,10 @@ const v = foo;
   }
 
   test_constExpr_pushReference_unresolved_prefix1() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 class C {}
 const v = C.foo;
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -3425,17 +3351,13 @@ const v = C.foo;
   }
 
   test_constExpr_pushReference_unresolved_prefix2() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {}
 ''');
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 import 'a.dart' as p;
 const v = p.C.foo;
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -4116,9 +4038,7 @@ class D<T, U> extends C<U, T> {
   }
 
   test_constructor_redirected_factory_named_imported() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -4148,9 +4068,7 @@ class C {
   }
 
   test_constructor_redirected_factory_named_imported_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -4184,9 +4102,7 @@ class C<T, U> {
   }
 
   test_constructor_redirected_factory_named_prefixed() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -4217,9 +4133,7 @@ class C {
   }
 
   test_constructor_redirected_factory_named_prefixed_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -4293,9 +4207,7 @@ class D<T, U> extends C<U, T> {
   }
 
   test_constructor_redirected_factory_unnamed_imported() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -4317,9 +4229,7 @@ class C {
   }
 
   test_constructor_redirected_factory_unnamed_imported_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -4344,9 +4254,7 @@ class C<T, U> {
   }
 
   test_constructor_redirected_factory_unnamed_prefixed() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -4369,9 +4277,7 @@ class C {
   }
 
   test_constructor_redirected_factory_unnamed_prefixed_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -4473,43 +4379,37 @@ class D {
   }
 
   test_constructorCycle_redirectToImplicitConstructor() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const factory C() = D;
 }
 class D extends C {}
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_redirectToNonConstConstructor() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const factory C() = D;
 }
 class D extends C {
   D();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_redirectToSymbolConstructor() {
     // The symbol constructor has some special case behaviors in analyzer.
     // Make sure those special case behaviors don't cause problems.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const factory C(String name) = Symbol;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4559,27 +4459,23 @@ class C {
   test_constructorCycle_referenceToGenericParameter() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C<T> {
   final x;
   const C() : x = T;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_referenceToGenericParameter_asSupertype() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C<T> extends T {
   const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4632,14 +4528,12 @@ class C {
   test_constructorCycle_referenceToUndefinedName() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = foo;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4647,15 +4541,13 @@ class C {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
     addNamedSource('/a.dart', '');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart' as a;
 class C {
   final x;
   const C() : x = a.foo;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4663,32 +4555,27 @@ class C {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
     allowMissingFiles = true;
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart' as a;
 class C {
   final x;
   const C() : x = a.foo;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_trivial() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const C() : this();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaFactoryRedirect() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const C();
   const factory C.named() = D;
@@ -4698,37 +4585,32 @@ class D extends C {
   const D() : x = y;
 }
 const y = const C.named();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
     checkConstCycle('C', name: 'named');
     checkConstCycle('D');
   }
 
   test_constructorCycle_viaFinalField() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x = const C();
   const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaLength() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = y.length;
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
@@ -4780,23 +4662,20 @@ class C extends B {
   }
 
   test_constructorCycle_viaRedirectArgument() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : this.named(y);
   const C.named(this.x);
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
     checkConstCycle('C', name: 'named', hasCycle: false);
   }
 
   test_constructorCycle_viaStaticField_inOtherClass() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = D.y;
@@ -4804,27 +4683,23 @@ class C {
 class D {
   static const y = const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaStaticField_inSameClass() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   static const y = const C();
   const C() : x = y;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaSuperArgument() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class B {
   final x;
   const B(this.x);
@@ -4833,8 +4708,7 @@ class C extends B {
   const C() : super(y);
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('B', hasCycle: false);
     checkConstCycle('C');
   }
@@ -4856,14 +4730,12 @@ class D extends C {
   test_constructorCycle_viaSupertype_Enum() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 enum E { v }
 class C extends E {
   const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4888,8 +4760,7 @@ class D extends C {
   test_constructorCycle_viaSupertype_explicit_undefined() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = const D();
@@ -4897,8 +4768,7 @@ class C {
 class D extends C {
   const D() : super.named();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
     checkConstCycle('D', hasCycle: false);
   }
@@ -4932,53 +4802,43 @@ class D extends C<int> {
   }
 
   test_constructorCycle_viaTopLevelVariable() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = y;
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaTopLevelVariable_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 import 'test.dart';
 const y = const C();
     ''');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart';
 class C {
   final x;
   const C() : x = y;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaTopLevelVariable_importedViaPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 import 'test.dart';
 const y = const C();
     ''');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart' as a;
 class C {
   final x;
   const C() : x = a.y;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
@@ -5119,9 +4979,7 @@ class C {
   }
 
   test_elements_in_part() {
-    addNamedSource(
-        '/part1.dart',
-        '''
+    addNamedSource('/part1.dart', '''
 part of my.lib;
 
 class C {}
@@ -6574,9 +6432,7 @@ final v = (a = 1);
     if (skipNonConstInitializers) {
       return;
     }
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 int a = 0;
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -6606,9 +6462,7 @@ final v = (a = 1);
     if (skipNonConstInitializers) {
       return;
     }
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 int a = 0;
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -7214,9 +7068,7 @@ final v = a.b.c.m(10, 20);
     if (skipNonConstInitializers) {
       return;
     }
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static int m() => 42;
 }
@@ -8395,13 +8247,11 @@ var v = f(g: (x, y) {});
     // `() => int` part refers to the closure declared inside the initializer
     // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
     // which would complicate the test.
-    UnlinkedClass cls = serializeClassText(
-        '''
+    UnlinkedClass cls = serializeClassText('''
 class C {
   int v = () => 0;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     UnlinkedVariable variable = cls.fields[0];
     EntityRef closureType =
         getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);

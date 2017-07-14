@@ -4,23 +4,23 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field dynamic field;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class B extends core::Object {
   field dynamic field;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class C extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   operator ==(dynamic x) → dynamic
     ;
 }
 class X extends core::Object implements self::A, self::B {
   field dynamic field;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method useAsA(self::A object) → void

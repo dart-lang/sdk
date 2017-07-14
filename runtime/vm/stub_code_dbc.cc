@@ -33,30 +33,25 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Compile();
 }
 
-
 // Not executed, but used as a stack marker when calling
 // DRT_OptimizeInvokedFunction.
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 // Not executed, but used as a sentinel in Simulator::JumpToFrame.
 void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ DeoptRewind();
 }
-
 
 // TODO(vegorov) Don't generate this stub.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 // TODO(vegorov) Don't generate these stubs.
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
@@ -64,12 +59,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ Trap();
 }
 
-
 // TODO(vegorov) Don't generate this stub.
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 // These deoptimization stubs are only used to populate stack frames
 // with something meaningful to make sure GC can scan the stack during
@@ -78,26 +71,21 @@ void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {

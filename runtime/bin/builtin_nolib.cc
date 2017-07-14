@@ -25,23 +25,19 @@ Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
 const int Builtin::num_libs_ =
     sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);
 
-
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   return DartUtils::NewError("Unreachable code in Builtin::Source (%d).", id);
 }
-
 
 Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* uri) {
   return DartUtils::NewError("Unreachable code in Builtin::PartSource (%d).",
                              id);
 }
 
-
 Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
   return DartUtils::NewError("Unreachable code in Builtin::GetSource (%s).",
                              uri);
 }
-
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
@@ -57,17 +53,14 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   }
 }
 
-
 Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
   return DartUtils::NewError("Unreachable code in Builtin::LoadLibrary (%d).",
                              id);
 }
 
-
 Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
   return kInvalidLibrary;
 }
-
 
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);

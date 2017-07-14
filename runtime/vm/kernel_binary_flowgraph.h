@@ -59,9 +59,7 @@ class StreamingDartTypeTranslator {
           translator_(translator) {
       translator_->type_parameter_scope_ = this;
     }
-    ~TypeParameterScope() {
-      translator_->type_parameter_scope_ = outer_;
-    }
+    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
 
     TypeParameterScope* outer() const { return outer_; }
     intptr_t parameters_offset() const { return parameters_offset_; }
@@ -89,7 +87,6 @@ class StreamingDartTypeTranslator {
   friend class StreamingScopeBuilder;
   friend class KernelReader;
 };
-
 
 class StreamingScopeBuilder {
  public:
@@ -200,7 +197,6 @@ class StreamingScopeBuilder {
   StreamingFlowGraphBuilder* builder_;
   StreamingDartTypeTranslator type_translator_;
 };
-
 
 // There are several cases when we are compiling constant expressions:
 //
@@ -945,7 +941,6 @@ class FieldHelper {
   StreamingFlowGraphBuilder* builder_;
   intptr_t next_read_;
 };
-
 
 // Helper class that reads a kernel Procedure from binary.
 //

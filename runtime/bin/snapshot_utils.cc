@@ -71,7 +71,6 @@ class MappedAppSnapshot : public AppSnapshot {
   MappedMemory* isolate_instructions_mapping_;
 };
 
-
 static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
   File* file = File::Open(script_name, File::kRead);
   if (file == NULL) {
@@ -154,7 +153,6 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
                                isolate_data_mapping, isolate_instr_mapping);
 }
 
-
 #if defined(DART_PRECOMPILED_RUNTIME)
 class DylibAppSnapshot : public AppSnapshot {
  public:
@@ -188,7 +186,6 @@ class DylibAppSnapshot : public AppSnapshot {
   const uint8_t* isolate_snapshot_data_;
   const uint8_t* isolate_snapshot_instructions_;
 };
-
 
 static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
   void* library = Extensions::LoadExtensionLibrary(script_name);
@@ -228,7 +225,6 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   if (File::GetType(script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
@@ -250,7 +246,6 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
 #endif  //  defined(DART_PRECOMPILED_RUNTIME)
   return NULL;
 }
-
 
 static void WriteSnapshotFile(const char* filename,
                               bool write_magic_number,
@@ -274,11 +269,9 @@ static void WriteSnapshotFile(const char* filename,
   file->Release();
 }
 
-
 static bool WriteInt64(File* file, int64_t size) {
   return file->WriteFully(&size, sizeof(size));
 }
-
 
 static void WriteAppSnapshot(const char* filename,
                              uint8_t* vm_data_buffer,
@@ -332,7 +325,6 @@ static void WriteAppSnapshot(const char* filename,
   file->Release();
 }
 
-
 void Snapshot::GenerateScript(const char* snapshot_filename) {
   // First create a snapshot.
   uint8_t* buffer = NULL;
@@ -344,7 +336,6 @@ void Snapshot::GenerateScript(const char* snapshot_filename) {
 
   WriteSnapshotFile(snapshot_filename, true, buffer, size);
 }
-
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
@@ -377,7 +368,6 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #endif
 }
 
-
 void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
   uint8_t* vm_data_buffer = NULL;
   intptr_t vm_data_size = 0;
@@ -399,7 +389,6 @@ void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
                    isolate_data_buffer, isolate_data_size,
                    isolate_instructions_buffer, isolate_instructions_size);
 }
-
 
 void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
   uint8_t* assembly_buffer = NULL;

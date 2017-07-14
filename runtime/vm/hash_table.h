@@ -55,7 +55,6 @@ namespace dart {
 // KeyTraits methods must not run Dart code (since the C++ code doesn't check
 // for concurrent modification).
 
-
 // Open-addressing hash table template using a RawArray as backing storage.
 //
 // The elements of the array are partitioned into entries:
@@ -383,7 +382,6 @@ class HashTable : public ValueObject {
   friend class HashTables;
 };
 
-
 // Table with unspecified iteration order. No payload overhead or metadata.
 template <typename KeyTraits, intptr_t kUserPayloadSize>
 class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
@@ -418,7 +416,6 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
 
   // No extra book-keeping needed for Initialize, InsertKey, DeleteEntry.
 };
-
 
 class HashTables : public AllStatic {
  public:
@@ -502,7 +499,6 @@ class HashTables : public AllStatic {
     return result.raw();
   }
 };
-
 
 template <typename BaseIterTable>
 class HashMap : public BaseIterTable {
@@ -589,7 +585,6 @@ class HashMap : public BaseIterTable {
   }
 };
 
-
 template <typename KeyTraits>
 class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
  public:
@@ -600,7 +595,6 @@ class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
   UnorderedHashMap(Object* key, Smi* value, Array* data)
       : BaseMap(key, value, data) {}
 };
-
 
 template <typename BaseIterTable>
 class HashSet : public BaseIterTable {
@@ -677,7 +671,6 @@ class HashSet : public BaseIterTable {
     HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
   }
 };
-
 
 template <typename KeyTraits>
 class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {

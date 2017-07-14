@@ -20,7 +20,6 @@ namespace dart {
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
-
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
   ASSERT(Thread::Current()->IsMutatorThread());
@@ -29,7 +28,6 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length()));
   return InvokeFunction(function, arguments, arguments_descriptor);
 }
-
 
 class ScopedIsolateStackLimits : public ValueObject {
  public:
@@ -65,7 +63,6 @@ class ScopedIsolateStackLimits : public ValueObject {
   uword saved_stack_limit_;
 };
 
-
 // Clears/restores Thread::long_jump_base on construction/destruction.
 // Ensures that we do not attempt to long jump across Dart frames.
 class SuspendLongJumpScope : public StackResource {
@@ -83,7 +80,6 @@ class SuspendLongJumpScope : public StackResource {
  private:
   LongJumpScope* saved_long_jump_base_;
 };
-
 
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
@@ -132,14 +128,12 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 #endif
 }
 
-
 RawObject* DartEntry::InvokeClosure(const Array& arguments) {
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length()));
   return InvokeClosure(arguments, arguments_descriptor);
 }
-
 
 RawObject* DartEntry::InvokeClosure(const Array& arguments,
                                     const Array& arguments_descriptor) {
@@ -215,7 +209,6 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
                             arguments_descriptor);
 }
 
-
 RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
                                          const String& target_name,
                                          const Array& arguments,
@@ -268,23 +261,19 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   return InvokeFunction(function, args);
 }
 
-
 ArgumentsDescriptor::ArgumentsDescriptor(const Array& array) : array_(array) {}
 
 intptr_t ArgumentsDescriptor::TypeArgsLen() const {
   return Smi::Cast(Object::Handle(array_.At(kTypeArgsLenIndex))).Value();
 }
 
-
 intptr_t ArgumentsDescriptor::Count() const {
   return Smi::Cast(Object::Handle(array_.At(kCountIndex))).Value();
 }
 
-
 intptr_t ArgumentsDescriptor::PositionalCount() const {
   return Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
 }
-
 
 RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
   const intptr_t offset =
@@ -294,39 +283,32 @@ RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
   return result.raw();
 }
 
-
 intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
   const intptr_t offset =
       kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
   return Smi::Value(Smi::RawCast(array_.At(offset)));
 }
 
-
 bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
                                         const String& other) const {
   return NameAt(index) == other.raw();
 }
 
-
 intptr_t ArgumentsDescriptor::type_args_len_offset() {
   return Array::element_offset(kTypeArgsLenIndex);
 }
-
 
 intptr_t ArgumentsDescriptor::count_offset() {
   return Array::element_offset(kCountIndex);
 }
 
-
 intptr_t ArgumentsDescriptor::positional_count_offset() {
   return Array::element_offset(kPositionalCountIndex);
 }
 
-
 intptr_t ArgumentsDescriptor::first_named_entry_offset() {
   return Array::element_offset(kFirstNamedEntryIndex);
 }
-
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
@@ -392,7 +374,6 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   return descriptor.raw();
 }
 
-
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments) {
   ASSERT(type_args_len >= 0);
@@ -402,7 +383,6 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   }
   return NewNonCached(type_args_len, num_arguments);
 }
-
 
 RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
                                             intptr_t num_arguments,
@@ -439,14 +419,12 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   return descriptor.raw();
 }
 
-
 void ArgumentsDescriptor::InitOnce() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     cached_args_descriptors_[i] =
         ArgumentsDescriptor::NewNonCached(/*type_args_len=*/0, i, false);
   }
 }
-
 
 RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
                                             const String& class_name,
@@ -480,7 +458,6 @@ RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
   return exception_object.raw();
 }
 
-
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;  // Receiver.
@@ -497,7 +474,6 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   return result.raw();
 }
 
-
 RawObject* DartLibraryCalls::HashCode(const Instance& receiver) {
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;  // Receiver.
@@ -513,7 +489,6 @@ RawObject* DartLibraryCalls::HashCode(const Instance& receiver) {
   ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
-
 
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
@@ -533,7 +508,6 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
   ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
-
 
 RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   Thread* thread = Thread::Current();
@@ -561,7 +535,6 @@ RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   return result.raw();
 }
-
 
 RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
                                            const Instance& message) {
@@ -600,7 +573,6 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
   return result.raw();
 }
 
-
 RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
   Zone* zone = Thread::Current()->zone();
   Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
@@ -613,7 +585,6 @@ RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }
-
 
 RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,

@@ -276,10 +276,6 @@ abstract class StackListener extends Listener {
     messages.nit(message, charOffset, uri);
   }
 
-  void deprecated_warning(String message, [int charOffset = -1]) {
-    messages.deprecated_warning(uri, charOffset, message);
-  }
-
   void warning(Message message, int charOffset) {
     messages.warning(message, charOffset, uri);
   }

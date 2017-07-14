@@ -132,9 +132,7 @@ class A {
   test() {}
 }
 ''');
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -693,9 +691,7 @@ main(var a) {
 
   test_createChange_MethodElement_potential_inPubCache() async {
     String pkgLib = '/.pub-cache/lib.dart';
-    await indexUnit(
-        pkgLib,
-        r'''
+    await indexUnit(pkgLib, r'''
 processObj(p) {
   p.test();
 }
@@ -729,9 +725,7 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_private_otherLibrary() async {
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library lib;
 main(p) {
   p._test();

@@ -52,7 +52,7 @@ testNullMessage() {
     assert(false, null);
     Expect.fail("Assert should throw.");
   } catch (e) {
-    Expect.isTrue(e.toString().contains("null"));
+    Expect.isTrue(e.toString().contains("is not true"));
   }
 }
 
@@ -82,7 +82,7 @@ testCallsToStringOnMessageLazily() {
     Expect.fail("Assert should throw.");
   } catch (e) {
     Expect.isFalse(toString.calledToString);
-    Expect.isTrue(e.toString().contains("toString!"));
-    Expect.isTrue(toString.calledToString);
+    Expect.isTrue(e.toString().contains("Instance of 'ToString'"));
+    Expect.isFalse(toString.calledToString);
   }
 }

@@ -46,6 +46,8 @@
 #
 # `#name2` another name (a string).
 #
+# `#number` a number (an integer).
+#
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string` a string.
@@ -120,6 +122,7 @@ ExpectedButGot:
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
   tip: DONT_KNOW_HOW_TO_FIX,
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: MISSING_TOKEN_BEFORE_THIS
   script:
     - "main() => true ? 1;"
@@ -133,6 +136,7 @@ ExpectedClassBodyToSkip: ExpectedClassBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: "*fatal*"
 
 ExpectedExpression:
@@ -165,6 +169,7 @@ ExpectedOpenParens:
 
 ExpectedString:
   template: "Expected a String, but got '#lexeme'."
+  analyzerCode: EXPECTED_STRING_LITERAL
   dart2jsCode: "*fatal*"
 
 ExpectedType:
@@ -174,6 +179,7 @@ ExpectedType:
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."
+  analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
     - "var String foo; main(){}"
@@ -622,6 +628,9 @@ InternalProblemAlreadyInitialized:
 InternalProblemBodyOnAbstractMethod:
   template: "Attempting to set body on abstract method."
 
+InternalVerificationError:
+  template: "Verification of the generated program failed: #string."
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
 
@@ -639,3 +648,214 @@ DuplicatedExport:
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
+
+CyclicClassHierarchy:
+  template: "'#name' is a supertype of itself via '#string'."
+
+ExtendingEnum:
+  template: "'#name' is an enum and can't be extended or implemented."
+
+ExtendingRestricted:
+  template: "'#name' is restricted and can't be extended or implemented."
+
+NoUnnamedConstructorInObject:
+  template: "'Object' has no unnamed constructor."
+
+IllegalMixinDueToConstructors:
+  template: "Can't use '#name' as a mixin because it has constructors."
+
+IllegalMixinDueToConstructorsCause:
+  template: "This constructor prevents using '#name' as a mixin."
+
+ConflictsWithConstructor:
+  template: "Conflicts with constructor '#name'."
+
+ConflictsWithFactory:
+  template: "Conflicts with factory '#name'."
+
+ConflictsWithMember:
+  template: "Conflicts with member '#name'."
+
+ConflictsWithSetter:
+  template: "Conflicts with setter '#name'."
+
+ConflictsWithTypeVariable:
+  template: "Conflicts with type variable '#name'."
+
+ConflictsWithTypeVariableCause:
+  template:  "This is the type variable."
+
+IllegalMixin:
+  template: "The type '#name' can't be mixed in."
+
+OverrideTypeVariablesMismatch:
+  template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
+
+OverrideMismatchNamedParameter:
+  template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
+
+OverrideFewerNamedArguments:
+  template: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
+
+OverrideFewerPositionalArguments:
+  template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
+
+OverrideMoreRequiredArguments:
+  template: "The method '#name' has more required arguments than those of overridden method '#name2'."
+
+IllegalMethodName:
+  template: "'#name' isn't a legal method name."
+  tip: "Did you mean '#name2'?"
+
+ConstConstructorWithBody:
+  template: "A const constructor can't have a body."
+
+PartOfSelf:
+  template: "A file can't be a part of itself."
+
+TypeVariableDuplicatedName:
+  template: "A type variable can't have the same name as another."
+
+TypeVariableDuplicatedNameCause:
+  template: "The other type variable named '#name'."
+
+TypeVariableSameNameAsEnclosing:
+  template: "A type variable can't have the same name as its enclosing declaration."
+
+EnumDeclartionEmpty:
+  template: "An enum declaration can't be empty."
+
+ExternalMethodWithBody:
+  template: "An external method can't have a body."
+
+OperatorWithOptionalFormals:
+  template: "An operator can't have optional parameters."
+
+PlatformPrivateLibraryAccess:
+  template: "Can't access platform private library."
+
+TypedefNotFunction:
+  template: "Can't create typedef from non-function type."
+
+PartTwice:
+  template: "Can't use '#uri' as a part more than once."
+
+MissingPartOf:
+  template: "Can't use '#uri' as a part, because it has no 'part of' declaration."
+
+SupertypeIsFunction:
+  template: "Can't use a function type as supertype."
+
+DeferredPrefixDuplicated:
+  template: "Can't use the name '#name' for a deferred library, as the name is used elsewhere."
+
+DeferredPrefixDuplicatedCause:
+  template: "'#name' is used here."
+
+TypeArgumentsOnTypeVariable:
+  template: "Can't use type arguments with type variable '#name'."
+
+DuplicatedDefinition:
+  template: "Duplicated definition of '#name'."
+
+DuplicatedName:
+  template: "Duplicated name: '#name'."
+
+DuplicatedParameterName:
+  template: "Duplicated parameter name '#name'."
+
+DuplicatedParameterNameCause:
+  template: "Other parameter named '#name'."
+
+EnumConstantSameNameAsEnclosing:
+  template: "Name of enum constant '#name' can't be the same as the enum's own name."
+
+OperatorParameterMismatch:
+  template: "Operator '#name' must have exactly #number parameters."
+
+SupertypeIsIllegal:
+  template: "The type '#name' can't be used as supertype."
+
+SupertypeIsTypeVariable:
+  template: "The type variable '#name' can't be used as supertype."
+
+PartOfLibraryNameMismatch:
+  template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
+
+PartOfUseUri:
+  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
+  tip: "Try changing the 'part of' declaration to use a relative file name."
+
+PartOfUriMismatch:
+  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'."
+
+MissingMain:
+  template: "No 'main' method found."
+  tip: "Try adding a method named 'main' to your program."
+  dart2jsCode: MISSING_MAIN
+
+MissingInputFile:
+  template: "Input file not found: #string."
+
+MissingSdkRoot:
+  template: "SDK root directory not found: #string."
+
+MissingSdkSummary:
+  template: "SDK summary not found: #string."
+
+ThisAccessInFieldInitializer:
+  template: "Can't access 'this' in a field initializer to read '#name'."
+
+ThisAsIdentifier:
+  template: "Expected identifier, but got 'this'."
+
+SuperAsIdentifier:
+  template: "Expected identifier, but got 'super'."
+
+SwitchCaseFallThrough:
+  template: "Switch case may fall through to the next case."
+
+FinalInstanceVariableAlreadyInitialized:
+  template: "'#name' is a final instance variable that has already been initialized."
+
+FinalInstanceVariableAlreadyInitializedCause:
+  template: "'#name' was initialized here."
+
+TypeVariableInStaticContext:
+  template: "Type variables can't be used in static members."
+
+SuperclassMethodArgumentMismatch:
+  template: "Superclass doesn't have a method named '#name' with matching arguments."
+
+SuperclassHasNoGetter:
+  template: "Superclass has no getter named '#name'."
+
+SuperclassHasNoSetter:
+  template: "Superclass has no setter named '#name'."
+
+SuperclassHasNoMethod:
+  template: "Superclass has no method named '#name'."
+
+SuperclassHasNoDefaultConstructor:
+  template: "The superclass, '#name', has no unnamed constructor that takes no arguments."
+
+ConstConstructorNonFinalField:
+  template: "Constructor is marked 'const' so all fields must be final."
+
+ConstConstructorNonFinalFieldCause:
+  template: "Field isn't final, but constructor is 'const'."
+
+AccessError:
+  template: "Access error: '#name'."
+
+PreviousUseOfName:
+  template: "Previous use of '#name'."
+
+ExpressionNotMetadata:
+  template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
+
+ExpectedAnInitializer:
+  template: "Expected an initializer."
+
+NotAnLvalue:
+  template: "Can't assign to this."

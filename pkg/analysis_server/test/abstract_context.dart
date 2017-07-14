@@ -56,10 +56,7 @@ class AbstractContextTest {
 
   AnalysisDriver get driver => _driver;
 
-  Source addMetaPackageSource() => addPackageSource(
-      'meta',
-      'meta.dart',
-      r'''
+  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
 
 const Required required = const Required();

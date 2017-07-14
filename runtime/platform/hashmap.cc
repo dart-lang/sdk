@@ -13,11 +13,9 @@ HashMap::HashMap(MatchFun match, uint32_t initial_capacity) {
   Initialize(initial_capacity);
 }
 
-
 HashMap::~HashMap() {
   delete[] map_;
 }
-
 
 HashMap::Entry* HashMap::Lookup(void* key, uint32_t hash, bool insert) {
   // Find a matching entry.
@@ -45,7 +43,6 @@ HashMap::Entry* HashMap::Lookup(void* key, uint32_t hash, bool insert) {
   // No entry found and none inserted.
   return NULL;
 }
-
 
 void HashMap::Remove(void* key, uint32_t hash) {
   // Lookup the entry for the key to remove.
@@ -109,7 +106,6 @@ void HashMap::Remove(void* key, uint32_t hash) {
   occupancy_--;
 }
 
-
 void HashMap::Clear(ClearFun clear) {
   // Mark all entries as empty.
   const Entry* end = map_end();
@@ -122,11 +118,9 @@ void HashMap::Clear(ClearFun clear) {
   occupancy_ = 0;
 }
 
-
 HashMap::Entry* HashMap::Start() const {
   return Next(map_ - 1);
 }
-
 
 HashMap::Entry* HashMap::Next(Entry* p) const {
   const Entry* end = map_end();
@@ -138,7 +132,6 @@ HashMap::Entry* HashMap::Next(Entry* p) const {
   }
   return NULL;
 }
-
 
 HashMap::Entry* HashMap::Probe(void* key, uint32_t hash) {
   ASSERT(key != NULL);
@@ -159,7 +152,6 @@ HashMap::Entry* HashMap::Probe(void* key, uint32_t hash) {
   return p;
 }
 
-
 void HashMap::Initialize(uint32_t capacity) {
   ASSERT(dart::Utils::IsPowerOfTwo(capacity));
   map_ = new Entry[capacity];
@@ -169,7 +161,6 @@ void HashMap::Initialize(uint32_t capacity) {
   capacity_ = capacity;
   occupancy_ = 0;
 }
-
 
 void HashMap::Resize() {
   Entry* map = map_;

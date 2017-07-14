@@ -11,7 +11,7 @@ import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
@@ -267,7 +267,7 @@ class FileState {
 class FileSystemState {
   final ByteStore _byteStore;
   final FileSystem fileSystem;
-  final TranslateUri uriTranslator;
+  final UriTranslator uriTranslator;
   final List<int> _salt;
   final NewFileFn _newFileFn;
 

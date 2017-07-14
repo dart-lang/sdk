@@ -118,7 +118,6 @@ class StubEntry {
   DISALLOW_COPY_AND_ASSIGN(StubEntry);
 };
 
-
 // class StubCode is used to maintain the lifecycle of stubs.
 class StubCode : public AllStatic {
  public:
@@ -202,7 +201,6 @@ class StubCode : public AllStatic {
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
 };
-
 
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
 

@@ -16,7 +16,7 @@ import '../universe/use.dart' show TypeUse;
 
 /// Functions to insert type checking, coercion, and instruction insertion
 /// depending on the environment for dart code.
-abstract class TypeBuilder {
+class TypeBuilder {
   final GraphBuilder builder;
   TypeBuilder(this.builder);
 
@@ -143,8 +143,6 @@ abstract class TypeBuilder {
     return builder.pop();
   }
 
-  InterfaceType getThisType(ClassEntity cls);
-
   HInstruction buildTypeArgumentRepresentations(
       DartType type, MemberEntity sourceElement) {
     assert(!type.isTypeVariable);
@@ -158,7 +156,7 @@ abstract class TypeBuilder {
     }
     HInstruction representation = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        getThisType(interface.element),
+        builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
         builder.commonMasks.dynamicType);
     return representation;
@@ -168,6 +166,7 @@ abstract class TypeBuilder {
   /// This should only be called in assertions.
   bool assertTypeInContext(DartType type, [Spannable spannable]) {
     if (builder.compiler.options.useKernel) return true;
+    if (builder.compiler.options.loadFromDill) return true;
     ClassEntity contextClass = DartTypes.getClassContext(type);
     assert(
         contextClass == null ||

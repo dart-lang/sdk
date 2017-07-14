@@ -41,20 +41,17 @@ static void malloc_deallocator(uint8_t* ptr) {
   free(reinterpret_cast<void*>(ptr));
 }
 
-
 DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
   return Capability::New(id);
 }
 
-
 DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, recv, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, other, arguments->NativeArgAt(1));
   return (recv.Id() == other.Id()) ? Bool::True().raw() : Bool::False().raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, cap, arguments->NativeArgAt(0));
@@ -65,25 +62,21 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
   return Smi::New(hash);
 }
 
-
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
   return ReceivePort::New(port_id, false /* not control port */);
 }
 
-
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return Integer::NewFromUint64(port.Id());
 }
 
-
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return port.send_port();
 }
-
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
@@ -92,12 +85,10 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
   return Integer::NewFromUint64(id);
 }
 
-
 DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::NewFromUint64(port.Id());
 }
-
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
@@ -107,7 +98,6 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 1) {
   int32_t hash = (hi ^ lo) & kSmiMax;
   return Smi::New(hash);
 }
-
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
@@ -134,13 +124,11 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   return Object::null();
 }
 
-
 static void ThrowIsolateSpawnException(const String& message) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, message);
   Exceptions::ThrowByType(Exceptions::kIsolateSpawn, args);
 }
-
 
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
@@ -204,7 +192,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
 };
 
-
 static const char* String2UTF8(const String& str) {
   intptr_t len = Utf8::Length(str);
   char* result = new char[len + 1];
@@ -213,7 +200,6 @@ static const char* String2UTF8(const String& str) {
 
   return result;
 }
-
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
@@ -293,7 +279,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
   return Object::null();
 }
 
-
 static const char* CanonicalizeUri(Thread* thread,
                                    const Library& library,
                                    const String& uri,
@@ -330,7 +315,6 @@ static const char* CanonicalizeUri(Thread* thread,
   }
   return result;
 }
-
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
@@ -434,7 +418,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
   const Array& result = Array::Handle(Array::New(3));
   result.SetAt(0, SendPort::Handle(SendPort::New(isolate->main_port())));
@@ -445,13 +428,11 @@ DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0) {
   return result.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0) {
   const Library& root_lib =
       Library::Handle(zone, isolate->object_store()->root_library());
   return root_lib.url();
 }
-
 
 DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));

@@ -18,7 +18,6 @@ class RawFunction;
 class String;
 class ArgumentsDescriptor;
 
-
 // Resolver abstracts functionality needed to resolve dart functions at
 // invocations.
 class Resolver : public AllStatic {

@@ -17,7 +17,6 @@ static bool CidTestResultsContains(const ZoneGrowableArray<intptr_t>& results,
   return false;
 }
 
-
 static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
                        intptr_t test_cid,
                        bool result) {
@@ -26,7 +25,6 @@ static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
     results->Add(result);
   }
 }
-
 
 // Used when we only need the positive result because we return false by
 // default.
@@ -42,7 +40,6 @@ static void PurgeNegativeTestCidsEntries(ZoneGrowableArray<intptr_t>* results) {
   }
   results->SetLength(dest);
 }
-
 
 bool Optimizer::SpecializeTestCidsForNumericTypes(
     ZoneGrowableArray<intptr_t>* results,

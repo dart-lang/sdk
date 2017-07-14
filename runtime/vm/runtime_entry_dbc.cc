@@ -13,16 +13,13 @@
 
 namespace dart {
 
-
 uword RuntimeEntry::GetEntryPoint() const {
   return reinterpret_cast<uword>(function());
 }
 
-
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   UNIMPLEMENTED();
 }
-
 
 }  // namespace dart
 

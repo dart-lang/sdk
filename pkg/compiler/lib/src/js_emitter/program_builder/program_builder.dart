@@ -17,15 +17,13 @@ import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show
         ClassElement,
-        Elements,
         FieldElement,
         FunctionSignature,
         GetterElement,
         LibraryElement,
         MemberElement,
         MethodElement,
-        ParameterElement,
-        TypedefElement;
+        ParameterElement;
 import '../../elements/entities.dart';
 import '../../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
@@ -1087,7 +1085,6 @@ class ProgramBuilder {
           }
         }
       }
-
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
           needsCheckedSetter));
     }

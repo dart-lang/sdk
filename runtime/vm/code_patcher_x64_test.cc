@@ -48,7 +48,6 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
   uword return_address = test->entry() + CodePatcher::InstanceCallSizeInBytes();
   ICData& ic_data = ICData::Handle();

@@ -117,7 +117,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.sourceInformationBuilder,
       this.functionNode) {
     this.loopHandler = new KernelLoopHandler(this);
-    typeBuilder = new KernelTypeBuilder(_elementMap, this);
+    typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
@@ -1945,9 +1945,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Set the runtime type information if necessary.
   HInstruction _setListRuntimeTypeInfoIfNeeded(
-      HInstruction object, ir.ListLiteral listLiteral) {
-    InterfaceType type = localsHandler.substInContext(_commonElements
-        .listType(_elementMap.getDartType(listLiteral.typeArgument)));
+      HInstruction object, InterfaceType type) {
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
@@ -1975,8 +1973,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       listInstruction =
           new HLiteralList(elements, commonMasks.extendableArrayType);
       add(listInstruction);
-      listInstruction =
-          _setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
+      InterfaceType type = localsHandler.substInContext(_commonElements
+          .listType(_elementMap.getDartType(listLiteral.typeArgument)));
+      listInstruction = _setListRuntimeTypeInfoIfNeeded(listInstruction, type);
     }
 
     TypeMask type = _typeInferenceMap.typeOfListLiteral(
@@ -2359,6 +2358,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
 
+    // TODO(johnniwinther): Move factory calls to a helper function?
     if (function is ConstructorEntity && function.isFactoryConstructor) {
       if (function.isExternal && function.isFromEnvironmentConstructor) {
         if (invocation.isConst) {
@@ -2376,12 +2376,34 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Factory constructors take type parameters; other static methods ignore
       // them.
+
       if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments);
       }
-    }
 
-    _pushStaticInvocation(function, arguments, typeMask);
+      _pushStaticInvocation(function, arguments, typeMask);
+
+      bool isFixedListConstructorCall = false;
+      bool isGrowableListConstructorCall = false;
+      if (commonElements.isUnnamedListConstructor(function) &&
+          invocation.arguments.named.isEmpty) {
+        isFixedListConstructorCall =
+            invocation.arguments.positional.length == 1;
+        isGrowableListConstructorCall = invocation.arguments.positional.isEmpty;
+      }
+      bool isJSArrayTypedConstructor =
+          function == commonElements.jsArrayTypedConstructor;
+      if (rtiNeed.classNeedsRti(commonElements.listClass) &&
+          (isFixedListConstructorCall ||
+              isGrowableListConstructorCall ||
+              isJSArrayTypedConstructor)) {
+        InterfaceType type = _elementMap.createInterfaceType(
+            target.enclosingClass, invocation.arguments.types);
+        stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type));
+      }
+    } else {
+      _pushStaticInvocation(function, arguments, typeMask);
+    }
   }
 
   void handleInvokeStaticForeign(
@@ -3500,16 +3522,5 @@ class TryCatchFinallyBuilder {
             kernelBuilder.wrapStatementGraph(finallyGraph)),
         exitBlock);
     kernelBuilder.inTryStatement = previouslyInTryStatement;
-  }
-}
-
-class KernelTypeBuilder extends TypeBuilder {
-  KernelToElementMapForBuilding _elementMap;
-
-  KernelTypeBuilder(this._elementMap, GraphBuilder builder) : super(builder);
-
-  @override
-  InterfaceType getThisType(ClassEntity cls) {
-    return _elementMap.elementEnvironment.getThisType(cls);
   }
 }

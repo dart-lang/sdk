@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Uninitialized extends core::Object {
   field core::int x;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class PartiallyInitialized extends core::Object {

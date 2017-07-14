@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Test<T extends core::Object, U extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   abstract operator [](core::String s) → self::Test::T;
   abstract operator []=(core::String s, self::Test::U v) → void;

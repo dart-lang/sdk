@@ -24,7 +24,6 @@ static bool IsStaticInitializer(const Function& function, Zone* zone) {
              .StartsWith(Symbols::InitPrefix());
 }
 
-
 StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function,
                                              intptr_t kernel_offset,
                                              const uint8_t* buffer,
@@ -817,7 +816,7 @@ void StreamingScopeBuilder::VisitStatement() {
     }
     case kSwitchStatement: {
       AddSwitchVariable();
-      VisitExpression();                           // read condition.
+      VisitExpression();                            // read condition.
       int case_count = builder_->ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
         int expression_count =
@@ -1139,7 +1138,6 @@ void StreamingScopeBuilder::EnterScope(intptr_t kernel_offset) {
   result_->scopes.Insert(kernel_offset, scope_);
 }
 
-
 void StreamingScopeBuilder::ExitScope(TokenPosition start_position,
                                       TokenPosition end_position) {
   scope_->set_begin_token_pos(start_position);
@@ -1246,14 +1244,12 @@ void StreamingScopeBuilder::AddTryVariables() {
                        ":saved_try_context_var", depth_.try_);
 }
 
-
 void StreamingScopeBuilder::AddCatchVariables() {
   AddExceptionVariable(&result_->exception_variables, ":exception",
                        depth_.catch_);
   AddExceptionVariable(&result_->stack_trace_variables, ":stack_trace",
                        depth_.catch_);
 }
-
 
 void StreamingScopeBuilder::AddIteratorVariable() {
   if (depth_.function_ > 0) return;
@@ -1364,7 +1360,6 @@ StreamingDartTypeTranslator::StreamingDartTypeTranslator(
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize) {}
-
 
 AbstractType& StreamingDartTypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -1693,7 +1688,6 @@ StreamingDartTypeTranslator::BuildInstantiatedTypeArguments(
   return instantiated_type_arguments;
 }
 
-
 const Type& StreamingDartTypeTranslator::ReceiverType(
     const dart::Class& klass) {
   ASSERT(!klass.IsNull());
@@ -1713,7 +1707,6 @@ const Type& StreamingDartTypeTranslator::ReceiverType(
   return type;
 }
 
-
 StreamingConstantEvaluator::StreamingConstantEvaluator(
     StreamingFlowGraphBuilder* builder)
     : builder_(builder),
@@ -1730,7 +1723,6 @@ StreamingConstantEvaluator::StreamingConstantEvaluator(
               ? Script::null()
               : builder_->parsed_function()->function().script())),
       result_(Instance::Handle(zone_)) {}
-
 
 Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                          bool reset_position) {
@@ -2233,7 +2225,7 @@ void StreamingConstantEvaluator::EvaluateLet() {
   // read variable declaration.
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
-  Tag tag = builder_->ReadTag();    // read (first part of) initializer.
+  Tag tag = builder_->ReadTag();  // read (first part of) initializer.
   if (tag == kNothing) {
     local->SetConstValue(Instance::ZoneHandle(Z, dart::Instance::null()));
   } else {
@@ -2438,7 +2430,6 @@ bool StreamingConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   }
   return is_present;
 }
-
 
 void StreamingConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
                                                     const Instance& value) {
@@ -3400,7 +3391,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   return NULL;
 }
 
-
 Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
   SetOffset(kernel_offset);
   return BuildStatement();  // read statement.
@@ -3707,8 +3697,8 @@ void StreamingFlowGraphBuilder::SkipInterfaceType(bool simple) {
 void StreamingFlowGraphBuilder::SkipFunctionType(bool simple) {
   if (!simple) {
     SkipTypeParametersList();  // read type_parameters.
-    ReadUInt();  // read required parameter count.
-    ReadUInt();  // read total parameter count.
+    ReadUInt();                // read required parameter count.
+    ReadUInt();                // read total parameter count.
   }
 
   SkipListOfDartTypes();  // read positional_parameters types.
@@ -3857,8 +3847,8 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       SkipOptionalDartType();  // read unused static type.
       return;
     case kStringConcatenation:
-      ReadPosition();                           // read position.
-      SkipListOfExpressions();                  // read list of expressions.
+      ReadPosition();           // read position.
+      SkipListOfExpressions();  // read list of expressions.
       return;
     case kIsExpression:
       ReadPosition();    // read position.
@@ -3887,9 +3877,9 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kListLiteral:
     case kConstListLiteral:
-      ReadPosition();                           // read position.
-      SkipDartType();                           // read type.
-      SkipListOfExpressions();                  // read list of expressions.
+      ReadPosition();           // read position.
+      SkipDartType();           // read type.
+      SkipListOfExpressions();  // read list of expressions.
       return;
     case kMapLiteral:
     case kConstMapLiteral: {
@@ -3982,12 +3972,12 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       return;
     case kForStatement: {
       SkipListOfVariableDeclarations();  // read variables.
-      Tag tag = ReadTag();  // Read first part of condition.
+      Tag tag = ReadTag();               // Read first part of condition.
       if (tag == kSomething) {
         SkipExpression();  // read rest of condition.
       }
       SkipListOfExpressions();  // read updates.
-      SkipStatement();  // read body.
+      SkipStatement();          // read body.
       return;
     }
     case kForInStatement:
@@ -3998,7 +3988,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       SkipStatement();            // read body.
       return;
     case kSwitchStatement: {
-      SkipExpression();                  // read condition.
+      SkipExpression();                   // read condition.
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
         int expression_count = ReadListLength();  // read number of expressions.
@@ -4291,12 +4281,12 @@ intptr_t StreamingFlowGraphBuilder::PeekArgumentsCount() {
 
 intptr_t StreamingFlowGraphBuilder::PeekArgumentsTypeCount() {
   AlternativeReadingScope alt(reader_);
-  ReadUInt();                               // read arguments count.
-  return ReadListLength();                  // read length of types list.
+  ReadUInt();               // read arguments count.
+  return ReadListLength();  // read length of types list.
 }
 
 void StreamingFlowGraphBuilder::SkipArgumentsBeforeActualArguments() {
-  ReadUInt();  // read arguments count.
+  ReadUInt();             // read arguments count.
   SkipListOfDartTypes();  // read list of types.
 }
 
@@ -5359,9 +5349,10 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
     if (dart::FlowGraphBuilder::SimpleInstanceOfType(type)) {
       instructions += Constant(type);
       instructions += PushArgument();  // Type.
-      instructions += InstanceCall(position, dart::Library::PrivateCoreLibName(
-                                                 Symbols::_simpleInstanceOf()),
-                                   Token::kIS, 2, 2);  // 2 checked arguments.
+      instructions += InstanceCall(
+          position,
+          dart::Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
+          Token::kIS, 2, 2);  // 2 checked arguments.
       return instructions;
     }
 
@@ -5622,7 +5613,6 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
   }
   instructions += PushArgument();  // The array.
 
-
   const dart::Class& map_class =
       dart::Class::Handle(Z, dart::Library::LookupCoreClass(Symbols::Map()));
   const Function& factory_method = Function::ZoneHandle(
@@ -5640,11 +5630,10 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
 Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  Fragment instructions = BuildVariableDeclaration();       // read variable.
-  instructions += BuildExpression();                        // read body.
+  Fragment instructions = BuildVariableDeclaration();  // read variable.
+  instructions += BuildExpression();                   // read body.
   return instructions;
 }
-
 
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
     TokenPosition* position) {
@@ -5779,7 +5768,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   otherwise_fragment += PushArgument();  // start
   otherwise_fragment += IntConstant(condition_end_offset.Pos());
   otherwise_fragment += PushArgument();  // end
-  Tag tag = ReadTag();  // read (first part of) message.
+  Tag tag = ReadTag();                   // read (first part of) message.
   if (tag == kSomething) {
     otherwise_fragment += BuildExpression();  // read (rest of) message.
   } else {
@@ -5861,7 +5850,6 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
   } else {
     entry = condition.entry;
   }
-
 
   loop_depth_dec();
   return Fragment(entry, loop_exit);
@@ -6019,7 +6007,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
 Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
   // We need the number of cases. So start by getting that, then go back.
   intptr_t offset = ReaderOffset();
-  SkipExpression();                  // temporarily skip condition
+  SkipExpression();                   // temporarily skip condition
   int case_count = ReadListLength();  // read number of cases.
   SetOffset(offset);
 
@@ -6432,7 +6420,6 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally() {
   // so creating a "TryFinallyBlock" with a kernel binary offset instead of an
   // AST node isn't a problem.
 
-
   InlineBailout("kernel::FlowgraphBuilder::VisitTryFinally");
 
   // There are 5 different cases where we need to execute the finally block:
@@ -6584,7 +6571,6 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
     rethrow += RethrowException(position, CatchClauseNode::kInvalidTryIndex);
     Drop();
 
-
     continuation = Fragment(continuation.entry, no_error);
   }
 
@@ -6598,8 +6584,8 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
   VariableDeclarationHelper helper(this);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   dart::String& name = H.DartSymbol(helper.name_index_);
-  AbstractType& type = T.BuildType();                        // read type.
-  Tag tag = ReadTag();  // read (first part of) initializer.
+  AbstractType& type = T.BuildType();  // read type.
+  Tag tag = ReadTag();                 // read (first part of) initializer.
 
   Fragment instructions;
   if (tag == kNothing) {
@@ -6767,7 +6753,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   return instructions;
 }
-
 
 void StreamingFlowGraphBuilder::SetupFunctionParameters(
     const dart::Class& klass,

@@ -1378,7 +1378,7 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
-    closedWorldRefiner.registerClosureClass(globalizedElement);
+    closedWorldRefiner.registerClosureClass(globalizedElement, false);
     MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
     backend.mirrorsDataBuilder.maybeMarkClosureAsNeededForReflection(

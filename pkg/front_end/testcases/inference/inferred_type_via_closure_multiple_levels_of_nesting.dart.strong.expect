@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   static final field (core::bool) → (core::int) → core::Map<core::int, core::bool> f = (core::bool b) → (core::int) → core::Map<core::int, core::bool> => (core::int i) → core::Map<core::int, core::bool> => <core::int, core::bool>{i: b};
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

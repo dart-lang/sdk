@@ -11,9 +11,7 @@
 #include "vm/kernel_to_il.h"
 #include "vm/os.h"
 
-
 namespace dart {
-
 
 namespace kernel {
 
@@ -37,16 +35,13 @@ Program* Program::ReadFrom(Reader* reader) {
   return program;
 }
 
-
 }  // namespace kernel
-
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length) {
   kernel::Reader reader(buffer, buffer_length);
   return kernel::Program::ReadFrom(&reader);
 }
-
 
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

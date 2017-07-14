@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/resolver.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/object.h"
-#include "vm/resolver.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
@@ -49,7 +49,6 @@ static void SetupFunction(const char* test_library_name,
   EXPECT(ClassFinalizer::ProcessPendingClasses());
 }
 
-
 // Setup a static function for invocation.
 static void SetupStaticFunction(const char* test_library_name,
                                 const char* test_class_name,
@@ -59,7 +58,6 @@ static void SetupStaticFunction(const char* test_library_name,
                 true);
 }
 
-
 // Setup an instance  function for invocation.
 static void SetupInstanceFunction(const char* test_library_name,
                                   const char* test_class_name,
@@ -67,7 +65,6 @@ static void SetupInstanceFunction(const char* test_library_name,
   // Setup a static dart class and function.
   SetupFunction(test_library_name, test_class_name, test_function_name, false);
 }
-
 
 TEST_CASE(DartStaticResolve) {
   const char* test_library_name = "ResolverApp";
@@ -127,7 +124,6 @@ TEST_CASE(DartStaticResolve) {
     EXPECT(!super_function.IsNull());  // No ambiguity error expected.
   }
 }
-
 
 TEST_CASE(DartDynamicResolve) {
   const char* test_library_name = "ResolverApp";

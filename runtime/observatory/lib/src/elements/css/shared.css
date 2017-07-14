@@ -1802,7 +1802,8 @@ li.nav-menu:before {
   margin-left: 0.5em;
   margin-right: 0.5em;
 }
-nav.nav-bar > ul *:first-child li.nav-menu:before {
+nav.nav-bar > ul *:first-child li.nav-menu:before,
+nav.nav-bar > ul nav-reload > li:before {
   content: '';
   margin-left: 0;
   margin-right: 0;
@@ -1968,6 +1969,37 @@ nav-refresh > li > button[disabled] {
   cursor: wait;
 }
 nav-refresh > li {
+  float: right;
+  margin: 0;
+}
+
+/* nav-refresh */
+
+nav-reload > li > button {
+  color: #000;
+  margin: 3px;
+  padding: 8px;
+  border-width: 2px;
+  line-height: 13px;
+  font-size: 13px;
+  font: 400 'Montserrat', sans-serif;
+}
+nav-reload ul > li {
+  display: block;
+  width: 100%;
+  padding: 2px;
+}
+nav-reload ul > li > button {
+  display: inline-block;
+  padding: 8px;
+  width: 100%;
+}
+nav-reload > li > button[disabled],
+nav-reload ul > li > button[disabled] {
+  color: #aaa;
+  cursor: wait;
+}
+nav-reload > li {
   float: right;
   margin: 0;
 }

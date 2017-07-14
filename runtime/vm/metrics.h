@@ -109,7 +109,6 @@ class Metric {
   DISALLOW_COPY_AND_ASSIGN(Metric);
 };
 
-
 // A Metric class that reports the maximum value observed.
 // Initial maximum is kMinInt64.
 class MaxMetric : public Metric {
@@ -118,7 +117,6 @@ class MaxMetric : public Metric {
 
   void SetValue(int64_t new_value);
 };
-
 
 // A Metric class that reports the minimum value observed.
 // Initial minimum is kMaxInt64.
@@ -129,54 +127,45 @@ class MinMetric : public Metric {
   void SetValue(int64_t new_value);
 };
 
-
 class MetricHeapOldUsed : public Metric {
  protected:
   virtual int64_t Value() const;
 };
-
 
 class MetricHeapOldCapacity : public Metric {
  protected:
   virtual int64_t Value() const;
 };
 
-
 class MetricHeapOldExternal : public Metric {
  protected:
   virtual int64_t Value() const;
 };
-
 
 class MetricHeapNewUsed : public Metric {
  protected:
   virtual int64_t Value() const;
 };
 
-
 class MetricHeapNewCapacity : public Metric {
  protected:
   virtual int64_t Value() const;
 };
-
 
 class MetricHeapNewExternal : public Metric {
  protected:
   virtual int64_t Value() const;
 };
 
-
 class MetricIsolateCount : public Metric {
  protected:
   virtual int64_t Value() const;
 };
 
-
 class MetricPeakRSS : public Metric {
  protected:
   virtual int64_t Value() const;
 };
-
 
 class MetricHeapUsed : public Metric {
  protected:

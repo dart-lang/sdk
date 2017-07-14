@@ -16,7 +16,7 @@ class ObjectPointerVisitor;
 // A list of the bootstrap libraries including CamelName and name.
 //
 // These are listed in the order that they are compiled (see vm/bootstrap.cc).
-#define FOR_EACH_PRODUCT_LIBRARY(M)                                            \
+#define FOR_EACH_BOOTSTRAP_LIBRARY(M)                                          \
   M(Core, core)                                                                \
   M(Async, async)                                                              \
   M(Collection, collection)                                                    \
@@ -25,19 +25,10 @@ class ObjectPointerVisitor;
   M(Internal, _internal)                                                       \
   M(Isolate, isolate)                                                          \
   M(Math, math)                                                                \
+  M(Mirrors, mirrors)                                                          \
   M(Profiler, profiler)                                                        \
   M(TypedData, typed_data)                                                     \
   M(VMService, _vmservice)
-
-#ifdef PRODUCT
-#define FOR_EACH_BOOTSTRAP_LIBRARY(M) FOR_EACH_PRODUCT_LIBRARY(M)
-
-#else
-#define FOR_EACH_BOOTSTRAP_LIBRARY(M)                                          \
-  FOR_EACH_PRODUCT_LIBRARY(M)                                                  \
-  M(Mirrors, mirrors)
-
-#endif
 
 // The object store is a per isolate instance which stores references to
 // objects used by the VM.

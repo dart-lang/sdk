@@ -9,7 +9,7 @@
 
 #include "bin/socket.h"
 
-#include <errno.h>        // NOLINT
+#include <errno.h>  // NOLINT
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
@@ -45,7 +45,6 @@ namespace bin {
 Socket::Socket(intptr_t fd)
     : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {}
 
-
 void Socket::SetClosedFd() {
   ASSERT(fd_ != kClosedFd);
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
@@ -53,7 +52,6 @@ void Socket::SetClosedFd() {
   handle->Release();
   fd_ = kClosedFd;
 }
-
 
 static intptr_t Create(const RawAddr& addr) {
   LOG_INFO("Create: calling socket(SOCK_STREAM)\n");
@@ -72,7 +70,6 @@ static intptr_t Create(const RawAddr& addr) {
   return reinterpret_cast<intptr_t>(io_handle);
 }
 
-
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   LOG_INFO("Connect: calling connect(%ld)\n", handle->fd());
@@ -86,7 +83,6 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   handle->Release();
   return -1;
 }
-
 
 intptr_t Socket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
@@ -104,7 +100,6 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr);
 }
 
-
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
   LOG_ERR("SocketBase::CreateBindConnect is unimplemented\n");
@@ -112,13 +107,11 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return -1;
 }
 
-
 intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   LOG_ERR("SocketBase::CreateBindDatagram is unimplemented\n");
   UNIMPLEMENTED();
   return -1;
 }
-
 
 intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                                         intptr_t backlog,
@@ -189,12 +182,10 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   return reinterpret_cast<intptr_t>(io_handle);
 }
 
-
 bool ServerSocket::StartAccept(intptr_t fd) {
   USE(fd);
   return true;
 }
-
 
 static bool IsTemporaryAcceptError(int error) {
   // On Linux a number of protocol errors should be treated as EAGAIN.
@@ -204,7 +195,6 @@ static bool IsTemporaryAcceptError(int error) {
          (error == EHOSTUNREACH) || (error == EOPNOTSUPP) ||
          (error == ENETUNREACH);
 }
-
 
 intptr_t ServerSocket::Accept(intptr_t fd) {
   IOHandle* listen_handle = reinterpret_cast<IOHandle*>(fd);

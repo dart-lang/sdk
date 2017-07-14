@@ -6,11 +6,11 @@
 #define RUNTIME_BIN_LOADER_H_
 
 #include "bin/isolate_data.h"
+#include "bin/thread.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "bin/thread.h"
 
 namespace dart {
 namespace bin {

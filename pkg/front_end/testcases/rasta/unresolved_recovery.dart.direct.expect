@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class E extends core::Object {
-  constructor •() → self::E
+  default constructor •() → self::E
     : super core::Object::•();
   method foo() → dynamic {
     super.[]=(4, 42);

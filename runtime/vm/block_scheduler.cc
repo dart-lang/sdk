@@ -19,7 +19,6 @@ static intptr_t GetEdgeCount(const Array& edge_counters, intptr_t edge_id) {
   return Smi::Value(Smi::RawCast(edge_counters.At(edge_id)));
 }
 
-
 // There is an edge from instruction->successor.  Set its weight (edge count
 // per function entry).
 static void SetEdgeWeight(BlockEntryInstr* block,
@@ -49,7 +48,6 @@ static void SetEdgeWeight(BlockEntryInstr* block,
     }
   }
 }
-
 
 void BlockScheduler::AssignEdgeWeights() const {
   if (!FLAG_reorder_basic_blocks) {
@@ -87,7 +85,6 @@ void BlockScheduler::AssignEdgeWeights() const {
   }
 }
 
-
 // A weighted control-flow graph edge.
 struct Edge {
   Edge(BlockEntryInstr* source, BlockEntryInstr* target, double weight)
@@ -100,7 +97,6 @@ struct Edge {
   double weight;
 };
 
-
 // A linked list node in a chain of blocks.
 struct Link : public ZoneAllocated {
   Link(BlockEntryInstr* block, Link* next) : block(block), next(next) {}
@@ -108,7 +104,6 @@ struct Link : public ZoneAllocated {
   BlockEntryInstr* block;
   Link* next;
 };
-
 
 // A chain of blocks with first and last pointers for fast concatenation and
 // a length to support adding a shorter chain's links to a longer chain.
@@ -121,14 +116,12 @@ struct Chain : public ZoneAllocated {
   intptr_t length;
 };
 
-
 int Edge::LowestWeightFirst(const Edge* a, const Edge* b) {
   if (a->weight < b->weight) {
     return -1;
   }
   return (a->weight > b->weight) ? 1 : 0;
 }
-
 
 // Combine two chains by adding the shorter chain's links to the longer
 // chain.
@@ -153,7 +146,6 @@ static void Union(GrowableArray<Chain*>* chains,
     source_chain->length += target_chain->length;
   }
 }
-
 
 void BlockScheduler::ReorderBlocks() const {
   // Add every block to a chain of length 1 and compute a list of edges

@@ -72,7 +72,6 @@ static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   return auth_cert;
 }
 
-
 static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
   SSLCertContext* context = static_cast<SSLCertContext*>(arg);
 
@@ -163,12 +162,10 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
   return ctx->verify_cb(0, ctx);
 }
 
-
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {
   SSL_CTX* ctx = SSL_get_SSL_CTX(ssl);
   SSL_CTX_set_cert_verify_callback(ctx, CertificateVerificationCallback, this);
 }
-
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.

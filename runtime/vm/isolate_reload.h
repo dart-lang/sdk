@@ -50,7 +50,6 @@ class RawString;
 class Script;
 class UpdateClassesVisitor;
 
-
 class InstanceMorpher : public ZoneAllocated {
  public:
   InstanceMorpher(Zone* zone, const Class& from, const Class& to);
@@ -96,7 +95,6 @@ class InstanceMorpher : public ZoneAllocated {
   void DumpFormatFor(const Class& cls) const;
 };
 
-
 class ReasonForCancelling : public ZoneAllocated {
  public:
   explicit ReasonForCancelling(Zone* zone) {}
@@ -119,7 +117,6 @@ class ReasonForCancelling : public ZoneAllocated {
   // Concrete subclasses must override either ToError or ToString.
 };
 
-
 // Abstract class for also capturing the from_ and to_ class.
 class ClassReasonForCancelling : public ReasonForCancelling {
  public:
@@ -130,7 +127,6 @@ class ClassReasonForCancelling : public ReasonForCancelling {
   const Class& from_;
   const Class& to_;
 };
-
 
 class IsolateReloadContext {
  public:

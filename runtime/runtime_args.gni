@@ -27,10 +27,9 @@ declare_args() {
   # dart_debug/dart_product.
   dart_runtime_mode = "develop"
 
-  # Explicitly set the target architecture in case of precompilation. Leaving
-  # this unspecified results in automatic target architecture detection.
+  # Explicitly set the target architecture to use a simulator.
   # Available options are: arm, arm64, x64, ia32, and dbc.
-  dart_target_arch = ""
+  dart_target_arch = target_cpu
 
   # The optimization level to use for debug builds.
   dart_debug_optimization_level = "2"

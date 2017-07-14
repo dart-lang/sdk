@@ -7,71 +7,109 @@
 
 import "package:expect/expect.dart";
 
-class AssertionTest {
-  static testTrue() {
-    int i = 0;
-    try {
-      assert(true);
-    } on AssertionError catch (error) {
-      i = 1;
-    }
-    return i;
+testTrue() {
+  int i = 0;
+  try {
+    assert(true);
+  } on AssertionError catch (error) {
+    i = 1;
   }
+  return i;
+}
 
-  static testFalse() {
-    int i = 0;
-    try {
-      assert(false);
-    } on AssertionError catch (error) {
-      i = 1;
-    }
-    return i;
+testFalse() {
+  int i = 0;
+  try {
+    assert(false);
+  } on AssertionError catch (error) {
+    i = 1;
   }
+  return i;
+}
 
-  static unknown(var a) {
-    return (a) ? true : false;
+unknown(dynamic a) {
+  return a ? true : false;
+}
+
+testClosureReturnsFalse() {
+  int i = 0;
+  try {
+    assert(() => false);
+  } on AssertionError catch (error) {
+    i = 1;
   }
+  return i;
+}
 
-  static testUnknown() {
-    var x = unknown(false);
-    int i = 0;
-    try {
-      assert(x);
-    } on AssertionError catch (error) {
-      i = 1;
-    }
-    return i;
+testClosure(bool f()) {
+  int i = 0;
+  try {
+    assert(f);
+  } on AssertionError catch (error) {
+    i = 1;
   }
+  return i;
+}
 
-  static testClosure() {
-    int i = 0;
-    try {
-      assert(() => false);
-    } on AssertionError catch (error) {
-      i = 1;
-    }
-    return i;
+testBoolean(bool value) {
+  int i = 0;
+  try {
+    assert(value);
+  } on AssertionError catch (error) {
+    i = 1;
   }
+  return i;
+}
 
-  static testClosure2() {
-    int i = 0;
-    try {
-      var x = () => false;
-      assert(x);
-    } on AssertionError catch (error) {
-      i = 1;
-    }
-    return i;
+testDynamic(dynamic value) {
+  int i = 0;
+  try {
+    assert(value);
+  } on AssertionError catch (error) {
+    i = 1;
   }
+  return i;
+}
 
-  static testMain() {
-    Expect.equals(0, testTrue());
-    Expect.equals(1, testFalse());
-    Expect.equals(1, testClosure());
-    Expect.equals(1, testClosure2());
+testMessage(value, message) {
+  try {
+    assert(value, message);
+    return null;
+  } on AssertionError catch (error) {
+    return error;
   }
 }
 
 main() {
-  AssertionTest.testMain();
+  Expect.equals(0, testTrue());
+  Expect.equals(0, testBoolean(true));
+  Expect.equals(0, testDynamic(unknown(true)));
+  Expect.equals(0, testClosure(() => true));
+  Expect.equals(0, testDynamic(() => true));
+
+  Expect.equals(1, testFalse());
+  Expect.equals(1, testBoolean(false));
+  Expect.equals(1, testClosureReturnsFalse());
+  Expect.equals(1, testDynamic(unknown(false)));
+  Expect.equals(1, testDynamic(() => false));
+
+  Expect.equals(1, testBoolean(null));
+  Expect.equals(1, testDynamic(null));
+  Expect.equals(1, testDynamic(42));
+  Expect.equals(1, testDynamic(() => 42));
+  Expect.equals(1, testDynamic(() => null));
+  Expect.equals(1, testClosure(() => null));
+
+  Expect.equals(1234, testMessage(false, 1234).message);
+  Expect.equals('hi', testMessage(false, 'hi').message);
+  Expect.equals(1234, testMessage(() => false, 1234).message);
+  Expect.equals('hi', testMessage(() => false, 'hi').message);
+
+  // These errors do not have the message because boolean conversion failed.
+  Expect.equals(null, testMessage(null, 1234).message);
+  Expect.equals(null, testMessage(null, 'hi').message);
+  Expect.equals(null, testMessage(() => null, 1234).message);
+  Expect.equals(null, testMessage(() => null, 'hi').message);
+  Expect.isTrue("${testMessage(42, 1234)}".contains('boolean expression'));
+  Expect.isTrue("${testMessage(() => 1, 1234)}".contains('boolean expression'));
 }

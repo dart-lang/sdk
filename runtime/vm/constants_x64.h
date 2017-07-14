@@ -28,7 +28,6 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 };
 
-
 enum ByteRegister {
   AL = 0,
   CL = 1,
@@ -40,7 +39,6 @@ enum ByteRegister {
   BH = 7,
   kNoByteRegister = -1  // Signals an illegal register.
 };
-
 
 enum XmmRegister {
   XMM0 = 0,
@@ -63,13 +61,11 @@ enum XmmRegister {
   kNoXmmRegister = -1  // Signals an illegal register.
 };
 
-
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
 const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
-
 
 enum RexBits {
   REX_NONE = 0,
@@ -79,7 +75,6 @@ enum RexBits {
   REX_W = 1 << 3,
   REX_PREFIX = 1 << 6
 };
-
 
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
@@ -103,7 +98,6 @@ const Register kExceptionObjectReg = RAX;
 // an exception is thrown.
 const Register kStackTraceObjectReg = RDX;
 
-
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 
@@ -113,7 +107,6 @@ const RegList kReservedCpuRegisters =
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
 
-
 enum ScaleFactor {
   TIMES_1 = 0,
   TIMES_2 = 1,
@@ -122,7 +115,6 @@ enum ScaleFactor {
   TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
-
 
 enum Condition {
   OVERFLOW = 0,
@@ -232,7 +224,6 @@ class Instr {
   // We need to prevent the creation of instances of class Instr.
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
-
 
 // The largest multibyte nop we will emit.  This could go up to 15 if it
 // becomes important to us.

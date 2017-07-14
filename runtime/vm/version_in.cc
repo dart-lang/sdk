@@ -21,11 +21,9 @@ const char* Version::String() {
   return formatted_version;
 }
 
-
 const char* Version::SnapshotString() {
   return snapshot_hash_;
 }
-
 
 const char* Version::CommitString() {
   return commit_;

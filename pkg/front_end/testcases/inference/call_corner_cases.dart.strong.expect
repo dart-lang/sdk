@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method call() → core::int
     return 0;
 }
 class B extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   get call() → self::A
@@ -19,7 +19,7 @@ class B extends core::Object {
 class D extends core::Object {
   field self::A fieldA = new self::A::•();
   field self::B fieldB = new self::B::•();
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   get getA() → self::A

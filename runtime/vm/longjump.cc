@@ -21,7 +21,6 @@ jmp_buf* LongJumpScope::Set() {
   return &environment_;
 }
 
-
 bool LongJumpScope::IsSafeToJump() {
   // We do not want to jump past Dart frames.  Note that this code
   // assumes the stack grows from high to low.
@@ -43,7 +42,6 @@ bool LongJumpScope::IsSafeToJump() {
   }
   return ((top_exit_frame_info == 0) || (jumpbuf_addr < top_exit_frame_info));
 }
-
 
 void LongJumpScope::Jump(int value, const Error& error) {
   // A zero is the default return value from setting up a LongJumpScope

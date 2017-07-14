@@ -82,7 +82,6 @@ class HeapPage {
   DISALLOW_IMPLICIT_CONSTRUCTORS(HeapPage);
 };
 
-
 // The history holds the timing information of the last garbage collection
 // runs.
 class PageSpaceGarbageCollectionHistory {
@@ -107,7 +106,6 @@ class PageSpaceGarbageCollectionHistory {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(PageSpaceGarbageCollectionHistory);
 };
-
 
 // PageSpaceController controls the heap size.
 class PageSpaceController {
@@ -176,7 +174,6 @@ class PageSpaceController {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpaceController);
 };
-
 
 class PageSpace {
  public:

@@ -388,9 +388,7 @@ var vMinusIntDouble = 1 - 2.0;
 var vMinusDoubleInt = 1.0 - 2;
 var vMinusDoubleDouble = 1.0 - 2.0;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vPlusIntInt;
 double vPlusIntDouble;
 double vPlusDoubleInt;
@@ -406,9 +404,7 @@ double vMinusDoubleDouble;
     var library = await _encodeDecodeLibrary(r'''
 var V = 1 as num;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 num V;
 ''');
   }
@@ -421,9 +417,7 @@ Future<int> fFuture() async => 42;
 var uValue = () async => await fValue();
 var uFuture = () async => await fFuture();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 import 'dart:async';
 () → Future<int> uValue;
 () → Future<int> uFuture;
@@ -440,9 +434,7 @@ var vBitOr = 1 | 2;
 var vBitShiftLeft = 1 << 2;
 var vBitShiftRight = 1 >> 2;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vBitXor;
 int vBitAnd;
 int vBitOr;
@@ -461,9 +453,7 @@ var vSetField = new A()..a = 1;
 var vInvokeMethod = new A()..m();
 var vBoth = new A()..a = 1..m();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int a;
   void m() {}
@@ -478,9 +468,7 @@ A vBoth;
     var library = await _encodeDecodeLibrary(r'''
 var V = true ? 1 : 2.3;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 num V;
 ''');
   }
@@ -490,9 +478,7 @@ num V;
 var vEq = 1 == 2;
 var vNotEq = 1 != 2;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 bool vEq;
 bool vNotEq;
 ''');
@@ -504,9 +490,7 @@ var a = 1;
 var t1 = (a = 2);
 var t2 = (a += 2);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int a;
 dynamic t1/*error: assignment*/;
 dynamic t2/*error: assignment*/;
@@ -522,9 +506,7 @@ var a = new A();
 var t1 = (a.f = 1);
 var t2 = (a.f += 2);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int f;
 }
@@ -544,9 +526,7 @@ C c;
 var t1 = (c.f = 1);
 var t2 = (c.f += 2);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class I {
   int f;
 }
@@ -568,9 +548,7 @@ C getC() => null;
 var t1 = (getC().f = 1);
 var t2 = (getC().f += 2);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class I {
   int f;
 }
@@ -619,9 +597,7 @@ A newA() => new A();
 B newB() => new B();
 C newC() => new C();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int f;
 }
@@ -659,9 +635,7 @@ class C {
 C f() => null;
 var x = f().b;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class C {
   bool b;
 }
@@ -671,15 +645,11 @@ C f() {}
   }
 
   test_initializer_error_extractProperty_inOtherLibraryCycle() async {
-    addFile(
-        '/a.dart',
-        r'''
+    addFile('/a.dart', r'''
 import 'b.dart';
 var x = new C().f;
 ''');
-    addFile(
-        '/b.dart',
-        r'''
+    addFile('/b.dart', r'''
 class C {
   var f = 0;
 }
@@ -688,9 +658,7 @@ class C {
 import 'a.dart';
 var t1 = x;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 import 'a.dart';
 dynamic t1;
 ''');
@@ -705,9 +673,7 @@ class B {
   static var t = new A().f;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int f;
 }
@@ -725,9 +691,7 @@ class C {
 C c;
 var x = c.b;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class C {
   bool b;
 }
@@ -745,9 +709,7 @@ abstract class C implements I {}
 C c;
 var x = c.b;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class I {
   bool b;
 }
@@ -767,9 +729,7 @@ abstract class C implements I {}
 C f() => null;
 var x = f().b;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class I {
   bool b;
 }
@@ -786,9 +746,7 @@ dynamic f() => null;
 var s = f().toString();
 var h = f().hashCode;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 String s;
 dynamic h/*error: instanceGetter*/;
 dynamic f() {}
@@ -801,9 +759,7 @@ dynamic d;
 var s = d.toString();
 var h = d.hashCode;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 dynamic d;
 String s;
 dynamic h/*error: instanceGetter*/;
@@ -815,9 +771,7 @@ dynamic h/*error: instanceGetter*/;
 var a = b.foo();
 var b = a.foo();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 dynamic a/*error: dependencyCycle*/;
 dynamic b/*error: dependencyCycle*/;
 ''');
@@ -827,9 +781,7 @@ dynamic b/*error: dependencyCycle*/;
     var library = await _encodeDecodeLibrary(r'''
 var a = a.foo();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 dynamic a/*error: dependencyCycle*/;
 ''');
   }
@@ -844,9 +796,7 @@ class D {
 }
 final x = C.d.i;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class C {
   static D d;
 }
@@ -867,9 +817,7 @@ class D {
 }
 var x = C.d.i;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class C {
   static D get d {}
 }
@@ -886,9 +834,7 @@ var a = [0, 1.2];
 var b0 = a[0];
 var b1 = a[1];
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 List<num> a;
 num b0;
 num b1;
@@ -905,9 +851,7 @@ var v_hasParameter_withType_returnParameter = (String a) => a;
 var v_async_returnValue = () async => 42;
 var v_async_returnFuture = () async => vFuture;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 import 'dart:async';
 Future<int> vFuture;
 () → int v_noParameters_inferredReturnType;
@@ -924,9 +868,7 @@ Future<int> vFuture;
 var v = (() => 42)();
 ''');
     // TODO(scheglov) add more function expression tests
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int v;
 ''');
   }
@@ -937,9 +879,7 @@ T f<T>() => null;
 var vHasTypeArgument = f<int>();
 var vNoTypeArgument = f();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vHasTypeArgument;
 dynamic vNoTypeArgument;
 T f<T>() {}
@@ -952,9 +892,7 @@ String f(int p) => null;
 var vOkArgumentType = f(1);
 var vWrongArgumentType = f(2.0);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 String vOkArgumentType;
 String vWrongArgumentType;
 String f(int p) {}
@@ -981,9 +919,7 @@ var r_staticClassMethod = A.staticClassMethod;
 var instanceOfA = new A();
 var r_instanceClassMethod = instanceOfA.instanceClassMethod;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   static int staticClassVariable;
   static int get staticGetter {}
@@ -1014,9 +950,7 @@ class B {
 }
 var c = A.a;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   static dynamic a/*error: dependencyCycle*/;
 }
@@ -1035,9 +969,7 @@ class A {
 var b = A.a;
 var c = b;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   static dynamic a/*error: dependencyCycle*/;
 }
@@ -1053,9 +985,7 @@ var b = c;
 var c = a;
 var d = a;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 dynamic a/*error: dependencyCycle*/;
 dynamic b/*error: dependencyCycle*/;
 dynamic c/*error: dependencyCycle*/;
@@ -1075,9 +1005,7 @@ var a = new A<int>();
 var b = new A();
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<T> {
 }
 A<int> a;
@@ -1090,9 +1018,7 @@ dynamic b;
 class A {}
 var a = new A();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
 }
 A a;
@@ -1104,9 +1030,7 @@ A a;
 var a = 1.2;
 var b = a is int;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 double a;
 bool b;
 ''');
@@ -1126,9 +1050,7 @@ var vStringConcat = 'aaa' 'bbb';
 var vStringInterpolation = 'aaa ${true} ${42} bbb';
 var vSymbol = #aaa.bbb.ccc;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 Null vNull;
 bool vBoolFalse;
 bool vBoolTrue;
@@ -1149,9 +1071,7 @@ var vNum = <num>[1, 2, 3];
 var vNumEmpty = <num>[];
 var vInt = <int>[1, 2, 3];
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 List<Object> vObject;
 List<num> vNum;
 List<num> vNumEmpty;
@@ -1165,9 +1085,7 @@ var vInt = [1, 2, 3];
 var vNum = [1, 2.0];
 var vObject = [1, 2.0, '333'];
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 List<int> vInt;
 List<num> vNum;
 List<Object> vObject;
@@ -1180,9 +1098,7 @@ List<Object> vObject;
 var vNonConst = [];
 var vConst = const [];
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 List<dynamic> vNonConst;
 List<Null> vConst;
 ''');
@@ -1196,9 +1112,7 @@ var vNumString = <num, String>{1: 'a'};
 var vNumStringEmpty = <num, String>{};
 var vIntString = <int, String>{};
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 Map<Object, Object> vObjectObject;
 Map<Comparable<int>, Object> vComparableObject;
 Map<num, String> vNumString;
@@ -1213,9 +1127,7 @@ var vIntString = {1: 'a', 2: 'b'};
 var vNumString = {1: 'a', 2.0: 'b'};
 var vIntObject = {1: 'a', 2: 3.0};
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 Map<int, String> vIntString;
 Map<num, String> vNumString;
 Map<int, Object> vIntObject;
@@ -1228,9 +1140,7 @@ Map<int, Object> vIntObject;
 var vNonConst = {};
 var vConst = const {};
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 Map<dynamic, dynamic> vNonConst;
 Map<Null, Null> vConst;
 ''');
@@ -1244,9 +1154,7 @@ var vEq = 1 == 2;
 var vAnd = a && b;
 var vOr = a || b;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 bool a;
 bool b;
 bool vEq;
@@ -1265,9 +1173,7 @@ var vWithTypeArgument = new A().m<int>();
 var vWithoutTypeArgument = new A().m();
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   List<T> m<T>(int p) {}
 }
@@ -1285,9 +1191,7 @@ var instanceOfA = new A();
 var v1 = instanceOfA.m();
 var v2 = new A().m();
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int p) {}
 }
@@ -1311,9 +1215,7 @@ var vDivideDoubleInt = 1.0 / 2;
 var vDivideDoubleDouble = 1.0 / 2.0;
 var vFloorDivide = 1 ~/ 2;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vModuloIntInt;
 double vModuloIntDouble;
 int vMultiplyIntInt;
@@ -1335,9 +1237,7 @@ var a = 1;
 var vEq = a == ((a = 2) == 0);
 var vNotEq = a != ((a = 2) == 0);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int a;
 bool vEq;
 bool vNotEq;
@@ -1348,9 +1248,7 @@ bool vNotEq;
     var library = await _encodeDecodeLibrary(r'''
 var V = (42);
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int V;
 ''');
   }
@@ -1365,9 +1263,7 @@ var vDecInt = vInt--;
 var vIncDouble = vDouble++;
 var vDecDouble = vDouble--;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vInt;
 int vDouble;
 int vIncInt;
@@ -1387,9 +1283,7 @@ var vDecInt = --vInt;
 var vIncDouble = ++vDouble;
 var vDecInt = --vDouble;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vInt;
 double vDouble;
 int vIncInt;
@@ -1410,9 +1304,7 @@ var a = new A();
 var vInc = ++a;
 var vDec = --a;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 A a;
 B vInc;
 B vDec;
@@ -1423,9 +1315,7 @@ B vDec;
     var library = await _encodeDecodeLibrary(r'''
 var vNot = !true;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 bool vNot;
 ''');
   }
@@ -1436,9 +1326,7 @@ var vNegateInt = -1;
 var vNegateDouble = -1.0;
 var vComplement = ~1;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 int vNegateInt;
 double vNegateDouble;
 int vComplement;
@@ -1452,9 +1340,7 @@ var vLessOrEqual = 1 <= 2;
 var vGreater = 1 > 2;
 var vGreaterOrEqual = 1 >= 2;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 bool vLess;
 bool vLessOrEqual;
 bool vGreater;
@@ -1467,9 +1353,7 @@ bool vGreaterOrEqual;
     var library = await _encodeDecodeLibrary(r'''
 var V = throw 42;
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 Null V;
 ''');
   }
@@ -1483,9 +1367,7 @@ class B implements A {
   set x() {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int x;
 }
@@ -1502,9 +1384,7 @@ class A {
   A([this.f = 'hello']);
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int f;
   A([int this.f]);
@@ -1553,9 +1433,7 @@ class B implements A {
   var x = 1;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   dynamic x;
 }
@@ -1606,9 +1484,7 @@ class B implements A {
   var x = 1;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   dynamic x;
 }
@@ -1627,9 +1503,7 @@ class B implements A {
   var x = 1;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   num x;
 }
@@ -1652,9 +1526,7 @@ class B implements A {
   set z(_) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int get x;
   int get y;
@@ -1681,9 +1553,7 @@ class B<T> implements A<T> {
   set z(_) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A<E> {
   E get x;
   E get y;
@@ -1710,9 +1580,7 @@ class C implements A, B {
 }
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int get x;
 }
@@ -1738,9 +1606,7 @@ class C implements A, B {
 }
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int get x;
 }
@@ -1766,9 +1632,7 @@ class C implements A<int>, B<String> {
 }
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A<T> {
   T get x;
 }
@@ -1793,9 +1657,7 @@ class C implements A, B {
   get x => null;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int get x;
 }
@@ -1823,9 +1685,7 @@ class C implements A, B {
   final y;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int get x;
   int get y;
@@ -1916,9 +1776,7 @@ class C implements A, B {
   var x;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   int get x;
 }
@@ -2006,9 +1864,7 @@ class B implements A {
   set z(_) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   void set x(int _);
   void set y(int _);
@@ -2034,9 +1890,7 @@ class C implements A, B {
   get x => null;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   void set x(int _);
 }
@@ -2061,9 +1915,7 @@ class C implements A, B {
   get x => null;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   void set x(int _);
 }
@@ -2090,9 +1942,7 @@ class B extends A<int> {
   get y => null;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 typedef dynamic F<T>();
 class A<T> {
   F<T> get x {}
@@ -2141,9 +1991,7 @@ class B implements A {
   set x(int _) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   num get x;
   void set x(covariant num _);
@@ -2162,9 +2010,7 @@ class A {
   var t3 = null;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int t1;
   double t2;
@@ -2185,9 +2031,7 @@ class C extends A<int> implements B<double> {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<T> {
   void m(T a) {}
 }
@@ -2212,9 +2056,7 @@ class C extends A implements B {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   void m(int a) {}
 }
@@ -2240,9 +2082,7 @@ class C extends A<int, String> implements B<double> {
 }
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<K, V> {
   V m(K a) {}
 }
@@ -2268,9 +2108,7 @@ class C extends A implements B {
 }
 ''');
     // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int m() {}
 }
@@ -2294,9 +2132,7 @@ class B extends A {
 ''');
     // It's an error to add a new required parameter, but it is not a
     // top-level type inference error.
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   void m(int a) {}
 }
@@ -2315,9 +2151,7 @@ class B extends A {
   m(a, {b}) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   void m(int a) {}
 }
@@ -2336,9 +2170,7 @@ class B extends A {
   m(a, [b]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   void m(int a) {}
 }
@@ -2357,9 +2189,7 @@ class B extends A {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   dynamic m(dynamic a) {}
 }
@@ -2378,9 +2208,7 @@ class B extends A {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int foo(String a) {}
 }
@@ -2399,9 +2227,7 @@ class B extends A {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   int m;
 }
@@ -2421,9 +2247,7 @@ class C extends B<String> {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<K, V> {
   V m(K a) {}
 }
@@ -2447,9 +2271,7 @@ class C extends B {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a) {}
 }
@@ -2474,9 +2296,7 @@ class C extends B {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a) {}
 }
@@ -2501,9 +2321,7 @@ class C extends B {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a) {}
 }
@@ -2526,9 +2344,7 @@ class B extends A<int, String> {
   m(a, b) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<K, V> {
   V m(K a, double b) {}
 }
@@ -2547,9 +2363,7 @@ class B extends A {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a) {}
 }
@@ -2568,9 +2382,7 @@ class B extends A {
   m(a, {b}) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a, {double b}) {}
 }
@@ -2589,9 +2401,7 @@ class B extends A {
   m(a, [b]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a, [double b]) {}
 }
@@ -2611,9 +2421,7 @@ class C extends B<String> {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<K, V> {
   V m(K a) {}
 }
@@ -2634,9 +2442,7 @@ class B implements A<int, String> {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A<K, V> {
   V m(K a);
 }
@@ -2655,9 +2461,7 @@ class B implements A {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A {
   String m(int a);
 }
@@ -2677,9 +2481,7 @@ class C implements B<int, String> {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 abstract class A<K, V> {
   V m(K a);
 }
@@ -2693,9 +2495,7 @@ class C implements B<int, String> {
 
   test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
     String path = _p('/other.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 import 'test.dart';
 class B extends A2 {}
 ''');
@@ -2708,9 +2508,7 @@ class A2 extends A1 {
   _foo() => 2;
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 import 'other.dart';
 class A1 {
   int _foo() {}
@@ -2730,9 +2528,7 @@ class B extends Object with A {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a) {}
 }
@@ -2755,9 +2551,7 @@ class C extends A<int, String> implements B<String> {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A<K, V> {
   V m(K a) {}
 }
@@ -2782,9 +2576,7 @@ class C extends A implements B {
   m(a) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
   String m(int a) {}
 }

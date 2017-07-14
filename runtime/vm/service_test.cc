@@ -72,7 +72,6 @@ class ServiceTestMessageHandler : public MessageHandler {
   char* _msg;
 };
 
-
 static RawArray* Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
   Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
@@ -95,7 +94,6 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
   return result.raw();
 }
 
-
 static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
@@ -111,14 +109,12 @@ static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
   return Eval(lib, buffer);
 }
 
-
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
-
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
@@ -127,18 +123,15 @@ static RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-
 static void HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   TransitionNativeToVM transition(Thread::Current());
   Service::HandleIsolateMessage(isolate, msg);
 }
 
-
 static void HandleRootMessage(const Array& message) {
   TransitionNativeToVM transition(Thread::Current());
   Service::HandleRootMessage(message);
 }
-
 
 TEST_CASE(Service_IsolateStickyError) {
   const char* kScript = "main() => throw 'HI THERE STICKY';\n";
@@ -183,7 +176,6 @@ TEST_CASE(Service_IsolateStickyError) {
   }
 }
 
-
 TEST_CASE(Service_IdZones) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -217,7 +209,6 @@ TEST_CASE(Service_IdZones) {
   EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
   EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
 }
-
 
 TEST_CASE(Service_Code) {
   const char* kScript =
@@ -336,7 +327,6 @@ TEST_CASE(Service_Code) {
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 }
 
-
 TEST_CASE(Service_TokenStream) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -385,7 +375,6 @@ TEST_CASE(Service_TokenStream) {
   // Check for members array.
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
-
 
 TEST_CASE(Service_PcDescriptors) {
   const char* kScript =
@@ -450,7 +439,6 @@ TEST_CASE(Service_PcDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-
 TEST_CASE(Service_LocalVarDescriptors) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -514,11 +502,9 @@ TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-
 static void WeakHandleFinalizer(void* isolate_callback_data,
                                 Dart_WeakPersistentHandle handle,
                                 void* peer) {}
-
 
 TEST_CASE(Service_PersistentHandles) {
   const char* kScript =
@@ -585,7 +571,6 @@ TEST_CASE(Service_PersistentHandles) {
   EXPECT_NOTSUBSTRING("\"externalSize\":\"128\"", handler.msg());
 }
 
-
 TEST_CASE(Service_Address) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -641,7 +626,6 @@ TEST_CASE(Service_Address) {
       handler.msg());
 }
 
-
 static bool alpha_callback(const char* name,
                            const char** option_keys,
                            const char** option_values,
@@ -652,7 +636,6 @@ static bool alpha_callback(const char* name,
   return true;
 }
 
-
 static bool beta_callback(const char* name,
                           const char** option_keys,
                           const char** option_values,
@@ -662,7 +645,6 @@ static bool beta_callback(const char* name,
   *result = strdup("beta");
   return false;
 }
-
 
 TEST_CASE(Service_EmbedderRootHandler) {
   const char* kScript =
@@ -689,7 +671,6 @@ TEST_CASE(Service_EmbedderRootHandler) {
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
-
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, "[0, port, '\"', 'alpha', [], []]");
   HandleRootMessage(service_msg);
@@ -701,7 +682,6 @@ TEST_CASE(Service_EmbedderRootHandler) {
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}", handler.msg());
 }
-
 
 TEST_CASE(Service_EmbedderIsolateHandler) {
   const char* kScript =

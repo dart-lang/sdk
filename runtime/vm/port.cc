@@ -4,9 +4,9 @@
 
 #include "vm/port.h"
 
-#include "vm/dart_entry.h"
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message_handler.h"
@@ -21,7 +21,6 @@ intptr_t PortMap::capacity_ = 0;
 intptr_t PortMap::used_ = 0;
 intptr_t PortMap::deleted_ = 0;
 Random* PortMap::prng_ = NULL;
-
 
 intptr_t PortMap::FindPort(Dart_Port port) {
   // ILLEGAL_PORT (0) is used as a sentinel value in Entry.port. The loop below
@@ -47,7 +46,6 @@ intptr_t PortMap::FindPort(Dart_Port port) {
   return -1;
 }
 
-
 void PortMap::Rehash(intptr_t new_capacity) {
   Entry* new_ports = new Entry[new_capacity];
   memset(new_ports, 0, new_capacity * sizeof(Entry));
@@ -69,7 +67,6 @@ void PortMap::Rehash(intptr_t new_capacity) {
   deleted_ = 0;
 }
 
-
 const char* PortMap::PortStateString(PortState kind) {
   switch (kind) {
     case kNewPort:
@@ -83,7 +80,6 @@ const char* PortMap::PortStateString(PortState kind) {
       return "UNKNOWN";
   }
 }
-
 
 Dart_Port PortMap::AllocatePort() {
   const Dart_Port kMASK = 0x3fffffff;
@@ -99,7 +95,6 @@ Dart_Port PortMap::AllocatePort() {
   ASSERT(FindPort(result) < 0);
   return result;
 }
-
 
 void PortMap::SetPortState(Dart_Port port, PortState state) {
   MutexLocker ml(mutex_);
@@ -121,7 +116,6 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
   }
 }
 
-
 void PortMap::MaintainInvariants() {
   intptr_t empty = capacity_ - used_ - deleted_;
   if (used_ > ((capacity_ / 4) * 3)) {
@@ -133,7 +127,6 @@ void PortMap::MaintainInvariants() {
     Rehash(capacity_);
   }
 }
-
 
 Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   ASSERT(handler != NULL);
@@ -185,7 +178,6 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   return entry.port;
 }
 
-
 bool PortMap::ClosePort(Dart_Port port) {
   MessageHandler* handler = NULL;
   {
@@ -224,7 +216,6 @@ bool PortMap::ClosePort(Dart_Port port) {
   return true;
 }
 
-
 void PortMap::ClosePorts(MessageHandler* handler) {
   {
     MutexLocker ml(mutex_);
@@ -245,7 +236,6 @@ void PortMap::ClosePorts(MessageHandler* handler) {
   handler->CloseAllPorts();
 }
 
-
 bool PortMap::PostMessage(Message* message) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
@@ -262,7 +252,6 @@ bool PortMap::PostMessage(Message* message) {
   return true;
 }
 
-
 bool PortMap::IsLocalPort(Dart_Port id) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(id);
@@ -275,7 +264,6 @@ bool PortMap::IsLocalPort(Dart_Port id) {
   return handler->IsCurrentIsolate();
 }
 
-
 Isolate* PortMap::GetIsolate(Dart_Port id) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(id);
@@ -287,7 +275,6 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
   MessageHandler* handler = map_[index].handler;
   return handler->isolate();
 }
-
 
 void PortMap::InitOnce() {
   mutex_ = new Mutex();
@@ -302,7 +289,6 @@ void PortMap::InitOnce() {
   used_ = 0;
   deleted_ = 0;
 }
-
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
@@ -331,7 +317,6 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
 #endif
 }
 
-
 void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
   SafepointMutexLocker ml(mutex_);
   Object& msg_handler = Object::Handle();
@@ -345,6 +330,5 @@ void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
     }
   }
 }
-
 
 }  // namespace dart

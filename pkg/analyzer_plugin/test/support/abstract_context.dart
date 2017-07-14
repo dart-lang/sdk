@@ -68,10 +68,7 @@ class AbstractContextTest {
    */
   AnalysisSession get session => driver.currentSession;
 
-  Source addMetaPackageSource() => addPackageSource(
-      'meta',
-      'meta.dart',
-      r'''
+  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
 
 const Required required = const Required();

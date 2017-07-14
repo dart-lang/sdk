@@ -12,8 +12,8 @@
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/os_thread.h"
-#include "vm/store_buffer.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/store_buffer.h"
 namespace dart {
 
 class AbstractType;
@@ -73,7 +73,6 @@ class Zone;
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)
-
 
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_LIST(V)
@@ -365,6 +364,21 @@ class Thread : public BaseThread {
   // Heap of the isolate that this thread is operating on.
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
+
+  void set_top(uword value) {
+    ASSERT(heap_ != NULL);
+    top_ = value;
+  }
+  void set_end(uword value) {
+    ASSERT(heap_ != NULL);
+    end_ = value;
+  }
+
+  uword top() { return top_; }
+  uword end() { return end_; }
+
+  static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
+  static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
@@ -696,6 +710,8 @@ class Thread : public BaseThread {
   uword stack_overflow_flags_;
   Isolate* isolate_;
   Heap* heap_;
+  uword top_;
+  uword end_;
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;
@@ -808,12 +824,10 @@ class Thread : public BaseThread {
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
-
 #if defined(HOST_OS_WINDOWS)
 // Clears the state of the current thread and frees the allocation.
 void WindowsThreadCleanUp();
 #endif
-
 
 // Disable thread interrupts.
 class DisableThreadInterruptsScope : public StackResource {

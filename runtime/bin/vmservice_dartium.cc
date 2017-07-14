@@ -45,7 +45,6 @@ void VmServiceServer::Bootstrap() {
   EventHandler::Start();
 }
 
-
 Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   ASSERT(snapshot_buffer != NULL);
   // Create the isolate.
@@ -66,11 +65,10 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(
-          IsIpv6Only() ? DEFAULT_VM_SERVICE_SERVER_IP_V6 :
-                 DEFAULT_VM_SERVICE_SERVER_IP_V4,
-          DEFAULT_VM_SERVICE_SERVER_PORT,
-          false /* running_precompiled */, false /* disable origin checks */,
-          false /* trace_loading */)) {
+          IsIpv6Only() ? DEFAULT_VM_SERVICE_SERVER_IP_V6
+                       : DEFAULT_VM_SERVICE_SERVER_IP_V4,
+          DEFAULT_VM_SERVICE_SERVER_PORT, false /* running_precompiled */,
+          false /* disable origin checks */, false /* trace_loading */)) {
     fprintf(stderr, "Vmservice::Setup failed: %s\n",
             VmService::GetErrorMessage());
     isolate = NULL;
@@ -80,11 +78,9 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   return isolate;
 }
 
-
 const char* VmServiceServer::GetServerAddress() {
   return VmService::GetServerAddress();
 }
-
 
 void VmServiceServer::DecompressAssets(const uint8_t* input,
                                        unsigned int input_len,
@@ -147,7 +143,6 @@ void VmServiceServer::DecompressAssets(const uint8_t* input,
 
   inflateEnd(&strm);
 }
-
 
 /* DISALLOW_ALLOCATION */
 void VmServiceServer::operator delete(void* pointer) {

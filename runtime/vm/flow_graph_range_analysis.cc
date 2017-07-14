@@ -40,14 +40,12 @@ void RangeAnalysis::Analyze() {
   RemoveConstraints();
 }
 
-
 static Definition* UnwrapConstraint(Definition* defn) {
   while (defn->IsConstraint()) {
     defn = defn->AsConstraint()->value()->definition();
   }
   return defn;
 }
-
 
 // Simple induction variable is a variable that satisfies the following pattern:
 //
@@ -108,7 +106,6 @@ class InductionVariableInfo : public ZoneAllocated {
   PhiInstr* bound_;
 };
 
-
 static ConstraintInstr* FindBoundingConstraint(PhiInstr* phi,
                                                Definition* defn) {
   ConstraintInstr* limit = NULL;
@@ -128,7 +125,6 @@ static ConstraintInstr* FindBoundingConstraint(PhiInstr* phi,
 
   return limit;
 }
-
 
 static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
   if (phi->Type()->ToCid() != kSmiCid) {
@@ -164,7 +160,6 @@ static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
 
   return NULL;
 }
-
 
 void RangeAnalysis::DiscoverSimpleInductionVariables() {
   GrowableArray<InductionVariableInfo*> loop_variables;
@@ -211,7 +206,6 @@ void RangeAnalysis::DiscoverSimpleInductionVariables() {
   }
 }
 
-
 void RangeAnalysis::CollectValues() {
   const GrowableArray<Definition*>& initial =
       *flow_graph_->graph_entry()->initial_definitions();
@@ -225,7 +219,6 @@ void RangeAnalysis::CollectValues() {
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
-
 
     if (block->IsGraphEntry() || block->IsCatchBlockEntry()) {
       const GrowableArray<Definition*>& initial =
@@ -270,7 +263,6 @@ void RangeAnalysis::CollectValues() {
   }
 }
 
-
 // For a comparison operation return an operation for the equivalent flipped
 // comparison: a (op) b === b (op') a.
 static Token::Kind FlipComparison(Token::Kind op) {
@@ -292,7 +284,6 @@ static Token::Kind FlipComparison(Token::Kind op) {
       return Token::kILLEGAL;
   }
 }
-
 
 // Given a boundary (right operand) and a comparison operation return
 // a symbolic range constraint for the left operand of the comparison assuming
@@ -324,7 +315,6 @@ Range* RangeAnalysis::ConstraintSmiRange(Token::Kind op, Definition* boundary) {
   }
 }
 
-
 ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
                                                     Definition* defn,
                                                     Range* constraint_range,
@@ -350,7 +340,6 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
   constraints_.Add(constraint);
   return constraint;
 }
-
 
 bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   BranchInstr* branch = use->instruction()->AsBranch();
@@ -394,7 +383,6 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   return false;
 }
 
-
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
   for (Value* use = defn->input_use_list(); use != NULL;
        use = use->next_use()) {
@@ -410,7 +398,6 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
     }
   }
 }
-
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(Value* use,
                                                        Definition* defn) {
@@ -431,7 +418,6 @@ void RangeAnalysis::ConstrainValueAfterCheckArrayBound(Value* use,
   InsertConstraintFor(use, defn, constraint_range, check);
 }
 
-
 void RangeAnalysis::InsertConstraints() {
   for (intptr_t i = 0; i < values_.length(); i++) {
     InsertConstraintsFor(values_[i]);
@@ -441,7 +427,6 @@ void RangeAnalysis::InsertConstraints() {
     InsertConstraintsFor(constraints_[i]);
   }
 }
-
 
 const Range* RangeAnalysis::GetSmiRange(Value* value) const {
   Definition* defn = value->definition();
@@ -464,7 +449,6 @@ const Range* RangeAnalysis::GetSmiRange(Value* value) const {
   return range;
 }
 
-
 const Range* RangeAnalysis::GetIntRange(Value* value) const {
   Definition* defn = value->definition();
   const Range* range = defn->range();
@@ -486,7 +470,6 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
   return range;
 }
 
-
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
@@ -495,12 +478,10 @@ static bool AreEqualDefinitions(Definition* a, Definition* b) {
           b->Dependencies().IsNone() && a->Equals(b));
 }
 
-
 static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {
   return a.IsSymbol() && b.IsSymbol() &&
          AreEqualDefinitions(a.symbol(), b.symbol());
 }
-
 
 // Given the current range of a phi and a newly computed range check
 // if it is growing towards negative infinity, if it does widen it to
@@ -560,7 +541,6 @@ static RangeBoundary WidenMax(const Range* range,
              : RangeBoundary::MaxConstant(size);
 }
 
-
 // Given the current range of a phi and a newly computed range check
 // if we can perform narrowing: use newly computed minimum to improve precision
 // of the computed range. We do it only if current minimum was widened and is
@@ -577,7 +557,6 @@ static RangeBoundary NarrowMin(const Range* range,
   // TODO(vegorov): consider using negative infinity to indicate widened bound.
   return range->min().IsMinimumOrBelow(size) ? new_range->min() : range->min();
 }
-
 
 // Given the current range of a phi and a newly computed range check
 // if we can perform narrowing: use newly computed maximum to improve precision
@@ -596,7 +575,6 @@ static RangeBoundary NarrowMax(const Range* range,
   return range->max().IsMaximumOrAbove(size) ? new_range->max() : range->max();
 }
 
-
 char RangeAnalysis::OpPrefix(JoinOperator op) {
   switch (op) {
     case WIDEN:
@@ -609,7 +587,6 @@ char RangeAnalysis::OpPrefix(JoinOperator op) {
   UNREACHABLE();
   return ' ';
 }
-
 
 static RangeBoundary::RangeSize RangeSizeForPhi(Definition* phi) {
   ASSERT(phi->IsPhi());
@@ -624,7 +601,6 @@ static RangeBoundary::RangeSize RangeSizeForPhi(Definition* phi) {
     return RangeBoundary::kRangeBoundaryInt64;
   }
 }
-
 
 bool RangeAnalysis::InferRange(JoinOperator op,
                                Definition* defn,
@@ -660,7 +636,6 @@ bool RangeAnalysis::InferRange(JoinOperator op,
   return false;
 }
 
-
 void RangeAnalysis::CollectDefinitions(BitVector* set) {
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
@@ -686,7 +661,6 @@ void RangeAnalysis::CollectDefinitions(BitVector* set) {
   }
 }
 
-
 void RangeAnalysis::Iterate(JoinOperator op, intptr_t max_iterations) {
   // TODO(vegorov): switch to worklist if this becomes performance bottleneck.
   intptr_t iteration = 0;
@@ -703,7 +677,6 @@ void RangeAnalysis::Iterate(JoinOperator op, intptr_t max_iterations) {
     iteration++;
   } while (changed && (iteration < max_iterations));
 }
-
 
 void RangeAnalysis::InferRanges() {
   if (FLAG_trace_range_analysis) {
@@ -761,7 +734,6 @@ void RangeAnalysis::InferRanges() {
   }
 }
 
-
 void RangeAnalysis::AssignRangesRecursively(Definition* defn) {
   if (!Range::IsUnknown(defn->range())) {
     return;
@@ -784,7 +756,6 @@ void RangeAnalysis::AssignRangesRecursively(Definition* defn) {
     defn->set_range(new_range);
   }
 }
-
 
 // Scheduler is a helper class that inserts floating control-flow less
 // subgraphs into the flow graph.
@@ -914,7 +885,6 @@ class Scheduler {
   GrowableArray<BlockEntryInstr*> pre_headers_;
   GrowableArray<Instruction*> emitted_;
 };
-
 
 // If bounds check 0 <= index < length is not redundant we attempt to
 // replace it with a sequence of checks that guarantee
@@ -1081,7 +1051,6 @@ class BoundsCheckGeneralizer {
     return new BinarySmiOpInstr(op_kind, new Value(left), new Value(right),
                                 Thread::kNoDeoptId);
   }
-
 
   BinarySmiOpInstr* MakeBinaryOp(Token::Kind op_kind,
                                  Definition* left,
@@ -1443,7 +1412,6 @@ class BoundsCheckGeneralizer {
     f->Print(" {%s}", Range::ToCString(index_bound->range()));
   }
 
-
   static const char* IndexBoundToCString(Definition* index_bound) {
     char buffer[1024];
     BufferFormatter f(buffer, sizeof(buffer));
@@ -1456,7 +1424,6 @@ class BoundsCheckGeneralizer {
   FlowGraph* flow_graph_;
   Scheduler scheduler_;
 };
-
 
 void RangeAnalysis::EliminateRedundantBoundsChecks() {
   if (FLAG_array_bounds_check_elimination) {
@@ -1485,7 +1452,6 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     }
   }
 }
-
 
 void RangeAnalysis::MarkUnreachableBlocks() {
   for (intptr_t i = 0; i < constraints_.length(); i++) {
@@ -1521,7 +1487,6 @@ void RangeAnalysis::MarkUnreachableBlocks() {
   }
 }
 
-
 void RangeAnalysis::RemoveConstraints() {
   for (intptr_t i = 0; i < constraints_.length(); i++) {
     Definition* def = constraints_[i]->value()->definition();
@@ -1534,7 +1499,6 @@ void RangeAnalysis::RemoveConstraints() {
     constraints_[i]->RemoveFromGraph();
   }
 }
-
 
 static void NarrowBinaryMintOp(BinaryMintOpInstr* mint_op) {
   if (RangeUtils::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
@@ -1553,7 +1517,6 @@ static void NarrowBinaryMintOp(BinaryMintOpInstr* mint_op) {
   }
 }
 
-
 static void NarrowShiftMintOp(ShiftMintOpInstr* mint_op) {
   if (RangeUtils::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
       RangeUtils::Fits(mint_op->left()->definition()->range(),
@@ -1571,7 +1534,6 @@ static void NarrowShiftMintOp(ShiftMintOpInstr* mint_op) {
   }
 }
 
-
 void RangeAnalysis::NarrowMintToInt32() {
   for (intptr_t i = 0; i < binary_mint_ops_.length(); i++) {
     NarrowBinaryMintOp(binary_mint_ops_[i]);
@@ -1582,7 +1544,6 @@ void RangeAnalysis::NarrowMintToInt32() {
   }
 }
 
-
 IntegerInstructionSelector::IntegerInstructionSelector(FlowGraph* flow_graph)
     : flow_graph_(flow_graph) {
   ASSERT(flow_graph_ != NULL);
@@ -1590,7 +1551,6 @@ IntegerInstructionSelector::IntegerInstructionSelector(FlowGraph* flow_graph)
   selected_uint32_defs_ =
       new (zone_) BitVector(zone_, flow_graph_->current_ssa_temp_index());
 }
-
 
 void IntegerInstructionSelector::Select() {
   if (FLAG_trace_integer_ir_selection) {
@@ -1607,7 +1567,6 @@ void IntegerInstructionSelector::Select() {
   }
 }
 
-
 bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // TODO(johnmccutchan): Consider Smi operations, to avoid unnecessary tagging
   // & untagged of intermediate results.
@@ -1615,7 +1574,6 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsBinaryMintOp() ||
          def->IsShiftMintOp() || def->IsUnaryMintOp();
 }
-
 
 void IntegerInstructionSelector::FindPotentialUint32Definitions() {
   if (FLAG_trace_integer_ir_selection) {
@@ -1642,7 +1600,6 @@ void IntegerInstructionSelector::FindPotentialUint32Definitions() {
   }
 }
 
-
 // BinaryMintOp masks and stores into unsigned typed arrays that truncate the
 // value into a Uint32 range.
 bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
@@ -1663,7 +1620,6 @@ bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
   return false;
 }
 
-
 void IntegerInstructionSelector::FindUint32NarrowingDefinitions() {
   ASSERT(selected_uint32_defs_ != NULL);
   if (FLAG_trace_integer_ir_selection) {
@@ -1681,7 +1637,6 @@ void IntegerInstructionSelector::FindUint32NarrowingDefinitions() {
   }
 }
 
-
 bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
   for (Value::Iterator it(list_head); !it.Done(); it.Advance()) {
     Value* use = it.Current();
@@ -1693,7 +1648,6 @@ bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
   }
   return true;
 }
-
 
 bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   ASSERT(IsPotentialUint32Definition(def));
@@ -1723,7 +1677,6 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   return AllUsesAreUint32Narrowing(def->input_use_list()) &&
          AllUsesAreUint32Narrowing(def->env_use_list());
 }
-
 
 void IntegerInstructionSelector::Propagate() {
   ASSERT(selected_uint32_defs_ != NULL);
@@ -1759,7 +1712,6 @@ void IntegerInstructionSelector::Propagate() {
     THR_Print("Reached fixed point\n");
   }
 }
-
 
 Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Definition* def) {
@@ -1800,7 +1752,6 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
   return NULL;
 }
 
-
 void IntegerInstructionSelector::ReplaceInstructions() {
   if (FLAG_trace_integer_ir_selection) {
     THR_Print("++++ Replacing instructions:\n");
@@ -1825,14 +1776,12 @@ void IntegerInstructionSelector::ReplaceInstructions() {
   }
 }
 
-
 RangeBoundary RangeBoundary::FromDefinition(Definition* defn, int64_t offs) {
   if (defn->IsConstant() && defn->AsConstant()->value().IsSmi()) {
     return FromConstant(Smi::Cast(defn->AsConstant()->value()).Value() + offs);
   }
   return RangeBoundary(kSymbol, reinterpret_cast<intptr_t>(defn), offs);
 }
-
 
 RangeBoundary RangeBoundary::LowerBound() const {
   if (IsInfinity()) {
@@ -1843,7 +1792,6 @@ RangeBoundary RangeBoundary::LowerBound() const {
              RangeBoundary::FromConstant(offset_), NegativeInfinity());
 }
 
-
 RangeBoundary RangeBoundary::UpperBound() const {
   if (IsInfinity()) {
     return PositiveInfinity();
@@ -1853,7 +1801,6 @@ RangeBoundary RangeBoundary::UpperBound() const {
   return Add(Range::ConstantMaxSmi(symbol()->range()),
              RangeBoundary::FromConstant(offset_), PositiveInfinity());
 }
-
 
 RangeBoundary RangeBoundary::Add(const RangeBoundary& a,
                                  const RangeBoundary& b,
@@ -1870,7 +1817,6 @@ RangeBoundary RangeBoundary::Add(const RangeBoundary& a,
   return RangeBoundary::FromConstant(result);
 }
 
-
 RangeBoundary RangeBoundary::Sub(const RangeBoundary& a,
                                  const RangeBoundary& b,
                                  const RangeBoundary& overflow) {
@@ -1884,7 +1830,6 @@ RangeBoundary RangeBoundary::Sub(const RangeBoundary& a,
 
   return RangeBoundary::FromConstant(result);
 }
-
 
 bool RangeBoundary::SymbolicAdd(const RangeBoundary& a,
                                 const RangeBoundary& b,
@@ -1904,7 +1849,6 @@ bool RangeBoundary::SymbolicAdd(const RangeBoundary& a,
   return false;
 }
 
-
 bool RangeBoundary::SymbolicSub(const RangeBoundary& a,
                                 const RangeBoundary& b,
                                 RangeBoundary* result) {
@@ -1921,7 +1865,6 @@ bool RangeBoundary::SymbolicSub(const RangeBoundary& a,
   return false;
 }
 
-
 bool RangeBoundary::Equals(const RangeBoundary& other) const {
   if (IsConstant() && other.IsConstant()) {
     return ConstantValue() == other.ConstantValue();
@@ -1934,7 +1877,6 @@ bool RangeBoundary::Equals(const RangeBoundary& other) const {
   }
   return false;
 }
-
 
 RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
                                  int64_t shift_count,
@@ -1953,7 +1895,6 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
 
   return overflow;
 }
-
 
 static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
                                           const RangeBoundary& overflow) {
@@ -2016,13 +1957,11 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
   return RangeBoundary::FromDefinition(symbol, offset);
 }
 
-
 static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
   if (!a->IsSymbol()) return false;
 
   Range* range = a->symbol()->range();
   if ((range == NULL) || !range->max().IsSymbol()) return false;
-
 
   if (Utils::WillAddOverflow(range->max().offset(), a->offset())) {
     *a = RangeBoundary::PositiveInfinity();
@@ -2037,7 +1976,6 @@ static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
 
   return true;
 }
-
 
 static bool CanonicalizeMinBoundary(RangeBoundary* a) {
   if (!a->IsSymbol()) return false;
@@ -2083,7 +2021,6 @@ static bool CanonicalizeForComparison(RangeBoundary* a,
   return false;
 }
 
-
 RangeBoundary RangeBoundary::JoinMin(RangeBoundary a,
                                      RangeBoundary b,
                                      RangeBoundary::RangeSize size) {
@@ -2109,7 +2046,6 @@ RangeBoundary RangeBoundary::JoinMin(RangeBoundary a,
     return RangeBoundary::FromConstant(Utils::Minimum(inf_a, inf_b));
   }
 }
-
 
 RangeBoundary RangeBoundary::JoinMax(RangeBoundary a,
                                      RangeBoundary b,
@@ -2137,7 +2073,6 @@ RangeBoundary RangeBoundary::JoinMax(RangeBoundary a,
   }
 }
 
-
 RangeBoundary RangeBoundary::IntersectionMin(RangeBoundary a, RangeBoundary b) {
   ASSERT(!a.IsPositiveInfinity() && !b.IsPositiveInfinity());
   ASSERT(!a.IsUnknown() && !b.IsUnknown());
@@ -2162,7 +2097,6 @@ RangeBoundary RangeBoundary::IntersectionMin(RangeBoundary a, RangeBoundary b) {
 
   return (inf_a >= inf_b) ? a : b;
 }
-
 
 RangeBoundary RangeBoundary::IntersectionMax(RangeBoundary a, RangeBoundary b) {
   ASSERT(!a.IsNegativeInfinity() && !b.IsNegativeInfinity());
@@ -2189,17 +2123,14 @@ RangeBoundary RangeBoundary::IntersectionMax(RangeBoundary a, RangeBoundary b) {
   return (sup_a <= sup_b) ? a : b;
 }
 
-
 int64_t RangeBoundary::ConstantValue() const {
   ASSERT(IsConstant());
   return value_;
 }
 
-
 bool Range::IsPositive() const {
   return OnlyGreaterThanOrEqualTo(0);
 }
-
 
 bool Range::OnlyLessThanOrEqualTo(int64_t val) const {
   const RangeBoundary upper_bound = max().UpperBound();
@@ -2207,19 +2138,16 @@ bool Range::OnlyLessThanOrEqualTo(int64_t val) const {
          (upper_bound.ConstantValue() <= val);
 }
 
-
 bool Range::OnlyGreaterThanOrEqualTo(int64_t val) const {
   const RangeBoundary lower_bound = min().LowerBound();
   return !lower_bound.IsNegativeInfinity() &&
          (lower_bound.ConstantValue() >= val);
 }
 
-
 // Inclusive.
 bool Range::IsWithin(int64_t min_int, int64_t max_int) const {
   return OnlyGreaterThanOrEqualTo(min_int) && OnlyLessThanOrEqualTo(max_int);
 }
-
 
 bool Range::Overlaps(int64_t min_int, int64_t max_int) const {
   RangeBoundary lower = min().LowerBound();
@@ -2233,7 +2161,6 @@ bool Range::Overlaps(int64_t min_int, int64_t max_int) const {
   if ((min_int < this_min) && (max_int > this_max)) return true;
   return false;
 }
-
 
 bool Range::IsUnsatisfiable() const {
   // Infinity case: [+inf, ...] || [..., -inf]
@@ -2249,18 +2176,15 @@ bool Range::IsUnsatisfiable() const {
   return DependOnSameSymbol(min(), max()) && min().offset() > max().offset();
 }
 
-
 void Range::Clamp(RangeBoundary::RangeSize size) {
   min_ = min_.Clamp(size);
   max_ = max_.Clamp(size);
 }
 
-
 void Range::ClampToConstant(RangeBoundary::RangeSize size) {
   min_ = min_.LowerBound().Clamp(size);
   max_ = max_.UpperBound().Clamp(size);
 }
-
 
 void Range::Shl(const Range* left,
                 const Range* right,
@@ -2290,7 +2214,6 @@ void Range::Shl(const Range* left,
                                    : RangeBoundary::NegativeInfinity());
 }
 
-
 void Range::Shr(const Range* left,
                 const Range* right,
                 RangeBoundary* result_min,
@@ -2310,7 +2233,6 @@ void Range::Shr(const Range* left,
   *result_max = RangeBoundary::Shr(
       left_max, left_max.ConstantValue() > 0 ? right_min : right_max);
 }
-
 
 void Range::And(const Range* left_range,
                 const Range* right_range,
@@ -2336,13 +2258,11 @@ void Range::And(const Range* left_range,
   BitwiseOp(left_range, right_range, result_min, result_max);
 }
 
-
 static int BitSize(const Range* range) {
   const int64_t min = Range::ConstantMin(range).ConstantValue();
   const int64_t max = Range::ConstantMax(range).ConstantValue();
   return Utils::Maximum(Utils::BitLength(min), Utils::BitLength(max));
 }
-
 
 void Range::BitwiseOp(const Range* left_range,
                       const Range* right_range,
@@ -2361,7 +2281,6 @@ void Range::BitwiseOp(const Range* left_range,
       RangeBoundary::FromConstant((static_cast<uint64_t>(1) << bitsize) - 1);
 }
 
-
 static bool IsArrayLength(Definition* defn) {
   if (defn == NULL) {
     return false;
@@ -2369,7 +2288,6 @@ static bool IsArrayLength(Definition* defn) {
   LoadFieldInstr* load = UnwrapConstraint(defn)->AsLoadField();
   return (load != NULL) && load->IsImmutableLengthLoad();
 }
-
 
 void Range::Add(const Range* left_range,
                 const Range* right_range,
@@ -2401,7 +2319,6 @@ void Range::Add(const Range* left_range,
   }
 }
 
-
 void Range::Sub(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
@@ -2431,7 +2348,6 @@ void Range::Sub(const Range* left_range,
                                      RangeBoundary::PositiveInfinity());
   }
 }
-
 
 void Range::Mul(const Range* left_range,
                 const Range* right_range,
@@ -2479,18 +2395,15 @@ void Range::Mul(const Range* left_range,
   *result_max = RangeBoundary::PositiveInfinity();
 }
 
-
 // Both the a and b ranges are >= 0.
 bool Range::OnlyPositiveOrZero(const Range& a, const Range& b) {
   return a.OnlyGreaterThanOrEqualTo(0) && b.OnlyGreaterThanOrEqualTo(0);
 }
 
-
 // Both the a and b ranges are <= 0.
 bool Range::OnlyNegativeOrZero(const Range& a, const Range& b) {
   return a.OnlyLessThanOrEqualTo(0) && b.OnlyLessThanOrEqualTo(0);
 }
-
 
 // Return the maximum absolute value included in range.
 int64_t Range::ConstantAbsMax(const Range* range) {
@@ -2502,7 +2415,6 @@ int64_t Range::ConstantAbsMax(const Range* range) {
   return Utils::Maximum(abs_min, abs_max);
 }
 
-
 // Return the minimum absolute value included in range.
 int64_t Range::ConstantAbsMin(const Range* range) {
   if (range == NULL) {
@@ -2512,7 +2424,6 @@ int64_t Range::ConstantAbsMin(const Range* range) {
   const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).ConstantValue());
   return Utils::Minimum(abs_min, abs_max);
 }
-
 
 void Range::BinaryOp(const Token::Kind op,
                      const Range* left_range,
@@ -2571,14 +2482,12 @@ void Range::BinaryOp(const Token::Kind op,
   *result = Range(min, max);
 }
 
-
 void Definition::set_range(const Range& range) {
   if (range_ == NULL) {
     range_ = new Range();
   }
   *range_ = range;
 }
-
 
 void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
   if (Type()->ToCid() == kSmiCid) {
@@ -2595,11 +2504,9 @@ void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-
 static bool DependsOnSymbol(const RangeBoundary& a, Definition* symbol) {
   return a.IsSymbol() && (UnwrapConstraint(a.symbol()) == symbol);
 }
-
 
 // Given the range and definition update the range so that
 // it covers both original range and definitions range.
@@ -2658,13 +2565,11 @@ static void Join(Range* range,
   }
 }
 
-
 // A definition dominates a phi if its block dominates the phi's block
 // and the two blocks are different.
 static bool DominatesPhi(BlockEntryInstr* a, BlockEntryInstr* phi_block) {
   return a->Dominates(phi_block) && (a != phi_block);
 }
-
 
 // When assigning range to a phi we must take care to avoid self-reference
 // cycles when phi's range depends on the phi itself.
@@ -2688,7 +2593,6 @@ static RangeBoundary EnsureAcyclicSymbol(BlockEntryInstr* phi_block,
   return limit;
 }
 
-
 static const Range* GetInputRange(RangeAnalysis* analysis,
                                   RangeBoundary::RangeSize size,
                                   Value* input) {
@@ -2705,7 +2609,6 @@ static const Range* GetInputRange(RangeAnalysis* analysis,
   }
 }
 
-
 void PhiInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const RangeBoundary::RangeSize size = RangeSizeForPhi(this);
   for (intptr_t i = 0; i < InputCount(); i++) {
@@ -2721,7 +2624,6 @@ void PhiInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       EnsureAcyclicSymbol(phi_block, range->max(), RangeBoundary::MaxSmi()));
 }
 
-
 void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   if (value_.IsSmi()) {
     int64_t value = Smi::Cast(value_).Value();
@@ -2736,7 +2638,6 @@ void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     UNREACHABLE();
   }
 }
-
 
 void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = analysis->GetSmiRange(value());
@@ -2757,7 +2658,6 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
   *range = result;
 }
-
 
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (recognized_kind()) {
@@ -2780,7 +2680,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Definition::InferRange(analysis, range);
   }
 }
-
 
 void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (class_id()) {
@@ -2825,7 +2724,6 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(RawObject::IsStringClassId(class_id()));
   switch (class_id()) {
@@ -2842,14 +2740,12 @@ void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-
 void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const intptr_t min = Utils::Minimum(if_true_, if_false_);
   const intptr_t max = Utils::Maximum(if_true_, if_false_);
   *range =
       Range(RangeBoundary::FromConstant(min), RangeBoundary::FromConstant(max));
 }
-
 
 static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
   switch (r) {
@@ -2864,7 +2760,6 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
       return RangeBoundary::kRangeBoundarySmi;
   }
 }
-
 
 void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,
                                             const Range* right_range,
@@ -2891,7 +2786,6 @@ void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,
   range->Clamp(range_size);
 }
 
-
 static void CacheRange(Range** slot,
                        const Range* range,
                        RangeBoundary::RangeSize size) {
@@ -2908,7 +2802,6 @@ static void CacheRange(Range** slot,
   }
 }
 
-
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* right_smi_range = analysis->GetSmiRange(right());
   // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
@@ -2920,18 +2813,15 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   InferRangeHelper(analysis->GetSmiRange(left()), right_smi_range, range);
 }
 
-
 void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   InferRangeHelper(analysis->GetSmiRange(left()),
                    analysis->GetSmiRange(right()), range);
 }
 
-
 void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   InferRangeHelper(left()->definition()->range(),
                    right()->definition()->range(), range);
 }
-
 
 void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   CacheRange(&shift_range_, right()->definition()->range(),
@@ -2940,14 +2830,12 @@ void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                    right()->definition()->range(), range);
 }
 
-
 void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = value()->definition()->range();
   if (!Range::IsUnknown(value_range)) {
     *range = *value_range;
   }
 }
-
 
 void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   if (value()->Type()->ToCid() == kSmiCid) {
@@ -2966,7 +2854,6 @@ void UnboxInt32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt32);
   }
 }
-
 
 void UnboxUint32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = NULL;
@@ -2991,7 +2878,6 @@ void UnboxUint32Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-
 void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = value()->definition()->range();
   if (value_range != NULL) {
@@ -3001,7 +2887,6 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   }
 }
-
 
 void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
                                           Range* range) {
@@ -3026,7 +2911,6 @@ void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
     }
   }
 }
-
 
 bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
   Range* index_range = index()->definition()->range();
@@ -3080,6 +2964,5 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
   // Failed to prove that maximum is bounded with array length.
   return false;
 }
-
 
 }  // namespace dart

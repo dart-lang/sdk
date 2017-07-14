@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/stack_frame.h"
 #include "vm/stack_trace.h"
+#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -41,7 +41,6 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
   return frame_count;
 }
 
-
 intptr_t StackTraceUtils::CollectFrames(Thread* thread,
                                         const Array& code_array,
                                         const Array& pc_offset_array,
@@ -75,7 +74,6 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
   }
   return collected_frames_count;
 }
-
 
 intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
     Thread* thread,

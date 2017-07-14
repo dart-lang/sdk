@@ -11,126 +11,105 @@
 namespace dart {
 namespace bin {
 
-
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_GetSocketId)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
 
-
 void FUNCTION_NAME(Socket_JoinMulticast)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
-
 
 void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   Dart_ThrowException(

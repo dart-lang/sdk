@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   operator +(core::String s) → dynamic
     ;
@@ -13,7 +13,7 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     ;
   operator +(core::String s) → dynamic
     ;
@@ -23,7 +23,7 @@ class B extends self::A {
     ;
 }
 class Autobianchi extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method g() → dynamic
     ;

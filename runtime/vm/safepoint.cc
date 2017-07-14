@@ -23,7 +23,6 @@ SafepointOperationScope::SafepointOperationScope(Thread* T) : StackResource(T) {
   handler->SafepointThreads(T);
 }
 
-
 SafepointOperationScope::~SafepointOperationScope() {
   Thread* T = thread();
   ASSERT(T != NULL);
@@ -36,14 +35,12 @@ SafepointOperationScope::~SafepointOperationScope() {
   handler->ResumeThreads(T);
 }
 
-
 SafepointHandler::SafepointHandler(Isolate* isolate)
     : isolate_(isolate),
       safepoint_lock_(new Monitor()),
       number_threads_not_at_safepoint_(0),
       safepoint_operation_count_(0),
       owner_(NULL) {}
-
 
 SafepointHandler::~SafepointHandler() {
   ASSERT(owner_ == NULL);
@@ -52,7 +49,6 @@ SafepointHandler::~SafepointHandler() {
   safepoint_lock_ = NULL;
   isolate_ = NULL;
 }
-
 
 void SafepointHandler::SafepointThreads(Thread* T) {
   {
@@ -120,7 +116,6 @@ void SafepointHandler::SafepointThreads(Thread* T) {
   }
 }
 
-
 void SafepointHandler::ResumeThreads(Thread* T) {
   // First resume all the threads which are blocked for the safepoint
   // operation.
@@ -153,7 +148,6 @@ void SafepointHandler::ResumeThreads(Thread* T) {
   sl.NotifyAll();
 }
 
-
 void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   T->SetAtSafepoint(true);
@@ -165,7 +159,6 @@ void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   }
 }
 
-
 void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   ASSERT(T->IsAtSafepoint());
@@ -176,7 +169,6 @@ void SafepointHandler::ExitSafepointUsingLock(Thread* T) {
   }
   T->SetAtSafepoint(false);
 }
-
 
 void SafepointHandler::BlockForSafepoint(Thread* T) {
   MonitorLocker tl(T->thread_lock());

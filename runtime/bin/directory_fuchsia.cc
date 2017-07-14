@@ -7,13 +7,13 @@
 
 #include "bin/directory.h"
 
-#include <dirent.h>    // NOLINT
-#include <errno.h>     // NOLINT
-#include <stdlib.h>    // NOLINT
-#include <string.h>    // NOLINT
+#include <dirent.h>     // NOLINT
+#include <errno.h>      // NOLINT
+#include <stdlib.h>     // NOLINT
+#include <string.h>     // NOLINT
 #include <sys/param.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
-#include <unistd.h>    // NOLINT
+#include <sys/stat.h>   // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/file.h"
@@ -27,33 +27,27 @@ PathBuffer::PathBuffer() : length_(0) {
   data_ = calloc(PATH_MAX + 1, sizeof(char));  // NOLINT
 }
 
-
 PathBuffer::~PathBuffer() {
   free(data_);
 }
-
 
 bool PathBuffer::AddW(const wchar_t* name) {
   UNREACHABLE();
   return false;
 }
 
-
 char* PathBuffer::AsString() const {
   return reinterpret_cast<char*>(data_);
 }
-
 
 wchar_t* PathBuffer::AsStringW() const {
   UNREACHABLE();
   return NULL;
 }
 
-
 const char* PathBuffer::AsScopedString() const {
   return DartUtils::ScopedCopyCString(AsString());
 }
-
 
 bool PathBuffer::Add(const char* name) {
   const intptr_t name_length = strnlen(name, PATH_MAX + 1);
@@ -74,12 +68,10 @@ bool PathBuffer::Add(const char* name) {
   }
 }
 
-
 void PathBuffer::Reset(intptr_t new_length) {
   length_ = new_length;
   AsString()[length_] = '\0';
 }
-
 
 // A linked list of symbolic links, with their unique file system identifiers.
 // These are scanned to detect loops while doing a recursive directory listing.
@@ -88,7 +80,6 @@ struct LinkList {
   ino64_t ino;
   LinkList* next;
 };
-
 
 ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   if (done_) {
@@ -189,14 +180,12 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   return kListDone;
 }
 
-
 DirectoryListingEntry::~DirectoryListingEntry() {
   ResetLink();
   if (lister_ != 0) {
     VOID_NO_RETRY_EXPECTED(closedir(reinterpret_cast<DIR*>(lister_)));
   }
 }
-
 
 void DirectoryListingEntry::ResetLink() {
   if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
@@ -207,7 +196,6 @@ void DirectoryListingEntry::ResetLink() {
     link_ = parent_->link_;
   }
 }
-
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
   struct stat entry_info;
@@ -235,11 +223,9 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
   }
 }
 
-
 char* Directory::CurrentNoScope() {
   return getcwd(NULL, 0);
 }
-
 
 const char* Directory::Current() {
   char buffer[PATH_MAX];
@@ -249,11 +235,9 @@ const char* Directory::Current() {
   return DartUtils::ScopedCopyCString(buffer);
 }
 
-
 bool Directory::SetCurrent(const char* path) {
   return (NO_RETRY_EXPECTED(chdir(path)) == 0);
 }
-
 
 bool Directory::Create(const char* dir_name) {
   // Create the directory with the permissions specified by the
@@ -265,7 +249,6 @@ bool Directory::Create(const char* dir_name) {
   }
   return (result == 0);
 }
-
 
 const char* Directory::SystemTemp() {
   PathBuffer path;
@@ -289,7 +272,6 @@ const char* Directory::SystemTemp() {
   return path.AsScopedString();
 }
 
-
 const char* Directory::CreateTemp(const char* prefix) {
   // Returns a new, unused directory name, adding characters to the end
   // of prefix.  Creates the directory with the permissions specified
@@ -310,15 +292,12 @@ const char* Directory::CreateTemp(const char* prefix) {
   return path.AsScopedString();
 }
 
-
 static bool DeleteRecursively(PathBuffer* path);
-
 
 static bool DeleteFile(char* file_name, PathBuffer* path) {
   return path->Add(file_name) &&
          (NO_RETRY_EXPECTED(unlink(path->AsString())) == 0);
 }
-
 
 static bool DeleteDir(char* dir_name, PathBuffer* path) {
   if ((strcmp(dir_name, ".") == 0) || (strcmp(dir_name, "..") == 0)) {
@@ -326,7 +305,6 @@ static bool DeleteDir(char* dir_name, PathBuffer* path) {
   }
   return path->Add(dir_name) && DeleteRecursively(path);
 }
-
 
 static bool DeleteRecursively(PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
@@ -402,7 +380,6 @@ static bool DeleteRecursively(PathBuffer* path) {
   return false;
 }
 
-
 bool Directory::Delete(const char* dir_name, bool recursive) {
   if (!recursive) {
     if ((File::GetType(dir_name, false) == File::kIsLink) &&
@@ -418,7 +395,6 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     return DeleteRecursively(&path);
   }
 }
-
 
 bool Directory::Rename(const char* path, const char* new_path) {
   ExistsResult exists = Exists(path);

@@ -6,7 +6,6 @@
 
 #include "vm/become.h"
 #include "vm/bit_vector.h"
-#include "vm/runtime_entry.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"
@@ -15,6 +14,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/runtime_entry.h"
 #include "vm/safepoint.h"
 #include "vm/service_event.h"
 #include "vm/stack_frame.h"
@@ -53,7 +53,6 @@ DEFINE_FLAG(bool,
   TimelineDurationScope tds##name(Thread::Current(),                           \
                                   Timeline::GetIsolateStream(), #name)
 
-
 InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
     : from_(Class::Handle(zone, from.raw())),
       to_(Class::Handle(zone, to.raw())),
@@ -66,13 +65,11 @@ InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
   ComputeMapping();
 }
 
-
 void InstanceMorpher::AddObject(RawObject* object) const {
   ASSERT(object->GetClassId() == cid());
   const Instance& instance = Instance::Cast(Object::Handle(object));
   before_->Add(&instance);
 }
-
 
 void InstanceMorpher::ComputeMapping() {
   if (from_.NumTypeArguments()) {
@@ -136,7 +133,6 @@ void InstanceMorpher::ComputeMapping() {
   }
 }
 
-
 RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
   const Instance& result = Instance::Handle(Instance::New(to_));
   // Morph the context from instance to result using mapping_.
@@ -151,7 +147,6 @@ RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
   Become::MakeDummyObject(instance);
   return result.raw();
 }
-
 
 void InstanceMorpher::RunNewFieldInitializers() const {
   if ((new_fields_->length() == 0) || (after_->length() == 0)) {
@@ -194,14 +189,12 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   }
 }
 
-
 void InstanceMorpher::CreateMorphedCopies() const {
   for (intptr_t i = 0; i < before()->length(); i++) {
     const Instance& copy = Instance::Handle(Morph(*before()->At(i)));
     after()->Add(&copy);
   }
 }
-
 
 void InstanceMorpher::DumpFormatFor(const Class& cls) const {
   THR_Print("%s\n", cls.ToCString());
@@ -229,7 +222,6 @@ void InstanceMorpher::DumpFormatFor(const Class& cls) const {
   THR_Print("\n");
 }
 
-
 void InstanceMorpher::Dump() const {
   LogBlock blocker;
   THR_Print("Morphing from ");
@@ -238,7 +230,6 @@ void InstanceMorpher::Dump() const {
   DumpFormatFor(to_);
   THR_Print("\n");
 }
-
 
 void InstanceMorpher::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
@@ -253,12 +244,10 @@ void InstanceMorpher::AppendTo(JSONArray* array) {
   }
 }
 
-
 void ReasonForCancelling::Report(IsolateReloadContext* context) {
   const Error& error = Error::Handle(ToError());
   context->ReportError(error);
 }
-
 
 RawError* ReasonForCancelling::ToError() {
   // By default create the error returned from ToString.
@@ -266,12 +255,10 @@ RawError* ReasonForCancelling::ToError() {
   return LanguageError::New(message);
 }
 
-
 RawString* ReasonForCancelling::ToString() {
   UNREACHABLE();
   return NULL;
 }
-
 
 void ReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
@@ -280,14 +267,12 @@ void ReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("message", message.ToCString());
 }
 
-
 ClassReasonForCancelling::ClassReasonForCancelling(Zone* zone,
                                                    const Class& from,
                                                    const Class& to)
     : ReasonForCancelling(zone),
       from_(Class::ZoneHandle(zone, from.raw())),
       to_(Class::ZoneHandle(zone, to.raw())) {}
-
 
 void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
@@ -297,13 +282,11 @@ void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   jsobj.AddProperty("message", message.ToCString());
 }
 
-
 RawError* IsolateReloadContext::error() const {
   ASSERT(reload_aborted());
   // Report the first error to the surroundings.
   return reasons_to_cancel_reload_.At(0)->ToError();
 }
-
 
 class ScriptUrlSetTraits {
  public:
@@ -320,7 +303,6 @@ class ScriptUrlSetTraits {
 
   static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
 };
-
 
 class ClassMapTraits {
  public:
@@ -339,7 +321,6 @@ class ClassMapTraits {
   }
 };
 
-
 class LibraryMapTraits {
  public:
   static bool ReportStats() { return false; }
@@ -355,7 +336,6 @@ class LibraryMapTraits {
 
   static uword Hash(const Object& obj) { return Library::Cast(obj).UrlHash(); }
 };
-
 
 class BecomeMapTraits {
  public:
@@ -383,7 +363,6 @@ class BecomeMapTraits {
   }
 };
 
-
 bool IsolateReloadContext::IsSameField(const Field& a, const Field& b) {
   if (a.is_static() != b.is_static()) {
     return false;
@@ -400,7 +379,6 @@ bool IsolateReloadContext::IsSameField(const Field& a, const Field& b) {
 
   return a_name.Equals(b_name);
 }
-
 
 bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   if (a.is_patch() != b.is_patch()) {
@@ -427,7 +405,6 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   return (a_lib.private_key() == b_lib.private_key());
 }
 
-
 bool IsolateReloadContext::IsSameLibrary(const Library& a_lib,
                                          const Library& b_lib) {
   const String& a_lib_url =
@@ -436,7 +413,6 @@ bool IsolateReloadContext::IsSameLibrary(const Library& a_lib,
       String::Handle(b_lib.IsNull() ? String::null() : b_lib.url());
   return a_lib_url.Equals(b_lib_url);
 }
-
 
 IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
     : zone_(Thread::Current()->zone()),
@@ -472,11 +448,9 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
   ASSERT(zone_ != NULL);
 }
 
-
 IsolateReloadContext::~IsolateReloadContext() {
   ASSERT(saved_class_table_ == NULL);
 }
-
 
 void IsolateReloadContext::ReportError(const Error& error) {
   if (FLAG_trace_reload) {
@@ -487,12 +461,10 @@ void IsolateReloadContext::ReportError(const Error& error) {
   Service::HandleEvent(&service_event);
 }
 
-
 void IsolateReloadContext::ReportSuccess() {
   ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
-
 
 class Aborted : public ReasonForCancelling {
  public:
@@ -508,7 +480,6 @@ class Aborted : public ReasonForCancelling {
     return String::NewFormatted("%s", error_.ToErrorCString());
   }
 };
-
 
 static intptr_t CommonSuffixLength(const char* a, const char* b) {
   const intptr_t a_length = strlen(a);
@@ -527,7 +498,6 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   ASSERT((a_length - a_cursor) == (b_length - b_cursor));
   return (a_length - a_cursor);
 }
-
 
 // NOTE: This function returns *after* FinalizeLoading is called.
 void IsolateReloadContext::Reload(bool force_reload,
@@ -660,7 +630,6 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 }
 
-
 void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
   if (old_cls.IsNull()) {
@@ -687,7 +656,6 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   AddClassMapping(new_cls, old_cls);
 }
 
-
 // FinalizeLoading will be called *before* Reload() returns but will not be
 // called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeLoading() {
@@ -712,7 +680,6 @@ void IsolateReloadContext::FinalizeLoading() {
   CommonFinalizeTail();
 }
 
-
 // FinalizeFailedLoad will be called *before* Reload() returns and will only
 // be called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
@@ -725,12 +692,10 @@ void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
   CommonFinalizeTail();
 }
 
-
 void IsolateReloadContext::CommonFinalizeTail() {
   ReportOnJSON(js_);
   reload_finalized_ = true;
 }
-
 
 void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
@@ -771,7 +736,6 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
   }
 }
 
-
 void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
   StackFrameIterator it(StackFrameIterator::kDontValidateFrames,
@@ -788,7 +752,6 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
     }
   }
 }
-
 
 void IsolateReloadContext::DeoptimizeDependentCode() {
   TIMELINE_SCOPE(DeoptimizeDependentCode);
@@ -823,7 +786,6 @@ void IsolateReloadContext::DeoptimizeDependentCode() {
 
   // TODO(johnmccutchan): Also call LibraryPrefix::InvalidateDependentCode.
 }
-
 
 void IsolateReloadContext::CheckpointClasses() {
   TIMELINE_SCOPE(CheckpointClasses);
@@ -865,9 +827,7 @@ void IsolateReloadContext::CheckpointClasses() {
   TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
 }
 
-
 Dart_FileModifiedCallback IsolateReloadContext::file_modified_callback_ = NULL;
-
 
 bool IsolateReloadContext::ScriptModifiedSince(const Script& script,
                                                int64_t since) {
@@ -879,7 +839,6 @@ bool IsolateReloadContext::ScriptModifiedSince(const Script& script,
   const char* url_chars = url.ToCString();
   return (*file_modified_callback_)(url_chars, since);
 }
-
 
 static void PropagateLibraryModified(
     const ZoneGrowableArray<ZoneGrowableArray<intptr_t>*>* imported_by,
@@ -894,7 +853,6 @@ static void PropagateLibraryModified(
     }
   }
 }
-
 
 BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
   Thread* thread = Thread::Current();
@@ -991,7 +949,6 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
   return modified_libs;
 }
 
-
 void IsolateReloadContext::CheckpointLibraries() {
   TIMELINE_SCOPE(CheckpointLibraries);
   TIR_Print("---- CHECKPOINTING LIBRARIES\n");
@@ -1036,7 +993,6 @@ void IsolateReloadContext::CheckpointLibraries() {
   object_store()->set_root_library(Library::Handle());
 }
 
-
 // While reloading everything we do must be reversible so that we can abort
 // safely if the reload fails. This function stashes things to the side and
 // prepares the isolate for the reload attempt.
@@ -1045,7 +1001,6 @@ void IsolateReloadContext::Checkpoint() {
   CheckpointClasses();
   CheckpointLibraries();
 }
-
 
 void IsolateReloadContext::RollbackClasses() {
   TIR_Print("---- ROLLING BACK CLASS TABLE\n");
@@ -1067,7 +1022,6 @@ void IsolateReloadContext::RollbackClasses() {
   // element. Table will be freed at the next major GC or isolate shutdown.
   class_table->AddOldTable(local_saved_class_table);
 }
-
 
 void IsolateReloadContext::RollbackLibraries() {
   TIR_Print("---- ROLLING BACK LIBRARY CHANGES\n");
@@ -1095,13 +1049,11 @@ void IsolateReloadContext::RollbackLibraries() {
   set_saved_libraries(GrowableObjectArray::Handle());
 }
 
-
 void IsolateReloadContext::Rollback() {
   TIR_Print("---- ROLLING BACK");
   RollbackClasses();
   RollbackLibraries();
 }
-
 
 #ifdef DEBUG
 void IsolateReloadContext::VerifyMaps() {
@@ -1138,7 +1090,6 @@ void IsolateReloadContext::VerifyMaps() {
   reverse_class_map.Release();
 }
 #endif
-
 
 void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
@@ -1307,7 +1258,6 @@ void IsolateReloadContext::Commit() {
 #endif  // DEBUG
 }
 
-
 void IsolateReloadContext::RehashConstants() {
   TIMELINE_SCOPE(RehashConstants);
   ClassTable* class_table = I->class_table();
@@ -1329,7 +1279,6 @@ void IsolateReloadContext::RehashConstants() {
   }
 }
 
-
 bool IsolateReloadContext::IsDirty(const Library& lib) {
   const intptr_t index = lib.index();
   if (index == static_cast<classid_t>(-1)) {
@@ -1340,7 +1289,6 @@ bool IsolateReloadContext::IsDirty(const Library& lib) {
   return library_infos_[index].dirty;
 }
 
-
 void IsolateReloadContext::PostCommit() {
   TIMELINE_SCOPE(PostCommit);
   set_saved_root_library(Library::Handle());
@@ -1349,18 +1297,15 @@ void IsolateReloadContext::PostCommit() {
   TIR_Print("---- DONE COMMIT\n");
 }
 
-
 void IsolateReloadContext::AddReasonForCancelling(ReasonForCancelling* reason) {
   reload_aborted_ = true;
   reasons_to_cancel_reload_.Add(reason);
 }
 
-
 void IsolateReloadContext::AddInstanceMorpher(InstanceMorpher* morpher) {
   instance_morphers_.Add(morpher);
   cid_mapper_.Insert(morpher);
 }
-
 
 void IsolateReloadContext::ReportReasonsForCancelling() {
   ASSERT(FLAG_reload_force_rollback || HasReasonsForCancelling());
@@ -1368,7 +1313,6 @@ void IsolateReloadContext::ReportReasonsForCancelling() {
     reasons_to_cancel_reload_.At(i)->Report(this);
   }
 }
-
 
 // The ObjectLocator is used for collecting instances that
 // needs to be morphed.
@@ -1393,7 +1337,6 @@ class ObjectLocator : public ObjectVisitor {
   IsolateReloadContext* context_;
   intptr_t count_;
 };
-
 
 void IsolateReloadContext::MorphInstances() {
   TIMELINE_SCOPE(MorphInstances);
@@ -1448,14 +1391,12 @@ void IsolateReloadContext::MorphInstances() {
   Become::ElementsForwardIdentity(before, after);
 }
 
-
 void IsolateReloadContext::RunNewFieldInitializers() {
   // Run new field initializers on all instances.
   for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
     instance_morphers_.At(i)->RunNewFieldInitializers();
   }
 }
-
 
 bool IsolateReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
@@ -1502,11 +1443,9 @@ bool IsolateReloadContext::ValidateReload() {
   return !FLAG_reload_force_rollback && !HasReasonsForCancelling();
 }
 
-
 RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
   return MappedClass(cls);
 }
-
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
   RawClass** class_table = AtomicOperations::LoadRelaxed(&saved_class_table_);
@@ -1519,27 +1458,22 @@ RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
   }
 }
 
-
 RawLibrary* IsolateReloadContext::saved_root_library() const {
   return saved_root_library_;
 }
-
 
 void IsolateReloadContext::set_saved_root_library(const Library& value) {
   saved_root_library_ = value.raw();
 }
 
-
 RawGrowableObjectArray* IsolateReloadContext::saved_libraries() const {
   return saved_libraries_;
 }
-
 
 void IsolateReloadContext::set_saved_libraries(
     const GrowableObjectArray& value) {
   saved_libraries_ = value.raw();
 }
-
 
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
@@ -1549,11 +1483,9 @@ void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   }
 }
 
-
 ObjectStore* IsolateReloadContext::object_store() {
   return isolate_->object_store();
 }
-
 
 void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Thread* thread = Thread::Current();
@@ -1582,7 +1514,6 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   }
 }
 
-
 void IsolateReloadContext::ResetMegamorphicCaches() {
   object_store()->set_megamorphic_cache_table(GrowableObjectArray::Handle());
   // Since any current optimized code will not make any more calls, it may be
@@ -1590,7 +1521,6 @@ void IsolateReloadContext::ResetMegamorphicCaches() {
   // the current megamorphic caches get GC'd and any new optimized code allocate
   // new ones.
 }
-
 
 class MarkFunctionsForRecompilation : public ObjectVisitor {
  public:
@@ -1676,7 +1606,6 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
   Zone* zone_;
 };
 
-
 void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
   TIR_Print("---- MARKING ALL FUNCTIONS FOR RECOMPILATION\n");
@@ -1689,7 +1618,6 @@ void IsolateReloadContext::MarkAllFunctionsForRecompilation() {
   isolate_->heap()->VisitObjects(&visitor);
 }
 
-
 void IsolateReloadContext::InvalidateWorld() {
   TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
@@ -1697,7 +1625,6 @@ void IsolateReloadContext::InvalidateWorld() {
   ResetUnoptimizedICsOnStack();
   MarkAllFunctionsForRecompilation();
 }
-
 
 RawClass* IsolateReloadContext::MappedClass(const Class& replacement_or_new) {
   UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
@@ -1708,12 +1635,10 @@ RawClass* IsolateReloadContext::MappedClass(const Class& replacement_or_new) {
   return cls.raw();
 }
 
-
 RawLibrary* IsolateReloadContext::MappedLibrary(
     const Library& replacement_or_new) {
   return Library::null();
 }
-
 
 RawClass* IsolateReloadContext::OldClassOrNull(
     const Class& replacement_or_new) {
@@ -1723,7 +1648,6 @@ RawClass* IsolateReloadContext::OldClassOrNull(
   old_classes_set_storage_ = old_classes_set.Release().raw();
   return cls.raw();
 }
-
 
 RawString* IsolateReloadContext::FindLibraryPrivateKey(
     const Library& replacement_or_new) {
@@ -1739,7 +1663,6 @@ RawString* IsolateReloadContext::FindLibraryPrivateKey(
   return old.private_key();
 }
 
-
 RawLibrary* IsolateReloadContext::OldLibraryOrNull(
     const Library& replacement_or_new) {
   UnorderedHashSet<LibraryMapTraits> old_libraries_set(
@@ -1753,7 +1676,6 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNull(
   }
   return lib.raw();
 }
-
 
 // Attempt to find the pair to |replacement_or_new| with the knowledge that
 // the base url prefix has moved.
@@ -1794,7 +1716,6 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
   return Library::null();
 }
 
-
 void IsolateReloadContext::BuildLibraryMapping() {
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(object_store()->libraries());
@@ -1822,7 +1743,6 @@ void IsolateReloadContext::BuildLibraryMapping() {
   }
 }
 
-
 void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,
                                            const Class& original) {
   UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
@@ -1832,7 +1752,6 @@ void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,
   // address.
   class_map_storage_ = map.Release().raw();
 }
-
 
 void IsolateReloadContext::AddLibraryMapping(const Library& replacement_or_new,
                                              const Library& original) {
@@ -1844,7 +1763,6 @@ void IsolateReloadContext::AddLibraryMapping(const Library& replacement_or_new,
   library_map_storage_ = map.Release().raw();
 }
 
-
 void IsolateReloadContext::AddStaticFieldMapping(const Field& old_field,
                                                  const Field& new_field) {
   ASSERT(old_field.is_static());
@@ -1852,7 +1770,6 @@ void IsolateReloadContext::AddStaticFieldMapping(const Field& old_field,
 
   AddBecomeMapping(old_field, new_field);
 }
-
 
 void IsolateReloadContext::AddBecomeMapping(const Object& old,
                                             const Object& neu) {
@@ -1863,7 +1780,6 @@ void IsolateReloadContext::AddBecomeMapping(const Object& old,
   become_map_storage_ = become_map.Release().raw();
 }
 
-
 void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
                                                 const Object& neu) {
   const GrowableObjectArray& become_enum_mappings =
@@ -1872,7 +1788,6 @@ void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
   become_enum_mappings.Add(neu);
   ASSERT((become_enum_mappings.Length() % 2) == 0);
 }
-
 
 void IsolateReloadContext::RebuildDirectSubclasses() {
   ClassTable* class_table = I->class_table();

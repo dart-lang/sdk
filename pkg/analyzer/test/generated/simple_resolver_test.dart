@@ -564,14 +564,10 @@ void f() {
   }
 
   test_entryPoint_exported() async {
-    addNamedSource(
-        "/two.dart",
-        r'''
+    addNamedSource("/two.dart", r'''
 library two;
 main() {}''');
-    Source source = addNamedSource(
-        "/one.dart",
-        r'''
+    Source source = addNamedSource("/one.dart", r'''
 library one;
 export 'two.dart';''');
     LibraryElement library = resolve2(source);
@@ -585,9 +581,7 @@ export 'two.dart';''');
   }
 
   test_entryPoint_local() async {
-    Source source = addNamedSource(
-        "/one.dart",
-        r'''
+    Source source = addNamedSource("/one.dart", r'''
 library one;
 main() {}''');
     LibraryElement library = resolve2(source);
@@ -611,9 +605,7 @@ main() {}''');
   }
 
   test_enum_externalLibrary() async {
-    addNamedSource(
-        "/my_lib.dart",
-        r'''
+    addNamedSource("/my_lib.dart", r'''
 library my_lib;
 enum EEE {A, B, C}''');
     Source source = addSource(r'''
@@ -877,20 +869,14 @@ class B {toString() => super.toString();}''');
   }
 
   test_import_hide() async {
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 set foo(value) {}
 class A {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 set foo(value) {}''');
-    Source source = addNamedSource(
-        "/lib3.dart",
-        r'''
+    Source source = addNamedSource("/lib3.dart", r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
 
@@ -904,16 +890,12 @@ A a;''');
   }
 
   test_import_prefix() async {
-    addNamedSource(
-        "/two.dart",
-        r'''
+    addNamedSource("/two.dart", r'''
 library two;
 f(int x) {
   return x * x;
 }''');
-    Source source = addNamedSource(
-        "/one.dart",
-        r'''
+    Source source = addNamedSource("/one.dart", r'''
 library one;
 import 'two.dart' as _two;
 main() {
@@ -930,9 +912,7 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    Source source = addNamedSource(
-        "/a.dart",
-        r'''
+    Source source = addNamedSource("/a.dart", r'''
 import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
@@ -960,9 +940,7 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    Source source = addNamedSource(
-        "/a.dart",
-        r'''
+    Source source = addNamedSource("/a.dart", r'''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
@@ -985,14 +963,10 @@ class H extends D<W> {
   }
 
   test_import_spaceInUri() async {
-    addNamedSource(
-        "/sub folder/lib.dart",
-        r'''
+    addNamedSource("/sub folder/lib.dart", r'''
 library lib;
 foo() {}''');
-    Source source = addNamedSource(
-        "/app.dart",
-        r'''
+    Source source = addNamedSource("/app.dart", r'''
 import 'sub folder/lib.dart';
 
 main() {

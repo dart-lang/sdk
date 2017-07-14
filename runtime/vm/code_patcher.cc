@@ -12,7 +12,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
 
-
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
     : address_(address), size_(size) {
@@ -22,7 +21,6 @@ WritableInstructionsScope::WritableInstructionsScope(uword address,
     ASSERT(status);
   }
 }
-
 
 WritableInstructionsScope::~WritableInstructionsScope() {
   if (FLAG_write_protect_code) {

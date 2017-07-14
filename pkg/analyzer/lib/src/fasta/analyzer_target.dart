@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart' show Library, Source;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
@@ -18,7 +18,7 @@ import 'analyzer_loader.dart' show AnalyzerLoader;
 
 class AnalyzerTarget extends KernelTarget {
   AnalyzerTarget(
-      DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode,
+      DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode,
       [Map<String, Source> uriToSource])
       : super(PhysicalFileSystem.instance, dillTarget, uriTranslator,
             uriToSource);

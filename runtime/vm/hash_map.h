@@ -113,7 +113,6 @@ class BaseDirectChainedHashMap : public B {
   Allocator* allocator_;
 };
 
-
 template <typename KeyValueTrait, typename B, typename Allocator>
 BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::BaseDirectChainedHashMap(
     const BaseDirectChainedHashMap& other)
@@ -130,7 +129,6 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::BaseDirectChainedHashMap(
   memmove(array_, other.array_, array_size_ * sizeof(HashMapListElement));
   memmove(lists_, other.lists_, lists_size_ * sizeof(HashMapListElement));
 }
-
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Pair*
@@ -157,7 +155,6 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Lookup(
   return NULL;
 }
 
-
 template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Value
 BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::LookupValue(
@@ -167,7 +164,6 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::LookupValue(
   typename KeyValueTrait::Pair* pair = Lookup(key);
   return (pair == NULL) ? kNoValue : KeyValueTrait::ValueOf(*pair);
 }
-
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Pair*
@@ -202,7 +198,6 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
 
   return NULL;
 }
-
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Resize(
@@ -253,7 +248,6 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Resize(
   allocator_->template Free<HashMapListElement>(old_array, old_size);
 }
 
-
 template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
     intptr_t new_size) {
@@ -278,7 +272,6 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
   }
   allocator_->template Free<HashMapListElement>(old_lists, old_size);
 }
-
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
@@ -310,7 +303,6 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
     array_[pos].next = new_element_pos;
   }
 }
-
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
@@ -373,7 +365,6 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
   return true;
 }
 
-
 template <typename KeyValueTrait>
 class DirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, ValueObject> {
@@ -387,7 +378,6 @@ class DirectChainedHashMap
             ASSERT_NOTNULL(zone)) {}
 };
 
-
 template <typename KeyValueTrait>
 class MallocDirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc> {
@@ -395,7 +385,6 @@ class MallocDirectChainedHashMap
   MallocDirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(NULL) {}
 };
-
 
 template <typename T>
 class PointerKeyValueTrait {
@@ -413,7 +402,6 @@ class PointerKeyValueTrait {
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(key); }
 };
 
-
 template <typename T>
 class NumbersKeyValueTrait {
  public:
@@ -426,7 +414,6 @@ class NumbersKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key; }
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv.first() == key; }
 };
-
 
 template <typename K, typename V>
 class RawPointerKeyValueTrait {

@@ -17,6 +17,7 @@ import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
 
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
     show computeDartVm, computePatchedSdk;
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 import 'package:kernel/ast.dart' show Library, Program;
 
@@ -40,7 +41,7 @@ import 'package:front_end/src/fasta/testing/kernel_chain.dart'
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:analyzer/src/fasta/analyzer_target.dart' show AnalyzerTarget;
 
@@ -76,14 +77,8 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-String shortenAstKindName(AstKind astKind, bool strongMode) {
-  switch (astKind) {
-    case AstKind.Analyzer:
-      return strongMode ? "dartk-strong" : "dartk";
-    case AstKind.Kernel:
-      return strongMode ? "strong" : "direct";
-  }
-  throw "Unknown AST kind: $astKind";
+String generateExpectationName(bool strongMode) {
+  return strongMode ? "strong" : "direct";
 }
 
 enum AstKind {
@@ -92,7 +87,7 @@ enum AstKind {
 }
 
 class FastaContext extends ChainContext {
-  final TranslateUri uriTranslator;
+  final UriTranslatorImpl uriTranslator;
   final List<Step> steps;
   final Uri vm;
   final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
@@ -117,17 +112,19 @@ class FastaContext extends ChainContext {
           new Outline(fullCompile, astKind, strongMode,
               updateComments: updateComments),
           const Print(),
-          new Verify(fullCompile),
-          new MatchExpectation(
-              fullCompile
-                  ? ".${shortenAstKindName(astKind, strongMode)}.expect"
-                  : ".outline.expect",
-              updateExpectations: updateExpectations)
+          new Verify(fullCompile)
         ] {
-    if (fullCompile && !skipVm) {
-      steps.add(const Transform());
-      steps.add(const WriteDill());
-      steps.add(const Run());
+    if (astKind != AstKind.Analyzer) {
+      steps.add(new MatchExpectation(
+          fullCompile
+              ? ".${generateExpectationName(strongMode)}.expect"
+              : ".outline.expect",
+          updateExpectations: updateExpectations));
+      if (fullCompile && !skipVm) {
+        steps.add(const Transform());
+        steps.add(const WriteDill());
+        steps.add(const Run());
+      }
     }
   }
 
@@ -153,7 +150,7 @@ class FastaContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator = await TranslateUri
+    UriTranslator uriTranslator = await UriTranslatorImpl
         .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
@@ -236,8 +233,10 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     dillTarget.loader.appendLibraries(platformOutline);
     // We create a new URI translator to avoid reading platform libraries from
     // file system.
-    TranslateUri uriTranslator = new TranslateUri(const <String, Uri>{},
-        const <String, List<Uri>>{}, context.uriTranslator.packages);
+    UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
+        const <String, Uri>{},
+        const <String, List<Uri>>{},
+        context.uriTranslator.packages);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
         : new KernelTarget(

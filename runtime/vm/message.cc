@@ -20,7 +20,6 @@ bool Message::RedirectToDeliveryFailurePort() {
   return true;
 }
 
-
 intptr_t Message::Id() const {
   // Messages are allocated on the C heap. Use the raw address as the id.
   return reinterpret_cast<intptr_t>(this);
@@ -40,19 +39,16 @@ const char* Message::PriorityAsString(Priority priority) {
   }
 }
 
-
 MessageQueue::MessageQueue() {
   head_ = NULL;
   tail_ = NULL;
 }
-
 
 MessageQueue::~MessageQueue() {
   // Ensure that all pending messages have been released.
   Clear();
   ASSERT(head_ == NULL);
 }
-
 
 void MessageQueue::Enqueue(Message* msg, bool before_events) {
   // Make sure messages are not reused.
@@ -95,7 +91,6 @@ void MessageQueue::Enqueue(Message* msg, bool before_events) {
   }
 }
 
-
 Message* MessageQueue::Dequeue() {
   Message* result = head_;
   if (result != NULL) {
@@ -112,7 +107,6 @@ Message* MessageQueue::Dequeue() {
   return NULL;
 }
 
-
 void MessageQueue::Clear() {
   Message* cur = head_;
   head_ = NULL;
@@ -128,11 +122,9 @@ void MessageQueue::Clear() {
   }
 }
 
-
 MessageQueue::Iterator::Iterator(const MessageQueue* queue) : next_(NULL) {
   Reset(queue);
 }
-
 
 MessageQueue::Iterator::~Iterator() {}
 
@@ -153,7 +145,6 @@ Message* MessageQueue::Iterator::Next() {
   return current;
 }
 
-
 intptr_t MessageQueue::Length() const {
   MessageQueue::Iterator it(this);
   intptr_t length = 0;
@@ -163,7 +154,6 @@ intptr_t MessageQueue::Length() const {
   }
   return length;
 }
-
 
 Message* MessageQueue::FindMessageById(intptr_t id) {
   MessageQueue::Iterator it(this);
@@ -176,7 +166,6 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
   }
   return NULL;
 }
-
 
 void MessageQueue::PrintJSON(JSONStream* stream) {
 #ifndef PRODUCT

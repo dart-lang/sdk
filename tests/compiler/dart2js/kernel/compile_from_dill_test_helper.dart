@@ -72,7 +72,9 @@ class SubClass extends Class {
   }  
 }
 
-class Generic<T> {}
+class Generic<T> {
+  method(o) => o is T;
+}
 
 var toplevel;
 
@@ -80,6 +82,7 @@ main() {
   foo();
   bar(true);
   [];
+  <int>[];
   {};
   new Object();
   new Class.named('');
@@ -127,6 +130,7 @@ main() {
   }
   x = toplevel;
   x = testIs(x);
+  x = new Generic<int>().method(x);
   x = testAsGeneric(x);
   x = testAsFunction(x);
   print(x);
@@ -157,6 +161,22 @@ main() {
 } 
 '''
   }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
+class A<U,V> {
+  var a = U;
+  var b = V;
+}
+class B<Q, R> extends A<R, W<Q>> {
+}
+class C<Y> extends B<Y, W<Y>> {
+}
+class W<Z> {}
+main() {
+  print(new C<String>().a);
+}
+'''
+  }, expectIdenticalOutput: true),
 ];
 
 enum ResultKind { crashes, errors, warnings, success, failure }

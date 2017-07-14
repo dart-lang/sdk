@@ -27,33 +27,27 @@ PathBuffer::PathBuffer() : length_(0) {
   data_ = calloc(MAX_LONG_PATH + 1, sizeof(wchar_t));  // NOLINT
 }
 
-
 PathBuffer::~PathBuffer() {
   free(data_);
 }
-
 
 char* PathBuffer::AsString() const {
   UNREACHABLE();
   return NULL;
 }
 
-
 wchar_t* PathBuffer::AsStringW() const {
   return reinterpret_cast<wchar_t*>(data_);
 }
-
 
 const char* PathBuffer::AsScopedString() const {
   return StringUtilsWin::WideToUtf8(AsStringW());
 }
 
-
 bool PathBuffer::Add(const char* name) {
   Utf8ToWideScope wide_name(name);
   return AddW(wide_name.wide());
 }
-
 
 bool PathBuffer::AddW(const wchar_t* name) {
   wchar_t* data = AsStringW();
@@ -70,12 +64,10 @@ bool PathBuffer::AddW(const wchar_t* name) {
   }
 }
 
-
 void PathBuffer::Reset(intptr_t new_length) {
   length_ = new_length;
   AsStringW()[length_] = L'\0';
 }
-
 
 // If link_name points to a link, IsBrokenLink will return true if link_name
 // points to an invalid target.
@@ -91,7 +83,6 @@ static bool IsBrokenLink(const wchar_t* link_name) {
   }
 }
 
-
 // A linked list structure holding a link target's unique file system ID.
 // Used to detect loops in the file system when listing recursively.
 struct LinkList {
@@ -103,7 +94,6 @@ struct LinkList {
 
 // Forward declarations.
 static bool DeleteRecursively(PathBuffer* path);
-
 
 static ListType HandleFindFile(DirectoryListing* listing,
                                DirectoryListingEntry* entry,
@@ -170,7 +160,6 @@ static ListType HandleFindFile(DirectoryListing* listing,
   }
 }
 
-
 ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   if (done_) {
     return kListDone;
@@ -219,14 +208,12 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   return kListDone;
 }
 
-
 DirectoryListingEntry::~DirectoryListingEntry() {
   ResetLink();
   if (lister_ != 0) {
     FindClose(reinterpret_cast<HANDLE>(lister_));
   }
 }
-
 
 void DirectoryListingEntry::ResetLink() {
   if ((link_ != NULL) && ((parent_ == NULL) || (parent_->link_ != link_))) {
@@ -237,7 +224,6 @@ void DirectoryListingEntry::ResetLink() {
     link_ = parent_->link_;
   }
 }
-
 
 static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
   if (!path->AddW(file_name)) {
@@ -271,14 +257,12 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
   return false;
 }
 
-
 static bool DeleteDir(wchar_t* dir_name, PathBuffer* path) {
   if ((wcscmp(dir_name, L".") == 0) || (wcscmp(dir_name, L"..") == 0)) {
     return true;
   }
   return path->AddW(dir_name) && DeleteRecursively(path);
 }
-
 
 static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
   DWORD attributes = find_file_data->dwFileAttributes;
@@ -289,7 +273,6 @@ static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
     return DeleteFile(find_file_data->cFileName, path);
   }
 }
-
 
 static bool DeleteRecursively(PathBuffer* path) {
   DWORD attributes = GetFileAttributesW(path->AsStringW());
@@ -342,7 +325,6 @@ static bool DeleteRecursively(PathBuffer* path) {
   return RemoveDirectoryW(path->AsStringW()) != 0;
 }
 
-
 static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
   DWORD attributes = GetFileAttributesW(dir_name);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -362,12 +344,10 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
   return exists ? Directory::EXISTS : Directory::DOES_NOT_EXIST;
 }
 
-
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
   Utf8ToWideScope system_name(dir_name);
   return ExistsHelper(system_name.wide());
 }
-
 
 char* Directory::CurrentNoScope() {
   int length = GetCurrentDirectoryW(0, NULL);
@@ -384,7 +364,6 @@ char* Directory::CurrentNoScope() {
   return result;
 }
 
-
 const char* Directory::Current() {
   int length = GetCurrentDirectoryW(0, NULL);
   if (length == 0) {
@@ -397,13 +376,11 @@ const char* Directory::Current() {
   return StringUtilsWin::WideToUtf8(current);
 }
 
-
 bool Directory::SetCurrent(const char* path) {
   Utf8ToWideScope system_path(path);
   bool result = SetCurrentDirectoryW(system_path.wide()) != 0;
   return result;
 }
-
 
 bool Directory::Create(const char* dir_name) {
   Utf8ToWideScope system_name(dir_name);
@@ -416,14 +393,12 @@ bool Directory::Create(const char* dir_name) {
   return (create_status != 0);
 }
 
-
 const char* Directory::SystemTemp() {
   PathBuffer path;
   // Remove \ at end.
   path.Reset(GetTempPathW(MAX_LONG_PATH, path.AsStringW()) - 1);
   return path.AsScopedString();
 }
-
 
 const char* Directory::CreateTemp(const char* prefix) {
   // Returns a new, unused directory name, adding characters to the
@@ -464,7 +439,6 @@ const char* Directory::CreateTemp(const char* prefix) {
   return path.AsScopedString();
 }
 
-
 bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
   Utf8ToWideScope system_dir_name(dir_name);
@@ -482,7 +456,6 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
   }
   return result;
 }
-
 
 bool Directory::Rename(const char* path, const char* new_path) {
   Utf8ToWideScope system_path(path);

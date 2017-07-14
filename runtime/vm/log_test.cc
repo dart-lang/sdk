@@ -54,7 +54,6 @@ class LogTestHelper : public AllStatic {
   }
 };
 
-
 TEST_CASE(Log_Macro) {
   test_output_ = NULL;
   Log* log = Log::Current();
@@ -67,7 +66,6 @@ TEST_CASE(Log_Macro) {
   LogTestHelper::FreeTestOutput();
 }
 
-
 TEST_CASE(Log_Basic) {
   test_output_ = NULL;
   Log* log = new Log(TestPrinter);
@@ -79,7 +77,6 @@ TEST_CASE(Log_Basic) {
   delete log;
   LogTestHelper::FreeTestOutput();
 }
-
 
 TEST_CASE(Log_Block) {
   test_output_ = NULL;

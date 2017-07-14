@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
   field core::List<self::A::T> x = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   set y(core::List<self::A::T> value) → void {}

@@ -31,13 +31,11 @@ namespace dart {
 
 static const int kNumInitialReferences = 32;
 
-
 static bool IsSingletonClassId(intptr_t class_id) {
   // Check if this is a singleton object class which is shared by all isolates.
   return ((class_id >= kClassCid && class_id <= kUnwindErrorCid) ||
           (class_id >= kNullCid && class_id <= kVoidCid));
 }
-
 
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
@@ -50,12 +48,10 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
           class_id == kNullCid);
 }
 
-
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
   return (index >= kObjectType && index <= kArrayType);
 }
-
 
 static bool IsSplitClassId(intptr_t class_id) {
   // Return whether this class is serialized in two steps: first a reference,
@@ -66,20 +62,17 @@ static bool IsSplitClassId(intptr_t class_id) {
          RawObject::IsImplicitFieldClassId(class_id);
 }
 
-
 static intptr_t ClassIdFromObjectId(intptr_t object_id) {
   ASSERT(object_id > kClassIdsOffset);
   intptr_t class_id = (object_id - kClassIdsOffset);
   return class_id;
 }
 
-
 static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   ASSERT((class_id > kIllegalCid) && (class_id < kNumPredefinedCids));
   ASSERT(!(RawObject::IsImplicitFieldClassId(class_id)));
   return (class_id + kClassIdsOffset);
 }
-
 
 static RawType* GetType(ObjectStore* object_store, intptr_t index) {
   switch (index) {
@@ -112,7 +105,6 @@ static RawType* GetType(ObjectStore* object_store, intptr_t index) {
   return Type::null();
 }
 
-
 static intptr_t GetTypeIndex(ObjectStore* object_store,
                              const RawType* raw_type) {
   ASSERT(raw_type->IsHeapObject());
@@ -142,7 +134,6 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
   return kInvalidIndex;
 }
 
-
 const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
@@ -163,7 +154,6 @@ const char* Snapshot::KindToCString(Kind kind) {
   }
 }
 
-
 // TODO(5411462): Temporary setup of snapshot for testing purposes,
 // the actual creation of a snapshot maybe done differently.
 const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
@@ -182,18 +172,15 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   return snapshot;
 }
 
-
 RawSmi* BaseReader::ReadAsSmi() {
   intptr_t value = Read<int32_t>();
   ASSERT((value & kSmiTagMask) == kSmiTag);
   return reinterpret_cast<RawSmi*>(value);
 }
 
-
 intptr_t BaseReader::ReadSmiValue() {
   return Smi::Value(ReadAsSmi());
 }
-
 
 SnapshotReader::SnapshotReader(const uint8_t* buffer,
                                intptr_t size,
@@ -227,7 +214,6 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
               : 0),
       backward_references_(backward_refs) {}
 
-
 RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
@@ -256,7 +242,6 @@ RawObject* SnapshotReader::ReadObject() {
     return err.raw();
   }
 }
-
 
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(!Snapshot::IsFull(kind_));
@@ -287,7 +272,6 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   cls.EnsureIsFinalized(thread());
   return cls.raw();
 }
-
 
 RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
   ASSERT(kind_ == Snapshot::kScript);
@@ -324,7 +308,6 @@ RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
   }
   return func.raw();
 }
-
 
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
                                                      intptr_t class_header) {
@@ -367,12 +350,10 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   return obj.raw();
 }
 
-
 intptr_t SnapshotReader::NextAvailableObjectId() const {
   return backward_references_->length() + kMaxPredefinedObjectIds +
          max_vm_isolate_object_id_;
 }
-
 
 void SnapshotReader::SetReadException(const char* msg) {
   const String& error_str = String::Handle(zone(), String::New(msg));
@@ -388,16 +369,13 @@ void SnapshotReader::SetReadException(const char* msg) {
   thread()->long_jump_base()->Jump(1, error);
 }
 
-
 RawObject* SnapshotReader::VmIsolateSnapshotObject(intptr_t index) const {
   return Object::vm_isolate_snapshot_object_table().At(index);
 }
 
-
 bool SnapshotReader::is_vm_isolate() const {
   return isolate() == Dart::vm_isolate();
 }
-
 
 RawObject* SnapshotReader::ReadObjectImpl(bool as_reference,
                                           intptr_t patch_object_id,
@@ -410,7 +388,6 @@ RawObject* SnapshotReader::ReadObjectImpl(bool as_reference,
   return ReadObjectImpl(static_cast<intptr_t>(header_value), as_reference,
                         patch_object_id, patch_offset);
 }
-
 
 RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
                                           bool as_reference,
@@ -479,7 +456,6 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
   }
   return pobj_.raw();
 }
-
 
 RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
                                         intptr_t tags,
@@ -550,7 +526,6 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
   return result->raw();
 }
 
-
 void SnapshotReader::AddBackRef(intptr_t id,
                                 Object* obj,
                                 DeserializeState state,
@@ -563,7 +538,6 @@ void SnapshotReader::AddBackRef(intptr_t id,
   backward_references_->Add(node);
 }
 
-
 Object* SnapshotReader::GetBackRef(intptr_t id) {
   ASSERT(id >= kMaxPredefinedObjectIds);
   intptr_t index = (id - kMaxPredefinedObjectIds);
@@ -574,7 +548,6 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
   }
   return NULL;
 }
-
 
 class HeapLocker : public StackResource {
  public:
@@ -587,7 +560,6 @@ class HeapLocker : public StackResource {
  private:
   PageSpace* page_space_;
 };
-
 
 RawObject* SnapshotReader::ReadScriptSnapshot() {
   ASSERT(kind_ == Snapshot::kScript);
@@ -613,7 +585,6 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
   }
   return obj_.raw();
 }
-
 
 RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
@@ -681,7 +652,6 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   return ApiError::null();
 }
 
-
 RawObject* SnapshotReader::NewInteger(int64_t value) {
   ASSERT((value & kSmiTagMask) == kSmiTag);
   value = value >> kSmiTagShift;
@@ -690,7 +660,6 @@ RawObject* SnapshotReader::NewInteger(int64_t value) {
   }
   return Mint::NewCanonical(value);
 }
-
 
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
@@ -701,7 +670,6 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   return offset;
 }
 
-
 int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t heap_size = raw_object->Size();
   intptr_t offset = next_object_offset_;
@@ -709,7 +677,6 @@ int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   objects_.Add(ObjectData(raw_object));
   return offset;
 }
-
 
 void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
@@ -735,7 +702,6 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
 
   WriteText(clustered_stream, vm);
 }
-
 
 void ImageWriter::WriteROData(WriteStream* stream) {
   stream->Align(OS::kMaxPreferredCodeAlignment);
@@ -771,7 +737,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
   }
 }
 
-
 AssemblyImageWriter::AssemblyImageWriter(uint8_t** assembly_buffer,
                                          ReAlloc alloc,
                                          intptr_t initial_size)
@@ -785,13 +750,11 @@ AssemblyImageWriter::AssemblyImageWriter(uint8_t** assembly_buffer,
 #endif
 }
 
-
 void AssemblyImageWriter::Finalize() {
 #ifdef DART_PRECOMPILER
   dwarf_->Write();
 #endif
 }
-
 
 static void EnsureIdentifier(char* label) {
   for (char c = *label; c != '\0'; c = *++label) {
@@ -802,7 +765,6 @@ static void EnsureIdentifier(char* label) {
     *label = '_';
   }
 }
-
 
 void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Zone* zone = Thread::Current()->zone();
@@ -925,7 +887,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   WriteByteSequence(buffer, buffer + length);
 }
 
-
 void AssemblyImageWriter::FrameUnwindPrologue() {
   // Creates DWARF's .debug_frame
   // CFI = Call frame information
@@ -965,14 +926,14 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #elif defined(TARGET_ARCH_ARM)
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
-  assembly_stream_.Print(".cfi_def_cfa r7, 0\n");   // CFA is fp+j0
-  assembly_stream_.Print(".cfi_offset r7, 0\n");    // saved fp is *(CFA+0)
+  assembly_stream_.Print(".cfi_def_cfa r7, 0\n");  // CFA is fp+j0
+  assembly_stream_.Print(".cfi_offset r7, 0\n");   // saved fp is *(CFA+0)
 #else
   COMPILE_ASSERT(FP == R11);
   assembly_stream_.Print(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
   assembly_stream_.Print(".cfi_offset r11, 0\n");   // saved fp is *(CFA+0)
 #endif
-  assembly_stream_.Print(".cfi_offset lr, 4\n");    // saved pc is *(CFA+4)
+  assembly_stream_.Print(".cfi_offset lr, 4\n");   // saved pc is *(CFA+4)
   // saved sp is CFA+8
   // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -999,7 +960,6 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 #endif
 }
 
-
 void AssemblyImageWriter::FrameUnwindEpilogue() {
 #if defined(TARGET_ARCH_ARM)
   assembly_stream_.Print(".fnend\n");
@@ -1007,14 +967,12 @@ void AssemblyImageWriter::FrameUnwindEpilogue() {
   assembly_stream_.Print(".cfi_endproc\n");
 }
 
-
 void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   for (uword* cursor = reinterpret_cast<uword*>(start);
        cursor < reinterpret_cast<uword*>(end); cursor++) {
     WriteWordLiteralText(*cursor);
   }
 }
-
 
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // This header provides the gap to make the instructions snapshot look like a
@@ -1059,7 +1017,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 }
 
-
 RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
 
@@ -1071,7 +1028,6 @@ RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) {
   return result;
 }
 
-
 RawObject* ImageReader::GetObjectAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, kWordSize));
 
@@ -1081,7 +1037,6 @@ RawObject* ImageReader::GetObjectAt(int32_t offset) {
 
   return result;
 }
-
 
 intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // If the header is an object Id, lookup singleton VM classes or classes
@@ -1096,7 +1051,6 @@ intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
   ASSERT(IsObjectStoreClassId(class_id) || IsSingletonClassId(class_id));
   return class_id;
 }
-
 
 #define READ_VM_SINGLETON_OBJ(id, obj)                                         \
   if (object_id == id) {                                                       \
@@ -1161,7 +1115,6 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   return Symbols::GetPredefinedSymbol(object_id);  // return VM symbol.
 }
 
-
 RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
                                              intptr_t patch_object_id,
                                              intptr_t patch_offset) {
@@ -1181,7 +1134,6 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
   return GetBackRef(object_id)->raw();
 }
 
-
 void SnapshotReader::AddPatchRecord(intptr_t object_id,
                                     intptr_t patch_object_id,
                                     intptr_t patch_offset) {
@@ -1195,7 +1147,6 @@ void SnapshotReader::AddPatchRecord(intptr_t object_id,
     ref.AddPatchRecord(patch_object_id, patch_offset);
   }
 }
-
 
 void SnapshotReader::ProcessDeferredCanonicalizations() {
   Type& typeobj = Type::Handle();
@@ -1241,7 +1192,6 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
   }
 }
 
-
 void SnapshotReader::FixSubclassesAndImplementors() {
   Class& cls = Class::Handle(zone());
   Class& supercls = Class::Handle(zone());
@@ -1272,7 +1222,6 @@ void SnapshotReader::FixSubclassesAndImplementors() {
   }
 }
 
-
 void SnapshotReader::ArrayReadFrom(intptr_t object_id,
                                    const Array& result,
                                    intptr_t len,
@@ -1294,7 +1243,6 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
   }
 }
 
-
 ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
                                            intptr_t size,
                                            Thread* thread)
@@ -1304,11 +1252,9 @@ ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {}
 
-
 ScriptSnapshotReader::~ScriptSnapshotReader() {
   ResetBackwardReferenceTable();
 }
-
 
 MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
                                              intptr_t size,
@@ -1319,11 +1265,9 @@ MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {}
 
-
 MessageSnapshotReader::~MessageSnapshotReader() {
   ResetBackwardReferenceTable();
 }
-
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
@@ -1345,17 +1289,14 @@ SnapshotWriter::SnapshotWriter(Thread* thread,
   ASSERT(forward_list_ != NULL);
 }
 
-
 void SnapshotWriter::WriteObject(RawObject* rawobj) {
   WriteObjectImpl(rawobj, kAsInlinedObject);
   WriteForwardedObjects();
 }
 
-
 uint32_t SnapshotWriter::GetObjectTags(RawObject* raw) {
   return raw->ptr()->tags_;
 }
-
 
 uword SnapshotWriter::GetObjectTagsAndHash(RawObject* raw) {
   uword result = raw->ptr()->tags_;
@@ -1364,7 +1305,6 @@ uword SnapshotWriter::GetObjectTagsAndHash(RawObject* raw) {
 #endif
   return result;
 }
-
 
 #define VM_OBJECT_CLASS_LIST(V)                                                \
   V(OneByteString)                                                             \
@@ -1472,7 +1412,6 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 
 #undef VM_OBJECT_WRITE
 
-
 ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)
     : thread_(thread),
       first_object_id_(first_object_id),
@@ -1481,11 +1420,9 @@ ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)
   ASSERT(first_object_id > 0);
 }
 
-
 ForwardList::~ForwardList() {
   heap()->ResetObjectIdTable();
 }
-
 
 intptr_t ForwardList::AddObject(Zone* zone,
                                 RawObject* raw,
@@ -1502,14 +1439,12 @@ intptr_t ForwardList::AddObject(Zone* zone,
   return object_id;
 }
 
-
 intptr_t ForwardList::FindObject(RawObject* raw) {
   NoSafepointScope no_safepoint;
   intptr_t id = heap()->GetObjectId(raw);
   ASSERT(id == 0 || NodeForObjectId(id)->obj()->raw() == raw);
   return (id == 0) ? static_cast<intptr_t>(kInvalidIndex) : id;
 }
-
 
 bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   // Check if object can be written in one of the following ways:
@@ -1579,7 +1514,6 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   return false;
 }
 
-
 void SnapshotWriter::WriteObjectImpl(RawObject* raw, bool as_reference) {
   // First check if object can be written as a simple predefined type.
   if (CheckAndWritePredefinedObject(raw)) {
@@ -1607,7 +1541,6 @@ void SnapshotWriter::WriteObjectImpl(RawObject* raw, bool as_reference) {
   }
   WriteMarkedObjectImpl(raw, tags, object_id, write_as_reference);
 }
-
 
 void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
                                            intptr_t tags,
@@ -1657,7 +1590,6 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
   FATAL1("Unexpected object: %s\n", obj.ToCString());
 }
 
-
 class WriteInlinedObjectVisitor : public ObjectVisitor {
  public:
   explicit WriteInlinedObjectVisitor(SnapshotWriter* writer)
@@ -1674,12 +1606,10 @@ class WriteInlinedObjectVisitor : public ObjectVisitor {
   SnapshotWriter* writer_;
 };
 
-
 void SnapshotWriter::WriteForwardedObjects() {
   WriteInlinedObjectVisitor visitor(this);
   forward_list_->SerializeAll(&visitor);
 }
-
 
 void ForwardList::SerializeAll(ObjectVisitor* writer) {
 // Write out all objects that were added to the forward list and have
@@ -1706,7 +1636,6 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
   first_unprocessed_object_id_ = next_object_id();
 }
 
-
 void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(!Snapshot::IsFull(kind_));
   int class_id = cls->ptr()->id_;
@@ -1718,7 +1647,6 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
 }
-
 
 void SnapshotWriter::WriteFunctionId(RawFunction* func, bool owner_is_class) {
   ASSERT(kind_ == Snapshot::kScript);
@@ -1735,7 +1663,6 @@ void SnapshotWriter::WriteFunctionId(RawFunction* func, bool owner_is_class) {
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
   WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
 }
-
 
 void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
                                                 RawFunction* func,
@@ -1758,7 +1685,6 @@ void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
   WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
 }
-
 
 void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t array_kind,
@@ -1801,7 +1727,6 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
   }
 }
 
-
 RawFunction* SnapshotWriter::IsSerializableClosure(RawClosure* closure) {
   // Extract the function object to check if this closure
   // can be sent in an isolate message.
@@ -1828,7 +1753,6 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClosure* closure) {
   return Function::null();
 }
 
-
 RawClass* SnapshotWriter::GetFunctionOwner(RawFunction* func) {
   RawObject* owner = func->ptr()->owner_;
   uint32_t tags = GetObjectTags(owner);
@@ -1839,7 +1763,6 @@ RawClass* SnapshotWriter::GetFunctionOwner(RawFunction* func) {
   ASSERT(class_id == kPatchClassCid);
   return reinterpret_cast<RawPatchClass*>(owner)->ptr()->patched_class_;
 }
-
 
 void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
   if (cls->ptr()->num_native_fields_ != 0) {
@@ -1854,7 +1777,6 @@ void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
   }
 }
 
-
 void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
                                        const char* msg) {
   set_exception_type(type);
@@ -1862,7 +1784,6 @@ void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
   // The more specific error is set up in SnapshotWriter::ThrowException().
   thread()->long_jump_base()->Jump(1, Object::snapshot_writer_error());
 }
-
 
 void SnapshotWriter::WriteInstance(RawObject* raw,
                                    RawClass* cls,
@@ -1918,13 +1839,11 @@ void SnapshotWriter::WriteInstance(RawObject* raw,
   return;
 }
 
-
 bool SnapshotWriter::AllowObjectsInDartLibrary(RawLibrary* library) {
   return (library == object_store()->collection_library() ||
           library == object_store()->core_library() ||
           library == object_store()->typed_data_library());
 }
-
 
 intptr_t SnapshotWriter::FindVmSnapshotObject(RawObject* rawobj) {
   intptr_t length = Object::vm_isolate_snapshot_object_table().Length();
@@ -1935,7 +1854,6 @@ intptr_t SnapshotWriter::FindVmSnapshotObject(RawObject* rawobj) {
   }
   return kInvalidIndex;
 }
-
 
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
@@ -1950,7 +1868,6 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
   }
   UNREACHABLE();
 }
-
 
 void SnapshotWriter::WriteVersionAndFeatures() {
   const char* expected_version = Version::SnapshotString();
@@ -1967,7 +1884,6 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   free(const_cast<char*>(expected_features));
 }
 
-
 ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kScript,
@@ -1981,7 +1897,6 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
-
 
 void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
@@ -2012,14 +1927,12 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   }
 }
 
-
 void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
     RawObject* raw_obj = *current;
     writer_->WriteObjectImpl(raw_obj, as_references_);
   }
 }
-
 
 MessageWriter::MessageWriter(uint8_t** buffer,
                              ReAlloc alloc,
@@ -2040,7 +1953,6 @@ MessageWriter::MessageWriter(uint8_t** buffer,
   ASSERT(alloc != NULL);
 }
 
-
 void MessageWriter::WriteMessage(const Object& obj) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
@@ -2059,6 +1971,5 @@ void MessageWriter::WriteMessage(const Object& obj) {
     ThrowException(exception_type(), exception_msg());
   }
 }
-
 
 }  // namespace dart

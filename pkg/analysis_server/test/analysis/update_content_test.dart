@@ -69,23 +69,17 @@ class UpdateContentTest extends AbstractAnalysisTest {
 
   test_multiple_contexts() async {
     String fooPath = '/project1/foo.dart';
-    resourceProvider.newFile(
-        fooPath,
-        '''
+    resourceProvider.newFile(fooPath, '''
 library foo;
 import '../project2/baz.dart';
 main() { f(); }''');
     String barPath = '/project2/bar.dart';
-    resourceProvider.newFile(
-        barPath,
-        '''
+    resourceProvider.newFile(barPath, '''
 library bar;
 import 'baz.dart';
 main() { f(); }''');
     String bazPath = '/project2/baz.dart';
-    resourceProvider.newFile(
-        bazPath,
-        '''
+    resourceProvider.newFile(bazPath, '''
 library baz;
 f(int i) {}
 ''');

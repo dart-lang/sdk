@@ -49,11 +49,9 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
   }
 }
 
-
 void ServiceEvent::UpdateTimestamp() {
   timestamp_ = OS::GetCurrentTimeMillis();
 }
-
 
 const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
@@ -111,14 +109,11 @@ const char* ServiceEvent::KindAsCString() const {
       return "Extension";
     case kTimelineEvents:
       return "TimelineEvents";
-    case kEditorObjectSelected:
-      return "_EditorObjectSelected";
     default:
       UNREACHABLE();
       return "Unknown";
   }
 }
-
 
 const StreamInfo* ServiceEvent::stream_info() const {
   switch (kind()) {
@@ -164,15 +159,11 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kEmbedder:
       return NULL;
 
-    case kEditorObjectSelected:
-      return &Service::editor_stream;
-
     default:
       UNREACHABLE();
       return NULL;
   }
 }
-
 
 const char* ServiceEvent::stream_id() const {
   const StreamInfo* stream = stream_info();
@@ -183,7 +174,6 @@ const char* ServiceEvent::stream_id() const {
     return stream->id();
   }
 }
-
 
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
@@ -267,14 +257,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     js->AppendSerializedObject("extensionData",
                                extension_event_.event_data->ToCString());
   }
-  if (kind() == kEditorObjectSelected) {
-    if (editor_event_.object != NULL) {
-      jsobj.AddProperty("editor", editor_event_.editor);
-      jsobj.AddProperty("object", *(editor_event_.object));
-    }
-  }
 }
-
 
 void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(jsobj != NULL);

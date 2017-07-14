@@ -224,7 +224,8 @@ class CommonElements {
   /// will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element) =>
-      element.name == '' && element.enclosingClass == listClass;
+      (element.name == '' && element.enclosingClass == listClass) ||
+      (element.name == 'list' && element.enclosingClass == jsArrayClass);
 
   /// Returns `true` if [element] is the 'filled' constructor of `List`. This
   /// will not resolve the constructor if it hasn't been seen yet during
@@ -1322,7 +1323,8 @@ abstract class ElementEnvironment {
   /// Returns the type of the [local] function.
   FunctionType getLocalFunctionType(Local local);
 
-  /// Returns the unaliased type of [type].
+  /// Returns the 'unaliased' type of [type]. For typedefs this is the function
+  /// type it is an alias of, for other types it is the type itself.
   ///
   /// Use this during resolution to ensure that the alias has been computed.
   // TODO(johnniwinther): Remove this when the resolver is removed.
@@ -1332,6 +1334,19 @@ abstract class ElementEnvironment {
   /// on deferred libraries.
   bool isDeferredLoadLibraryGetter(MemberEntity member);
 
+  /// Returns the metadata constants declared on [library].
+  Iterable<ConstantValue> getLibraryMetadata(LibraryEntity library);
+
+  /// Returns the metadata constants declared on [cls].
+  Iterable<ConstantValue> getClassMetadata(ClassEntity cls);
+
+  /// Returns the metadata constants declared on [typedef].
+  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef);
+
   /// Returns the metadata constants declared on [member].
-  Iterable<ConstantValue> getMemberMetadata(MemberEntity member);
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
+      {bool includeParameterMetadata: false});
+
+  /// Returns the function type that is an alias of a [typedef].
+  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);
 }

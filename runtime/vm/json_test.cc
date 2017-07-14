@@ -4,9 +4,9 @@
 
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
+#include "vm/dart_api_impl.h"
 #include "vm/json_stream.h"
 #include "vm/unit_test.h"
-#include "vm/dart_api_impl.h"
 
 namespace dart {
 
@@ -19,7 +19,6 @@ TEST_CASE(JSON_TextBuffer) {
   w.Printf(", \"%s\" : \"%s\" }", "command", "stopIt");
   EXPECT_STREQ("{ \"length\" : 175, \"command\" : \"stopIt\" }", w.buf());
 }
-
 
 TEST_CASE(JSON_JSONStream_Primitives) {
   {
@@ -82,7 +81,6 @@ TEST_CASE(JSON_JSONStream_Primitives) {
   }
 }
 
-
 TEST_CASE(JSON_JSONStream_Array) {
   JSONStream js;
   {
@@ -92,7 +90,6 @@ TEST_CASE(JSON_JSONStream_Array) {
   }
   EXPECT_STREQ("[true,false]", js.ToCString());
 }
-
 
 TEST_CASE(JSON_JSONStream_Object) {
   JSONStream js;
@@ -114,7 +111,6 @@ TEST_CASE(JSON_JSONStream_NestedObject) {
   EXPECT_STREQ("{\"key\":{\"key1\":\"d\"}}", js.ToCString());
 }
 
-
 TEST_CASE(JSON_JSONStream_ObjectArray) {
   JSONStream js;
   {
@@ -130,7 +126,6 @@ TEST_CASE(JSON_JSONStream_ObjectArray) {
   }
   EXPECT_STREQ("[{\"key\":\"e\"},{\"yek\":\"f\"}]", js.ToCString());
 }
-
 
 TEST_CASE(JSON_JSONStream_ArrayArray) {
   JSONStream js;
@@ -148,7 +143,6 @@ TEST_CASE(JSON_JSONStream_ArrayArray) {
   EXPECT_STREQ("[[4],[false]]", js.ToCString());
 }
 
-
 TEST_CASE(JSON_JSONStream_Printf) {
   JSONStream js;
   {
@@ -158,7 +152,6 @@ TEST_CASE(JSON_JSONStream_Printf) {
   EXPECT_STREQ("[\"2 hello\"]", js.ToCString());
 }
 
-
 TEST_CASE(JSON_JSONStream_ObjectPrintf) {
   JSONStream js;
   {
@@ -167,7 +160,6 @@ TEST_CASE(JSON_JSONStream_ObjectPrintf) {
   }
   EXPECT_STREQ("{\"key\":\"2 hello\"}", js.ToCString());
 }
-
 
 TEST_CASE(JSON_JSONStream_DartObject) {
   JSONStream js;
@@ -208,7 +200,6 @@ TEST_CASE(JSON_JSONStream_EscapedString) {
   }
   EXPECT_STREQ("[\"Hel\\\"\\\"lo\\r\\n\\t\"]", js.ToCString());
 }
-
 
 TEST_CASE(JSON_JSONStream_DartString) {
   const char* kScriptChars =
@@ -292,7 +283,6 @@ TEST_CASE(JSON_JSONStream_DartString) {
     EXPECT_STREQ("{\"wrongEncoding\":\"𝄞\\uD834𝄞\"}", js.ToCString());
   }
 
-
   {
     result = Dart_GetField(lib, NewString("nullInMiddle"));
     EXPECT_VALID(result);
@@ -308,7 +298,6 @@ TEST_CASE(JSON_JSONStream_DartString) {
   }
 }
 
-
 TEST_CASE(JSON_JSONStream_Params) {
   const char* param_keys[] = {"dog", "cat"};
   const char* param_values[] = {"apple", "banana"};
@@ -323,7 +312,6 @@ TEST_CASE(JSON_JSONStream_Params) {
   EXPECT(js.ParamIs("cat", "banana"));
   EXPECT(!js.ParamIs("dog", "banana"));
 }
-
 
 TEST_CASE(JSON_JSONStream_AppendJSONStreamConsumer) {
   JSONStream js;

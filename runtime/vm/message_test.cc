@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/message.h"
+#include "platform/assert.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-
 static uint8_t* AllocMsg(const char* str) {
   return reinterpret_cast<uint8_t*>(strdup(str));
 }
-
 
 TEST_CASE(MessageQueue_BasicOperations) {
   MessageQueue queue;
@@ -123,7 +121,6 @@ TEST_CASE(MessageQueue_BasicOperations) {
   delete msg5;
   delete msg6;
 }
-
 
 TEST_CASE(MessageQueue_Clear) {
   MessageQueue queue;

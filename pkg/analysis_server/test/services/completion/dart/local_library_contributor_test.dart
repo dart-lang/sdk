@@ -24,16 +24,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_Constructor() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         library libA;
         import "/testB.dart";
         part "$testFile";
@@ -63,16 +59,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_Constructor2() async {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         part of libA;
         class B { }''');
     addTestSource('''
@@ -102,16 +94,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_InstanceCreationExpression_assignment_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         part of libA;
         class A {} class B extends A {} class C implements A {} class D {}
         ''');
@@ -157,16 +145,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
 
   test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         part of libA;
         class A {} class B extends A {} class C implements A {} class D {}
         ''');
@@ -209,16 +193,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   test_partFile_TypeName() async {
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         library libA;
         import "/testB.dart";
         part "$testFile";
@@ -256,16 +236,12 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   test_partFile_TypeName2() async {
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         part of libA;
         class B { var b1; b2(){}}
         int bf() => 0;

@@ -22,8 +22,8 @@ class ClosureScopeBuilder extends ir.Visitor {
   /// A map of the nodes that we have flagged as necessary to generate closure
   /// classes for in a later stage. We map that node to information ascertained
   /// about variable usage in the surrounding scope.
-  Map<ir.Node /* ir.Field | ir.FunctionNode */, ScopeInfo> _closuresToGenerate =
-      <ir.Node, ScopeInfo>{};
+  Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, ScopeInfo>
+      _closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
 
   /// The local variables that have been declared in the current scope.
   List<ir.VariableDeclaration> _scopeVariables;

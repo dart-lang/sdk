@@ -250,5 +250,4 @@ class SafepointMonitorLocker : public ValueObject {
 
 }  // namespace dart
 
-
 #endif  // RUNTIME_VM_LOCKERS_H_

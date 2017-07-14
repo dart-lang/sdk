@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/object.h"
 #include "vm/safepoint.h"
@@ -27,7 +27,6 @@ ISOLATE_UNIT_TEST_CASE(CompileScript) {
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   const char* kScriptChars =
@@ -67,7 +66,6 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   EXPECT_STREQ("static moo() {\n    // A.foo();\n  }",
                function_source.ToCString());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   // Create a simple function and compile it without optimization.
@@ -112,7 +110,6 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   BackgroundCompiler::Stop(isolate);
 }
 
-
 TEST_CASE(RegenerateAllocStubs) {
   const char* kScriptChars =
       "class A {\n"
@@ -150,7 +147,6 @@ TEST_CASE(RegenerateAllocStubs) {
   EXPECT_VALID(result);
 }
 
-
 TEST_CASE(EvalExpression) {
   const char* kScriptChars =
       "int ten = 2 * 5;              \n"
@@ -183,7 +179,6 @@ TEST_CASE(EvalExpression) {
   EXPECT_STREQ("Herr Nilsson 100.", val.ToCString());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   Library& lib = Library::Handle(Library::CoreLibrary());
 
@@ -197,7 +192,6 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   EXPECT(val.IsInteger());
   EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   Library& lib = Library::Handle(Library::CoreLibrary());

@@ -256,7 +256,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         closedWorld.nativeData,
         closedWorld.interceptorData);
     loopHandler = new SsaLoopHandler(this);
-    typeBuilder = new TypeBuilderImpl(this);
+    typeBuilder = new TypeBuilder(this);
   }
 
   MemberElement get targetElement => target;
@@ -6852,13 +6852,4 @@ class AstInliningState extends InliningState {
       this.allFunctionsCalledOnce,
       this.oldElementInferenceResults)
       : super(function);
-}
-
-class TypeBuilderImpl extends TypeBuilder {
-  TypeBuilderImpl(GraphBuilder builder) : super(builder);
-
-  @override
-  InterfaceType getThisType(covariant ClassElement cls) {
-    return cls.thisType;
-  }
 }

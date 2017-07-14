@@ -63,7 +63,6 @@ class RingServiceIdZone : public ServiceIdZone {
   ObjectIdRing::IdPolicy policy_;
 };
 
-
 class StreamInfo {
  public:
   explicit StreamInfo(const char* id) : id_(id), enabled_(false) {}
@@ -77,7 +76,6 @@ class StreamInfo {
   const char* id_;
   bool enabled_;
 };
-
 
 class Service : public AllStatic {
  public:
@@ -152,7 +150,6 @@ class Service : public AllStatic {
   static StreamInfo logging_stream;
   static StreamInfo extension_stream;
   static StreamInfo timeline_stream;
-  static StreamInfo editor_stream;
 
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);

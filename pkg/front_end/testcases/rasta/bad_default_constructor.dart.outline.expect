@@ -7,7 +7,7 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method main() → dynamic
