@@ -18,6 +18,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
+import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -66,7 +67,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       dartLibraries[Uri.parse(dartUri).path] = Uri.parse('file://$path');
     });
 
-    var uriTranslator = new UriTranslatorImpl(dartLibraries, {}, {});
+    var uriTranslator =
+        new UriTranslatorImpl(dartLibraries, {}, Packages.noPackages);
     var driver = new KernelDriver(
         new PerformanceLog(null),
         new _FileSystemAdaptor(resourceProvider),

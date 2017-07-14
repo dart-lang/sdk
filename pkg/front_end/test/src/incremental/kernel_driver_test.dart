@@ -15,6 +15,7 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
+import 'package:package_config/src/packages_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -601,7 +602,8 @@ import 'b.dart';
   void _createDriver(
       {Map<String, Uri> packages, KernelDriverFileAddedFn fileAddedFn}) {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
-    var uriTranslator = new UriTranslatorImpl(dartLibraries, {}, packages);
+    var uriTranslator =
+        new UriTranslatorImpl(dartLibraries, {}, new MapPackages(packages));
     driver = new KernelDriver(
         new PerformanceLog(null),
         fileSystem,

@@ -31,11 +31,14 @@ class DependencyGrapherTest {
   }
 
   Future<List<LibraryCycleNode>> getCycles(Map<String, String> contents,
-      {List<String> startingPoints, String packagesFilePath = ''}) async {
+      {List<String> startingPoints, String packagesFilePath}) async {
     // If no starting points given, assume the first entry in [contents] is the
     // single starting point.
     startingPoints ??= [contents.keys.first];
     var fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+    if (packagesFilePath == null) {
+      fileSystem.entityForUri(Uri.parse('.packages')).writeAsStringSync('');
+    }
     contents.forEach((path, text) {
       fileSystem.entityForUri(pathos.posix.toUri(path)).writeAsStringSync(text);
     });
@@ -43,8 +46,8 @@ class DependencyGrapherTest {
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
       ..chaseDependencies = true
-      ..packagesFileUri = packagesFilePath == ''
-          ? new Uri()
+      ..packagesFileUri = packagesFilePath == null
+          ? Uri.parse('.packages')
           : pathos.posix.toUri(packagesFilePath);
     var graph = await graphForProgram(
         startingPoints.map(pathos.posix.toUri).toList(), options);

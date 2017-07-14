@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
+import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +19,7 @@ class UriTranslatorImplTest {
     var translator = new UriTranslatorImpl({
       'core': Uri.parse('file:///sdk/core/core.dart'),
       'math': Uri.parse('file:///sdk/math/math.dart')
-    }, {}, {});
+    }, {}, Packages.noPackages);
 
     bool isPlatform(String uriStr) {
       var uri = Uri.parse(uriStr);
@@ -35,7 +36,7 @@ class UriTranslatorImplTest {
     var translator = new UriTranslatorImpl({
       'core': Uri.parse('file:///sdk/core/core.dart'),
       'math': Uri.parse('file:///sdk/math/math.dart')
-    }, {}, {});
+    }, {}, Packages.noPackages);
 
     expect(translator.translate(Uri.parse('dart:core')),
         Uri.parse('file:///sdk/core/core.dart'));

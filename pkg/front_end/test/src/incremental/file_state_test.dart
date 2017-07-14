@@ -8,6 +8,7 @@ import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
+import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +24,8 @@ main() {
 class FileSystemStateTest {
   final byteStore = new MemoryByteStore();
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
-  final UriTranslatorImpl uriTranslator = new UriTranslatorImpl({}, {}, {});
+  final UriTranslatorImpl uriTranslator =
+      new UriTranslatorImpl({}, {}, Packages.noPackages);
   FileSystemState fsState;
 
   Uri _coreUri;

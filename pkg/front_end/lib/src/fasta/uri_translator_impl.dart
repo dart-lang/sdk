@@ -9,8 +9,13 @@ import 'dart:convert' show JSON;
 
 import 'package:front_end/file_system.dart'
     show FileSystem, FileSystemException;
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:package_config/packages_file.dart' as packages_file show parse;
+import 'package:package_config/packages.dart' show Packages;
+import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
 import 'deprecated_problems.dart' show deprecated_inputError;
 
@@ -46,7 +51,7 @@ class UriTranslatorImpl implements UriTranslator {
   final Map<String, List<Uri>> dartPatches;
 
   /// Mapping from package names (e.g. `angular`) to the file URIs.
-  final Map<String, Uri> packages;
+  final Packages packages;
 
   UriTranslatorImpl(this.dartLibraries, this.dartPatches, this.packages);
 
@@ -61,6 +66,9 @@ class UriTranslatorImpl implements UriTranslator {
   }
 
   @override
+  // TODO(sigmund, ahe): consider expanding this API to include an error
+  // callback, so we can provide an error location when one is available. For
+  // example, if the error occurs in an `import`.
   Uri translate(Uri uri) {
     if (uri.scheme == "dart") return _translateDartUri(uri);
     if (uri.scheme == "package") return _translatePackageUri(uri);
@@ -86,13 +94,27 @@ class UriTranslatorImpl implements UriTranslator {
   /// `null` if the `package` [uri] format is invalid, or there is no
   /// corresponding package registered.
   Uri _translatePackageUri(Uri uri) {
-    int index = uri.path.indexOf("/");
-    if (index == -1) return null;
-    String name = uri.path.substring(0, index);
-    String path = uri.path.substring(index + 1);
-    Uri root = packages[name];
-    if (root == null) return null;
-    return root.resolve(path);
+    try {
+      // TODO(sigmund): once we remove the `parse` API, we can ensure that
+      // packages will never be null and get rid of `?` below.
+      return packages?.resolve(uri, notFound: _packageUriNotFound);
+    } on ArgumentError catch (e) {
+      // TODO(sigmund): catch a more precise error when
+      // https://github.com/dart-lang/package_config/issues/40 is fixed.
+      CompilerContext.current.reportWithoutLocation(
+          templateInvalidPackageUri.withArguments(uri, '$e'), Severity.error);
+      return null;
+    }
+  }
+
+  static Uri _packageUriNotFound(Uri uri) {
+    String name = uri.pathSegments.first;
+    CompilerContext.current.reportWithoutLocation(
+        templatePackageNotFound.withArguments(name, uri), Severity.error);
+    // TODO(sigmund, ahe): ensure we only report an error once,
+    // this null result will likely cause another error further down in the
+    // compiler.
+    return null;
   }
 
   static Future<UriTranslator> parse(FileSystem fileSystem, Uri sdk,
@@ -111,9 +133,9 @@ class UriTranslatorImpl implements UriTranslator {
       deprecated_inputError(packages, -1, e.message);
     }
 
-    Map<String, Uri> parsedPackages;
+    Packages parsedPackages;
     try {
-      parsedPackages = packages_file.parse(bytes, packages);
+      parsedPackages = new MapPackages(packages_file.parse(bytes, packages));
     } on FormatException catch (e) {
       return deprecated_inputError(packages, e.offset, e.message);
     }

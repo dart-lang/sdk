@@ -21,7 +21,7 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async' show Future;
-import 'dart:io' show File, Platform hide FileSystemEntity;
+import 'dart:io' show Platform hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -44,10 +44,7 @@ Future<CompilationResult> _parseScriptInFileSystem(
     {bool verbose: false, bool strongMode: false}) async {
   final Uri packagesUri = (Platform.packageConfig != null)
       ? Uri.parse(Platform.packageConfig)
-      : await _findPackagesFile(fileSystem, script);
-  if (packagesUri == null) {
-    throw "Could not find .packages";
-  }
+      : null;
 
   final Uri patchedSdk = Uri.base
       .resolveUri(new Uri.file(Platform.resolvedExecutable))
@@ -86,25 +83,6 @@ Future<CompilationResult> _parseScriptInFileSystem(
   } catch (err, stack) {
     return new CompilationResult.crash(err, stack);
   }
-}
-
-/// This duplicates functionality from the Loader which we can't easily
-/// access from here.
-// TODO(sigmund): delete, this should be supported by the default options in
-// package:front_end.
-Future<Uri> _findPackagesFile(FileSystem fileSystem, Uri base) async {
-  var dir = new File.fromUri(base).parent;
-  while (true) {
-    final packagesFile = dir.uri.resolve(".packages");
-    if (await fileSystem.entityForUri(packagesFile).exists()) {
-      return packagesFile;
-    }
-    if (dir.parent.path == dir.path) {
-      break;
-    }
-    dir = dir.parent;
-  }
-  return null;
 }
 
 Future<CompilationResult> _processLoadRequestImpl(

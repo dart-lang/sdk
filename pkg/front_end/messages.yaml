@@ -794,13 +794,16 @@ MissingMain:
   tip: "Try adding a method named 'main' to your program."
   dart2jsCode: MISSING_MAIN
 
-MissingInputFile:
+MissingInput:
+  template: "No input file provided to the compiler."
+
+InputFileNotFound:
   template: "Input file not found: #string."
 
-MissingSdkRoot:
+SdkRootNotFound:
   template: "SDK root directory not found: #string."
 
-MissingSdkSummary:
+SdkSummaryNotFound:
   template: "SDK summary not found: #string."
 
 ThisAccessInFieldInitializer:
@@ -859,3 +862,16 @@ ExpectedAnInitializer:
 
 NotAnLvalue:
   template: "Can't assign to this."
+
+CannotReadPackagesFile:
+  template: "Unable to read '.packages' file:\n  #string."
+
+CantInferPackagesFromManyInputs:
+  template: "Cannot infer a .packages file when compiling multiple inputs."
+  tip: "Try specifying the file explicitly with the --packages option."
+
+PackageNotFound:
+  template: "Could not resolve the package '#name' in '#uri'."
+
+InvalidPackageUri:
+  template: "Invalid package Uri '#uri':\n  #string."

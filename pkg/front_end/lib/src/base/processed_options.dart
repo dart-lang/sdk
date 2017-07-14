@@ -19,6 +19,9 @@ import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm_fasta.dart';
+import 'package:package_config/packages.dart' show Packages;
+import 'package:package_config/src/packages_impl.dart'
+    show NonFilePackagesDirectoryPackages, MapPackages;
 import 'package:package_config/packages_file.dart' as package_config;
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
@@ -41,7 +44,7 @@ class ProcessedOptions {
 
   /// The package map derived from the options, or `null` if the package map has
   /// not been computed yet.
-  Map<String, Uri> _packages;
+  Packages _packages;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
@@ -123,11 +126,22 @@ class ProcessedOptions {
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
   Future<bool> validateOptions() async {
+    if (inputs.isEmpty) {
+      reportMessageWithoutLocation(messageMissingInput);
+      return false;
+    }
+
     for (var source in inputs) {
-      if (source.scheme == 'file' &&
+      // Note: we don't translate Uris at this point because some of the
+      // validation further below must be done before we even construct an
+      // UriTranslator
+      // TODO(sigmund): consider validating dart/packages uri right after we
+      // build the uri translator.
+      if (source.scheme != 'dart' &&
+          source.scheme != 'packages' &&
           !await fileSystem.entityForUri(source).exists()) {
         reportMessageWithoutLocation(
-            templateMissingInputFile.withArguments('$source'));
+            templateInputFileNotFound.withArguments('$source'));
         return false;
       }
     }
@@ -135,14 +149,14 @@ class ProcessedOptions {
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
       reportMessageWithoutLocation(
-          templateMissingSdkRoot.withArguments('$sdkRoot'));
+          templateSdkRootNotFound.withArguments('$sdkRoot'));
       return false;
     }
 
     var summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       reportMessageWithoutLocation(
-          templateMissingSdkSummary.withArguments('$summary'));
+          templateSdkSummaryNotFound.withArguments('$summary'));
       return false;
     }
 
@@ -248,20 +262,94 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous getter since file system operations may be
   /// required to locate/read the packages file.
-  Future<Map<String, Uri>> _getPackages() async {
+  Future<Packages> _getPackages() async {
     if (_packages == null) {
       if (_raw.packagesFileUri == null) {
-        // TODO(sigmund,paulberry): implement
-        return unimplemented('search for .packages');
-      } else if (_raw.packagesFileUri.path.isEmpty) {
-        _packages = {};
+        if (inputs.length > 1) {
+          // TODO(sigmund): consider not reporting an error if we would infer
+          // the same .packages file from all of the inputs.
+          reportMessageWithoutLocation(messageCantInferPackagesFromManyInputs);
+          _packages = Packages.noPackages;
+        } else {
+          _packages = await _findPackages(inputs.first);
+        }
       } else {
-        var contents =
-            await fileSystem.entityForUri(_raw.packagesFileUri).readAsBytes();
-        _packages = package_config.parse(contents, _raw.packagesFileUri);
+        _packages = await createPackagesFromFile(_raw.packagesFileUri);
       }
     }
     return _packages;
+  }
+
+  /// Create a [Packages] given the Uri to a `.packages` file.
+  Future<Packages> createPackagesFromFile(Uri file) async {
+    try {
+      List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
+      Map<String, Uri> map = package_config.parse(contents, file);
+      return new MapPackages(map);
+    } catch (e) {
+      reportMessage(templateCannotReadPackagesFile
+          .withArguments("$e")
+          .withLocation(file, -1));
+      return Packages.noPackages;
+    }
+  }
+
+  /// Finds a package resolution strategy using a [FileSystem].
+  ///
+  /// The [scriptUri] points to a Dart script with a valid scheme accepted by
+  /// the [FileSystem].
+  ///
+  /// This function first tries to locate a `.packages` file in the `scriptUri`
+  /// directory. If that is not found, it instead checks for the presence of a
+  /// `packages/` directory in the same place.  If that also fails, it starts
+  /// checking parent directories for a `.packages` file, and stops if it finds
+  /// it.  Otherwise it gives up and returns [Packages.noPackages].
+  ///
+  /// Note: this is a fork from `package:package_config/discovery.dart` to adapt
+  /// it to use [FileSystem]. The logic here is a mix of the logic in the
+  /// `findPackagesFromFile` and `findPackagesFromNonFile`:
+  ///
+  ///    * Like `findPackagesFromFile` resolution searches for parent
+  ///    directories
+  ///
+  ///    * Like `findPackagesFromNonFile` if we resolve packages as the
+  ///    `packages/` directory, we can't provide a list of packages that are
+  ///    visible.
+  Future<Packages> _findPackages(Uri scriptUri) async {
+    var dir = scriptUri.resolve('.');
+    if (!dir.isAbsolute) {
+      reportMessageWithoutLocation(templateInternalProblemUnsupported
+          .withArguments("Expected input Uri to be absolute: $scriptUri."));
+      return Packages.noPackages;
+    }
+
+    Future<Uri> checkInDir(Uri dir) async {
+      Uri candidate = dir.resolve('.packages');
+      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+      return null;
+    }
+
+    // Check for $cwd/.packages
+    var candidate = await checkInDir(dir);
+    if (candidate != null) return createPackagesFromFile(candidate);
+
+    // Check for $cwd/packages/
+    var packagesDir = dir.resolve("packages/");
+    if (await fileSystem.entityForUri(packagesDir).exists()) {
+      return new NonFilePackagesDirectoryPackages(packagesDir);
+    }
+
+    // Check for cwd(/..)+/.packages
+    var parentDir = dir.resolve('..');
+    while (parentDir.path != dir.path) {
+      candidate = await checkInDir(parentDir);
+      if (candidate != null) break;
+      dir = parentDir;
+      parentDir = dir.resolve('..');
+    }
+
+    if (candidate != null) return createPackagesFromFile(candidate);
+    return Packages.noPackages;
   }
 
   /// Get the location of the SDK.

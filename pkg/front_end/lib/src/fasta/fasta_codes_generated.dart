@@ -182,6 +182,37 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateCannotReadPackagesFile =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Unable to read '.packages' file:
+  #string.""", withArguments: _withArgumentsCannotReadPackagesFile);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeCannotReadPackagesFile =
+    const Code<Message Function(String string)>(
+  "CannotReadPackagesFile",
+  templateCannotReadPackagesFile,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCannotReadPackagesFile(String string) {
+  return new Message(codeCannotReadPackagesFile,
+      message: """Unable to read '.packages' file:
+  $string.""", arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCantInferPackagesFromManyInputs =
+    messageCantInferPackagesFromManyInputs;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
+    "CantInferPackagesFromManyInputs",
+    message:
+        r"""Cannot infer a .packages file when compiling multiple inputs.""",
+    tip: r"""Try specifying the file explicitly with the --packages option.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1284,6 +1315,26 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateInputFileNotFound =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Input file not found: #string.""",
+        withArguments: _withArgumentsInputFileNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInputFileNotFound =
+    const Code<Message Function(String string)>(
+  "InputFileNotFound",
+  templateInputFileNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInputFileNotFound(String string) {
+  return new Message(codeInputFileNotFound,
+      message: """Input file not found: $string.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemAlreadyInitialized =
     messageInternalProblemAlreadyInitialized;
 
@@ -1580,6 +1631,28 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)>
+    templateInvalidPackageUri =
+    const Template<Message Function(Uri uri_, String string)>(
+        messageTemplate: r"""Invalid package Uri '#uri':
+  #string.""", withArguments: _withArgumentsInvalidPackageUri);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)> codeInvalidPackageUri =
+    const Code<Message Function(Uri uri_, String string)>(
+  "InvalidPackageUri",
+  templateInvalidPackageUri,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
+  String uri = relativizeUri(uri_);
+  return new Message(codeInvalidPackageUri,
+      message: """Invalid package Uri '$uri':
+  $string.""", arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidSyncModifier = messageInvalidSyncModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1707,24 +1780,11 @@ const MessageCode messageMissingExponent = const MessageCode("MissingExponent",
         r"""Make sure there is an exponent, and remove any whitespace before it.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateMissingInputFile =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Input file not found: #string.""",
-        withArguments: _withArgumentsMissingInputFile);
+const Code<Null> codeMissingInput = messageMissingInput;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeMissingInputFile =
-    const Code<Message Function(String string)>(
-  "MissingInputFile",
-  templateMissingInputFile,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingInputFile(String string) {
-  return new Message(codeMissingInputFile,
-      message: """Input file not found: $string.""",
-      arguments: {'string': string});
-}
+const MessageCode messageMissingInput = const MessageCode("MissingInput",
+    message: r"""No input file provided to the compiler.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingMain = messageMissingMain;
@@ -1757,46 +1817,6 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
       message:
           """Can't use '$uri' as a part, because it has no 'part of' declaration.""",
       arguments: {'uri': uri_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateMissingSdkRoot =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""SDK root directory not found: #string.""",
-        withArguments: _withArgumentsMissingSdkRoot);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeMissingSdkRoot =
-    const Code<Message Function(String string)>(
-  "MissingSdkRoot",
-  templateMissingSdkRoot,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingSdkRoot(String string) {
-  return new Message(codeMissingSdkRoot,
-      message: """SDK root directory not found: $string.""",
-      arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateMissingSdkSummary =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""SDK summary not found: #string.""",
-        withArguments: _withArgumentsMissingSdkSummary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeMissingSdkSummary =
-    const Code<Message Function(String string)>(
-  "MissingSdkSummary",
-  templateMissingSdkSummary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingSdkSummary(String string) {
-  return new Message(codeMissingSdkSummary,
-      message: """SDK summary not found: $string.""",
-      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2113,6 +2133,29 @@ Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(String name, Uri uri_)> templatePackageNotFound =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate:
+            r"""Could not resolve the package '#name' in '#uri'.""",
+        withArguments: _withArgumentsPackageNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)> codePackageNotFound =
+    const Code<Message Function(String name, Uri uri_)>(
+  "PackageNotFound",
+  templatePackageNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPackageNotFound(String name, Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codePackageNotFound,
+      message: """Could not resolve the package '$name' in '$uri'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(
         Uri uri_,
         String name,
@@ -2324,6 +2367,46 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
     "ReturnTypeFunctionExpression",
     dart2jsCode: "*ignored*",
     message: r"""A function expression can't have a return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateSdkRootNotFound =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""SDK root directory not found: #string.""",
+        withArguments: _withArgumentsSdkRootNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeSdkRootNotFound =
+    const Code<Message Function(String string)>(
+  "SdkRootNotFound",
+  templateSdkRootNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSdkRootNotFound(String string) {
+  return new Message(codeSdkRootNotFound,
+      message: """SDK root directory not found: $string.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateSdkSummaryNotFound =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""SDK summary not found: #string.""",
+        withArguments: _withArgumentsSdkSummaryNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeSdkSummaryNotFound =
+    const Code<Message Function(String string)>(
+  "SdkSummaryNotFound",
+  templateSdkSummaryNotFound,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSdkSummaryNotFound(String string) {
+  return new Message(codeSdkSummaryNotFound,
+      message: """SDK summary not found: $string.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =
