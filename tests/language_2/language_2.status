@@ -1,9 +1,0 @@
-# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
-# for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE file.
-
-# The VM and dart2js do not implement the Dart 2.0 static type errors yet.
-[ $runtime == vm || $compiler == dart2js || $runtime == dart_precompiled ]
-abstract_beats_arguments_test: MissingCompileTimeError
-abstract_exact_selector_test/01: MissingCompileTimeError
-abstract_getter_test/01: MissingCompileTimeError

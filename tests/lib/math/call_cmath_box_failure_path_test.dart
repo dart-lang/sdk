@@ -4,9 +4,6 @@
 
 // VMOptions=--optimization-counter-threshold=-1 --new_gen_semi_max_size=2
 
-// TODO(rnystrom): This looks like a VM-specific test. Move out of
-// tests/language and into somewhere more appropriate.
-
 import 'dart:math';
 
 main() {

@@ -14,10 +14,6 @@ import bot
 import bot_utils
 
 TARGETS = [
-  'language_2',
-  'corelib_2',
-  'lib_2',
-  # TODO(rnystrom): Remove these when all tests have been migrated out.
   'language_strong',
   'corelib_strong',
   'lib_strong'
