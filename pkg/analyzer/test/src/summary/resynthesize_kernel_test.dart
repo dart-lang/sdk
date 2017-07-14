@@ -142,11 +142,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_constructor_factory() async {
-    await super.test_class_constructor_factory();
-  }
-
-  @failingTest
   test_class_constructor_field_formal_dynamic_dynamic() async {
     await super.test_class_constructor_field_formal_dynamic_dynamic();
   }

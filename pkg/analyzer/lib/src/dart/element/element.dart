@@ -550,9 +550,14 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _computeMixinAppConstructors();
     }
     if (_kernel != null && _constructors == null) {
-      _constructors = _kernel.constructors
-          .map((k) => new ConstructorElementImpl.forKernel(this, k))
-          .toList(growable: false);
+      var constructors = _kernel.constructors
+          .map((k) => new ConstructorElementImpl.forKernel(this, k, null));
+      var factories = _kernel.procedures
+          .where((k) => k.isFactory)
+          .map((k) => new ConstructorElementImpl.forKernel(this, null, k));
+      _constructors = <ConstructorElement>[]
+        ..addAll(constructors)
+        ..addAll(factories);
     }
     if (_unlinkedClass != null && _constructors == null) {
       _constructors = _unlinkedClass.executables
@@ -1990,7 +1995,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /**
    * The kernel of the element.
    */
-  final kernel.Constructor _kernel;
+  final kernel.Constructor _kernelConstructor;
+
+  /**
+   * The kernel of the element.
+   */
+  final kernel.Procedure _kernelFactory;
 
   /**
    * The offset of the `.` before this constructor name or `null` if not named.
@@ -2014,23 +2024,25 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * [offset].
    */
   ConstructorElementImpl(String name, int offset)
-      : _kernel = null,
+      : _kernelConstructor = null,
+        _kernelFactory = null,
         super(name, offset);
 
   /**
    * Initialize using the given serialized information.
    */
-  ConstructorElementImpl.forKernel(
-      ClassElementImpl enclosingClass, this._kernel)
-      : super.forKernel(enclosingClass, _kernel) {
-    isSynthetic = _kernel.isSyntheticDefault;
+  ConstructorElementImpl.forKernel(ClassElementImpl enclosingClass,
+      this._kernelConstructor, this._kernelFactory)
+      : super.forKernel(enclosingClass, _kernelConstructor ?? _kernelFactory) {
+    isSynthetic = _kernelConstructor?.isSyntheticDefault ?? false;
   }
 
   /**
    * Initialize a newly created constructor element to have the given [name].
    */
   ConstructorElementImpl.forNode(Identifier name)
-      : _kernel = null,
+      : _kernelConstructor = null,
+        _kernelFactory = null,
         super.forNode(name);
 
   /**
@@ -2038,7 +2050,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
    */
   ConstructorElementImpl.forSerialized(
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
-      : _kernel = null,
+      : _kernelConstructor = null,
+        _kernelFactory = null,
         super.forSerialized(serializedExecutable, enclosingClass);
 
   /**
@@ -2078,8 +2091,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isConst {
-    if (_kernel != null) {
-      return _kernel.isConst;
+    if (_kernelConstructor != null) {
+      return _kernelConstructor.isConst;
+    }
+    if (_kernelFactory != null) {
+      return _kernelFactory.isConst;
     }
     if (serializedExecutable != null) {
       return serializedExecutable.isConst;
@@ -2129,6 +2145,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isFactory {
+    if (_kernelConstructor != null) return false;
+    if (_kernelFactory != null) return true;
     if (serializedExecutable != null) {
       return serializedExecutable.isFactory;
     }
