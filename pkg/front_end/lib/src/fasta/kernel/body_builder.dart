@@ -17,8 +17,6 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import '../../scanner/token.dart' show BeginToken, Token;
 
-import '../deprecated_problems.dart' show deprecated_formatUnexpected;
-
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
@@ -3082,16 +3080,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression deprecated_buildCompileTimeError(String error,
       [int charOffset = -1]) {
-    // TODO(ahe): This method should be passed the erroneous expression, wrap
-    // it in a class (TBD) from which the erroneous expression can be easily
-    // extracted. Similar for statements and initializers. See also [issue
-    // 29717](https://github.com/dart-lang/sdk/issues/29717)
-    deprecated_addCompileTimeError(charOffset, error, wasHandled: true);
-    return new KernelSyntheticExpression(library.loader
-        .throwCompileConstantError(library.loader
-            .deprecated_buildCompileTimeError(
-                deprecated_formatUnexpected(uri, charOffset, error),
-                charOffset)));
+    return buildCompileTimeError(
+        fasta.templateUnspecified.withArguments(error), charOffset);
   }
 
   @override
@@ -3100,13 +3090,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // it in a class (TBD) from which the erroneous expression can be easily
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
-    deprecated_addCompileTimeError(charOffset, message.message,
-        wasHandled: true);
+    library.addCompileTimeError(message, charOffset, uri, wasHandled: true);
     return new KernelSyntheticExpression(library.loader
-        .throwCompileConstantError(library.loader
-            .deprecated_buildCompileTimeError(
-                deprecated_formatUnexpected(uri, charOffset, message.message),
-                charOffset)));
+        .throwCompileConstantError(
+            library.loader.buildCompileTimeError(message, charOffset, uri)));
   }
 
   Expression deprecated_wrapInCompileTimeError(

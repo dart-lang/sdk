@@ -32,12 +32,14 @@ import '../builder/builder.dart'
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../deprecated_problems.dart' show deprecated_inputError;
+import '../deprecated_problems.dart'
+    show deprecated_formatUnexpected, deprecated_inputError;
 
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        Message,
         templateCyclicClassHierarchy,
         templateExtendingEnum,
         templateExtendingRestricted,
@@ -73,6 +75,7 @@ class SourceLoader<L> extends Loader<L> {
   final FileSystem fileSystem;
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+
   final bool excludeSource = CompilerContext.current.options.excludeSource;
 
   // Used when building directly to kernel.
@@ -526,8 +529,8 @@ class SourceLoader<L> extends Loader<L> {
     return target.backendTarget.throwCompileConstantError(coreTypes, error);
   }
 
-  Expression deprecated_buildCompileTimeError(String message, int offset) {
-    return target.backendTarget
-        .buildCompileTimeError(coreTypes, message, offset);
+  Expression buildCompileTimeError(Message message, int offset, Uri uri) {
+    String text = deprecated_formatUnexpected(uri, offset, message.message);
+    return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
   }
 }
