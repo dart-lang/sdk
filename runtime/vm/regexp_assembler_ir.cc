@@ -360,8 +360,8 @@ ConstantInstr* IRRegExpMacroAssembler::Int64Constant(int64_t value) const {
 }
 
 ConstantInstr* IRRegExpMacroAssembler::Uint64Constant(uint64_t value) const {
-  ASSERT(value < static_cast<uint64_t>(kMaxInt64));
-  return Int64Constant(static_cast<int64_t>(value));
+  return new (Z) ConstantInstr(
+      Integer::ZoneHandle(Z, Integer::NewFromUint64(value, Heap::kOld)));
 }
 
 ConstantInstr* IRRegExpMacroAssembler::BoolConstant(bool value) const {

@@ -8117,10 +8117,6 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
     const Integer& value = Integer::Handle(Integer::NewCanonical(literal));
-    if (value.IsNull()) {
-      // Integer is out of range.
-      return LiteralToken::null();
-    }
     ASSERT(value.IsSmi() || value.IsOld());
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
@@ -8502,18 +8498,6 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
       fresh_index_smi_ = Smi::New(fresh_index);
       const LiteralToken& lit = LiteralToken::Handle(
           LiteralToken::New(descriptor.kind, *descriptor.literal));
-      if (lit.IsNull()) {
-        // Convert token to an error.
-        ASSERT(descriptor.kind == Token::kINTEGER);
-        ASSERT(FLAG_limit_ints_to_64_bits);
-        Scanner::TokenDescriptor errorDesc = descriptor;
-        errorDesc.kind = Token::kERROR;
-        errorDesc.literal = &String::Handle(Symbols::NewFormatted(
-            Thread::Current(), "integer literal %s is out of range",
-            descriptor.literal->ToCString()));
-        AddLiteralToken(errorDesc);
-        return;
-      }
       index = Smi::Value(
           Smi::RawCast(tokens_->InsertOrGetValue(lit, fresh_index_smi_)));
       token_objects_.Add(lit);
@@ -17843,15 +17827,15 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
-    if (FLAG_limit_ints_to_64_bits) {
-      // Out of range.
-      return Integer::null();
-    }
     const Bigint& big =
         Bigint::Handle(Bigint::NewFromCString(str.ToCString(), space));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    if (!FLAG_limit_ints_to_64_bits) {
+      return big.raw();
+    }
+    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+    value = big.AsTruncatedInt64Value();
   }
   return Integer::New(value, space);
 }
@@ -17861,14 +17845,14 @@ RawInteger* Integer::NewCanonical(const String& str) {
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
-    if (FLAG_limit_ints_to_64_bits) {
-      // Out of range.
-      return Integer::null();
-    }
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    if (!FLAG_limit_ints_to_64_bits) {
+      return big.raw();
+    }
+    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+    value = big.AsTruncatedInt64Value();
   }
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
@@ -17887,8 +17871,8 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
     if (FLAG_limit_ints_to_64_bits) {
-      // Out of range.
-      return Integer::null();
+      // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
+      return Integer::New(static_cast<int64_t>(value), space);
     } else {
       return Bigint::NewFromUint64(value, space);
     }
@@ -18089,7 +18073,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  ASSERT(!Bigint::IsDisabled());
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -18133,7 +18117,7 @@ RawInteger* Integer::BitOp(Token::Kind kind,
         UNIMPLEMENTED();
     }
   }
-  ASSERT(!Bigint::IsDisabled());
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -18546,7 +18530,7 @@ bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
 }
 
 RawBigint* Bigint::New(Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -18569,7 +18553,7 @@ RawBigint* Bigint::New(bool neg,
                        intptr_t used,
                        const TypedData& digits,
                        Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   ASSERT((used == 0) ||
          (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
   Thread* thread = Thread::Current();
@@ -18606,7 +18590,9 @@ RawBigint* Bigint::New(bool neg,
 }
 
 RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
+  // Currently only used to convert Smi or Mint to hex String, therefore do
+  // not throw RangeError if --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   bool neg;
   uint64_t abs_value;
@@ -18623,7 +18609,9 @@ RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
 }
 
 RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
+  // TODO(alexmarkov): Revise this assertion if this factory method is used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   SetDigitAt(digits, 0, static_cast<uint32_t>(value));
   SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
@@ -18633,7 +18621,9 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
                                        intptr_t shift,
                                        Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
+  // TODO(alexmarkov): Revise this assertion if this factory method is used
+  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
+  ASSERT(!FLAG_limit_ints_to_64_bits);
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const intptr_t digit_shift = shift / kBitsPerDigit;
@@ -18664,7 +18654,8 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
 }
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
+  // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   ASSERT(str != NULL);
   bool neg = false;
   TypedData& digits = TypedData::Handle();
@@ -18685,7 +18676,8 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 }
 
 RawBigint* Bigint::NewCanonical(const String& str) {
-  ASSERT(!Bigint::IsDisabled());
+  // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
+  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();

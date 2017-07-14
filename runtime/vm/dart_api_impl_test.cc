@@ -844,14 +844,10 @@ TEST_CASE(IntegerValues) {
   EXPECT(fits);
 
   Dart_Handle val3 = Dart_NewIntegerFromHexCString(kIntegerVal3);
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(val3));
-  } else {
-    EXPECT(Dart_IsInteger(val3));
-    result = Dart_IntegerFitsIntoInt64(val3, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsInteger(val3));
+  result = Dart_IntegerFitsIntoInt64(val3, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
 
   int64_t out = 0;
   result = Dart_IntegerToInt64(val1, &out);
@@ -868,15 +864,11 @@ TEST_CASE(IntegerValues) {
   EXPECT(!strcmp(kIntegerVal3, chars));
 
   Dart_Handle val4 = Dart_NewIntegerFromUint64(kIntegerVal4);
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(val4));
-  } else {
-    EXPECT_VALID(val4);
-    uint64_t out4 = 0;
-    result = Dart_IntegerToUint64(val4, &out4);
-    EXPECT_VALID(result);
-    EXPECT_EQ(kIntegerVal4, out4);
-  }
+  EXPECT_VALID(val4);
+  uint64_t out4 = 0;
+  result = Dart_IntegerToUint64(val4, &out4);
+  EXPECT_VALID(result);
+  EXPECT_EQ(kIntegerVal4, out4);
 
   Dart_Handle val5 = Dart_NewInteger(-1);
   EXPECT_VALID(val5);
@@ -900,15 +892,11 @@ TEST_CASE(IntegerFitsIntoInt64) {
   EXPECT(fits);
 
   Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x8000000000000000");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(above_max));
-  } else {
-    EXPECT(Dart_IsInteger(above_max));
-    fits = true;
-    result = Dart_IntegerFitsIntoInt64(above_max, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsInteger(above_max));
+  fits = true;
+  result = Dart_IntegerFitsIntoInt64(above_max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
 
   Dart_Handle min = Dart_NewInteger(kMinInt64);
   EXPECT(Dart_IsInteger(min));
@@ -918,44 +906,32 @@ TEST_CASE(IntegerFitsIntoInt64) {
   EXPECT(fits);
 
   Dart_Handle below_min = Dart_NewIntegerFromHexCString("-0x8000000000000001");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(below_min));
-  } else {
-    EXPECT(Dart_IsInteger(below_min));
-    fits = true;
-    result = Dart_IntegerFitsIntoInt64(below_min, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsInteger(below_min));
+  fits = true;
+  result = Dart_IntegerFitsIntoInt64(below_min, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
 }
 
 TEST_CASE(IntegerFitsIntoUint64) {
   Dart_Handle max = Dart_NewIntegerFromUint64(kMaxUint64);
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(max));
-  } else {
-    EXPECT(Dart_IsInteger(max));
-    bool fits = false;
-    Dart_Handle result = Dart_IntegerFitsIntoUint64(max, &fits);
-    EXPECT_VALID(result);
-    EXPECT(fits);
-  }
+  EXPECT(Dart_IsInteger(max));
+  bool fits = false;
+  Dart_Handle result = Dart_IntegerFitsIntoUint64(max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(fits);
 
   Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x10000000000000000");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(above_max));
-  } else {
-    EXPECT(Dart_IsInteger(above_max));
-    bool fits = true;
-    Dart_Handle result = Dart_IntegerFitsIntoUint64(above_max, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsInteger(above_max));
+  fits = true;
+  result = Dart_IntegerFitsIntoUint64(above_max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
 
   Dart_Handle min = Dart_NewInteger(0);
   EXPECT(Dart_IsInteger(min));
-  bool fits = false;
-  Dart_Handle result = Dart_IntegerFitsIntoUint64(min, &fits);
+  fits = false;
+  result = Dart_IntegerFitsIntoUint64(min, &fits);
   EXPECT_VALID(result);
   EXPECT(fits);
 
@@ -7860,14 +7836,9 @@ TEST_CASE(InvalidGetSetPeer) {
   EXPECT(Dart_IsError(Dart_SetPeer(smi, &out)));
   out = &out;
   Dart_Handle big = Dart_NewIntegerFromHexCString("0x10000000000000000");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(big));
-  } else {
-    EXPECT(Dart_IsError(Dart_GetPeer(big, &out)));
-    EXPECT(out == &out);
-    EXPECT(Dart_IsError(Dart_SetPeer(big, &out)));
-  }
-  out = &out;
+  EXPECT(Dart_IsError(Dart_GetPeer(big, &out)));
+  EXPECT(out == &out);
+  EXPECT(Dart_IsError(Dart_SetPeer(big, &out)));
   Dart_Handle dbl = Dart_NewDouble(0.0);
   EXPECT(Dart_IsError(Dart_GetPeer(dbl, &out)));
   EXPECT(out == &out);

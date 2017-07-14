@@ -10,10 +10,6 @@
 namespace dart {
 
 TEST_CASE(BigintSmi) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   {
     const Smi& smi = Smi::Handle(Smi::New(5));
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromInt64(smi.Value()));
@@ -69,10 +65,6 @@ TEST_CASE(BigintSmi) {
 }
 
 TEST_CASE(BigintInt64) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   const int64_t kValue = 100000000;
   const int64_t kValue64 = kValue * kValue;
   Bigint& bigint = Bigint::Handle(Bigint::NewFromInt64(kValue));
@@ -87,10 +79,6 @@ TEST_CASE(BigintInt64) {
 }
 
 TEST_CASE(BigintUint64) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   const Bigint& one = Bigint::Handle(Bigint::NewFromUint64(1));
   EXPECT(one.FitsIntoInt64());
   EXPECT(one.FitsIntoUint64());
@@ -104,10 +92,6 @@ TEST_CASE(BigintUint64) {
 }
 
 TEST_CASE(BigintDouble) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   Bigint& bigint = Bigint::Handle(Bigint::NewFromInt64(5));
   EXPECT_EQ(5.0, bigint.AsDoubleValue());
 
@@ -240,10 +224,6 @@ TEST_CASE(BigintDouble) {
 }
 
 TEST_CASE(BigintHexStrings) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   Zone* zone = Thread::Current()->zone();
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0x0"));
@@ -424,10 +404,6 @@ TEST_CASE(BigintHexStrings) {
 }
 
 TEST_CASE(BigintDecStrings) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   Zone* zone = Thread::Current()->zone();
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0x0"));
@@ -552,10 +528,6 @@ static void TestBigintCompare(const char* a, const char* b, int compare) {
 }
 
 TEST_CASE(BigintCompare) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   TestBigintCompare("0x0", "0x0", 0);
   TestBigintCompare("0x1", "0x1", 0);
   TestBigintCompare("-0x1", "-0x1", 0);
@@ -604,10 +576,6 @@ TEST_CASE(BigintCompare) {
 }
 
 TEST_CASE(BigintDecimalStrings) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
   Zone* zone = Thread::Current()->zone();
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0"));
