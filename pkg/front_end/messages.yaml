@@ -846,3 +846,12 @@ AccessError:
 
 PreviousUseOfName:
   template: "Previous use of '#name'."
+
+ExpressionNotMetadata:
+  template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
+
+ExpectedAnInitializer:
+  template: "Expected an initializer."
+
+NotAnLvalue:
+  template: "Can't assign to this."

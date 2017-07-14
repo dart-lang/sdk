@@ -635,6 +635,14 @@ const MessageCode messageEnumDeclartionEmpty = const MessageCode(
     message: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedAnInitializer = const MessageCode(
+    "ExpectedAnInitializer",
+    message: r"""Expected an initializer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedBlockToSkip = messageExpectedBlockToSkip;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -880,6 +888,15 @@ Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
       message: """Export of '$name' (from '$uri') hides export from '$uri2'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpressionNotMetadata = messageExpressionNotMetadata;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpressionNotMetadata = const MessageCode(
+    "ExpressionNotMetadata",
+    message:
+        r"""This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateExtendingEnum =
@@ -1905,6 +1922,13 @@ Message _withArgumentsNotAType(String name) {
   return new Message(codeNotAType,
       message: """'$name' isn't a type.""", arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNotAnLvalue = messageNotAnLvalue;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNotAnLvalue =
+    const MessageCode("NotAnLvalue", message: r"""Can't assign to this.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;

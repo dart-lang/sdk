@@ -389,11 +389,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       bool savedConstantExpressionRequired = pop();
       if (expression is! StaticAccessor) {
-        push(deprecated_wrapInCompileTimeError(
-            toValue(expression),
-            "This can't be used as metadata; metadata should be a reference to "
-            "a compile-time constant variable, or "
-            "a call to a constant constructor."));
+        push(wrapInCompileTimeError(
+            toValue(expression), fasta.messageExpressionNotMetadata));
       } else {
         push(toValue(expression));
       }
@@ -560,8 +557,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       Expression value = toValue(node);
       if (node is! Throw) {
-        value = deprecated_wrapInCompileTimeError(
-            value, "Expected an initializer.");
+        value =
+            wrapInCompileTimeError(value, fasta.messageExpectedAnInitializer);
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
@@ -1432,8 +1429,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression value = popForValue();
     var accessor = pop();
     if (accessor is! FastaAccessor) {
-      push(deprecated_buildCompileTimeError(
-          "Can't assign to this.", token.charOffset));
+      push(buildCompileTimeError(fasta.messageNotAnLvalue, token.charOffset));
     } else {
       push(new DelayedAssignment(
           this, token, accessor, value, token.stringValue));
@@ -2066,8 +2062,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(accessor.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
-      push(deprecated_wrapInCompileTimeError(
-          toValue(accessor), "Can't assign to this."));
+      push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
     }
   }
 
@@ -2079,8 +2074,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(new DelayedPostfixIncrement(
           this, token, accessor, incrementOperator(token), null));
     } else {
-      push(deprecated_wrapInCompileTimeError(
-          toValue(accessor), "Can't assign to this."));
+      push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
     }
   }
 
@@ -3096,12 +3090,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             library.loader.buildCompileTimeError(message, charOffset, uri)));
   }
 
-  Expression deprecated_wrapInCompileTimeError(
-      Expression expression, String message) {
+  Expression wrapInCompileTimeError(Expression expression, Message message) {
     return new Let(
         new VariableDeclaration.forValue(expression)
           ..fileOffset = expression.fileOffset,
-        deprecated_buildCompileTimeError(message, expression.fileOffset))
+        buildCompileTimeError(message, expression.fileOffset))
       ..fileOffset = expression.fileOffset;
   }
 
