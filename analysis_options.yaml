@@ -23,6 +23,7 @@ linter:
     - comment_references
 #    - constant_identifier_names
     - control_flow_in_finally
+    - directives_ordering
     - empty_catches
     - empty_constructor_bodies
     - empty_statements
