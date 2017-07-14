@@ -64,9 +64,6 @@ assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
 
-[$compiler == dart2js && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
-
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
@@ -557,7 +554,7 @@ generic_function_typedef_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel ]
-assertion_initializer_const_function_error_test/none: RuntimeError
+assertion_initializer_const_function_test/none: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 conditional_method_invocation_test/02: Crash # Issue 27394

@@ -37,23 +37,16 @@ assertion_initializer_const_error2_test/cc09: Pass
 assertion_initializer_const_error2_test/cc10: Pass
 assertion_initializer_const_error2_test/cc11: Pass
 assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_test/none: RuntimeError
 
 [$compiler == none && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
-[$compiler == none && $runtime == vm && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
-
 [$compiler == none && $runtime == drt && !$checked]
 assertion_initializer_const_error2_test/cc02: Fail
 assertion_initializer_const_error_test/01: Fail
 assertion_initializer_const_function_error_test/01: Fail
-
-[$compiler == none && $runtime == drt && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
 
 [$compiler == none && $runtime == dartium && !$checked]
 assertion_initializer_const_function_test/01: RuntimeError
@@ -61,16 +54,12 @@ assertion_initializer_test: RuntimeError
 
 [$compiler == none && $runtime == dartium && $checked]
 assertion_initializer_const_function_test/01: RuntimeError
-assertion_initializer_const_function_test/none: RuntimeError
 assertion_initializer_test: RuntimeError
 
 [$compiler == app_jit && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-
-[$compiler == app_jit && $runtime == vm && $checked]
-assertion_initializer_const_function_test/none: RuntimeError
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
