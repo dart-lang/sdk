@@ -1334,8 +1334,18 @@ abstract class ElementEnvironment {
   /// on deferred libraries.
   bool isDeferredLoadLibraryGetter(MemberEntity member);
 
+  /// Returns the metadata constants declared on [library].
+  Iterable<ConstantValue> getLibraryMetadata(LibraryEntity library);
+
+  /// Returns the metadata constants declared on [cls].
+  Iterable<ConstantValue> getClassMetadata(ClassEntity cls);
+
+  /// Returns the metadata constants declared on [typedef].
+  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef);
+
   /// Returns the metadata constants declared on [member].
-  Iterable<ConstantValue> getMemberMetadata(MemberEntity member);
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
+      {bool includeParameterMetadata: false});
 
   /// Returns the function type that is an alias of a [typedef].
   FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);

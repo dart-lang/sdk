@@ -84,6 +84,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   /// used for fast lookup into library classes and members.
   List<LibraryEnv> _libraryEnvs = <LibraryEnv>[];
 
+  /// List of library data by `IndexedLibrary.libraryIndex`. This is used for
+  /// fast lookup into library properties.
+  List<LibraryData> _libraryData = <LibraryData>[];
+
   /// List of class environments by `IndexedClass.classIndex`. This is used for
   /// fast lookup into class members.
   List<ClassEnv> _classEnvs = <ClassEnv>[];
@@ -615,6 +619,7 @@ abstract class ElementCreatorMixin {
   ProgramEnv get _env;
   List<LibraryEntity> get _libraryList;
   List<LibraryEnv> get _libraryEnvs;
+  List<LibraryData> get _libraryData;
   List<ClassEntity> get _classList;
   List<ClassEnv> get _classEnvs;
   List<ClassData> get _classData;
@@ -660,6 +665,7 @@ abstract class ElementCreatorMixin {
       LibraryEntity library =
           createLibrary(_libraryMap.length, name, canonicalUri);
       _libraryList.add(library);
+      _libraryData.add(new LibraryData(node));
       return library;
     });
   }
@@ -1291,7 +1297,27 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member) {
+  Iterable<ConstantValue> getLibraryMetadata(covariant IndexedLibrary library) {
+    LibraryData libraryData = elementMap._libraryData[library.libraryIndex];
+    return libraryData.getMetadata(elementMap);
+  }
+
+  @override
+  Iterable<ConstantValue> getClassMetadata(covariant IndexedClass cls) {
+    ClassData classData = elementMap._classData[cls.classIndex];
+    return classData.getMetadata(elementMap);
+  }
+
+  @override
+  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef) {
+    // TODO(redemption): Support this.
+    throw new UnsupportedError('ElementEnvironment.getTypedefMetadata');
+  }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
+      {bool includeParameterMetadata: false}) {
+    // TODO(redemption): Support includeParameterMetadata.
     MemberData memberData = elementMap._memberData[member.memberIndex];
     return memberData.getMetadata(elementMap);
   }
@@ -1797,10 +1823,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
         libraryIndex < _elementMap._libraryEnvs.length;
         libraryIndex++) {
       LibraryEnv env = _elementMap._libraryEnvs[libraryIndex];
+      LibraryData data = _elementMap._libraryData[libraryIndex];
       LibraryEntity oldLibrary = _elementMap._libraryList[libraryIndex];
       LibraryEntity newLibrary = convertLibrary(oldLibrary);
       _libraryMap[env.library] = newLibrary;
       _libraryList.add(newLibrary);
+      _libraryData.add(data.copy());
       _libraryEnvs.add(env);
     }
     for (int classIndex = 0;

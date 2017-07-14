@@ -138,16 +138,7 @@ class Collector {
       // multiple times.
       for (MemberElement element in _generatedCode.keys) {
         if (_mirrorsData.isMemberAccessibleByReflection(element)) {
-          bool shouldRetainMetadata =
-              _mirrorsData.retainMetadataOfMember(element);
-          if (shouldRetainMetadata &&
-              (element.isFunction ||
-                  element.isConstructor ||
-                  element.isSetter)) {
-            MethodElement function = element;
-            function.functionSignature.forEachParameter((parameter) =>
-                _mirrorsData.retainMetadataOfParameter(parameter));
-          }
+          _mirrorsData.retainMetadataOfMember(element);
         }
       }
       for (ClassElement cls in neededClasses) {

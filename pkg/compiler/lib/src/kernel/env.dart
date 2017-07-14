@@ -150,6 +150,21 @@ class LibraryEnv {
   }
 }
 
+class LibraryData {
+  final ir.Library library;
+  Iterable<ConstantValue> _metadata;
+
+  LibraryData(this.library);
+
+  Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
+    return _metadata ??= elementMap.getMetadata(library.annotations);
+  }
+
+  LibraryData copy() {
+    return new LibraryData(library);
+  }
+}
+
 /// Environment for fast lookup of class members.
 class ClassEnv {
   final ir.Class cls;

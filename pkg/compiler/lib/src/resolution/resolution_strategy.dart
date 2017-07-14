@@ -108,7 +108,8 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       new ResolutionNoSuchMethodResolver();
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataImpl(_compiler, _compiler.options, commonElements);
+    return new MirrorsDataImpl(
+        _compiler, _compiler.options, elementEnvironment, commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -677,19 +678,47 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(covariant MemberElement element) {
+  Iterable<ConstantValue> getMemberMetadata(covariant MemberElement element,
+      {bool includeParameterMetadata: false}) {
     List<ConstantValue> values = <ConstantValue>[];
+    values.addAll(_getMetadataOf(element));
+    if (includeParameterMetadata) {
+      if (element.isFunction || element.isConstructor || element.isSetter) {
+        MethodElement function = element.implementation;
+        function.functionSignature.forEachParameter(
+            (parameter) => values.addAll(_getMetadataOf(parameter)));
+      }
+    }
+    return values;
+  }
+
+  @override
+  Iterable<ConstantValue> getLibraryMetadata(covariant LibraryElement element) {
+    return _getMetadataOf(element);
+  }
+
+  @override
+  Iterable<ConstantValue> getClassMetadata(covariant ClassElement element) {
+    return _getMetadataOf(element);
+  }
+
+  @override
+  Iterable<ConstantValue> getTypedefMetadata(covariant TypedefElement element) {
+    return _getMetadataOf(element);
+  }
+
+  Iterable<ConstantValue> _getMetadataOf(Element element) {
+    List<ConstantValue> constants = <ConstantValue>[];
     _compiler.reporter.withCurrentElement(element, () {
       for (MetadataAnnotation metadata in element.implementation.metadata) {
         metadata.ensureResolved(_compiler.resolution);
         assert(metadata.constant != null,
             failedAt(metadata, "Unevaluated metadata constant."));
-        ConstantValue value =
-            _compiler.constants.getConstantValue(metadata.constant);
-        values.add(value);
+        constants.add(
+            _compiler.backend.constants.getConstantValue(metadata.constant));
       }
     });
-    return values;
+    return constants;
   }
 
   @override
