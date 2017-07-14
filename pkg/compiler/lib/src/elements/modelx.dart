@@ -2648,7 +2648,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
       : super('', ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
             enclosing) {
     functionSignature = new FunctionSignatureX(
-        type: new ResolutionFunctionType.synthesized(enclosingClass.thisType));
+        type: new ResolutionFunctionType.synthesized(
+            const ResolutionDynamicType()));
     _resolvedAst =
         new SynthesizedResolvedAst(this, ResolvedAstKind.DEFAULT_CONSTRUCTOR);
   }

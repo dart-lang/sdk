@@ -469,13 +469,10 @@ checkElementEnvironment(
         env2.getMemberMetadata(member2),
         strategy.testConstantValues);
 
-    // TODO(johnniwinther): Check function type. Currently hitting problems with
-    // return types of generative constructors, function types referring to
-    // typedefs and forwarding constructors.
-    /*if (member1 is FunctionEntity && member2 is FunctionEntity) {
+    if (member1 is FunctionEntity && member2 is FunctionEntity) {
       check(member1, member2, 'getFunctionType', env1.getFunctionType(member1),
           env2.getFunctionType(member2), strategy.typeEquivalence);
-    }*/
+    }
   }
 
   checkSetEquivalence(env1, env2, 'libraries', env1.libraries, env2.libraries,

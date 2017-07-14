@@ -648,7 +648,20 @@ class _CompilerElementEnvironment implements ElementEnvironment {
       return method.constructor.type;
     }
     method.computeType(_resolution);
-    return method.type;
+    ResolutionFunctionType type = method.type;
+    if (method.isConstructor) {
+      ConstructorElement constructor = method;
+      if (constructor.definingConstructor != null) {
+        // The type of a defining constructor doesn't use the right type
+        // variables. Substitute the type variable of the defining class by the
+        // type variables of the enclosing class.
+        ClassElement definingClass =
+            constructor.definingConstructor.enclosingClass;
+        type = type.substByContext(
+            method.enclosingClass.thisType.asInstanceOf(definingClass));
+      }
+    }
+    return type;
   }
 
   @override

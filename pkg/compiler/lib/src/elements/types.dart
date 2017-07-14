@@ -383,6 +383,7 @@ class FunctionType extends DartType {
       }
       sb.write('}');
     }
+    sb.write(')');
     return sb.toString();
   }
 }

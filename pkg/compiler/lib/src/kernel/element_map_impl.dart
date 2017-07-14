@@ -419,7 +419,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   @override
   FunctionType getFunctionType(ir.FunctionNode node) {
-    DartType returnType = getDartType(node.returnType);
+    DartType returnType;
+    if (node.parent is ir.Constructor) {
+      // The return type on generative constructors is `void`, but we need
+      // `dynamic` type to match the element model.
+      returnType = const DynamicType();
+    } else {
+      returnType = getDartType(node.returnType);
+    }
     List<DartType> parameterTypes = /*<DartType>*/ [];
     List<DartType> optionalParameterTypes = /*<DartType>*/ [];
     for (ir.VariableDeclaration variable in node.positionalParameters) {
