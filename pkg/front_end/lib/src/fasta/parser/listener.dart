@@ -222,6 +222,8 @@ class Listener {
     logEvent("Fields");
   }
 
+  /// Marks the start of a for statement which is ended by either
+  /// [endForStatement] or [endForIn].
   void beginForStatement(Token token) {}
 
   void endForStatement(Token forKeyword, Token leftSeparator,
@@ -235,6 +237,7 @@ class Listener {
     logEvent("ForStatementBody");
   }
 
+  // One of the two possible corresponding end events for [beginForStatement].
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
       Token inKeyword, Token rightParenthesis, Token endToken) {
     logEvent("ForIn");
@@ -694,6 +697,9 @@ class Listener {
     logEvent("TopLevelDeclaration");
   }
 
+  /// Marks the beginning of a top level field or method declaration.
+  /// Doesn't have a corresponding end event.
+  /// See [endTopLevelFields] and [endTopLevelMethod].
   void beginTopLevelMember(Token token) {}
 
   /// Handle the end of a top level variable declaration.  Substructures:
@@ -703,8 +709,8 @@ class Listener {
   /// - Repeated [count] times:
   ///   - Variable name (identifier)
   ///   - Field initializer
-  /// Doesn't have a corresponding begin event, use [beginTopLevelMember]
-  /// instead.
+  /// Doesn't have a corresponding begin event.
+  /// Use [beginTopLevelMember] instead.
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     logEvent("TopLevelFields");
   }
@@ -996,13 +1002,8 @@ class Listener {
 
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
-  void handleSwitchCase(
-      int labelCount,
-      int expressionCount,
-      Token defaultKeyword,
-      int statementCount,
-      Token firstToken,
-      Token endToken) {
+  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
+      int statementCount, Token firstToken, Token endToken) {
     logEvent("SwitchCase");
   }
 

@@ -866,7 +866,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
+  void endSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
       int statementCount, Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     NodeList labelsAndCases =

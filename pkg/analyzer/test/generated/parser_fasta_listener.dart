@@ -23,18 +23,19 @@ class ForwardingTestListener implements fasta.Listener {
   final fasta.Listener listener;
   final _stack = <String>[];
 
-  _begin(String beginEvent) {
-    _stack.add(beginEvent);
+  void _begin(String event) {
+    _stack.add(event);
   }
 
-  _end(String beginEvent, {bool optional: true, bool pop: true}) {
-    if (_stack.isEmpty || _stack.last != beginEvent) {
-      if (!optional) {
-        fail('Expected $beginEvent, but found $_stack');
-      }
-    } else if (pop) {
-      _stack.removeLast();
+  void _in(String event) {
+    if (_stack.isEmpty || _stack.last != event) {
+      fail('Expected $event, but found $_stack');
     }
+  }
+
+  void _end(String event) {
+    _in(event);
+    _stack.removeLast();
   }
 
   ForwardingTestListener(this.listener);
@@ -721,7 +722,7 @@ class ForwardingTestListener implements fasta.Listener {
   void endFields(
       int count, analyzer.Token beginToken, analyzer.Token endToken) {
     // beginMember --> endFields, endMember
-    _end('Member', pop: false);
+    _in('Member');
     listener.endFields(count, beginToken, endToken);
   }
 
@@ -733,7 +734,7 @@ class ForwardingTestListener implements fasta.Listener {
       analyzer.Token inKeyword,
       analyzer.Token rightParenthesis,
       analyzer.Token endToken) {
-    _end('ForIn');
+    _end('ForStatement');
     listener.endForIn(awaitToken, forToken, leftParenthesis, inKeyword,
         rightParenthesis, endToken);
   }
@@ -1001,6 +1002,19 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      analyzer.Token defaultKeyword,
+      int statementCount,
+      analyzer.Token firstToken,
+      analyzer.Token endToken) {
+    _end('SwitchCase');
+    listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
+        statementCount, firstToken, endToken);
+  }
+
+  @override
   void endSwitchStatement(
       analyzer.Token switchKeyword, analyzer.Token endToken) {
     _end('SwitchStatement');
@@ -1023,7 +1037,7 @@ class ForwardingTestListener implements fasta.Listener {
   @override
   void endTopLevelFields(
       int count, analyzer.Token beginToken, analyzer.Token endToken) {
-    _end('TopLevelFields');
+    _end('TopLevelMember');
     listener.endTopLevelFields(count, beginToken, endToken);
   }
 
@@ -1031,6 +1045,7 @@ class ForwardingTestListener implements fasta.Listener {
   void endTopLevelMethod(analyzer.Token beginToken, analyzer.Token getOrSet,
       analyzer.Token endToken) {
     _end('TopLevelMethod');
+    _end('TopLevelMember');
     listener.endTopLevelMethod(beginToken, getOrSet, endToken);
   }
 
@@ -1443,19 +1458,6 @@ class ForwardingTestListener implements fasta.Listener {
   void handleSuperExpression(analyzer.Token token, IdentifierContext context) {
     listener.handleSuperExpression(token, context);
     // TODO(danrubel): implement handleSuperExpression
-  }
-
-  @override
-  void handleSwitchCase(
-      int labelCount,
-      int expressionCount,
-      analyzer.Token defaultKeyword,
-      int statementCount,
-      analyzer.Token firstToken,
-      analyzer.Token endToken) {
-    listener.handleSwitchCase(labelCount, expressionCount, defaultKeyword,
-        statementCount, firstToken, endToken);
-    // TODO(danrubel): implement handleSwitchCase
   }
 
   @override

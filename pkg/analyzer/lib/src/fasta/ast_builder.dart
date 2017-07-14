@@ -911,13 +911,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleSwitchCase(
-      int labelCount,
-      int expressionCount,
-      Token defaultKeyword,
-      int statementCount,
-      Token firstToken,
-      Token endToken) {
+  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
+      int statementCount, Token firstToken, Token endToken) {
     debugEvent("SwitchCase");
     List<Statement> statements = popList(statementCount);
     List<SwitchMember> members = popList(expressionCount) ?? [];

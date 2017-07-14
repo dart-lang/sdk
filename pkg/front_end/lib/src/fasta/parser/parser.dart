@@ -3975,7 +3975,7 @@ class Parser {
       statementCount++;
       peek = peekPastLabels(token);
     }
-    listener.handleSwitchCase(labelCount, expressionCount, defaultKeyword,
+    listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
         statementCount, begin, token);
     return token;
   }
