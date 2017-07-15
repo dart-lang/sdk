@@ -281,16 +281,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_interfaces() async {
-    await super.test_class_interfaces();
-  }
-
-  @failingTest
-  test_class_interfaces_unresolved() async {
-    await super.test_class_interfaces_unresolved();
-  }
-
-  @failingTest
   test_class_method_abstract() async {
     await super.test_class_method_abstract();
   }

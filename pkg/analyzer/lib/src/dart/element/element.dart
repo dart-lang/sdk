@@ -749,12 +749,19 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get interfaces {
-    if (_unlinkedClass != null && _interfaces == null) {
-      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-      _interfaces = _unlinkedClass.interfaces
-          .map((EntityRef t) => context.resolveTypeRef(this, t))
-          .where(_isClassInterfaceType)
-          .toList(growable: false);
+    if (_interfaces == null) {
+      if (_kernel != null) {
+        _interfaces = _kernel.implementedTypes
+            .map((k) => enclosingUnit._kernelContext.getInterfaceType(this, k))
+            .toList(growable: false);
+      }
+      if (_unlinkedClass != null) {
+        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+        _interfaces = _unlinkedClass.interfaces
+            .map((EntityRef t) => context.resolveTypeRef(this, t))
+            .where(_isClassInterfaceType)
+            .toList(growable: false);
+      }
     }
     return _interfaces ?? const <InterfaceType>[];
   }
