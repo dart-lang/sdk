@@ -34,8 +34,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
-  Map<ir.Node, ClosureScope> _scopesCapturedInClosureMap =
-      <ir.Node, ClosureScope>{};
+  Map<ir.Node, CapturedScope> _scopesCapturedInClosureMap =
+      <ir.Node, CapturedScope>{};
 
   Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
       <Entity, ClosureRepresentationInfo>{};
@@ -88,7 +88,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     if (_scopeMap.keys.contains(entity)) return;
     ir.Node node = _elementMap.getMemberNode(entity);
     if (_scopesCapturedInClosureMap.keys.contains(node)) return;
-    ClosureScopeBuilder translator = new ClosureScopeBuilder(
+    CapturedScopeBuilder translator = new CapturedScopeBuilder(
         _scopesCapturedInClosureMap,
         _scopeMap,
         entity,
@@ -153,15 +153,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   // TODO(efortuna): Eventually scopesCapturedInClosureMap[node] should always
   // be non-null, and we should just test that with an assert.
   @override
-  ClosureScope getClosureScope(MemberEntity entity) =>
+  CapturedScope getCapturedScope(MemberEntity entity) =>
       _scopesCapturedInClosureMap[_elementMap.getMemberNode(entity)] ??
-      const ClosureScope();
+      const CapturedScope();
 
   @override
   // TODO(efortuna): Eventually scopesCapturedInClosureMap[node] should always
   // be non-null, and we should just test that with an assert.
-  LoopClosureScope getLoopClosureScope(ir.Node loopNode) =>
-      _scopesCapturedInClosureMap[loopNode] ?? const LoopClosureScope();
+  CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
+      _scopesCapturedInClosureMap[loopNode] ?? const CapturedLoopScope();
 
   @override
   // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
@@ -212,20 +212,20 @@ class KernelScopeInfo extends ScopeInfo {
   bool isBoxed(Local variable) => boxedVariables.contains(variable);
 }
 
-class KernelClosureScope extends KernelScopeInfo implements ClosureScope {
+class KernelCapturedScope extends KernelScopeInfo implements CapturedScope {
   final Local context;
 
-  KernelClosureScope(Set<Local> boxedVariables, this.context, Local thisLocal)
+  KernelCapturedScope(Set<Local> boxedVariables, this.context, Local thisLocal)
       : super.withBoxedVariables(boxedVariables, thisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
 
-class KernelLoopClosureScope extends KernelClosureScope
-    implements LoopClosureScope {
+class KernelCapturedLoopScope extends KernelCapturedScope
+    implements CapturedLoopScope {
   final List<Local> boxedLoopVariables;
 
-  KernelLoopClosureScope(Set<Local> boxedVariables, this.boxedLoopVariables,
+  KernelCapturedLoopScope(Set<Local> boxedVariables, this.boxedLoopVariables,
       Local context, Local thisLocal)
       : super(boxedVariables, context, thisLocal);
 

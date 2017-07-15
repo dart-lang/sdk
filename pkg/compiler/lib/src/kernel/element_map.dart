@@ -315,8 +315,9 @@ abstract class KernelToLocalsMap {
   /// if [node] is not a jump target.
   JumpTarget getJumpTargetForWhile(ir.WhileStatement node);
 
-  /// Returns the [LoopClosureScope] for the loop [node] in [closureClassMaps].
-  LoopClosureScope getLoopClosureScope(
+  /// Returns the [CapturedLoopScope] for the loop [node] in
+  /// [closureClassMaps].
+  CapturedLoopScope getCapturedLoopScope(
       ClosureDataLookup closureLookup, ir.TreeNode node);
 }
 

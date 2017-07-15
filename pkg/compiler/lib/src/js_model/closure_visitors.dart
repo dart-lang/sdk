@@ -10,14 +10,14 @@ import '../kernel/element_map.dart';
 import 'closure.dart';
 
 /// This builder walks the code to determine what variables are captured/free at
-/// various points to build ClosureScope that can respond to queries
+/// various points to build CapturedScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
-class ClosureScopeBuilder extends ir.Visitor {
+class CapturedScopeBuilder extends ir.Visitor {
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
   /// was encountered while visiting a closure (initially called through
   /// [translateLazyIntializer] or [translateConstructorOrProcedure]).
-  final Map<ir.Node, ClosureScope> _scopesCapturedInClosureMap;
+  final Map<ir.Node, CapturedScope> _scopesCapturedInClosureMap;
 
   /// Map entities to their corresponding scope information (such as what
   /// variables are captured/used).
@@ -69,7 +69,7 @@ class ClosureScopeBuilder extends ir.Visitor {
   /// scope information.
   final Entity _originalEntity;
 
-  ClosureScopeBuilder(
+  CapturedScopeBuilder(
       this._scopesCapturedInClosureMap,
       this._scopeInfoMap,
       this._originalEntity,
@@ -77,7 +77,7 @@ class ClosureScopeBuilder extends ir.Visitor {
       this._localsMap,
       this._kernelToElementMap);
 
-  /// Update the [ClosureScope] object corresponding to
+  /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
   void attachCapturedScopeVariables(ir.Node node) {
     Set<Local> capturedVariablesForScope = new Set<Local>();
@@ -103,7 +103,7 @@ class ClosureScopeBuilder extends ir.Visitor {
       }
 
       assert(_scopeInfoMap[_nodeToEntity(node)] != null);
-      _scopesCapturedInClosureMap[node] = new KernelClosureScope(
+      _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
           capturedVariablesForScope,
           _nodeToEntity(_executableContext),
           thisLocal);
@@ -215,9 +215,9 @@ class ClosureScopeBuilder extends ir.Visitor {
         }
       }
     });
-    KernelClosureScope scope = _scopesCapturedInClosureMap[node];
+    KernelCapturedScope scope = _scopesCapturedInClosureMap[node];
     if (scope == null) return;
-    _scopesCapturedInClosureMap[node] = new KernelLoopClosureScope(
+    _scopesCapturedInClosureMap[node] = new KernelCapturedLoopScope(
         scope.boxedVariables,
         boxedLoopVariables,
         scope.context,

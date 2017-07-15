@@ -360,9 +360,9 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  LoopClosureScope getLoopClosureScope(
+  CapturedLoopScope getCapturedLoopScope(
       ClosureDataLookup closureLookup, ir.TreeNode node) {
-    return closureLookup.getLoopClosureScope(getNode(node));
+    return closureLookup.getCapturedLoopScope(getNode(node));
   }
 }
 

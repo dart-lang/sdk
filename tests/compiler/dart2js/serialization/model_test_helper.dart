@@ -252,7 +252,7 @@ bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
   return false;
 }
 
-bool areClosureScopesEquivalent(ClosureScope a, ClosureScope b) {
+bool areCapturedScopesEquivalent(CapturedScope a, CapturedScope b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
   if (!areLocalsEquivalent(a.context, b.context)) {
@@ -265,7 +265,7 @@ bool areClosureScopesEquivalent(ClosureScope a, ClosureScope b) {
   a.forEachBoxedVariable((k, v) => aBoxed[k] = v);
   var bBoxed = {};
   b.forEachBoxedVariable((k, v) => bBoxed[k] = v);
-  checkMaps(aBoxed, bBoxed, 'ClosureScope.boxedVariables', areLocalsEquivalent,
+  checkMaps(aBoxed, bBoxed, 'CapturedScope.boxedVariables', areLocalsEquivalent,
       areElementsEquivalent);
   return true;
 }
