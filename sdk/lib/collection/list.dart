@@ -256,12 +256,25 @@ abstract class ListMixin<E> implements List<E> {
   bool remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        this.setRange(i, this.length - 1, this, i + 1);
-        this.length -= 1;
+        this._closeGap(i, i + 1);
         return true;
       }
     }
     return false;
+  }
+
+  /// Removes elements from the list starting at [start] up to but not including
+  /// [end].  Arguments are pre-validated.
+  void _closeGap(int start, int end) {
+    int length = this.length;
+    assert(0 <= start);
+    assert(start < end);
+    assert(end <= length);
+    int size = end - start;
+    for (int i = end; i < length; i++) {
+      this[i - size] = this[i];
+    }
+    this.length = length - size;
   }
 
   void removeWhere(bool test(E element)) {
@@ -350,9 +363,9 @@ abstract class ListMixin<E> implements List<E> {
 
   void removeRange(int start, int end) {
     RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
-    setRange(start, this.length - length, this, end);
-    this.length -= length;
+    if (end > start) {
+      _closeGap(start, end);
+    }
   }
 
   void fillRange(int start, int end, [E fill]) {
@@ -401,13 +414,10 @@ abstract class ListMixin<E> implements List<E> {
     int removeLength = end - start;
     int insertLength = newContents.length;
     if (removeLength >= insertLength) {
-      int delta = removeLength - insertLength;
       int insertEnd = start + insertLength;
-      int newLength = this.length - delta;
       this.setRange(start, insertEnd, newContents);
-      if (delta != 0) {
-        this.setRange(insertEnd, newLength, this, end);
-        this.length = newLength;
+      if (removeLength > insertLength) {
+        _closeGap(insertEnd, end);
       }
     } else {
       int delta = insertLength - removeLength;
@@ -470,8 +480,7 @@ abstract class ListMixin<E> implements List<E> {
 
   E removeAt(int index) {
     E result = this[index];
-    setRange(index, this.length - 1, this, index + 1);
-    length--;
+    _closeGap(index, index + 1);
     return result;
   }
 
