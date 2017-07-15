@@ -125,6 +125,7 @@ getReifiedType(obj) {
   return _nonPrimitiveRuntimeType(obj);
 }
 
+/// Assumes that obj is non-null
 _nonPrimitiveRuntimeType(obj) {
   // Lookup recorded *real* type (not user definable runtimeType)
   // TODO(vsm): Should we treat Dart and JS objects differently here?
@@ -163,6 +164,7 @@ Type wrapType(type) {
 /// Given a WrappedType, return the internal runtime type object.
 unwrapType(WrappedType obj) => obj._wrappedType;
 
+/// Assumes that value is non-null
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 
 /// Return the module name for a raw library object.
