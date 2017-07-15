@@ -283,6 +283,13 @@ class OutlineBuilder extends UnhandledListener {
       Token implementsKeyword,
       Token endToken) {
     debugEvent("endClassDeclaration");
+
+    String documentationComment = null;
+    if (beginToken.precedingComments != null) {
+      documentationComment = beginToken.precedingComments.lexeme;
+      // TODO(scheglov): Add support for line comments.
+    }
+
     List<TypeBuilder> interfaces = popList(interfacesCount);
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -294,8 +301,8 @@ class OutlineBuilder extends UnhandledListener {
     }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addClass(metadata, modifiers, name, typeVariables, supertype,
-        interfaces, charOffset);
+    library.addClass(documentationComment, metadata, modifiers, name,
+        typeVariables, supertype, interfaces, charOffset);
     checkEmpty(beginToken.charOffset);
   }
 

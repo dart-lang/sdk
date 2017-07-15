@@ -2113,28 +2113,17 @@ class C {
 
   test_class_documented() async {
     var library = await checkLibrary('''
-// Extra comment so doc comment offset != 0
 /**
  * Docs
  */
 class C {}''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 /**
  * Docs
  */
 class C {
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-/**
- * Docs
- */
-class C {
-}
-''');
-    }
   }
 
   test_class_documented_tripleSlash() async {
@@ -2217,6 +2206,22 @@ class C {
 }
 ''');
     }
+  }
+
+  test_class_documented_withLeadingNotDocumentation() async {
+    var library = await checkLibrary('''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+class C {}''');
+    checkElementText(library, r'''
+/**
+ * Docs
+ */
+class C {
+}
+''');
   }
 
   test_class_field_const() async {

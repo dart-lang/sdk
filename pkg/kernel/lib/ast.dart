@@ -596,6 +596,10 @@ class Class extends NamedNode {
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
+  /// Documentation comment of the class, or `null`.
+  @informative
+  String documentationComment;
+
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -4634,3 +4638,8 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
   }
   return typedef_.canonicalName;
 }
+
+/// Annotation describing information which is not part of Dart semantics; in
+/// other words, if this information (or any information it refers to) changes,
+/// static analysis and runtime behavior of the library are unaffected.
+const informative = null;

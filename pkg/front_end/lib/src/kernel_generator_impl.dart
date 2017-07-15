@@ -102,7 +102,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
 
     await dillTarget.buildOutlines();
 
-    var kernelTarget = new KernelTarget(fs, dillTarget, uriTranslator);
+    var kernelTarget = new KernelTarget(fs, false, dillTarget, uriTranslator);
     options.inputs.forEach(kernelTarget.read);
     Program summaryProgram =
         await kernelTarget.buildOutlines(nameRoot: nameRoot);

@@ -74,6 +74,7 @@ class KernelEnumBuilder extends SourceClassBuilder
   final KernelNamedTypeBuilder listType;
 
   KernelEnumBuilder.internal(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       Scope scope,
@@ -87,8 +88,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.stringType,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, charOffset, cls);
+      : super(documentationComment, metadata, 0, name, null, null, null, scope,
+            constructors, parent, null, charOffset, cls);
 
   factory KernelEnumBuilder(
       List<MetadataBuilder> metadata,
@@ -186,6 +187,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     }
     MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
+        null,
         metadata,
         name,
         new Scope(members, null, parent.scope, isModifiable: false),

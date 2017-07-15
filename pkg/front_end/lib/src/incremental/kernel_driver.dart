@@ -220,8 +220,8 @@ class KernelDriver {
       }
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
-      KernelTarget kernelTarget =
-          new KernelTarget(_fsState.fileSystemView, dillTarget, _uriTranslator);
+      KernelTarget kernelTarget = new KernelTarget(
+          _fsState.fileSystemView, true, dillTarget, _uriTranslator);
       for (FileState library in cycle.libraries) {
         kernelTarget.read(library.uri);
       }

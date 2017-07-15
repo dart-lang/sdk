@@ -25,7 +25,7 @@ import 'package:kernel/src/incremental_class_hierarchy.dart';
 
 class AnalyzerLoader<L> extends SourceLoader<L> {
   AnalyzerLoader(TargetImplementation target)
-      : super(PhysicalFileSystem.instance, target);
+      : super(PhysicalFileSystem.instance, false, target);
 
   @override
   void computeHierarchy(Program program) {

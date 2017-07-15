@@ -119,7 +119,7 @@ class CompileTask {
   KernelTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
     return new KernelTarget(
-        c.fileSystem, dillTarget, uriTranslator, c.uriToSource);
+        c.fileSystem, false, dillTarget, uriTranslator, c.uriToSource);
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
@@ -215,8 +215,8 @@ Future<List<Uri>> getDependencies(Uri script,
     DillTarget dillTarget =
         new DillTarget(ticker, uriTranslator, c.options.target);
     if (platform != null) _appendDillForUri(dillTarget, platform);
-    KernelTarget kernelTarget = new KernelTarget(
-        PhysicalFileSystem.instance, dillTarget, uriTranslator, c.uriToSource);
+    KernelTarget kernelTarget = new KernelTarget(PhysicalFileSystem.instance,
+        false, dillTarget, uriTranslator, c.uriToSource);
 
     kernelTarget.read(script);
     await dillTarget.buildOutlines();

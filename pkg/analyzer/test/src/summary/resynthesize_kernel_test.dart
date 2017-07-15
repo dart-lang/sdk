@@ -216,23 +216,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_documented() async {
-    await super.test_class_documented();
-  }
-
-  @failingTest
   test_class_documented_tripleSlash() async {
     await super.test_class_documented_tripleSlash();
   }
 
   @failingTest
-  test_class_documented_with_references() async {
-    await super.test_class_documented_with_references();
-  }
-
-  @failingTest
-  test_class_documented_with_windows_line_endings() async {
-    await super.test_class_documented_with_windows_line_endings();
+  test_class_documented_withLeadingNotDocumentation() async {
+    await super.test_class_documented_withLeadingNotDocumentation();
   }
 
   @failingTest

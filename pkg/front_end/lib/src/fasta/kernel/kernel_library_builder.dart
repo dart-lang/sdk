@@ -114,6 +114,7 @@ class KernelLibraryBuilder
   }
 
   void addClass(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String className,
@@ -138,6 +139,7 @@ class KernelLibraryBuilder
     Scope constructorScope =
         new Scope(constructors, null, null, isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
+        documentationComment,
         metadata,
         modifiers,
         className,
@@ -213,7 +215,8 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder applyMixin(
       KernelTypeBuilder supertype, KernelTypeBuilder mixin, String signature,
-      {List<MetadataBuilder> metadata,
+      {String documentationComment,
+      List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers: abstractMask,
@@ -235,6 +238,7 @@ class KernelLibraryBuilder
     }
     if (builder == null) {
       builder = new SourceClassBuilder(
+          documentationComment,
           metadata,
           modifiers,
           name,

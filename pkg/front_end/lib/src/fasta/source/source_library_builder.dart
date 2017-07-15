@@ -197,6 +197,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void addClass(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String name,

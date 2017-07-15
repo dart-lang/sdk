@@ -470,6 +470,7 @@ class BinaryBuilder {
     }
     var name = readStringOrNullIfEmpty();
     var fileUri = readUriReference();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -488,6 +489,7 @@ class BinaryBuilder {
     if (shouldWriteData) {
       node.name = name;
       node.fileUri = fileUri;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.supertype = supertype;
       node.mixedInType = mixedInType;

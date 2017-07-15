@@ -1212,6 +1212,7 @@ class ClassHelper {
     kIsAbstract,
     kNameIndex,
     kSourceUriIndex,
+    kDocumentationCommentIndex,
     kAnnotations,
     kTypeParameters,
     kSuperClass,
@@ -1262,6 +1263,9 @@ class ClassHelper {
         source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
         builder_->current_script_id_ = source_uri_index_;
         builder_->record_token_position(position_);
+        if (++next_read_ == field) return;
+      case kDocumentationCommentIndex:
+        builder_->ReadStringReference();
         if (++next_read_ == field) return;
       case kAnnotations: {
         annotation_count_ = builder_->ReadListLength();  // read list length.

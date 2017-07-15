@@ -49,12 +49,14 @@ Class initializeClass(
 
 class SourceClassBuilder extends KernelClassBuilder {
   final Class cls;
+  final String documentationComment;
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
   KernelTypeBuilder mixedInType;
 
   SourceClassBuilder(
+      this.documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String name,
@@ -86,6 +88,8 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {
+    cls.documentationComment = documentationComment;
+
     void buildBuilders(String name, Builder builder) {
       do {
         if (builder is KernelFieldBuilder) {

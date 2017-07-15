@@ -592,6 +592,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass?.documentationComment?.text;
     }

@@ -94,6 +94,9 @@ class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
+  /// Whether comments should be scanned and parsed.
+  final bool includeComments;
+
   final DillTarget dillTarget;
 
   /// Shared with [CompilerContext].
@@ -112,8 +115,8 @@ class KernelTarget extends TargetImplementation {
 
   bool get disableTypeInference => backendTarget.disableTypeInference;
 
-  KernelTarget(
-      this.fileSystem, DillTarget dillTarget, UriTranslator uriTranslator,
+  KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
+      UriTranslator uriTranslator,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
@@ -123,7 +126,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   SourceLoader<Library> createLoader() =>
-      new SourceLoader<Library>(fileSystem, this);
+      new SourceLoader<Library>(fileSystem, includeComments, this);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {

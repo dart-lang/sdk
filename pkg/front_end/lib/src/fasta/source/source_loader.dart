@@ -75,6 +75,9 @@ class SourceLoader<L> extends Loader<L> {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
+  /// Whether comments should be scanned and parsed.
+  final bool includeComments;
+
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
   final bool excludeSource = CompilerContext.current.options.excludeSource;
@@ -87,7 +90,8 @@ class SourceLoader<L> extends Loader<L> {
 
   Instrumentation instrumentation;
 
-  SourceLoader(this.fileSystem, KernelTarget target) : super(target);
+  SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
+      : super(target);
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
@@ -114,7 +118,7 @@ class SourceLoader<L> extends Loader<L> {
     }
 
     byteCount += bytes.length - 1;
-    ScannerResult result = scan(bytes);
+    ScannerResult result = scan(bytes, includeComments: includeComments);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);

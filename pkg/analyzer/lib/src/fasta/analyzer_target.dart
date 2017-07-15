@@ -20,7 +20,7 @@ class AnalyzerTarget extends KernelTarget {
   AnalyzerTarget(
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode,
       [Map<String, Source> uriToSource])
-      : super(PhysicalFileSystem.instance, dillTarget, uriTranslator,
+      : super(PhysicalFileSystem.instance, false, dillTarget, uriTranslator,
             uriToSource);
 
   @override

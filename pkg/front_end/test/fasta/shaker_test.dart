@@ -105,8 +105,8 @@ class BuildProgram
           context.uriTranslator,
           new VmFastaTarget(new TargetFlags(strongMode: false)));
       dillTarget.loader.appendLibraries(platformOutline);
-      var sourceTarget = new KernelTarget(
-          PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
+      var sourceTarget = new KernelTarget(PhysicalFileSystem.instance, false,
+          dillTarget, context.uriTranslator);
       await dillTarget.buildOutlines();
 
       var inputUri = description.uri;

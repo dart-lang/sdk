@@ -240,7 +240,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
         : new KernelTarget(
-            PhysicalFileSystem.instance, dillTarget, uriTranslator);
+            PhysicalFileSystem.instance, false, dillTarget, uriTranslator);
 
     Program p;
     try {
