@@ -1598,6 +1598,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
+    if (_kernelContext != null) {
+      return _variables ??= _kernelContext.library.fields
+          .map((k) => new TopLevelVariableElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedUnit != null) {
       if (_variables == null) {
         _explicitTopLevelAccessors ??=
@@ -7124,18 +7129,33 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   final UnlinkedVariable _unlinkedVariable;
 
   /**
+   * The kernel of the element;
+   */
+  final kernel.Field _kernel;
+
+  /**
    * Initialize a newly created variable element to have the given [name] and
    * [offset].
    */
   NonParameterVariableElementImpl(String name, int offset)
       : _unlinkedVariable = null,
+        _kernel = null,
         super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  NonParameterVariableElementImpl.forKernel(
+      ElementImpl enclosingElement, this._kernel)
+      : _unlinkedVariable = null,
+        super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created variable element to have the given [name].
    */
   NonParameterVariableElementImpl.forNode(Identifier name)
       : _unlinkedVariable = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -7143,7 +7163,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
    */
   NonParameterVariableElementImpl.forSerialized(
       this._unlinkedVariable, ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
+      : _kernel = null,
+        super.forSerialized(enclosingElement);
 
   @override
   int get codeLength {
@@ -7209,6 +7230,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   bool get isConst {
+    if (_kernel != null) {
+      return _kernel.isConst;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isConst;
     }
@@ -7223,6 +7247,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   bool get isFinal {
+    if (_kernel != null) {
+      return _kernel.isFinal;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isFinal;
     }
@@ -7246,6 +7273,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name.name;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.name;
     }
@@ -7263,6 +7293,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   DartType get type {
+    if (_kernel != null) {
+      return _type ??= enclosingUnit._kernelContext.getType(this, _kernel.type);
+    }
     if (_unlinkedVariable != null && _declaredType == null && _type == null) {
       _type = enclosingUnit.resynthesizerContext
           .resolveLinkedType(this, _unlinkedVariable.inferredTypeSlot);
@@ -8261,6 +8294,18 @@ abstract class PropertyInducingElementImpl
   PropertyInducingElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize using the given kernel.
+   */
+  PropertyInducingElementImpl.forKernel(
+      ElementImpl enclosingElement, kernel.Field kernel)
+      : super.forKernel(enclosingElement, kernel) {
+    getter = new PropertyAccessorElementImpl_ImplicitGetter(this);
+    if (!isFinal && !isConst) {
+      setter = new PropertyAccessorElementImpl_ImplicitSetter(this);
+    }
+  }
+
+  /**
    * Initialize a newly created element to have the given [name].
    */
   PropertyInducingElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -8469,6 +8514,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
    * given [name] and [offset].
    */
   TopLevelVariableElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  TopLevelVariableElementImpl.forKernel(
+      ElementImpl enclosingElement, kernel.Field kernel)
+      : super.forKernel(enclosingElement, kernel);
 
   /**
    * Initialize a newly created top-level variable element to have the given

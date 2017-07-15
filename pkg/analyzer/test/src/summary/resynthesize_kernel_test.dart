@@ -281,6 +281,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_class_interfaces_unresolved() async {
+    await super.test_class_interfaces_unresolved();
+  }
+
+  @failingTest
   test_class_method_abstract() async {
     await super.test_class_method_abstract();
   }
@@ -348,6 +353,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_setters() async {
     await super.test_class_setters();
+  }
+
+  @failingTest
+  test_class_supertype_unresolved() async {
+    await super.test_class_supertype_unresolved();
   }
 
   @failingTest
@@ -2140,6 +2150,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_syntheticFunctionType_noArguments() async {
+    await super.test_syntheticFunctionType_noArguments();
+  }
+
+  @failingTest
+  test_syntheticFunctionType_withArguments() async {
+    await super.test_syntheticFunctionType_withArguments();
+  }
+
+  @failingTest
   test_type_arguments_explicit_dynamic_dynamic() async {
     await super.test_type_arguments_explicit_dynamic_dynamic();
   }
@@ -2152,11 +2172,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_arguments_explicit_String_dynamic() async {
     await super.test_type_arguments_explicit_String_dynamic();
-  }
-
-  @failingTest
-  test_type_arguments_explicit_String_int() async {
-    await super.test_type_arguments_explicit_String_int();
   }
 
   @failingTest
@@ -2207,16 +2222,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_reference_part_to_part() async {
     await super.test_type_reference_part_to_part();
-  }
-
-  @failingTest
-  test_type_reference_to_class() async {
-    await super.test_type_reference_to_class();
-  }
-
-  @failingTest
-  test_type_reference_to_class_with_type_arguments() async {
-    await super.test_type_reference_to_class_with_type_arguments();
   }
 
   @failingTest
@@ -2500,16 +2505,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_final() async {
-    await super.test_variable_final();
-  }
-
-  @failingTest
-  test_variable_final_top_level_untyped() async {
-    await super.test_variable_final_top_level_untyped();
-  }
-
-  @failingTest
   test_variable_getterInLib_setterInPart() async {
     await super.test_variable_getterInLib_setterInPart();
   }
@@ -2530,11 +2525,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_inferred_type_implicit_initialized() async {
-    await super.test_variable_inferred_type_implicit_initialized();
-  }
-
-  @failingTest
   test_variable_propagatedType_const_noDep() async {
     await super.test_variable_propagatedType_const_noDep();
   }
@@ -2550,11 +2540,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_propagatedType_final_noDep() async {
-    await super.test_variable_propagatedType_final_noDep();
-  }
-
-  @failingTest
   test_variable_propagatedType_implicit_dep() async {
     await super.test_variable_propagatedType_implicit_dep();
   }
@@ -2562,11 +2547,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_variable_setterInPart_getterInPart() async {
     await super.test_variable_setterInPart_getterInPart();
-  }
-
-  @failingTest
-  test_variables() async {
-    await super.test_variables();
   }
 }
 
@@ -2637,7 +2617,7 @@ class _KernelLibraryResynthesizerContextImpl
           kernelType.className.canonicalName, kernelType.typeArguments);
     }
     // TODO(scheglov) Support other kernel types.
-    return null;
+    throw new UnimplementedError('For ${kernelType.runtimeType}');
   }
 
   InterfaceType _getInterfaceType(
