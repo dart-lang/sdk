@@ -27,6 +27,15 @@ config("dart_maybe_product_config") {
   }
 }
 
+# This is a config to use to build PRODUCT mode artifacts in a RELEASE build.
+# If a DEBUG build has been specified it will be ignored.
+config("dart_product_config") {
+  defines = []
+  if (!dart_debug) {
+    defines += [ "PRODUCT" ]
+  }
+}
+
 config("dart_precompiled_runtime_config") {
   defines = []
   defines += [ "DART_PRECOMPILED_RUNTIME" ]
@@ -161,15 +170,11 @@ template("libdart_library") {
     extra_deps += invoker.extra_deps
   }
   static_library(target_name) {
-    configs += [
-                 ":dart_config",
-                 ":dart_maybe_product_config",
-               ] + extra_configs
+    configs += [ ":dart_config" ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
     deps = [
-             "vm:libdart_platform",
              "third_party/double-conversion/src:libdouble_conversion",
              ":generate_version_cc_file",
            ] + extra_deps
@@ -193,35 +198,92 @@ template("libdart_library") {
 
 libdart_library("libdart_jit") {
   extra_deps = [
+    "vm:libdart_platform",
     "vm:libdart_lib_jit",
     "vm:libdart_vm_jit",
   ]
 }
 
-libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [ ":dart_precompiled_runtime_config" ]
+libdart_library("libdart_jit_product") {
+  extra_configs = [ ":dart_product_config" ]
   extra_deps = [
+    "vm:libdart_platform_product",
+    "vm:libdart_lib_jit_product",
+    "vm:libdart_vm_jit_product",
+  ]
+}
+
+libdart_library("libdart_precompiled_runtime") {
+  extra_configs = [
+    ":dart_maybe_product_config",
+    ":dart_precompiled_runtime_config",
+  ]
+  extra_deps = [
+    "vm:libdart_platform",
     "vm:libdart_lib_precompiled_runtime",
     "vm:libdart_vm_precompiled_runtime",
   ]
 }
 
+libdart_library("libdart_precompiled_runtime_product") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_precompiled_runtime_config",
+  ]
+  extra_deps = [
+    "vm:libdart_platform_product",
+    "vm:libdart_lib_precompiled_runtime_product",
+    "vm:libdart_vm_precompiled_runtime_product",
+  ]
+}
+
 libdart_library("libdart_nosnapshot_with_precompiler") {
   extra_configs = [
+    ":dart_maybe_product_config",
     ":dart_no_snapshot_config",
     ":dart_precompiler_config",
   ]
   extra_deps = [
+    "vm:libdart_platform",
     "vm:libdart_lib_nosnapshot_with_precompiler",
     "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
 }
 
-libdart_library("libdart_with_precompiler") {
-  extra_configs = [ ":dart_precompiler_config" ]
+libdart_library("libdart_nosnapshot_with_precompiler_product") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_no_snapshot_config",
+    ":dart_precompiler_config",
+  ]
   extra_deps = [
+    "vm:libdart_platform_product",
+    "vm:libdart_lib_nosnapshot_with_precompiler_product",
+    "vm:libdart_vm_nosnapshot_with_precompiler_product",
+  ]
+}
+
+libdart_library("libdart_with_precompiler") {
+  extra_configs = [
+    ":dart_maybe_product_config",
+    ":dart_precompiler_config",
+  ]
+  extra_deps = [
+    "vm:libdart_platform",
     "vm:libdart_lib_with_precompiler",
     "vm:libdart_vm_with_precompiler",
+  ]
+}
+
+libdart_library("libdart_with_precompiler_product") {
+  extra_configs = [
+    ":dart_product_config",
+    ":dart_precompiler_config",
+  ]
+  extra_deps = [
+    "vm:libdart_platform_product",
+    "vm:libdart_lib_with_precompiler_product",
+    "vm:libdart_vm_with_precompiler_product",
   ]
 }
 

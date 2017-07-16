@@ -28,129 +28,117 @@ config("libdart_vm_config") {
   }
 }
 
-static_library("libdart_platform") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-  ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-    deps = [
-      "//apps/tracing/lib/trace",
-    ]
+template("build_libdart_platform") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
   }
-  public_configs = [ ":libdart_vm_config" ]
+  static_library(target_name) {
+    configs += [ "..:dart_config" ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+      deps = [
+        "//apps/tracing/lib/trace",
+      ]
+    }
+    public_configs = [ ":libdart_vm_config" ]
 
-  sources = rebase_path(processed_gypis.platform_sources, ".", "../platform")
+    sources = rebase_path(processed_gypis.platform_sources, ".", "../platform")
 
-  include_dirs = [ ".." ]
+    include_dirs = [ ".." ]
+  }
+}
+
+build_libdart_platform("libdart_platform") {
+  extra_configs = [ "..:dart_maybe_product_config" ]
+}
+
+build_libdart_platform("libdart_platform_product") {
+  extra_configs = [ "..:dart_product_config" ]
 }
 
 vm_sources_list = processed_gypis.vm_sources
 
-source_set("libdart_vm_jit") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-  ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-    deps = [
-      "//apps/tracing/lib/trace",
-    ]
+template("build_libdart_vm") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
   }
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
+  source_set(target_name) {
+    configs += [ "..:dart_config" ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+      deps = [
+        "//apps/tracing/lib/trace",
+      ]
+    }
+    public_configs = [ ":libdart_vm_config" ]
+    set_sources_assignment_filter([
+                                    "*_test.cc",
+                                    "*_test.h",
+                                  ])
+    sources = vm_sources_list
+    include_dirs = [ ".." ]
+  }
 }
 
-source_set("libdart_vm_precompiled_runtime") {
-  configs += [
-    "..:dart_config",
+build_libdart_vm("libdart_vm_jit") {
+  extra_configs = [ "..:dart_maybe_product_config" ]
+}
+
+build_libdart_vm("libdart_vm_jit_product") {
+  extra_configs = [ "..:dart_product_config" ]
+}
+
+build_libdart_vm("libdart_vm_precompiled_runtime") {
+  extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_precompiled_runtime_config",
   ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-    deps = [
-      "//apps/tracing/lib/trace",
-    ]
-  }
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
 }
 
-source_set("libdart_vm_nosnapshot") {
-  configs += [
-    "..:dart_config",
+build_libdart_vm("libdart_vm_precompiled_runtime_product") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_precompiled_runtime_config",
+  ]
+}
+
+build_libdart_vm("libdart_vm_nosnapshot") {
+  extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_no_snapshot_config",
   ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-    deps = [
-      "//apps/tracing/lib/trace",
-    ]
-  }
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
 }
 
-source_set("libdart_vm_nosnapshot_with_precompiler") {
-  configs += [
-    "..:dart_config",
+build_libdart_vm("libdart_vm_nosnapshot_with_precompiler") {
+  extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
     "..:dart_no_snapshot_config",
   ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-    deps = [
-      "//apps/tracing/lib/trace",
-    ]
-  }
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
 }
 
-source_set("libdart_vm_with_precompiler") {
-  configs += [
-    "..:dart_config",
+build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_product") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_precompiler_config",
+    "..:dart_no_snapshot_config",
+  ]
+}
+
+build_libdart_vm("libdart_vm_with_precompiler") {
+  extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
   ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-    deps = [
-      "//apps/tracing/lib/trace",
-    ]
-  }
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
+}
+
+build_libdart_vm("libdart_vm_with_precompiler_product") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_precompiler_config",
+  ]
 }
 
 template("process_library_source") {
@@ -196,6 +184,30 @@ template("generate_library_source") {
       "--library_name",
       "dart:${libname}",
     ]
+  }
+}
+
+template("build_libdart_lib") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  extra_sources = []
+  if (defined(invoker.extra_sources)) {
+    extra_sources += invoker.extra_sources
+  }
+  source_set(target_name) {
+    configs += [ "..:dart_config" ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
+    deps = extra_deps
+    sources = extra_sources
+    include_dirs = [ ".." ]
   }
 }
 
@@ -248,57 +260,66 @@ template("generate_core_libraries") {
 
   all_libsources = rebase_path(invoker.allsources, ".", "../lib")
 
-  source_set("libdart_lib_nosnapshot_with_precompiler") {
-    configs += [
-      "..:dart_config",
+  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler") {
+    extra_configs = [
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
     ]
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    deps = libdeps
-    sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-    include_dirs = [ ".." ]
+    extra_deps = libdeps
+    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
   }
 
-  source_set("libdart_lib_with_precompiler") {
-    configs += [
-      "..:dart_config",
+  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_product") {
+    extra_configs = [
+      "..:dart_product_config",
+      "..:dart_precompiler_config",
+    ]
+    extra_deps = libdeps
+    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
+  }
+
+  build_libdart_lib("libdart_lib_with_precompiler") {
+    extra_configs = [
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
     ]
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    deps = libdeps
-    sources = all_libsources + [ "bootstrap_nocore.cc" ]
-    include_dirs = [ ".." ]
+    extra_deps = libdeps
+    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
 
-  source_set("libdart_lib_jit") {
-    configs += [
-      "..:dart_config",
-      "..:dart_maybe_product_config",
+  build_libdart_lib("libdart_lib_with_precompiler_product") {
+    extra_configs = [
+      "..:dart_product_config",
+      "..:dart_precompiler_config",
     ]
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    sources = all_libsources + [ "bootstrap_nocore.cc" ]
-    include_dirs = [ ".." ]
+    extra_deps = libdeps
+    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
 
-  source_set("libdart_lib_precompiled_runtime") {
-    configs += [
-      "..:dart_config",
+  build_libdart_lib("libdart_lib_jit") {
+    extra_configs = [ "..:dart_maybe_product_config" ]
+    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
+  }
+
+  build_libdart_lib("libdart_lib_jit_product") {
+    extra_configs = [ "..:dart_product_config" ]
+    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
+  }
+
+  build_libdart_lib("libdart_lib_precompiled_runtime") {
+    extra_configs = [
       "..:dart_maybe_product_config",
       "..:dart_precompiled_runtime_config",
     ]
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    sources = all_libsources + [ "bootstrap_nocore.cc" ]
-    include_dirs = [ ".." ]
+    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
+  }
+
+  build_libdart_lib("libdart_lib_precompiled_runtime_product") {
+    extra_configs = [
+      "..:dart_product_config",
+      "..:dart_precompiled_runtime_config",
+    ]
+    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
   }
 }
 
