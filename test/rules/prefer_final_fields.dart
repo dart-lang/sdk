@@ -80,3 +80,14 @@ class F{
     _array[0] = 3;
   }
 }
+
+// https://github.com/dart-lang/linter/issues/686
+class IdBug686 {
+  static int _id = 0;
+  static String generateId({prefix: String}) {
+    return (prefix ?? "id") + "-" +
+        (_id++).toString() + "-" + _foo();
+  }
+
+  static String _foo() => '';
+}
