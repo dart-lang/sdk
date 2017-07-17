@@ -3115,32 +3115,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
 
-  if (FLAG_causal_async_stacks &&
-      (dart_function.IsAsyncFunction() || dart_function.IsAsyncGenerator())) {
-    LocalScope* scope = parsed_function()->node_sequence()->scope();
-    // :async_stack_trace = _asyncStackTraceHelper(:async_op);
-    const dart::Library& async_lib =
-        dart::Library::Handle(dart::Library::AsyncLibrary());
-    const Function& target = Function::ZoneHandle(
-        Z,
-        async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
-    ASSERT(!target.IsNull());
-
-    // TODO(johnmccutchan): Why does this have the null value?
-    LocalVariable* async_op =
-        scope->child()->LookupVariable(Symbols::AsyncOperation(), false);
-    ASSERT(async_op != NULL);
-    ASSERT(async_op->is_captured());
-    body += LoadLocal(async_op);
-    body += PushArgument();
-    body += StaticCall(TokenPosition::kNoSource, target, 1);
-    LocalVariable* async_stack_trace_var =
-        scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
-    ASSERT(async_stack_trace_var != NULL);
-    body += StoreLocal(TokenPosition::kNoSource, async_stack_trace_var);
-    body += Drop();
-  }
-
   bool has_body = ReadTag() == kSomething;  // read first part of body.
 
   if (dart_function.is_native()) {
