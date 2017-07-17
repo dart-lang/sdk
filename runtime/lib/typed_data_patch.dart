@@ -3044,17 +3044,19 @@ int _toUint32(int value) {
   return value & 0xFFFFFFFF;
 }
 
+const _uint64Mask = (1 << 64) - 1;
+
 int _toInt64(int value) {
   // Avoid bigint mask when possible.
   return (ClassID.getID(value) == ClassID.cidBigint)
-      ? _toInt(value, 0xFFFFFFFFFFFFFFFF)
+      ? _toInt(value, _uint64Mask)
       : value;
 }
 
 int _toUint64(int value) {
   // Avoid bigint mask when possible.
   return (ClassID.getID(value) == ClassID.cidBigint)
-      ? _toInt(value, 0xFFFFFFFFFFFFFFFF)
+      ? _toInt(value, _uint64Mask)
       : value;
 }
 
