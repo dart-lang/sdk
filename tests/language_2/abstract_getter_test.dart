@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 class Foo {
   // Intentionally abstract:
-  get i; // //# 01: static type warning
+  get i; // //# 01: compile-time error
 }
 
 class Bar {}

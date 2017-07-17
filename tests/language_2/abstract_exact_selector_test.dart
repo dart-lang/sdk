@@ -8,8 +8,8 @@
 import "package:expect/expect.dart";
 import "compiler_annotations.dart";
 
-abstract //# 01: static type warning
-class Foo {
+abstract //# 01: compile-time error
+    class Foo {
   noSuchMethod(im) => 42;
 }
 
