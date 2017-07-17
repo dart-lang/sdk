@@ -4,7 +4,6 @@
 
 library dart2js.kernel.frontend_strategy;
 
-import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
@@ -196,10 +195,8 @@ class MirrorsDataBuilderImpl extends MirrorsDataImpl {
   }
 
   @override
-  void maybeMarkClosureAsNeededForReflection(
-      ClosureClassElement globalizedElement,
-      FunctionElement callFunction,
-      FunctionElement function) {}
+  void maybeMarkClosureAsNeededForReflection(ClassEntity closureClass,
+      FunctionEntity callMethod, Local localFunction) {}
 
   @override
   void registerConstSymbol(String name) {}

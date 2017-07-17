@@ -34,6 +34,7 @@ import '../js_backend/runtime_types.dart';
 import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
+import '../options.dart';
 import '../tree/tree.dart' show Node;
 import '../serialization/task.dart';
 import '../patch_parser.dart';
@@ -108,7 +109,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       new ResolutionNoSuchMethodResolver();
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataImpl(
+    return new ResolutionMirrorsData(
         _compiler, _compiler.options, elementEnvironment, commonElements);
   }
 
@@ -933,5 +934,26 @@ class ResolutionWorkItemBuilder extends WorkItemBuilder {
     assert(element is AnalyzableElement,
         failedAt(element, 'Element $element is not analyzable.'));
     return _resolution.createWorkItem(element);
+  }
+}
+
+class ResolutionMirrorsData extends MirrorsDataImpl {
+  ResolutionMirrorsData(Compiler compiler, CompilerOptions options,
+      ElementEnvironment elementEnvironment, CommonElements commonElements)
+      : super(compiler, options, elementEnvironment, commonElements);
+
+  @override
+  bool isClassInjected(covariant ClassElement cls) => cls.isInjected;
+
+  @override
+  bool isClassResolved(covariant ClassElement cls) => cls.isResolved;
+
+  @override
+  void forEachConstructor(
+      covariant ClassElement cls, void f(ConstructorEntity constructor)) {
+    cls.constructors.forEach((Element _constructor) {
+      ConstructorElement constructor = _constructor;
+      f(constructor);
+    });
   }
 }
