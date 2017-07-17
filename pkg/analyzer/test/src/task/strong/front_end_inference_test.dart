@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
+import 'package:front_end/src/fasta/compiler_command_line.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     as fasta;
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
@@ -133,33 +134,35 @@ class _ElementNamer {
 }
 
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
-  Future<String> runTest(String path, String code) async {
-    Uri uri = provider.pathContext.toUri(path);
+  Future<String> runTest(String path, String code) {
+    return fasta.CompilerCommandLine.withGlobalOptions("", [""], (_) async {
+      Uri uri = provider.pathContext.toUri(path);
 
-    List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
-    fasta.CompilerContext.current.uriToSource[relativizeUri(uri).toString()] =
-        new fasta.Source(lineStarts, UTF8.encode(code));
+      List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
+      fasta.CompilerContext.current.uriToSource[relativizeUri(uri).toString()] =
+          new fasta.Source(lineStarts, UTF8.encode(code));
 
-    var validation = new fasta.ValidatingInstrumentation();
-    await validation.loadExpectations(uri);
+      var validation = new fasta.ValidatingInstrumentation();
+      await validation.loadExpectations(uri);
 
-    _addFileAndImports(path, code);
+      _addFileAndImports(path, code);
 
-    AnalysisResult result = await driver.getResult(path);
-    result.unit.accept(new _InstrumentationVisitor(validation, uri));
+      AnalysisResult result = await driver.getResult(path);
+      result.unit.accept(new _InstrumentationVisitor(validation, uri));
 
-    validation.finish();
+      validation.finish();
 
-    if (validation.hasProblems) {
-      if (fixProblems) {
-        validation.fixSource(uri, true);
-        return null;
+      if (validation.hasProblems) {
+        if (fixProblems) {
+          validation.fixSource(uri, true);
+          return null;
+        } else {
+          return validation.problemsAsString;
+        }
       } else {
-        return validation.problemsAsString;
+        return null;
       }
-    } else {
-      return null;
-    }
+    });
   }
 
   void _addFileAndImports(String path, String code) {
