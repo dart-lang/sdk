@@ -86,12 +86,12 @@ abstract class InferrerEngine {
   ///
   /// Returns the new type for [analyzedElement].
   TypeInformation addReturnTypeForMethod(
-      MethodElement element, TypeInformation unused, TypeInformation newType);
+      FunctionEntity element, TypeInformation unused, TypeInformation newType);
 
   /// Applies [f] to all elements in the universe that match [selector] and
   /// [mask]. If [f] returns false, aborts the iteration.
   void forEachElementMatching(
-      Selector selector, TypeMask mask, bool f(Element element));
+      Selector selector, TypeMask mask, bool f(MemberEntity element));
 
   /// Returns the [TypeInformation] node for the default value of a parameter.
   /// If this is queried before it is set by [setDefaultTypeOfParameter], a
@@ -100,7 +100,7 @@ abstract class InferrerEngine {
   ///
   /// Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
   /// should be present and a default type for each parameter should exist.
-  TypeInformation getDefaultTypeOfParameter(ParameterElement parameter);
+  TypeInformation getDefaultTypeOfParameter(Local parameter);
 
   /// This helper breaks abstractions but is currently required to work around
   /// the wrong modeling of default values of optional parameters of
@@ -108,31 +108,30 @@ abstract class InferrerEngine {
   ///
   /// TODO(johnniwinther): Remove once default values of synthetic parameters
   /// are fixed.
-  bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement parameter);
+  bool hasAlreadyComputedTypeOfParameterDefault(Local parameter);
 
   /// Sets the type of a parameter's default value to [type]. If the global
   /// mapping in [defaultTypeOfParameter] already contains a type, it must be
   /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
   /// updated.
-  void setDefaultTypeOfParameter(
-      ParameterElement parameter, TypeInformation type);
+  void setDefaultTypeOfParameter(Local parameter, TypeInformation type);
 
-  Iterable<MemberEntity> getCallersOf(MemberElement element);
+  Iterable<MemberEntity> getCallersOf(MemberEntity element);
 
   // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberElement element);
+  GlobalTypeInferenceElementData dataOfMember(MemberEntity element);
 
-  GlobalTypeInferenceElementData lookupDataOfMember(MemberElement element);
+  GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element);
 
-  bool checkIfExposesThis(ConstructorElement element);
+  bool checkIfExposesThis(ConstructorEntity element);
 
-  void recordExposesThis(ConstructorElement element, bool exposesThis);
+  void recordExposesThis(ConstructorEntity element, bool exposesThis);
 
   /// Records that the return type [element] is of type [type].
-  void recordReturnType(MethodElement element, TypeInformation type);
+  void recordReturnType(FunctionEntity element, TypeInformation type);
 
   /// Records that [element] is of type [type].
-  void recordTypeOfField(FieldElement element, TypeInformation type);
+  void recordTypeOfField(FieldEntity element, TypeInformation type);
 
   /// Registers a call to await with an expression of type [argumentType] as
   /// argument.
@@ -153,7 +152,7 @@ abstract class InferrerEngine {
       Selector selector,
       TypeMask mask,
       TypeInformation closure,
-      MemberElement caller,
+      MemberEntity caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop);
@@ -169,8 +168,8 @@ abstract class InferrerEngine {
       Spannable node,
       Selector selector,
       TypeMask mask,
-      MemberElement caller,
-      MemberElement callee,
+      MemberEntity caller,
+      MemberEntity callee,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop);
@@ -187,7 +186,7 @@ abstract class InferrerEngine {
       Selector selector,
       TypeMask mask,
       TypeInformation receiverType,
-      MemberElement caller,
+      MemberEntity caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop,
@@ -201,20 +200,20 @@ abstract class InferrerEngine {
       {bool remove, bool addToQueue: true});
 
   void updateSelectorInMember(
-      MemberElement owner, Spannable node, Selector selector, TypeMask mask);
+      MemberEntity owner, ast.Node node, Selector selector, TypeMask mask);
 
   /// Returns the return type of [element].
-  TypeInformation returnTypeOfMember(MemberElement element);
+  TypeInformation returnTypeOfMember(MemberEntity element);
 
   /// Returns the type of [element] when being called with [selector].
   TypeInformation typeOfMemberWithSelector(
-      MemberElement element, Selector selector);
+      MemberEntity element, Selector selector);
 
   /// Returns the type of [element].
-  TypeInformation typeOfMember(MemberElement element);
+  TypeInformation typeOfMember(MemberEntity element);
 
   /// Returns the type of [element].
-  TypeInformation typeOfParameter(ParameterElement element);
+  TypeInformation typeOfParameter(Local element);
 
   /// Returns the type for [nativeBehavior]. See documentation on
   /// [native.NativeBehavior].
@@ -254,8 +253,8 @@ class InferrerEngineImpl extends InferrerEngine {
 
   final Map<ir.Node, TypeInformation> concreteKernelTypes =
       new Map<ir.Node, TypeInformation>();
-  final Set<ConstructorElement> generativeConstructorsExposingThis =
-      new Set<ConstructorElement>();
+  final Set<ConstructorEntity> generativeConstructorsExposingThis =
+      new Set<ConstructorEntity>();
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
@@ -269,19 +268,19 @@ class InferrerEngineImpl extends InferrerEngine {
         this.closedWorld = closedWorld;
 
   void forEachElementMatching(
-      Selector selector, TypeMask mask, bool f(Element element)) {
+      Selector selector, TypeMask mask, bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
     for (MemberElement e in elements) {
-      if (!f(e.implementation)) return;
+      if (!f(e)) return;
     }
   }
 
   // TODO(johnniwinther): Make this private again.
-  GlobalTypeInferenceElementData dataOfMember(MemberElement element) =>
+  GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData.putIfAbsent(
           element, () => new GlobalTypeInferenceElementData());
 
-  GlobalTypeInferenceElementData lookupDataOfMember(MemberElement element) =>
+  GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element) =>
       _memberData[element];
 
   /**
@@ -358,10 +357,9 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void updateSelectorInMember(
-      MemberElement owner, Spannable node, Selector selector, TypeMask mask) {
+      MemberEntity owner, ast.Node node, Selector selector, TypeMask mask) {
     GlobalTypeInferenceElementData data = dataOfMember(owner);
-    ast.Node astNode = node;
-    if (astNode.asSendSet() != null) {
+    if (node.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
         data.setTypeMask(node, mask);
       } else if (selector.isGetter || selector.isIndex) {
@@ -370,10 +368,10 @@ class InferrerEngineImpl extends InferrerEngine {
         assert(selector.isOperator);
         data.setOperatorTypeMaskInComplexSendSet(node, mask);
       }
-    } else if (astNode.asSend() != null) {
+    } else if (node.asSend() != null) {
       data.setTypeMask(node, mask);
     } else {
-      assert(astNode.asForIn() != null);
+      assert(node.asForIn() != null);
       if (selector == Selectors.iterator) {
         data.setIteratorTypeMask(node, mask);
       } else if (selector == Selectors.current) {
@@ -385,13 +383,13 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  bool checkIfExposesThis(ConstructorElement element) {
-    element = element.implementation;
+  bool checkIfExposesThis(ConstructorEntity element) {
+    assert(!(element is ConstructorElement && !element.isDeclaration));
     return generativeConstructorsExposingThis.contains(element);
   }
 
-  void recordExposesThis(ConstructorElement element, bool exposesThis) {
-    element = element.implementation;
+  void recordExposesThis(ConstructorEntity element, bool exposesThis) {
+    assert(!(element is ConstructorElement && !element.isDeclaration));
     if (exposesThis) {
       generativeConstructorsExposingThis.add(element);
     }
@@ -658,16 +656,16 @@ class InferrerEngineImpl extends InferrerEngine {
     addedInGraph++;
 
     if (element.isField) {
-      FieldElement fieldElement = element;
+      FieldElement field = element;
       ast.Node initializer = resolvedAst.body;
-      if (element.isFinal || element.isConst) {
+      if (field.isFinal || field.isConst) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
         if (resolvedAst.body != null) {
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantExpression constant = fieldElement.constant;
+            ConstantExpression constant = field.constant;
             if (constant != null) {
               ConstantValue value =
                   compiler.backend.constants.getConstantValue(constant);
@@ -687,30 +685,30 @@ class InferrerEngineImpl extends InferrerEngine {
                 }
               } else {
                 assert(
-                    fieldElement.isInstanceMember ||
+                    field.isInstanceMember ||
                         constant.isImplicit ||
                         constant.isPotential,
                     failedAt(
-                        fieldElement,
+                        field,
                         "Constant expression without value: "
                         "${constant.toStructuredText()}."));
               }
             }
           }
-          recordTypeOfField(element, type);
+          recordTypeOfField(field, type);
         } else if (!element.isInstanceMember) {
-          recordTypeOfField(element, types.nullType);
+          recordTypeOfField(field, types.nullType);
         }
       } else if (initializer == null) {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
-          recordTypeOfField(element, type);
+          recordTypeOfField(field, type);
         }
       } else {
-        recordTypeOfField(element, type);
+        recordTypeOfField(field, type);
       }
-      if (Elements.isStaticOrTopLevelField(element) &&
+      if (Elements.isStaticOrTopLevelField(field) &&
           resolvedAst.body != null &&
           !element.isConst) {
         dynamic argument = resolvedAst.body;
@@ -718,11 +716,12 @@ class InferrerEngineImpl extends InferrerEngine {
         // constant handler to figure out if it's a lazy field or not.
         if (argument.asSend() != null ||
             (argument.asNewExpression() != null && !argument.isConst)) {
-          recordTypeOfField(element, types.nullType);
+          recordTypeOfField(field, types.nullType);
         }
       }
     } else {
-      recordReturnType(element, type);
+      MethodElement method = element;
+      recordReturnType(method, type);
     }
   }
 
@@ -857,7 +856,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   void setDefaultTypeOfParameter(
-      ParameterElement parameter, TypeInformation type) {
+      covariant ParameterElement parameter, TypeInformation type) {
     assert(parameter.functionDeclaration.isImplementation);
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
@@ -882,36 +881,36 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  TypeInformation getDefaultTypeOfParameter(ParameterElement parameter) {
+  TypeInformation getDefaultTypeOfParameter(Local parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(types.currentMember);
     });
   }
 
-  bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement parameter) {
+  bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }
 
-  TypeInformation typeOfParameter(ParameterElement element) {
+  TypeInformation typeOfParameter(Local element) {
     return types.getInferredTypeOfParameter(element);
   }
 
-  TypeInformation typeOfMember(MemberElement element) {
-    if (element is MethodElement) return types.functionType;
+  TypeInformation typeOfMember(MemberEntity element) {
+    if (element is FunctionEntity) return types.functionType;
     return types.getInferredTypeOfMember(element);
   }
 
-  TypeInformation returnTypeOfMember(MemberElement element) {
-    if (element is! MethodElement) return types.dynamicType;
+  TypeInformation returnTypeOfMember(MemberEntity element) {
+    if (element is! FunctionEntity) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
   }
 
-  void recordTypeOfField(FieldElement element, TypeInformation type) {
+  void recordTypeOfField(FieldEntity element, TypeInformation type) {
     types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
-  void recordReturnType(MethodElement element, TypeInformation type) {
+  void recordReturnType(FunctionEntity element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
       // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
@@ -923,8 +922,8 @@ class InferrerEngineImpl extends InferrerEngine {
     if (info.assignments.isEmpty) info.addAssignment(type);
   }
 
-  TypeInformation addReturnTypeForMethod(
-      MethodElement element, TypeInformation unused, TypeInformation newType) {
+  TypeInformation addReturnTypeForMethod(covariant MethodElement element,
+      TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
     // TODO(ngeoffray): Clean up. We do this check because
     // [SimpleTypesInferrer] deals with two different inferrers.
@@ -937,8 +936,8 @@ class InferrerEngineImpl extends InferrerEngine {
       Spannable node,
       Selector selector,
       TypeMask mask,
-      MemberElement caller,
-      MemberElement callee,
+      MemberEntity caller,
+      covariant MemberElement callee,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {
@@ -973,7 +972,7 @@ class InferrerEngineImpl extends InferrerEngine {
       Selector selector,
       TypeMask mask,
       TypeInformation receiverType,
-      MemberElement caller,
+      MemberEntity caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop,
@@ -1025,7 +1024,7 @@ class InferrerEngineImpl extends InferrerEngine {
       Selector selector,
       TypeMask mask,
       TypeInformation closure,
-      MemberElement caller,
+      MemberEntity caller,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {
@@ -1111,7 +1110,7 @@ class InferrerEngineImpl extends InferrerEngine {
     types.allocatedLists.values.forEach(cleanup);
   }
 
-  Iterable<MemberEntity> getCallersOf(MemberElement element) {
+  Iterable<MemberEntity> getCallersOf(MemberEntity element) {
     if (compiler.disableTypeInference) {
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");
@@ -1121,7 +1120,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   TypeInformation typeOfMemberWithSelector(
-      MemberElement element, Selector selector) {
+      covariant MemberElement element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
         selector.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case

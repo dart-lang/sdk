@@ -971,6 +971,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     if (analyzedElement.isGenerativeConstructor) {
+      ConstructorElement analyzedConstructor = analyzedElement;
       isThisExposed = false;
       signature.forEachParameter((FormalElement _element) {
         ParameterElement element = _element;
@@ -988,12 +989,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         }
         locals.update(element, parameterType, node);
       });
-      ClassElement cls = analyzedElement.enclosingClass;
+      ClassElement cls = analyzedConstructor.enclosingClass;
       Spannable spannable = node;
-      if (analyzedElement.isSynthesized) {
-        spannable = analyzedElement;
-        ConstructorElement constructor = analyzedElement;
-        synthesizeForwardingCall(spannable, constructor.definingConstructor);
+      if (analyzedConstructor.isSynthesized) {
+        spannable = analyzedConstructor;
+        synthesizeForwardingCall(
+            spannable, analyzedConstructor.definingConstructor);
       } else {
         visitingInitializers = true;
         if (node.initializers != null) {
@@ -1019,10 +1020,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
           analyzeSuperConstructorCall(target, arguments);
           inferrer.registerCalledMember(node, null, null, outermostElement,
-              target.implementation, arguments, sideEffects, inLoop);
+              target, arguments, sideEffects, inLoop);
         }
         visit(node.body);
-        inferrer.recordExposesThis(analyzedElement, isThisExposed);
+        inferrer.recordExposesThis(analyzedConstructor, isThisExposed);
       }
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
@@ -1206,18 +1207,19 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   void checkIfExposesThis(Selector selector, TypeMask mask) {
     if (isThisExposed) return;
-    inferrer.forEachElementMatching(selector, mask, (dynamic element) {
+    inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
       if (element.isField) {
-        ResolvedAst elementResolvedAst = element.resolvedAst;
+        FieldElement field = element;
+        ResolvedAst elementResolvedAst = field.resolvedAst;
         if (!selector.isSetter &&
-            isInClassOrSubclass(element) &&
-            !element.isFinal &&
-            locals.fieldScope.readField(element) == null &&
+            isInClassOrSubclass(field) &&
+            !field.isFinal &&
+            locals.fieldScope.readField(field) == null &&
             elementResolvedAst.body == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
-          inferrer.recordTypeOfField(element, types.nullType);
+          inferrer.recordTypeOfField(field, types.nullType);
         }
         // Accessing a field does not expose [:this:].
         return true;
@@ -2001,14 +2003,15 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       handleDynamicSend(
           node, setterSelector, setterMask, receiverType, arguments);
     } else if (element.isField) {
-      if (element.isFinal) {
-        inferrer.recordTypeOfField(element, rhsType);
+      FieldElement field = element;
+      if (field.isFinal) {
+        inferrer.recordTypeOfField(field, rhsType);
       } else {
         if (analyzedElement.isGenerativeConstructor) {
-          locals.updateField(element, rhsType);
+          locals.updateField(field, rhsType);
         }
         if (visitingInitializers) {
-          inferrer.recordTypeOfField(element, rhsType);
+          inferrer.recordTypeOfField(field, rhsType);
         } else {
           handleDynamicSend(
               node, setterSelector, setterMask, receiverType, arguments);
@@ -2359,8 +2362,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     } else if (Elements.isConstructorOfTypedArraySubclass(
         constructor, closedWorld)) {
       int length = findLength(node);
-      TypeInformation elementType =
-          inferrer.returnTypeOfMember(target.enclosingClass.lookupMember('[]'));
+      MemberElement member = target.enclosingClass.lookupMember('[]');
+      TypeInformation elementType = inferrer.returnTypeOfMember(member);
       return inferrer.concreteTypes.putIfAbsent(
           node,
           () => types.allocateList(types.nonNullExact(target.enclosingClass),
@@ -2816,8 +2819,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   void recordReturnType(TypeInformation type) {
+    MethodElement analyzedMethod = analyzedElement;
     returnType =
-        inferrer.addReturnTypeForMethod(analyzedElement, returnType, type);
+        inferrer.addReturnTypeForMethod(analyzedMethod, returnType, type);
   }
 
   TypeInformation synthesizeForwardingCall(
