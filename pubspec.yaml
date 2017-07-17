@@ -9,12 +9,16 @@ dependencies:
   analyzer: ^0.30.0
   args: '>=0.12.1 <0.14.0'
   glob: ^1.0.3
+  meta: ^1.0.2
   plugin: ^0.2.0
   source_span: ^1.0.2
   yaml: ^2.1.2
 dev_dependencies:
+  cli_util: ^0.1.2
   grinder: ^0.8.0
   markdown: ^0.11.0
   matcher: ^0.12.0
   mockito: ^1.0.0
+  path: '>=0.9.0 <2.0.0'
   test: ^0.12.0
+  unscripted: ^0.6.2
