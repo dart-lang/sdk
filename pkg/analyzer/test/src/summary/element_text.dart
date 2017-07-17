@@ -646,6 +646,23 @@ class _ElementWriter {
       return;
     }
 
+    if (!e.isSynthetic) {
+      PropertyInducingElement variable = e.variable;
+      expect(variable, isNotNull);
+      expect(variable.isSynthetic, isTrue);
+      if (e.isGetter) {
+        expect(variable.getter, same(e));
+        if (variable.setter != null) {
+          expect(variable.setter.variable, same(variable));
+        }
+      } else {
+        expect(variable.setter, same(e));
+        if (variable.getter != null) {
+          expect(variable.getter.variable, same(variable));
+        }
+      }
+    }
+
     if (e.enclosingElement is ClassElement) {
       writeDocumentation(e, '  ');
       writeMetadata(e, '  ', '\n');

@@ -509,8 +509,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_unlinkedClass != null && _accessors == null) {
-      _resynthesizeFieldsAndPropertyAccessors();
+    if (_accessors == null) {
+      if (_kernel != null || _unlinkedClass != null) {
+        _resynthesizeFieldsAndPropertyAccessors();
+      }
     }
     return _accessors ?? const <PropertyAccessorElement>[];
   }
@@ -650,8 +652,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<FieldElement> get fields {
-    if (_unlinkedClass != null && _fields == null) {
-      _resynthesizeFieldsAndPropertyAccessors();
+    if (_fields == null) {
+      if (_kernel != null || _unlinkedClass != null) {
+        _resynthesizeFieldsAndPropertyAccessors();
+      }
     }
     return _fields ?? const <FieldElement>[];
   }
@@ -1230,49 +1234,93 @@ class ClassElementImpl extends AbstractClassElementImpl
   void _resynthesizeFieldsAndPropertyAccessors() {
     assert(_fields == null);
     assert(_accessors == null);
-    // Build explicit fields and implicit property accessors.
     var explicitFields = <FieldElement>[];
     var implicitAccessors = <PropertyAccessorElement>[];
-    for (UnlinkedVariable v in _unlinkedClass.fields) {
-      FieldElementImpl field =
-          new FieldElementImpl.forSerializedFactory(v, this);
-      explicitFields.add(field);
-      implicitAccessors.add(
-          new PropertyAccessorElementImpl_ImplicitGetter(field)
-            ..enclosingElement = this);
-      if (!field.isConst && !field.isFinal) {
-        implicitAccessors.add(
-            new PropertyAccessorElementImpl_ImplicitSetter(field)
-              ..enclosingElement = this);
-      }
-    }
-    // Build explicit property accessors and implicit fields.
     var explicitAccessors = <PropertyAccessorElement>[];
     var implicitFields = <String, FieldElementImpl>{};
-    for (UnlinkedExecutable e in _unlinkedClass.executables) {
-      if (e.kind == UnlinkedExecutableKind.getter ||
-          e.kind == UnlinkedExecutableKind.setter) {
-        PropertyAccessorElementImpl accessor =
-            new PropertyAccessorElementImpl.forSerialized(e, this);
-        explicitAccessors.add(accessor);
-        // Create or update the implicit field.
-        String fieldName = accessor.displayName;
-        FieldElementImpl field = implicitFields[fieldName];
-        if (field == null) {
-          field = new FieldElementImpl(fieldName, -1);
-          implicitFields[fieldName] = field;
-          field.enclosingElement = this;
-          field.isSynthetic = true;
-          field.isFinal = e.kind == UnlinkedExecutableKind.getter;
-          field.isStatic = e.isStatic;
-        } else {
-          field.isFinal = false;
+    if (_kernel != null) {
+      // Build explicit fields and implicit property accessors.
+      for (var k in _kernel.fields) {
+        var field = new FieldElementImpl.forKernelFactory(this, k);
+        explicitFields.add(field);
+        implicitAccessors.add(
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
+              ..enclosingElement = this);
+        if (!field.isConst && !field.isFinal) {
+          implicitAccessors.add(
+              new PropertyAccessorElementImpl_ImplicitSetter(field)
+                ..enclosingElement = this);
         }
-        accessor.variable = field;
-        if (e.kind == UnlinkedExecutableKind.getter) {
-          field.getter = accessor;
-        } else {
-          field.setter = accessor;
+      }
+      // Build explicit property accessors and implicit fields.
+      for (var k in _kernel.procedures) {
+        bool isGetter = k.kind == kernel.ProcedureKind.Getter;
+        bool isSetter = k.kind == kernel.ProcedureKind.Setter;
+        if (isGetter || isSetter) {
+          var accessor = new PropertyAccessorElementImpl.forKernel(this, k);
+          explicitAccessors.add(accessor);
+          // Create or update the implicit field.
+          String fieldName = accessor.displayName;
+          FieldElementImpl field = implicitFields[fieldName];
+          if (field == null) {
+            field = new FieldElementImpl(fieldName, -1);
+            implicitFields[fieldName] = field;
+            field.enclosingElement = this;
+            field.isSynthetic = true;
+            field.isFinal = isGetter;
+            field.isStatic = k.isStatic;
+          } else {
+            field.isFinal = false;
+          }
+          accessor.variable = field;
+          if (isGetter) {
+            field.getter = accessor;
+          } else {
+            field.setter = accessor;
+          }
+        }
+      }
+    } else {
+      // Build explicit fields and implicit property accessors.
+      for (UnlinkedVariable v in _unlinkedClass.fields) {
+        FieldElementImpl field =
+            new FieldElementImpl.forSerializedFactory(v, this);
+        explicitFields.add(field);
+        implicitAccessors.add(
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
+              ..enclosingElement = this);
+        if (!field.isConst && !field.isFinal) {
+          implicitAccessors.add(
+              new PropertyAccessorElementImpl_ImplicitSetter(field)
+                ..enclosingElement = this);
+        }
+      }
+      // Build explicit property accessors and implicit fields.
+      for (UnlinkedExecutable e in _unlinkedClass.executables) {
+        if (e.kind == UnlinkedExecutableKind.getter ||
+            e.kind == UnlinkedExecutableKind.setter) {
+          PropertyAccessorElementImpl accessor =
+              new PropertyAccessorElementImpl.forSerialized(e, this);
+          explicitAccessors.add(accessor);
+          // Create or update the implicit field.
+          String fieldName = accessor.displayName;
+          FieldElementImpl field = implicitFields[fieldName];
+          if (field == null) {
+            field = new FieldElementImpl(fieldName, -1);
+            implicitFields[fieldName] = field;
+            field.enclosingElement = this;
+            field.isSynthetic = true;
+            field.isFinal = e.kind == UnlinkedExecutableKind.getter;
+            field.isStatic = e.isStatic;
+          } else {
+            field.isFinal = false;
+          }
+          accessor.variable = field;
+          if (e.kind == UnlinkedExecutableKind.getter) {
+            field.getter = accessor;
+          } else {
+            field.setter = accessor;
+          }
         }
       }
     }
@@ -4266,6 +4314,21 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize using the given serialized information.
+   */
+  FieldElementImpl.forKernel(ElementImpl enclosingElement, kernel.Field kernel)
+      : super.forKernel(enclosingElement, kernel);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  factory FieldElementImpl.forKernelFactory(
+      ClassElementImpl enclosingClass, kernel.Field kernel) {
+    // TODO(scheglov) add support for constants.
+    return new FieldElementImpl.forKernel(enclosingClass, kernel);
+  }
+
+  /**
    * Initialize a newly created field element to have the given [name].
    */
   FieldElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -4320,6 +4383,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isStatic {
+    if (_kernel != null) {
+      return _kernel.isStatic;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isStatic;
     }
@@ -8113,6 +8179,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
   /**
+   * The kernel of the element.
+   */
+  final kernel.Procedure _kernelProcedure;
+
+  /**
    * The variable associated with this accessor.
    */
   PropertyInducingElement variable;
@@ -8121,27 +8192,40 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Initialize a newly created property accessor element to have the given
    * [name] and [offset].
    */
-  PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
+  PropertyAccessorElementImpl(String name, int offset)
+      : _kernelProcedure = null,
+        super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  PropertyAccessorElementImpl.forKernel(
+      ElementImpl enclosingElement, this._kernelProcedure)
+      : super.forKernel(enclosingElement, _kernelProcedure);
 
   /**
    * Initialize a newly created property accessor element to have the given
    * [name].
    */
-  PropertyAccessorElementImpl.forNode(Identifier name) : super.forNode(name);
+  PropertyAccessorElementImpl.forNode(Identifier name)
+      : _kernelProcedure = null,
+        super.forNode(name);
 
   /**
    * Initialize using the given serialized information.
    */
   PropertyAccessorElementImpl.forSerialized(
       UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement)
-      : super.forSerialized(serializedExecutable, enclosingElement);
+      : _kernelProcedure = null,
+        super.forSerialized(serializedExecutable, enclosingElement);
 
   /**
    * Initialize a newly created synthetic property accessor element to be
    * associated with the given [variable].
    */
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable)
-      : super(variable.name, variable.nameOffset) {
+      : _kernelProcedure = null,
+        super(variable.name, variable.nameOffset) {
     this.variable = variable;
     isStatic = variable.isStatic;
     isSynthetic = true;
@@ -8211,6 +8295,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isGetter {
+    if (_kernel != null) {
+      return _kernelProcedure.kind == kernel.ProcedureKind.Getter;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.kind == UnlinkedExecutableKind.getter;
     }
@@ -8219,6 +8306,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isSetter {
+    if (_kernel != null) {
+      return _kernelProcedure.kind == kernel.ProcedureKind.Setter;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.kind == UnlinkedExecutableKind.setter;
     }
@@ -8227,6 +8317,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isStatic {
+    if (_kernel != null) {
+      return _kernelProcedure.isStatic;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isStatic ||
           variable is TopLevelVariableElement;

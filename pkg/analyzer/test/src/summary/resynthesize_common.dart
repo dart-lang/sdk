@@ -11201,7 +11201,11 @@ abstract class D {
   }
 
   test_setter_inferred_type_static_implicit_return() async {
-    var library = await checkLibrary('class C { static set f(int value) {} }');
+    var library = await checkLibrary('''
+class C {
+  static set f(int value) {}
+}
+''');
     if (isStrongMode) {
       checkElementText(library, r'''
 class C {

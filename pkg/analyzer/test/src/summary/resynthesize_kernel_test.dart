@@ -226,56 +226,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_field_implicit_type() async {
-    await super.test_class_field_implicit_type();
-  }
-
-  @failingTest
-  test_class_field_static() async {
-    await super.test_class_field_static();
-  }
-
-  @failingTest
-  test_class_fields() async {
-    await super.test_class_fields();
-  }
-
-  @failingTest
-  test_class_getter_abstract() async {
-    await super.test_class_getter_abstract();
-  }
-
-  @failingTest
-  test_class_getter_external() async {
-    await super.test_class_getter_external();
-  }
-
-  @failingTest
-  test_class_getter_implicit_return_type() async {
-    await super.test_class_getter_implicit_return_type();
-  }
-
-  @failingTest
-  test_class_getter_static() async {
-    await super.test_class_getter_static();
-  }
-
-  @failingTest
-  test_class_getters() async {
-    await super.test_class_getters();
-  }
-
-  @failingTest
-  test_class_implicitField_getterFirst() async {
-    await super.test_class_implicitField_getterFirst();
-  }
-
-  @failingTest
-  test_class_implicitField_setterFirst() async {
-    await super.test_class_implicitField_setterFirst();
-  }
-
-  @failingTest
   test_class_interfaces_unresolved() async {
     await super.test_class_interfaces_unresolved();
   }
@@ -288,41 +238,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_mixins_unresolved() async {
     await super.test_class_mixins_unresolved();
-  }
-
-  @failingTest
-  test_class_setter_abstract() async {
-    await super.test_class_setter_abstract();
-  }
-
-  @failingTest
-  test_class_setter_external() async {
-    await super.test_class_setter_external();
-  }
-
-  @failingTest
-  test_class_setter_implicit_param_type() async {
-    await super.test_class_setter_implicit_param_type();
-  }
-
-  @failingTest
-  test_class_setter_implicit_return_type() async {
-    await super.test_class_setter_implicit_return_type();
-  }
-
-  @failingTest
-  test_class_setter_invalid_no_parameter() async {
-    await super.test_class_setter_invalid_no_parameter();
-  }
-
-  @failingTest
-  test_class_setter_static() async {
-    await super.test_class_setter_static();
-  }
-
-  @failingTest
-  test_class_setters() async {
-    await super.test_class_setters();
   }
 
   @failingTest
@@ -830,6 +745,17 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_constructor_redirected_factory_named_unresolved_class() async {
+    await super.test_constructor_redirected_factory_named_unresolved_class();
+  }
+
+  @failingTest
+  test_constructor_redirected_factory_named_unresolved_constructor() async {
+    await super
+        .test_constructor_redirected_factory_named_unresolved_constructor();
+  }
+
+  @failingTest
   test_constructor_redirected_factory_unnamed() async {
     await super.test_constructor_redirected_factory_unnamed();
   }
@@ -860,6 +786,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_constructor_redirected_factory_unnamed_unresolved() async {
+    await super.test_constructor_redirected_factory_unnamed_unresolved();
+  }
+
+  @failingTest
   test_constructor_redirected_thisInvocation_named() async {
     await super.test_constructor_redirected_thisInvocation_named();
   }
@@ -882,11 +813,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constructor_withCycles_const() async {
     await super.test_constructor_withCycles_const();
-  }
-
-  @failingTest
-  test_constructor_withCycles_nonConst() async {
-    await super.test_constructor_withCycles_nonConst();
   }
 
   @failingTest
@@ -1060,26 +986,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_field_inferred_type_nonStatic_explicit_initialized() async {
-    await super.test_field_inferred_type_nonStatic_explicit_initialized();
-  }
-
-  @failingTest
-  test_field_inferred_type_nonStatic_implicit_initialized() async {
-    await super.test_field_inferred_type_nonStatic_implicit_initialized();
-  }
-
-  @failingTest
-  test_field_inferred_type_nonStatic_implicit_uninitialized() async {
-    await super.test_field_inferred_type_nonStatic_implicit_uninitialized();
-  }
-
-  @failingTest
-  test_field_inferred_type_static_implicit_initialized() async {
-    await super.test_field_inferred_type_static_implicit_initialized();
-  }
-
-  @failingTest
   test_field_propagatedType_const_noDep() async {
     await super.test_field_propagatedType_const_noDep();
   }
@@ -1097,21 +1003,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_field_propagatedType_final_noDep_instance() async {
     await super.test_field_propagatedType_final_noDep_instance();
-  }
-
-  @failingTest
-  test_field_propagatedType_final_noDep_static() async {
-    await super.test_field_propagatedType_final_noDep_static();
-  }
-
-  @failingTest
-  test_field_static_final_untyped() async {
-    await super.test_field_static_final_untyped();
-  }
-
-  @failingTest
-  test_field_untyped() async {
-    await super.test_field_untyped();
   }
 
   @failingTest
@@ -1270,11 +1161,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_getter_inferred_type_nonStatic_implicit_return() async {
-    await super.test_getter_inferred_type_nonStatic_implicit_return();
-  }
-
-  @failingTest
   test_getters() async {
     await super.test_getters();
   }
@@ -1350,24 +1236,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_function_type_in_generic_class_constructor() async {
-    await super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @failingTest
-  test_inferred_function_type_in_generic_class_getter() async {
-    await super.test_inferred_function_type_in_generic_class_getter();
-  }
-
-  @failingTest
   test_inferred_function_type_in_generic_class_in_generic_method() async {
     await super
         .test_inferred_function_type_in_generic_class_in_generic_method();
-  }
-
-  @failingTest
-  test_inferred_function_type_in_generic_class_setter() async {
-    await super.test_inferred_function_type_in_generic_class_setter();
   }
 
   @failingTest
@@ -1429,11 +1300,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     await super
         .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
-  }
-
-  @failingTest
-  test_inheritance_errors() async {
-    await super.test_inheritance_errors();
   }
 
   @failingTest
@@ -1936,16 +1802,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_setter_external() async {
     await super.test_setter_external();
-  }
-
-  @failingTest
-  test_setter_inferred_type_nonStatic_implicit_param() async {
-    await super.test_setter_inferred_type_nonStatic_implicit_param();
-  }
-
-  @failingTest
-  test_setter_inferred_type_static_implicit_return() async {
-    await super.test_setter_inferred_type_static_implicit_return();
   }
 
   @failingTest
