@@ -211,11 +211,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_constructor_params() async {
-    await super.test_class_constructor_params();
-  }
-
-  @failingTest
   test_class_documented_tripleSlash() async {
     await super.test_class_documented_tripleSlash();
   }
@@ -283,11 +278,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_interfaces_unresolved() async {
     await super.test_class_interfaces_unresolved();
-  }
-
-  @failingTest
-  test_class_method_params() async {
-    await super.test_class_method_params();
   }
 
   @failingTest
@@ -1888,11 +1878,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_method_inferred_type_nonStatic_implicit_param() async {
-    await super.test_method_inferred_type_nonStatic_implicit_param();
-  }
-
-  @failingTest
   test_method_type_parameter() async {
     await super.test_method_type_parameter();
   }
@@ -1947,41 +1932,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_nested_generic_functions_with_local_variables() async {
     await super.test_nested_generic_functions_with_local_variables();
-  }
-
-  @failingTest
-  test_operator() async {
-    await super.test_operator();
-  }
-
-  @failingTest
-  test_operator_equal() async {
-    await super.test_operator_equal();
-  }
-
-  @failingTest
-  test_operator_external() async {
-    await super.test_operator_external();
-  }
-
-  @failingTest
-  test_operator_greater_equal() async {
-    await super.test_operator_greater_equal();
-  }
-
-  @failingTest
-  test_operator_index() async {
-    await super.test_operator_index();
-  }
-
-  @failingTest
-  test_operator_index_set() async {
-    await super.test_operator_index_set();
-  }
-
-  @failingTest
-  test_operator_less_equal() async {
-    await super.test_operator_less_equal();
   }
 
   @failingTest
@@ -2542,6 +2492,7 @@ class _KernelLibraryResynthesizerContextImpl
       return _getInterfaceType(
           kernelType.className.canonicalName, kernelType.typeArguments);
     }
+    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
   }

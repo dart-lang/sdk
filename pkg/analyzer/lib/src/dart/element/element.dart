@@ -3932,9 +3932,15 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (serializedExecutable != null) {
-      _parameters ??= ParameterElementImpl.resynthesizeList(
-          serializedExecutable.parameters, this);
+    if (_parameters == null) {
+      if (_kernel != null) {
+        _parameters =
+            ParameterElementImpl.forKernelFunction(this, _kernel.function);
+      }
+      if (serializedExecutable != null) {
+        _parameters = ParameterElementImpl.resynthesizeList(
+            serializedExecutable.parameters, this);
+      }
     }
     return _parameters ?? const <ParameterElement>[];
   }
@@ -7379,6 +7385,11 @@ class ParameterElementImpl extends VariableElementImpl
   final UnlinkedParam _unlinkedParam;
 
   /**
+   * The kernel of the element;
+   */
+  final kernel.VariableDeclaration _kernel;
+
+  /**
    * A list containing all of the parameters defined by this parameter element.
    * There will only be parameters if this parameter is a function typed
    * parameter.
@@ -7421,13 +7432,23 @@ class ParameterElementImpl extends VariableElementImpl
    */
   ParameterElementImpl(String name, int nameOffset)
       : _unlinkedParam = null,
+        _kernel = null,
         super(name, nameOffset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ParameterElementImpl.forKernel(
+      ElementImpl enclosingElement, this._kernel, this._parameterKind)
+      : _unlinkedParam = null,
+        super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
    */
   ParameterElementImpl.forNode(Identifier name)
       : _unlinkedParam = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -7435,7 +7456,8 @@ class ParameterElementImpl extends VariableElementImpl
    */
   ParameterElementImpl.forSerialized(
       this._unlinkedParam, ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
+      : _kernel = null,
+        super.forSerialized(enclosingElement);
 
   /**
    * Initialize using the given serialized information.
@@ -7574,6 +7596,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isConst {
+    if (_kernel != null) {
+      return false;
+    }
     if (_unlinkedParam != null) {
       return false;
     }
@@ -7619,6 +7644,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isFinal {
+    if (_kernel != null) {
+      return _kernel.isFinal;
+    }
     if (_unlinkedParam != null) {
       return _unlinkedParam.isFinal;
     }
@@ -7654,6 +7682,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedParam != null) {
       return _unlinkedParam.name;
     }
@@ -7717,6 +7748,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   DartType get type {
+    if (_kernel != null) {
+      return _type ??= enclosingUnit._kernelContext.getType(this, _kernel.type);
+    }
     _resynthesizeTypeAndParameters();
     return super.type;
   }
@@ -7854,6 +7888,32 @@ class ParameterElementImpl extends VariableElementImpl
         declaredType = enclosingUnit.resynthesizerContext
             .resolveTypeRef(this, _unlinkedParam.type, declaredType: true);
       }
+    }
+  }
+
+  /**
+   * Create and return [ParameterElement]s for the given [function].
+   */
+  static List<ParameterElement> forKernelFunction(
+      ElementImpl enclosingElement, kernel.FunctionNode function) {
+    if (function.positionalParameters.isNotEmpty ||
+        function.namedParameters.isNotEmpty) {
+      var parameters = <ParameterElement>[];
+      for (int i = 0; i < function.positionalParameters.length; i++) {
+        parameters.add(new ParameterElementImpl.forKernel(
+            enclosingElement,
+            function.positionalParameters[i],
+            i < function.requiredParameterCount
+                ? ParameterKind.REQUIRED
+                : ParameterKind.POSITIONAL));
+      }
+      for (var k in function.namedParameters) {
+        parameters.add(new ParameterElementImpl.forKernel(
+            enclosingElement, k, ParameterKind.NAMED));
+      }
+      return parameters;
+    } else {
+      return const <ParameterElement>[];
     }
   }
 
