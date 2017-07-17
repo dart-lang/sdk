@@ -114,7 +114,8 @@ abstract class InferrerEngine {
   /// mapping in [defaultTypeOfParameter] already contains a type, it must be
   /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
   /// updated.
-  void setDefaultTypeOfParameter(Local parameter, TypeInformation type);
+  void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
+      {bool isInstanceMember});
 
   Iterable<MemberEntity> getCallersOf(MemberEntity element);
 
@@ -227,11 +228,11 @@ abstract class InferrerEngine {
 }
 
 class InferrerEngineImpl extends InferrerEngine {
-  final Map<ParameterElement, TypeInformation> defaultTypeOfParameter =
-      new Map<ParameterElement, TypeInformation>();
+  final Map<Local, TypeInformation> defaultTypeOfParameter =
+      new Map<Local, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
   final FunctionEntity mainElement;
-  final Set<MemberElement> analyzedElements = new Set<MemberElement>();
+  final Set<MemberEntity> analyzedElements = new Set<MemberEntity>();
 
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
@@ -258,8 +259,8 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Data computed internally within elements, like the type-mask of a send a
   /// list allocation, or a for-in loop.
-  final Map<MemberElement, GlobalTypeInferenceElementData> _memberData =
-      new Map<MemberElement, GlobalTypeInferenceElementData>();
+  final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
+      new Map<MemberEntity, GlobalTypeInferenceElementData>();
 
   InferrerEngineImpl(this.compiler, ClosedWorld closedWorld,
       this.closedWorldRefiner, this.mainElement)
@@ -270,7 +271,7 @@ class InferrerEngineImpl extends InferrerEngine {
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(MemberEntity element)) {
     Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
-    for (MemberElement e in elements) {
+    for (MemberEntity e in elements) {
       if (!f(e)) return;
     }
   }
@@ -288,7 +289,8 @@ class InferrerEngineImpl extends InferrerEngine {
    * called with [selector].
    */
   void updateSideEffects(
-      SideEffects sideEffects, Selector selector, MemberElement callee) {
+      SideEffects sideEffects, Selector selector, MemberEntity callee) {
+    assert(!(callee is MemberElement && !callee.isDeclaration));
     if (callee.isField) {
       if (callee.isInstanceMember) {
         if (selector.isSetter) {
@@ -313,8 +315,7 @@ class InferrerEngineImpl extends InferrerEngine {
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      MethodElement method = callee.declaration;
-      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(method));
+      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
     }
   }
 
@@ -535,7 +536,7 @@ class InferrerEngineImpl extends InferrerEngine {
       }
 
       if (info is ClosureTypeInformation) {
-        Iterable<MethodElement> elements = [info.closure];
+        Iterable<FunctionEntity> elements = [info.closure];
         trace(elements, new ClosureTracerVisitor(elements, info, this));
       } else if (info is CallSiteTypeInformation) {
         if (info is StaticCallSiteTypeInformation &&
@@ -611,8 +612,8 @@ class InferrerEngineImpl extends InferrerEngine {
           print('${info.getInferredSignature(types)} for '
               '${info.debugName}');
         } else if (info is DynamicCallSiteTypeInformation) {
-          for (MemberElement target in info.targets) {
-            if (target is MethodElement) {
+          for (MemberEntity target in info.targets) {
+            if (target is FunctionEntity) {
               print(
                   '${types.getInferredSignatureOfMethod(target)} for ${target}');
             } else {
@@ -628,7 +629,7 @@ class InferrerEngineImpl extends InferrerEngine {
           print('${info.type} for some unknown kind of closure');
         }
       });
-      analyzedElements.forEach((MemberElement elem) {
+      analyzedElements.forEach((MemberEntity elem) {
         TypeInformation type = types.getInferredTypeOfMember(elem);
         print('${elem} :: ${type} from ${type.assignments} ');
       });
@@ -736,7 +737,7 @@ class InferrerEngineImpl extends InferrerEngine {
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach((MemberElement element) {
+        info.targets.forEach((MemberEntity element) {
           closedWorldRefiner.addFunctionCalledInLoop(element);
         });
       }
@@ -855,15 +856,15 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  void setDefaultTypeOfParameter(
-      covariant ParameterElement parameter, TypeInformation type) {
-    assert(parameter.functionDeclaration.isImplementation);
+  void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
+      {bool isInstanceMember}) {
+    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
-      if (parameter.functionDeclaration.isInstanceMember) {
+      if (isInstanceMember) {
         ParameterAssignments assignments = info.assignments;
         assignments.replace(existing, type);
       } else {
@@ -882,12 +883,14 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
+    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(types.currentMember);
     });
   }
 
   bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
+    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }
@@ -922,12 +925,14 @@ class InferrerEngineImpl extends InferrerEngine {
     if (info.assignments.isEmpty) info.addAssignment(type);
   }
 
-  TypeInformation addReturnTypeForMethod(covariant MethodElement element,
-      TypeInformation unused, TypeInformation newType) {
+  TypeInformation addReturnTypeForMethod(
+      FunctionEntity element, TypeInformation unused, TypeInformation newType) {
     TypeInformation type = types.getInferredTypeOfMember(element);
     // TODO(ngeoffray): Clean up. We do this check because
     // [SimpleTypesInferrer] deals with two different inferrers.
-    if (element.isGenerativeConstructor) return type;
+    if (element is ConstructorEntity && element.isGenerativeConstructor) {
+      return type;
+    }
     type.addAssignment(newType);
     return type;
   }
@@ -937,7 +942,7 @@ class InferrerEngineImpl extends InferrerEngine {
       Selector selector,
       TypeMask mask,
       MemberEntity caller,
-      covariant MemberElement callee,
+      MemberEntity callee,
       ArgumentsTypes arguments,
       SideEffects sideEffects,
       bool inLoop) {
@@ -955,7 +960,10 @@ class InferrerEngineImpl extends InferrerEngine {
     // Note: we exclude factory constructors because they don't always create an
     // instance of the type. They are static methods that delegate to some other
     // generative constructor to do the actual creation of the object.
-    if (selector != null && selector.isCall && callee.isGenerativeConstructor) {
+    if (selector != null &&
+        selector.isCall &&
+        callee is ConstructorEntity &&
+        callee.isGenerativeConstructor) {
       ClassElement cls = callee.enclosingClass;
       if (cls.callType != null) {
         types.allocatedClosures.add(info);
@@ -982,8 +990,7 @@ class InferrerEngineImpl extends InferrerEngine {
           arguments, sideEffects, inLoop);
     }
 
-    closedWorld.locateMembers(selector, mask).forEach((_callee) {
-      MemberElement callee = _callee;
+    closedWorld.locateMembers(selector, mask).forEach((callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 

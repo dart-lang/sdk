@@ -961,7 +961,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       }
       TypeInformation type =
           (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
-      inferrer.setDefaultTypeOfParameter(parameter, type);
+      inferrer.setDefaultTypeOfParameter(parameter, type,
+          isInstanceMember: function.isInstanceMember);
     });
 
     if (closedWorld.nativeData.isNativeMember(analyzedElement)) {
