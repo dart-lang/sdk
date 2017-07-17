@@ -716,7 +716,6 @@ try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dartdevc ]
-assertion_test: RuntimeError # DDC doesn't support function arguments to assert().
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_test/01: RuntimeError # Issue 28969
 async_star_test/02: RuntimeError # Issue 28969
@@ -857,7 +856,6 @@ nested_switch_label_test: RuntimeError # Issue 29920
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 prefix10_negative_test: Fail # Issue 29920
-redirecting_factory_reflection_test: RuntimeError # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
 regress_18535_test: RuntimeError # Issue 29920
 regress_22443_test: RuntimeError # Issue 29920

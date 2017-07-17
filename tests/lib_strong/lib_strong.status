@@ -246,7 +246,6 @@ mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922
 mirrors/closurization_equivalence_test: RuntimeError # Issue 29922
 mirrors/constructor_kinds_test/01: RuntimeError # Issue 29922
 mirrors/constructor_kinds_test/none: RuntimeError # Issue 29922
-mirrors/constructor_optional_args_test: RuntimeError # Issue 29922
 mirrors/constructor_private_name_test: RuntimeError # Issue 29922
 mirrors/declarations_type_test: RuntimeError # Issue 29922
 mirrors/deferred_mirrors_metadata_test: RuntimeError # Issue 29922
