@@ -9408,21 +9408,27 @@ class C {
   Stream f() async* {}
 }
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'dart:async';
 class C {
   Stream<dynamic> f() async* {}
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'dart:async';
+  }
+
+  test_member_function_syncStar() async {
+    var library = await checkLibrary(r'''
 class C {
-  Stream<dynamic> f() async* {}
+  Iterable<int> f() sync* {
+    yield 42;
+  }
 }
 ''');
-    }
+    checkElementText(library, r'''
+class C {
+  Iterable<int> f() sync* {}
+}
+''');
   }
 
   test_metadata_classDeclaration() async {
@@ -10293,8 +10299,14 @@ abstract class D {
   }
 
   test_method_inferred_type_nonStatic_implicit_return() async {
-    var library = await checkLibrary(
-        'class C extends D { f() => null; } abstract class D { int f(); }');
+    var library = await checkLibrary('''
+class C extends D {
+  f() => null;
+}
+abstract class D {
+  int f();
+}
+''');
     if (isStrongMode) {
       checkElementText(library, r'''
 class C extends D {

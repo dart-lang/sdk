@@ -839,6 +839,14 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<MethodElement> get methods {
+    if (_kernel != null) {
+      _methods ??= _kernel.procedures
+          .where((k) =>
+              k.kind == kernel.ProcedureKind.Method ||
+              k.kind == kernel.ProcedureKind.Operator)
+          .map((k) => new MethodElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedClass != null) {
       _methods ??= _unlinkedClass.executables
           .where((e) => e.kind == UnlinkedExecutableKind.functionOrMethod)
@@ -3838,6 +3846,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   bool get isAbstract {
+    if (_kernel != null) {
+      return _kernel.isAbstract;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isAbstract;
     }
@@ -3846,6 +3857,11 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   bool get isAsynchronous {
+    if (_kernel != null) {
+      kernel.AsyncMarker marker = _kernel.function.asyncMarker;
+      return marker == kernel.AsyncMarker.Async ||
+          marker == kernel.AsyncMarker.AsyncStar;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isAsynchronous;
     }
@@ -3865,6 +3881,11 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   bool get isGenerator {
+    if (_kernel != null) {
+      kernel.AsyncMarker marker = _kernel.function.asyncMarker;
+      return marker == kernel.AsyncMarker.AsyncStar ||
+          marker == kernel.AsyncMarker.SyncStar;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isGenerator;
     }
@@ -3932,6 +3953,10 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
+    if (_kernel != null) {
+      return _returnType ??= enclosingUnit._kernelContext
+          .getType(this, _kernel.function.returnType);
+    }
     if (serializedExecutable != null &&
         _declaredReturnType == null &&
         _returnType == null) {
@@ -6549,10 +6574,22 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**
+   * The kernel of the element.
+   */
+  kernel.Procedure _kernelProcedure;
+
+  /**
    * Initialize a newly created method element to have the given [name] at the
    * given [offset].
    */
   MethodElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  MethodElementImpl.forKernel(
+      ClassElementImpl enclosingClass, this._kernelProcedure)
+      : super.forKernel(enclosingClass, _kernelProcedure);
 
   /**
    * Initialize a newly created method element to have the given [name].
@@ -6613,6 +6650,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   bool get isStatic {
+    if (_kernel != null) {
+      return _kernelProcedure.isStatic;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.isStatic;
     }

@@ -286,28 +286,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_method_abstract() async {
-    await super.test_class_method_abstract();
-  }
-
-  @failingTest
-  test_class_method_external() async {
-    await super.test_class_method_external();
-  }
-
-  @failingTest
   test_class_method_params() async {
     await super.test_class_method_params();
-  }
-
-  @failingTest
-  test_class_method_static() async {
-    await super.test_class_method_static();
-  }
-
-  @failingTest
-  test_class_methods() async {
-    await super.test_class_methods();
   }
 
   @failingTest
@@ -1668,18 +1648,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_localFunctions_inMethod() async {
-    await super.test_localFunctions_inMethod();
-  }
-
-  @failingTest
   test_localFunctions_inTopLevelGetter() async {
     await super.test_localFunctions_inTopLevelGetter();
-  }
-
-  @failingTest
-  test_localLabels_inMethod() async {
-    await super.test_localLabels_inMethod();
   }
 
   @failingTest
@@ -1720,11 +1690,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_main_typedef_via_export() async {
     await super.test_main_typedef_via_export();
-  }
-
-  @failingTest
-  test_main_variable() async {
-    await super.test_main_variable();
   }
 
   @failingTest
@@ -1925,11 +1890,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_method_inferred_type_nonStatic_implicit_param() async {
     await super.test_method_inferred_type_nonStatic_implicit_param();
-  }
-
-  @failingTest
-  test_method_inferred_type_nonStatic_implicit_return() async {
-    await super.test_method_inferred_type_nonStatic_implicit_return();
   }
 
   @failingTest
@@ -2160,31 +2120,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_type_arguments_explicit_dynamic_dynamic() async {
-    await super.test_type_arguments_explicit_dynamic_dynamic();
-  }
-
-  @failingTest
-  test_type_arguments_explicit_dynamic_int() async {
-    await super.test_type_arguments_explicit_dynamic_int();
-  }
-
-  @failingTest
-  test_type_arguments_explicit_String_dynamic() async {
-    await super.test_type_arguments_explicit_String_dynamic();
-  }
-
-  @failingTest
-  test_type_arguments_implicit() async {
-    await super.test_type_arguments_implicit();
-  }
-
-  @failingTest
-  test_type_dynamic() async {
-    await super.test_type_dynamic();
-  }
-
-  @failingTest
   test_type_invalid_topLevelVariableElement_asType() async {
     await super.test_type_invalid_topLevelVariableElement_asType();
   }
@@ -2222,11 +2157,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_reference_part_to_part() async {
     await super.test_type_reference_part_to_part();
-  }
-
-  @failingTest
-  test_type_reference_to_class_with_type_arguments_implicit() async {
-    await super.test_type_reference_to_class_with_type_arguments_implicit();
   }
 
   @failingTest
@@ -2520,11 +2450,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_implicit_type() async {
-    await super.test_variable_implicit_type();
-  }
-
-  @failingTest
   test_variable_propagatedType_const_noDep() async {
     await super.test_variable_propagatedType_const_noDep();
   }
@@ -2612,6 +2537,7 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
+    if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.InterfaceType) {
       return _getInterfaceType(
           kernelType.className.canonicalName, kernelType.typeArguments);
