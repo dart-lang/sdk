@@ -39,7 +39,7 @@ import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
-import 'dart:web_gl' show RenderingContext;
+import 'dart:web_gl' show RenderingContext, RenderingContext2;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
@@ -2023,8 +2023,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  @Creates('CanvasRenderingContext2D|RenderingContext')
-  @Returns('CanvasRenderingContext2D|RenderingContext|Null')
+  @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
+  @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
   Object getContext(String contextId, [Map attributes]) {
     if (attributes != null) {
       var attributes_1 = convertDartToNative_Dictionary(attributes);
@@ -2036,14 +2036,14 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @JSName('getContext')
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  @Creates('CanvasRenderingContext2D|RenderingContext')
-  @Returns('CanvasRenderingContext2D|RenderingContext|Null')
+  @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
+  @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
   Object _getContext_1(contextId, attributes) native;
   @JSName('getContext')
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  @Creates('CanvasRenderingContext2D|RenderingContext')
-  @Returns('CanvasRenderingContext2D|RenderingContext|Null')
+  @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
+  @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
   Object _getContext_2(contextId) native;
 
   @DomName('HTMLCanvasElement.toBlob')
@@ -11946,8 +11946,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
-      [int skipCount = 0]) {
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -11955,7 +11954,12 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void removeRange(int start, int end) {
+    throw new UnimplementedError();
+  }
+
+  void setRange(int start, int end, Iterable<Element> iterable,
+      [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
@@ -26200,6 +26204,10 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
   void fillRange(int start, int end, [Node fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on Node list");
   }
   // -- end List<Node> mixins.
 
