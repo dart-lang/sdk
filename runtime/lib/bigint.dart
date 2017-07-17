@@ -57,7 +57,11 @@ class _Bigint extends _IntegerImplementation implements int {
   static const int _DIGIT2_BITS = _DIGIT_BITS >> 1;
   static const int _DIGIT2_MASK = (1 << _DIGIT2_BITS) - 1;
 
-  // Bits per 2 digits
+  // Bits per 2 digits. Used to perform modulo 2^64 arithmetic.
+  // Note: in --limit-ints-to-64-bits mode most arithmetic operations are
+  // already modulo 2^64. Still, it is harmless to apply _TWO_DIGITS_MASK:
+  // (1 << _TWO_DIGITS_BITS) is 0 (all bits are shifted out), so
+  // _TWO_DIGITS_MASK is -1 (its bit pattern is 0xffffffffffffffff).
   static const int _TWO_DIGITS_BITS = _DIGIT_BITS << 1;
   static const int _TWO_DIGITS_MASK = (1 << _TWO_DIGITS_BITS) - 1;
 
