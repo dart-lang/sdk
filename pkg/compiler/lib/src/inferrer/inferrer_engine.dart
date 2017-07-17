@@ -132,23 +132,7 @@ abstract class InferrerEngine {
   void recordReturnType(MethodElement element, TypeInformation type);
 
   /// Records that [element] is of type [type].
-  // TODO(johnniwinther): Merge [recordTypeOfFinalField] and
-  // [recordTypeOfNonFinalField] with this?
   void recordTypeOfField(FieldElement element, TypeInformation type);
-
-  /// Records that [node] sets final field [element] to be of type [type].
-  void recordTypeOfFinalField(FieldElement element, TypeInformation type);
-
-  /// Records that [node] sets non-final field [element] to be of type [type].
-  void recordTypeOfNonFinalField(FieldElement element, TypeInformation type);
-
-  /// Records that the captured variable [local] is read.
-  // TODO(johnniwinther): Remove this.
-  void recordCapturedLocalRead(Local local) {}
-
-  /// Records that the variable [local] is being updated.
-  // TODO(johnniwinther): Remove this.
-  void recordLocalUpdate(Local local, TypeInformation type) {}
 
   /// Registers a call to await with an expression of type [argumentType] as
   /// argument.
@@ -721,10 +705,10 @@ class InferrerEngineImpl extends InferrerEngine {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
-          recordTypeOfNonFinalField(element, type);
+          recordTypeOfField(element, type);
         }
       } else {
-        recordTypeOfNonFinalField(element, type);
+        recordTypeOfField(element, type);
       }
       if (Elements.isStaticOrTopLevelField(element) &&
           resolvedAst.body != null &&
@@ -921,14 +905,6 @@ class InferrerEngineImpl extends InferrerEngine {
   TypeInformation returnTypeOfMember(MemberElement element) {
     if (element is! MethodElement) return types.dynamicType;
     return types.getInferredTypeOfMember(element);
-  }
-
-  void recordTypeOfFinalField(FieldElement element, TypeInformation type) {
-    types.getInferredTypeOfMember(element).addAssignment(type);
-  }
-
-  void recordTypeOfNonFinalField(FieldElement element, TypeInformation type) {
-    types.getInferredTypeOfMember(element).addAssignment(type);
   }
 
   void recordTypeOfField(FieldElement element, TypeInformation type) {

@@ -978,11 +978,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         if (element.isInitializingFormal) {
           InitializingFormalElement initializingFormal = element;
           if (initializingFormal.fieldElement.isFinal) {
-            inferrer.recordTypeOfFinalField(
+            inferrer.recordTypeOfField(
                 initializingFormal.fieldElement, parameterType);
           } else {
             locals.updateField(initializingFormal.fieldElement, parameterType);
-            inferrer.recordTypeOfNonFinalField(
+            inferrer.recordTypeOfField(
                 initializingFormal.fieldElement, parameterType);
           }
         }
@@ -1032,7 +1032,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           TypeInformation type = locals.fieldScope.readField(field);
           ResolvedAst resolvedAst = field.resolvedAst;
           if (type == null && resolvedAst.body == null) {
-            inferrer.recordTypeOfNonFinalField(field, types.nullType);
+            inferrer.recordTypeOfField(field, types.nullType);
           }
         });
       }
@@ -1217,7 +1217,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
-          inferrer.recordTypeOfNonFinalField(element, types.nullType);
+          inferrer.recordTypeOfField(element, types.nullType);
         }
         // Accessing a field does not expose [:this:].
         return true;
@@ -2002,13 +2002,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           node, setterSelector, setterMask, receiverType, arguments);
     } else if (element.isField) {
       if (element.isFinal) {
-        inferrer.recordTypeOfFinalField(element, rhsType);
+        inferrer.recordTypeOfField(element, rhsType);
       } else {
         if (analyzedElement.isGenerativeConstructor) {
           locals.updateField(element, rhsType);
         }
         if (visitingInitializers) {
-          inferrer.recordTypeOfNonFinalField(element, rhsType);
+          inferrer.recordTypeOfField(element, rhsType);
         } else {
           handleDynamicSend(
               node, setterSelector, setterMask, receiverType, arguments);
