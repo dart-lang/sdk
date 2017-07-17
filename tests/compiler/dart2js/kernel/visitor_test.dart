@@ -33,10 +33,10 @@ const List<String> TESTS = const <String>[
   // 'covariant_generic', Issue 29853: typedefs
   'escape',
   'fallthrough',
-  // 'micro', Issue 29853: Unexpected change in external methods
+  'micro',
   // 'named_parameters', Issue 29853: default constructor _not expected
   'null_aware',
-  // 'optional', Issue 29853: abstract members
+  'optional',
   'override',
   'prefer_baseclass',
   // 'redirecting_factory', Issue 29853: redirecting factories
@@ -45,7 +45,7 @@ const List<String> TESTS = const <String>[
   'stringliteral',
   // 'uninitialized_fields', Issue 29853: default constructor _not expected
   'unused_methods',
-  // 'void-methods', Issue 29853: unexpected change in []= encoding
+  'void-methods',
 ];
 
 main(List<String> arguments) {
