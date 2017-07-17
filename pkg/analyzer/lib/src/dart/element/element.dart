@@ -1661,9 +1661,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<TopLevelVariableElement> get topLevelVariables {
     if (_kernelContext != null) {
-      return _variables ??= _kernelContext.library.fields
-          .map((k) => new TopLevelVariableElementImpl.forKernel(this, k))
-          .toList(growable: false);
+      return _variables ??= _kernelContext.library.fields.map((k) {
+        if (k.isConst && k.initializer != null) {
+          return new ConstTopLevelVariableElementImpl.forKernel(this, k);
+        } else {
+          return new TopLevelVariableElementImpl.forKernel(this, k);
+        }
+      }).toList(growable: false);
     }
     if (_unlinkedUnit != null) {
       if (_variables == null) {
@@ -2429,6 +2433,13 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
       : super(name, offset);
 
   /**
+   * Initialize using the given kernel.
+   */
+  ConstTopLevelVariableElementImpl.forKernel(
+      ElementImpl enclosingElement, kernel.Field kernel)
+      : super.forKernel(enclosingElement, kernel);
+
+  /**
    * Initialize a newly created top-level variable element to have the given
    * [name].
    */
@@ -2470,9 +2481,15 @@ abstract class ConstVariableElement
   EvaluationResultImpl _evaluationResult;
 
   Expression get constantInitializer {
-    if (_constantInitializer == null && _unlinkedConst != null) {
-      _constantInitializer = enclosingUnit.resynthesizerContext
-          .buildExpression(this, _unlinkedConst);
+    if (_constantInitializer == null) {
+      if (_kernelInitializer != null) {
+        _constantInitializer =
+            enclosingUnit._kernelContext.getExpression(_kernelInitializer);
+      }
+      if (_unlinkedConst != null) {
+        _constantInitializer = enclosingUnit.resynthesizerContext
+            .buildExpression(this, _unlinkedConst);
+      }
     }
     return _constantInitializer;
   }
@@ -2487,6 +2504,12 @@ abstract class ConstVariableElement
   void set evaluationResult(EvaluationResultImpl evaluationResult) {
     _evaluationResult = evaluationResult;
   }
+
+  /**
+   * If this element is resynthesized from Kernel, return the Kernel
+   * initializer, otherwise return `null`.
+   */
+  kernel.Expression get _kernelInitializer;
 
   /**
    * If this element is resynthesized from the summary, return the unlinked
@@ -5734,6 +5757,11 @@ abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
 
   /**
+   * Return the [Expression] for the given kernel.
+   */
+  Expression getExpression(kernel.Expression expression);
+
+  /**
    * Return the [InterfaceType] for the given Kernel [type], or `null` if the
    * [type] does not correspond to an [InterfaceType].
    */
@@ -7447,6 +7475,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   /**
+   * Subclasses need this getter, see [ConstVariableElement._kernelInitializer].
+   */
+  kernel.Expression get _kernelInitializer => _kernel?.initializer;
+
+  /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
   UnlinkedExpr get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
@@ -7872,6 +7905,11 @@ class ParameterElementImpl extends VariableElementImpl
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
+
+  /**
+   * Subclasses need this getter, see [ConstVariableElement._kernelInitializer].
+   */
+  kernel.Expression get _kernelInitializer => _kernel?.initializer;
 
   /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].

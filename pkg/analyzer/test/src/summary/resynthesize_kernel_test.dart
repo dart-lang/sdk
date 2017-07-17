@@ -6,6 +6,8 @@ library analyzer.test.src.summary.resynthesize_kernel_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -13,6 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -582,11 +585,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_topLevel_ifNull() async {
     await super.test_const_topLevel_ifNull();
-  }
-
-  @failingTest
-  test_const_topLevel_literal() async {
-    await super.test_const_topLevel_literal();
   }
 
   @failingTest
@@ -1633,11 +1631,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_typeParameter_ofClass() async {
-    await super.test_metadata_typeParameter_ofClass();
-  }
-
-  @failingTest
   test_metadata_typeParameter_ofClassTypeAlias() async {
     await super.test_metadata_typeParameter_ofClassTypeAlias();
   }
@@ -2135,11 +2128,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_const() async {
-    await super.test_variable_const();
-  }
-
-  @failingTest
   test_variable_documented() async {
     await super.test_variable_documented();
   }
@@ -2160,11 +2148,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_propagatedType_const_noDep() async {
-    await super.test_variable_propagatedType_const_noDep();
-  }
-
-  @failingTest
   test_variable_propagatedType_final_dep_inLib() async {
     await super.test_variable_propagatedType_final_dep_inLib();
   }
@@ -2182,6 +2165,50 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_variable_setterInPart_getterInPart() async {
     await super.test_variable_setterInPart_getterInPart();
+  }
+}
+
+/**
+ * Builder of [Expression]s from [kernel.Expression]s.
+ */
+class _ExprBuilder {
+  Expression build(kernel.Expression expr) {
+    if (expr is kernel.NullLiteral) {
+      return AstTestFactory.nullLiteral();
+    }
+    if (expr is kernel.BoolLiteral) {
+      return AstTestFactory.booleanLiteral(expr.value);
+    }
+    if (expr is kernel.IntLiteral) {
+      return AstTestFactory.integer(expr.value);
+    }
+    if (expr is kernel.DoubleLiteral) {
+      return AstTestFactory.doubleLiteral(expr.value);
+    }
+    if (expr is kernel.StringLiteral) {
+      return AstTestFactory.string2(expr.value);
+    }
+    if (expr is kernel.StringConcatenation) {
+      List<InterpolationElement> elements = expr.expressions
+          .map(build)
+          .map(_newInterpolationElement)
+          .toList(growable: false);
+      return AstTestFactory.string(elements);
+    }
+    if (expr is kernel.SymbolLiteral) {
+      List<String> components = expr.value.split('.').toList();
+      return AstTestFactory.symbolLiteral(components);
+    }
+    // TODO(scheglov): complete getExpression
+    throw new UnimplementedError('kernel: $expr');
+  }
+
+  InterpolationElement _newInterpolationElement(Expression expr) {
+    if (expr is SimpleStringLiteral) {
+      return astFactory.interpolationString(expr.literal, expr.value);
+    } else {
+      return AstTestFactory.interpolationExpression(expr);
+    }
   }
 }
 
@@ -2238,6 +2265,11 @@ class _KernelLibraryResynthesizerContextImpl
   final kernel.Library library;
 
   _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
+
+  @override
+  Expression getExpression(kernel.Expression expression) {
+    return new _ExprBuilder().build(expression);
+  }
 
   @override
   InterfaceType getInterfaceType(
