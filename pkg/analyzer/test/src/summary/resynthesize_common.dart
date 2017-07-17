@@ -7048,10 +7048,16 @@ Stream<dynamic> f() async* {}
 f() {}''');
     if (isStrongMode) {
       checkElementText(library, r'''
+/**
+ * Docs
+ */
 dynamic f() {}
 ''');
     } else {
       checkElementText(library, r'''
+/**
+ * Docs
+ */
 dynamic f() {}
 ''');
     }
@@ -7059,15 +7065,9 @@ dynamic f() {}
 
   test_function_entry_point() async {
     var library = await checkLibrary('main() {}');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 dynamic main() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-dynamic main() {}
-''');
-    }
   }
 
   test_function_entry_point_in_export() async {
@@ -9801,18 +9801,17 @@ const dynamic a = null;
   }
 
   test_metadata_functionDeclaration_function() async {
-    var library = await checkLibrary('const a = null; @a f() {}');
-    if (isStrongMode) {
-      checkElementText(library, r'''
+    var library = await checkLibrary('''
+const a = null;
+@a
+f() {}
+''');
+    checkElementText(library, r'''
 const dynamic a = null;
+@
+        a/*location: test.dart;a?*/
 dynamic f() {}
 ''');
-    } else {
-      checkElementText(library, r'''
-const dynamic a = null;
-dynamic f() {}
-''');
-    }
   }
 
   test_metadata_functionDeclaration_getter() async {

@@ -1540,6 +1540,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionElement> get functions {
+    if (_kernelContext != null) {
+      _functions ??= _kernelContext.library.procedures
+          .where((k) => k.kind == kernel.ProcedureKind.Method)
+          .map((k) => new FunctionElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedUnit != null) {
       _functions ??= _unlinkedUnit.executables
           .where((e) => e.kind == UnlinkedExecutableKind.functionOrMethod)
@@ -4443,6 +4449,13 @@ class FunctionElementImpl extends ExecutableElementImpl
    * [offset].
    */
   FunctionElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  FunctionElementImpl.forKernel(
+      ElementImpl enclosingElement, kernel.Procedure kernel)
+      : super.forKernel(enclosingElement, kernel);
 
   /**
    * Initialize a newly created function element to have the given [name].

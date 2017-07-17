@@ -424,6 +424,9 @@ class _ElementWriter {
   }
 
   void writeFunctionElement(FunctionElement e) {
+    writeDocumentation(e);
+    writeMetadata(e, '', '\n');
+
     writeIf(e.isExternal, 'external ');
 
     writeType2(e.returnType);

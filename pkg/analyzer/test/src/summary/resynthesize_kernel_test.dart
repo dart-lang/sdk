@@ -346,11 +346,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_closure_executable_with_return_type_from_closure() async {
-    await super.test_closure_executable_with_return_type_from_closure();
-  }
-
-  @failingTest
   test_closure_generic() async {
     await super.test_closure_generic();
   }
@@ -1135,11 +1130,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_entry_point() async {
-    await super.test_function_entry_point();
-  }
-
-  @failingTest
   test_function_entry_point_in_export() async {
     await super.test_function_entry_point_in_export();
   }
@@ -1152,31 +1142,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_function_entry_point_in_part() async {
     await super.test_function_entry_point_in_part();
-  }
-
-  @failingTest
-  test_function_external() async {
-    await super.test_function_external();
-  }
-
-  @failingTest
-  test_function_parameter_final() async {
-    await super.test_function_parameter_final();
-  }
-
-  @failingTest
-  test_function_parameter_kind_named() async {
-    await super.test_function_parameter_kind_named();
-  }
-
-  @failingTest
-  test_function_parameter_kind_positional() async {
-    await super.test_function_parameter_kind_positional();
-  }
-
-  @failingTest
-  test_function_parameter_kind_required() async {
-    await super.test_function_parameter_kind_required();
   }
 
   @failingTest
@@ -1195,31 +1160,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_parameter_type() async {
-    await super.test_function_parameter_type();
-  }
-
-  @failingTest
-  test_function_parameters() async {
-    await super.test_function_parameters();
-  }
-
-  @failingTest
-  test_function_return_type() async {
-    await super.test_function_return_type();
-  }
-
-  @failingTest
-  test_function_return_type_implicit() async {
-    await super.test_function_return_type_implicit();
-  }
-
-  @failingTest
-  test_function_return_type_void() async {
-    await super.test_function_return_type_void();
-  }
-
-  @failingTest
   test_function_type_parameter() async {
     await super.test_function_type_parameter();
   }
@@ -1227,16 +1167,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_function_type_parameter_with_function_typed_parameter() async {
     await super.test_function_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
-  test_function_typed_parameter_implicit() async {
-    await super.test_function_typed_parameter_implicit();
-  }
-
-  @failingTest
-  test_functions() async {
-    await super.test_functions();
   }
 
   @failingTest
@@ -1542,12 +1472,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_initializer_executable_with_return_type_from_closure_local() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_local();
-  }
-
-  @failingTest
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
     await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
   }
@@ -1633,18 +1557,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_localFunctions() async {
-    await super.test_localFunctions();
-  }
-
-  @failingTest
   test_localFunctions_inTopLevelGetter() async {
     await super.test_localFunctions_inTopLevelGetter();
-  }
-
-  @failingTest
-  test_localLabels_inTopLevelFunction() async {
-    await super.test_localLabels_inTopLevelFunction();
   }
 
   @failingTest
@@ -2010,11 +1924,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_propagated_type_refers_to_closure() async {
-    await super.test_propagated_type_refers_to_closure();
-  }
-
-  @failingTest
   test_setter_covariant() async {
     await super.test_setter_covariant();
   }
@@ -2277,11 +2186,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_typedef_type_parameters_f_bound_simple() async {
     await super.test_typedef_type_parameters_f_bound_simple();
-  }
-
-  @failingTest
-  test_typedefs() async {
-    await super.test_typedefs();
   }
 
   @failingTest
