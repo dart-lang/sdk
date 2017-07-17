@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./infer_statics_transitively_b.dart" as inf;
+import "./infer_statics_transitively.dart" as test;
+
+class A extends core::Object {
+  static final field dynamic a2 = inf::b1;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static final field dynamic a1 = test::m2;
+static method main() → dynamic {
+  self::a1;
+}

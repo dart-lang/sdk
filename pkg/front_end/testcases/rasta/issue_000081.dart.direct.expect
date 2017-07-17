@@ -14,9 +14,9 @@ class Sub extends self::Base {
     : super self::Base::•()
     ;
   get hashCode() → dynamic
-    return let final dynamic #t1 = this._hashCode in #t1.==(null) ? this._hashCode = this.{=self::Base::hashCode} : #t1;
+    return let final dynamic #t1 = this._hashCode in #t1.==(null) ? this._hashCode = super.{self::Base::hashCode} : #t1;
   method foo() → dynamic {
-    this._hashCode.==(null) ? this._hashCode = this.{=self::Base::hashCode} : null;
+    this._hashCode.==(null) ? this._hashCode = super.{self::Base::hashCode} : null;
   }
 }
 static method main() → dynamic {

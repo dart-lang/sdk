@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method make(core::int x) → asy::Future<core::int>
+  return asy::Future::•<dynamic>(() → dynamic => x);
+static method main() → dynamic {
+  core::Iterable<asy::Future<core::int>> list = <core::int>[1, 2, 3].map(self::make);
+  asy::Future<core::List<core::int>> results = asy::Future::wait<dynamic>(list);
+  asy::Future<core::String> results2 = results.then((core::List<core::int> list) → dynamic => list.fold("", (dynamic x, dynamic y) → dynamic => x.+(y.toString())));
+  asy::Future<core::String> results3 = results.then((core::List<core::int> list) → dynamic => list.fold("", (core::String x, dynamic y) → dynamic => x.+(y.toString())));
+  asy::Future<core::String> results4 = results.then((core::List<core::int> list) → dynamic => list.fold<core::String>("", (dynamic x, dynamic y) → dynamic => x.+(y.toString())));
+}

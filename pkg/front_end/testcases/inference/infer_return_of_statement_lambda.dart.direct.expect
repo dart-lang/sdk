@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method strings() → core::List<core::String> {
+  dynamic stuff = <dynamic>[].expand((dynamic i) → dynamic {
+    return <core::String>[];
+  });
+  return stuff.toList();
+}
+static method main() → dynamic {
+  self::strings();
+}

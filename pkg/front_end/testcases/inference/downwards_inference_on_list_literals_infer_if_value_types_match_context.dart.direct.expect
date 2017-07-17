@@ -1,0 +1,61 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Asserter<T extends core::Object> = (T) → void;
+typedef AsserterBuilder<S extends core::Object, T extends core::Object> = (S) → (T) → void;
+class DartType extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class C extends core::Object {
+  static field (core::List<(self::DartType) → void>) → (self::DartType) → void assertBOf = null;
+  field (core::List<(self::DartType) → void>) → (self::DartType) → void assertAOf = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  static get assertCOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void
+    return null;
+  abstract get assertDOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void;
+  method method((core::List<(self::DartType) → void>) → (self::DartType) → void assertEOf) → dynamic {
+    this.assertAOf(<dynamic>[self::_isInt, self::_isString]);
+    self::C::assertBOf.call(<dynamic>[self::_isInt, self::_isString]);
+    self::C::assertCOf.call(<dynamic>[self::_isInt, self::_isString]);
+    this.assertDOf(<dynamic>[self::_isInt, self::_isString]);
+    assertEOf.call(<dynamic>[self::_isInt, self::_isString]);
+  }
+}
+abstract class G<T extends core::Object> extends core::Object {
+  field (core::List<(self::DartType) → void>) → (self::DartType) → void assertAOf = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get assertDOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void;
+  method method((core::List<(self::DartType) → void>) → (self::DartType) → void assertEOf) → dynamic {
+    this.assertAOf(<dynamic>[self::_isInt, self::_isString]);
+    this.assertAOf(<dynamic>[self::_isInt, self::_isString]);
+    this.assertDOf(<dynamic>[self::_isInt, self::_isString]);
+    assertEOf.call(<dynamic>[self::_isInt, self::_isString]);
+  }
+}
+static field (self::DartType) → void _isInt;
+static field (self::DartType) → void _isString;
+static field (core::List<(self::DartType) → void>) → (self::DartType) → void assertBOf;
+static get assertCOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void
+  return null;
+static method test() → dynamic {
+  (core::List<(self::DartType) → void>) → (self::DartType) → void assertAOf;
+  assertAOf.call(<dynamic>[self::_isInt, self::_isString]);
+  self::assertBOf.call(<dynamic>[self::_isInt, self::_isString]);
+  self::assertCOf.call(<dynamic>[self::_isInt, self::_isString]);
+  self::C::assertBOf.call(<dynamic>[self::_isInt, self::_isString]);
+  self::C::assertCOf.call(<dynamic>[self::_isInt, self::_isString]);
+  self::C c;
+  c.assertAOf(<dynamic>[self::_isInt, self::_isString]);
+  c.assertDOf(<dynamic>[self::_isInt, self::_isString]);
+  self::G<core::int> g;
+  g.assertAOf(<dynamic>[self::_isInt, self::_isString]);
+  g.assertDOf(<dynamic>[self::_isInt, self::_isString]);
+}
+static method main() → dynamic {}

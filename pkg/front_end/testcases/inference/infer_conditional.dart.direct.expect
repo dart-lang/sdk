@@ -1,0 +1,9 @@
+library test;
+import self as self;
+
+static field dynamic a = 1.==(2) ? 1 : 2.0;
+static field dynamic b = 1.==(2) ? 1.0 : 2;
+static method main() → dynamic {
+  self::a;
+  self::b;
+}

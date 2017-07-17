@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    function f<T extends core::Object>(invalid-type x) → invalid-type
+      return null;
+    dynamic v1 = f;
+    v1 = <S extends core::Object>(dynamic x) → dynamic => x;
+  }
+  {
+    function f<T extends core::Object>(invalid-type x) → core::List<invalid-type>
+      return null;
+    dynamic v2 = f;
+    v2 = <S extends core::Object>(dynamic x) → dynamic => <dynamic>[x];
+    core::Iterable<core::int> r = v2.call(42);
+    core::Iterable<core::String> s = v2.call("hello");
+    core::Iterable<core::List<core::int>> t = v2.call(<core::int>[]);
+    core::Iterable<core::num> u = v2.call(42);
+    core::Iterable<core::num> v = v2.call<core::num>(42);
+  }
+}

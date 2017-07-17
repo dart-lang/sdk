@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class DeltaBlue extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method run() → void {
@@ -194,19 +194,19 @@ class ScaleConstraint extends self::BinaryConstraint {
     : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength)
     ;
   method addToGraph() → void {
-    this.{=self::BinaryConstraint::addToGraph}();
+    super.{self::BinaryConstraint::addToGraph}();
     this.scale.addConstraint(this);
     this.offset.addConstraint(this);
   }
   method removeFromGraph() → void {
-    this.{=self::BinaryConstraint::removeFromGraph}();
+    super.{self::BinaryConstraint::removeFromGraph}();
     if(!this.scale.==(null))
       this.scale.removeConstraint(this);
     if(!this.offset.==(null))
       this.offset.removeConstraint(this);
   }
   method markInputs(core::int mark) → void {
-    this.{=self::BinaryConstraint::markInputs}(mark);
+    super.{self::BinaryConstraint::markInputs}(mark);
     this.scale.mark = this.offset.mark = mark;
   }
   method execute() → void {
@@ -256,7 +256,7 @@ class Variable extends core::Object {
 }
 class Planner extends core::Object {
   field core::int currentMark = 0;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method incrementalAdd(self::Constraint c) → void {
@@ -353,7 +353,7 @@ class Planner extends core::Object {
 }
 class Plan extends core::Object {
   field core::List<self::Constraint> list = <self::Constraint>[];
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method addConstraint(self::Constraint c) → void {

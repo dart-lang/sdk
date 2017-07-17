@@ -1,0 +1,70 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method m<T extends core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T
+    return null;
+}
+static method main() → dynamic {
+  self::takeIII(math::max);
+  self::takeDDD(math::max);
+  self::takeNNN(math::max);
+  self::takeIDN(math::max);
+  self::takeDIN(math::max);
+  self::takeIIN(math::max);
+  self::takeDDN(math::max);
+  self::takeIIO(math::max);
+  self::takeDDO(math::max);
+  self::takeOOI(math::max);
+  self::takeIDI(math::max);
+  self::takeDID(math::max);
+  self::takeOON(math::max);
+  self::takeOOO(math::max);
+  self::takeIII(math::min);
+  self::takeDDD(math::min);
+  self::takeNNN(math::min);
+  self::takeIDN(math::min);
+  self::takeDIN(math::min);
+  self::takeIIN(math::min);
+  self::takeDDN(math::min);
+  self::takeIIO(math::min);
+  self::takeDDO(math::min);
+  self::takeOOI(math::min);
+  self::takeIDI(math::min);
+  self::takeDID(math::min);
+  self::takeOON(math::min);
+  self::takeOOO(math::min);
+  self::takeIII(new self::C::•().m);
+  self::takeDDD(new self::C::•().m);
+  self::takeNNN(new self::C::•().m);
+  self::takeIDN(new self::C::•().m);
+  self::takeDIN(new self::C::•().m);
+  self::takeIIN(new self::C::•().m);
+  self::takeDDN(new self::C::•().m);
+  self::takeIIO(new self::C::•().m);
+  self::takeDDO(new self::C::•().m);
+  self::takeOON(new self::C::•().m);
+  self::takeOOO(new self::C::•().m);
+  self::takeOOI(new self::C::•().m);
+  self::takeIDI(new self::C::•().m);
+  self::takeDID(new self::C::•().m);
+}
+static method takeIII((core::int, core::int) → core::int fn) → void {}
+static method takeDDD((core::double, core::double) → core::double fn) → void {}
+static method takeIDI((core::double, core::int) → core::int fn) → void {}
+static method takeDID((core::int, core::double) → core::double fn) → void {}
+static method takeIDN((core::double, core::int) → core::num fn) → void {}
+static method takeDIN((core::int, core::double) → core::num fn) → void {}
+static method takeIIN((core::int, core::int) → core::num fn) → void {}
+static method takeDDN((core::double, core::double) → core::num fn) → void {}
+static method takeNNN((core::num, core::num) → core::num fn) → void {}
+static method takeOON((core::Object, core::Object) → core::num fn) → void {}
+static method takeOOO((core::Object, core::Object) → core::num fn) → void {}
+static method takeOOI((core::Object, core::Object) → core::int fn) → void {}
+static method takeIIO((core::int, core::int) → core::Object fn) → void {}
+static method takeDDO((core::double, core::double) → core::Object fn) → void {}

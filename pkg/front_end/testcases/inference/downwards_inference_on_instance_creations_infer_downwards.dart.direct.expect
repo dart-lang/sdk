@@ -1,0 +1,112 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<S extends core::Object, T extends core::Object> extends core::Object {
+  field self::A::S x;
+  field self::A::T y;
+  constructor •(self::A::S x, self::A::T y) → void
+    : self::A::x = x, self::A::y = y, super core::Object::•()
+    ;
+  constructor named(self::A::S x, self::A::T y) → void
+    : self::A::x = x, self::A::y = y, super core::Object::•()
+    ;
+}
+class B<S extends core::Object, T extends core::Object> extends self::A<self::B::T, self::B::S> {
+  constructor •(self::B::S y, self::B::T x) → void
+    : super self::A::•(x, y)
+    ;
+  constructor named(self::B::S y, self::B::T x) → void
+    : super self::A::named(x, y)
+    ;
+}
+class C<S extends core::Object> extends self::B<self::C::S, self::C::S> {
+  constructor •(self::C::S a) → void
+    : super self::B::•(a, a)
+    ;
+  constructor named(self::C::S a) → void
+    : super self::B::named(a, a)
+    ;
+}
+class D<S extends core::Object, T extends core::Object> extends self::B<self::D::T, core::int> {
+  constructor •(self::D::T a) → void
+    : super self::B::•(a, 3)
+    ;
+  constructor named(self::D::T a) → void
+    : super self::B::named(a, 3)
+    ;
+}
+class E<S extends core::Object, T extends core::Object> extends self::A<self::C<self::E::S>, self::E::T> {
+  constructor •(self::E::T a) → void
+    : super self::A::•(null, a)
+    ;
+}
+class F<S extends core::Object, T extends core::Object> extends self::A<self::F::S, self::F::T> {
+  constructor •(self::F::S x, self::F::T y, {core::List<self::F::S> a = null, core::List<self::F::T> b = null}) → void
+    : super self::A::•(x, y)
+    ;
+  constructor named(self::F::S x, self::F::T y, [self::F::S a = null, self::F::T b = null]) → void
+    : super self::A::•(a, b)
+    ;
+}
+static method main() → void {
+  {
+    self::A<core::int, core::String> a0 = new self::A::•<dynamic, dynamic>(3, "hello");
+    self::A<core::int, core::String> a1 = new self::A::named<dynamic, dynamic>(3, "hello");
+    self::A<core::int, core::String> a2 = new self::A::•<core::int, core::String>(3, "hello");
+    self::A<core::int, core::String> a3 = new self::A::named<core::int, core::String>(3, "hello");
+    self::A<core::int, core::String> a4 = new self::A::•<core::int, dynamic>(3, "hello");
+    self::A<core::int, core::String> a5 = new self::A::named<dynamic, dynamic>(3, "hello");
+  }
+  {
+    self::A<core::int, core::String> a0 = new self::A::•<dynamic, dynamic>("hello", 3);
+    self::A<core::int, core::String> a1 = new self::A::named<dynamic, dynamic>("hello", 3);
+  }
+  {
+    self::A<core::int, core::String> a0 = new self::B::•<dynamic, dynamic>("hello", 3);
+    self::A<core::int, core::String> a1 = new self::B::named<dynamic, dynamic>("hello", 3);
+    self::A<core::int, core::String> a2 = new self::B::•<core::String, core::int>("hello", 3);
+    self::A<core::int, core::String> a3 = new self::B::named<core::String, core::int>("hello", 3);
+    self::A<core::int, core::String> a4 = new self::B::•<core::String, dynamic>("hello", 3);
+    self::A<core::int, core::String> a5 = new self::B::named<dynamic, dynamic>("hello", 3);
+  }
+  {
+    self::A<core::int, core::String> a0 = new self::B::•<dynamic, dynamic>(3, "hello");
+    self::A<core::int, core::String> a1 = new self::B::named<dynamic, dynamic>(3, "hello");
+  }
+  {
+    self::A<core::int, core::int> a0 = new self::C::•<dynamic>(3);
+    self::A<core::int, core::int> a1 = new self::C::named<dynamic>(3);
+    self::A<core::int, core::int> a2 = new self::C::•<core::int>(3);
+    self::A<core::int, core::int> a3 = new self::C::named<core::int>(3);
+    self::A<core::int, core::int> a4 = new self::C::•<dynamic>(3);
+    self::A<core::int, core::int> a5 = new self::C::named<dynamic>(3);
+  }
+  {
+    self::A<core::int, core::int> a0 = new self::C::•<dynamic>("hello");
+    self::A<core::int, core::int> a1 = new self::C::named<dynamic>("hello");
+  }
+  {
+    self::A<core::int, core::String> a0 = new self::D::•<dynamic, dynamic>("hello");
+    self::A<core::int, core::String> a1 = new self::D::named<dynamic, dynamic>("hello");
+    self::A<core::int, core::String> a2 = new self::D::•<core::int, core::String>("hello");
+    self::A<core::int, core::String> a3 = new self::D::named<core::String, core::String>("hello");
+    self::A<core::int, core::String> a4 = new self::D::•<core::num, dynamic>("hello");
+    self::A<core::int, core::String> a5 = new self::D::named<dynamic, dynamic>("hello");
+  }
+  {
+    self::A<core::int, core::String> a0 = new self::D::•<dynamic, dynamic>(3);
+    self::A<core::int, core::String> a1 = new self::D::named<dynamic, dynamic>(3);
+  }
+  {
+    self::A<self::C<core::int>, core::String> a0 = new self::E::•<dynamic, dynamic>("hello");
+  }
+  {
+    self::A<core::int, core::String> a0 = new self::F::•<dynamic, dynamic>(3, "hello", a: <dynamic>[3], b: <dynamic>["hello"]);
+    self::A<core::int, core::String> a1 = new self::F::•<dynamic, dynamic>(3, "hello", a: <dynamic>["hello"], b: <dynamic>[3]);
+    self::A<core::int, core::String> a2 = new self::F::named<dynamic, dynamic>(3, "hello", 3, "hello");
+    self::A<core::int, core::String> a3 = new self::F::named<dynamic, dynamic>(3, "hello");
+    self::A<core::int, core::String> a4 = new self::F::named<dynamic, dynamic>(3, "hello", "hello", 3);
+    self::A<core::int, core::String> a5 = new self::F::named<dynamic, dynamic>(3, "hello", "hello");
+  }
+}

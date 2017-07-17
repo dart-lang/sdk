@@ -1,0 +1,8 @@
+library test;
+import self as self;
+
+static method main() → dynamic {
+  dynamic v = (dynamic x) → dynamic => 1.0.call(() → dynamic {
+    return 1;
+  });
+}

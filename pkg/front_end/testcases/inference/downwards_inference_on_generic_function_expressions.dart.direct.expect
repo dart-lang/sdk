@@ -1,0 +1,60 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    function f<S extends core::Object>(core::int x) → core::String
+      return null;
+    dynamic v = f;
+    v = <T extends core::Object>(core::int x) → dynamic => null;
+    v = <T extends core::Object>(core::int x) → dynamic => "hello";
+    v = <T extends core::Object>(core::String x) → dynamic => "hello";
+    v = <T extends core::Object>(core::int x) → dynamic => 3;
+    v = <T extends core::Object>(core::int x) → dynamic {
+      return 3;
+    };
+  }
+  {
+    function f<S extends core::Object>(core::int x) → core::String
+      return null;
+    dynamic v = f;
+    v = <T extends core::Object>(dynamic x) → dynamic => null;
+    v = <T extends core::Object>(dynamic x) → dynamic => "hello";
+    v = <T extends core::Object>(dynamic x) → dynamic => 3;
+    v = <T extends core::Object>(dynamic x) → dynamic {
+      return 3;
+    };
+    v = <T extends core::Object>(dynamic x) → dynamic {
+      return x;
+    };
+  }
+  {
+    function f<S extends core::Object>(core::int x) → core::List<core::String>
+      return null;
+    dynamic v = f;
+    v = <T extends core::Object>(core::int x) → dynamic => null;
+    v = <T extends core::Object>(core::int x) → dynamic => <dynamic>["hello"];
+    v = <T extends core::Object>(core::String x) → dynamic => <dynamic>["hello"];
+    v = <T extends core::Object>(core::int x) → dynamic => <dynamic>[3];
+    v = <T extends core::Object>(core::int x) → dynamic {
+      return <dynamic>[3];
+    };
+  }
+  {
+    function int2int<S extends core::Object>(core::int x) → core::int
+      return null;
+    function int2String<T extends core::Object>(core::int x) → core::String
+      return null;
+    function string2String<T extends core::Object>(core::String x) → core::String
+      return null;
+    dynamic x = int2int;
+    x = <T extends core::Object>(dynamic x) → dynamic => x;
+    x = <T extends core::Object>(dynamic x) → dynamic => x.+(1);
+    dynamic y = int2String;
+    y = <T extends core::Object>(dynamic x) → dynamic => x;
+    y = <T extends core::Object>(dynamic x) → dynamic => x.substring(3);
+    dynamic z = string2String;
+    z = <T extends core::Object>(dynamic x) → dynamic => x.substring(3);
+  }
+}

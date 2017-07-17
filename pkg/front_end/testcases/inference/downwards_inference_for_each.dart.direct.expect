@@ -1,0 +1,51 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
+    return null;
+}
+static method F<T extends core::Object>() → self::F::T
+  return null;
+static method f() → asy::Future<dynamic> async {
+  dynamic d;
+  core::Object o;
+  for (dynamic x in self::F<dynamic>()) {
+  }
+  for (dynamic x in self::F<dynamic>()) {
+  }
+  for (core::Object x in self::F<dynamic>()) {
+  }
+  for (final dynamic #t1 in self::F<dynamic>()) {
+    d = #t1;
+  }
+  for (final dynamic #t2 in self::F<dynamic>()) {
+    o = #t2;
+  }
+  await for (dynamic x in self::F<dynamic>()) {
+  }
+  await for (dynamic x in self::F<dynamic>()) {
+  }
+  await for (core::Object x in self::F<dynamic>()) {
+  }
+  await for (final dynamic #t3 in self::F<dynamic>()) {
+    d = #t3;
+  }
+  await for (final dynamic #t4 in self::F<dynamic>()) {
+    o = #t4;
+  }
+}
+static method main() → asy::Future<dynamic> async {
+  for (core::int x in <dynamic>[1, 2, 3]) {
+  }
+  for (core::num x in <dynamic>[1, 2, 3]) {
+  }
+  for (dynamic x in <dynamic>[1, 2, 3]) {
+  }
+  await for (core::int x in self::MyStream::•<dynamic>()) {
+  }
+  await for (dynamic x in self::MyStream::•<core::int>()) {
+  }
+}

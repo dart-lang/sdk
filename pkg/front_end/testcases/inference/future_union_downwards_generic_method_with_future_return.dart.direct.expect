@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method foo() → dynamic async {
+  asy::Future<core::List<self::A>> f1 = null;
+  asy::Future<core::List<self::A>> f2 = null;
+  core::List<core::List<self::A>> merged = await asy::Future::wait<dynamic>(<dynamic>[f1, f2]);
+}
+static method main() → dynamic {}

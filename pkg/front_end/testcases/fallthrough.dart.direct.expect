@@ -10,7 +10,7 @@ static method main(core::List<core::String> args) → void {
     case 3:
       {
         x = 4;
-        throw new core::FallThroughError::•();
+        throw new core::FallThroughError::_create("pkg/front_end/testcases/fallthrough.dart", 4);
       }
     #L3:
     case 5:
@@ -27,7 +27,7 @@ static method main(core::List<core::String> args) → void {
         else {
           return;
         }
-        throw new core::FallThroughError::•();
+        throw new core::FallThroughError::_create("pkg/front_end/testcases/fallthrough.dart", 8);
       }
     #L5:
     case 4:

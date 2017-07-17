@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic a = throw new core::NoSuchMethodError::_withType(null, #, 32, <dynamic>[42].toList(growable: false), <dynamic, dynamic>{}, null);
+}

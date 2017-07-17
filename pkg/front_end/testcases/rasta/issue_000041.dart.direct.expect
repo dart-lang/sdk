@@ -3,10 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  default constructor •() → self::C
-    : super core::Object::•();
+  default constructor •() → void
+    : super core::Object::•()
+    ;
   method test() → dynamic {
-    self::use(invalid-expression);
+    self::use(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000041.dart:7:10: Error: Can't use `super` as an expression.\n    use(+super);\n         ^")));
   }
 }
 static method use(dynamic _) → dynamic
