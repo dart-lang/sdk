@@ -7,11 +7,11 @@ part of masks;
 /// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
 /// site of a container (currently only List) that will get specialized
 /// once the [TypeGraphInferrer] phase finds an element type for it.
-class ContainerTypeMask extends ForwardingTypeMask {
+class ContainerTypeMask<T> extends ForwardingTypeMask {
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
-  final Node allocationNode;
+  final T allocationNode;
 
   // The [Entity] where this type mask was created.
   final MemberEntity allocationElement;

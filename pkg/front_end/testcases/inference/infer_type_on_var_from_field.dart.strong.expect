@@ -6,7 +6,7 @@ class A extends core::Object {
   field core::int x = 0;
   field core::int y = null;
   final field core::int z = 42;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method test1() → dynamic {

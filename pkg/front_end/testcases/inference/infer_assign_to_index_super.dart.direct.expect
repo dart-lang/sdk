@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 class Index extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
   operator +(self::C v) → self::A
@@ -26,12 +26,12 @@ class B extends self::A {
     return null;
 }
 class C extends self::B {
-  constructor •() → void
+  default constructor •() → void
     : super self::B::•()
     ;
 }
 class Base extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   operator [](self::Index i) → self::B
@@ -39,7 +39,7 @@ class Base extends core::Object {
   operator []=(self::Index i, self::B v) → void {}
 }
 class Test extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {

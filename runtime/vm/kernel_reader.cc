@@ -32,7 +32,6 @@ class SimpleExpressionConverter {
         simple_value_(NULL),
         builder_(builder) {}
 
-
   bool IsSimple(intptr_t kernel_offset) {
     AlternativeReadingScope alt(builder_->reader_, kernel_offset);
     uint8_t payload = 0;
@@ -98,7 +97,6 @@ class SimpleExpressionConverter {
   StreamingFlowGraphBuilder* builder_;
 };
 
-
 RawArray* KernelReader::MakeFunctionsArray() {
   const intptr_t len = functions_.length();
   const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
@@ -108,17 +106,14 @@ RawArray* KernelReader::MakeFunctionsArray() {
   return res.raw();
 }
 
-
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex library) {
   return reader_->LookupLibrary(library).raw();
 }
 
-
 RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return reader_->LookupClass(klass).raw();
 }
-
 
 KernelReader::KernelReader(Program* program)
     : program_(program),
@@ -173,7 +168,6 @@ KernelReader::KernelReader(Program* program)
   H.SetCanonicalNames(names);
 }
 
-
 Object& KernelReader::ReadProgram() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -211,7 +205,6 @@ Object& KernelReader::ReadProgram() {
   thread_->clear_sticky_error();
   return error;
 }
-
 
 void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   builder_.SetOffset(kernel_offset);
@@ -302,7 +295,6 @@ void KernelReader::ReadLibrary(intptr_t kernel_offset) {
   classes.Add(toplevel_class, Heap::kOld);
 }
 
-
 void KernelReader::ReadPreliminaryClass(dart::Class* klass,
                                         ClassHelper* class_helper,
                                         intptr_t type_parameter_count) {
@@ -384,7 +376,6 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
 
   if (class_helper->is_abstract_) klass->set_is_abstract();
 }
-
 
 dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                      const dart::Class& toplevel_class) {
@@ -538,7 +529,6 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
 
   return klass;
 }
-
 
 void KernelReader::ReadProcedure(const dart::Library& library,
                                  const dart::Class& owner,
@@ -812,7 +802,6 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   }
 }
 
-
 void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
                                               const dart::Function& function) {
   bool is_setter = function.IsImplicitSetterFunction();
@@ -839,7 +828,6 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
   }
 }
 
-
 dart::Library& KernelReader::LookupLibrary(NameIndex library) {
   dart::Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
@@ -855,7 +843,6 @@ dart::Library& KernelReader::LookupLibrary(NameIndex library) {
   }
   return *handle;
 }
-
 
 dart::Class& KernelReader::LookupClass(NameIndex klass) {
   dart::Class* handle = NULL;
@@ -876,7 +863,6 @@ dart::Class& KernelReader::LookupClass(NameIndex klass) {
   return *handle;
 }
 
-
 RawFunction::Kind KernelReader::GetFunctionType(
     Procedure::ProcedureKind procedure_kind) {
   intptr_t lookuptable[] = {
@@ -894,7 +880,6 @@ RawFunction::Kind KernelReader::GetFunctionType(
     return static_cast<RawFunction::Kind>(lookuptable[kind]);
   }
 }
-
 
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
                                             const dart::Field& field) {
@@ -921,7 +906,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
   initializer_fun.set_is_inlinable(false);
   return new (zone) ParsedFunction(thread, initializer_fun);
 }
-
 
 }  // namespace kernel
 }  // namespace dart

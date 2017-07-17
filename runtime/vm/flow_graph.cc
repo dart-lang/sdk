@@ -9,9 +9,9 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
+#include "vm/growable_array.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
-#include "vm/growable_array.h"
 #include "vm/object_store.h"
 
 namespace dart {
@@ -21,7 +21,6 @@ DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
 DECLARE_FLAG(bool, verify_compiler);
-
 
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
@@ -52,13 +51,11 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
   DiscoverBlocks();
 }
 
-
 void FlowGraph::EnsureSSATempIndex(Definition* defn, Definition* replacement) {
   if ((replacement->ssa_temp_index() == -1) && (defn->ssa_temp_index() != -1)) {
     AllocateSSAIndexes(replacement);
   }
 }
-
 
 void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
                                           Instruction* current,
@@ -98,7 +95,6 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
   iterator->RemoveCurrentFromGraph();
 }
 
-
 void FlowGraph::AddToDeferredPrefixes(
     ZoneGrowableArray<const LibraryPrefix*>* from) {
   ZoneGrowableArray<const LibraryPrefix*>* to = deferred_prefixes();
@@ -113,19 +109,16 @@ void FlowGraph::AddToDeferredPrefixes(
   }
 }
 
-
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
   return is_optimized && FLAG_reorder_basic_blocks && !function.is_intrinsic();
 }
-
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
     bool is_optimized) {
   return ShouldReorderBlocks(function(), is_optimized) ? &optimized_block_order_
                                                        : &reverse_postorder_;
 }
-
 
 ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   ConstantInstr* constant = constant_instr_pool_.LookupValue(object);
@@ -141,7 +134,6 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   return constant;
 }
 
-
 void FlowGraph::AddToInitialDefinitions(Definition* defn) {
   // TODO(zerny): Set previous to the graph entry so it is accessible by
   // GetBlock. Remove this once there is a direct pointer to the block.
@@ -149,14 +141,12 @@ void FlowGraph::AddToInitialDefinitions(Definition* defn) {
   graph_entry_->initial_definitions()->Add(defn);
 }
 
-
 void FlowGraph::InsertBefore(Instruction* next,
                              Instruction* instr,
                              Environment* env,
                              UseKind use_kind) {
   InsertAfter(next->previous(), instr, env, use_kind);
 }
-
 
 void FlowGraph::InsertAfter(Instruction* prev,
                             Instruction* instr,
@@ -173,7 +163,6 @@ void FlowGraph::InsertAfter(Instruction* prev,
   }
 }
 
-
 Instruction* FlowGraph::AppendTo(Instruction* prev,
                                  Instruction* instr,
                                  Environment* env,
@@ -188,7 +177,6 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
   }
   return prev->AppendInstruction(instr);
 }
-
 
 // A wrapper around block entries including an index of the next successor to
 // be read.
@@ -212,7 +200,6 @@ class BlockTraversalState {
 
   DISALLOW_ALLOCATION();
 };
-
 
 void FlowGraph::DiscoverBlocks() {
   StackZone zone(thread());
@@ -258,7 +245,6 @@ void FlowGraph::DiscoverBlocks() {
   loop_invariant_loads_ = NULL;
 }
 
-
 void FlowGraph::MergeBlocks() {
   bool changed = false;
   BitVector* merged = new (zone()) BitVector(zone(), postorder().length());
@@ -300,7 +286,6 @@ void FlowGraph::MergeBlocks() {
   if (changed) DiscoverBlocks();
 }
 
-
 // Debugging code to verify the construction of use lists.
 static intptr_t MembershipCount(Value* use, Value* list) {
   intptr_t count = 0;
@@ -310,7 +295,6 @@ static intptr_t MembershipCount(Value* use, Value* list) {
   }
   return count;
 }
-
 
 static void VerifyUseListsInInstruction(Instruction* instr) {
   ASSERT(instr != NULL);
@@ -400,7 +384,6 @@ void FlowGraph::ComputeIsReceiverRecursive(
   }
 }
 
-
 void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
   GrowableArray<PhiInstr*> unmark;
   ComputeIsReceiverRecursive(phi, &unmark);
@@ -418,7 +401,6 @@ void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
   }
 }
 
-
 bool FlowGraph::IsReceiver(Definition* def) const {
   def = def->OriginalDefinition();  // Could be redefined.
   if (def->IsParameter()) return (def->AsParameter()->index() == 0);
@@ -431,7 +413,6 @@ bool FlowGraph::IsReceiver(Definition* def) const {
   ComputeIsReceiver(phi);
   return (phi->is_receiver() == PhiInstr::kReceiver);
 }
-
 
 // Use CHA to determine if the call needs a class check: if the callee's
 // receiver is the same as the caller's receiver and there are no overridden
@@ -467,7 +448,6 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
   return true;
 }
 
-
 Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
                                          const Cids& cids,
                                          intptr_t deopt_id,
@@ -479,7 +459,6 @@ Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
   return new (zone())
       CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
 }
-
 
 bool FlowGraph::VerifyUseLists() {
   // Verify the initial definitions.
@@ -505,7 +484,6 @@ bool FlowGraph::VerifyUseLists() {
 
   return true;  // Return true so we can ASSERT validation.
 }
-
 
 // Verify that a redefinition dominates all uses of the redefined value.
 bool FlowGraph::VerifyRedefinitions() {
@@ -535,7 +513,6 @@ bool FlowGraph::VerifyRedefinitions() {
   return true;
 }
 
-
 LivenessAnalysis::LivenessAnalysis(
     intptr_t variable_count,
     const GrowableArray<BlockEntryInstr*>& postorder)
@@ -545,7 +522,6 @@ LivenessAnalysis::LivenessAnalysis(
       live_out_(postorder.length()),
       kill_(postorder.length()),
       live_in_(postorder.length()) {}
-
 
 bool LivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
   BitVector* live_out = live_out_[block.postorder_number()];
@@ -562,14 +538,12 @@ bool LivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
   return changed;
 }
 
-
 bool LivenessAnalysis::UpdateLiveIn(const BlockEntryInstr& block) {
   BitVector* live_out = live_out_[block.postorder_number()];
   BitVector* kill = kill_[block.postorder_number()];
   BitVector* live_in = live_in_[block.postorder_number()];
   return live_in->KillAndAdd(kill, live_out);
 }
-
 
 void LivenessAnalysis::ComputeLiveInAndLiveOutSets() {
   const intptr_t block_count = postorder_.length();
@@ -591,7 +565,6 @@ void LivenessAnalysis::ComputeLiveInAndLiveOutSets() {
   } while (changed);
 }
 
-
 void LivenessAnalysis::Analyze() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
@@ -604,7 +577,6 @@ void LivenessAnalysis::Analyze() {
   ComputeLiveInAndLiveOutSets();
 }
 
-
 static void PrintBitVector(const char* tag, BitVector* v) {
   OS::Print("%s:", tag);
   for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
@@ -612,7 +584,6 @@ static void PrintBitVector(const char* tag, BitVector* v) {
   }
   OS::Print("\n");
 }
-
 
 void LivenessAnalysis::Dump() {
   const intptr_t block_count = postorder_.length();
@@ -632,7 +603,6 @@ void LivenessAnalysis::Dump() {
     PrintBitVector("  live in", live_in_[i]);
   }
 }
-
 
 // Computes liveness information for local variables.
 class VariableLivenessAnalysis : public LivenessAnalysis {
@@ -710,7 +680,6 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   GrowableArray<BitVector*> assigned_vars_;
 };
 
-
 void VariableLivenessAnalysis::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
 
@@ -771,7 +740,6 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
   }
 }
 
-
 void FlowGraph::ComputeSSA(
     intptr_t next_virtual_register_number,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
@@ -788,7 +756,6 @@ void FlowGraph::ComputeSSA(
   InsertPhis(preorder_, variable_liveness.ComputeAssignedVars(),
              dominance_frontier, &live_phis);
 
-
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
   Rename(&live_phis, &variable_liveness, inlining_parameters);
@@ -797,7 +764,6 @@ void FlowGraph::ComputeSSA(
   // non-live ones.
   RemoveDeadPhis(&live_phis);
 }
-
 
 // Compute immediate dominators and the dominance frontier for each basic
 // block.  As a side effect of the algorithm, sets the immediate dominator
@@ -902,7 +868,6 @@ void FlowGraph::ComputeDominators(
   }
 }
 
-
 void FlowGraph::CompressPath(intptr_t start_index,
                              intptr_t current_index,
                              GrowableArray<intptr_t>* parent,
@@ -915,7 +880,6 @@ void FlowGraph::CompressPath(intptr_t start_index,
     (*parent)[current_index] = (*parent)[next_index];
   }
 }
-
 
 void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
                            const GrowableArray<BitVector*>& assigned_vars,
@@ -975,7 +939,6 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
     }
   }
 }
-
 
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
@@ -1070,7 +1033,6 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   RenameRecursive(entry, &env, live_phis, variable_liveness);
 }
 
-
 void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
@@ -1088,7 +1050,6 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     instr->env()->set_deopt_id(instr->deopt_id());
   }
 }
-
 
 void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
                                 GrowableArray<Definition*>* env,
@@ -1288,7 +1249,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   }
 }
 
-
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   // Augment live_phis with those that have implicit real used at
   // potentially throwing instructions if there is a try-catch in this graph.
@@ -1334,7 +1294,6 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   }
 }
 
-
 RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
                                                  Definition* original,
                                                  CompileType compile_type) {
@@ -1352,7 +1311,6 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
   RenameDominatedUses(original, redef, redef);
   return redef;
 }
-
 
 void FlowGraph::RemoveRedefinitions() {
   // Remove redefinition instructions inserted to inhibit hoisting.
@@ -1373,7 +1331,6 @@ void FlowGraph::RemoveRedefinitions() {
     }
   }
 }
-
 
 // Find the natural loop for the back edge m->n and attach loop information
 // to block n (loop header). The algorithm is described in "Advanced Compiler
@@ -1400,7 +1357,6 @@ BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const {
   }
   return loop;
 }
-
 
 ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers =
@@ -1446,7 +1402,6 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
   return loop_headers;
 }
 
-
 intptr_t FlowGraph::InstructionCount() const {
   intptr_t size = 0;
   // Iterate each block, skipping the graph entry.
@@ -1459,11 +1414,9 @@ intptr_t FlowGraph::InstructionCount() const {
   return size;
 }
 
-
 void FlowGraph::ComputeBlockEffects() {
   block_effects_ = new (zone()) BlockEffects(this);
 }
-
 
 BlockEffects::BlockEffects(FlowGraph* flow_graph)
     : available_at_(flow_graph->postorder().length()) {
@@ -1545,13 +1498,11 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
   } while (changed);
 }
 
-
 bool BlockEffects::IsAvailableAt(Instruction* instr,
                                  BlockEntryInstr* block) const {
   return (instr->Dependencies().IsNone()) ||
          IsSideEffectFreePath(instr->GetBlock(), block);
 }
-
 
 bool BlockEffects::CanBeMovedTo(Instruction* instr,
                                 BlockEntryInstr* block) const {
@@ -1559,17 +1510,14 @@ bool BlockEffects::CanBeMovedTo(Instruction* instr,
          IsSideEffectFreePath(block, instr->GetBlock());
 }
 
-
 bool BlockEffects::IsSideEffectFreePath(BlockEntryInstr* from,
                                         BlockEntryInstr* to) const {
   return available_at_[to->postorder_number()]->Contains(
       from->postorder_number());
 }
 
-
 // Quick access to the current zone.
 #define Z (zone())
-
 
 void FlowGraph::ConvertUse(Value* use, Representation from_rep) {
   const Representation to_rep =
@@ -1580,27 +1528,22 @@ void FlowGraph::ConvertUse(Value* use, Representation from_rep) {
   InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/false);
 }
 
-
 static bool IsUnboxedInteger(Representation rep) {
   return (rep == kUnboxedInt32) || (rep == kUnboxedUint32) ||
          (rep == kUnboxedMint);
 }
 
-
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
-
 
 static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
 
-
 static bool CanConvertUnboxedMintToDouble() {
   return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
 }
-
 
 void FlowGraph::InsertConversion(Representation from,
                                  Representation to,
@@ -1673,7 +1616,6 @@ void FlowGraph::InsertConversion(Representation from,
   }
 }
 
-
 void FlowGraph::ConvertEnvironmentUse(Value* use, Representation from_rep) {
   const Representation to_rep = kTagged;
   if (from_rep == to_rep) {
@@ -1681,7 +1623,6 @@ void FlowGraph::ConvertEnvironmentUse(Value* use, Representation from_rep) {
   }
   InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/true);
 }
-
 
 void FlowGraph::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
@@ -1702,7 +1643,6 @@ void FlowGraph::InsertConversionsFor(Definition* def) {
     }
   }
 }
-
 
 static void UnboxPhi(PhiInstr* phi) {
   Representation unboxed = phi->representation();
@@ -1784,7 +1724,6 @@ static void UnboxPhi(PhiInstr* phi) {
   phi->set_representation(unboxed);
 }
 
-
 void FlowGraph::SelectRepresentations() {
   // Conservatively unbox all phis that were proven to be of Double,
   // Float32x4, or Int32x4 type.
@@ -1834,7 +1773,6 @@ void FlowGraph::SelectRepresentations() {
   }
 }
 
-
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 // Smi widening pass is only meaningful on platforms where Smi
 // is smaller than 32bit. For now only support it on ARM and ia32.
@@ -1842,7 +1780,6 @@ static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
   return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(), smi_op->left(),
                                          smi_op->right());
 }
-
 
 static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
   // TODO(vegorov): when shifts with non-constants shift count are supported
@@ -1858,7 +1795,6 @@ static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
       return false;
   }
 }
-
 
 void FlowGraph::WidenSmiToInt32() {
   GrowableArray<BinarySmiOpInstr*> candidates;
@@ -2049,7 +1985,6 @@ void FlowGraph::WidenSmiToInt32() {
 }
 #endif
 
-
 void FlowGraph::EliminateEnvironments() {
   // After this pass we can no longer perform LICM and hoist instructions
   // that can deoptimize.
@@ -2075,7 +2010,6 @@ void FlowGraph::EliminateEnvironments() {
     }
   }
 }
-
 
 bool FlowGraph::Canonicalize() {
   bool changed = false;
@@ -2104,7 +2038,6 @@ bool FlowGraph::Canonicalize() {
   }
   return changed;
 }
-
 
 // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
 // shift can be a truncating Smi shift-left and result is always Smi.
@@ -2153,7 +2086,6 @@ void FlowGraph::TryOptimizePatterns() {
   }
 }
 
-
 // Returns true if use is dominated by the given instruction.
 // Note: uses that occur at instruction itself are not dominated by it.
 static bool IsDominatedUse(Instruction* dom, Value* use) {
@@ -2181,7 +2113,6 @@ static bool IsDominatedUse(Instruction* dom, Value* use) {
   return dom_block->Dominates(use_block);
 }
 
-
 void FlowGraph::RenameDominatedUses(Definition* def,
                                     Instruction* dom,
                                     Definition* other) {
@@ -2192,7 +2123,6 @@ void FlowGraph::RenameDominatedUses(Definition* def,
     }
   }
 }
-
 
 void FlowGraph::RenameUsesDominatedByRedefinitions() {
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
@@ -2208,7 +2138,6 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
   }
 }
 
-
 static bool IsPositiveOrZeroSmiConst(Definition* d) {
   ConstantInstr* const_instr = d->AsConstant();
   if ((const_instr != NULL) && (const_instr->value().IsSmi())) {
@@ -2217,7 +2146,6 @@ static bool IsPositiveOrZeroSmiConst(Definition* d) {
   return false;
 }
 
-
 static BinarySmiOpInstr* AsSmiShiftLeftInstruction(Definition* d) {
   BinarySmiOpInstr* instr = d->AsBinarySmiOp();
   if ((instr != NULL) && (instr->op_kind() == Token::kSHL)) {
@@ -2225,7 +2153,6 @@ static BinarySmiOpInstr* AsSmiShiftLeftInstruction(Definition* d) {
   }
   return NULL;
 }
-
 
 void FlowGraph::OptimizeLeftShiftBitAndSmiOp(
     ForwardInstructionIterator* current_iterator,
@@ -2262,7 +2189,6 @@ void FlowGraph::OptimizeLeftShiftBitAndSmiOp(
     bit_and_instr->ReplaceWith(smi_op, current_iterator);
   }
 }
-
 
 // Dart:
 //  var x = d % 10;
@@ -2334,7 +2260,6 @@ void FlowGraph::TryMergeTruncDivMod(
   }
 }
 
-
 void FlowGraph::AppendExtractNthOutputForMerged(Definition* instr,
                                                 intptr_t index,
                                                 Representation rep,
@@ -2344,6 +2269,5 @@ void FlowGraph::AppendExtractNthOutputForMerged(Definition* instr,
   instr->ReplaceUsesWith(extract);
   InsertAfter(instr, extract, NULL, FlowGraph::kValue);
 }
-
 
 }  // namespace dart

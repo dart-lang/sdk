@@ -108,6 +108,10 @@ class LibraryEnv {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
+        if (member.name.name.contains('#')) {
+          // Skip synthetic .dill members.
+          continue;
+        }
         if (member is ir.Procedure) {
           if (member.kind == ir.ProcedureKind.Setter) {
             _setterMap[member.name.name] = member;
@@ -120,7 +124,7 @@ class LibraryEnv {
             _setterMap[member.name.name] = member;
           }
         } else {
-          throw new SpannableAssertionFailure(
+          failedAt(
               NO_LOCATION_SPANNABLE, "Unexpected library member node: $member");
         }
       }
@@ -146,6 +150,21 @@ class LibraryEnv {
   }
 }
 
+class LibraryData {
+  final ir.Library library;
+  Iterable<ConstantValue> _metadata;
+
+  LibraryData(this.library);
+
+  Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
+    return _metadata ??= elementMap.getMetadata(library.annotations);
+  }
+
+  LibraryData copy() {
+    return new LibraryData(library);
+  }
+}
+
 /// Environment for fast lookup of class members.
 class ClassEnv {
   final ir.Class cls;
@@ -160,6 +179,15 @@ class ClassEnv {
       // is added to kernel.
       : isUnnamedMixinApplication =
             cls.name.contains('+') || cls.name.contains('&');
+
+  // TODO(efortuna): This is gross because even though the closure class *has*
+  // members, we're not populating this because they aren't ir.Member types. :-(
+  ClassEnv.closureClass()
+      : cls = null,
+        isUnnamedMixinApplication = false,
+        _constructorMap = const <String, ir.Member>{},
+        _memberMap = const <String, ir.Member>{},
+        _setterMap = const <String, ir.Member>{};
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
@@ -215,6 +243,10 @@ class ClassEnv {
 
       void addMembers(ir.Class c, {bool includeStatic}) {
         for (ir.Member member in c.members) {
+          if (member.name.name.contains('#')) {
+            // Skip synthetic .dill members.
+            continue;
+          }
           if (member is ir.Constructor ||
               member is ir.Procedure &&
                   member.kind == ir.ProcedureKind.Factory) {
@@ -235,7 +267,7 @@ class ClassEnv {
             }
             _memberMap[member.name.name] = member;
           } else {
-            throw new SpannableAssertionFailure(
+            failedAt(
                 NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
           }
         }
@@ -395,7 +427,7 @@ class ConstructorData extends FunctionData {
         _constantConstructor =
             new Constantifier(elementMap).computeConstantConstructor(node);
       } else {
-        throw new SpannableAssertionFailure(
+        failedAt(
             constructor,
             "Unexpected constructor $constructor in "
             "KernelWorldBuilder._getConstructorConstant");
@@ -423,7 +455,7 @@ class FieldData extends MemberData {
       if (node.isConst) {
         _constant = new Constantifier(elementMap).visit(node.initializer);
       } else {
-        throw new SpannableAssertionFailure(
+        failedAt(
             field,
             "Unexpected field $field in "
             "KernelWorldBuilder._getConstructorConstant");

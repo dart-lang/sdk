@@ -85,12 +85,11 @@ class BlockRewriter extends AstRewriter {
   }
 }
 
-/// Creates and updates the context as [Let] bindings around the initializer
-/// expression.
-abstract class InitializerRewriter extends AstRewriter {
-  final Expression initializingExpression;
+class InitializerListRewriter extends AstRewriter {
+  final Constructor parentConstructor;
+  final List<Initializer> prefix = [];
 
-  InitializerRewriter(this.initializingExpression);
+  InitializerListRewriter(this.parentConstructor);
 
   @override
   BlockRewriter forNestedBlock(Block block) {
@@ -100,44 +99,16 @@ abstract class InitializerRewriter extends AstRewriter {
   @override
   void insertContextDeclaration(Expression accessParent) {
     _createDeclaration();
-    var oldParent = initializingExpression.parent;
-    Let binding = new Let(contextDeclaration, initializingExpression);
-    binding.parent = oldParent;
-    setInitializerExpression(binding);
+    var init = new LocalInitializer(contextDeclaration);
+    init.parent = parentConstructor;
+    prefix.add(init);
   }
 
   @override
   void insertExtendContext(VectorSet extender) {
-    Let parent = initializingExpression.parent;
-    Let binding = new Let(new VariableDeclaration(null, initializer: extender),
-        initializingExpression);
-    parent.body = binding;
-    binding.parent = parent;
-  }
-
-  void setInitializerExpression(Expression expression);
-}
-
-class FieldInitializerRewriter extends InitializerRewriter {
-  FieldInitializerRewriter(Expression initializingExpression)
-      : super(initializingExpression) {
-    assert(initializingExpression.parent is FieldInitializer);
-  }
-
-  void setInitializerExpression(Expression expression) {
-    (expression.parent as FieldInitializer).value = expression;
-  }
-}
-
-class LocalInitializerRewriter extends InitializerRewriter {
-  LocalInitializerRewriter(Expression initializingExpression)
-      : super(initializingExpression) {
-    // The initializer is up two levels because the variable declaration node is
-    // in between.
-    assert(initializingExpression.parent.parent is LocalInitializer);
-  }
-
-  void setInitializerExpression(Expression expression) {
-    (expression.parent as VariableDeclaration).initializer = expression;
+    var init = new LocalInitializer(
+        new VariableDeclaration(null, initializer: extender));
+    init.parent = parentConstructor;
+    prefix.add(init);
   }
 }

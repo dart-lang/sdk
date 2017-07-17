@@ -31,4 +31,7 @@ abstract class EventRepository {
   Stream<ExtensionEvent> get onExtensionEvent;
   Stream<TimelineEventsEvent> get onTimelineEvents;
   Stream<ConnectionClosedEvent> get onConnectionClosed;
+  Stream<ServiceEvent> get onServiceEvent;
+  Stream<ServiceRegisteredEvent> get onServiceRegistered;
+  Stream<ServiceUnregisteredEvent> get onServiceUnregistered;
 }

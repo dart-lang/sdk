@@ -1,5 +1,0 @@
-library;
-import self as self;
-
-static method main() → dynamic
-  throw "dart:html: Error: Not found: dart:html.";

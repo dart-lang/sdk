@@ -16,7 +16,6 @@
 #include "bin/security_context.h"
 #include "platform/text_buffer.h"
 
-
 // Return the error from the containing function if handle is an error handle.
 #define RETURN_IF_ERROR(handle)                                                \
   {                                                                            \
@@ -48,14 +47,12 @@ static SSLFilter* GetFilter(Dart_NativeArguments args) {
   return filter;
 }
 
-
 static void DeleteFilter(void* isolate_data,
                          Dart_WeakPersistentHandle handle,
                          void* context_pointer) {
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(context_pointer);
   filter->Release();
 }
-
 
 static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
   ASSERT(filter != NULL);
@@ -70,7 +67,6 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
                                SSLFilter::kApproximateSize, DeleteFilter);
   return Dart_Null();
 }
-
 
 void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
@@ -88,7 +84,6 @@ void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
     Dart_PropagateError(err);
   }
 }
-
 
 void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   Dart_Handle host_name_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
@@ -119,7 +114,6 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
                            require_client_certificate, protocols_handle);
 }
 
-
 void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   SSLFilter* filter = GetFilter(args);
   // There are two paths that can clean up an SSLFilter object. First,
@@ -135,17 +129,14 @@ void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   filter->Destroy();
 }
 
-
 void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
   GetFilter(args)->Handshake();
 }
-
 
 void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
     Dart_NativeArguments args) {
   GetFilter(args)->GetSelectedProtocol(args);
 }
-
 
 void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
   bool use_session_cache =
@@ -158,7 +149,6 @@ void FUNCTION_NAME(SecureSocket_Renegotiate)(Dart_NativeArguments args) {
                                require_client_certificate);
 }
 
-
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_Handle handshake_complete =
@@ -170,7 +160,6 @@ void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
   GetFilter(args)->RegisterHandshakeCompleteCallback(handshake_complete);
 }
 
-
 void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
     Dart_NativeArguments args) {
   Dart_Handle callback = ThrowIfError(Dart_GetNativeArgument(args, 1));
@@ -181,12 +170,10 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
   GetFilter(args)->RegisterBadCertificateCallback(callback);
 }
 
-
 void FUNCTION_NAME(SecureSocket_PeerCertificate)(Dart_NativeArguments args) {
   Dart_Handle cert = ThrowIfError(GetFilter(args)->PeerCertificate());
   Dart_SetReturnValue(args, cert);
 }
-
 
 void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
   SSLFilter* filter = GetFilter(args);
@@ -196,7 +183,6 @@ void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
   intptr_t filter_pointer = reinterpret_cast<intptr_t>(filter);
   Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
 }
-
 
 /**
  * Pushes data through the SSL filter, reading and writing from circular
@@ -250,7 +236,6 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     return result;
   }
 }
-
 
 bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
                                   int ends[kNumBuffers],
@@ -324,7 +309,6 @@ bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
   return true;
 }
 
-
 Dart_Handle SSLFilter::Init(Dart_Handle dart_this) {
   if (!library_initialized_) {
     InitializeLibrary();
@@ -341,7 +325,6 @@ Dart_Handle SSLFilter::Init(Dart_Handle dart_this) {
   // Caller handles cleanup on an error.
   return InitializeBuffers(dart_this);
 }
-
 
 Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   // Create SSLFilter buffers as ExternalUint8Array objects.
@@ -421,14 +404,12 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   return result;
 }
 
-
 void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
   ASSERT(NULL == handshake_complete_);
   handshake_complete_ = Dart_NewPersistentHandle(complete);
 
   ASSERT(handshake_complete_ != NULL);
 }
-
 
 void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
   ASSERT(bad_certificate_callback_ != NULL);
@@ -437,7 +418,6 @@ void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
   ASSERT(bad_certificate_callback_ != NULL);
 }
 
-
 Dart_Handle SSLFilter::PeerCertificate() {
   X509* ca = SSL_get_peer_certificate(ssl_);
   if (ca == NULL) {
@@ -445,7 +425,6 @@ Dart_Handle SSLFilter::PeerCertificate() {
   }
   return X509Helper::WrappedX509Certificate(ca);
 }
-
 
 void SSLFilter::InitializeLibrary() {
   MutexLocker locker(mutex_);
@@ -456,7 +435,6 @@ void SSLFilter::InitializeLibrary() {
     library_initialized_ = true;
   }
 }
-
 
 void SSLFilter::Connect(const char* hostname,
                         SSLCertContext* context,
@@ -539,7 +517,6 @@ void SSLFilter::Connect(const char* hostname,
   Handshake();
 }
 
-
 void SSLFilter::Handshake() {
   // Try and push handshake along.
   int status;
@@ -582,7 +559,6 @@ void SSLFilter::Handshake() {
   }
 }
 
-
 void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
   const uint8_t* protocol;
   unsigned length;
@@ -594,7 +570,6 @@ void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
   }
 }
 
-
 void SSLFilter::Renegotiate(bool use_session_cache,
                             bool request_client_certificate,
                             bool require_client_certificate) {
@@ -605,7 +580,6 @@ void SSLFilter::Renegotiate(bool use_session_cache,
   // TODO(24070, 24069): Implement setting the client certificate parameters,
   //   and triggering rehandshake.
 }
-
 
 void SSLFilter::FreeResources() {
   if (ssl_ != NULL) {
@@ -628,11 +602,9 @@ void SSLFilter::FreeResources() {
   }
 }
 
-
 SSLFilter::~SSLFilter() {
   FreeResources();
 }
-
 
 void SSLFilter::Destroy() {
   for (int i = 0; i < kNumBuffers; ++i) {
@@ -660,7 +632,6 @@ void SSLFilter::Destroy() {
   FreeResources();
 }
 
-
 /* Read decrypted data from the filter to the circular buffer */
 int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
   int length = end - start;
@@ -678,7 +649,6 @@ int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
   return bytes_processed;
 }
 
-
 int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
   int length = end - start;
   int bytes_processed =
@@ -691,7 +661,6 @@ int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
   }
   return bytes_processed;
 }
-
 
 /* Read encrypted data from the circular buffer to the filter */
 int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
@@ -716,7 +685,6 @@ int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
                bytes_processed);
   return bytes_processed;
 }
-
 
 int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
   int length = end - start;

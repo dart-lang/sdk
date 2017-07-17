@@ -41285,11 +41285,11 @@ class Url extends DartHtmlDomObject implements UrlUtils {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }

@@ -63,7 +63,6 @@ static void LoadPatchFiles(Dart_Handle library,
   }
 }
 
-
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
   ASSERT(static_cast<int>(id) < num_libs_);
@@ -74,7 +73,6 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   return GetSource(source_paths, uri);
 }
 
-
 Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* part_uri) {
   ASSERT(static_cast<int>(id) >= 0);
   ASSERT(static_cast<int>(id) < num_libs_);
@@ -83,7 +81,6 @@ Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* part_uri) {
   const char** source_paths = builtin_libraries_[id].source_paths_;
   return GetSource(source_paths, part_uri);
 }
-
 
 Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
   if (source_paths == NULL) {
@@ -100,7 +97,6 @@ Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
   return Dart_Null();  // Uri does not exist in path mapping information.
 }
 
-
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
   ASSERT(static_cast<int>(id) < num_libs_);
@@ -114,7 +110,6 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
         Dart_SetNativeResolver(library, NativeLookup, NativeSymbol));
   }
 }
-
 
 Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
@@ -134,7 +129,6 @@ Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
   return library;
 }
 
-
 Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
   int id = 0;
   while (true) {
@@ -147,7 +141,6 @@ Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
     id++;
   }
 }
-
 
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);

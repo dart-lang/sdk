@@ -25,7 +25,6 @@ void GenerateIncrement(Assembler* assembler) {
   __ Return(0);
 }
 
-
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
@@ -34,7 +33,6 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   __ PushConstant(string_object);
   __ ReturnTOS();
 }
-
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.

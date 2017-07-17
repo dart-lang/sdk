@@ -495,6 +495,10 @@ class _ElementWriter {
   }
 
   void writeLibraryElement(LibraryElement e) {
+    if (e.documentationComment != null) {
+      buffer.writeln(e.documentationComment);
+    }
+
     if (e.displayName != '') {
       writeMetadata(e, '', '\n');
       buffer.write('library ');
@@ -689,6 +693,19 @@ class _ElementWriter {
 
     DartType type = e.type;
     expect(type, isNotNull);
+
+    if (!e.isSynthetic) {
+      expect(e.getter, isNotNull);
+      expect(e.getter.isSynthetic, isTrue);
+      expect(e.getter.variable, same(e));
+      if (e.isFinal || e.isConst) {
+        expect(e.setter, isNull);
+      } else {
+        expect(e.setter, isNotNull);
+        expect(e.setter.isSynthetic, isTrue);
+        expect(e.setter.variable, same(e.getter.variable));
+      }
+    }
 
     if (e.enclosingElement is ClassElement) {
       writeDocumentation(e, '  ');

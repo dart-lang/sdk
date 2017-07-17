@@ -80,7 +80,6 @@ class ProcessInfo {
   DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
 };
 
-
 // Singly-linked list of ProcessInfo objects for all active processes
 // started from Dart.
 class ProcessInfoList {
@@ -428,11 +427,9 @@ void Process::TerminateExitCodeHandler() {
   ExitCodeHandler::Terminate();
 }
 
-
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
-
 
 int64_t Process::CurrentRSS() {
   mx_info_task_stats_t task_stats;
@@ -447,13 +444,11 @@ int64_t Process::CurrentRSS() {
   return task_stats.mem_private_bytes + task_stats.mem_shared_bytes;
 }
 
-
 int64_t Process::MaxRSS() {
   // There is currently no way to get the high watermark value on Fuchsia, so
   // just return the current RSS value.
   return CurrentRSS();
 }
-
 
 class IOHandleScope {
  public:
@@ -469,7 +464,6 @@ class IOHandleScope {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(IOHandleScope);
 };
-
 
 bool Process::Wait(intptr_t pid,
                    intptr_t in,
@@ -613,7 +607,6 @@ bool Process::Wait(intptr_t pid,
   return true;
 }
 
-
 bool Process::Kill(intptr_t id, int signal) {
   LOG_INFO("Sending signal %d to process with id %ld\n", signal, id);
   // mx_task_kill is definitely going to kill the process.
@@ -639,7 +632,6 @@ bool Process::Kill(intptr_t id, int signal) {
   LOG_INFO("Signal %d sent successfully to process %ld\n", signal, id);
   return true;
 }
-
 
 class ProcessStarter {
  public:
@@ -836,7 +828,6 @@ class ProcessStarter {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
-
 
 int Process::Start(const char* path,
                    char* arguments[],

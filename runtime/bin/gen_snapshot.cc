@@ -25,9 +25,9 @@
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 
-#include "platform/hashmap.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
+#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -57,12 +57,10 @@ static const int kErrorExitCode = 255;
     exit(exit_code);                                                           \
   }
 
-
 // The core snapshot to use when creating isolates. Normally NULL, but loaded
 // from a file when creating script snapshots.
 const uint8_t* isolate_snapshot_data = NULL;
 const uint8_t* isolate_snapshot_instructions = NULL;
-
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
@@ -84,7 +82,6 @@ static bool dependencies_only = false;
 static bool print_dependencies = false;
 static const char* dependencies_filename = NULL;
 
-
 // Value of the --load-compilation-trace flag.
 // (This pointer points into an argv buffer and does not need to be
 // free'd.)
@@ -99,7 +96,6 @@ static const char* commandline_package_root = NULL;
 // (This pointer points into an argv buffer and does not need to be
 // free'd.)
 static const char* commandline_packages_file = NULL;
-
 
 // Global state which contains a pointer to the script name for which
 // a snapshot needs to be created (NULL would result in the creation
@@ -117,7 +113,6 @@ static bool IsValidFlag(const char* name,
   return ((name_length > prefix_length) &&
           (strncmp(name, prefix, prefix_length) == 0));
 }
-
 
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
@@ -171,7 +166,6 @@ static bool ProcessEnvironmentOption(const char* arg) {
   return true;
 }
 
-
 static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   uint8_t* utf8_array;
   intptr_t utf8_len;
@@ -202,7 +196,6 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   return result;
 }
 
-
 static const char* ProcessOption(const char* option, const char* name) {
   const intptr_t length = strlen(name);
   if (strncmp(option, name, length) == 0) {
@@ -210,7 +203,6 @@ static const char* ProcessOption(const char* option, const char* name) {
   }
   return NULL;
 }
-
 
 static bool ProcessSnapshotKindOption(const char* option) {
   const char* kind = ProcessOption(option, "--snapshot_kind=");
@@ -243,7 +235,6 @@ static bool ProcessSnapshotKindOption(const char* option) {
   return false;
 }
 
-
 static bool ProcessVmSnapshotDataOption(const char* option) {
   const char* name = ProcessOption(option, "--vm_snapshot_data=");
   if (name == NULL) {
@@ -255,7 +246,6 @@ static bool ProcessVmSnapshotDataOption(const char* option) {
   }
   return false;
 }
-
 
 static bool ProcessVmSnapshotInstructionsOption(const char* option) {
   const char* name = ProcessOption(option, "--vm_snapshot_instructions=");
@@ -269,7 +259,6 @@ static bool ProcessVmSnapshotInstructionsOption(const char* option) {
   return false;
 }
 
-
 static bool ProcessIsolateSnapshotDataOption(const char* option) {
   const char* name = ProcessOption(option, "--isolate_snapshot_data=");
   if (name == NULL) {
@@ -281,7 +270,6 @@ static bool ProcessIsolateSnapshotDataOption(const char* option) {
   }
   return false;
 }
-
 
 static bool ProcessIsolateSnapshotInstructionsOption(const char* option) {
   const char* name = ProcessOption(option, "--isolate_snapshot_instructions=");
@@ -295,7 +283,6 @@ static bool ProcessIsolateSnapshotInstructionsOption(const char* option) {
   return false;
 }
 
-
 static bool ProcessAssemblyOption(const char* option) {
   const char* name = ProcessOption(option, "--assembly=");
   if (name != NULL) {
@@ -304,7 +291,6 @@ static bool ProcessAssemblyOption(const char* option) {
   }
   return false;
 }
-
 
 static bool ProcessScriptSnapshotOption(const char* option) {
   const char* name = ProcessOption(option, "--script_snapshot=");
@@ -318,7 +304,6 @@ static bool ProcessScriptSnapshotOption(const char* option) {
   return false;
 }
 
-
 static bool ProcessDependenciesOption(const char* option) {
   const char* name = ProcessOption(option, "--dependencies=");
   if (name != NULL) {
@@ -327,7 +312,6 @@ static bool ProcessDependenciesOption(const char* option) {
   }
   return false;
 }
-
 
 static bool ProcessDependenciesOnlyOption(const char* option) {
   const char* name = ProcessOption(option, "--dependencies_only");
@@ -365,7 +349,6 @@ static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
   return false;
 }
 
-
 static bool ProcessLoadCompilationTraceOption(const char* option) {
   const char* name = ProcessOption(option, "--load_compilation_trace=");
   if (name == NULL) {
@@ -377,7 +360,6 @@ static bool ProcessLoadCompilationTraceOption(const char* option) {
   }
   return false;
 }
-
 
 static bool ProcessPackageRootOption(const char* option) {
   const char* name = ProcessOption(option, "--package_root=");
@@ -391,7 +373,6 @@ static bool ProcessPackageRootOption(const char* option) {
   return false;
 }
 
-
 static bool ProcessPackagesOption(const char* option) {
   const char* name = ProcessOption(option, "--packages=");
   if (name != NULL) {
@@ -400,7 +381,6 @@ static bool ProcessPackagesOption(const char* option) {
   }
   return false;
 }
-
 
 static bool ProcessURLmappingOption(const char* option) {
   const char* mapping = ProcessOption(option, "--url_mapping=");
@@ -414,11 +394,9 @@ static bool ProcessURLmappingOption(const char* option) {
   return false;
 }
 
-
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTBlobs) || (snapshot_kind == kAppAOTAssembly);
 }
-
 
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
@@ -545,7 +523,6 @@ static int ParseArguments(int argc,
   return 0;
 }
 
-
 static void WriteFile(const char* filename,
                       const uint8_t* buffer,
                       const intptr_t size) {
@@ -565,7 +542,6 @@ static void WriteFile(const char* filename,
   file->Release();
 }
 
-
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   File* file = File::Open(filename, File::kRead);
   if (file == NULL) {
@@ -584,7 +560,6 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   }
   file->Release();
 }
-
 
 class UriResolverIsolateScope {
  public:
@@ -611,9 +586,7 @@ class UriResolverIsolateScope {
   DISALLOW_COPY_AND_ASSIGN(UriResolverIsolateScope);
 };
 
-
 Dart_Isolate UriResolverIsolateScope::isolate = NULL;
-
 
 static void AddDependency(const char* uri_string) {
   IsolateData* isolate_data =
@@ -623,7 +596,6 @@ static void AddDependency(const char* uri_string) {
     dependencies->Add(strdup(uri_string));
   }
 }
-
 
 static Dart_Handle LoadUrlContents(const char* uri_string) {
   bool failed = false;
@@ -656,7 +628,6 @@ static Dart_Handle LoadUrlContents(const char* uri_string) {
   return result;
 }
 
-
 static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
   bool failed = false;
   char* result_string = NULL;
@@ -682,7 +653,6 @@ static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
   return result;
 }
 
-
 static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   // First resolve the specified script uri with respect to the original
   // working directory.
@@ -704,7 +674,6 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   }
 }
 
-
 static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   if (DartUtils::IsDartBuiltinLibURL(url)) {
     return Builtin::kBuiltinLibrary;
@@ -714,7 +683,6 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   }
   return Builtin::kInvalidLibrary;
 }
-
 
 // Generates a depfile like gcc -M -MF. Must be consumable by Ninja.
 class DependenciesFileWriter : public ValueObject {
@@ -816,7 +784,6 @@ class DependenciesFileWriter : public ValueObject {
   bool success_;
 };
 
-
 static void CreateAndWriteDependenciesFile() {
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
@@ -860,7 +827,6 @@ static void CreateAndWriteDependenciesFile() {
   delete dependencies;
   isolate_data->set_dependencies(NULL);
 }
-
 
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                    Dart_Handle library,
@@ -940,7 +906,6 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   }
 }
 
-
 static Dart_Handle LoadGenericSnapshotCreationScript(
     Builtin::BuiltinLibraryId id) {
   Dart_Handle source = Builtin::Source(id);
@@ -954,7 +919,6 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
   ASSERT(!Dart_IsError(lib));
   return lib;
 }
-
 
 // clang-format off
 static void PrintUsage() {
@@ -1030,9 +994,7 @@ static void PrintUsage() {
 }
 // clang-format on
 
-
 static const char StubNativeFunctionName[] = "StubNativeFunction";
-
 
 void StubNativeFunction(Dart_NativeArguments arguments) {
   // This is a stub function for the resolver
@@ -1040,18 +1002,15 @@ void StubNativeFunction(Dart_NativeArguments arguments) {
       arguments, Dart_NewApiError("<EMBEDDER DID NOT SETUP NATIVE RESOLVER>"));
 }
 
-
 static Dart_NativeFunction StubNativeLookup(Dart_Handle name,
                                             int argument_count,
                                             bool* auto_setup_scope) {
   return &StubNativeFunction;
 }
 
-
 static const uint8_t* StubNativeSymbol(Dart_NativeFunction nf) {
   return reinterpret_cast<const uint8_t*>(StubNativeFunctionName);
 }
-
 
 static void SetupStubNativeResolver(size_t lib_index,
                                     const Dart_QualifiedFunctionName* entry) {
@@ -1087,7 +1046,6 @@ static void SetupStubNativeResolver(size_t lib_index,
   DART_CHECK_VALID(result);
 }
 
-
 // Iterate over all libraries and setup the stub native lookup. This must be
 // run after |SetupStubNativeResolversForPrecompilation| because the former
 // loads some libraries.
@@ -1107,7 +1065,6 @@ static void SetupStubNativeResolvers() {
     }
   }
 }
-
 
 static void ImportNativeEntryPointLibrariesIntoRoot(
     const Dart_QualifiedFunctionName* entries) {
@@ -1131,7 +1088,6 @@ static void ImportNativeEntryPointLibrariesIntoRoot(
   }
 }
 
-
 static void SetupStubNativeResolversForPrecompilation(
     const Dart_QualifiedFunctionName* entries) {
   if (entries == NULL) {
@@ -1151,7 +1107,6 @@ static void SetupStubNativeResolversForPrecompilation(
   }
 }
 
-
 static void CleanupEntryPointItem(const Dart_QualifiedFunctionName* entry) {
   if (entry == NULL) {
     return;
@@ -1163,7 +1118,6 @@ static void CleanupEntryPointItem(const Dart_QualifiedFunctionName* entry) {
   free(const_cast<char*>(entry->class_name));
   free(const_cast<char*>(entry->function_name));
 }
-
 
 static void CleanupEntryPointsCollection(Dart_QualifiedFunctionName* entries) {
   if (entries == NULL) {
@@ -1181,7 +1135,6 @@ static void CleanupEntryPointsCollection(Dart_QualifiedFunctionName* entries) {
   free(entries);
 }
 
-
 char* ParserErrorStringCreate(const char* format, ...) {
   static const size_t kErrorBufferSize = 256;
 
@@ -1196,7 +1149,6 @@ char* ParserErrorStringCreate(const char* format, ...) {
   return error_buffer;
 }
 
-
 const char* ParseEntryNameForIndex(uint8_t index) {
   switch (index) {
     case 0:
@@ -1210,7 +1162,6 @@ const char* ParseEntryNameForIndex(uint8_t index) {
   }
   return NULL;
 }
-
 
 static bool ParseEntryPointsManifestSingleLine(
     const char* line,
@@ -1267,7 +1218,6 @@ static bool ParseEntryPointsManifestSingleLine(
   return success;
 }
 
-
 int64_t ParseEntryPointsManifestLines(FILE* file,
                                       Dart_QualifiedFunctionName* collection) {
   int64_t entries = 0;
@@ -1310,7 +1260,6 @@ int64_t ParseEntryPointsManifestLines(FILE* file,
 
   return entries;
 }
-
 
 static Dart_QualifiedFunctionName* ParseEntryPointsManifestFiles() {
   // Total number of entries across all manifest files.
@@ -1363,7 +1312,6 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFiles() {
   return entries;
 }
 
-
 static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   Dart_QualifiedFunctionName* entries = ParseEntryPointsManifestFiles();
   if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
@@ -1373,7 +1321,6 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   }
   return entries;
 }
-
 
 static void LoadCompilationTrace() {
   if ((load_compilation_trace_filename != NULL) &&
@@ -1385,7 +1332,6 @@ static void LoadCompilationTrace() {
     CHECK_RESULT(result);
   }
 }
-
 
 static void CreateAndWriteCoreSnapshot() {
   ASSERT(snapshot_kind == kCore);
@@ -1417,7 +1363,6 @@ static void CreateAndWriteCoreSnapshot() {
     WriteFile(isolate_snapshot_instructions_filename, NULL, 0);
   }
 }
-
 
 static void CreateAndWriteCoreJITSnapshot() {
   ASSERT(snapshot_kind == kCoreJIT);
@@ -1458,7 +1403,6 @@ static void CreateAndWriteCoreJITSnapshot() {
             isolate_snapshot_instructions_size);
 }
 
-
 static void CreateAndWriteScriptSnapshot() {
   ASSERT(snapshot_kind == kScript);
   ASSERT(script_snapshot_filename != NULL);
@@ -1472,7 +1416,6 @@ static void CreateAndWriteScriptSnapshot() {
   // Now write it out to the specified file.
   WriteFile(script_snapshot_filename, buffer, size);
 }
-
 
 static void CreateAndWritePrecompiledSnapshot(
     Dart_QualifiedFunctionName* standalone_entry_points) {
@@ -1526,7 +1469,6 @@ static void CreateAndWritePrecompiledSnapshot(
   }
 }
 
-
 static void SetupForUriResolution() {
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
@@ -1542,7 +1484,6 @@ static void SetupForUriResolution() {
   CHECK_RESULT(library);
 }
 
-
 static void SetupForGenericSnapshotCreation() {
   SetupForUriResolution();
 
@@ -1557,7 +1498,6 @@ static void SetupForGenericSnapshotCreation() {
     exit(kErrorExitCode);
   }
 }
-
 
 static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          const char* main,
@@ -1605,7 +1545,6 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   return isolate;
 }
 
-
 static MappedMemory* MapFile(const char* filename,
                              File::MapType type,
                              const uint8_t** buffer) {
@@ -1629,7 +1568,6 @@ static MappedMemory* MapFile(const char* filename,
   *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
   return mapping;
 }
-
 
 int main(int argc, char** argv) {
   const int EXTRA_VM_ARGUMENTS = 2;

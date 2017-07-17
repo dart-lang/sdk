@@ -74,7 +74,6 @@ DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
   return Double::New(pow(operand, exponent));
 }
 
-
 // Returns the typed-data array store in '_Random._state' field.
 static RawTypedData* GetRandomStateArray(const Instance& receiver) {
   const Class& random_class = Class::Handle(receiver.clazz());
@@ -90,7 +89,6 @@ static RawTypedData* GetRandomStateArray(const Instance& receiver) {
   ASSERT(array.ElementType() == kUint32ArrayElement);
   return array.raw();
 }
-
 
 // Implements:
 //   var state =
@@ -110,7 +108,6 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
   return Object::null();
 }
 
-
 RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
   const TypedData& result =
       TypedData::Handle(zone, TypedData::New(kTypedDataUint32ArrayCid, 2));
@@ -119,7 +116,6 @@ RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
                    static_cast<uint32_t>(seed >> 32));
   return result.raw();
 }
-
 
 uint64_t mix64(uint64_t n) {
   // Thomas Wang 64-bit mix.
@@ -134,7 +130,6 @@ uint64_t mix64(uint64_t n) {
   n = n + (n << 31);
   return n;
 }
-
 
 // Implements:
 //   uint64_t hash = 0;
@@ -191,14 +186,12 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
   return CreateRandomState(zone, seed);
 }
 
-
 DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
   Random* rnd = isolate->random();
   uint64_t seed = rnd->NextUInt32();
   seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
   return CreateRandomState(zone, seed);
 }
-
 
 DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(0));

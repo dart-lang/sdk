@@ -8,16 +8,22 @@ import 'package:front_end/compilation_error.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/fasta/uri_translator_impl.dart';
+import 'package:front_end/src/fasta/problems.dart' show unimplemented;
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
     show Program, loadProgramFromBytes, CanonicalName;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm_fasta.dart';
+import 'package:package_config/packages.dart' show Packages;
+import 'package:package_config/src/packages_impl.dart'
+    show NonFilePackagesDirectoryPackages, MapPackages;
 import 'package:package_config/packages_file.dart' as package_config;
-import 'package:source_span/source_span.dart' show SourceSpan;
+import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
 /// All options needed for the front end implementation.
 ///
@@ -38,11 +44,11 @@ class ProcessedOptions {
 
   /// The package map derived from the options, or `null` if the package map has
   /// not been computed yet.
-  Map<String, Uri> _packages;
+  Packages _packages;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
-  TranslateUri _uriTranslator;
+  UriTranslatorImpl _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
@@ -80,6 +86,8 @@ class ProcessedOptions {
 
   bool get debugDump => _raw.debugDump;
 
+  bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
+
   /// Like [CompilerOptions.chaseDependencies] but with the appropriate default
   /// value filled in.
   bool get chaseDependencies => _raw.chaseDependencies ?? !_modularApi;
@@ -108,38 +116,54 @@ class ProcessedOptions {
     return _raw.byteStore;
   }
 
-  // TODO(sigmund): delete. We should use messages with error codes directly
-  // instead.
-  void reportError(String message) {
-    _raw.onError(new _CompilationError(message));
+  void reportMessage(LocatedMessage message) {
+    _raw.onError(new _CompilationMessage(message));
   }
+
+  void reportMessageWithoutLocation(Message message) =>
+      reportMessage(message.withLocation(null, -1));
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
   Future<bool> validateOptions() async {
+    if (inputs.isEmpty) {
+      reportMessageWithoutLocation(messageMissingInput);
+      return false;
+    }
+
     for (var source in inputs) {
-      if (source.scheme == 'file' &&
+      // Note: we don't translate Uris at this point because some of the
+      // validation further below must be done before we even construct an
+      // UriTranslator
+      // TODO(sigmund): consider validating dart/packages uri right after we
+      // build the uri translator.
+      if (source.scheme != 'dart' &&
+          source.scheme != 'packages' &&
           !await fileSystem.entityForUri(source).exists()) {
-        reportError("Entry-point file not found: $source");
+        reportMessageWithoutLocation(
+            templateInputFileNotFound.withArguments('$source'));
         return false;
       }
     }
 
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
-      reportError("SDK root directory not found: ${sdkRoot}");
+      reportMessageWithoutLocation(
+          templateSdkRootNotFound.withArguments('$sdkRoot'));
       return false;
     }
 
     var summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
-      reportError("SDK summary not found: ${summary}");
+      reportMessageWithoutLocation(
+          templateSdkSummaryNotFound.withArguments('$summary'));
       return false;
     }
 
     if (compileSdk && summary != null) {
-      reportError(
-          "The compileSdk and sdkSummary options are mutually exclusive");
+      reportMessageWithoutLocation(
+          templateInternalProblemUnsupported.withArguments(
+              "The compileSdk and sdkSummary options are mutually exclusive"));
       return false;
     }
     return true;
@@ -212,46 +236,120 @@ class ProcessedOptions {
     return loadProgramFromBytes(bytes, new Program(nameRoot: nameRoot));
   }
 
-  /// Get the [TranslateUri] which resolves "package:" and "dart:" URIs.
+  /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<TranslateUri> getUriTranslator() async {
+  Future<UriTranslatorImpl> getUriTranslator() async {
     if (_uriTranslator == null) {
       await _getPackages();
       // TODO(scheglov) Load SDK libraries from whatever format we decide.
       // TODO(scheglov) Remove the field "_raw.dartLibraries".
-      var libraries = _raw.dartLibraries ?? await _parseLibraries();
-      _uriTranslator =
-          new TranslateUri(_packages, libraries, const <String, List<Uri>>{});
+      var libraries = _raw.dartLibraries ?? await _parseDartLibraries();
+      _uriTranslator = new UriTranslatorImpl(
+          libraries, const <String, List<Uri>>{}, _packages);
       ticker.logMs("Read packages file");
     }
     return _uriTranslator;
   }
 
-  Future<Map<String, Uri>> _parseLibraries() async {
+  Future<Map<String, Uri>> _parseDartLibraries() async {
     Uri librariesJson = _raw.sdkRoot?.resolve("lib/libraries.json");
-    return await computeLibraries(fileSystem, librariesJson);
+    return await computeDartLibraries(fileSystem, librariesJson);
   }
 
   /// Get the package map which maps package names to URIs.
   ///
   /// This is an asynchronous getter since file system operations may be
   /// required to locate/read the packages file.
-  Future<Map<String, Uri>> _getPackages() async {
+  Future<Packages> _getPackages() async {
     if (_packages == null) {
       if (_raw.packagesFileUri == null) {
-        // TODO(sigmund,paulberry): implement
-        throw new UnimplementedError('search for .packages');
-      } else if (_raw.packagesFileUri.path.isEmpty) {
-        _packages = {};
+        if (inputs.length > 1) {
+          // TODO(sigmund): consider not reporting an error if we would infer
+          // the same .packages file from all of the inputs.
+          reportMessageWithoutLocation(messageCantInferPackagesFromManyInputs);
+          _packages = Packages.noPackages;
+        } else {
+          _packages = await _findPackages(inputs.first);
+        }
       } else {
-        var contents =
-            await fileSystem.entityForUri(_raw.packagesFileUri).readAsBytes();
-        _packages = package_config.parse(contents, _raw.packagesFileUri);
+        _packages = await createPackagesFromFile(_raw.packagesFileUri);
       }
     }
     return _packages;
+  }
+
+  /// Create a [Packages] given the Uri to a `.packages` file.
+  Future<Packages> createPackagesFromFile(Uri file) async {
+    try {
+      List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
+      Map<String, Uri> map = package_config.parse(contents, file);
+      return new MapPackages(map);
+    } catch (e) {
+      reportMessage(templateCannotReadPackagesFile
+          .withArguments("$e")
+          .withLocation(file, -1));
+      return Packages.noPackages;
+    }
+  }
+
+  /// Finds a package resolution strategy using a [FileSystem].
+  ///
+  /// The [scriptUri] points to a Dart script with a valid scheme accepted by
+  /// the [FileSystem].
+  ///
+  /// This function first tries to locate a `.packages` file in the `scriptUri`
+  /// directory. If that is not found, it instead checks for the presence of a
+  /// `packages/` directory in the same place.  If that also fails, it starts
+  /// checking parent directories for a `.packages` file, and stops if it finds
+  /// it.  Otherwise it gives up and returns [Packages.noPackages].
+  ///
+  /// Note: this is a fork from `package:package_config/discovery.dart` to adapt
+  /// it to use [FileSystem]. The logic here is a mix of the logic in the
+  /// `findPackagesFromFile` and `findPackagesFromNonFile`:
+  ///
+  ///    * Like `findPackagesFromFile` resolution searches for parent
+  ///    directories
+  ///
+  ///    * Like `findPackagesFromNonFile` if we resolve packages as the
+  ///    `packages/` directory, we can't provide a list of packages that are
+  ///    visible.
+  Future<Packages> _findPackages(Uri scriptUri) async {
+    var dir = scriptUri.resolve('.');
+    if (!dir.isAbsolute) {
+      reportMessageWithoutLocation(templateInternalProblemUnsupported
+          .withArguments("Expected input Uri to be absolute: $scriptUri."));
+      return Packages.noPackages;
+    }
+
+    Future<Uri> checkInDir(Uri dir) async {
+      Uri candidate = dir.resolve('.packages');
+      if (await fileSystem.entityForUri(candidate).exists()) return candidate;
+      return null;
+    }
+
+    // Check for $cwd/.packages
+    var candidate = await checkInDir(dir);
+    if (candidate != null) return createPackagesFromFile(candidate);
+
+    // Check for $cwd/packages/
+    var packagesDir = dir.resolve("packages/");
+    if (await fileSystem.entityForUri(packagesDir).exists()) {
+      return new NonFilePackagesDirectoryPackages(packagesDir);
+    }
+
+    // Check for cwd(/..)+/.packages
+    var parentDir = dir.resolve('..');
+    while (parentDir.path != dir.path) {
+      candidate = await checkInDir(parentDir);
+      if (candidate != null) break;
+      dir = parentDir;
+      parentDir = dir.resolve('..');
+    }
+
+    if (candidate != null) return createPackagesFromFile(candidate);
+    return Packages.noPackages;
   }
 
   /// Get the location of the SDK.
@@ -262,7 +360,7 @@ class ProcessedOptions {
     if (_raw.sdkRoot == null) {
       // TODO(paulberry): implement the algorithm for finding the SDK
       // automagically.
-      throw new UnimplementedError('infer the default sdk location');
+      return unimplemented('infer the default sdk location');
     }
     var root = _raw.sdkRoot;
     if (!root.path.endsWith('/')) {
@@ -343,12 +441,19 @@ class HermeticAccessException extends FileSystemException {
   String toString() => message;
 }
 
-/// An error that only contains a message and no error location.
-class _CompilationError implements CompilationError {
-  String get correction => null;
-  SourceSpan get span => null;
-  final String message;
-  _CompilationError(this.message);
+/// Wraps a [LocatedMessage] to implement the public [CompilationError] API.
+class _CompilationMessage implements CompilationError {
+  final LocatedMessage original;
+
+  String get message => original.message;
+
+  String get tip => original.tip;
+
+  SourceSpan get span =>
+      new SourceLocation(original.charOffset, sourceUrl: original.uri)
+          .pointSpan();
+
+  _CompilationMessage(this.original);
 
   String toString() => message;
 }

@@ -121,30 +121,24 @@ static const bool kAsReference = true;
 static const bool kAsInlinedObject = false;
 static const intptr_t kInvalidPatchIndex = -1;
 
-
 class SerializedHeaderTag
     : public BitField<intptr_t, enum SerializedHeaderType, 0, kHeaderTagBits> {
 };
 
-
 class SerializedHeaderData
     : public BitField<intptr_t, intptr_t, kHeaderTagBits, kObjectIdBits> {};
-
 
 enum DeserializeState {
   kIsDeserialized = 0,
   kIsNotDeserialized = 1,
 };
 
-
 enum SerializeState {
   kIsSerialized = 0,
   kIsNotSerialized = 1,
 };
 
-
 #define HEAP_SPACE(kind) (kind == Snapshot::kMessage) ? Heap::kNew : Heap::kOld
-
 
 // Structure capturing the raw snapshot.
 //
@@ -208,7 +202,6 @@ class Snapshot {
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };
 
-
 class Image : ValueObject {
  public:
   explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
@@ -232,7 +225,6 @@ class Image : ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
-
 
 class BaseReader {
  public:
@@ -292,7 +284,6 @@ class BaseReader {
   ReadStream stream_;  // input stream.
 };
 
-
 class BackRefNode : public ValueObject {
  public:
   BackRefNode(Object* reference,
@@ -333,7 +324,6 @@ class BackRefNode : public ValueObject {
   ZoneGrowableArray<intptr_t>* patch_records_;
 };
 
-
 class ImageReader : public ZoneAllocated {
  public:
   ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer)
@@ -353,7 +343,6 @@ class ImageReader : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(ImageReader);
 };
-
 
 // Reads a snapshot into objects.
 class SnapshotReader : public BaseReader {
@@ -529,7 +518,6 @@ class SnapshotReader : public BaseReader {
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
-
 class ScriptSnapshotReader : public SnapshotReader {
  public:
   ScriptSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
@@ -539,7 +527,6 @@ class ScriptSnapshotReader : public SnapshotReader {
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotReader);
 };
 
-
 class MessageSnapshotReader : public SnapshotReader {
  public:
   MessageSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
@@ -548,7 +535,6 @@ class MessageSnapshotReader : public SnapshotReader {
  private:
   DISALLOW_COPY_AND_ASSIGN(MessageSnapshotReader);
 };
-
 
 class BaseWriter : public StackResource {
  public:
@@ -645,7 +631,6 @@ class BaseWriter : public StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseWriter);
 };
 
-
 class ForwardList {
  public:
   explicit ForwardList(Thread* thread, intptr_t first_object_id);
@@ -699,7 +684,6 @@ class ForwardList {
 
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
-
 
 class ImageWriter : public ZoneAllocated {
  public:
@@ -761,7 +745,6 @@ class ImageWriter : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 
-
 class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(uint8_t** assembly_buffer,
@@ -795,7 +778,6 @@ class AssemblyImageWriter : public ImageWriter {
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
 
-
 class BlobImageWriter : public ImageWriter {
  public:
   BlobImageWriter(uint8_t** instructions_blob_buffer,
@@ -818,7 +800,6 @@ class BlobImageWriter : public ImageWriter {
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };
-
 
 class SnapshotWriter : public BaseWriter {
  protected:
@@ -938,7 +919,6 @@ class SnapshotWriter : public BaseWriter {
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
 };
 
-
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
@@ -953,7 +933,6 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);
 };
-
 
 class SerializedObjectBuffer : public StackResource {
  public:
@@ -980,7 +959,6 @@ class SerializedObjectBuffer : public StackResource {
   intptr_t object_length_;
 };
 
-
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
@@ -999,7 +977,6 @@ class MessageWriter : public SnapshotWriter {
 
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
-
 
 // An object pointer visitor implementation which writes out
 // objects to a snap shot.

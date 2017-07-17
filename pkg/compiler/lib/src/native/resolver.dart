@@ -178,7 +178,7 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
       List<String> nativeNames =
           nativeBasicData.getNativeTagsOfClass(element.enclosingClass);
       if (nativeNames.length != 1) {
-        throw new SpannableAssertionFailure(
+        failedAt(
             element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
@@ -201,8 +201,7 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
       if (jsName == null) {
         jsName = name;
       } else if (name != null) {
-        throw new SpannableAssertionFailure(
-            element, 'Too many JSName annotations: ${value.toDartText()}');
+        failedAt(element, 'Too many JSName annotations: ${value.toDartText()}');
       }
     }
     return jsName;
@@ -447,8 +446,7 @@ class BaseNativeClassFinder implements NativeClassFinder {
       ClassEntity owner = _tagOwner[tag];
       if (owner != null) {
         if (owner != cls) {
-          throw new SpannableAssertionFailure(
-              cls, "Tag '$tag' already in use by '${owner.name}'");
+          failedAt(cls, "Tag '$tag' already in use by '${owner.name}'");
         }
       } else {
         _tagOwner[tag] = cls;
@@ -620,7 +618,7 @@ String readAnnotationName(
   Iterable<ConstantValue> fields = constructedObject.fields.values;
   // TODO(sra): Better validation of the constant.
   if (fields.length != 1 || fields.single is! StringConstantValue) {
-    throw new SpannableAssertionFailure(
+    failedAt(
         spannable, 'Annotations needs one string: ${value.toStructuredText()}');
   }
   StringConstantValue specStringConstant = fields.single;

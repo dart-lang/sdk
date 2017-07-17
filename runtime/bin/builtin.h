@@ -21,7 +21,6 @@ namespace bin {
 #define DECLARE_FUNCTION(name, count)                                          \
   extern void FUNCTION_NAME(name)(Dart_NativeArguments args);
 
-
 class Builtin {
  public:
   // Note: Changes to this enum should be accompanied with changes to

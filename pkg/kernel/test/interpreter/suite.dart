@@ -13,6 +13,8 @@ import 'package:testing/testing.dart'
 
 import 'package:kernel/ast.dart' show Program, Library;
 
+import 'package:kernel/target/targets.dart' show Target;
+
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show runDiff, Compile, CompileContext;
 
@@ -22,6 +24,7 @@ const String STRONG_MODE = " strong mode ";
 
 class InterpreterContext extends ChainContext implements CompileContext {
   final bool strongMode;
+  Target get target => null;
 
   final List<Step> steps;
 
@@ -82,8 +85,7 @@ class MatchLogExpectation extends Step<EvaluationLog, int, InterpreterContext> {
       }
     }
     return fail(
-        null,
-        """Please create file ${expectedFile.path} with this content:
+        null, """Please create file ${expectedFile.path} with this content:
         ${result.log}""");
   }
 }

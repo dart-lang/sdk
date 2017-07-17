@@ -5,8 +5,8 @@
 #ifndef RUNTIME_PLATFORM_SIGNAL_BLOCKER_H_
 #define RUNTIME_PLATFORM_SIGNAL_BLOCKER_H_
 
-#include "platform/globals.h"
 #include "platform/assert.h"
+#include "platform/globals.h"
 
 #if defined(HOST_OS_WINDOWS)
 #error Do not include this file on Windows.
@@ -52,7 +52,6 @@ class ThreadSignalBlocker {
   sigset_t old;
 };
 
-
 // The definition below is copied from Linux and adapted to avoid lint
 // errors (type long int changed to intptr_t and do/while split on
 // separate lines with body in {}s) and to also block signals.
@@ -94,7 +93,6 @@ class ThreadSignalBlocker {
     ASSERT(__r == 0);                                                          \
     sigismember(&signal_mask, signal);                                         \
   })
-
 
 // Versions of the above, that does not enter a signal blocking scope. Use only
 // when a signal blocking scope is entered manually.

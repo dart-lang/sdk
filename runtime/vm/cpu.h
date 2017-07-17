@@ -5,15 +5,14 @@
 #ifndef RUNTIME_VM_CPU_H_
 #define RUNTIME_VM_CPU_H_
 
-#include "vm/globals.h"
 #include "vm/allocation.h"
+#include "vm/globals.h"
 
 namespace dart {
 
 // Forward Declarations.
 class Error;
 class Instance;
-
 
 class CPU : public AllStatic {
  public:

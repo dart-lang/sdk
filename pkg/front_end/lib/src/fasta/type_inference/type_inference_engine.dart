@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
-import 'package:front_end/src/fasta/deprecated_problems.dart';
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -403,7 +403,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // An method depends on itself (possibly by way of intermediate
         // methods).  This should never happen, because it would require a
         // circular class hierarchy (which Fasta prevents).
-        deprecated_internalProblem('Circular method inference');
+        dynamic parent = methodNode.procedure.parent;
+        unhandled("Circular method inference", "inferMethodIfNeeded",
+            methodNode.procedure.fileOffset, Uri.parse(parent.fileUri));
         break;
       case InferenceState.NotInferredYet:
         methodNode.state = InferenceState.Inferring;
@@ -512,8 +514,12 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         overriddenType = override.setterType;
       }
     } else {
-      throw deprecated_internalProblem(
-          'Unexpected overridden member type: ${override.runtimeType}');
+      dynamic parent = override.parent;
+      return unhandled(
+          "${override.runtimeType}",
+          "_computeOverriddenAccessorType",
+          override.fileOffset,
+          Uri.parse(parent.fileUri));
     }
     var superclass = override.enclosingClass;
     if (superclass.typeParameters.isEmpty) return overriddenType;

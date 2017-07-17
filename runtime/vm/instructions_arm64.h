@@ -54,7 +54,6 @@ class InstructionPattern : public AllStatic {
   static intptr_t OffsetFromPPIndex(intptr_t index);
 };
 
-
 class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
@@ -76,7 +75,6 @@ class CallPattern : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
-
 class NativeCallPattern : public ValueObject {
  public:
   NativeCallPattern(uword pc, const Code& code);
@@ -96,7 +94,6 @@ class NativeCallPattern : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallPattern);
 };
-
 
 // Instance call that can switch between a direct monomorphic call, an IC call,
 // and a megamorphic call.
@@ -119,7 +116,6 @@ class SwitchableCallPattern : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
 };
-
 
 class ReturnPattern : public ValueObject {
  public:

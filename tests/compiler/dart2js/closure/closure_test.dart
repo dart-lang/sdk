@@ -95,7 +95,7 @@ class ClosureAstComputer extends AbstractResolvedAstComputer {
 /// Kernel IR visitor for computing closure data.
 class ClosureIrChecker extends AbstractIrComputer {
   final ClosureDataLookup<ir.Node> closureDataLookup;
-  final ClosureRepresentationInfo info;
+  final ScopeInfo info;
   final KernelToLocalsMap _localsMap;
 
   ClosureIrChecker(
@@ -105,7 +105,7 @@ class ClosureIrChecker extends AbstractIrComputer {
       MemberEntity member,
       this._localsMap,
       this.closureDataLookup)
-      : this.info = closureDataLookup.getClosureRepresentationInfo(member),
+      : this.info = closureDataLookup.getScopeInfo(member),
         super(actualMap, sourceSpanMap);
 
   @override
@@ -127,7 +127,7 @@ class ClosureIrChecker extends AbstractIrComputer {
 }
 
 /// Compute a string representation of the data stored for [local] in [info].
-String computeLocalValue(ClosureRepresentationInfo info, Local local) {
+String computeLocalValue(ScopeInfo info, Local local) {
   StringBuffer sb = new StringBuffer();
   if (info.localIsUsedInTryOrSync(local)) {
     sb.write('inTry');

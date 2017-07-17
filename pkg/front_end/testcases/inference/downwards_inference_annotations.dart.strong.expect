@@ -12,13 +12,13 @@ class Foo extends core::Object {
 }
 @self::Foo::•(const <core::String>[])
 class Bar extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 @self::Foo::named(const <core::String>[])
 class Baz extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

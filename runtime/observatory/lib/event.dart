@@ -284,6 +284,31 @@ class ConnectionClosedEvent implements M.ConnectionClosedEvent {
   }
 }
 
+class ServiceRegisteredEvent implements M.ServiceRegisteredEvent {
+  final DateTime timestamp;
+  final String service;
+  final String method;
+  final String alias;
+  ServiceRegisteredEvent(
+      this.timestamp, this.service, this.method, this.alias) {
+    assert(timestamp != null);
+    assert(service != null);
+    assert(method != null);
+    assert(alias != null);
+  }
+}
+
+class ServiceUnregisteredEvent implements M.ServiceUnregisteredEvent {
+  final DateTime timestamp;
+  final String service;
+  final String method;
+  ServiceUnregisteredEvent(this.timestamp, this.service, this.method) {
+    assert(timestamp != null);
+    assert(service != null);
+    assert(method != null);
+  }
+}
+
 M.Event createEventFromServiceEvent(S.ServiceEvent event) {
   switch (event.kind) {
     case S.ServiceEvent.kVMUpdate:
@@ -339,6 +364,12 @@ M.Event createEventFromServiceEvent(S.ServiceEvent event) {
       return new InspectEvent(event.timestamp, event.isolate, event.inspectee);
     case S.ServiceEvent.kGC:
       return new GCEvent(event.timestamp, event.isolate);
+    case S.ServiceEvent.kServiceRegistered:
+      return new ServiceRegisteredEvent(
+          event.timestamp, event.service, event.method, event.alias);
+    case S.ServiceEvent.kServiceUnregistered:
+      return new ServiceUnregisteredEvent(
+          event.timestamp, event.service, event.method);
     case S.ServiceEvent.kNone:
       return new NoneEvent(event.timestamp, event.isolate);
     default:

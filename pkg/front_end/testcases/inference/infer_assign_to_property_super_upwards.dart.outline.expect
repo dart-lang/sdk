@@ -6,23 +6,23 @@ class Base extends core::Object {
   field core::int intProp;
   field core::num numProp;
   field core::double doubleProp;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class Test1 extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 class Test2 extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → void
     ;
 }
 class Test3 extends self::Base {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test3() → void
     ;

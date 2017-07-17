@@ -19,7 +19,6 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
   return Simulator::CompareExchange(ptr, old_value, new_value);
 }
 
-
 inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
                                                        uint32_t old_value,
                                                        uint32_t new_value) {

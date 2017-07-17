@@ -6,14 +6,20 @@ library fasta.library_builder;
 
 import '../combinator.dart' show Combinator;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../problems.dart' show internalProblem;
 
 import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
-    show Message, deprecated_nit, deprecated_warning, nit, warning;
+    show
+        Message,
+        nit,
+        templateInternalProblemConstructorNotFound,
+        templateInternalProblemNotFoundIn,
+        templateInternalProblemPrivateConstructorAccess,
+        warning;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -68,18 +74,10 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
-  /// See `Loader.deprecated_addCompileTimeError` for an explanation of the
+  /// See `Loader.addCompileTimeError` for an explanation of the
   /// arguments passed to this method.
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.
-  void deprecated_addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false, bool wasHandled: false}) {
-    hasCompileTimeErrors = true;
-    loader.deprecated_addCompileTimeError(
-        fileUri ?? this.fileUri, charOffset, message,
-        silent: silent, wasHandled: wasHandled);
-  }
-
   void addCompileTimeError(Message message, int charOffset, Uri uri,
       {bool silent: false, bool wasHandled: false}) {
     hasCompileTimeErrors = true;
@@ -97,22 +95,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   void addNit(Message message, int charOffset, Uri uri, {bool silent: false}) {
     if (!silent) {
       nit(message, charOffset, uri);
-    }
-  }
-
-  void deprecated_addWarning(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
-    fileUri ??= this.fileUri;
-    if (!silent) {
-      deprecated_warning(fileUri, charOffset, message);
-    }
-  }
-
-  void deprecated_addNit(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
-    fileUri ??= this.fileUri;
-    if (!silent) {
-      deprecated_nit(fileUri, charOffset, message);
     }
   }
 
@@ -161,9 +143,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
       {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
-      throw deprecated_internalProblem(
-          "Internal error: Can't access private constructor "
-          "'$constructorName'.");
+      return internalProblem(
+          templateInternalProblemPrivateConstructorAccess
+              .withArguments(constructorName),
+          -1,
+          null);
     }
     Builder cls =
         (bypassLibraryPrivacy ? scope : exports).lookup(className, -1, null);
@@ -182,8 +166,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
         return constructor;
       }
     }
-    throw deprecated_internalProblem("Internal error: No constructor named"
-        " '$className::$constructorName' in '$uri'.");
+    throw internalProblem(
+        templateInternalProblemConstructorNotFound.withArguments(
+            "$className::$constructorName", uri),
+        -1,
+        null);
   }
 
   int finishTypeVariables(ClassBuilder object) => 0;
@@ -202,7 +189,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   /// (and not a setter).
   Builder operator [](String name) {
     return scope.local[name] ??
-        deprecated_internalProblem("Not found: '$name'.");
+        internalProblem(
+            templateInternalProblemNotFoundIn.withArguments(
+                name, relativeFileUri),
+            -1,
+            null);
   }
 
   Builder lookup(String name, int charOffset, Uri fileUri) {

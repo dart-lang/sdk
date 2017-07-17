@@ -7,7 +7,7 @@ class A<T extends core::Object> extends core::Object {
     ;
 }
 class B<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static method main() → dynamic

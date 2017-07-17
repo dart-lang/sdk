@@ -18,7 +18,6 @@ namespace dart {
 #define REGISTER_NATIVE_ENTRY(name, count)                                     \
   {"" #name, BootstrapNatives::DN_##name, count},
 
-
 // List all native functions implemented in the vm or core bootstrap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
@@ -27,11 +26,10 @@ static struct NativeEntries {
   Dart_NativeFunction function_;
   int argument_count_;
 } BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
                             MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
-#endif  // !PRODUCT && !DART_PRECOMPILED_RUNTIME
+#endif  // !DART_PRECOMPILED_RUNTIME
 };
-
 
 Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
                                              int argument_count,
@@ -55,7 +53,6 @@ Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
   return NULL;
 }
 
-
 const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
@@ -66,7 +63,6 @@ const uint8_t* BootstrapNatives::Symbol(Dart_NativeFunction* nf) {
   }
   return NULL;
 }
-
 
 void Bootstrap::SetupNativeResolver() {
   Library& library = Library::Handle();
@@ -117,12 +113,12 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
-#endif  // !defined(PRODUCT)
+#endif
 
   library = Library::ProfilerLibrary();
   ASSERT(!library.IsNull());
@@ -139,7 +135,6 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 }
-
 
 bool Bootstrap::IsBootstapResolver(Dart_NativeEntryResolver resolver) {
   return (resolver ==

@@ -26,78 +26,65 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Process_KillPid)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Process_GetExitCode)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Process_ClearSignalHandler)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(ProcessInfo_CurrentRSS)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("Process is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
   Dart_ThrowException(

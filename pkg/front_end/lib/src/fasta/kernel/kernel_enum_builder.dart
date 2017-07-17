@@ -28,6 +28,13 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         VariableGet;
 
+import '../fasta_codes.dart'
+    show
+        messageEnumDeclartionEmpty,
+        messageNoUnnamedConstructorInObject,
+        templateDuplicatedName,
+        templateEnumConstantSameNameAsEnclosing;
+
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
 import '../names.dart' show indexGetName;
@@ -67,6 +74,7 @@ class KernelEnumBuilder extends SourceClassBuilder
   final KernelNamedTypeBuilder listType;
 
   KernelEnumBuilder.internal(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       Scope scope,
@@ -80,8 +88,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.stringType,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, charOffset, cls);
+      : super(documentationComment, metadata, 0, name, null, null, null, scope,
+            constructors, parent, null, charOffset, cls);
 
   factory KernelEnumBuilder(
       List<MetadataBuilder> metadata,
@@ -157,16 +165,16 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name = constantNamesAndOffsets[i];
       int charOffset = constantNamesAndOffsets[i + 1];
       if (members.containsKey(name)) {
-        parent.deprecated_addCompileTimeError(
-            charOffset, "Duplicated name: '$name'.");
+        parent.addCompileTimeError(templateDuplicatedName.withArguments(name),
+            charOffset, parent.fileUri);
         constantNamesAndOffsets[i] = null;
         continue;
       }
       if (name == className) {
-        parent.deprecated_addCompileTimeError(
+        parent.addCompileTimeError(
+            templateEnumConstantSameNameAsEnclosing.withArguments(name),
             charOffset,
-            "Name of enum constant '$name' can't be the same as the enum's "
-            "own name.");
+            parent.fileUri);
         constantNamesAndOffsets[i] = null;
         continue;
       }
@@ -179,6 +187,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     }
     MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
+        null,
         metadata,
         name,
         new Scope(members, null, parent.scope, isModifiable: false),
@@ -214,8 +223,8 @@ class KernelEnumBuilder extends SourceClassBuilder
   @override
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     if (constantNamesAndOffsets.isEmpty) {
-      libraryBuilder.deprecated_addCompileTimeError(
-          -1, "An enum declaration can't be empty.");
+      libraryBuilder.addCompileTimeError(
+          messageEnumDeclartionEmpty, charOffset, fileUri);
     }
     intType.resolveIn(coreLibrary.scope);
     stringType.resolveIn(coreLibrary.scope);
@@ -259,8 +268,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       // unnamed constructor requires no arguments. But that information isn't
       // always available at this point, and it's not really a situation that
       // can happen unless you start modifying the SDK sources.
-      deprecated_addCompileTimeError(
-          -1, "'Object' has no unnamed constructor.");
+      addCompileTimeError(messageNoUnnamedConstructorInObject, -1);
     } else {
       constructor.initializers.add(
           new SuperInitializer(superConstructor.target, new Arguments.empty())

@@ -17,9 +17,7 @@ Map<String, Uri> createSdkFiles(MemoryFileSystem fileSystem) {
     dartLibraries[name] = uri;
   }
 
-  addSdkLibrary(
-      'core',
-      r'''
+  addSdkLibrary('core', r'''
 library dart.core;
 import 'dart:_internal';
 import 'dart:async';
@@ -204,9 +202,7 @@ void print(Object o) {}
 abstract class _SyncIterable implements Iterable {}
 ''');
 
-  addSdkLibrary(
-      'async',
-      r'''
+  addSdkLibrary('async', r'''
 library dart.async;
 
 class Future<T> {
@@ -248,12 +244,9 @@ Future _awaitHelper(
   addSdkLibrary('developer', 'library dart.developer;');
   addSdkLibrary('io', 'library dart.io;');
   addSdkLibrary('isolate', 'library dart.isolate;');
-  addSdkLibrary(
-      'math',
-      '''
+  addSdkLibrary('math', '''
 library dart.math;
-double sin(num radians) => _sin(radians.toDouble());
-double _sin(double x) native "Math_sin";
+external double sin(num radians);
 ''');
   addSdkLibrary('mirrors', 'library dart.mirrors;');
   addSdkLibrary('nativewrappers', 'library dart.nativewrappers;');
@@ -261,9 +254,7 @@ double _sin(double x) native "Math_sin";
   addSdkLibrary('typed_data', 'library dart.typed_data;');
   addSdkLibrary('vmservice_io', 'library dart.vmservice_io;');
   addSdkLibrary('_builtin', 'library dart._builtin;');
-  addSdkLibrary(
-      '_internal',
-      '''
+  addSdkLibrary('_internal', '''
 library dart._internal;
 class Symbol {}
 class ExternalName {

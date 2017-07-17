@@ -42,7 +42,6 @@ TEST_CASE(DartEntry) {
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 
-
 TEST_CASE(InvokeStatic_CompileError) {
   const char* kScriptChars =
       "class A {\n"
@@ -66,7 +65,6 @@ TEST_CASE(InvokeStatic_CompileError) {
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
-
 
 TEST_CASE(InvokeDynamic_CompileError) {
   const char* kScriptChars =

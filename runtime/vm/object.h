@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/json_stream.h"
 #include "vm/bitmap.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
@@ -17,6 +16,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/method_recognizer.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
@@ -32,7 +32,7 @@ namespace dart {
 namespace kernel {
 class Program;
 class TreeNode;
-}
+}  // namespace kernel
 
 #define DEFINE_FORWARD_DECLARATION(clazz) class clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
@@ -848,7 +848,6 @@ class Object {
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
-
 class PassiveObject : public Object {
  public:
   void operator=(RawObject* value) { raw_ = value; }
@@ -893,10 +892,8 @@ class PassiveObject : public Object {
   DISALLOW_COPY_AND_ASSIGN(PassiveObject);
 };
 
-
 typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
 typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
-
 
 class Class : public Object {
  public:
@@ -1536,7 +1533,6 @@ class Class : public Object {
   friend class ProgramVisitor;
 };
 
-
 // Unresolved class is used for storing unresolved names which will be resolved
 // to a class after all classes have been loaded and finalized.
 class UnresolvedClass : public Object {
@@ -1568,14 +1564,12 @@ class UnresolvedClass : public Object {
   friend class Class;
 };
 
-
 // Classification of type genericity according to type parameter owners.
 enum Genericity {
-  kAny,              // Consider type params of current class and functions.
-  kCurrentClass,     // Consider type params of current class only.
-  kFunctions,        // Consider type params of current and parent functions.
+  kAny,           // Consider type params of current class and functions.
+  kCurrentClass,  // Consider type params of current class only.
+  kFunctions,     // Consider type params of current and parent functions.
 };
-
 
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
@@ -1791,7 +1785,6 @@ class TypeArguments : public Object {
   friend class Object;
 };
 
-
 class PatchClass : public Object {
  public:
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
@@ -1821,7 +1814,6 @@ class PatchClass : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
   friend class Class;
 };
-
 
 class SingleTargetCache : public Object {
  public:
@@ -1856,7 +1848,6 @@ class SingleTargetCache : public Object {
   friend class Class;
 };
 
-
 class UnlinkedCall : public Object {
  public:
   RawString* target_name() const { return raw_ptr()->target_name_; }
@@ -1874,7 +1865,6 @@ class UnlinkedCall : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall, Object);
   friend class Class;
 };
-
 
 // Object holding information about an IC: test classes and their
 // corresponding targets. The owner of the ICData can be either the function
@@ -2196,7 +2186,6 @@ class ICData : public Object {
   friend class Serializer;
   friend class Deserializer;
 };
-
 
 class Function : public Object {
  public:
@@ -3062,7 +3051,6 @@ class Function : public Object {
   friend class ClassFinalizer;  // To reset parent_function.
 };
 
-
 class ClosureData : public Object {
  public:
   static intptr_t InstanceSize() {
@@ -3095,7 +3083,6 @@ class ClosureData : public Object {
   friend class HeapProfiler;
 };
 
-
 class SignatureData : public Object {
  public:
   static intptr_t InstanceSize() {
@@ -3118,7 +3105,6 @@ class SignatureData : public Object {
   friend class Function;
   friend class HeapProfiler;
 };
-
 
 class RedirectionData : public Object {
  public:
@@ -3146,7 +3132,6 @@ class RedirectionData : public Object {
   friend class Function;
   friend class HeapProfiler;
 };
-
 
 class Field : public Object {
  public:
@@ -3203,7 +3188,6 @@ class Field : public Object {
     StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
 #endif
   }
-
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3474,7 +3458,6 @@ class Field : public Object {
   friend class FieldSerializationCluster;
 };
 
-
 class LiteralToken : public Object {
  public:
   Token::Kind kind() const { return raw_ptr()->kind_; }
@@ -3498,7 +3481,6 @@ class LiteralToken : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
   friend class Class;
 };
-
 
 class TokenStream : public Object {
  public:
@@ -3587,7 +3569,6 @@ class TokenStream : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
 };
-
 
 class Script : public Object {
  public:
@@ -3711,7 +3692,6 @@ class Script : public Object {
   friend class Precompiler;
 };
 
-
 class DictionaryIterator : public ValueObject {
  public:
   explicit DictionaryIterator(const Library& library);
@@ -3732,7 +3712,6 @@ class DictionaryIterator : public ValueObject {
   friend class LibraryPrefixIterator;
   DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
 };
-
 
 class ClassDictionaryIterator : public DictionaryIterator {
  public:
@@ -3761,7 +3740,6 @@ class ClassDictionaryIterator : public DictionaryIterator {
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
 
-
 class LibraryPrefixIterator : public DictionaryIterator {
  public:
   explicit LibraryPrefixIterator(const Library& library);
@@ -3771,7 +3749,6 @@ class LibraryPrefixIterator : public DictionaryIterator {
   void Advance();
   DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
-
 
 class Library : public Object {
  public:
@@ -3954,7 +3931,7 @@ class Library : public Object {
   static RawLibrary* InternalLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawLibrary* MirrorsLibrary();
 #endif
   static RawLibrary* NativeWrappersLibrary();
@@ -3978,7 +3955,6 @@ class Library : public Object {
   // Lookup class in the core lib which also contains various VM
   // helper methods and classes. Allow look up of private classes.
   static RawClass* LookupCoreClass(const String& class_name);
-
 
   // Return Function::null() if function does not exist in libs.
   static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
@@ -4028,7 +4004,6 @@ class Library : public Object {
   void ClearExportedNamesCache() const;
   static void InvalidateExportedNamesCaches();
 
-
   void InitImportList() const;
   void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url, bool import_core_lib);
@@ -4055,7 +4030,6 @@ class Library : public Object {
   friend class Object;
   friend class Precompiler;
 };
-
 
 // A Namespace contains the names in a library dictionary, filtered by
 // the show/hide combinators.
@@ -4089,7 +4063,6 @@ class Namespace : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
 };
-
 
 // ObjectPool contains constants, immediates and addresses embedded in code
 // and deoptimization infos. Each entry has an type-info associated with it
@@ -4194,7 +4167,6 @@ class ObjectPool : public Object {
   friend class Object;
   friend class RawObjectPool;
 };
-
 
 class Instructions : public Object {
  public:
@@ -4323,7 +4295,6 @@ class Instructions : public Object {
   friend class BlobImageWriter;
 };
 
-
 class LocalVarDescriptors : public Object {
  public:
   intptr_t Length() const;
@@ -4362,7 +4333,6 @@ class LocalVarDescriptors : public Object {
   friend class Class;
   friend class Object;
 };
-
 
 class PcDescriptors : public Object {
  public:
@@ -4486,7 +4456,6 @@ class PcDescriptors : public Object {
   friend class Object;
 };
 
-
 class CodeSourceMap : public Object {
  public:
   static const intptr_t kBytesPerElement = 1;
@@ -4526,7 +4495,6 @@ class CodeSourceMap : public Object {
   friend class Class;
   friend class Object;
 };
-
 
 class StackMap : public Object {
  public:
@@ -4595,7 +4563,6 @@ class StackMap : public Object {
   friend class Class;
 };
 
-
 class ExceptionHandlers : public Object {
  public:
   static const intptr_t kInvalidPcOffset = 0;
@@ -4650,7 +4617,6 @@ class ExceptionHandlers : public Object {
   friend class Object;
 };
 
-
 class Code : public Object {
  public:
   RawInstructions* active_instructions() const {
@@ -4692,8 +4658,7 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword PayloadStart() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.PayloadStart();
+    return Instructions::PayloadStart(instructions());
   }
   uword UncheckedEntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4703,10 +4668,7 @@ class Code : public Object {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.CheckedEntryPoint();
   }
-  intptr_t Size() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.Size();
-  }
+  intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4827,7 +4789,6 @@ class Code : public Object {
 
     DISALLOW_COPY_AND_ASSIGN(Comments);
   };
-
 
   const Comments& comments() const;
   void set_comments(const Comments& comments) const;
@@ -5070,13 +5031,12 @@ class Code : public Object {
   friend class SnapshotWriter;
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
-  friend class CodePatcher;  // for set_instructions
+  friend class CodePatcher;     // for set_instructions
   friend class ProgramVisitor;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
 };
-
 
 class Context : public Object {
  public:
@@ -5133,7 +5093,6 @@ class Context : public Object {
   friend class Class;
   friend class Object;
 };
-
 
 // The ContextScope class makes it possible to delay the compilation of a local
 // function until it is invoked. A ContextScope instance collects the local
@@ -5214,7 +5173,6 @@ class ContextScope : public Object {
   friend class Object;
 };
 
-
 class MegamorphicCache : public Object {
  public:
   static const intptr_t kInitialCapacity = 16;
@@ -5283,7 +5241,6 @@ class MegamorphicCache : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
 };
 
-
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
@@ -5329,7 +5286,6 @@ class SubtypeTestCache : public Object {
   friend class Class;
 };
 
-
 class Error : public Object {
  public:
   virtual const char* ToErrorCString() const;
@@ -5337,7 +5293,6 @@ class Error : public Object {
  private:
   HEAP_OBJECT_IMPLEMENTATION(Error, Object);
 };
-
 
 class ApiError : public Error {
  public:
@@ -5360,7 +5315,6 @@ class ApiError : public Error {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
   friend class Class;
 };
-
 
 class LanguageError : public Error {
  public:
@@ -5428,7 +5382,6 @@ class LanguageError : public Error {
   friend class Class;
 };
 
-
 class UnhandledException : public Error {
  public:
   RawInstance* exception() const { return raw_ptr()->exception_; }
@@ -5462,7 +5415,6 @@ class UnhandledException : public Error {
   friend class ObjectStore;
 };
 
-
 class UnwindError : public Error {
  public:
   bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
@@ -5485,7 +5437,6 @@ class UnwindError : public Error {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnwindError, Error);
   friend class Class;
 };
-
 
 // Instance is the base class for all instance objects (aka the Object class
 // in Dart source code.
@@ -5642,7 +5593,6 @@ class Instance : public Object {
   friend class InstanceMorpher;
 };
 
-
 class LibraryPrefix : public Instance {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -5698,7 +5648,6 @@ class LibraryPrefix : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Instance);
   friend class Class;
 };
-
 
 // AbstractType is an abstract superclass.
 // Subclasses of AbstractType are Type and TypeParameter.
@@ -5908,7 +5857,6 @@ class AbstractType : public Instance {
   friend class TypeArguments;
 };
 
-
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
 // An unresolved class is a String specifying the class name.
@@ -6060,7 +6008,6 @@ class Type : public AbstractType {
   friend class ClearTypeHashVisitor;
 };
 
-
 // A TypeRef is used to break cycles in the representation of recursive types.
 // Its only field is the recursive AbstractType it refers to, which can
 // temporarily be null during finalization.
@@ -6134,7 +6081,6 @@ class TypeRef : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeRef, AbstractType);
   friend class Class;
 };
-
 
 // A TypeParameter represents a type parameter of a parameterized class.
 // It specifies its index (and its name for debugging purposes), as well as its
@@ -6240,7 +6186,6 @@ class TypeParameter : public AbstractType {
   friend class ClearTypeHashVisitor;
 };
 
-
 // A BoundedType represents a type instantiated at compile time from a type
 // parameter specifying a bound that either cannot be checked at compile time
 // because the type or the bound are still uninstantiated or can be checked and
@@ -6336,7 +6281,6 @@ class BoundedType : public AbstractType {
   friend class ClearTypeHashVisitor;
 };
 
-
 // A MixinAppType represents a parsed mixin application clause, e.g.
 // "S<T> with M<U>, N<V>".
 // MixinAppType objects do not survive finalization, so they do not
@@ -6388,7 +6332,6 @@ class MixinAppType : public AbstractType {
   friend class Class;
 };
 
-
 class Number : public Instance {
  public:
   // TODO(iposva): Add more useful Number methods.
@@ -6408,7 +6351,6 @@ class Number : public Instance {
 
   friend class Class;
 };
-
 
 class Integer : public Number {
  public:
@@ -6463,7 +6405,6 @@ class Integer : public Number {
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
 };
-
 
 class Smi : public Integer {
  public:
@@ -6549,7 +6490,6 @@ class Smi : public Integer {
   friend class Thread;
 };
 
-
 class Mint : public Integer {
  public:
   static const intptr_t kBits = 63;  // 64-th bit is sign.
@@ -6593,7 +6533,6 @@ class Mint : public Integer {
   friend class Class;
   friend class Number;
 };
-
 
 class Bigint : public Integer {
  public:
@@ -6692,7 +6631,6 @@ class Bigint : public Integer {
   friend class Class;
 };
 
-
 // Class Double represents class Double in corelib_impl, which implements
 // abstract class double in corelib.
 class Double : public Number {
@@ -6733,7 +6671,6 @@ class Double : public Number {
   friend class Number;
 };
 
-
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
@@ -6745,9 +6682,9 @@ class String : public Instance {
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
 
-  // All strings share the same maximum element count to keep things
-  // simple.  We choose a value that will prevent integer overflow for
-  // 2 byte strings, since it is the worst case.
+// All strings share the same maximum element count to keep things
+// simple.  We choose a value that will prevent integer overflow for
+// 2 byte strings, since it is the worst case.
 #if defined(HASH_IN_OBJECT_HEADER)
   static const intptr_t kSizeofRawString = sizeof(RawInstance) + kWordSize;
 #else
@@ -7081,7 +7018,6 @@ class String : public Instance {
   friend class RODataSerializationCluster;  // SetHash
 };
 
-
 class OneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
@@ -7218,7 +7154,6 @@ class OneByteString : public AllStatic {
   friend class StringHasher;
 };
 
-
 class TwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
@@ -7305,7 +7240,6 @@ class TwoByteString : public AllStatic {
     return reinterpret_cast<RawTwoByteString*>(Object::null());
   }
 
-
   static const ClassId kClassId = kTwoByteStringCid;
 
  private:
@@ -7334,7 +7268,6 @@ class TwoByteString : public AllStatic {
   friend class SnapshotReader;
   friend class Symbols;
 };
-
 
 class ExternalOneByteString : public AllStatic {
  public:
@@ -7419,7 +7352,6 @@ class ExternalOneByteString : public AllStatic {
   friend class Symbols;
 };
 
-
 class ExternalTwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
@@ -7499,7 +7431,6 @@ class ExternalTwoByteString : public AllStatic {
   friend class Symbols;
 };
 
-
 // Class Bool implements Dart core class bool.
 class Bool : public Instance {
  public:
@@ -7529,7 +7460,6 @@ class Bool : public Instance {
   friend class Class;
   friend class Object;  // To initialize the true and false values.
 };
-
 
 class Array : public Instance {
  public:
@@ -7654,7 +7584,6 @@ class Array : public Instance {
   friend class String;
 };
 
-
 class ImmutableArray : public AllStatic {
  public:
   static RawImmutableArray* New(intptr_t len, Heap::Space space = Heap::kNew);
@@ -7685,7 +7614,6 @@ class ImmutableArray : public AllStatic {
 
   friend class Class;
 };
-
 
 class GrowableObjectArray : public Instance {
  public:
@@ -7794,7 +7722,6 @@ class GrowableObjectArray : public Instance {
   friend class Class;
 };
 
-
 class Float32x4 : public Instance {
  public:
   static RawFloat32x4* New(float value0,
@@ -7829,7 +7756,6 @@ class Float32x4 : public Instance {
   friend class Class;
 };
 
-
 class Int32x4 : public Instance {
  public:
   static RawInt32x4* New(int32_t value0,
@@ -7863,7 +7789,6 @@ class Int32x4 : public Instance {
   friend class Class;
 };
 
-
 class Float64x2 : public Instance {
  public:
   static RawFloat64x2* New(double value0,
@@ -7891,7 +7816,6 @@ class Float64x2 : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
   friend class Class;
 };
-
 
 class TypedData : public Instance {
  public:
@@ -8011,7 +7935,6 @@ class TypedData : public Instance {
     }
   }
 
-
   template <typename DstType, typename SrcType>
   static void ClampedCopy(const DstType& dst,
                           intptr_t dst_offset_in_bytes,
@@ -8069,7 +7992,6 @@ class TypedData : public Instance {
   friend class ExternalTypedData;
   friend class TypedDataView;
 };
-
 
 class ExternalTypedData : public Instance {
  public:
@@ -8182,7 +8104,6 @@ class ExternalTypedData : public Instance {
   friend class Class;
 };
 
-
 class TypedDataView : public AllStatic {
  public:
   static intptr_t ElementSizeInBytes(const Instance& view_obj) {
@@ -8242,7 +8163,6 @@ class TypedDataView : public AllStatic {
   };
 };
 
-
 class ByteBuffer : public AllStatic {
  public:
   static RawInstance* Data(const Instance& view_obj) {
@@ -8260,7 +8180,6 @@ class ByteBuffer : public AllStatic {
     kDataOffset = 1,
   };
 };
-
 
 // Corresponds to
 // - "new Map()",
@@ -8395,7 +8314,6 @@ class LinkedHashMap : public Instance {
   friend class LinkedHashMapDeserializationCluster;
 };
 
-
 class Closure : public Instance {
  public:
   RawTypeArguments* instantiator_type_arguments() const {
@@ -8442,7 +8360,6 @@ class Closure : public Instance {
   friend class Class;
 };
 
-
 class Capability : public Instance {
  public:
   uint64_t Id() const { return raw_ptr()->id_; }
@@ -8456,7 +8373,6 @@ class Capability : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Capability, Instance);
   friend class Class;
 };
-
 
 class ReceivePort : public Instance {
  public:
@@ -8477,7 +8393,6 @@ class ReceivePort : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
   friend class Class;
 };
-
 
 class SendPort : public Instance {
  public:
@@ -8501,7 +8416,6 @@ class SendPort : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SendPort, Instance);
   friend class Class;
 };
-
 
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
@@ -8546,7 +8460,6 @@ class StackTrace : public Instance {
   friend class Class;
   friend class Debugger;
 };
-
 
 // Internal JavaScript regular expression object.
 class RegExp : public Instance {
@@ -8688,7 +8601,6 @@ class RegExp : public Instance {
   friend class Class;
 };
 
-
 class WeakProperty : public Instance {
  public:
   RawObject* key() const { return raw_ptr()->key_; }
@@ -8719,7 +8631,6 @@ class WeakProperty : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
   friend class Class;
 };
-
 
 class MirrorReference : public Instance {
  public:
@@ -8752,7 +8663,6 @@ class MirrorReference : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MirrorReference, Instance);
   friend class Class;
 };
-
 
 class UserTag : public Instance {
  public:
@@ -8790,7 +8700,6 @@ class UserTag : public Instance {
   friend class Class;
 };
 
-
 class ObjectPoolInfo : public ValueObject {
  public:
   explicit ObjectPoolInfo(const ObjectPool& pool)
@@ -8810,7 +8719,6 @@ class ObjectPoolInfo : public ValueObject {
   const TypedData& array_;
 };
 
-
 // Breaking cycles and loops.
 RawClass* Object::clazz() const {
   uword raw_value = reinterpret_cast<uword>(raw_);
@@ -8819,7 +8727,6 @@ RawClass* Object::clazz() const {
   }
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
-
 
 DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
   NoSafepointScope no_safepoint_scope;
@@ -8847,13 +8754,11 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
 #endif
 }
 
-
 intptr_t Field::Offset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
   return (value * kWordSize);
 }
-
 
 void Field::SetOffset(intptr_t offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
@@ -8862,12 +8767,10 @@ void Field::SetOffset(intptr_t offset_in_bytes) const {
                Smi::New(offset_in_bytes / kWordSize));
 }
 
-
 RawInstance* Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return raw_ptr()->value_.static_value_;
 }
-
 
 void Field::SetStaticValue(const Instance& value,
                            bool save_initial_value) const {
@@ -8880,11 +8783,9 @@ void Field::SetStaticValue(const Instance& value,
   }
 }
 
-
 void Context::SetAt(intptr_t index, const Object& value) const {
   StorePointer(ObjectAddr(index), value.raw());
 }
-
 
 intptr_t Instance::GetNativeField(int index) const {
   ASSERT(IsValidNativeIndex(index));
@@ -8896,7 +8797,6 @@ intptr_t Instance::GetNativeField(int index) const {
   }
   return reinterpret_cast<intptr_t*>(native_fields->ptr()->data())[index];
 }
-
 
 void Instance::GetNativeFields(uint16_t num_fields,
                                intptr_t* field_values) const {
@@ -8916,7 +8816,6 @@ void Instance::GetNativeFields(uint16_t num_fields,
   }
 }
 
-
 bool String::Equals(const String& str) const {
   if (raw() == str.raw()) {
     return true;  // Both handles point to the same raw instance.
@@ -8933,13 +8832,11 @@ bool String::Equals(const String& str) const {
   return Equals(str, 0, str.Length());
 }
 
-
 intptr_t Library::UrlHash() const {
   intptr_t result = String::GetCachedHash(url());
   ASSERT(result != 0);
   return result;
 }
-
 
 void MegamorphicCache::SetEntry(const Array& array,
                                 intptr_t index,
@@ -8949,17 +8846,14 @@ void MegamorphicCache::SetEntry(const Array& array,
   array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 
-
 RawObject* MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
   return array.At((index * kEntryLength) + kClassIdIndex);
 }
-
 
 RawObject* MegamorphicCache::GetTargetFunction(const Array& array,
                                                intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
 }
-
 
 inline intptr_t Type::Hash() const {
   intptr_t result = Smi::Value(raw_ptr()->hash_);
@@ -8969,13 +8863,11 @@ inline intptr_t Type::Hash() const {
   return ComputeHash();
 }
 
-
 inline void Type::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
-
 
 inline intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
@@ -8986,13 +8878,11 @@ inline intptr_t TypeParameter::Hash() const {
   return ComputeHash();
 }
 
-
 inline void TypeParameter::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
-
 
 inline intptr_t BoundedType::Hash() const {
   intptr_t result = Smi::Value(raw_ptr()->hash_);
@@ -9002,13 +8892,11 @@ inline intptr_t BoundedType::Hash() const {
   return ComputeHash();
 }
 
-
 inline void BoundedType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
-
 
 inline intptr_t TypeArguments::Hash() const {
   if (IsNull()) return 0;
@@ -9018,7 +8906,6 @@ inline intptr_t TypeArguments::Hash() const {
   }
   return ComputeHash();
 }
-
 
 inline void TypeArguments::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause

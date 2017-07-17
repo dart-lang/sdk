@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/debugger.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
-#include "vm/debugger.h"
 #include "vm/message.h"
 #include "vm/unit_test.h"
 
@@ -283,7 +283,6 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
   }
 }
 
-
 static bool saw_paused_event = false;
 
 static void InspectPausedEvent(Dart_IsolateId isolate_id,
@@ -299,7 +298,6 @@ static void InspectPausedEvent(Dart_IsolateId isolate_id,
   EXPECT(event->kind() == ServiceEvent::kPauseBreakpoint);
   saw_paused_event = true;
 }
-
 
 TEST_CASE(Debugger_PauseEvent) {
   const char* kScriptChars =
@@ -332,7 +330,6 @@ TEST_CASE(Debugger_PauseEvent) {
   EXPECT(saw_paused_event);
 }
 
-
 static uint8_t* malloc_allocator(uint8_t* ptr,
                                  intptr_t old_size,
                                  intptr_t new_size) {
@@ -340,9 +337,7 @@ static uint8_t* malloc_allocator(uint8_t* ptr,
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
-
 const char* rewind_frame_index = "-1";
-
 
 // Build and send a fake resume OOB message for testing purposes.
 void SendResumeMessage(Isolate* isolate) {
@@ -433,7 +428,6 @@ void SendResumeMessage(Isolate* isolate) {
   }
 }
 
-
 static void RewindOnce(Dart_IsolateId isolate_id,
                        intptr_t bp_id,
                        const Dart_CodeLocation& loc) {
@@ -450,7 +444,6 @@ static void RewindOnce(Dart_IsolateId isolate_id,
     I->PauseEventHandler();
   }
 }
-
 
 TEST_CASE(Debugger_RewindOneFrame_Unoptimized) {
   SetFlagScope<bool> sfs(&FLAG_trace_rewind, true);
@@ -489,7 +482,6 @@ TEST_CASE(Debugger_RewindOneFrame_Unoptimized) {
                result_cstr);
   EXPECT(saw_paused_event);
 }
-
 
 TEST_CASE(Debugger_RewindTwoFrames_Unoptimized) {
   SetFlagScope<bool> sfs(&FLAG_trace_rewind, true);
@@ -536,7 +528,6 @@ TEST_CASE(Debugger_RewindTwoFrames_Unoptimized) {
       result_cstr);
   EXPECT(saw_paused_event);
 }
-
 
 TEST_CASE(Debugger_Rewind_Optimized) {
   SetFlagScope<bool> sfs1(&FLAG_trace_rewind, true);

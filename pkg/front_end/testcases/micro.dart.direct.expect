@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method instanceMethod() → dynamic {
@@ -11,19 +11,19 @@ class Foo extends core::Object {
   }
 }
 abstract class ExternalValue extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 abstract class Bar extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method externalInstanceMethod() → self::ExternalValue;
 }
 class Box extends core::Object {
   field dynamic field = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
@@ -39,13 +39,13 @@ class SubFinalBox extends self::FinalBox {
     ;
 }
 class DynamicReceiver1 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method dynamicallyCalled(dynamic x) → dynamic {}
 }
 class DynamicReceiver2 extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method dynamicallyCalled(dynamic x) → dynamic {}
@@ -53,8 +53,8 @@ class DynamicReceiver2 extends core::Object {
 static method staticMethod() → dynamic {
   return "sdfg";
 }
-external static method externalStatic() → core::bool;
-external static method createBar() → self::Bar;
+external static abstract method externalStatic() → core::bool;
+external static abstract method createBar() → self::Bar;
 static method stringArgument(dynamic x) → dynamic {}
 static method intArgument(dynamic x) → dynamic {}
 static method makeDynamicCall(dynamic receiver) → void {

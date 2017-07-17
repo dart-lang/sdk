@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class C extends self::D {
-  constructor •() → void
+  default constructor •() → void
     : super self::D::•()
     ;
   set foo(core::int x) → void {}
 }
 class D extends core::Object {
   field core::int foo = null;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

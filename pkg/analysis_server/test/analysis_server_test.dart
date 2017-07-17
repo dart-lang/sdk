@@ -153,9 +153,7 @@ class AnalysisServerTest {
   test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     String path = '/project/samples/sample.dart';
     resourceProvider.newFile(path, '');
-    resourceProvider.newFile(
-        '/project/analysis_options.yaml',
-        r'''
+    resourceProvider.newFile('/project/analysis_options.yaml', r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -174,9 +172,7 @@ analyzer:
   test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     String path = '/project/samples/sample.dart';
     resourceProvider.newFile(path, '');
-    resourceProvider.newFile(
-        '/project/.analysis_options',
-        r'''
+    resourceProvider.newFile('/project/.analysis_options', r'''
 analyzer:
   exclude:
     - 'samples/**'

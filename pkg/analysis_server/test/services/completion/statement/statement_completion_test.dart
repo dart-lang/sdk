@@ -1336,9 +1336,7 @@ main() {
 }
 ''',
         atEnd: true);
-    _assertHasChange(
-        'Insert a newline at the end of the current line',
-        '''
+    _assertHasChange('Insert a newline at the end of the current line', '''
 main() {
   int v = 1;
   ////

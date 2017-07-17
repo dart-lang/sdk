@@ -7,7 +7,7 @@ class Mixin<T extends core::Object> extends core::Object {
   field dynamic y;
   field dynamic z;
   field self::Mixin::T t;
-  constructor •() → void
+  default constructor •() → void
     ;
   method foo() → dynamic
     ;

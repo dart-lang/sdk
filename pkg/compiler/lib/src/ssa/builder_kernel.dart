@@ -345,8 +345,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
-      ClosureScope scopeData =
-          closureDataLookup.getClosureScope(constructorElement);
+      CapturedScope scopeData =
+          closureDataLookup.getCapturedScope(constructorElement);
       if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -605,11 +605,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // Set the locals handler state as if we were inlining the constructor.
     ConstructorEntity element = _elementMap.getConstructor(constructor);
-    ClosureRepresentationInfo oldScopeInfo = localsHandler.scopeInfo;
-    ClosureRepresentationInfo newScopeInfo =
-        closureDataLookup.getScopeInfo(element);
+    ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
+    ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
     localsHandler.scopeInfo = newScopeInfo;
-    localsHandler.enterScope(closureDataLookup.getClosureScope(element));
+    localsHandler.enterScope(closureDataLookup.getCapturedScope(element));
     inlinedFrom(element, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
@@ -697,7 +696,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     localsHandler.startFunction(
         targetElement,
         closureDataLookup.getScopeInfo(targetElement),
-        closureDataLookup.getClosureScope(targetElement),
+        closureDataLookup.getCapturedScope(targetElement),
         parameterMap,
         isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
     close(new HGoto()).addSuccessor(block);
@@ -894,7 +893,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     JumpTarget jumpTarget = localsMap.getJumpTargetForFor(forStatement);
     loopHandler.handleLoop(
         forStatement,
-        localsMap.getLoopClosureScope(closureDataLookup, forStatement),
+        localsMap.getCapturedLoopScope(closureDataLookup, forStatement),
         jumpTarget,
         buildInitializer,
         buildCondition,
@@ -1023,7 +1022,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         forInStatement,
-        localsMap.getLoopClosureScope(closureDataLookup, forInStatement),
+        localsMap.getCapturedLoopScope(closureDataLookup, forInStatement),
         localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
@@ -1074,7 +1073,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         forInStatement,
-        localsMap.getLoopClosureScope(closureDataLookup, forInStatement),
+        localsMap.getCapturedLoopScope(closureDataLookup, forInStatement),
         localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
@@ -1121,7 +1120,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Build fake try body:
     loopHandler.handleLoop(
         forInStatement,
-        localsMap.getLoopClosureScope(closureDataLookup, forInStatement),
+        localsMap.getCapturedLoopScope(closureDataLookup, forInStatement),
         localsMap.getJumpTargetForForIn(forInStatement),
         buildInitializer,
         buildCondition,
@@ -1172,7 +1171,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     loopHandler.handleLoop(
         whileStatement,
-        localsMap.getLoopClosureScope(closureDataLookup, whileStatement),
+        localsMap.getCapturedLoopScope(closureDataLookup, whileStatement),
         localsMap.getJumpTargetForWhile(whileStatement),
         () {},
         buildCondition,
@@ -1186,8 +1185,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(efortuna): I think this can be rewritten using
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    LoopClosureScope loopClosureInfo =
-        localsMap.getLoopClosureScope(closureDataLookup, doStatement);
+    CapturedLoopScope loopClosureInfo =
+        localsMap.getCapturedLoopScope(closureDataLookup, doStatement);
     localsHandler.startLoop(loopClosureInfo);
     JumpTarget target = localsMap.getJumpTargetForDo(doStatement);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement, target);
@@ -1725,7 +1724,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildLoop() {
       loopHandler.handleLoop(
           switchStatement,
-          localsMap.getLoopClosureScope(closureDataLookup, switchStatement),
+          localsMap.getCapturedLoopScope(closureDataLookup, switchStatement),
           switchTarget,
           () {},
           buildCondition,
@@ -1945,9 +1944,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Set the runtime type information if necessary.
   HInstruction _setListRuntimeTypeInfoIfNeeded(
-      HInstruction object, ir.ListLiteral listLiteral) {
-    InterfaceType type = localsHandler.substInContext(_commonElements
-        .listType(_elementMap.getDartType(listLiteral.typeArgument)));
+      HInstruction object, InterfaceType type) {
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
@@ -1975,8 +1972,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       listInstruction =
           new HLiteralList(elements, commonMasks.extendableArrayType);
       add(listInstruction);
-      listInstruction =
-          _setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
+      InterfaceType type = localsHandler.substInContext(_commonElements
+          .listType(_elementMap.getDartType(listLiteral.typeArgument)));
+      listInstruction = _setListRuntimeTypeInfoIfNeeded(listInstruction, type);
     }
 
     TypeMask type = _typeInferenceMap.typeOfListLiteral(
@@ -2359,6 +2357,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
 
+    // TODO(johnniwinther): Move factory calls to a helper function?
     if (function is ConstructorEntity && function.isFactoryConstructor) {
       if (function.isExternal && function.isFromEnvironmentConstructor) {
         if (invocation.isConst) {
@@ -2376,12 +2375,34 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       // Factory constructors take type parameters; other static methods ignore
       // them.
+
       if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments);
       }
-    }
 
-    _pushStaticInvocation(function, arguments, typeMask);
+      _pushStaticInvocation(function, arguments, typeMask);
+
+      bool isFixedListConstructorCall = false;
+      bool isGrowableListConstructorCall = false;
+      if (commonElements.isUnnamedListConstructor(function) &&
+          invocation.arguments.named.isEmpty) {
+        isFixedListConstructorCall =
+            invocation.arguments.positional.length == 1;
+        isGrowableListConstructorCall = invocation.arguments.positional.isEmpty;
+      }
+      bool isJSArrayTypedConstructor =
+          function == commonElements.jsArrayTypedConstructor;
+      if (rtiNeed.classNeedsRti(commonElements.listClass) &&
+          (isFixedListConstructorCall ||
+              isGrowableListConstructorCall ||
+              isJSArrayTypedConstructor)) {
+        InterfaceType type = _elementMap.createInterfaceType(
+            target.enclosingClass, invocation.arguments.types);
+        stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type));
+      }
+    } else {
+      _pushStaticInvocation(function, arguments, typeMask);
+    }
   }
 
   void handleInvokeStaticForeign(

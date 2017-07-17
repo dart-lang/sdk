@@ -1055,7 +1055,11 @@ abstract class PrefixElement extends Element {
 
 /// A type alias definition.
 abstract class TypedefElement extends Element
-    implements AstElement, TypeDeclarationElement, FunctionTypedElement {
+    implements
+        AstElement,
+        TypeDeclarationElement,
+        FunctionTypedElement,
+        TypedefEntity {
   /// The type defined by this typedef with the type variables as its type
   /// arguments.
   ///

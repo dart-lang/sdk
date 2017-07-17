@@ -25,8 +25,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
         if (annotationName == null) {
           annotationName = name;
         } else if (name != null) {
-          throw new SpannableAssertionFailure(
-              cls, 'Too many name annotations.');
+          failedAt(cls, 'Too many name annotations.');
         }
       }
       if (annotationName != null) {

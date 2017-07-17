@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → self::C
+  default constructor •() → self::C
     : super core::Object::•();
   method test() → dynamic {
     self::use(invalid-expression);

@@ -232,9 +232,7 @@ class B extends A {
   }
 
   test_BAD_privateByPrivate_inDifferentLib() async {
-    addFile(
-        '$testFolder/lib.dart',
-        r'''
+    addFile('$testFolder/lib.dart', r'''
 class A {
   void _m() {}
 }

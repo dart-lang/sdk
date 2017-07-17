@@ -27,7 +27,6 @@ namespace dart {
 //   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |= ??=
 //   1  comma           ,
 
-
 // Token definitions.
 // Some operator tokens appear in blocks, e.g. assignment operators.
 // There is code that depends on the values within a block to be

@@ -296,10 +296,22 @@ class MirrorsHandler {
    * [MirrorsUsed] pattern, as we do not have a complete picture of the world,
    * yet.
    */
-  bool _shouldIncludeElementDueToMirrors(Element element,
+  bool _shouldIncludeLibraryDueToMirrors(LibraryElement element,
       {bool includedEnclosing}) {
     return includedEnclosing ||
-        _backend.mirrorsData.requiredByMirrorSystem(element);
+        _backend.mirrorsData.isLibraryRequiredByMirrorSystem(element);
+  }
+
+  bool _shouldIncludeClassDueToMirrors(ClassElement element,
+      {bool includedEnclosing}) {
+    return includedEnclosing ||
+        _backend.mirrorsData.isClassRequiredByMirrorSystem(element);
+  }
+
+  bool _shouldIncludeMemberDueToMirrors(MemberElement element,
+      {bool includedEnclosing}) {
+    return includedEnclosing ||
+        _backend.mirrorsData.isMemberRequiredByMirrorSystem(element);
   }
 
   /// Enqueue the constructor [ctor] if it is required for reflection.
@@ -309,7 +321,7 @@ class MirrorsHandler {
   void _enqueueReflectiveConstructor(ConstructorElement constructor,
       {bool enclosingWasIncluded}) {
     assert(constructor.isDeclaration);
-    if (_shouldIncludeElementDueToMirrors(constructor,
+    if (_shouldIncludeMemberDueToMirrors(constructor,
         includedEnclosing: enclosingWasIncluded)) {
       if (constructor.isFromEnvironmentConstructor) return;
       _logEnqueueReflectiveAction(constructor);
@@ -327,7 +339,7 @@ class MirrorsHandler {
   void _enqueueReflectiveMember(
       MemberElement element, bool enclosingWasIncluded) {
     assert(element.isDeclaration);
-    if (_shouldIncludeElementDueToMirrors(element,
+    if (_shouldIncludeMemberDueToMirrors(element,
         includedEnclosing: enclosingWasIncluded)) {
       _logEnqueueReflectiveAction(element);
       if (Elements.isStaticOrTopLevel(element)) {
@@ -357,7 +369,7 @@ class MirrorsHandler {
       {bool enclosingWasIncluded}) {
     assert(cls.isDeclaration);
     if (cls.library.isInternalLibrary || cls.isInjected) return;
-    bool includeClass = _shouldIncludeElementDueToMirrors(cls,
+    bool includeClass = _shouldIncludeClassDueToMirrors(cls,
         includedEnclosing: enclosingWasIncluded);
     if (includeClass) {
       _logEnqueueReflectiveAction(cls, "register");
@@ -416,7 +428,7 @@ class MirrorsHandler {
       LibraryElement lib, Iterable<ClassEntity> recents) {
     assert(lib.isDeclaration);
     bool includeLibrary =
-        _shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
+        _shouldIncludeLibraryDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
       if (member.isInjected) return;
       if (member.isClass) {
@@ -466,7 +478,7 @@ class MirrorsHandler {
       recents.forEach((ClassEntity _cls) {
         ClassElement cls = _cls;
         _enqueueReflectiveElementsInClass(cls, recents,
-            enclosingWasIncluded: _shouldIncludeElementDueToMirrors(cls.library,
+            enclosingWasIncluded: _shouldIncludeLibraryDueToMirrors(cls.library,
                 includedEnclosing: false));
       });
       _logEnqueueReflectiveAction("!DONE enqueueRecents");

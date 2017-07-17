@@ -65,7 +65,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     if (node is ir.InvocationExpression) {
       return getInvocationSelector(node);
     }
-    throw new SpannableAssertionFailure(
+    throw failedAt(
         CURRENT_ELEMENT_SPANNABLE,
         "Can only get the selector for a property get or an invocation: "
         "${node}");
@@ -280,7 +280,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
-        throw new SpannableAssertionFailure(
+        throw failedAt(
             CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
       }
       constant = new NullConstantExpression();

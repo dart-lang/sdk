@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef Func = () → void;
 class C<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method test() → dynamic
     ;

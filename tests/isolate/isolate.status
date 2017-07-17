@@ -161,6 +161,7 @@ browser/package_resolve_browser_test: Fail # Issue 28382
 
 [ ($compiler == none) && ( $runtime == dartium || $runtime == drt) && ($system == windows) ]
 browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL to fix under Windows.
+resolve_package_uri_test: Skip
 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
@@ -179,7 +180,7 @@ package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
-[ $compiler == precompiler || $mode == product || $runtime == flutter ]
+[ $compiler == precompiler || $runtime == flutter ]
 # Imports dart:mirrors
 count_test: SkipByDesign
 cross_isolate_message_test: SkipByDesign

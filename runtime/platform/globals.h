@@ -46,11 +46,11 @@
 #define UNICODE
 #endif
 
+#include <Rpc.h>
+#include <VersionHelpers.h>
+#include <shellapi.h>
 #include <windows.h>
 #include <winsock2.h>
-#include <Rpc.h>
-#include <shellapi.h>
-#include <VersionHelpers.h>
 #endif  // defined(_WIN32)
 
 #if !defined(_WIN32)
@@ -71,8 +71,8 @@
 
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
-#include "platform/inttypes_support_win.h"
 #include "platform/floating_point_win.h"
+#include "platform/inttypes_support_win.h"
 #endif  // defined(_WIN32)
 
 #include "platform/math.h"
@@ -117,7 +117,6 @@
 #elif !defined(HOST_OS_FUCHSIA)
 #error Automatic target os detection failed.
 #endif
-
 
 // Setup product, release or debug build related macros.
 #if defined(PRODUCT) && defined(DEBUG)
@@ -360,7 +359,6 @@ typedef simd128_value_t fpu_register_t;
 #define ARCH_IS_MULTI_CORE 1
 #endif
 
-
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
     !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
     !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)
@@ -383,7 +381,6 @@ typedef simd128_value_t fpu_register_t;
 #endif
 #endif
 
-
 // Short form printf format specifiers
 #define Pd PRIdPTR
 #define Pu PRIuPTR
@@ -398,7 +395,6 @@ typedef simd128_value_t fpu_register_t;
 #else
 #define Pp "016" PRIxPTR
 #endif
-
 
 // Suffixes for 64-bit integer literals.
 #ifdef _MSC_VER
@@ -553,7 +549,6 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 template <typename T>
 static inline void USE(T) {}
 
-
 // Use implicit_cast as a safe version of static_cast or const_cast
 // for upcasting in the type hierarchy (i.e. casting a pointer to Foo
 // to a pointer to SuperclassOfFoo or casting a pointer to Foo to
@@ -576,7 +571,6 @@ inline To implicit_cast(From const& f) {
   return f;
 }
 
-
 // Use like this: down_cast<T*>(foo);
 template <typename To, typename From>  // use like this: down_cast<T*>(foo);
 inline To down_cast(From* f) {         // so we only accept pointers
@@ -588,7 +582,6 @@ inline To down_cast(From* f) {         // so we only accept pointers
   }
   return static_cast<To>(f);
 }
-
 
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)
@@ -627,7 +620,6 @@ inline D bit_cast(const S& source) {
   return destination;
 }
 
-
 // Similar to bit_cast, but allows copying from types of unrelated
 // sizes. This method was introduced to enable the strict aliasing
 // optimizations of GCC 4.4. Basically, GCC mindlessly relies on
@@ -642,7 +634,6 @@ inline D bit_copy(const S& source) {
   return destination;
 }
 
-
 #if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
 template <typename T>
@@ -652,7 +643,6 @@ static inline T ReadUnaligned(const T* ptr) {
          sizeof(value));
   return value;
 }
-
 
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
 template <typename T>
@@ -667,14 +657,12 @@ static inline T ReadUnaligned(const T* ptr) {
   return *ptr;
 }
 
-
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
 template <typename T>
 static inline void StoreUnaligned(T* ptr, T value) {
   *ptr = value;
 }
 #endif  // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
-
 
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.

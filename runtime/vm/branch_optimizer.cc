@@ -29,7 +29,6 @@ static bool PhiHasSingleUse(PhiInstr* phi, Value* use) {
   return true;
 }
 
-
 bool BranchSimplifier::Match(JoinEntryInstr* block) {
   // Match the pattern of a branch on a comparison whose left operand is a
   // phi from the same block, and whose right operand is a constant.
@@ -59,7 +58,6 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
          (block->phis()->length() == 1);
 }
 
-
 JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
                                               TargetEntryInstr* target) {
   // Convert a target block into a join block.  Branches will be duplicated
@@ -74,7 +72,6 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(Zone* zone,
   return join;
 }
 
-
 BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
                                            BranchInstr* branch,
                                            Value* new_left,
@@ -86,7 +83,6 @@ BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
       new (zone) BranchInstr(new_comparison, Thread::kNoDeoptId);
   return new_branch;
 }
-
 
 void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
   // Optimize some branches that test the value of a phi.  When it is safe
@@ -223,14 +219,12 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
   }
 }
 
-
 static bool IsTrivialBlock(BlockEntryInstr* block, Definition* defn) {
   return (block->IsTargetEntry() && (block->PredecessorCount() == 1)) &&
          ((block->next() == block->last_instruction()) ||
           ((block->next() == defn) &&
            (defn->next() == block->last_instruction())));
 }
-
 
 static void EliminateTrivialBlock(BlockEntryInstr* block,
                                   Definition* instr,
@@ -244,7 +238,6 @@ static void EliminateTrivialBlock(BlockEntryInstr* block,
     instr->LinkTo(before);
   }
 }
-
 
 void IfConverter::Simplify(FlowGraph* flow_graph) {
   Zone* zone = flow_graph->zone();
@@ -345,6 +338,5 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
     flow_graph->ComputeDominators(&dominance_frontier);
   }
 }
-
 
 }  // namespace dart

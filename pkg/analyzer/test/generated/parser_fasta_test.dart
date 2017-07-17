@@ -4,14 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
-import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -22,6 +21,7 @@ import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'parser_fasta_listener.dart';
 import 'parser_test.dart';
 import 'test_support.dart';
 
@@ -125,35 +125,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
     super.test_logicalOrExpression_precedence_nullableType();
   }
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * All undeclared identifiers are presumed to resolve to an instance of this
- * class.
- */
-class ElementProxy implements KernelClassElement {
-  @override
-  final KernelInterfaceType rawType = new InterfaceTypeProxy();
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * Any request for an element is satisfied by creating an instance of
- * [ElementProxy].
- */
-class ElementStoreProxy implements ElementStore {
-  final _elements = <Builder, Element>{};
-
-  @override
-  Element operator [](Builder builder) =>
-      _elements.putIfAbsent(builder, () => new ElementProxy());
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -700,18 +671,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_field_const_noType() {
-    super.test_parseNormalFormalParameter_field_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type() {
-    super.test_parseNormalFormalParameter_field_const_type();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_function_noType_nullable() {
     // TODO(scheglov): Not implemented: Nnbd
     super.test_parseNormalFormalParameter_function_noType_nullable();
@@ -755,28 +714,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
   }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_noType() {
-    super.test_parseNormalFormalParameter_simple_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_type() {
-    super.test_parseNormalFormalParameter_simple_const_type();
-  }
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * Any element used as a type name is presumed to refer to an instance of this
- * class.
- */
-class InterfaceTypeProxy implements KernelInterfaceType {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -791,9 +728,9 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   Uri get fileUri => uri;
 
   @override
-  void deprecated_addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false, bool wasHandled: false}) {
-    fail('$message');
+  void addCompileTimeError(Message message, int charOffset, Uri uri,
+      {bool silent: false, bool wasHandled: false}) {
+    fail('${message.message}');
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -831,12 +768,10 @@ class ParserProxy implements analyzer.Parser {
       {bool enableGenericMethodComments: false}) {
     var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();
-    var elementStore = new ElementStoreProxy();
     var scope = new ScopeProxy();
-    var astBuilder =
-        new AstBuilder(null, library, member, elementStore, scope, true);
+    var astBuilder = new AstBuilder(null, library, member, scope, true);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
-    var fastaParser = new fasta.Parser(astBuilder);
+    var fastaParser = new fasta.Parser(new ForwardingTestListener(astBuilder));
     astBuilder.parser = fastaParser;
     return new ParserProxy._(startingToken, fastaParser, astBuilder);
   }

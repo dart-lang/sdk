@@ -59,7 +59,6 @@ ClassTable::ClassTable()
 #endif  // !PRODUCT
 }
 
-
 ClassTable::ClassTable(ClassTable* original)
     : top_(original->top_),
       capacity_(original->top_),
@@ -68,7 +67,6 @@ ClassTable::ClassTable(ClassTable* original)
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
   NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
 }
-
 
 ClassTable::~ClassTable() {
   if (old_tables_ != NULL) {
@@ -84,12 +82,10 @@ ClassTable::~ClassTable() {
   }
 }
 
-
 void ClassTable::AddOldTable(RawClass** old_table) {
   ASSERT(Thread::Current()->IsMutatorThread());
   old_tables_->Add(old_table);
 }
-
 
 void ClassTable::FreeOldTables() {
   while (old_tables_->length() > 0) {
@@ -97,20 +93,17 @@ void ClassTable::FreeOldTables() {
   }
 }
 
-
 #ifndef PRODUCT
 void ClassTable::SetTraceAllocationFor(intptr_t cid, bool trace) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   stats->set_trace_allocation(trace);
 }
 
-
 bool ClassTable::TraceAllocationFor(intptr_t cid) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   return stats->trace_allocation();
 }
 #endif  // !PRODUCT
-
 
 void ClassTable::Register(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
@@ -162,7 +155,6 @@ void ClassTable::Register(const Class& cls) {
   }
 }
 
-
 void ClassTable::AllocateIndex(intptr_t index) {
   if (index >= capacity_) {
     // Grow the capacity of the class table.
@@ -197,7 +189,6 @@ void ClassTable::AllocateIndex(intptr_t index) {
   }
 }
 
-
 void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(index != kIllegalCid);
@@ -207,13 +198,11 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
   table_[index] = cls.raw();
 }
 
-
 #if defined(DEBUG)
 void ClassTable::Unregister(intptr_t index) {
   table_[index] = 0;
 }
 #endif
-
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
@@ -228,12 +217,10 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
   delete[] cls_by_old_cid;
 }
 
-
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
 }
-
 
 void ClassTable::Validate() {
   Class& cls = Class::Handle();
@@ -253,7 +240,6 @@ void ClassTable::Validate() {
   }
 }
 
-
 void ClassTable::Print() {
   Class& cls = Class::Handle();
   String& name = String::Handle();
@@ -269,7 +255,6 @@ void ClassTable::Print() {
     }
   }
 }
-
 
 #ifndef PRODUCT
 void ClassTable::PrintToJSONObject(JSONObject* object) {
@@ -289,7 +274,6 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
   }
 }
 
-
 void ClassHeapStats::Initialize() {
   pre_gc.Reset();
   post_gc.Reset();
@@ -301,7 +285,6 @@ void ClassHeapStats::Initialize() {
   state_ = 0;
   USE(align_);
 }
-
 
 void ClassHeapStats::ResetAtNewGC() {
   Verify();
@@ -317,7 +300,6 @@ void ClassHeapStats::ResetAtNewGC() {
   old_pre_new_gc_size_ = recent.old_size;
 }
 
-
 void ClassHeapStats::ResetAtOldGC() {
   Verify();
   pre_gc.old_count = post_gc.old_count + recent.old_count;
@@ -330,7 +312,6 @@ void ClassHeapStats::ResetAtOldGC() {
   recent.ResetOld();
 }
 
-
 void ClassHeapStats::Verify() {
   pre_gc.Verify();
   post_gc.Verify();
@@ -338,7 +319,6 @@ void ClassHeapStats::Verify() {
   accumulated.Verify();
   last_reset.Verify();
 }
-
 
 void ClassHeapStats::UpdateSize(intptr_t instance_size) {
   pre_gc.UpdateSize(instance_size);
@@ -350,7 +330,6 @@ void ClassHeapStats::UpdateSize(intptr_t instance_size) {
   old_pre_new_gc_size_ = old_pre_new_gc_count_ * instance_size;
 }
 
-
 void ClassHeapStats::ResetAccumulator() {
   // Remember how much was allocated so we can subtract this from the result
   // when printing.
@@ -361,12 +340,10 @@ void ClassHeapStats::ResetAccumulator() {
   accumulated.Reset();
 }
 
-
 void ClassHeapStats::UpdatePromotedAfterNewGC() {
   promoted_count = recent.old_count - old_pre_new_gc_count_;
   promoted_size = recent.old_size - old_pre_new_gc_size_;
 }
-
 
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
@@ -405,14 +382,12 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   obj->AddProperty("promotedBytes", promoted_size);
 }
 
-
 void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size != 0);
   stats->recent.AddNew(size);
 }
-
 
 void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
@@ -421,11 +396,9 @@ void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   stats->recent.AddOld(size);
 }
 
-
 bool ClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
   return !RawObject::IsVariableSizeClassId(cid);
 }
-
 
 ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
   ASSERT(cid > 0);
@@ -435,7 +408,6 @@ ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
   ASSERT(cid < top_);
   return &class_heap_stats_table_[cid];
 }
-
 
 ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
   if (!HasValidClassAt(cid) || (cid == kFreeListElement) ||
@@ -455,7 +427,6 @@ ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
   return stats;
 }
 
-
 void ClassTable::ResetCountersOld() {
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
     predefined_class_heap_stats_table_[i].ResetAtOldGC();
@@ -464,7 +435,6 @@ void ClassTable::ResetCountersOld() {
     class_heap_stats_table_[i].ResetAtOldGC();
   }
 }
-
 
 void ClassTable::ResetCountersNew() {
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
@@ -475,7 +445,6 @@ void ClassTable::ResetCountersNew() {
   }
 }
 
-
 void ClassTable::UpdatePromoted() {
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
     predefined_class_heap_stats_table_[i].UpdatePromotedAfterNewGC();
@@ -485,12 +454,10 @@ void ClassTable::UpdatePromoted() {
   }
 }
 
-
 ClassHeapStats** ClassTable::TableAddressFor(intptr_t cid) {
   return (cid < kNumPredefinedCids) ? &predefined_class_heap_stats_table_
                                     : &class_heap_stats_table_;
 }
-
 
 intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
   return (cid < kNumPredefinedCids)
@@ -498,11 +465,9 @@ intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
              : OFFSET_OF(ClassTable, class_heap_stats_table_);
 }
 
-
 intptr_t ClassTable::ClassOffsetFor(intptr_t cid) {
   return cid * sizeof(ClassHeapStats);  // NOLINT
 }
-
 
 intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
   const intptr_t class_offset = ClassOffsetFor(cid);
@@ -512,11 +477,9 @@ intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
   return class_offset + count_field_offset;
 }
 
-
 intptr_t ClassTable::StateOffsetFor(intptr_t cid) {
   return ClassOffsetFor(cid) + ClassHeapStats::state_offset();
 }
-
 
 intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
   const uword class_offset = ClassOffsetFor(cid);
@@ -525,7 +488,6 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
                    : ClassHeapStats::allocated_size_since_gc_old_space_offset();
   return class_offset + size_field_offset;
 }
-
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   if (!FLAG_support_service) {
@@ -566,7 +528,6 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   }
 }
 
-
 void ClassTable::ResetAllocationAccumulators() {
   for (intptr_t i = 1; i < top_; i++) {
     ClassHeapStats* stats = StatsWithUpdatedSize(i);
@@ -576,7 +537,6 @@ void ClassTable::ResetAllocationAccumulators() {
   }
 }
 
-
 void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
@@ -585,7 +545,6 @@ void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count) {
   stats->post_gc.AddOld(size, count);
 }
 
-
 void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
@@ -593,6 +552,5 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   stats->post_gc.AddNew(size);
 }
 #endif  // !PRODUCT
-
 
 }  // namespace dart

@@ -28,6 +28,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_model/closure.dart';
 import '../js_model/elements.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
@@ -82,6 +83,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   /// List of library environments by `IndexedLibrary.libraryIndex`. This is
   /// used for fast lookup into library classes and members.
   List<LibraryEnv> _libraryEnvs = <LibraryEnv>[];
+
+  /// List of library data by `IndexedLibrary.libraryIndex`. This is used for
+  /// fast lookup into library properties.
+  List<LibraryData> _libraryData = <LibraryData>[];
 
   /// List of class environments by `IndexedClass.classIndex`. This is used for
   /// fast lookup into class members.
@@ -318,8 +323,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         Link<InterfaceType> interfaces = linkBuilder.toLink();
         OrderedTypeSetBuilder setBuilder =
             new _KernelOrderedTypeSetBuilder(this, cls);
-        data.orderedTypeSet =
-            setBuilder.createOrderedTypeSet(data.supertype, interfaces);
+        data.orderedTypeSet = setBuilder.createOrderedTypeSet(
+            data.supertype, interfaces.reverse());
         data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
@@ -356,8 +361,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       }
       superclass = _getSuperType(superclass)?.element;
     }
-    throw new SpannableAssertionFailure(
-        cls, "No super method member found for ${name} in $cls.");
+    throw failedAt(cls, "No super method member found for ${name} in $cls.");
   }
 
   @override
@@ -380,8 +384,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     if (member != null) {
       return getConstructor(member);
     }
-    throw new SpannableAssertionFailure(
-        source, "Super constructor for $source not found.");
+    throw failedAt(source, "Super constructor for $source not found.");
   }
 
   @override
@@ -418,7 +421,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   @override
   FunctionType getFunctionType(ir.FunctionNode node) {
-    DartType returnType = getDartType(node.returnType);
+    DartType returnType;
+    if (node.parent is ir.Constructor) {
+      // The return type on generative constructors is `void`, but we need
+      // `dynamic` type to match the element model.
+      returnType = const DynamicType();
+    } else {
+      returnType = getDartType(node.returnType);
+    }
     List<DartType> parameterTypes = /*<DartType>*/ [];
     List<DartType> optionalParameterTypes = /*<DartType>*/ [];
     for (ir.VariableDeclaration variable in node.positionalParameters) {
@@ -607,6 +617,7 @@ abstract class ElementCreatorMixin {
   ProgramEnv get _env;
   List<LibraryEntity> get _libraryList;
   List<LibraryEnv> get _libraryEnvs;
+  List<LibraryData> get _libraryData;
   List<ClassEntity> get _classList;
   List<ClassEnv> get _classEnvs;
   List<ClassData> get _classData;
@@ -652,8 +663,31 @@ abstract class ElementCreatorMixin {
       LibraryEntity library =
           createLibrary(_libraryMap.length, name, canonicalUri);
       _libraryList.add(library);
+      _libraryData.add(new LibraryData(node));
       return library;
     });
+  }
+
+  void addClosureClass(KernelClosureClass cls, InterfaceType supertype) {
+    cls.classIndex = _classEnvs.length;
+    _classEnvs.add(new ClassEnv.closureClass());
+    _classList.add(cls);
+
+    // Create a classData and set up the interfaces and subclass
+    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
+    var closureData = new ClassData(null);
+    closureData
+      ..isMixinApplication = false
+      ..thisType =
+          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
+      ..supertype = supertype
+      ..interfaces = const <InterfaceType>[];
+    var setBuilder =
+        new _KernelOrderedTypeSetBuilder((this as KernelToElementMapBase), cls);
+    _classData.add(closureData);
+    closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
+        closureData.supertype, const Link<InterfaceType>());
+    // TODO(efortuna): Does getMetadata get called in ClassData for this object?
   }
 
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
@@ -664,7 +698,7 @@ abstract class ElementCreatorMixin {
       }
       _classEnvs.add(classEnv);
       _classData.add(new ClassData(node));
-      ClassEntity cls = createClass(library, _classMap.length, node.name,
+      ClassEntity cls = createClass(library, _classList.length, node.name,
           isAbstract: node.isAbstract);
       _classList.add(cls);
       return cls;
@@ -734,7 +768,7 @@ abstract class ElementCreatorMixin {
             isFromEnvironmentConstructor: isFromEnvironment);
       } else {
         // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
-        throw new SpannableAssertionFailure(
+        throw failedAt(
             NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
       }
       _memberData.add(new ConstructorData(node, functionNode));
@@ -1149,7 +1183,7 @@ class KernelElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
     if (constructor == null && required) {
-      throw new SpannableAssertionFailure(
+      throw failedAt(
           CURRENT_ELEMENT_SPANNABLE,
           "The constructor '$name' was not found in class '${cls.name}' "
           "in library ${cls.library.canonicalUri}.");
@@ -1163,7 +1197,7 @@ class KernelElementEnvironment implements ElementEnvironment {
     MemberEntity member =
         elementMap.lookupClassMember(cls, name, setter: setter);
     if (member == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");
     }
     return member;
@@ -1222,7 +1256,7 @@ class KernelElementEnvironment implements ElementEnvironment {
     MemberEntity member =
         elementMap.lookupLibraryMember(library, name, setter: setter);
     if (member == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '${name}' was not found in library '${library.name}'.");
     }
     return member;
@@ -1233,7 +1267,7 @@ class KernelElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ClassEntity cls = elementMap.lookupClass(library, name);
     if (cls == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+      failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The class '$name'  was not found in library '${library.name}'.");
     }
     return cls;
@@ -1248,8 +1282,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
     LibraryEntity library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
-      throw new SpannableAssertionFailure(
-          CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
+      failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
     return library;
   }
@@ -1261,9 +1294,35 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member) {
+  Iterable<ConstantValue> getLibraryMetadata(covariant IndexedLibrary library) {
+    LibraryData libraryData = elementMap._libraryData[library.libraryIndex];
+    return libraryData.getMetadata(elementMap);
+  }
+
+  @override
+  Iterable<ConstantValue> getClassMetadata(covariant IndexedClass cls) {
+    ClassData classData = elementMap._classData[cls.classIndex];
+    return classData.getMetadata(elementMap);
+  }
+
+  @override
+  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef) {
+    // TODO(redemption): Support this.
+    throw new UnsupportedError('ElementEnvironment.getTypedefMetadata');
+  }
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
+      {bool includeParameterMetadata: false}) {
+    // TODO(redemption): Support includeParameterMetadata.
     MemberData memberData = elementMap._memberData[member.memberIndex];
     return memberData.getMetadata(elementMap);
+  }
+
+  @override
+  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
+    // TODO(redemption): Support this.
+    throw new UnsupportedError('ElementEnvironment.getTypedefAlias');
   }
 }
 
@@ -1536,7 +1595,7 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
 
   @override
   ClassEntity getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorldMixin.getSuperClass');
+    return elementMap._getSuperType(cls)?.element;
   }
 
   @override
@@ -1579,7 +1638,7 @@ class KernelClosedWorld extends ClosedWorldBase
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
+      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -1606,8 +1665,32 @@ class KernelClosedWorld extends ClosedWorldBase
   }
 
   @override
-  void registerClosureClass(ClassElement cls) {
-    throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
+  void registerClosureClass(ClassEntity cls, bool fromInstanceMember) {
+    // Tell the hierarchy that this is the super class. then we can use
+    // .getSupertypes(class)
+    IndexedClass superclass = fromInstanceMember
+        ? commonElements.boundClosureClass
+        : commonElements.closureClass;
+    ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
+    ClassHierarchyNode node = new ClassHierarchyNode(
+        parentNode, cls, getHierarchyDepth(superclass) + 1);
+    addClassHierarchyNode(cls, node);
+    for (InterfaceType type in getOrderedTypeSet(superclass).types) {
+      // TODO(efortuna): assert that the FunctionClass is in this ordered set.
+      // If not, we need to explicitly add node as a subtype of FunctionClass.
+      ClassSet subtypeSet = getClassSet(type.element);
+      subtypeSet.addSubtype(node);
+    }
+    addClassSet(cls, new ClassSet(node));
+
+    // Ensure that the supertype's hierarchy is completely set up.
+    var supertype = new InterfaceType(superclass, const []);
+    ClassData superdata = elementMap._classData[superclass.classIndex];
+    elementMap._ensureSupertypes(superclass, superdata);
+    elementMap._ensureThisAndRawType(superclass, superdata);
+
+    elementMap.addClosureClass(cls, supertype);
+    node.isDirectlyInstantiated = true;
   }
 }
 
@@ -1692,43 +1775,25 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
 class JsToFrontendMapImpl extends JsToFrontendMapBase
     implements JsToFrontendMap {
-  final KernelToElementMapBase _frontend;
   final KernelToElementMapBase _backend;
 
-  JsToFrontendMapImpl(this._frontend, this._backend);
+  JsToFrontendMapImpl(this._backend);
 
   LibraryEntity toBackendLibrary(covariant IndexedLibrary library) {
     return _backend._libraryList[library.libraryIndex];
-  }
-
-  LibraryEntity toFrontendLibrary(covariant IndexedLibrary library) {
-    return _frontend._libraryList[library.libraryIndex];
   }
 
   ClassEntity toBackendClass(covariant IndexedClass cls) {
     return _backend._classList[cls.classIndex];
   }
 
-  ClassEntity toFrontendClass(covariant IndexedClass cls) {
-    return _frontend._classList[cls.classIndex];
-  }
-
   MemberEntity toBackendMember(covariant IndexedMember member) {
     return _backend._memberList[member.memberIndex];
-  }
-
-  MemberEntity toFrontendMember(covariant IndexedMember member) {
-    return _frontend._memberList[member.memberIndex];
   }
 
   TypeVariableEntity toBackendTypeVariable(
       covariant IndexedTypeVariable typeVariable) {
     return _backend._typeVariableList[typeVariable.typeVariableIndex];
-  }
-
-  TypeVariableEntity toFrontendTypeVariable(
-      covariant IndexedTypeVariable typeVariable) {
-    return _frontend._typeVariableList[typeVariable.typeVariableIndex];
   }
 }
 
@@ -1736,7 +1801,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     with
         KernelToElementMapForBuildingMixin,
         JsElementCreatorMixin,
-        // TODO(johnniwinther): Avoid mixin in [ElementCreatorMixin]. The
+        // TODO(johnniwinther): Avoid mixing in [ElementCreatorMixin]. The
         // codegen world should be a strict subset of the resolution world and
         // creating elements for IR nodes should therefore not be needed.
         // Currently some are created purely for testing (like
@@ -1747,21 +1812,20 @@ class JsKernelToElementMap extends KernelToElementMapBase
         ElementCreatorMixin
     implements
         KernelToWorldBuilder {
-  JsToFrontendMap _jsToFrontendMap;
-
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapForImpactImpl _elementMap)
       : super(reporter, environment) {
-    _jsToFrontendMap = new JsToFrontendMapImpl(_elementMap, this);
     _env = _elementMap._env;
     for (int libraryIndex = 0;
         libraryIndex < _elementMap._libraryEnvs.length;
         libraryIndex++) {
       LibraryEnv env = _elementMap._libraryEnvs[libraryIndex];
+      LibraryData data = _elementMap._libraryData[libraryIndex];
       LibraryEntity oldLibrary = _elementMap._libraryList[libraryIndex];
       LibraryEntity newLibrary = convertLibrary(oldLibrary);
       _libraryMap[env.library] = newLibrary;
       _libraryList.add(newLibrary);
+      _libraryData.add(data.copy());
       _libraryEnvs.add(env);
     }
     for (int classIndex = 0;
@@ -1826,8 +1890,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
             "Unexpected entity $entity, expected family $jsElementPrefix."));
     return true;
   }
-
-  JsToFrontendMap get jsToFrontendMap => _jsToFrontendMap;
 
   @override
   Spannable getSpannable(MemberEntity member, ir.Node node) {

@@ -1787,6 +1787,13 @@ LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please 
 LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 LibTest/math/log_A01_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/canvas/canvas-ellipse_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/canvas/canvas-before-css_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # Please triage this flake
+LayoutTests/fast/canvas/canvas-scale-fillRect-shadow_t01: RuntimeError, Pass # Please triage this flake
 
 [ $compiler == dart2js && $runtime == drt ]
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: Pass # Fails on _all_ other platforms. Please triage

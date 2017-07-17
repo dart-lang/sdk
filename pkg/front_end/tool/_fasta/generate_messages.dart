@@ -29,14 +29,16 @@ main(List<String> arguments) async {
 part of fasta.codes;
 """);
 
-  yaml.forEach((String name, description) {
+  List<String> keys = yaml.keys.toList()..sort();
+  for (String name in keys) {
+    var description = yaml[name];
     while (description is String) {
       description = yaml[description];
     }
     Map map = description;
     sb.writeln(compileTemplate(name, map['template'], map['tip'],
         map['analyzerCode'], map['dart2jsCode']));
-  });
+  }
 
   String dartfmtedText = new DartFormatter().format("$sb");
 
@@ -51,6 +53,11 @@ final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
 
 String compileTemplate(String name, String template, String tip,
     String analyzerCode, String dart2jsCode) {
+  if (template == null) {
+    print('Error: missing template for message: $name');
+    exit(1);
+    return '';
+  }
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
@@ -73,6 +80,21 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'name': name");
         break;
 
+      case "#name2":
+        parameters.add("String name2");
+        arguments.add("'name2': name2");
+        break;
+
+      case "#name3":
+        parameters.add("String name3");
+        arguments.add("'name3': name3");
+        break;
+
+      case "#number":
+        parameters.add("int number");
+        arguments.add("'number': number");
+        break;
+
       case "#lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
@@ -82,6 +104,29 @@ String compileTemplate(String name, String template, String tip,
       case "#string":
         parameters.add("String string");
         arguments.add("'string': string");
+        break;
+
+      case "#string2":
+        parameters.add("String string2");
+        arguments.add("'string2': string2");
+        break;
+
+      case "#uri":
+        parameters.add("Uri uri_");
+        conversions.add("String uri = relativizeUri(uri_);");
+        arguments.add("'uri': uri_");
+        break;
+
+      case "#uri2":
+        parameters.add("Uri uri2_");
+        conversions.add("String uri2 = relativizeUri(uri2_);");
+        arguments.add("'uri2': uri2_");
+        break;
+
+      case "#uri3":
+        parameters.add("Uri uri3_");
+        conversions.add("String uri3 = relativizeUri(uri3_);");
+        arguments.add("'uri3': uri3_");
         break;
 
       default:

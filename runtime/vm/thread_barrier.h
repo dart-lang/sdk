@@ -6,8 +6,8 @@
 #define RUNTIME_VM_THREAD_BARRIER_H_
 
 #include "vm/globals.h"
-#include "vm/os_thread.h"
 #include "vm/lockers.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 

@@ -934,9 +934,7 @@ class A<T> {
   }
 
   void _addLibraryForTestPart() {
-    addFile(
-        '$testFolder/my_lib.dart',
-        '''
+    addFile('$testFolder/my_lib.dart', '''
 library lib;
 part 'test.dart';
     ''');

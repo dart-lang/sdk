@@ -13,7 +13,6 @@ DEFINE_NATIVE_ENTRY(Stopwatch_now, 0) {
   return Integer::New(OS::GetCurrentMonotonicTicks());
 }
 
-
 DEFINE_NATIVE_ENTRY(Stopwatch_frequency, 0) {
   return Integer::New(OS::GetCurrentMonotonicFrequency());
 }

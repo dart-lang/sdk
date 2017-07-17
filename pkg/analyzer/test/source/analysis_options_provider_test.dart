@@ -33,8 +33,7 @@ main() {
 
     group('merging', () {
       test('integration', () {
-        expectMergesTo(
-            '''
+        expectMergesTo('''
 analyzer:
   plugins:
     - p1
@@ -45,8 +44,7 @@ linter:
   rules:
     - camel_case_types
     - one_member_abstracts
-''',
-            '''
+''', '''
 analyzer:
   plugins:
     - p3
@@ -56,8 +54,7 @@ linter:
   rules:
     one_member_abstracts: false # promotes and disables
     always_specify_return_types: true
-''',
-            '''
+''', '''
 analyzer:
   plugins:
     - p1
@@ -131,16 +128,12 @@ abstract class AnalysisOptionsProviderTest {
 
   void test_getOptions_crawlUp_hasInFolder() {
     pathTranslator.newFolder('/foo/bar');
-    pathTranslator.newFile(
-        '/foo/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/foo/$optionsFileName', r'''
 analyzer:
   ignore:
     - foo
 ''');
-    pathTranslator.newFile(
-        '/foo/bar/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/foo/bar/$optionsFileName', r'''
 analyzer:
   ignore:
     - bar
@@ -156,16 +149,12 @@ analyzer:
 
   void test_getOptions_crawlUp_hasInParent() {
     pathTranslator.newFolder('/foo/bar/baz');
-    pathTranslator.newFile(
-        '/foo/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/foo/$optionsFileName', r'''
 analyzer:
   ignore:
     - foo
 ''');
-    pathTranslator.newFile(
-        '/foo/bar/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/foo/bar/$optionsFileName', r'''
 analyzer:
   ignore:
     - bar
@@ -193,17 +182,13 @@ analyzer:
   }
 
   void test_getOptions_include() {
-    pathTranslator.newFile(
-        '/foo.include',
-        r'''
+    pathTranslator.newFile('/foo.include', r'''
 analyzer:
   ignore:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
-    pathTranslator.newFile(
-        '/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/$optionsFileName', r'''
 include: foo.include
 ''');
     Map<String, YamlNode> options = _getOptions('/');
@@ -221,9 +206,7 @@ include: foo.include
   }
 
   void test_getOptions_include_missing() {
-    pathTranslator.newFile(
-        '/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/$optionsFileName', r'''
 include: /foo.include
 ''');
     Map<String, YamlNode> options = _getOptions('/');
@@ -238,9 +221,7 @@ include: /foo.include
   }
 
   void test_getOptions_simple() {
-    pathTranslator.newFile(
-        '/$optionsFileName',
-        r'''
+    pathTranslator.newFile('/$optionsFileName', r'''
 analyzer:
   ignore:
     - ignoreme.dart

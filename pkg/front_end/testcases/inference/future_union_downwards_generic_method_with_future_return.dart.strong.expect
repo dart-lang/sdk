@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

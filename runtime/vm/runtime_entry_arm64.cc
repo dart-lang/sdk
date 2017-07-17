@@ -15,7 +15,6 @@ namespace dart {
 
 #define __ assembler->
 
-
 uword RuntimeEntry::GetEntryPoint() const {
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -36,7 +35,6 @@ uword RuntimeEntry::GetEntryPoint() const {
 #endif
   return entry;
 }
-
 
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:

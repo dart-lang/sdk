@@ -9,30 +9,22 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
-import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show Assert, FormalParameterType, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
-import 'package:front_end/src/fasta/problems.dart' show unexpected, unhandled;
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
+    show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
-import 'analyzer.dart' show toKernel;
-import 'element_store.dart'
-    show
-        AnalyzerLocalVariableElemment,
-        AnalyzerParameterElement,
-        ElementStore,
-        KernelClassElement;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 class AstBuilder extends ScopeListener {
@@ -41,7 +33,6 @@ class AstBuilder extends ScopeListener {
   final ErrorReporter errorReporter;
   final KernelLibraryBuilder library;
   final Builder member;
-  final ElementStore elementStore;
 
   @override
   final Uri uri;
@@ -62,8 +53,8 @@ class AstBuilder extends ScopeListener {
   /// bodies.
   final bool isFullAst;
 
-  AstBuilder(this.errorReporter, this.library, this.member, this.elementStore,
-      Scope scope, this.isFullAst,
+  AstBuilder(this.errorReporter, this.library, this.member, Scope scope,
+      this.isFullAst,
       [Uri uri])
       : uri = uri ?? library.fileUri,
         super(scope);
@@ -215,20 +206,11 @@ class AstBuilder extends ScopeListener {
       Comment comment = _toAnalyzerComment(token.precedingComments);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
-      if (context.isScopeReference) {
-        String name = token.lexeme;
-        Builder builder = scope.lookup(name, token.charOffset, uri);
-        if (builder != null) {
-          Element element = elementStore[builder];
-          assert(element != null);
-          identifier.staticElement = element;
-        }
-      }
       push(identifier);
     }
   }
 
-  void endSend(Token beginToken, Token endToken) {
+  void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
     MethodInvocation arguments = pop();
     TypeArgumentList typeArguments = pop();
@@ -298,13 +280,8 @@ class AstBuilder extends ScopeListener {
     } else {
       bodyStatement = (body as BlockFunctionBody).block;
     }
-    var kernel = toKernel(bodyStatement, elementStore, library.library, scope);
-    if (member is ProcedureBuilder) {
-      ProcedureBuilder builder = member;
-      builder.body = kernel;
-    } else {
-      unexpected("procedure", "${member.runtimeType}", member.charOffset, uri);
-    }
+    // TODO(paulberry): what do we need to do with bodyStatement at this point?
+    bodyStatement; // Suppress "unused local variable" hint
   }
 
   void beginCascade(Token token) {
@@ -520,12 +497,6 @@ class AstBuilder extends ScopeListener {
       unhandled("${node.runtimeType}", "identifier", nameToken.charOffset, uri);
     }
     push(variable);
-    scope.declare(
-        variable.name.name,
-        variable.name.staticElement =
-            new AnalyzerLocalVariableElemment(variable),
-        nameToken.charOffset,
-        uri);
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
@@ -673,10 +644,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Type");
     TypeArgumentList arguments = pop();
     Identifier name = pop();
-    // TODO(paulberry,ahe): what if the type doesn't resolve to a class
-    // element?  Try to share code with BodyBuilder.builderToFirstExpression.
-    KernelClassElement cls = name.staticElement;
-    push(ast.typeName(name, arguments)..type = cls?.rawType);
+    push(ast.typeName(name, arguments));
   }
 
   @override
@@ -746,7 +714,7 @@ class AstBuilder extends ScopeListener {
     push(ast.expressionStatement(expression, endToken));
   }
 
-  void endThrowExpression(Token throwToken, Token endToken) {
+  void handleThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     push(ast.throwExpression(throwToken, pop()));
   }
@@ -889,14 +857,6 @@ class AstBuilder extends ScopeListener {
       node = ast.defaultFormalParameter(
           node, analyzerKind, defaultValue?.separator, defaultValue?.value);
     }
-
-    if (name != null) {
-      scope.declare(
-          name.name,
-          name.staticElement = new AnalyzerParameterElement(node),
-          name.offset,
-          uri);
-    }
     push(node);
   }
 
@@ -951,13 +911,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleSwitchCase(
-      int labelCount,
-      int expressionCount,
-      Token defaultKeyword,
-      int statementCount,
-      Token firstToken,
-      Token endToken) {
+  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
+      int statementCount, Token firstToken, Token endToken) {
     debugEvent("SwitchCase");
     List<Statement> statements = popList(statementCount);
     List<SwitchMember> members = popList(expressionCount) ?? [];
@@ -1188,7 +1143,7 @@ class AstBuilder extends ScopeListener {
           declarations.add(node);
         } else {
           unhandled(
-              "${node.runtimeType}", "compilation unit", node.offset, uri);
+              "${node.runtimeType}", "compilation unit", node?.offset, uri);
         }
       }
     }
@@ -1911,10 +1866,26 @@ class AstBuilder extends ScopeListener {
   @override
   void addCompileTimeError(Message message, int charOffset) {
     Code code = message.code;
+    Map<String, dynamic> arguments = message.arguments;
     switch (code.analyzerCode) {
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_TYPE_NAME, charOffset, 1);
+        return;
+      case "EXPECTED_STRING_LITERAL":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_STRING_LITERAL, charOffset, 1);
+        return;
+      case "UNEXPECTED_TOKEN":
+        var text = arguments['string'];
+        if (text == null) {
+          Token token = arguments['token'];
+          if (token != null) {
+            text = token.lexeme;
+          }
+        }
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.UNEXPECTED_TOKEN, charOffset, 1, [text]);
         return;
       default:
       // fall through

@@ -6,8 +6,9 @@ library fasta.command_line;
 
 import 'fasta_codes.dart' show Message, templateFastaCLIArgumentRequired;
 
-import 'deprecated_problems.dart'
-    show deprecated_inputError, deprecated_internalProblem;
+import 'deprecated_problems.dart' show deprecated_inputError;
+
+import 'problems.dart' show unhandled;
 
 deprecated_argumentError(Message usage, String message) {
   if (usage != null) print(usage.message);
@@ -166,7 +167,8 @@ class CommandLine {
                     "'$valueSpecification', try using a type literal instead.");
               } else {
                 // All possible cases should have been handled above.
-                return deprecated_internalProblem("assertion failure");
+                return unhandled("${valueSpecification.runtimeType}",
+                    "CommandLine.parse", -1, null);
               }
               result.options[argument] = parsedValue;
               break;

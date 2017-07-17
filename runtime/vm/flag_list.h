@@ -70,7 +70,7 @@
     "Emit DWARF line number and inlining info"                                 \
     "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
-  C(enable_mirrors, false, false, bool, true,                                  \
+  P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
   R(error_on_bad_override, false, bool, false,                                 \

@@ -20,10 +20,8 @@ class RawClass;
 class Immediate;
 class RawObject;
 
-
 intptr_t IndexFromPPLoad(uword start);
 intptr_t IndexFromPPLoadDisp8(uword start);
-
 
 // Template class for all instruction pattern classes.
 // P has to specify a static pattern and a pattern length method.
@@ -64,7 +62,6 @@ class InstructionPattern : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(InstructionPattern);
 };
 
-
 class ReturnPattern : public InstructionPattern<ReturnPattern> {
  public:
   explicit ReturnPattern(uword pc) : InstructionPattern(pc) {}
@@ -79,7 +76,6 @@ class ReturnPattern : public InstructionPattern<ReturnPattern> {
  private:
   static const int kLengthInBytes = 1;
 };
-
 
 // push rbp
 // mov rbp, rsp
@@ -98,7 +94,6 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
  private:
   static const int kLengthInBytes = 4;
 };
-
 
 // mov rbp, rsp
 class SetFramePointerPattern

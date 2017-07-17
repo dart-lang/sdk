@@ -14,16 +14,13 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   return function.recognized_kind();
 }
 
-
 bool MethodRecognizer::AlwaysInline(const Function& function) {
   return function.always_inline();
 }
 
-
 bool MethodRecognizer::PolymorphicTarget(const Function& function) {
   return function.is_polymorphic_target();
 }
-
 
 intptr_t MethodRecognizer::ResultCid(const Function& function) {
   switch (function.recognized_kind()) {
@@ -36,7 +33,6 @@ intptr_t MethodRecognizer::ResultCid(const Function& function) {
       return kDynamicCid;
   }
 }
-
 
 intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   switch (kind) {
@@ -118,7 +114,6 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   return kIllegalCid;
 }
 
-
 #define KIND_TO_STRING(class_name, function_name, enum_name, type, fp)         \
   #enum_name,
 static const char* recognized_list_method_name[] = {
@@ -130,7 +125,6 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
     return recognized_list_method_name[kind];
   return "?";
 }
-
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void MethodRecognizer::InitializeState() {
@@ -184,6 +178,5 @@ void MethodRecognizer::InitializeState() {
 #undef SET_FUNCTION_BIT
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 
 }  // namespace dart

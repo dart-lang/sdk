@@ -117,7 +117,6 @@ void CPU::FlushICache(uword start, uword size) {
 #endif
 }
 
-
 const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
@@ -125,7 +124,6 @@ const char* CPU::Id() {
 #endif  // defined(USING_SIMULATOR)
       "arm";
 }
-
 
 bool HostCPUFeatures::integer_division_supported_ = false;
 bool HostCPUFeatures::vfp_supported_ = false;
@@ -137,7 +135,6 @@ intptr_t HostCPUFeatures::store_pc_read_offset_ = 8;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
-
 
 #if !defined(USING_SIMULATOR)
 #if HOST_OS_IOS
@@ -283,7 +280,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

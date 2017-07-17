@@ -71,24 +71,25 @@ class TypeBuilder {
 
   /// Helper to create an instruction that gets the value of a type variable.
   HInstruction addTypeVariableReference(
-      ResolutionTypeVariableType type, MemberElement member,
+      TypeVariableType type, MemberEntity member,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(type));
-    if (type is MethodTypeVariableType) {
+    if (type.element.typeDeclaration is! ClassEntity) {
+      // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
-    bool isClosure = member.enclosingElement.isClosure;
+    bool isClosure = member.enclosingClass.isClosure;
     if (isClosure) {
-      ClosureClassElement closureClass = member.enclosingElement;
+      ClosureClassElement closureClass = member.enclosingClass;
       LocalFunctionElement localFunction = closureClass.methodElement;
-      member = localFunction.outermostEnclosingMemberOrTopLevel;
+      member = localFunction.memberContext;
     }
     bool isInConstructorContext =
-        member.isConstructor || member.isGenerativeConstructorBody;
+        member.isConstructor || member is ConstructorBodyEntity;
     Local typeVariableLocal =
         builder.localsHandler.getTypeVariableAsLocal(type);
     if (isClosure) {
-      if (member.isFactoryConstructor ||
+      if ((member is ConstructorEntity && member.isFactoryConstructor) ||
           (isInConstructorContext &&
               builder.hasDirectLocal(typeVariableLocal))) {
         // The type variable is used from a closure in a factory constructor.
@@ -131,11 +132,10 @@ class TypeBuilder {
   }
 
   /// Generate code to extract the type argument from the object.
-  HInstruction readTypeVariable(
-      ResolutionTypeVariableType variable, Element member,
+  HInstruction readTypeVariable(TypeVariableType variable, MemberEntity member,
       {SourceInformation sourceInformation}) {
     assert(member.isInstanceMember);
-    assert(variable is! MethodTypeVariableType);
+    assert(variable.element.typeDeclaration is ClassEntity);
     HInstruction target = builder.localsHandler.readThis();
     builder.push(new HTypeInfoReadVariable(
         variable, target, builder.commonMasks.dynamicType)
@@ -144,19 +144,19 @@ class TypeBuilder {
   }
 
   HInstruction buildTypeArgumentRepresentations(
-      ResolutionDartType type, MemberElement sourceElement) {
+      DartType type, MemberEntity sourceElement) {
     assert(!type.isTypeVariable);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
-    assert(type.element.isClass);
-    ResolutionInterfaceType interface = type;
+    assert(type.isInterfaceType);
+    InterfaceType interface = type;
     List<HInstruction> inputs = <HInstruction>[];
-    for (ResolutionDartType argument in interface.typeArguments) {
+    for (DartType argument in interface.typeArguments) {
       inputs.add(analyzeTypeArgument(argument, sourceElement));
     }
     HInstruction representation = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        interface.element.thisType,
+        builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
         builder.commonMasks.dynamicType);
     return representation;
@@ -164,9 +164,10 @@ class TypeBuilder {
 
   /// Check that [type] is valid in the context of `localsHandler.contextClass`.
   /// This should only be called in assertions.
-  bool assertTypeInContext(ResolutionDartType type, [Spannable spannable]) {
+  bool assertTypeInContext(DartType type, [Spannable spannable]) {
     if (builder.compiler.options.useKernel) return true;
-    ClassElement contextClass = DartTypes.getClassContext(type);
+    if (builder.compiler.options.loadFromDill) return true;
+    ClassEntity contextClass = DartTypes.getClassContext(type);
     assert(
         contextClass == null ||
             contextClass == builder.localsHandler.contextClass,
@@ -178,7 +179,7 @@ class TypeBuilder {
   }
 
   HInstruction analyzeTypeArgument(
-      ResolutionDartType argument, MemberElement sourceElement,
+      DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(argument));
     argument = argument.unaliased;
@@ -193,8 +194,10 @@ class TypeBuilder {
     }
 
     List<HInstruction> inputs = <HInstruction>[];
-    argument.forEachTypeVariable((variable) {
-      if (variable is! MethodTypeVariableType) {
+    argument.forEachTypeVariable((TypeVariableType variable) {
+      if (variable.element.typeDeclaration is ClassEntity) {
+        // GENERIC_METHODS: We currently only reify class type variables but not
+        // method type variables.
         inputs.add(analyzeTypeArgument(variable, sourceElement));
       }
     });
@@ -230,16 +233,21 @@ class TypeBuilder {
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(
-      HInstruction original, ResolutionDartType type, int kind) {
+      HInstruction original, DartType type, int kind) {
     if (type == null) return original;
-    // GENERIC_METHODS: The following statement was added for parsing and
-    // ignoring method type variables; must be generalized for full support of
-    // generic methods.
-    type = type.dynamifyMethodTypeVariableType;
+    if (type.isTypeVariable) {
+      TypeVariableType typeVariable = type;
+      // GENERIC_METHODS: The following statement was added for parsing and
+      // ignoring method type variables; must be generalized for full support of
+      // generic methods.
+      if (typeVariable.element.typeDeclaration is! ClassEntity) {
+        type = const DynamicType();
+      }
+    }
     type = type.unaliased;
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
-      ResolutionInterfaceType interfaceType = type;
+      InterfaceType interfaceType = type;
       TypeMask subtype =
           new TypeMask.subtype(interfaceType.element, builder.closedWorld);
       HInstruction representations =

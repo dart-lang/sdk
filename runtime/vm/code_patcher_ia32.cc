@@ -55,7 +55,6 @@ class UnoptimizedCall : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
 };
 
-
 class NativeCall : public UnoptimizedCall {
  public:
   explicit NativeCall(uword return_address) : UnoptimizedCall(return_address) {}
@@ -73,7 +72,6 @@ class NativeCall : public UnoptimizedCall {
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeCall);
 };
 
-
 class InstanceCall : public UnoptimizedCall {
  public:
   explicit InstanceCall(uword return_address)
@@ -89,7 +87,6 @@ class InstanceCall : public UnoptimizedCall {
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
 };
 
-
 class UnoptimizedStaticCall : public UnoptimizedCall {
  public:
   explicit UnoptimizedStaticCall(uword return_address)
@@ -104,7 +101,6 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedStaticCall);
 };
-
 
 // The expected pattern of a dart static call:
 //  mov EDX, arguments_descriptor_array (optional in polymorphic calls)
@@ -150,14 +146,12 @@ class StaticCall : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
 };
 
-
 RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
                                             const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   return call.target();
 }
-
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
@@ -169,11 +163,9 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   call.set_target(new_target);
 }
 
-
 void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   UNREACHABLE();
 }
-
 
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
                                         const Code& code,
@@ -185,7 +177,6 @@ RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
   }
   return Code::null();
 }
-
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
@@ -200,7 +191,6 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   return ic_data.GetTargetAt(0);
 }
 
-
 void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
@@ -209,14 +199,12 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
   UNREACHABLE();
 }
 
-
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   // Switchable instance calls only generated for precompilation.
   UNREACHABLE();
   return Code::null();
 }
-
 
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
@@ -225,7 +213,6 @@ RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
   return Object::null();
 }
 
-
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
                                     NativeFunction target,
@@ -233,14 +220,12 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
   UNREACHABLE();
 }
 
-
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,
                                       const Code& code,
                                       NativeFunction* target) {
   UNREACHABLE();
   return NULL;
 }
-
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return InstanceCall::kPatternSize;

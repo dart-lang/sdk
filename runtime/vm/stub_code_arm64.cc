@@ -123,18 +123,15 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
   OS::Print("Stop message: %s\n", message);
 }
 END_LEAF_RUNTIME_ENTRY
 
-
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ Stop("GeneratePrintStopMessageStub");
 }
-
 
 // Input parameters:
 //   LR : return address.
@@ -230,20 +227,17 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ ret();
 }
 
-
 void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR, Thread::no_scope_native_wrapper_entry_point_offset()));
 }
 
-
 void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
   GenerateCallNativeWithWrapperStub(
       assembler,
       Address(THR, Thread::auto_scope_native_wrapper_entry_point_offset()));
 }
-
 
 // Input parameters:
 //   LR : return address.
@@ -335,7 +329,6 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ ret();
 }
 
-
 // Input parameters:
 //   R4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
@@ -355,7 +348,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ LoadFieldFromOffset(R0, CODE_REG, Code::entry_point_offset());
   __ br(R0);
 }
-
 
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
@@ -382,7 +374,6 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ br(R0);
 }
 
-
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
 void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
@@ -402,7 +393,6 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ LoadFieldFromOffset(R0, CODE_REG, Code::entry_point_offset());
   __ br(R0);
 }
-
 
 // Input parameters:
 //   R2: smi-tagged argument count, may be zero.
@@ -434,7 +424,6 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ b(&loop, GE);
   __ Bind(&loop_exit);
 }
-
 
 // Used by eager and lazy deoptimization. Preserve result in RAX if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
@@ -576,7 +565,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The caller is responsible for emitting the return instruction.
 }
 
-
 // R0: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
@@ -588,7 +576,6 @@ void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
   __ ret();
 }
-
 
 // R0: exception, must be preserved
 // R1: stacktrace, must be preserved
@@ -603,12 +590,10 @@ void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   __ ret();
 }
 
-
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
   __ ret();
 }
-
 
 static void GenerateDispatcherCode(Assembler* assembler,
                                    Label* call_target_function) {
@@ -643,7 +628,6 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ LeaveStubFrame();
   __ ret();
 }
-
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
@@ -689,7 +673,6 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ br(R2);
 }
 
-
 // Called for inline allocation of arrays.
 // Input parameters:
 //   LR: return address.
@@ -721,15 +704,13 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, R4, &slow_case));
 
-  Heap::Space space = Heap::kNew;
-  __ ldr(R8, Address(THR, Thread::heap_offset()));
+  NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
 
   // Calculate and align allocation size.
   // Load new object start and calculate next object start.
   // R1: array element type.
   // R2: array length as Smi.
-  // R8: heap.
-  __ LoadFromOffset(R0, R8, Heap::TopOffset(space));
+  __ ldr(R0, Address(THR, Thread::top_offset()));
   intptr_t fixed_size_plus_alignment_padding =
       sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
@@ -747,8 +728,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R2: array length as Smi.
   // R3: array size.
   // R7: potential next object start.
-  // R8: heap.
-  __ LoadFromOffset(TMP, R8, Heap::EndOffset(space));
+  __ LoadFromOffset(TMP, THR, Thread::end_offset());
   __ CompareRegisters(R7, TMP);
   __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
 
@@ -757,8 +737,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R0: potential new object start.
   // R3: array size.
   // R7: potential next object start.
-  // R8: heap.
-  __ StoreToOffset(R7, R8, Heap::TopOffset(space));
+  __ str(R7, Address(THR, Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R3, space));
 
@@ -833,7 +812,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ ret();
 }
-
 
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
@@ -967,7 +945,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ret();
 }
 
-
 // Called for inline allocation of contexts.
 // Input:
 //   R1: number of context variables.
@@ -990,17 +967,15 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = Heap::kNew;
-    __ ldr(R5, Address(THR, Thread::heap_offset()));
-    __ ldr(R0, Address(R5, Heap::TopOffset(space)));
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+    __ ldr(R0, Address(THR, Thread::top_offset()));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
     // R0: potential new object.
     // R1: number of context variables.
     // R2: object size.
     // R3: potential next object start.
-    // R5: heap.
-    __ ldr(TMP, Address(R5, Heap::EndOffset(space)));
+    __ ldr(TMP, Address(THR, Thread::end_offset()));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
@@ -1014,8 +989,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    // R5: heap.
-    __ str(R3, Address(R5, Heap::TopOffset(space)));
+    __ str(R3, Address(THR, Thread::top_offset()));
     __ add(R0, R0, Operand(kHeapObjectTag));
     NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
 
@@ -1082,7 +1056,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
 //   R0: Address being stored
@@ -1148,7 +1121,6 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ret();
 }
 
-
 // Called for inline allocation of objects.
 // Input parameters:
 //   LR : return address.
@@ -1176,22 +1148,20 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
-    Heap::Space space = Heap::kNew;
-    __ ldr(R5, Address(THR, Thread::heap_offset()));
-    __ ldr(R2, Address(R5, Heap::TopOffset(space)));
+    NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
+    __ ldr(R2, Address(THR, Thread::top_offset()));
     __ AddImmediate(R3, R2, instance_size);
     // Check if the allocation fits into the remaining space.
     // R2: potential new object start.
     // R3: potential next object start.
-    // R5: heap.
-    __ ldr(TMP, Address(R5, Heap::EndOffset(space)));
+    __ ldr(TMP, Address(THR, Thread::end_offset()));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R3, Address(R5, Heap::TopOffset(space)));
+    __ str(R3, Address(THR, Thread::top_offset()));
     NOT_IN_PRODUCT(__ UpdateAllocationStats(cls.id(), space));
 
     // R2: new object start.
@@ -1275,7 +1245,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ ret();
 }
 
-
 // Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
 // from the entry code of a dart function after an error in passed argument
 // name or number is detected.
@@ -1313,7 +1282,6 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ brk(0);
 }
 
-
 //  R6: function object.
 //  R5: inline cache data object.
 // Cannot use function object from ICData as it may be the inlined
@@ -1338,7 +1306,6 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(), kWord);
 }
 
-
 // Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
@@ -1355,7 +1322,6 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                           kWord);
   }
 }
-
 
 // Note: R5 must be preserved.
 // Attempt a quick Smi operation for known operations ('kind'). The ICData
@@ -1422,7 +1388,6 @@ static void EmitFastSmiOp(Assembler* assembler,
 
   __ ret();
 }
-
 
 // Generate inline cache check for 'num_args'.
 //  LR: return address.
@@ -1605,7 +1570,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 }
 
-
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  LR: return address.
@@ -1622,7 +1586,6 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
-
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
@@ -1630,13 +1593,11 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
                                     Token::kILLEGAL);
 }
 
-
 void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
 }
-
 
 void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
@@ -1644,13 +1605,11 @@ void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
 }
 
-
 void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ);
 }
-
 
 void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
@@ -1660,7 +1619,6 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
                                     Token::kILLEGAL, true /* optimized */);
 }
 
-
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
@@ -1668,7 +1626,6 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
                                     kInlineCacheMissHandlerTwoArgsRuntimeEntry,
                                     Token::kILLEGAL, true /* optimized */);
 }
-
 
 void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
@@ -1734,20 +1691,17 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   }
 }
 
-
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
-
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
-
 
 // Stub for compiling a function and jumping to the compiled code.
 // R5: IC-Data (for methods).
@@ -1770,7 +1724,6 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ br(R2);
 }
 
-
 // R5: Contains an ICData.
 void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
@@ -1783,7 +1736,6 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ LoadFieldFromOffset(R0, CODE_REG, Code::entry_point_offset());
   __ br(R0);
 }
-
 
 void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
@@ -1813,7 +1765,6 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ b(&done_stepping);
 }
-
 
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
@@ -1900,7 +1851,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ ret();
 }
 
-
 // Used to check class and type arguments. Arguments passed on stack:
 // LR: return address.
 // R0: instance (must be preserved).
@@ -1911,7 +1861,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
-
 
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
@@ -1924,7 +1873,6 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
 }
 
-
 // Used to check class and type arguments. Arguments passed on stack:
 // LR: return address.
 // R0: instance (must be preserved).
@@ -1936,12 +1884,10 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
-
 void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ mov(R0, CSP);
   __ ret();
 }
-
 
 // Jump to a frame on the call stack.
 // LR: return address.
@@ -1968,7 +1914,6 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   __ ret();  // Jump to continuation point.
 }
 
-
 // Run an exception handler.  Execution comes from JumpToFrame
 // stub or from the simulator.
 //
@@ -1989,7 +1934,6 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ ret();  // Jump to the exception handler code.
 }
 
-
 // Deoptimize a frame on the call stack before rewinding.
 // The arguments are stored in the Thread object.
 // No result.
@@ -2008,7 +1952,6 @@ void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ brk(0);
 }
-
 
 // Calls to the runtime to optimize the given function.
 // R6: function to be re-optimized.
@@ -2029,7 +1972,6 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ br(R1);
   __ brk(0);
 }
-
 
 // Does identical check (object references are equal or not equal) with special
 // checks for boxed numbers.
@@ -2088,7 +2030,6 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ Bind(&done);
 }
 
-
 // Called only from unoptimized code. All relevant registers have been saved.
 // LR: return address.
 // SP + 4: left operand.
@@ -2123,7 +2064,6 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   }
 }
 
-
 // Called from optimized code only.
 // LR: return address.
 // SP + 4: left operand.
@@ -2138,7 +2078,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ ret();
 }
-
 
 // Called from megamorphic calls.
 //  R0: receiver
@@ -2212,7 +2151,6 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ b(&cid_loaded);
 }
 
-
 // Called from switchable IC calls.
 //  R0: receiver
 //  R5: ICData (preserved)
@@ -2253,7 +2191,6 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ br(R1);
 }
 
-
 void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
@@ -2288,7 +2225,6 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ br(R1);
 }
 
-
 // Called from switchable IC calls.
 //  R0: receiver
 //  R5: SingleTargetCache
@@ -2310,7 +2246,6 @@ void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ ldr(R1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
   __ br(R1);
 }
-
 
 // Called from switchable IC calls.
 //  R0: receiver
@@ -2352,7 +2287,6 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ br(R1);
 }
 
-
 // Called from the monomorphic checked entry.
 //  R0: receiver
 void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
@@ -2374,11 +2308,9 @@ void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ br(R1);
 }
 
-
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ brk(0);
 }
-
 
 void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ brk(0);

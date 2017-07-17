@@ -16,36 +16,30 @@ void FUNCTION_NAME(FileSystemWatcher_IsSupported)(Dart_NativeArguments args) {
       "FileSystemWatcher is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "FileSystemWatcher is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(FileSystemWatcher_CloseWatcher)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "FileSystemWatcher is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "FileSystemWatcher is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(FileSystemWatcher_UnwatchPath)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "FileSystemWatcher is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(FileSystemWatcher_ReadEvents)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "FileSystemWatcher is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(FileSystemWatcher_GetSocketId)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(

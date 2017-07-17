@@ -19,8 +19,7 @@ class KernelStringBuilder extends ir.Visitor {
 
   @override
   void defaultNode(ir.Node node) {
-    throw new SpannableAssertionFailure(
-        CURRENT_ELEMENT_SPANNABLE, 'Unexpected node: $node');
+    failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unexpected node: $node');
   }
 
   @override

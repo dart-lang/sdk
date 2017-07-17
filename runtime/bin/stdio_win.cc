@@ -34,7 +34,6 @@ bool Stdin::ReadByte(int* byte) {
   return true;
 }
 
-
 bool Stdin::GetEchoMode(bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
@@ -44,7 +43,6 @@ bool Stdin::GetEchoMode(bool* enabled) {
   *enabled = ((mode & ENABLE_ECHO_INPUT) != 0);
   return true;
 }
-
 
 bool Stdin::SetEchoMode(bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
@@ -60,7 +58,6 @@ bool Stdin::SetEchoMode(bool enabled) {
   return SetConsoleMode(h, mode);
 }
 
-
 bool Stdin::GetLineMode(bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
@@ -70,7 +67,6 @@ bool Stdin::GetLineMode(bool* enabled) {
   *enabled = (mode & ENABLE_LINE_INPUT) != 0;
   return true;
 }
-
 
 bool Stdin::SetLineMode(bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
@@ -85,7 +81,6 @@ bool Stdin::SetLineMode(bool enabled) {
   }
   return SetConsoleMode(h, mode);
 }
-
 
 bool Stdin::AnsiSupported(bool* supported) {
   ASSERT(supported != NULL);
@@ -103,7 +98,6 @@ bool Stdin::AnsiSupported(bool* supported) {
   return true;
 }
 
-
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   HANDLE h;
   if (fd == 1) {
@@ -119,7 +113,6 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   size[1] = info.srWindow.Bottom - info.srWindow.Top + 1;
   return true;
 }
-
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
   ASSERT(supported != NULL);

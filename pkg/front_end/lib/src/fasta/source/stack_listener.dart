@@ -4,24 +4,26 @@
 
 library fasta.stack_listener;
 
-import '../fasta_codes.dart' show Message;
+import 'package:kernel/ast.dart' show AsyncMarker, Expression;
+
+import '../../scanner/token.dart' show BeginToken;
+
+import '../deprecated_problems.dart' show deprecated_inputError;
+
+import '../fasta_codes.dart' show Message, templateInternalProblemStackNotEmpty;
+
+import '../messages.dart' as messages;
 
 import '../parser.dart' show Listener, MemberKind;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner.dart' show Token;
-
-import '../../scanner/token.dart' show BeginToken;
-
-import 'package:kernel/ast.dart' show AsyncMarker, Expression;
-
-import '../deprecated_problems.dart'
-    show deprecated_inputError, deprecated_internalProblem;
+import '../problems.dart'
+    show internalProblem, unhandled, unimplemented, unsupported;
 
 import '../quote.dart' show unescapeString;
 
-import '../messages.dart' as messages;
+import '../scanner.dart' show Token;
 
 enum NullValue {
   Arguments,
@@ -65,21 +67,21 @@ abstract class StackListener extends Listener {
   // and ast_builder.dart.
   void finishFunction(List annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
-    return deprecated_internalProblem("Unsupported operation");
+    return unsupported("finishFunction", -1, uri);
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
   List<Expression> finishMetadata() {
-    return deprecated_internalProblem("Unsupported operation");
+    return unsupported("finishMetadata", -1, uri);
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void exitLocalScope() => deprecated_internalProblem("Unsupported operation");
+  void exitLocalScope() => unsupported("exitLocalScope", -1, uri);
 
   void push(Object node) {
-    if (node == null) deprecated_internalProblem("null not allowed.");
+    if (node == null) unhandled("null", "push", -1, uri);
     stack.push(node);
   }
 
@@ -114,8 +116,8 @@ abstract class StackListener extends Listener {
 
   @override
   void logEvent(String name) {
-    deprecated_internalProblem("Unhandled event: $name in $runtimeType $uri:\n"
-        "  ${stack.values.join('\n  ')}");
+    printEvent(name);
+    unhandled(name, "$runtimeType", -1, uri);
   }
 
   @override
@@ -137,11 +139,11 @@ abstract class StackListener extends Listener {
 
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      deprecated_internalProblem(
-          "${runtimeType}: Stack not empty:\n"
-          "  ${stack.values.join('\n  ')}",
-          uri,
-          charOffset);
+      internalProblem(
+          templateInternalProblemStackNotEmpty.withArguments(
+              "${runtimeType}", stack.values.join("\n  ")),
+          charOffset,
+          uri);
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
@@ -227,7 +229,7 @@ abstract class StackListener extends Listener {
       Token token = pop();
       push(unescapeString(token.lexeme));
     } else {
-      deprecated_internalProblem("String interpolation not implemented.");
+      unimplemented("string interpolation", endToken.charOffset, uri);
     }
   }
 
@@ -270,12 +272,8 @@ abstract class StackListener extends Listener {
     throw deprecated_inputError(uri, token.charOffset, message.message);
   }
 
-  void deprecated_nit(String message, [int charOffset = -1]) {
-    messages.deprecated_nit(uri, charOffset, message);
-  }
-
-  void deprecated_warning(String message, [int charOffset = -1]) {
-    messages.deprecated_warning(uri, charOffset, message);
+  void nit(Message message, int charOffset) {
+    messages.nit(message, charOffset, uri);
   }
 
   void warning(Message message, int charOffset) {

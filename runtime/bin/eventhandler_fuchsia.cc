@@ -97,7 +97,6 @@ intptr_t IOHandle::Read(void* buffer, intptr_t num_bytes) {
   return read_bytes;
 }
 
-
 intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
   MutexLocker ml(mutex_);
   const ssize_t written_bytes =
@@ -115,7 +114,6 @@ intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
   return written_bytes;
 }
 
-
 intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
   MutexLocker ml(mutex_);
   const intptr_t socket = NO_RETRY_EXPECTED(accept(fd_, addr, addrlen));
@@ -132,12 +130,10 @@ intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
   return socket;
 }
 
-
 void IOHandle::Close() {
   MutexLocker ml(mutex_);
   VOID_NO_RETRY_EXPECTED(close(fd_));
 }
-
 
 uint32_t IOHandle::MaskToEpollEvents(intptr_t mask) {
   MutexLocker ml(mutex_);
@@ -152,7 +148,6 @@ uint32_t IOHandle::MaskToEpollEvents(intptr_t mask) {
   }
   return events;
 }
-
 
 intptr_t IOHandle::EpollEventsToMask(intptr_t events) {
   if ((events & POLLERR) != 0) {
@@ -171,7 +166,6 @@ intptr_t IOHandle::EpollEventsToMask(intptr_t events) {
   }
   return event_mask;
 }
-
 
 bool IOHandle::AsyncWaitLocked(mx_handle_t port,
                                uint32_t events,
@@ -212,12 +206,10 @@ bool IOHandle::AsyncWaitLocked(mx_handle_t port,
   return true;
 }
 
-
 bool IOHandle::AsyncWait(mx_handle_t port, uint32_t events, uint64_t key) {
   MutexLocker ml(mutex_);
   return AsyncWaitLocked(port, events, key);
 }
-
 
 void IOHandle::CancelWait(mx_handle_t port, uint64_t key) {
   MutexLocker ml(mutex_);
@@ -230,14 +222,12 @@ void IOHandle::CancelWait(mx_handle_t port, uint64_t key) {
   }
 }
 
-
 uint32_t IOHandle::WaitEnd(mx_signals_t observed) {
   MutexLocker ml(mutex_);
   uint32_t events = 0;
   __mxio_wait_end(mxio_, observed, &events);
   return events;
 }
-
 
 intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
   MutexLocker ml(mutex_);
@@ -262,7 +252,6 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
   return event_mask;
 }
 
-
 void EventHandlerImplementation::AddToPort(mx_handle_t port_handle,
                                            DescriptorInfo* di) {
   const uint32_t events = di->io_handle()->MaskToEpollEvents(di->Mask());
@@ -272,13 +261,11 @@ void EventHandlerImplementation::AddToPort(mx_handle_t port_handle,
   }
 }
 
-
 void EventHandlerImplementation::RemoveFromPort(mx_handle_t port_handle,
                                                 DescriptorInfo* di) {
   const uint64_t key = reinterpret_cast<uint64_t>(di);
   di->io_handle()->CancelWait(port_handle, key);
 }
-
 
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
@@ -294,7 +281,6 @@ EventHandlerImplementation::EventHandlerImplementation()
   ASSERT(port_handle_ != MX_HANDLE_INVALID);
 }
 
-
 static void DeleteDescriptorInfo(void* info) {
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(info);
   LOG_INFO("Closed %ld\n", di->io_handle()->fd());
@@ -302,13 +288,11 @@ static void DeleteDescriptorInfo(void* info) {
   delete di;
 }
 
-
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
   mx_handle_close(port_handle_);
   port_handle_ = MX_HANDLE_INVALID;
 }
-
 
 void EventHandlerImplementation::UpdatePort(intptr_t old_mask,
                                             DescriptorInfo* di) {
@@ -323,7 +307,6 @@ void EventHandlerImplementation::UpdatePort(intptr_t old_mask,
     AddToPort(port_handle_, di);
   }
 }
-
 
 DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
     intptr_t fd,
@@ -349,7 +332,6 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
   return di;
 }
 
-
 void EventHandlerImplementation::WakeupHandler(intptr_t id,
                                                Dart_Port dart_port,
                                                int64_t data) {
@@ -368,7 +350,6 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
     FATAL1("mx_port_queue failed: %s\n", mx_status_get_string(status));
   }
 }
-
 
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   if (msg->id == kTimerId) {
@@ -461,7 +442,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
   }
 }
 
-
 void EventHandlerImplementation::HandlePacket(mx_port_packet_t* pkt) {
   LOG_INFO("HandlePacket: Got event packet: key=%lx\n", pkt->key);
   LOG_INFO("HandlePacket: Got event packet: type=%lx\n", pkt->type);
@@ -499,7 +479,6 @@ void EventHandlerImplementation::HandlePacket(mx_port_packet_t* pkt) {
   UpdatePort(old_mask, di);
 }
 
-
 int64_t EventHandlerImplementation::GetTimeout() const {
   if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
@@ -508,7 +487,6 @@ int64_t EventHandlerImplementation::GetTimeout() const {
       timeout_queue_.CurrentTimeout() - TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
-
 
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_queue_.HasTimeout()) {
@@ -520,7 +498,6 @@ void EventHandlerImplementation::HandleTimeout() {
     }
   }
 }
-
 
 void EventHandlerImplementation::Poll(uword args) {
   EventHandler* handler = reinterpret_cast<EventHandler*>(args);
@@ -551,7 +528,6 @@ void EventHandlerImplementation::Poll(uword args) {
   handler->NotifyShutdownDone();
 }
 
-
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start(&EventHandlerImplementation::Poll,
                              reinterpret_cast<uword>(handler));
@@ -560,11 +536,9 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
   }
 }
 
-
 void EventHandlerImplementation::Shutdown() {
   SendData(kShutdownId, 0, 0);
 }
-
 
 void EventHandlerImplementation::SendData(intptr_t id,
                                           Dart_Port dart_port,
@@ -576,7 +550,6 @@ void* EventHandlerImplementation::GetHashmapKeyFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
   return reinterpret_cast<void*>(fd + 1);
 }
-
 
 uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.

@@ -39,9 +39,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('.for', atStart: true);
-    _assertHasChange(
-        'Expand .for',
-        '''
+    _assertHasChange('Expand .for', '''
 main() {
   for (var value in []) {
     /*caret*/

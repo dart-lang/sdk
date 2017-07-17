@@ -446,9 +446,7 @@ class VariableGathererTest extends ResolverTestCase {
   }
 
   test_visit_noReferences() async {
-    Source source = addNamedSource(
-        '/test.dart',
-        '''
+    Source source = addNamedSource('/test.dart', '''
 library lib;
 import 'dart:math';
 int zero = 0;
@@ -475,9 +473,7 @@ typedef void F();
   }
 
   Future<Set<VariableElement>> _gather([VariableFilter filter = null]) async {
-    Source source = addNamedSource(
-        '/test.dart',
-        '''
+    Source source = addNamedSource('/test.dart', '''
 const int zero = 0;
 class Counter {
   int value = zero;

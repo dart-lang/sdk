@@ -61,7 +61,7 @@ class ConstantValueTypeMasks
       case SyntheticConstantKind.NAME:
         return closedWorld.commonMasks.stringType;
       default:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        throw failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Unexpected DummyConstantKind: ${constant.toStructuredText()}.");
     }
   }

@@ -214,6 +214,7 @@ getType(obj) =>
     JS('', '# == null ? # : #.__proto__.constructor', obj, Object, obj);
 
 bool isJsInterop(obj) {
+  if (obj == null) return false;
   if (JS('bool', 'typeof # === "function"', obj)) {
     // A function is a Dart function if it has runtime type information.
     return _getRuntimeType(obj) == null;
@@ -391,6 +392,7 @@ bool hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
+/// This assumes that obj is not null
 getExtensionType(obj) => JS('', '#[#]', obj, _extensionType);
 
 final dartx = JS('', 'dartx');
@@ -461,7 +463,6 @@ registerExtension(jsType, dartExtType) => JS(
     let originalDesc = $getOwnPropertyDescriptor($dartExtType, sigF);
     if (originalDesc === void 0) return;
     let originalSigFn = originalDesc.get;
-    $assert_(originalSigFn);
     $defineMemoizedGetter($jsType, sigF, originalSigFn);
   }
   updateSig($_methodSig);

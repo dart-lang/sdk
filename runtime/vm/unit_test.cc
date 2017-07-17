@@ -33,7 +33,6 @@ DECLARE_FLAG(bool, use_dart_frontend);
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
 
-
 TestCaseBase::TestCaseBase(const char* name)
     : raw_test_(false), next_(NULL), name_(name) {
   if (first_ == NULL) {
@@ -43,7 +42,6 @@ TestCaseBase::TestCaseBase(const char* name)
   }
   tail_ = this;
 }
-
 
 void TestCaseBase::RunAllRaw() {
   TestCaseBase* test = first_;
@@ -55,7 +53,6 @@ void TestCaseBase::RunAllRaw() {
   }
 }
 
-
 void TestCaseBase::RunAll() {
   TestCaseBase* test = first_;
   while (test != NULL) {
@@ -65,7 +62,6 @@ void TestCaseBase::RunAll() {
     test = test->next_;
   }
 }
-
 
 Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
   char* err;
@@ -79,24 +75,19 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
   return isolate;
 }
 
-
 static const char* kPackageScheme = "package:";
-
 
 static bool IsPackageSchemeURL(const char* url_name) {
   static const intptr_t kPackageSchemeLen = strlen(kPackageScheme);
   return (strncmp(url_name, kPackageScheme, kPackageSchemeLen) == 0);
 }
 
-
 struct TestLibEntry {
   const char* url;
   const char* source;
 };
 
-
 static MallocGrowableArray<TestLibEntry>* test_libs_ = NULL;
-
 
 void TestCase::AddTestLib(const char* url, const char* source) {
   if (test_libs_ == NULL) {
@@ -114,7 +105,6 @@ void TestCase::AddTestLib(const char* url, const char* source) {
   entry.source = source;
   test_libs_->Add(entry);
 }
-
 
 const char* TestCase::GetTestLib(const char* url) {
   if (test_libs_ == NULL) {
@@ -137,17 +127,14 @@ static bool IsIsolateReloadTestLib(const char* url_name) {
                   kIsolateReloadTestLibUriLen) == 0);
 }
 
-
 static Dart_Handle IsolateReloadTestLibSource() {
   // Special library with one function.
   return DartUtils::NewString("void reloadTest() native 'Reload_Test';\n");
 }
 
-
 static void ReloadTest(Dart_NativeArguments native_args) {
   DART_CHECK_VALID(TestCase::TriggerReload());
 }
-
 
 static Dart_NativeFunction IsolateReloadTestNativeResolver(
     Dart_Handle name,
@@ -157,7 +144,6 @@ static Dart_NativeFunction IsolateReloadTestNativeResolver(
 }
 #endif  // !PRODUCT
 
-
 static Dart_Handle ResolvePackageUri(const char* uri_chars) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
@@ -166,7 +152,6 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
                      DartUtils::NewString("_filePathFromUri"), kNumArgs,
                      dart_args);
 }
-
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
@@ -369,7 +354,6 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
 
 #ifndef PRODUCT
 
-
 void TestCase::SetReloadTestScript(const char* script) {
   if (script_reload_key == kUnsetThreadLocalKey) {
     script_reload_key = OSThread::CreateThreadLocal();
@@ -379,7 +363,6 @@ void TestCase::SetReloadTestScript(const char* script) {
   // Store the new script in TLS.
   OSThread::SetThreadLocal(script_reload_key, reinterpret_cast<uword>(script));
 }
-
 
 Dart_Handle TestCase::TriggerReload() {
   Isolate* isolate = Isolate::Current();
@@ -401,7 +384,6 @@ Dart_Handle TestCase::TriggerReload() {
   }
 }
 
-
 Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
   Isolate* isolate = Isolate::Current();
 
@@ -413,7 +395,6 @@ Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
   }
   return Dart_RootLibrary();
 }
-
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
   SetReloadTestScript(script);
@@ -437,15 +418,12 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
   return result;
 }
 
-
 #endif  // !PRODUCT
-
 
 Dart_Handle TestCase::LoadCoreTestScript(const char* script,
                                          Dart_NativeEntryResolver resolver) {
   return LoadTestScript(script, resolver, CORELIB_TEST_URI);
 }
-
 
 Dart_Handle TestCase::lib() {
   Dart_Handle url = NewString(TestCase::url());
@@ -454,7 +432,6 @@ Dart_Handle TestCase::lib() {
   ASSERT(Dart_IsLibrary(lib));
   return lib;
 }
-
 
 Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
                                       Dart_Handle library,
@@ -465,11 +442,9 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   return Api::Success();
 }
 
-
 char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
   return bin::CObject::BigintToHexValue(bigint);
 }
-
 
 void AssemblerTest::Assemble() {
   const String& function_name =
@@ -503,7 +478,6 @@ void AssemblerTest::Assemble() {
 #endif  // !PRODUCT
 }
 
-
 CodeGenTest::CodeGenTest(const char* name)
     : function_(Function::ZoneHandle()),
       node_sequence_(new SequenceNode(TokenPosition::kMinSource,
@@ -527,7 +501,6 @@ CodeGenTest::CodeGenTest(const char* name)
   lib.AddClass(cls);
 }
 
-
 void CodeGenTest::Compile() {
   if (function_.HasCode()) return;
   ParsedFunction* parsed_function =
@@ -543,7 +516,6 @@ void CodeGenTest::Compile() {
   EXPECT(error.IsNull());
 }
 
-
 bool CompilerTest::TestCompileScript(const Library& library,
                                      const Script& script) {
   Isolate* isolate = Isolate::Current();
@@ -555,7 +527,6 @@ bool CompilerTest::TestCompileScript(const Library& library,
   return error.IsNull();
 }
 
-
 bool CompilerTest::TestCompileFunction(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -564,7 +535,6 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
       Object::Handle(Compiler::CompileFunction(thread, function));
   return result.IsCode();
 }
-
 
 void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
   const char* pos = strstr(in, prefix);
@@ -584,6 +554,5 @@ void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
   }
   *out = '\0';
 }
-
 
 }  // namespace dart

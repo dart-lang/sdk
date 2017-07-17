@@ -23,7 +23,6 @@ Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t** buffer) {
   return result;
 }
 
-
 uint8_t* IOBuffer::Allocate(intptr_t size) {
   return new uint8_t[size];
 }

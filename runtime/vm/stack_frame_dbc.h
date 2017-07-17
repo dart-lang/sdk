@@ -55,7 +55,6 @@ static const int kFunctionSlotFromFp = -4;
 static const int kParamEndSlotFromFp = 4;  // One slot past last parameter.
 static const int kFirstLocalSlotFromFp = -1;
 
-
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {
   ASSERT(var_index != 0);
@@ -65,7 +64,6 @@ DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
     return fp_offset - (var_index + 1);
   }
 }
-
 
 DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
   return fp - (kDartFrameFixedSize + reverse_index) * kWordSize;

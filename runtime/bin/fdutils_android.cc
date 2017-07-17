@@ -32,7 +32,6 @@ bool FDUtils::SetCloseOnExec(intptr_t fd) {
   return true;
 }
 
-
 static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   intptr_t status;
   status = NO_RETRY_EXPECTED(fcntl(fd, F_GETFL));
@@ -48,16 +47,13 @@ static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   return true;
 }
 
-
 bool FDUtils::SetNonBlocking(intptr_t fd) {
   return SetBlockingHelper(fd, false);
 }
 
-
 bool FDUtils::SetBlocking(intptr_t fd) {
   return SetBlockingHelper(fd, true);
 }
-
 
 bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
   intptr_t status;
@@ -69,7 +65,6 @@ bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
   return true;
 }
 
-
 intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = NO_RETRY_EXPECTED(ioctl(fd, FIONREAD, &available));
@@ -79,7 +74,6 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   ASSERT(available >= 0);
   return static_cast<intptr_t>(available);
 }
-
 
 ssize_t FDUtils::ReadFromBlocking(int fd, void* buffer, size_t count) {
 #ifdef DEBUG
@@ -108,7 +102,6 @@ ssize_t FDUtils::ReadFromBlocking(int fd, void* buffer, size_t count) {
   return count;
 }
 
-
 ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
 #ifdef DEBUG
   bool is_blocking = false;
@@ -136,7 +129,6 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
   }
   return count;
 }
-
 
 void FDUtils::SaveErrorAndClose(intptr_t fd) {
   int err = errno;

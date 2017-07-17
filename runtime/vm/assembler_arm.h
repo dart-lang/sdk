@@ -23,7 +23,6 @@ namespace dart {
 class RuntimeEntry;
 class StubEntry;
 
-
 // Instruction encoding bits.
 enum {
   H = 1 << 5,   // halfword (or byte)
@@ -65,7 +64,6 @@ enum {
   B27 = 1 << 27,
 };
 
-
 class Label : public ValueObject {
  public:
   Label() : position_(0) {}
@@ -106,7 +104,6 @@ class Label : public ValueObject {
   friend class Assembler;
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
-
 
 // Encodes Addressing Mode 1 - Data-processing operands.
 class Operand : public ValueObject {
@@ -201,7 +198,6 @@ class Operand : public ValueObject {
   friend class Address;
 };
 
-
 enum OperandSize {
   kByte,
   kUnsignedByte,
@@ -215,7 +211,6 @@ enum OperandSize {
   kRegList,
 };
 
-
 // Load/store multiple addressing mode.
 enum BlockAddressMode {
   // bit encoding P U W
@@ -228,7 +223,6 @@ enum BlockAddressMode {
   DB_W = (8 | 0 | 1) << 21,  // decrement before with writeback to base
   IB_W = (8 | 4 | 1) << 21   // increment before with writeback to base
 };
-
 
 class Address : public ValueObject {
  public:
@@ -343,7 +337,6 @@ class Address : public ValueObject {
   friend class Assembler;
 };
 
-
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
@@ -359,7 +352,6 @@ class FieldAddress : public Address {
     return *this;
   }
 };
-
 
 class Assembler : public ValueObject {
  public:
@@ -752,7 +744,6 @@ class Assembler : public ValueObject {
 
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
-
 
   // Signed integer division of left by right. Checks to see if integer
   // division is supported. If not, uses the FPU for division with

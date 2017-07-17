@@ -66,9 +66,7 @@ import 'does_not_exist.dart';
   test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    addFile(
-        '$projectPath/.analysis_options',
-        '''
+    addFile('$projectPath/.analysis_options', '''
 linter:
   rules:
     - $camelCaseTypesLintName

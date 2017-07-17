@@ -21,9 +21,7 @@ import '../elements/elements.dart'
         Elements,
         FieldElement,
         MemberElement,
-        TypeDeclarationElement,
-        MixinApplicationElement,
-        TypedefElement;
+        MixinApplicationElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -667,8 +665,7 @@ class Namer {
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.functionClass);
       default:
-        throw new SpannableAssertionFailure(
-            spannable, 'Error: Namer has no name for "$name".');
+        throw failedAt(spannable, 'Error: Namer has no name for "$name".');
     }
   }
 
@@ -855,7 +852,7 @@ class Namer {
         return disambiguatedName; // Methods other than call are not annotated.
 
       default:
-        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+        throw failedAt(CURRENT_ELEMENT_SPANNABLE,
             'Unexpected selector kind: ${selector.kind}');
     }
   }
@@ -907,7 +904,7 @@ class Namer {
   ///
   /// Should be used together with [globalObjectForType], which denotes the
   /// object on which the returned property name should be used.
-  jsAst.Name globalPropertyNameForType(TypeDeclarationElement element) =>
+  jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
   /**
@@ -1533,7 +1530,7 @@ class Namer {
   }
 
   String globalObjectForType(Entity element) {
-    if (element is TypedefElement) {
+    if (element is TypedefEntity) {
       return globalObjectForLibrary(element.library);
     }
     return globalObjectForClass(element);
@@ -1966,7 +1963,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         add('name');
         break;
       default:
-        throw new SpannableAssertionFailure(
+        failedAt(
             CURRENT_ELEMENT_SPANNABLE, "Unexpected SyntheticConstantValue");
     }
   }
@@ -2081,7 +2078,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
         // resolve to integer indexes, they're always part of a larger constant.
         return 0;
       default:
-        throw new SpannableAssertionFailure(
+        throw failedAt(
             NO_LOCATION_SPANNABLE,
             'SyntheticConstantValue should never be named and '
             'never be subconstant');

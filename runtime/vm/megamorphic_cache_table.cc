@@ -42,13 +42,11 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
   return cache.raw();
 }
 
-
 RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
   ASSERT(isolate->object_store()->megamorphic_miss_function() !=
          Function::null());
   return isolate->object_store()->megamorphic_miss_function();
 }
-
 
 void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // The miss handler for a class ID not found in the table is invoked as a
@@ -80,7 +78,6 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
          Function::null());
   isolate->object_store()->SetMegamorphicMissHandler(code, function);
 }
-
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   StackZone zone(Thread::Current());

@@ -8,7 +8,7 @@ class Foo extends core::Object {
     ;
 }
 class C extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method m(dynamic x) → void {}

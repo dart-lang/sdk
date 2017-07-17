@@ -59,7 +59,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
     'language': {
-      'assertion_test': fail,
       'async_await_test_none_multi': 'unittest',
       'async_await_test_02_multi': 'unittest',
 
@@ -179,7 +178,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'number_identifier_test_05_multi': fail,
       'number_identity2_test': fail,
       'numbers_test': fail,
-      'redirecting_factory_reflection_test': fail,
       'reg_exp_test': whitelist,
       'regress_16640_test': fail,
       'regress_18535_test': fail,
@@ -524,7 +522,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'closurization_equivalence_test': fail,
       'constructor_kinds_test_01_multi': fail,
       'constructor_kinds_test_none_multi': fail,
-      'constructor_optional_args_test': fail,
       'constructor_private_name_test': fail,
       'declarations_type_test': fail,
       'deferred_mirrors_metadata_test': skip_timeout,

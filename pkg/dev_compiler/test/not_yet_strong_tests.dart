@@ -1255,7 +1255,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/no_such_constructor_test_01_multi',
   'language/no_such_method2_test',
   'language/no_such_method_dispatcher_test',
-  'language/no_such_method_mock_test',
   'language/no_such_method_test',
   'language/non_parameterized_factory2_test',
   'language/non_parameterized_factory_test',

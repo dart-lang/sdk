@@ -69,7 +69,7 @@ class MapTracerVisitor extends TracerVisitor {
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called) &&
         called.name == JavaScriptBackend.JS) {
-      bailout('Used in JS ${info.call}');
+      bailout('Used in JS ${info.debugName}');
     }
   }
 

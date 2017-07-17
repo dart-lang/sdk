@@ -159,9 +159,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
   }
 
   test_Annotation_imported_constructor_named_param() async {
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
     addTestSource('import "/libA.dart"; @A(^) main() { }');
     await computeSuggestions();
@@ -480,9 +478,7 @@ foo(^);
 
   test_ArgumentList_imported_function_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect() { }
@@ -498,9 +494,7 @@ foo(^);
 
   test_ArgumentList_imported_function_1() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg) { }
@@ -516,9 +510,7 @@ foo(^);
 
   test_ArgumentList_imported_function_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2) { }
@@ -534,9 +526,7 @@ foo(^);
 
   test_ArgumentList_imported_function_3() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -552,9 +542,7 @@ foo(^);
 
   test_ArgumentList_imported_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -570,9 +558,7 @@ foo(^);
 
   test_ArgumentList_imported_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -588,9 +574,7 @@ foo(^);
 
   test_ArgumentList_imported_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -606,9 +590,7 @@ foo(^);
 
   test_ArgumentList_imported_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -1005,9 +987,7 @@ main() { f("16", radix: ^);}''');
 
   test_ArgumentList_local_method_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
@@ -1023,9 +1003,7 @@ main() { f("16", radix: ^);}''');
 
   test_ArgumentList_local_method_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');

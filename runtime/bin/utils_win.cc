@@ -31,7 +31,6 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
   buffer[buffer_length - 1] = 0;
 }
 
-
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_code(GetLastError());
 
@@ -41,7 +40,6 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   char* utf8 = StringUtilsWin::WideToUtf8(message);
   SetMessage(utf8);
 }
-
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
@@ -54,7 +52,6 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   SetMessage(utf8);
 }
 
-
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
@@ -66,7 +63,6 @@ char* StringUtils::ConsoleStringToUtf8(char* str,
   char* utf8 = StringUtilsWin::WideToUtf8(wide, wide_len, result_len);
   return utf8;
 }
-
 
 char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t len,
@@ -88,7 +84,6 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
   return ansi;
 }
 
-
 char* StringUtilsWin::WideToUtf8(wchar_t* wide,
                                  intptr_t len,
                                  intptr_t* result_len) {
@@ -104,7 +99,6 @@ char* StringUtilsWin::WideToUtf8(wchar_t* wide,
   }
   return utf8;
 }
-
 
 wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
                                     intptr_t len,
@@ -122,14 +116,12 @@ wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
   return wide;
 }
 
-
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,
                                              intptr_t len,
                                              intptr_t* result_len) {
   return const_cast<const char*>(StringUtils::Utf8ToConsoleString(
       const_cast<char*>(utf8), len, result_len));
 }
-
 
 const char* StringUtils::ConsoleStringToUtf8(const char* str,
                                              intptr_t len,
@@ -138,7 +130,6 @@ const char* StringUtils::ConsoleStringToUtf8(const char* str,
       const_cast<char*>(str), len, result_len));
 }
 
-
 const char* StringUtilsWin::WideToUtf8(const wchar_t* wide,
                                        intptr_t len,
                                        intptr_t* result_len) {
@@ -146,14 +137,12 @@ const char* StringUtilsWin::WideToUtf8(const wchar_t* wide,
       StringUtilsWin::WideToUtf8(const_cast<wchar_t*>(wide), len, result_len));
 }
 
-
 const wchar_t* StringUtilsWin::Utf8ToWide(const char* utf8,
                                           intptr_t len,
                                           intptr_t* result_len) {
   return const_cast<const wchar_t*>(
       StringUtilsWin::Utf8ToWide(const_cast<char*>(utf8), len, result_len));
 }
-
 
 char* StringUtils::StrNDup(const char* s, intptr_t n) {
   intptr_t len = strlen(s);
@@ -170,7 +159,6 @@ char* StringUtils::StrNDup(const char* s, intptr_t n) {
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
 }
-
 
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   wchar_t* command_line = GetCommandLineW();
@@ -195,7 +183,6 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return true;
 }
 
-
 // Although win32 uses 64-bit integers for representing timestamps,
 // these are packed into a FILETIME structure. The FILETIME
 // structure is just a struct representing a 64-bit integer. The
@@ -207,7 +194,6 @@ union TimeStamp {
   int64_t t_;
 };
 
-
 static int64_t GetCurrentTimeMicros() {
   static const int64_t kTimeEpoc = 116444736000000000LL;
   static const int64_t kTimeScaler = 10;  // 100 ns to us.
@@ -216,7 +202,6 @@ static int64_t GetCurrentTimeMicros() {
   GetSystemTimeAsFileTime(&time.ft_);
   return (time.t_ - kTimeEpoc) / kTimeScaler;
 }
-
 
 static int64_t qpc_ticks_per_second = 0;
 
@@ -229,11 +214,9 @@ void TimerUtils::InitOnce() {
   }
 }
 
-
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
-
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
   if (qpc_ticks_per_second == 0) {
@@ -251,7 +234,6 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   result += ((leftover_ticks * kMicrosecondsPerSecond) / qpc_ticks_per_second);
   return result;
 }
-
 
 void TimerUtils::Sleep(int64_t millis) {
   ::Sleep(millis);

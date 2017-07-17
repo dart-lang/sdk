@@ -15,7 +15,7 @@
 #if !defined(HOST_OS_FUCHSIA)
 #include <sys/syscall.h> /* NOLINT */
 #endif
-#include <unistd.h>      /* NOLINT */
+#include <unistd.h> /* NOLINT */
 #endif
 
 namespace dart {
@@ -47,7 +47,6 @@ void CPU::FlushICache(uword start, uword size) {
 #endif
 }
 
-
 const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
@@ -56,12 +55,10 @@ const char* CPU::Id() {
       "arm64";
 }
 
-
 const char* HostCPUFeatures::hardware_ = NULL;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
-
 
 #if !defined(USING_SIMULATOR)
 void HostCPUFeatures::InitOnce() {
@@ -71,7 +68,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);
@@ -93,7 +89,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

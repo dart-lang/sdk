@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
-import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';

@@ -4,7 +4,7 @@
 
 library fasta.class_builder;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../problems.dart' show internalProblem;
 
 import 'builder.dart'
     show
@@ -21,7 +21,11 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateInternalProblemNotFoundIn,
+        templateInternalProblemSuperclassNotFound;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -166,10 +170,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         }
         supertype = t.supertype;
       } else {
-        deprecated_internalProblem(
-            "Superclass not found '${superclass.fullNameForErrors}'.",
-            fileUri,
-            charOffset);
+        internalProblem(
+            templateInternalProblemSuperclassNotFound
+                .withArguments(superclass.fullNameForErrors),
+            charOffset,
+            fileUri);
       }
       if (variables != null) {
         Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
@@ -197,7 +202,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   MemberBuilder operator [](String name) {
     // TODO(ahe): Rename this to getLocalMember.
     return scope.local[name] ??
-        deprecated_internalProblem("Not found: '$name'.");
+        internalProblem(
+            templateInternalProblemNotFoundIn.withArguments(
+                name, fullNameForErrors),
+            -1,
+            null);
   }
 
   void addCompileTimeError(Message message, int charOffset) {
@@ -210,18 +219,5 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   void addNit(Message message, int charOffset) {
     library.addNit(message, charOffset, fileUri);
-  }
-
-  void deprecated_addCompileTimeError(int charOffset, String message) {
-    library.deprecated_addCompileTimeError(charOffset, message,
-        fileUri: fileUri);
-  }
-
-  void deprecated_addWarning(int charOffset, String message) {
-    library.deprecated_addWarning(charOffset, message, fileUri: fileUri);
-  }
-
-  void deprecated_addNit(int charOffset, String message) {
-    library.deprecated_addNit(charOffset, message, fileUri: fileUri);
   }
 }

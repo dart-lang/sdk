@@ -28,7 +28,6 @@ DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
   return Double::New(value.AsDoubleValue());
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_add, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
@@ -38,7 +37,6 @@ DEFINE_NATIVE_ENTRY(Double_add, 2) {
   }
   return Double::New(left + right);
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
@@ -50,7 +48,6 @@ DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   return Double::New(left - right);
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
@@ -61,7 +58,6 @@ DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   return Double::New(left * right);
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
@@ -71,7 +67,6 @@ DEFINE_NATIVE_ENTRY(Double_div, 2) {
   }
   return Double::New(left / right);
 }
-
 
 static RawInteger* DoubleToInteger(double val, const char* error_msg) {
   if (isinf(val) || isnan(val)) {
@@ -123,7 +118,6 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
   return result.AsValidInteger();
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
@@ -135,7 +129,6 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
                          "Result of truncating division is Infinity or NaN");
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
@@ -143,14 +136,12 @@ DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
   return Double::New(DartModulo(left, right));
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_remainder, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   return Double::New(fmod_ieee(left, right));
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
@@ -163,13 +154,11 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   return Bool::Get(result).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 2) {
   const Double& right = Double::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
   return Bool::Get(left.AsDoubleValue() > right.value()).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
@@ -181,13 +170,11 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   return Bool::Get(result).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_equalToInteger, 2) {
   const Double& left = Double::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
   return Bool::Get(left.value() == right.AsDoubleValue()).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_round, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
@@ -204,12 +191,10 @@ DEFINE_NATIVE_ENTRY(Double_ceil, 1) {
   return Double::New(ceil(arg.value()));
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_truncate, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   return Double::New(trunc(arg.value()));
 }
-
 
 #if defined(HOST_OS_MACOS)
 // MAC OSX math library produces old style cast warning.
@@ -220,7 +205,6 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   return DoubleToInteger(arg.value(), "Infinity or NaN toInt");
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_parse, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
@@ -241,12 +225,10 @@ DEFINE_NATIVE_ENTRY(Double_parse, 3) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_toString, 1) {
   const Number& number = Number::CheckedHandle(arguments->NativeArgAt(0));
   return number.ToString(Heap::kNew);
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
   // The boundaries are exclusive.
@@ -267,7 +249,6 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
   }
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->NativeArgAt(1));
@@ -283,7 +264,6 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
   }
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, precision, arguments->NativeArgAt(1));
@@ -298,18 +278,15 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
   }
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_getIsInfinite, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   return Bool::Get(isinf(arg.value())).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Double_getIsNaN, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   return Bool::Get(isnan(arg.value())).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
@@ -317,7 +294,6 @@ DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
   double dval = arg.value();
   return Bool::Get(signbit(dval) && !isnan(dval)).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Double_flipSignBit, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));

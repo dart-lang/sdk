@@ -53,9 +53,7 @@ class ClassElementImplTest extends EngineTestCase {
   void test_computeNode_ClassDeclaration() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {}
 @deprecated class B {}
 enum C {C1, C2, C3}
@@ -108,9 +106,7 @@ enum C {C1, C2, C3}
   void test_computeNode_ClassTypeAlias() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A<K, V> = Object with MapMixin<K, V>;
 ''');
     // prepare CompilationUnitElement
@@ -1008,9 +1004,7 @@ class CompilationUnitElementImplTest extends EngineTestCase {
 @reflectiveTest
 class ElementAnnotationImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   final String f;
   const A(this.f);
@@ -1206,9 +1200,7 @@ class FieldElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {
   int a;
 }
@@ -1237,9 +1229,7 @@ enum B {B1, B2, B3}''');
   void test_isEnumConstant() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 enum B {B1, B2, B3}
 ''');
     // prepare CompilationUnitElement
@@ -3843,9 +3833,7 @@ class MethodElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
   String m1() => null;
   m2();
@@ -3877,9 +3865,7 @@ abstract class A {
     options.analyzeFunctionBodies = false;
     AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
   String m1() => null;
   m2();
@@ -3925,9 +3911,7 @@ class MethodMemberTest extends EngineTestCase {
     options.analyzeFunctionBodies = false;
     AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A<T> {
   T f(T x) => x;
 }
@@ -4017,9 +4001,7 @@ class ParameterElementImplTest extends EngineTestCase {
   void test_computeNode_DefaultFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main([int p = 42]) {
 }''');
     // prepare CompilationUnitElement
@@ -4038,9 +4020,7 @@ main([int p = 42]) {
   void test_computeNode_FieldFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {
   int p;
   A(this.p) {
@@ -4064,9 +4044,7 @@ class A {
   void test_computeNode_FunctionTypedFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main(p(int a, int b)) {
 }''');
     // prepare CompilationUnitElement
@@ -4085,9 +4063,7 @@ main(p(int a, int b)) {
   void test_computeNode_SimpleFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main(int p) {
 }''');
     // prepare CompilationUnitElement
@@ -4152,9 +4128,7 @@ class TestElementResynthesizer extends ElementResynthesizer {
 @reflectiveTest
 class TopLevelVariableElementImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const int C = 42;
 ''');
     Source source = addSource(r'''

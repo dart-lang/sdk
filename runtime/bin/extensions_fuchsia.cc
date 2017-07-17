@@ -30,19 +30,16 @@ void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return dlopen_vmo(vmo, RTLD_LAZY);
 }
 
-
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   dlerror();
   return dlsym(lib_handle, symbol);
 }
-
 
 void Extensions::UnloadLibrary(void* lib_handle) {
   dlerror();
   int result = dlclose(lib_handle);
   ASSERT(result == 0);
 }
-
 
 Dart_Handle Extensions::GetError() {
   const char* err_str = dlerror();

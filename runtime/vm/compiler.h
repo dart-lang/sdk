@@ -43,7 +43,6 @@ class CompilationPipeline : public ZoneAllocated {
   virtual ~CompilationPipeline() {}
 };
 
-
 class DartCompilationPipeline : public CompilationPipeline {
  public:
   virtual void ParseFunction(ParsedFunction* parsed_function);
@@ -56,7 +55,6 @@ class DartCompilationPipeline : public CompilationPipeline {
 
   virtual void FinalizeCompilation(FlowGraph* flow_graph);
 };
-
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
  public:
@@ -75,7 +73,6 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
  private:
   IndirectGotoInstr* backtrack_goto_;
 };
-
 
 class Compiler : public AllStatic {
  public:
@@ -156,7 +153,6 @@ class Compiler : public AllStatic {
   // the same function later.
   static void AbortBackgroundCompilation(intptr_t deopt_id, const char* msg);
 };
-
 
 // Class to run optimizing compilation in a background thread.
 // Current implementation: one task per isolate, it dies with the owning

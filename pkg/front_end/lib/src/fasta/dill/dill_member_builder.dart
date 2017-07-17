@@ -7,8 +7,6 @@ library fasta.dill_member_builder;
 import 'package:kernel/ast.dart'
     show Constructor, Field, Member, Procedure, ProcedureKind;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
-
 import '../kernel/kernel_builder.dart'
     show
         Builder,
@@ -17,6 +15,8 @@ import '../kernel/kernel_builder.dart'
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, staticMask;
+
+import '../problems.dart' show unhandled;
 
 class DillMemberBuilder extends MemberBuilder {
   final int modifiers;
@@ -77,7 +77,9 @@ int computeModifiers(Member member) {
   } else if (member is Constructor) {
     modifier |= member.isConst ? constMask : 0;
   } else {
-    deprecated_internalProblem("Unhandled: ${member.runtimeType}");
+    dynamic parent = member.parent;
+    unhandled("${member.runtimeType}", "computeModifiers", member.fileOffset,
+        Uri.base.resolve(parent.fileUri));
   }
   return modifier;
 }

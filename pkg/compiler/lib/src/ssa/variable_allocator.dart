@@ -214,8 +214,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry].isEmpty) {
-      throw new SpannableAssertionFailure(
-          CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
+      failedAt(CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
     }
   }
 

@@ -95,26 +95,22 @@ void runPackageMapTests() {
     group('package mapping', () {
       group('resolveUri', () {
         test('URI in mapping', () {
-          String uri = resolvePackageUri(
-              config: '''
+          String uri = resolvePackageUri(config: '''
 unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/
 async:file:///home/somebody/.pub/cache/async-1.1.0/lib/
 quiver:file:///home/somebody/.pub/cache/quiver-1.2.1/lib
-''',
-              uri: 'package:unittest/unittest.dart');
+''', uri: 'package:unittest/unittest.dart');
           expect(
               uri,
               equals(
                   '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
         });
         test('URI in mapping (no scheme)', () {
-          String uri = resolvePackageUri(
-              config: '''
+          String uri = resolvePackageUri(config: '''
 unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
 async:/home/somebody/.pub/cache/async-1.1.0/lib/
 quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
-''',
-              uri: 'package:unittest/unittest.dart');
+''', uri: 'package:unittest/unittest.dart');
           expect(
               uri,
               equals(

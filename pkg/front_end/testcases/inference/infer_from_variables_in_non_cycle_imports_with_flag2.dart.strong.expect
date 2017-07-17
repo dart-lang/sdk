@@ -5,7 +5,7 @@ import "./infer_from_variables_in_non_cycle_imports_with_flag2_a.dart" as inf;
 
 class B extends core::Object {
   static field core::int y = inf::A::x;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

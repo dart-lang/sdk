@@ -10,20 +10,24 @@ import '../kernel/element_map.dart';
 import 'closure.dart';
 
 /// This builder walks the code to determine what variables are captured/free at
-/// various points to build ClosureScope that can respond to queries
+/// various points to build CapturedScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
-class ClosureScopeBuilder extends ir.Visitor {
+class CapturedScopeBuilder extends ir.Visitor {
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
   /// was encountered while visiting a closure (initially called through
   /// [translateLazyIntializer] or [translateConstructorOrProcedure]).
-  Map<ir.Node, ClosureScope> _closureInfoMap = <ir.Node, ClosureScope>{};
+  final Map<ir.Node, CapturedScope> _scopesCapturedInClosureMap;
+
+  /// Map entities to their corresponding scope information (such as what
+  /// variables are captured/used).
+  final Map<Entity, ScopeInfo> _scopeInfoMap;
 
   /// A map of the nodes that we have flagged as necessary to generate closure
   /// classes for in a later stage. We map that node to information ascertained
   /// about variable usage in the surrounding scope.
-  Map<ir.Node /* ir.Field | ir.FunctionNode */, ScopeInfo> _closuresToGenerate =
-      <ir.Node, ScopeInfo>{};
+  final Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, ScopeInfo>
+      _closuresToGenerate;
 
   /// The local variables that have been declared in the current scope.
   List<ir.VariableDeclaration> _scopeVariables;
@@ -61,10 +65,19 @@ class ClosureScopeBuilder extends ir.Visitor {
 
   final KernelToElementMap _kernelToElementMap;
 
-  ClosureScopeBuilder(this._closureInfoMap, this._closuresToGenerate,
-      this._localsMap, this._kernelToElementMap);
+  /// The original entity from which we start the tree-walk to find closure and
+  /// scope information.
+  final Entity _originalEntity;
 
-  /// Update the [ClosureScope] object corresponding to
+  CapturedScopeBuilder(
+      this._scopesCapturedInClosureMap,
+      this._scopeInfoMap,
+      this._originalEntity,
+      this._closuresToGenerate,
+      this._localsMap,
+      this._kernelToElementMap);
+
+  /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
   void attachCapturedScopeVariables(ir.Node node) {
     Set<Local> capturedVariablesForScope = new Set<Local>();
@@ -89,14 +102,19 @@ class ClosureScopeBuilder extends ir.Visitor {
         thisLocal = new ThisLocal(_kernelToElementMap.getConstructor(node));
       }
 
-      Entity context;
-      if (_executableContext is ir.Member) {
-        context = _kernelToElementMap.getMember(_executableContext);
-      } else {
-        context = _kernelToElementMap.getLocalFunction(_executableContext);
-      }
-      _closureInfoMap[node] =
-          new KernelClosureScope(capturedVariablesForScope, context, thisLocal);
+      assert(_scopeInfoMap[_nodeToEntity(node)] != null);
+      _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
+          capturedVariablesForScope,
+          _nodeToEntity(_executableContext),
+          thisLocal);
+    }
+  }
+
+  Entity _nodeToEntity(ir.Node node) {
+    if (node is ir.Member) {
+      return _kernelToElementMap.getMember(node);
+    } else {
+      return _kernelToElementMap.getLocalFunction(node);
     }
   }
 
@@ -197,10 +215,13 @@ class ClosureScopeBuilder extends ir.Visitor {
         }
       }
     });
-    KernelClosureScope scope = _closureInfoMap[node];
+    KernelCapturedScope scope = _scopesCapturedInClosureMap[node];
     if (scope == null) return;
-    _closureInfoMap[node] = new KernelLoopClosureScope(scope.boxedVariables,
-        boxedLoopVariables, scope.context, scope.thisLocal);
+    _scopesCapturedInClosureMap[node] = new KernelCapturedLoopScope(
+        scope.boxedVariables,
+        boxedLoopVariables,
+        scope.context,
+        scope.thisLocal);
   }
 
   void visitInvokable(ir.TreeNode node) {
@@ -212,11 +233,13 @@ class ClosureScopeBuilder extends ir.Visitor {
     // field, constructor, or method that is being analyzed.
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
-    if (!_isInsideClosure) {
-      _outermostNode = node;
-    }
     _currentScopeInfo = new KernelScopeInfo(_nodeToThisLocal(node));
-    _closuresToGenerate[node] = _currentScopeInfo;
+    if (_isInsideClosure) {
+      _closuresToGenerate[node] = _currentScopeInfo;
+    } else {
+      _outermostNode = node;
+      _scopeInfoMap[_originalEntity] = _currentScopeInfo;
+    }
 
     enterNewScope(node, () {
       node.visitChildren(this);

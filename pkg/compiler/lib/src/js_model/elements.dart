@@ -4,23 +4,13 @@
 
 library dart2js.js_model.elements;
 
-import '../common_elements.dart';
-import '../constants/constant_system.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../js_backend/backend_usage.dart';
-import '../js_backend/interceptor_data.dart';
-import '../js_backend/native_data.dart';
-import '../js_backend/runtime_types.dart';
 import '../kernel/elements.dart';
 import '../kernel/element_map_impl.dart';
-import '../native/behavior.dart';
-import '../universe/class_set.dart';
-import '../world.dart';
 
-/// Bidirectional map between 'frontend' and 'backend' elements.
+/// Map from 'frontend' to 'backend' elements.
 ///
 /// Frontend elements are what we read in, these typically represents concepts
 /// in Dart. Backend elements are what we generate, these may include elements
@@ -30,23 +20,63 @@ import '../world.dart';
 /// exception.
 class JsToFrontendMap {
   LibraryEntity toBackendLibrary(LibraryEntity library) => library;
-  LibraryEntity toFrontendLibrary(LibraryEntity library) => library;
 
   ClassEntity toBackendClass(ClassEntity cls) => cls;
-  ClassEntity toFrontendClass(ClassEntity cls) => cls;
 
   MemberEntity toBackendMember(MemberEntity member) => member;
-  MemberEntity toFrontendMember(MemberEntity member) => member;
 
   DartType toBackendType(DartType type) => type;
-  DartType toFrontendType(DartType type) => type;
+
+  Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
+    return set.map(toBackendLibrary).toSet();
+  }
+
+  Set<ClassEntity> toBackendClassSet(Iterable<ClassEntity> set) {
+    return set.map(toBackendClass).toSet();
+  }
+
+  Set<MemberEntity> toBackendMemberSet(Iterable<MemberEntity> set) {
+    return set.map(toBackendMember).toSet();
+  }
+
+  Set<FunctionEntity> toBackendFunctionSet(Iterable<FunctionEntity> set) {
+    Set<FunctionEntity> newSet = new Set<FunctionEntity>();
+    for (FunctionEntity element in set) {
+      newSet.add(toBackendMember(element));
+    }
+    return newSet;
+  }
+
+  Map<LibraryEntity, V> toBackendLibraryMap<V>(
+      Map<LibraryEntity, V> map, V convert(V value)) {
+    return convertMap(map, toBackendLibrary, convert);
+  }
+
+  Map<ClassEntity, V> toBackendClassMap<V>(
+      Map<ClassEntity, V> map, V convert(V value)) {
+    return convertMap(map, toBackendClass, convert);
+  }
+
+  Map<MemberEntity, V> toBackendMemberMap<V>(
+      Map<MemberEntity, V> map, V convert(V value)) {
+    return convertMap(map, toBackendMember, convert);
+  }
 }
 
-abstract class JsToFrontendMapBase implements JsToFrontendMap {
+E identity<E>(E element) => element;
+
+Map<K, V> convertMap<K, V>(
+    Map<K, V> map, K convertKey(K key), V convertValue(V value)) {
+  Map<K, V> newMap = <K, V>{};
+  map.forEach((K key, V value) {
+    newMap[convertKey(key)] = convertValue(value);
+  });
+  return newMap;
+}
+
+abstract class JsToFrontendMapBase extends JsToFrontendMap {
   DartType toBackendType(DartType type) =>
       const TypeConverter().visit(type, _toBackendEntity);
-  DartType toFrontendType(DartType type) =>
-      const TypeConverter().visit(type, _toFrontendEntity);
 
   Entity _toBackendEntity(Entity entity) {
     if (entity is ClassEntity) return toBackendClass(entity);
@@ -54,16 +84,7 @@ abstract class JsToFrontendMapBase implements JsToFrontendMap {
     return toBackendTypeVariable(entity);
   }
 
-  Entity _toFrontendEntity(Entity entity) {
-    if (entity is ClassEntity) return toFrontendClass(entity);
-    assert(entity is TypeVariableEntity);
-    TypeVariableEntity typeVariable = toFrontendTypeVariable(entity);
-    assert(typeVariable != null, "No front end type variable for $entity");
-    return typeVariable;
-  }
-
   TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable);
-  TypeVariableEntity toFrontendTypeVariable(TypeVariableEntity typeVariable);
 }
 
 // TODO(johnniwinther): Merge this with [JsKernelToElementMap].
@@ -302,15 +323,23 @@ class JClass implements ClassEntity, IndexedClass {
 
 abstract class JMember implements MemberEntity, IndexedMember {
   /// Member index used for fast lookup in [JsToFrontendMapImpl].
-  final int memberIndex;
+  int _memberIndex;
   final JLibrary library;
   final JClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  JMember(this.memberIndex, this.library, this.enclosingClass, this._name,
+  JMember(this._memberIndex, this.library, this.enclosingClass, this._name,
       {bool isStatic: false})
       : _isStatic = isStatic;
+
+  int get memberIndex => _memberIndex;
+
+  /// Should only be called by closure methods. All others should set
+  /// memberIndex at initialization time.
+  void set setClosureMemberIndex(int newIndex) {
+    _memberIndex = newIndex;
+  }
 
   String get name => _name.text;
 
@@ -439,9 +468,6 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
             isStatic: false,
             isExternal: false);
 
-  @override
-  bool get isFunction => true;
-
   String get _kind => 'constructor_body';
 }
 
@@ -533,219 +559,4 @@ class JLocalFunction implements Local {
 
   String toString() => '${jsElementPrefix}local_function'
       '(${memberContext.name}.${name ?? '<anonymous>'})';
-}
-
-class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
-  final JsKernelToElementMap elementMap;
-  final RuntimeTypesNeed rtiNeed;
-
-  JsClosedWorld(this.elementMap,
-      {ElementEnvironment elementEnvironment,
-      DartTypes dartTypes,
-      CommonElements commonElements,
-      ConstantSystem constantSystem,
-      NativeData nativeData,
-      InterceptorData interceptorData,
-      BackendUsage backendUsage,
-      this.rtiNeed,
-      Set<ClassEntity> implementedClasses,
-      Iterable<ClassEntity> liveNativeClasses,
-      Iterable<MemberEntity> liveInstanceMembers,
-      Iterable<MemberEntity> assignedInstanceMembers,
-      Set<TypedefElement> allTypedefs,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
-      : super(
-            elementEnvironment,
-            dartTypes,
-            commonElements,
-            constantSystem,
-            nativeData,
-            interceptorData,
-            backendUsage,
-            implementedClasses,
-            liveNativeClasses,
-            liveInstanceMembers,
-            assignedInstanceMembers,
-            allTypedefs,
-            mixinUses,
-            typesImplementedBySubclasses,
-            classHierarchyNodes,
-            classSets);
-
-  @override
-  void registerClosureClass(ClassElement cls) {
-    throw new UnimplementedError('JsClosedWorld.registerClosureClass');
-  }
-}
-
-class JsNativeData implements NativeData {
-  final JsToFrontendMap _map;
-  final NativeData _nativeData;
-
-  JsNativeData(this._map, this._nativeData);
-
-  @override
-  bool isNativeClass(ClassEntity element) {
-    return _nativeData.isNativeClass(_map.toFrontendClass(element));
-  }
-
-  @override
-  String computeUnescapedJSInteropName(String name) {
-    return _nativeData.computeUnescapedJSInteropName(name);
-  }
-
-  @override
-  String getJsInteropMemberName(MemberEntity element) {
-    return _nativeData.getJsInteropMemberName(_map.toFrontendMember(element));
-  }
-
-  @override
-  String getJsInteropClassName(ClassEntity element) {
-    return _nativeData.getJsInteropClassName(_map.toFrontendClass(element));
-  }
-
-  @override
-  bool isAnonymousJsInteropClass(ClassEntity element) {
-    return _nativeData.isAnonymousJsInteropClass(_map.toFrontendClass(element));
-  }
-
-  @override
-  String getJsInteropLibraryName(LibraryEntity element) {
-    return _nativeData.getJsInteropLibraryName(_map.toFrontendLibrary(element));
-  }
-
-  @override
-  bool isJsInteropMember(MemberEntity element) {
-    return _nativeData.isJsInteropMember(_map.toFrontendMember(element));
-  }
-
-  @override
-  String getFixedBackendMethodPath(FunctionEntity element) {
-    return _nativeData
-        .getFixedBackendMethodPath(_map.toFrontendMember(element));
-  }
-
-  @override
-  String getFixedBackendName(MemberEntity element) {
-    return _nativeData.getFixedBackendName(_map.toFrontendMember(element));
-  }
-
-  @override
-  bool hasFixedBackendName(MemberEntity element) {
-    return _nativeData.hasFixedBackendName(_map.toFrontendMember(element));
-  }
-
-  @override
-  NativeBehavior getNativeFieldStoreBehavior(FieldEntity field) {
-    return _nativeData
-        .getNativeFieldStoreBehavior(_map.toFrontendMember(field));
-  }
-
-  @override
-  NativeBehavior getNativeFieldLoadBehavior(FieldEntity field) {
-    return _nativeData.getNativeFieldLoadBehavior(_map.toFrontendMember(field));
-  }
-
-  @override
-  NativeBehavior getNativeMethodBehavior(FunctionEntity method) {
-    return _nativeData.getNativeMethodBehavior(_map.toFrontendMember(method));
-  }
-
-  @override
-  bool isNativeMember(MemberEntity element) {
-    return _nativeData.isNativeMember(_map.toFrontendMember(element));
-  }
-
-  @override
-  bool isJsInteropClass(ClassEntity element) {
-    return _nativeData.isJsInteropClass(_map.toFrontendClass(element));
-  }
-
-  @override
-  bool isJsInteropLibrary(LibraryEntity element) {
-    return _nativeData.isJsInteropLibrary(_map.toFrontendLibrary(element));
-  }
-
-  @override
-  bool get isJsInteropUsed {
-    return _nativeData.isJsInteropUsed;
-  }
-
-  @override
-  bool isNativeOrExtendsNative(ClassEntity element) {
-    return _nativeData.isNativeOrExtendsNative(_map.toFrontendClass(element));
-  }
-
-  @override
-  bool hasNativeTagsForcedNonLeaf(ClassEntity cls) {
-    return _nativeData.hasNativeTagsForcedNonLeaf(_map.toFrontendClass(cls));
-  }
-
-  @override
-  List<String> getNativeTagsOfClass(ClassEntity cls) {
-    return _nativeData.getNativeTagsOfClass(_map.toFrontendClass(cls));
-  }
-}
-
-class JsBackendUsage implements BackendUsage {
-  final JsToFrontendMap _map;
-  final BackendUsage _backendUsage;
-
-  @override
-  bool needToInitializeIsolateAffinityTag;
-  @override
-  bool needToInitializeDispatchProperty;
-
-  JsBackendUsage(this._map, this._backendUsage) {
-    needToInitializeIsolateAffinityTag =
-        _backendUsage.needToInitializeIsolateAffinityTag;
-    needToInitializeDispatchProperty =
-        _backendUsage.needToInitializeDispatchProperty;
-  }
-
-  @override
-  bool isFunctionUsedByBackend(FunctionEntity element) {
-    return _backendUsage
-        .isFunctionUsedByBackend(_map.toFrontendMember(element));
-  }
-
-  @override
-  bool isFieldUsedByBackend(FieldEntity element) {
-    return _backendUsage.isFieldUsedByBackend(_map.toFrontendMember(element));
-  }
-
-  @override
-  Iterable<FunctionEntity> get globalFunctionDependencies {
-    FunctionEntity f(FunctionEntity e) => _map.toBackendMember(e);
-    return _backendUsage.globalFunctionDependencies.map(f);
-  }
-
-  @override
-  Iterable<ClassEntity> get globalClassDependencies {
-    return _backendUsage.globalClassDependencies.map(_map.toBackendClass);
-  }
-
-  @override
-  bool get requiresPreamble => _backendUsage.requiresPreamble;
-
-  @override
-  bool get isInvokeOnUsed => _backendUsage.isInvokeOnUsed;
-
-  @override
-  bool get isRuntimeTypeUsed => _backendUsage.isRuntimeTypeUsed;
-
-  @override
-  bool get isIsolateInUse => _backendUsage.isIsolateInUse;
-
-  @override
-  bool get isFunctionApplyUsed => _backendUsage.isFunctionApplyUsed;
-
-  @override
-  bool get isMirrorsUsed => _backendUsage.isMirrorsUsed;
-
-  @override
-  bool get isNoSuchMethodUsed => _backendUsage.isNoSuchMethodUsed;
 }

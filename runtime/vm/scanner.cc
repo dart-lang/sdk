@@ -19,7 +19,6 @@ namespace dart {
 #define Z (zone())
 #define T (thread())
 
-
 class ScanContext : public ZoneAllocated {
  public:
   explicit ScanContext(Scanner* scanner)
@@ -43,10 +42,8 @@ class ScanContext : public ZoneAllocated {
   const int brace_level_;
 };
 
-
 Scanner::KeywordTable Scanner::keywords_[Token::kNumKeywords];
 int Scanner::keywords_char_offset_[Scanner::kNumLowercaseChars];
-
 
 void Scanner::Reset() {
   // Non-changing newline properties.
@@ -74,7 +71,6 @@ void Scanner::Reset() {
   ReadChar();
 }
 
-
 Scanner::Scanner(const String& src, const String& private_key)
     : source_(src),
       source_length_(src.Length()),
@@ -86,9 +82,7 @@ Scanner::Scanner(const String& src, const String& private_key)
   Reset();
 }
 
-
 Scanner::~Scanner() {}
-
 
 void Scanner::ErrorMsg(const char* msg) {
   current_token_.kind = Token::kERROR;
@@ -98,7 +92,6 @@ void Scanner::ErrorMsg(const char* msg) {
   current_token_.offset = lookahead_pos_;
 }
 
-
 void Scanner::PushContext() {
   ScanContext* ctx = new (Z) ScanContext(this);
   saved_context_ = ctx;
@@ -106,7 +99,6 @@ void Scanner::PushContext() {
   string_is_multiline_ = false;
   brace_level_ = 1;  // Account for the opening ${ token.
 }
-
 
 void Scanner::PopContext() {
   ASSERT(saved_context_ != NULL);
@@ -118,48 +110,39 @@ void Scanner::PopContext() {
   ASSERT(string_delimiter_ != '\0');
 }
 
-
 void Scanner::BeginStringLiteral(const char delimiter) {
   string_delimiter_ = delimiter;
 }
-
 
 void Scanner::EndStringLiteral() {
   string_delimiter_ = '\0';
   string_is_multiline_ = false;
 }
 
-
 bool Scanner::IsLetter(int32_t c) {
   return (('A' <= c) && (c <= 'Z')) || (('a' <= c) && (c <= 'z'));
 }
-
 
 bool Scanner::IsDecimalDigit(int32_t c) {
   return '0' <= c && c <= '9';
 }
 
-
 bool Scanner::IsNumberStart(int32_t ch) {
   return IsDecimalDigit(ch) || ch == '.';
 }
-
 
 bool Scanner::IsHexDigit(int32_t c) {
   return IsDecimalDigit(c) || (('A' <= c) && (c <= 'F')) ||
          (('a' <= c) && (c <= 'f'));
 }
 
-
 bool Scanner::IsIdentStartChar(int32_t c) {
   return IsLetter(c) || (c == '_') || (c == '$');
 }
 
-
 bool Scanner::IsIdentChar(int32_t c) {
   return IsLetter(c) || IsDecimalDigit(c) || (c == '_') || (c == '$');
 }
-
 
 bool Scanner::IsIdent(const String& str) {
   if (!str.IsOneByteString()) {
@@ -175,7 +158,6 @@ bool Scanner::IsIdent(const String& str) {
   }
   return true;
 }
-
 
 // This method is used when parsing integers in Dart code. We
 // are reusing the Scanner's handling of number literals in that situation.
@@ -209,7 +191,6 @@ bool Scanner::IsValidInteger(const String& str,
   return false;
 }
 
-
 void Scanner::ReadChar() {
   if (lookahead_pos_ < source_length_) {
     if (c0_ == '\n') {
@@ -233,7 +214,6 @@ void Scanner::ReadChar() {
   }
 }
 
-
 // Look ahead 'how_many' characters. Returns the character, or '\0' if
 // the lookahead position is beyond the end of the string. Does not
 // normalize line end characters into '\n'.
@@ -246,13 +226,11 @@ int32_t Scanner::LookaheadChar(int how_many) {
   return lookahead_char;
 }
 
-
 void Scanner::ConsumeWhiteSpace() {
   while (c0_ == ' ' || c0_ == '\t' || c0_ == '\n') {
     ReadChar();
   }
 }
-
 
 void Scanner::ConsumeLineComment() {
   ASSERT(c0_ == '/');
@@ -262,7 +240,6 @@ void Scanner::ConsumeLineComment() {
   ReadChar();
   current_token_.kind = Token::kWHITESP;
 }
-
 
 void Scanner::ConsumeBlockComment() {
   ASSERT(c0_ == '*');
@@ -289,7 +266,6 @@ void Scanner::ConsumeBlockComment() {
   current_token_.kind =
       (nesting_level == 0) ? Token::kWHITESP : Token::kILLEGAL;
 }
-
 
 void Scanner::ScanIdentChars(bool allow_dollar) {
   ASSERT(IsIdentStartChar(c0_));
@@ -338,7 +314,6 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   }
   current_token_.literal = &literal;
 }
-
 
 // Parse integer or double number literal of format:
 // NUMBER = INTEGER | DOUBLE
@@ -393,13 +368,11 @@ void Scanner::ScanNumber(bool dec_point_seen) {
   }
 }
 
-
 void Scanner::SkipLine() {
   while (c0_ != '\n' && c0_ != '\0') {
     ReadChar();
   }
 }
-
 
 void Scanner::ScanScriptTag() {
   ReadChar();
@@ -409,7 +382,6 @@ void Scanner::ScanScriptTag() {
   // similar to a line comment.
   SkipLine();
 }
-
 
 void Scanner::ScanLiteralString(bool is_raw) {
   ASSERT(!IsScanningString());
@@ -427,7 +399,6 @@ void Scanner::ScanLiteralString(bool is_raw) {
   ScanLiteralStringChars(is_raw, string_is_multiline_);
 }
 
-
 bool Scanner::ScanHexDigits(int digits, int32_t* value) {
   *value = 0;
   for (int i = 0; i < digits; ++i) {
@@ -441,7 +412,6 @@ bool Scanner::ScanHexDigits(int digits, int32_t* value) {
   }
   return true;
 }
-
 
 bool Scanner::ScanHexDigits(int min_digits, int max_digits, int32_t* value) {
   *value = 0;
@@ -460,7 +430,6 @@ bool Scanner::ScanHexDigits(int min_digits, int max_digits, int32_t* value) {
   }
   return true;
 }
-
 
 void Scanner::ScanEscapedCodePoint(int32_t* code_point) {
   ASSERT(c0_ == 'u' || c0_ == 'x');
@@ -483,7 +452,6 @@ void Scanner::ScanEscapedCodePoint(int32_t* code_point) {
     ErrorMsg("invalid code point");
   }
 }
-
 
 void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
   GrowableArray<int32_t> string_chars(64);
@@ -605,7 +573,6 @@ void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
     ReadChar();
   }
 }
-
 
 void Scanner::Scan() {
   newline_seen_ = false;
@@ -880,7 +847,6 @@ void Scanner::Scan() {
   } while (current_token_.kind == Token::kWHITESP);
 }
 
-
 void Scanner::ScanAll(TokenCollector* collector) {
   Reset();
   do {
@@ -905,7 +871,6 @@ void Scanner::ScanAll(TokenCollector* collector) {
   } while (current_token_.kind != Token::kEOS);
 }
 
-
 void Scanner::ScanTo(intptr_t token_index) {
   ASSERT(token_index >= 0);
   intptr_t index = 0;
@@ -929,7 +894,6 @@ void Scanner::ScanTo(intptr_t token_index) {
     prev_token_line_ = current_token_.position.line;
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
 }
-
 
 void Scanner::InitOnce() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());

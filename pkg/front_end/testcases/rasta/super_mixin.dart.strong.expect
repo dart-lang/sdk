@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "./mixin_library.dart" as mix;
 
 class Super<S extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method foo() → dynamic
@@ -15,14 +15,14 @@ class Super<S extends core::Object> extends core::Object {
 abstract class Super&Mixin^#T0^#T0<#T0 extends core::Object> = self::Super<self::Super&Mixin^#T0^#T0::#T0> with mix::Mixin<self::Super&Mixin^#T0^#T0::#T0> {
 }
 class C<V extends core::Object> extends self::Super&Mixin^#T0^#T0<self::C::V> {
-  constructor •() → void
+  default constructor •() → void
     : super self::Super::•()
     ;
 }
 abstract class Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
 }
 class D extends self::Super&Mixin {
-  constructor •() → void
+  default constructor •() → void
     : super self::Super::•()
     ;
 }

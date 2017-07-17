@@ -100,9 +100,7 @@ class AbstractContextManagerTest extends ContextManagerTest {
     newFile([embedderSrcPath, 'part.dart']);
 
     // Setup _embedder.yaml.
-    newFile(
-        [libPath, '_embedder.yaml'],
-        r'''
+    newFile([libPath, '_embedder.yaml'], r'''
 embedded_libs:
   "dart:foobar": "../embedder/entry.dart"
   "dart:typed_data": "../embedder/src/part"
@@ -125,9 +123,7 @@ embedded_libs:
     expect(sourceFactory.forUri('dart:typed_data'), isNull);
 
     // Add .packages file that introduces a dependency with embedded libs.
-    newFile(
-        [projPath, '.packages'],
-        r'''
+    newFile([projPath, '.packages'], r'''
 test_pack:lib/''');
 
     await pumpEventQueue();
@@ -151,17 +147,13 @@ test_pack:lib/''');
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup _embedder.yaml.
-    newFile(
-        [libPath, '_embedder.yaml'],
-        r'''
+    newFile([libPath, '_embedder.yaml'], r'''
 embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
   "dart:typed_data": "../sdk_ext/src/part"
   ''');
     // Setup .packages file
-    newFile(
-        [projPath, '.packages'],
-        r'''
+    newFile([projPath, '.packages'], r'''
 test_pack:lib/''');
     // Setup context.
 
@@ -385,17 +377,13 @@ test_pack:lib/''');
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup sdk extension mapping.
-    newFile(
-        [libPath, '_sdkext'],
-        r'''
+    newFile([libPath, '_sdkext'], r'''
 {
   "dart:foobar": "../sdk_ext/entry.dart"
 }
 ''');
     // Setup .packages file
-    newFile(
-        [projPath, '.packages'],
-        r'''
+    newFile([projPath, '.packages'], r'''
 test_pack:lib/''');
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1850,9 +1838,7 @@ abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
 
   test_analysis_options_file_delete() async {
     // Setup analysis options
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
@@ -1890,9 +1876,7 @@ linter:
     // flag from the embedder.yaml file.
     // Setup _embedder.yaml.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
-    newFile(
-        [libPath, '_embedder.yaml'],
-        r'''
+    newFile([libPath, '_embedder.yaml'], r'''
 analyzer:
   strong-mode: true
   errors:
@@ -1903,15 +1887,11 @@ linter:
 ''');
 
     // Setup .packages file
-    newFile(
-        [projPath, '.packages'],
-        r'''
+    newFile([projPath, '.packages'], r'''
 test_pack:lib/''');
 
     // Setup analysis options
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   language:
     enableStrictCallChecks: true
@@ -1953,14 +1933,10 @@ linter:
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup analysis options file which includes another options file.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 include: other_options.yaml
 ''');
-    newFile(
-        [projPath, 'other_options.yaml'],
-        r'''
+    newFile([projPath, 'other_options.yaml'], r'''
 analyzer:
   language:
     enableStrictCallChecks: true
@@ -1990,9 +1966,7 @@ linter:
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup package
     String booLibPosixPath = '/my/pkg/boo/lib';
-    newFile(
-        [booLibPosixPath, 'other_options.yaml'],
-        r'''
+    newFile([booLibPosixPath, 'other_options.yaml'], r'''
 analyzer:
   language:
     enableStrictCallChecks: true
@@ -2005,9 +1979,7 @@ linter:
     // Setup analysis options file which includes another options file.
     newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME],
         'boo:$booLibPosixPath\n');
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 include: package:boo/other_options.yaml
 ''');
     // Setup context.
@@ -2029,9 +2001,7 @@ include: package:boo/other_options.yaml
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup analysis options file with ignore list.
-    String optionsFilePath = newFile(
-        [projPath, optionsFileName],
-        r'''
+    String optionsFilePath = newFile([projPath, optionsFileName], r'''
 ;
 ''');
     // Setup context.
@@ -2069,9 +2039,7 @@ include: package:boo/other_options.yaml
     List<int> bytes = new SummaryBuilder([], null, true).build();
     newFileFromBytes([projPath, 'sdk.ds'], bytes);
     // Setup _embedder.yaml.
-    newFile(
-        [libPath, '_embedder.yaml'],
-        r'''
+    newFile([libPath, '_embedder.yaml'], r'''
 embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
@@ -2085,15 +2053,11 @@ linter:
     - avoid_as
 ''');
     // Setup .packages file
-    newFile(
-        [projPath, '.packages'],
-        r'''
+    newFile([projPath, '.packages'], r'''
 test_pack:lib/''');
 
     // Setup analysis options
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   exclude:
     - 'test/**'
@@ -2153,9 +2117,7 @@ linter:
 
   test_error_filter_analysis_option() async {
     // Create files.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   errors:
     unused_local_variable: ignore
@@ -2170,9 +2132,7 @@ analyzer:
 
   test_error_filter_analysis_option_multiple_filters() async {
     // Create files.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   errors:
     invalid_assignment: ignore
@@ -2190,9 +2150,7 @@ analyzer:
 
   test_error_filter_analysis_option_synonyms() async {
     // Create files.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   errors:
     unused_local_variable: ignore
@@ -2208,9 +2166,7 @@ analyzer:
 
   test_error_filter_analysis_option_unpsecified() async {
     // Create files.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
 #  errors:
 #    unused_local_variable: ignore
@@ -2230,18 +2186,14 @@ analyzer:
     // After a few other changes, the test now times out on my machine, so I'm
     // disabling it in order to prevent it from being flaky.
     fail('Test times out');
-    var file = resourceProvider.newFile(
-        '$projPath/bin/test.dart',
-        r'''
+    var file = resourceProvider.newFile('$projPath/bin/test.dart', r'''
 main() {
   var paths = <int>[];
   var names = <String>[];
   paths.addAll(names.map((s) => s.length));
 }
 ''');
-    resourceProvider.newFile(
-        '$projPath/$optionsFileName',
-        r'''
+    resourceProvider.newFile('$projPath/$optionsFileName', r'''
 analyzer:
   strong-mode: false
 ''');
@@ -2258,9 +2210,7 @@ analyzer:
     expect(result.errors, isEmpty);
 
     // Update the options file - turn on 'strong-mode'.
-    resourceProvider.updateFile(
-        '$projPath/$optionsFileName',
-        r'''
+    resourceProvider.updateFile('$projPath/$optionsFileName', r'''
 analyzer:
   strong-mode: true
 ''');
@@ -2290,9 +2240,7 @@ analyzer:
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup analysis options file with ignore list.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   exclude:
     - lib/nope.dart
@@ -2316,23 +2264,17 @@ analyzer:
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
     newFile([libPath, 'main.dart']);
-    newFile(
-        [libPath, 'pubspec.yaml'],
-        r'''
+    newFile([libPath, 'pubspec.yaml'], r'''
 name: foobar
 ''');
     String otherLibPath = newFolder([projPath, 'other_lib']);
     newFile([otherLibPath, 'entry.dart']);
-    newFile(
-        [otherLibPath, 'pubspec.yaml'],
-        r'''
+    newFile([otherLibPath, 'pubspec.yaml'], r'''
 name: other_lib
 ''');
     // Setup analysis options file with ignore list that ignores the 'other_lib'
     // directory by name.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   exclude:
     - 'other_lib'
@@ -2352,23 +2294,17 @@ analyzer:
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
     newFile([libPath, 'main.dart']);
-    newFile(
-        [libPath, 'pubspec.yaml'],
-        r'''
+    newFile([libPath, 'pubspec.yaml'], r'''
   name: foobar
   ''');
     String otherLibPath = newFolder([projPath, 'other_lib']);
     newFile([otherLibPath, 'entry.dart']);
-    newFile(
-        [otherLibPath, 'pubspec.yaml'],
-        r'''
+    newFile([otherLibPath, 'pubspec.yaml'], r'''
   name: other_lib
   ''');
     // Setup analysis options file with ignore list that ignores 'other_lib'
     // and all descendants.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   exclude:
     - 'other_lib/**'
@@ -2389,23 +2325,17 @@ analyzer:
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
     newFile([libPath, 'main.dart']);
-    newFile(
-        [libPath, 'pubspec.yaml'],
-        r'''
+    newFile([libPath, 'pubspec.yaml'], r'''
 name: foobar
 ''');
     String otherLibPath = newFolder([projPath, 'other_lib']);
     newFile([otherLibPath, 'entry.dart']);
-    newFile(
-        [otherLibPath, 'pubspec.yaml'],
-        r'''
+    newFile([otherLibPath, 'pubspec.yaml'], r'''
 name: other_lib
 ''');
     // Setup analysis options file with ignore list that ignores 'other_lib'
     // and all immediate children.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   exclude:
     - 'other_lib/*'
@@ -2428,9 +2358,7 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    newFile(
-        [project, optionsFileName],
-        r'''
+    newFile([project, optionsFileName], r'''
 analyzer:
   exclude:
     - 'example'
@@ -2464,9 +2392,7 @@ analyzer:
     // create files
     resourceProvider.newFile(aPubspec, 'name: aaa');
     resourceProvider.newFile(cPubspec, 'name: ccc');
-    newFile(
-        [a, optionsFileName],
-        r'''
+    newFile([a, optionsFileName], r'''
 analyzer:
   exclude:
     - 'b**'
@@ -2493,9 +2419,7 @@ analyzer:
 
   test_strong_mode_analysis_option() async {
     // Create files.
-    newFile(
-        [projPath, optionsFileName],
-        r'''
+    newFile([projPath, optionsFileName], r'''
 analyzer:
   strong-mode: true
 ''');

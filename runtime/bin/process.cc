@@ -72,13 +72,11 @@ static char** ExtractCStringList(Dart_Handle strings,
   return string_args;
 }
 
-
 void Process::ClearAllSignalHandlers() {
   for (intptr_t i = 1; i <= kLastSignal; i++) {
     ClearSignalHandler(i, ILLEGAL_PORT);
   }
 }
-
 
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle process = Dart_GetNativeArgument(args, 0);
@@ -190,7 +188,6 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewBoolean(error_code == 0));
 }
 
-
 void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
   Dart_Handle process = Dart_GetNativeArgument(args, 0);
   Socket* process_stdin =
@@ -234,14 +231,12 @@ void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Process_KillPid)(Dart_NativeArguments args) {
   intptr_t pid = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   bool success = Process::Kill(pid, signal);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
 }
-
 
 void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
@@ -252,7 +247,6 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   Platform::Exit(static_cast<int>(status));
 }
 
-
 void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just set exit code to 0.
@@ -260,11 +254,9 @@ void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
   Process::SetGlobalExitCode(status);
 }
 
-
 void FUNCTION_NAME(Process_GetExitCode)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Process::GlobalExitCode()));
 }
-
 
 void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
   ScopedBlockingCall blocker;
@@ -273,7 +265,6 @@ void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &milliseconds);
   TimerUtils::Sleep(milliseconds);
 }
-
 
 void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
   // Ignore result if passing invalid argument and just set exit code to 0.
@@ -287,7 +278,6 @@ void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(pid));
 }
 
-
 void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
   intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   intptr_t id = Process::SetSignalHandler(signal);
@@ -298,24 +288,20 @@ void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Process_ClearSignalHandler)(Dart_NativeArguments args) {
   intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   Process::ClearSignalHandler(signal, Dart_GetMainPortId());
 }
-
 
 Dart_Handle Process::GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid) {
   return Dart_GetNativeInstanceField(process, kProcessIdNativeField, pid);
 }
 
-
 Dart_Handle Process::SetProcessIdNativeField(Dart_Handle process,
                                              intptr_t pid) {
   return Dart_SetNativeInstanceField(process, kProcessIdNativeField, pid);
 }
-
 
 void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   Dart_Handle bytes = Dart_GetNativeArgument(args, 0);
@@ -341,7 +327,6 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, result);
 }
 
-
 void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   char* utf8;
@@ -366,7 +351,6 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, external_array);
 }
 
-
 void FUNCTION_NAME(ProcessInfo_CurrentRSS)(Dart_NativeArguments args) {
   int64_t current_rss = Process::CurrentRSS();
   if (current_rss < 0) {
@@ -375,7 +359,6 @@ void FUNCTION_NAME(ProcessInfo_CurrentRSS)(Dart_NativeArguments args) {
   }
   Dart_SetIntegerReturnValue(args, current_rss);
 }
-
 
 void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
   int64_t max_rss = Process::MaxRSS();

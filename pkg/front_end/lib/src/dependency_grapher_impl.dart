@@ -10,7 +10,7 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/source/directive_listener.dart';
-import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 
 /// Generates a representation of the dependency graph of a program.
 ///
@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/translate_uri.dart';
 /// package:front_end/dependency_grapher.dart.
 Future<Graph> graphForProgram(List<Uri> sources, ProcessedOptions options,
     {FileReader fileReader}) async {
-  TranslateUri uriTranslator = await options.getUriTranslator();
+  UriTranslator uriTranslator = await options.getUriTranslator();
   fileReader ??= (originalUri, resolvedUri) =>
       options.fileSystem.entityForUri(resolvedUri).readAsString();
   var walker = new _Walker(fileReader, uriTranslator, options.compileSdk);
@@ -50,7 +50,7 @@ class _StartingPoint extends _WalkerNode {
 
 class _Walker extends AsyncDependencyWalker<_WalkerNode> {
   final FileReader fileReader;
-  final TranslateUri uriTranslator;
+  final UriTranslator uriTranslator;
   final _nodesByUri = <Uri, _WalkerNode>{};
   final graph = new Graph();
   final bool compileSdk;

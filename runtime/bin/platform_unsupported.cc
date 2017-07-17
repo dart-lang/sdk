@@ -16,54 +16,45 @@ void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
       "Platform is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
 
-
 void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
       "Platform is not supported on this platform"));
 }
-
 
 void FUNCTION_NAME(Platform_LocaleName)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(

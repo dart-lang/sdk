@@ -80,20 +80,17 @@ class DynamicAssertionHelper {
   DISALLOW_IMPLICIT_CONSTRUCTORS(DynamicAssertionHelper);
 };
 
-
 class Assert : public DynamicAssertionHelper {
  public:
   Assert(const char* file, int line)
       : DynamicAssertionHelper(file, line, ASSERT) {}
 };
 
-
 class Expect : public DynamicAssertionHelper {
  public:
   Expect(const char* file, int line)
       : DynamicAssertionHelper(file, line, EXPECT) {}
 };
-
 
 #if defined(TESTING)
 // Only allow the expensive (with respect to code size) assertions
@@ -108,7 +105,6 @@ void DynamicAssertionHelper::Equals(const E& expected, const A& actual) {
   Fail("expected: <%s> but was: <%s>", es.c_str(), as.c_str());
 }
 
-
 template <typename E, typename A>
 void DynamicAssertionHelper::NotEquals(const E& not_expected, const A& actual) {
   if (actual != not_expected) return;
@@ -117,7 +113,6 @@ void DynamicAssertionHelper::NotEquals(const E& not_expected, const A& actual) {
   std::string nes = ness.str();
   Fail("did not expect: <%s>", nes.c_str());
 }
-
 
 template <typename E, typename A, typename T>
 void DynamicAssertionHelper::FloatEquals(const E& expected,
@@ -135,7 +130,6 @@ void DynamicAssertionHelper::FloatEquals(const E& expected,
        tols.c_str());
 }
 
-
 template <typename E, typename A>
 NO_SANITIZE_MEMORY void DynamicAssertionHelper::StringEquals(const E& expected,
                                                              const A& actual) {
@@ -146,7 +140,6 @@ NO_SANITIZE_MEMORY void DynamicAssertionHelper::StringEquals(const E& expected,
   if (as == es) return;
   Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
 }
-
 
 template <typename E, typename A>
 NO_SANITIZE_MEMORY void DynamicAssertionHelper::IsSubstring(const E& needle,
@@ -159,7 +152,6 @@ NO_SANITIZE_MEMORY void DynamicAssertionHelper::IsSubstring(const E& needle,
   Fail("expected <\"%s\"> to be a substring of <\"%s\">", es.c_str(),
        as.c_str());
 }
-
 
 template <typename E, typename A>
 NO_SANITIZE_MEMORY void DynamicAssertionHelper::IsNotSubstring(
@@ -174,7 +166,6 @@ NO_SANITIZE_MEMORY void DynamicAssertionHelper::IsNotSubstring(
        as.c_str());
 }
 
-
 template <typename E, typename A>
 void DynamicAssertionHelper::LessThan(const E& left, const A& right) {
   if (left < right) return;
@@ -184,7 +175,6 @@ void DynamicAssertionHelper::LessThan(const E& left, const A& right) {
   std::string es = ess.str(), as = ass.str();
   Fail("expected: %s < %s", es.c_str(), as.c_str());
 }
-
 
 template <typename E, typename A>
 void DynamicAssertionHelper::LessEqual(const E& left, const A& right) {
@@ -196,7 +186,6 @@ void DynamicAssertionHelper::LessEqual(const E& left, const A& right) {
   Fail("expected: %s <= %s", es.c_str(), as.c_str());
 }
 
-
 template <typename E, typename A>
 void DynamicAssertionHelper::GreaterThan(const E& left, const A& right) {
   if (left > right) return;
@@ -206,7 +195,6 @@ void DynamicAssertionHelper::GreaterThan(const E& left, const A& right) {
   std::string es = ess.str(), as = ass.str();
   Fail("expected: %s > %s", es.c_str(), as.c_str());
 }
-
 
 template <typename E, typename A>
 void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
@@ -219,7 +207,6 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
 }
 #endif
 
-
 template <typename T>
 T DynamicAssertionHelper::NotNull(const T p) {
   if (p != NULL) return p;
@@ -228,7 +215,6 @@ T DynamicAssertionHelper::NotNull(const T p) {
 }
 
 }  // namespace dart
-
 
 #define FATAL(error) dart::Assert(__FILE__, __LINE__).Fail("%s", error)
 
@@ -245,7 +231,6 @@ T DynamicAssertionHelper::NotNull(const T p) {
 #define UNREACHABLE() FATAL("unreachable code")
 
 #define OUT_OF_MEMORY() FATAL("Out of memory.")
-
 
 #if defined(DEBUG)
 // DEBUG binaries use assertions in the code.
@@ -281,12 +266,10 @@ T DynamicAssertionHelper::NotNull(const T p) {
 
 #endif  // if defined(DEBUG)
 
-
 #define RELEASE_ASSERT(cond)                                                   \
   do {                                                                         \
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
-
 
 // The COMPILE_ASSERT macro can be used to verify that a compile time
 // expression is true. For example, you could use it to verify the

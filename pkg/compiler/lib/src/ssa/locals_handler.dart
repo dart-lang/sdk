@@ -88,7 +88,7 @@ class LocalsHandler {
   /// [contextClass].
   DartType substInContext(DartType type) {
     if (contextClass != null) {
-      ClassElement typeContext = DartTypes.getClassContext(type);
+      ClassEntity typeContext = DartTypes.getClassContext(type);
       if (typeContext != null) {
         type = builder.types.substByContext(
             type,
@@ -136,7 +136,7 @@ class LocalsHandler {
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(ClosureScope closureInfo,
+  void enterScope(CapturedScope closureInfo,
       {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
@@ -198,7 +198,7 @@ class LocalsHandler {
   ///
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberEntity element, ScopeInfo scopeInfo,
-      ClosureScope scopeData, Map<Local, TypeMask> parameters,
+      CapturedScope scopeData, Map<Local, TypeMask> parameters,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
@@ -323,12 +323,12 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableLocal) {
-          throw new SpannableAssertionFailure(
+          failedAt(
               CURRENT_ELEMENT_SPANNABLE,
               "Runtime type information not available for $local "
               "in $executableContext.");
         } else {
-          throw new SpannableAssertionFailure(
+          failedAt(
               local,
               "Cannot find value $local in ${directLocals.keys} for "
               "$executableContext.");
@@ -476,7 +476,7 @@ class LocalsHandler {
   ///    <updates>
   ///    goto loop-entry;
   ///  loop-exit:
-  void startLoop(LoopClosureScope loopInfo) {
+  void startLoop(CapturedLoopScope loopInfo) {
     if (loopInfo.hasBoxedLoopVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
@@ -509,7 +509,7 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(LoopClosureScope loopInfo) {
+  void enterLoopBody(CapturedLoopScope loopInfo) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!loopInfo.hasBoxedLoopVariables) {
@@ -517,7 +517,7 @@ class LocalsHandler {
     }
   }
 
-  void enterLoopUpdates(LoopClosureScope loopInfo) {
+  void enterLoopUpdates(CapturedLoopScope loopInfo) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.

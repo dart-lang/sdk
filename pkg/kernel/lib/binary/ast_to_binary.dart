@@ -382,6 +382,7 @@ class BinaryPrinter extends Visitor {
     writeByte(flags);
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -1354,6 +1355,7 @@ class StringIndexer extends RecursiveVisitor<Null> {
   }
 
   visitClass(Class node) {
+    putOptional(node.documentationComment);
     putOptional(node.name);
     node.visitChildren(this);
   }

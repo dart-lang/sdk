@@ -19,7 +19,6 @@ CompilationTraceSaver::CompilationTraceSaver(Zone* zone)
       lib_(Library::Handle(zone)),
       uri_(String::Handle(zone)) {}
 
-
 void CompilationTraceSaver::Visit(const Function& function) {
   if (!function.HasCode()) {
     return;  // Not compiled.
@@ -41,7 +40,6 @@ void CompilationTraceSaver::Visit(const Function& function) {
               func_name_.ToCString());
 }
 
-
 CompilationTraceLoader::CompilationTraceLoader(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
@@ -56,7 +54,6 @@ CompilationTraceLoader::CompilationTraceLoader(Thread* thread)
       field_(Field::Handle(zone_)),
       error_(Object::Handle(zone_)) {}
 
-
 static char* FindCharacter(char* str, char goal, char* limit) {
   while (str < limit) {
     if (*str == goal) {
@@ -66,7 +63,6 @@ static char* FindCharacter(char* str, char goal, char* limit) {
   }
   return NULL;
 }
-
 
 RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
                                                 intptr_t size) {
@@ -135,7 +131,6 @@ RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
 
   return Object::null();
 }
-
 
 // Use a fuzzy match to find the right function to compile. This allows a
 // compilation trace to remain mostly valid in the face of program changes, and
@@ -238,14 +233,12 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   return Object::null();
 }
 
-
 RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
   if (function.is_abstract()) {
     return Object::null();
   }
   return Compiler::CompileFunction(thread_, function);
 }
-
 
 RawObject* CompilationTraceLoader::EvaluateInitializer(const Field& field) {
   LongJumpScope jump;

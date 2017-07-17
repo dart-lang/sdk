@@ -19,7 +19,6 @@ void FUNCTION_NAME(FileSystemWatcher_IsSupported)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewBoolean(FileSystemWatcher::IsSupported()));
 }
 
-
 void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
   intptr_t id = FileSystemWatcher::Init();
   if (id >= 0) {
@@ -30,12 +29,10 @@ void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(FileSystemWatcher_CloseWatcher)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   FileSystemWatcher::Close(id);
 }
-
 
 void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
@@ -49,13 +46,11 @@ void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(path_id));
 }
 
-
 void FUNCTION_NAME(FileSystemWatcher_UnwatchPath)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   intptr_t path_id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   FileSystemWatcher::UnwatchPath(id, path_id);
 }
-
 
 void FUNCTION_NAME(FileSystemWatcher_ReadEvents)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
@@ -64,7 +59,6 @@ void FUNCTION_NAME(FileSystemWatcher_ReadEvents)(Dart_NativeArguments args) {
   ThrowIfError(handle);
   Dart_SetReturnValue(args, handle);
 }
-
 
 void FUNCTION_NAME(FileSystemWatcher_GetSocketId)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));

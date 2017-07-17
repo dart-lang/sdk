@@ -602,7 +602,13 @@ class Uri {
 @patch
 class _Uri {
   @patch
-  static bool get _isWindows => false;
+  static bool get _isWindows => _isWindowsCached;
+
+  static final bool _isWindowsCached = JS(
+      'bool',
+      'typeof process != "undefined" && '
+      'Object.prototype.toString.call(process) == "[object process]" && '
+      'process.platform == "win32"');
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that

@@ -62,6 +62,10 @@ class PlatformWin {
     // CTRL_C_EVENT signal. This will only run when there is no signal handler
     // registered for the CTRL_C_EVENT from Dart code.
     SetConsoleCtrlHandler(SignalHandler, TRUE);
+#ifndef PRODUCT
+    // Set up global exception handler to be able to dump stack trace on crash.
+    SetExceptionHandler();
+#endif
   }
 
   static BOOL WINAPI SignalHandler(DWORD signal) {
@@ -104,6 +108,24 @@ class PlatformWin {
   static void RestoreConsole() {
     MutexLocker ml(platform_win_mutex_);
     RestoreConsoleLocked();
+  }
+
+  // Windows top-level unhandled exception handler function.
+  // See MSDN documentation for UnhandledExceptionFilter.
+  // https://msdn.microsoft.com/en-us/library/windows/desktop/ms681401(v=vs.85).aspx
+  static LONG WINAPI
+  DartExceptionHandler(struct _EXCEPTION_POINTERS* ExceptionInfo) {
+    if (ExceptionInfo->ExceptionRecord->ExceptionCode ==
+        EXCEPTION_ACCESS_VIOLATION) {
+      const int kAbortExitCode = 3;
+      Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
+      Platform::Exit(kAbortExitCode);
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+  }
+
+  static void SetExceptionHandler() {
+    SetUnhandledExceptionFilter(DartExceptionHandler);
   }
 
  private:
@@ -181,28 +203,23 @@ bool Platform::Initialize() {
   return true;
 }
 
-
 int Platform::NumberOfProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
 }
 
-
 const char* Platform::OperatingSystem() {
   return "windows";
 }
-
 
 const char* Platform::LibraryPrefix() {
   return "";
 }
 
-
 const char* Platform::LibraryExtension() {
   return "dll";
 }
-
 
 const char* Platform::LocaleName() {
   wchar_t locale_name[LOCALE_NAME_MAX_LENGTH];
@@ -212,7 +229,6 @@ const char* Platform::LocaleName() {
   }
   return StringUtilsWin::WideToUtf8(locale_name);
 }
-
 
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 #if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
@@ -224,7 +240,6 @@ bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 #endif
 }
-
 
 char** Platform::Environment(intptr_t* count) {
   wchar_t* strings = GetEnvironmentStringsW();
@@ -258,11 +273,9 @@ char** Platform::Environment(intptr_t* count) {
   return result;
 }
 
-
 const char* Platform::GetExecutableName() {
   return executable_name_;
 }
-
 
 const char* Platform::ResolveExecutablePath() {
   // GetModuleFileNameW cannot directly provide information on the
@@ -283,7 +296,6 @@ const char* Platform::ResolveExecutablePath() {
   const char* canon_path = File::GetCanonicalPath(path);
   return canon_path;
 }
-
 
 void Platform::Exit(int exit_code) {
   // TODO(zra): Remove once VM shuts down cleanly.

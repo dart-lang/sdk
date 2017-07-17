@@ -22,22 +22,17 @@ namespace dart {
 #define MAKE_PROPERTIES(CamelName, name)                                       \
   {ObjectStore::k##CamelName, "dart:" #name},
 
-
 struct BootstrapLibProps {
   ObjectStore::BootstrapLibraryId index;
   const char* uri;
 };
 
-
 static BootstrapLibProps bootstrap_libraries[] = {
     FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_PROPERTIES)};
 
-
 #undef MAKE_PROPERTIES
 
-
 static const intptr_t bootstrap_library_count = ARRAY_SIZE(bootstrap_libraries);
-
 
 void Finish(Thread* thread, bool from_kernel) {
   Bootstrap::SetupNativeResolver();
@@ -70,7 +65,6 @@ void Finish(Thread* thread, bool from_kernel) {
   cls = object_store->bool_class();
   Compiler::CompileClass(cls);
 }
-
 
 RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
@@ -117,7 +111,6 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
 
   return Error::null();
 }
-
 
 RawError* Bootstrap::DoBootstrapping(kernel::Program* program) {
   Thread* thread = Thread::Current();

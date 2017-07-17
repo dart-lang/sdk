@@ -6,8 +6,16 @@ library fasta.scope;
 
 import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
-import 'deprecated_problems.dart'
-    show deprecated_InputError, deprecated_internalProblem;
+import 'fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        messageInternalProblemExtendingUnmodifiableScope,
+        templateAccessError,
+        templateDuplicatedName,
+        templatePreviousUseOfName;
+
+import 'problems.dart' show internalProblem, unsupported;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -50,13 +58,13 @@ class Scope extends MutableScope {
       : this(<String, Builder>{}, null, parent, isModifiable: isModifiable);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set local(_) => deprecated_internalProblem("Unsupported operation.");
+  void set local(_) => unsupported("local=", -1, null);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set setters(_) => deprecated_internalProblem("Unsupported operation.");
+  void set setters(_) => unsupported("setters=", -1, null);
 
   /// Don't use this. Use [becomePartOf] instead.
-  void set parent(_) => deprecated_internalProblem("Unsupported operation.");
+  void set parent(_) => unsupported("parent=", -1, null);
 
   /// This scope becomes equivalent to [scope]. This is used for parts to
   /// become part of their library's scope.
@@ -120,8 +128,7 @@ class Scope extends MutableScope {
     if (builder != null) return builder;
     builder = lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
     if (builder != null && !builder.hasProblem) {
-      return new deprecated_AccessErrorBuilder(
-          name, builder, charOffset, fileUri);
+      return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
     if (!isInstanceScope) {
       // For static lookup, do not seach the parent scope.
@@ -138,8 +145,7 @@ class Scope extends MutableScope {
     if (builder != null) return builder;
     builder = lookupIn(name, charOffset, fileUri, local, isInstanceScope);
     if (builder != null && !builder.hasProblem) {
-      return new deprecated_AccessErrorBuilder(
-          name, builder, charOffset, fileUri);
+      return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
     if (!isInstanceScope) {
       // For static lookup, do not seach the parent scope.
@@ -155,7 +161,8 @@ class Scope extends MutableScope {
       labels ??= <String, Builder>{};
       labels[name] = target;
     } else {
-      deprecated_internalProblem("Can't extend an unmodifiable scope.");
+      internalProblem(
+          messageInternalProblemExtendingUnmodifiableScope, -1, null);
     }
   }
 
@@ -186,17 +193,19 @@ class Scope extends MutableScope {
   /// If name was used previously in this scope, this method returns an error
   /// that should be reported as a compile-time error. The position of this
   /// error is given by [charOffset] and [fileUri].
-  deprecated_InputError declare(
+  LocatedMessage declare(
       String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
       if (usedNames?.containsKey(name) ?? false) {
-        return new deprecated_InputError(
-            fileUri, usedNames[name], "Previous use of '$name'.");
+        return templatePreviousUseOfName
+            .withArguments(name)
+            .withLocation(fileUri, usedNames[name]);
       }
       recordUse(name, charOffset, fileUri);
       local[name] = builder;
     } else {
-      deprecated_internalProblem("Can't extend an unmodifiable scope.");
+      internalProblem(
+          messageInternalProblemExtendingUnmodifiableScope, -1, null);
     }
     return null;
   }
@@ -276,7 +285,7 @@ abstract class ProblemBuilder extends Builder {
 
   bool get hasProblem => true;
 
-  String get deprecated_message;
+  Message get message;
 
   @override
   String get fullNameForErrors => name;
@@ -284,9 +293,8 @@ abstract class ProblemBuilder extends Builder {
 
 /// Represents a [builder] that's being accessed incorrectly. For example, an
 /// attempt to write to a final field, or to read from a setter.
-class deprecated_AccessErrorBuilder extends ProblemBuilder {
-  deprecated_AccessErrorBuilder(
-      String name, Builder builder, int charOffset, Uri fileUri)
+class AccessErrorBuilder extends ProblemBuilder {
+  AccessErrorBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
   Builder get parent => builder;
@@ -311,12 +319,12 @@ class deprecated_AccessErrorBuilder extends ProblemBuilder {
 
   bool get isLocal => builder.isLocal;
 
-  String get deprecated_message => "Access error: '$name'.";
+  Message get message => templateAccessError.withArguments(name);
 }
 
 class AmbiguousBuilder extends ProblemBuilder {
   AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
-  String get deprecated_message => "Duplicated named: '$name'.";
+  Message get message => templateDuplicatedName.withArguments(name);
 }

@@ -192,10 +192,8 @@ regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
-[ $compiler == precompiler || $mode == product ]
-apply3_test: SkipByDesign # Imports dart:mirrors
-
 [ $compiler == precompiler ]
+apply3_test: SkipByDesign # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
@@ -217,11 +215,6 @@ big_integer_huge_mul_vm_test: Pass, Slow # Slow
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
 symbol_reserved_word_test/03: Pass # Issue 27394
-growable_list_test: RuntimeError # Issue 27394
-iterable_empty_test: RuntimeError # Issue 27394
-iterable_return_type_test/none: RuntimeError # Issue 27394
-iterable_to_list_test/none: RuntimeError # Issue 27394
-list_filled_type_argument_test: RuntimeError # Issue 27394
 map_test: Crash # Issue 27394
 regexp/pcre_test: RuntimeError # Issue 27394
 symbol_operator_test/03: RuntimeError # Issue 27394

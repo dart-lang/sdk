@@ -38,7 +38,6 @@ SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
           SocketAddress::GetAddrLength(*raw));
 }
 
-
 static Mutex* init_mutex = new Mutex();
 static bool socket_initialized = false;
 
@@ -59,7 +58,6 @@ bool SocketBase::Initialize() {
   return (err == 0);
 }
 
-
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       char* address,
                                       int len) {
@@ -69,12 +67,10 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
   return WSAAddressToStringA(&raw.addr, salen, NULL, address, &l) != 0;
 }
 
-
 intptr_t SocketBase::Available(intptr_t fd) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
   return client_socket->Available();
 }
-
 
 intptr_t SocketBase::Read(intptr_t fd,
                           void* buffer,
@@ -83,7 +79,6 @@ intptr_t SocketBase::Read(intptr_t fd,
   Handle* handle = reinterpret_cast<Handle*>(fd);
   return handle->Read(buffer, num_bytes);
 }
-
 
 intptr_t SocketBase::RecvFrom(intptr_t fd,
                               void* buffer,
@@ -95,7 +90,6 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
 }
 
-
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,
@@ -103,7 +97,6 @@ intptr_t SocketBase::Write(intptr_t fd,
   Handle* handle = reinterpret_cast<Handle*>(fd);
   return handle->Write(buffer, num_bytes);
 }
-
 
 intptr_t SocketBase::SendTo(intptr_t fd,
                             const void* buffer,
@@ -116,7 +109,6 @@ intptr_t SocketBase::SendTo(intptr_t fd,
                         SocketAddress::GetAddrLength(addr));
 }
 
-
 intptr_t SocketBase::GetPort(intptr_t fd) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
@@ -127,7 +119,6 @@ intptr_t SocketBase::GetPort(intptr_t fd) {
   }
   return SocketAddress::GetAddrPort(raw);
 }
-
 
 SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
@@ -144,18 +135,15 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   return new SocketAddress(&raw.addr);
 }
 
-
 bool SocketBase::IsBindError(intptr_t error_number) {
   return error_number == WSAEADDRINUSE || error_number == WSAEADDRNOTAVAIL ||
          error_number == WSAEINVAL;
 }
 
-
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   os_error->SetCodeAndMessage(OSError::kSystem, handle->last_error());
 }
-
 
 int SocketBase::GetType(intptr_t fd) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
@@ -171,7 +159,6 @@ int SocketBase::GetType(intptr_t fd) {
   }
 }
 
-
 intptr_t SocketBase::GetStdioHandle(intptr_t num) {
   if (num != 0) {
     return -1;
@@ -186,7 +173,6 @@ intptr_t SocketBase::GetStdioHandle(intptr_t num) {
   std_handle->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(std_handle);
 }
-
 
 AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
                                                       int type,
@@ -233,7 +219,6 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   return addresses;
 }
 
-
 bool SocketBase::ReverseLookup(const RawAddr& addr,
                                char* host,
                                intptr_t host_len,
@@ -251,7 +236,6 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
   return true;
 }
 
-
 bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   int result;
   Utf8ToWideScope system_address(address);
@@ -264,11 +248,9 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   return result == 1;
 }
 
-
 bool SocketBase::ListInterfacesSupported() {
   return true;
 }
-
 
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
@@ -319,12 +301,10 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   return addresses;
 }
 
-
 void SocketBase::Close(intptr_t fd) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
   client_socket->Close();
 }
-
 
 bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
@@ -338,14 +318,12 @@ bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
   return (err == 0);
 }
 
-
 bool SocketBase::SetNoDelay(intptr_t fd, bool enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on = enabled ? 1 : 0;
   return setsockopt(handle->socket(), IPPROTO_TCP, TCP_NODELAY,
                     reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
-
 
 bool SocketBase::GetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
@@ -364,7 +342,6 @@ bool SocketBase::GetMulticastLoop(intptr_t fd,
   return false;
 }
 
-
 bool SocketBase::SetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
                                   bool enabled) {
@@ -376,7 +353,6 @@ bool SocketBase::SetMulticastLoop(intptr_t fd,
   return setsockopt(handle->socket(), level, optname,
                     reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
-
 
 bool SocketBase::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
@@ -393,7 +369,6 @@ bool SocketBase::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
   return false;
 }
 
-
 bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int v = value;
@@ -403,7 +378,6 @@ bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   return setsockopt(handle->socket(), level, optname,
                     reinterpret_cast<char*>(&v), sizeof(v)) == 0;
 }
-
 
 bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
@@ -417,14 +391,12 @@ bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
   return (err == 0);
 }
 
-
 bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on = enabled ? 1 : 0;
   return setsockopt(handle->socket(), SOL_SOCKET, SO_BROADCAST,
                     reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
-
 
 bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
@@ -438,7 +410,6 @@ bool SocketBase::JoinMulticast(intptr_t fd,
   return setsockopt(handle->socket(), proto, MCAST_JOIN_GROUP,
                     reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
 }
-
 
 bool SocketBase::LeaveMulticast(intptr_t fd,
                                 const RawAddr& addr,

@@ -4,7 +4,9 @@
 
 library fasta.codes;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
+
+import 'util/relativize.dart' as util show relativizeUri;
 
 part 'fasta_codes_generated.dart';
 
@@ -82,4 +84,14 @@ class LocatedMessage {
   String get tip => messageObject.tip;
 
   Map<String, dynamic> get arguments => messageObject.arguments;
+}
+
+String relativizeUri(Uri uri) {
+  // We have this method here for two reasons:
+  //
+  // 1. It allows us to implement #uri message argument without using it
+  // (otherwise, we might get an `UNUSED_IMPORT` warning).
+  //
+  // 2. We can change `base` argument here if needed.
+  return util.relativizeUri(uri, base: Uri.base);
 }

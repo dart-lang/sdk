@@ -14,7 +14,6 @@ namespace dart {
 // Utility function for the DotPrinter
 void PrintUtf16(uint16_t c);
 
-
 /// Convenience wrapper around a BlockEntryInstr pointer.
 class BlockLabel : public ValueObject {
   // Used by the IR assembler.
@@ -75,7 +74,6 @@ class BlockLabel : public ValueObject {
  private:
   intptr_t pos_;
 };
-
 
 class RegExpMacroAssembler : public ZoneAllocated {
  public:

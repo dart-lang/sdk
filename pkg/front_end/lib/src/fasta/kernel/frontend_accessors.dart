@@ -5,7 +5,17 @@
 /// A library to help transform compounds and null-aware accessors into
 /// let expressions.
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+import 'package:kernel/ast.dart' hide MethodInvocation, InvalidExpression;
+
+import '../../scanner/token.dart' show Token;
+
+import '../names.dart' show equalsName, indexGetName, indexSetName;
+
+import '../problems.dart' show unhandled;
+
+import 'fasta_accessors.dart' show BuilderHelper;
+
+import 'kernel_shadow_ast.dart'
     show
         KernelArguments,
         KernelComplexAssignment,
@@ -21,18 +31,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelVariableDeclaration,
         KernelVariableGet;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
-
-import 'package:front_end/src/scanner/token.dart' show Token;
-
-import 'package:front_end/src/fasta/kernel/fasta_accessors.dart'
-    show BuilderHelper;
-
-import 'package:kernel/ast.dart' hide MethodInvocation, InvalidExpression;
-
-import '../names.dart' show equalsName, indexGetName, indexSetName;
-
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import 'utils.dart' show offsetForToken;
 
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
@@ -178,8 +177,8 @@ abstract class Accessor {
   ///
   /// At runtime, an exception will be thrown.
   makeInvalidRead() {
-    return deprecated_internalProblem(
-        "Unhandled compile-time error.", null, offsetForToken(token));
+    return unhandled("compile-time error", "$runtimeType",
+        offsetForToken(token), helper.uri);
   }
 
   /// Returns an [Expression] representing a compile-time error wrapping
@@ -187,8 +186,8 @@ abstract class Accessor {
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
   makeInvalidWrite(Expression value) {
-    return deprecated_internalProblem(
-        "Unhandled compile-time error.", null, offsetForToken(token));
+    return unhandled("compile-time error", "$runtimeType",
+        offsetForToken(token), helper.uri);
   }
 
   /// Creates a data structure for tracking the desugaring of a complex

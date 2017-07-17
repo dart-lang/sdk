@@ -56,16 +56,18 @@ main() {
       var errors = [];
       var options = new CompilerOptions()..onError = (e) => errors.add(e);
       await compileScript('a() => print("hi");', options: options);
-      expect('${errors.first}', contains("No 'main' method found"));
+      // TODO(sigmund): when we expose codes in the public APIs, we should
+      // compare the code here and not the message.
+      expect(errors.first.message, contains("No 'main' method found"));
     });
 
     test('default error handler throws', () async {
       var exceptionThrown = false;
       try {
         await compileScript('a() => print("hi");');
-      } catch (e) {
+      } on CompilationError catch (e) {
         exceptionThrown = true;
-        expect('$e', contains("No 'main' method found"));
+        expect(e.message, contains("No 'main' method found"));
       }
       expect(exceptionThrown, isTrue);
     });
@@ -146,7 +148,7 @@ main() {
         'b.dart': ''
       };
       await compileUnit(['a.dart'], sources, options: options);
-      expect(errors.first.toString(), contains('Invalid access'));
+      expect(errors.first.message, contains('Invalid access'));
       errors.clear();
 
       await compileUnit(['a.dart', 'b.dart'], sources, options: options);

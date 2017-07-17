@@ -36,7 +36,6 @@ namespace dart {
     var ^= tmp.raw();                                                          \
   } while (0)
 
-
 #define CHECK_AND_CAST(type, var, param)                                       \
   type* var = NULL;                                                            \
   do {                                                                         \
@@ -46,7 +45,6 @@ namespace dart {
     }                                                                          \
     var = reinterpret_cast<type*>(param);                                      \
   } while (0)
-
 
 #define CHECK_NOT_NULL(param)                                                  \
   if (param == NULL) {                                                         \
@@ -59,7 +57,6 @@ namespace dart {
     return Api::NewError("%s requires debugger support.", CURRENT_FUNC);       \
   }
 
-
 DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -69,7 +66,6 @@ DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in) {
   }
   return I->debugger()->CacheObject(obj);
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id) {
   DARTSCOPE(Thread::Current());
@@ -82,7 +78,6 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id) {
   return Api::NewHandle(T, I->debugger()->GetCachedObject(obj_id));
 }
 
-
 DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
                                               intptr_t* length) {
   DARTSCOPE(Thread::Current());
@@ -91,7 +86,6 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
   *length = stack_trace->Length();
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
                                                 int frame_index,
@@ -112,7 +106,6 @@ static Dart_PausedEventHandler* paused_event_handler = NULL;
 static Dart_BreakpointResolvedHandler* bp_resolved_handler = NULL;
 static Dart_ExceptionThrownHandler* exc_thrown_handler = NULL;
 static Dart_IsolateEventHandler* isolate_event_handler = NULL;
-
 
 static void DebuggerEventHandler(ServiceEvent* event) {
   Thread* thread = Thread::Current();
@@ -181,12 +174,10 @@ static void DebuggerEventHandler(ServiceEvent* event) {
   Dart_ExitScope();
 }
 
-
 DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler) {
   paused_event_handler = handler;
   Debugger::SetEventHandler(DebuggerEventHandler);
 }
-
 
 DART_EXPORT void Dart_SetBreakpointResolvedHandler(
     Dart_BreakpointResolvedHandler handler) {
@@ -194,19 +185,16 @@ DART_EXPORT void Dart_SetBreakpointResolvedHandler(
   Debugger::SetEventHandler(DebuggerEventHandler);
 }
 
-
 DART_EXPORT void Dart_SetExceptionThrownHandler(
     Dart_ExceptionThrownHandler handler) {
   exc_thrown_handler = handler;
   Debugger::SetEventHandler(DebuggerEventHandler);
 }
 
-
 DART_EXPORT void Dart_SetIsolateEventHandler(Dart_IsolateEventHandler handler) {
   isolate_event_handler = handler;
   Debugger::SetEventHandler(DebuggerEventHandler);
 }
-
 
 DART_EXPORT Dart_Handle
 Dart_SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
@@ -217,7 +205,6 @@ Dart_SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_ExceptionPauseInfo Dart_GetExceptionPauseInfo() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -226,7 +213,6 @@ DART_EXPORT Dart_ExceptionPauseInfo Dart_GetExceptionPauseInfo() {
   }
   return I->debugger()->GetExceptionPauseInfo();
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   DARTSCOPE(Thread::Current());
@@ -237,7 +223,6 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
       reinterpret_cast<Dart_StackTrace>(I->debugger()->CurrentStackTrace());
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
                                                     Dart_StackTrace* trace) {
@@ -264,7 +249,6 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
   }
 }
 
-
 DART_EXPORT Dart_Handle
 Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
                          Dart_Handle* function_name,
@@ -287,7 +271,6 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
   }
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle
 Dart_ActivationFrameGetLocation(Dart_ActivationFrame activation_frame,
@@ -326,7 +309,6 @@ Dart_ActivationFrameGetFramePointer(Dart_ActivationFrame activation_frame,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function_in) {
   DARTSCOPE(Thread::Current());
   UNWRAP_AND_CHECK_PARAM(Function, function, function_in);
@@ -338,14 +320,12 @@ DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function_in) {
   return Api::Null();
 }
 
-
 DART_EXPORT Dart_Handle
 Dart_GetLocalVariables(Dart_ActivationFrame activation_frame) {
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   return Api::NewHandle(T, frame->GetLocalVariables());
 }
-
 
 DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
                                            intptr_t line_number) {
@@ -363,7 +343,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
   return Dart_NewInteger(bpt->id());
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -377,7 +356,6 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
   }
   return Api::NewHandle(T, bpt->bpt_location()->url());
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
   DARTSCOPE(Thread::Current());
@@ -396,7 +374,6 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
     return Dart_NewInteger(bpt->bpt_location()->requested_line_number());
   }
 }
-
 
 DART_EXPORT Dart_Handle
 Dart_SetBreakpointAtEntry(Dart_Handle library_in,
@@ -435,7 +412,6 @@ Dart_SetBreakpointAtEntry(Dart_Handle library_in,
   return Dart_NewInteger(bpt->id());
 }
 
-
 DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(Dart_Handle library_in,
                                                  Dart_Handle class_name_in,
                                                  Dart_Handle function_name_in) {
@@ -471,7 +447,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(Dart_Handle library_in,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -479,7 +454,6 @@ DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   I->debugger()->RemoveBreakpoint(bp_id);
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle Dart_SetStepOver() {
   DARTSCOPE(Thread::Current());
@@ -489,7 +463,6 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_SetStepInto() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -497,7 +470,6 @@ DART_EXPORT Dart_Handle Dart_SetStepInto() {
   I->debugger()->SetResumeAction(Debugger::kStepInto);
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle Dart_SetStepOut() {
   DARTSCOPE(Thread::Current());
@@ -507,7 +479,6 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -515,7 +486,6 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   return Api::NewHandle(T, I->debugger()->GetInstanceFields(obj));
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   DARTSCOPE(Thread::Current());
@@ -530,7 +500,6 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   return Api::NewHandle(T, I->debugger()->GetStaticFields(cls));
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -542,7 +511,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id) {
   }
   return Api::NewHandle(T, I->debugger()->GetLibraryFields(lib));
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
@@ -557,7 +525,6 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
   return Api::NewHandle(T, I->debugger()->GetGlobalFields(lib));
 }
 
-
 DART_EXPORT Dart_Handle
 Dart_ActivationFrameEvaluate(Dart_ActivationFrame activation_frame,
                              Dart_Handle expr_in) {
@@ -571,7 +538,6 @@ Dart_ActivationFrameEvaluate(Dart_ActivationFrame activation_frame,
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   return Api::NewHandle(T, frame->Evaluate(expr, names, values));
 }
-
 
 DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
                                           Dart_Handle expr_in) {
@@ -608,13 +574,11 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
   return Api::NewError("%s: unsupported target type", CURRENT_FUNC);
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   return Api::NewHandle(T, obj.GetType(Heap::kNew));
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
                                            intptr_t* class_id) {
@@ -625,7 +589,6 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -635,7 +598,6 @@ DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id) {
   }
   return Api::NewHandle(T, I->class_table()->At(class_id));
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
   DARTSCOPE(Thread::Current());
@@ -682,7 +644,6 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
   return Api::NewHandle(T, instantiated_type.Canonicalize());
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetClosureInfo(Dart_Handle closure,
                                             Dart_Handle* name,
                                             Dart_Handle* signature,
@@ -724,7 +685,6 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(Dart_Handle closure,
   return Api::True();
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t cls_id,
                                           Dart_Handle* class_name,
                                           intptr_t* library_id,
@@ -758,7 +718,6 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t cls_id,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_ScriptGetSource(intptr_t library_id,
                                              Dart_Handle script_url_in) {
   DARTSCOPE(Thread::Current());
@@ -776,7 +735,6 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(intptr_t library_id,
   }
   return Api::NewHandle(T, script.Source());
 }
-
 
 DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(intptr_t library_id,
                                                 Dart_Handle script_url_in) {
@@ -798,7 +756,6 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(intptr_t library_id,
       GrowableObjectArray::Handle(script.GenerateLineNumberArray());
   return Api::NewHandle(T, Array::MakeFixedLength(info));
 }
-
 
 DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
                                                   Dart_Handle script_url_in) {
@@ -822,7 +779,6 @@ DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
 
   return Api::NewHandle(T, script.GenerateSource());
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
   DARTSCOPE(Thread::Current());
@@ -848,7 +804,6 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
   return Api::NewHandle(T, script_list.raw());
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -869,7 +824,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
   return Api::NewHandle(T, library_id_list.raw());
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
   const Library& lib = Library::Handle(Z, Library::GetLibrary(library_id));
@@ -879,7 +833,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id) {
   }
   return Api::NewHandle(T, lib.raw());
 }
-
 
 DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
                                        intptr_t* library_id) {
@@ -894,7 +847,6 @@ DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
   *library_id = lib.index();
   return Api::Success();
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
@@ -932,7 +884,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
   return Api::NewHandle(T, Array::MakeFixedLength(import_list));
 }
 
-
 DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
   const Library& lib = Library::Handle(Z, Library::GetLibrary(library_id));
@@ -942,7 +893,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
   }
   return Api::NewHandle(T, lib.url());
 }
-
 
 DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
                                                   bool* is_debuggable) {
@@ -957,7 +907,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
                                                   bool is_debuggable) {
   DARTSCOPE(Thread::Current());
@@ -970,12 +919,10 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
   return Api::Success();
 }
 
-
 DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id) {
   Isolate* isolate = PortMap::GetIsolate(isolate_id);
   return Api::CastIsolate(isolate);
 }
-
 
 DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate dart_isolate) {
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);

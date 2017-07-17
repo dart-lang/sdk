@@ -6,12 +6,12 @@
 
 #include "vm/regexp_interpreter.h"
 
-#include "vm/regexp_bytecodes.h"
-#include "vm/regexp_assembler.h"
 #include "vm/object.h"
-#include "vm/unicode.h"
-#include "vm/unibrow.h"
+#include "vm/regexp_assembler.h"
+#include "vm/regexp_bytecodes.h"
 #include "vm/unibrow-inl.h"
+#include "vm/unibrow.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -70,7 +70,6 @@ bool BackRefMatchesNoCase<uint8_t>(Canonicalize* interp_canonicalize,
   return true;
 }
 
-
 #ifdef DEBUG
 static void TraceInterpreter(const uint8_t* code_base,
                              const uint8_t* pc,
@@ -103,7 +102,6 @@ static void TraceInterpreter(const uint8_t* code_base,
   }
 }
 
-
 #define BYTECODE(name)                                                         \
   case BC_##name:                                                              \
     TraceInterpreter(code_base, pc,                                            \
@@ -113,18 +111,15 @@ static void TraceInterpreter(const uint8_t* code_base,
 #define BYTECODE(name) case BC_##name:
 #endif
 
-
 static int32_t Load32Aligned(const uint8_t* pc) {
   ASSERT((reinterpret_cast<intptr_t>(pc) & 3) == 0);
   return *reinterpret_cast<const int32_t*>(pc);
 }
 
-
 static int32_t Load16Aligned(const uint8_t* pc) {
   ASSERT((reinterpret_cast<intptr_t>(pc) & 1) == 0);
   return *reinterpret_cast<const uint16_t*>(pc);
 }
-
 
 // A simple abstraction over the backtracking stack used by the interpreter.
 // This backtracking stack does not grow automatically, but it ensures that the
@@ -147,7 +142,6 @@ class BacktrackStack {
 
   DISALLOW_COPY_AND_ASSIGN(BacktrackStack);
 };
-
 
 template <typename Char>
 static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
@@ -569,7 +563,6 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
     }
   }
 }
-
 
 IrregexpInterpreter::IrregexpResult IrregexpInterpreter::Match(
     const TypedData& bytecode,

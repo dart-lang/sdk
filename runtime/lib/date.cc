@@ -25,7 +25,6 @@ DEFINE_NATIVE_ENTRY(DateTime_timeZoneName, 1) {
   return String::New(name);
 }
 
-
 DEFINE_NATIVE_ENTRY(DateTime_timeZoneOffsetInSeconds, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, dart_seconds,
                                arguments->NativeArgAt(0));
@@ -37,12 +36,10 @@ DEFINE_NATIVE_ENTRY(DateTime_timeZoneOffsetInSeconds, 1) {
   return Integer::New(offset);
 }
 
-
 DEFINE_NATIVE_ENTRY(DateTime_localTimeZoneAdjustmentInSeconds, 0) {
   int adjustment = OS::GetLocalTimeZoneAdjustmentInSeconds();
   return Integer::New(adjustment);
 }
-
 
 DEFINE_NATIVE_ENTRY(DateTime_currentTimeMicros, 0) {
   return Integer::New(OS::GetCurrentTimeMicros());

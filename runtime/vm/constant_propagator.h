@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_CONSTANT_PROPAGATOR_H_
 #define RUNTIME_VM_CONSTANT_PROPAGATOR_H_
 
-#include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
+#include "vm/intermediate_language.h"
 
 namespace dart {
 
@@ -84,7 +84,6 @@ class ConstantPropagator : public FlowGraphVisitor {
   GrowableArray<BlockEntryInstr*> block_worklist_;
   DefinitionWorklist definition_worklist_;
 };
-
 
 }  // namespace dart
 

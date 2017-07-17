@@ -4,25 +4,25 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int x = 42;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
   field self::A a = new self::A::•();
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
   field self::B b = new self::B::•();
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class D extends core::Object {
   field self::C c = new self::C::•();
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

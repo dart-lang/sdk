@@ -4,31 +4,30 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelField;
-
-import 'package:front_end/src/fasta/parser/parser.dart' show Parser;
-
-import 'package:front_end/src/scanner/token.dart' show Token;
-
-import 'package:front_end/src/fasta/builder/class_builder.dart'
-    show ClassBuilder;
-
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
-
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
 import 'package:kernel/ast.dart'
     show DartType, Expression, Field, Name, NullLiteral;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../../scanner/token.dart' show Token;
+
+import '../builder/class_builder.dart' show ClassBuilder;
+
+import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
+
+import '../parser/parser.dart' show Parser;
+
+import '../problems.dart' show internalProblem;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
+
+import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
+
+import 'kernel_shadow_ast.dart' show KernelField;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final KernelField field;
@@ -52,8 +51,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
-      deprecated_internalProblem(
-          "Attempt to set initializer on field without initializer.");
+      internalProblem(
+          messageInternalProblemAlreadyInitialized, charOffset, fileUri);
     }
     field.initializer = value..parent = field;
   }

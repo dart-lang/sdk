@@ -439,7 +439,6 @@ class ObjectPointerVisitor;
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(GrowRegExpStack, "_growRegExpStack")
 
-
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
 // without having to maintain copies in each isolate.

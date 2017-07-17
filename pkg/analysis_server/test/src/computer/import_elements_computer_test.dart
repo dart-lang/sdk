@@ -55,9 +55,7 @@ main() {}
     expect(edit, isNotNull);
     expect(edit.offset, 0);
     expect(edit.length, 0);
-    expect(
-        edit.apply(targetCode),
-        """
+    expect(edit.apply(targetCode), """
 import 'source.dart';
 
 main() {}

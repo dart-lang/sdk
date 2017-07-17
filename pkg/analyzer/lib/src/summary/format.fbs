@@ -2925,12 +2925,12 @@ table UnlinkedVariable {
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
-  visibleLength:uint (id: 11);
+  visibleLength:uint (id: 11, deprecated);
 
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
-  visibleOffset:uint (id: 12);
+  visibleOffset:uint (id: 12, deprecated);
 }
 
 root_type PackageBundle;

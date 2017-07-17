@@ -775,9 +775,7 @@ class A {
 
   test_deprecatedAnnotationUse_export() async {
     Source source = addSource("export 'deprecated_library.dart';");
-    addNamedSource(
-        "/deprecated_library.dart",
-        r'''
+    addNamedSource("/deprecated_library.dart", r'''
 @deprecated
 library deprecated_library;
 class A {}''');
@@ -818,9 +816,7 @@ f(A a) {
     Source source = addSource(r'''
 import 'deprecated_library.dart';
 f(A a) {}''');
-    addNamedSource(
-        "/deprecated_library.dart",
-        r'''
+    addNamedSource("/deprecated_library.dart", r'''
 @deprecated
 library deprecated_library;
 class A {}''');
@@ -1058,9 +1054,7 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart';
 A a;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
     await computeAnalysisResult(source);
@@ -1075,9 +1069,7 @@ import 'lib1.dart';
 import 'lib1.dart';
 import 'lib1.dart';
 A a;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
     await computeAnalysisResult(source);
@@ -1092,9 +1084,7 @@ library L;
 import 'lib1.dart' as M show A hide B;
 import 'lib1.dart' as M show A hide B;
 M.A a;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}''');
@@ -1382,9 +1372,7 @@ class A {
   }
 
   test_invalidRequiredParam_on_named_parameter_with_default() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 m({@required a = 1}) => null;
@@ -1395,9 +1383,7 @@ m({@required a = 1}) => null;
   }
 
   test_invalidRequiredParam_on_positional_parameter() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 m([@required a]) => null;
@@ -1408,9 +1394,7 @@ m([@required a]) => null;
   }
 
   test_invalidRequiredParam_on_positional_parameter_with_default() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
@@ -1421,9 +1405,7 @@ m([@required a = 1]) => null;
   }
 
   test_invalidRequiredParam_on_required_parameter() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 m(@required a) => null;
@@ -1434,9 +1416,7 @@ m(@required a) => null;
   }
 
   test_invalidRequiredParam_valid() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 m1() => null;
@@ -1452,9 +1432,7 @@ m6({a, @required b}) => null;
   }
 
   test_invalidUseOfProtectedMember_closure() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1462,9 +1440,7 @@ class A {
   int a() => 42;
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 void main() {
@@ -1480,18 +1456,14 @@ void main() {
   }
 
   test_invalidUseOfProtectedMember_field() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int a;
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 abstract class B {
@@ -1521,18 +1493,14 @@ abstract class B implements A {
   }
 
   test_invalidUseOfProtectedMember_function() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 main() {
@@ -1578,18 +1546,14 @@ main() {
   }
 
   test_invalidUseOfProtectedMember_getter() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int get a => 42;
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 class B {
@@ -1641,18 +1605,14 @@ f() {}
   }
 
   test_invalidUseOfProtectedMember_message() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 class B {
@@ -1666,18 +1626,14 @@ class B {
   }
 
   test_invalidUseOfProtectedMember_method_1() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 class B {
@@ -1845,18 +1801,14 @@ class A {
   }
 
   test_invalidUseOfProtectedMember_setter() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
+    Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void set a(int i) { }
 }
 ''');
-    Source source2 = addNamedSource(
-        '/lib2.dart',
-        r'''
+    Source source2 = addNamedSource('/lib2.dart', r'''
 import 'lib1.dart';
 
 class B{
@@ -2543,9 +2495,7 @@ f() {
   }
 
   test_required_method_param_in_other_lib() async {
-    addNamedSource(
-        '/a_lib.dart',
-        r'''
+    addNamedSource('/a_lib.dart', r'''
 library a_lib;
 import 'package:meta/meta.dart';
 class A {
@@ -3892,9 +3842,7 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart' as one;
 one.A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
     await computeAnalysisResult(source);
@@ -3912,14 +3860,10 @@ library L;
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
-    Source source3 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source3 = addNamedSource("/lib2.dart", r'''
 library lib2;
 class B {}''');
     await computeAnalysisResult(source);
@@ -3937,9 +3881,7 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}''');
     await computeAnalysisResult(source);
@@ -3965,9 +3907,7 @@ library L;
 import 'lib1.dart' show A;
 import 'lib1.dart' show B;
 A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}''');
@@ -4185,9 +4125,7 @@ main() {
 library L;
 import 'lib1.dart' show A, B;
 A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}''');
@@ -4203,9 +4141,7 @@ class B {}''');
 library L;
 import 'lib1.dart' as p show A, B;
 p.A a;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}''');
@@ -4223,9 +4159,7 @@ import 'lib1.dart' show A, B;
 import 'lib1.dart' show C, D;
 A a;
 C c;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 class B {}
@@ -4247,9 +4181,7 @@ import 'lib1.dart' show var3, var4;
 int a = var1;
 int b = var2;
 int c = var3;''');
-    Source source2 = addNamedSource(
-        "/lib1.dart",
-        r'''
+    Source source2 = addNamedSource("/lib1.dart", r'''
 library lib1;
 const int var1 = 1;
 const int var2 = 2;

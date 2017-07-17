@@ -11,7 +11,7 @@ abstract class A<E extends core::Object> extends core::Object implements inf::I<
 }
 abstract class M extends core::Object {
   final field core::int y = 0;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }

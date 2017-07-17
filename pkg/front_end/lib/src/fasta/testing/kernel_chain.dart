@@ -15,6 +15,8 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
+import 'package:kernel/target/targets.dart' show Target;
+
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import 'package:testing/testing.dart' show Result, StdioProcess, Step;
@@ -109,9 +111,7 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
       });
       return pass(program);
     } else {
-      return fail(
-          program,
-          """
+      return fail(program, """
 Please create file ${expectedFile.path} with this content:
 $buffer""");
     }
@@ -192,20 +192,28 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
     }
 
     Uri sdk = await computePatchedSdk();
-    Program p = await kernelForProgram(
-        description.uri,
-        new CompilerOptions()
-          ..sdkRoot = sdk
-          ..packagesFileUri = Uri.base.resolve('.packages')
-          ..strongMode = context.strongMode
-          ..linkedDependencies = [sdk.resolve('platform.dill')]
-          ..onError = reportError);
+    var options = new CompilerOptions()
+      ..sdkRoot = sdk
+      ..compileSdk = true
+      ..packagesFileUri = Uri.base.resolve('.packages')
+      ..strongMode = context.strongMode
+      ..onError = reportError;
+    if (context.target != null) {
+      options.target = context.target;
+      // Do not link platform.dill, but recompile the platform libraries. This
+      // ensures that if target defines extra libraries that those get included
+      // too.
+    } else {
+      options.linkedDependencies = [sdk.resolve('platform.dill')];
+    }
+    Program p = await kernelForProgram(description.uri, options);
     return result ??= pass(p);
   }
 }
 
 abstract class CompileContext implements ChainContext {
   bool get strongMode;
+  Target get target;
 }
 
 class BytesCollector implements Sink<List<int>> {

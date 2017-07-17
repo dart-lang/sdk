@@ -64,7 +64,6 @@ TEST_CASE(BigintSmi) {
   }
 }
 
-
 TEST_CASE(BigintInt64) {
   const int64_t kValue = 100000000;
   const int64_t kValue64 = kValue * kValue;
@@ -79,7 +78,6 @@ TEST_CASE(BigintInt64) {
   EXPECT_EQ(kMinInt64, bigint.AsInt64Value());
 }
 
-
 TEST_CASE(BigintUint64) {
   const Bigint& one = Bigint::Handle(Bigint::NewFromUint64(1));
   EXPECT(one.FitsIntoInt64());
@@ -92,7 +90,6 @@ TEST_CASE(BigintUint64) {
   uint64_t back = big.AsUint64Value();
   EXPECT_EQ(kMaxUint64, back);
 }
-
 
 TEST_CASE(BigintDouble) {
   Bigint& bigint = Bigint::Handle(Bigint::NewFromInt64(5));
@@ -225,7 +222,6 @@ TEST_CASE(BigintDouble) {
       Bigint::NewFromCString("1844674407370955161600000000000000000000001");
   EXPECT_EQ(1.8446744073709553e+42, bigint.AsDoubleValue());
 }
-
 
 TEST_CASE(BigintHexStrings) {
   Zone* zone = Thread::Current()->zone();
@@ -407,7 +403,6 @@ TEST_CASE(BigintHexStrings) {
   }
 }
 
-
 TEST_CASE(BigintDecStrings) {
   Zone* zone = Thread::Current()->zone();
   {
@@ -511,7 +506,6 @@ TEST_CASE(BigintDecStrings) {
   }
 }
 
-
 static void TestBigintCompare(const char* a, const char* b, int compare) {
   const Bigint& bigint_a = Bigint::Handle(Bigint::NewFromCString(a));
   const Bigint& bigint_b = Bigint::Handle(Bigint::NewFromCString(b));
@@ -532,7 +526,6 @@ static void TestBigintCompare(const char* a, const char* b, int compare) {
     EXPECT(inverted_compare < 0);
   }
 }
-
 
 TEST_CASE(BigintCompare) {
   TestBigintCompare("0x0", "0x0", 0);
@@ -581,7 +574,6 @@ TEST_CASE(BigintCompare) {
   TestBigintCompare("-0x10000000000000000", "0x0", -1);
   TestBigintCompare("-0x10000000000000000", "0x0", -1);
 }
-
 
 TEST_CASE(BigintDecimalStrings) {
   Zone* zone = Thread::Current()->zone();

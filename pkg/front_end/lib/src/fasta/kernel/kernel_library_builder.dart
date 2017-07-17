@@ -4,29 +4,45 @@
 
 library fasta.kernel_library_builder;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../../scanner/token.dart' show Token;
+
+import '../fasta_codes.dart'
+    show
+        Message,
+        messageConflictsWithTypeVariableCause,
+        messageTypeVariableDuplicatedName,
+        messageTypeVariableSameNameAsEnclosing,
+        templateConflictsWithTypeVariable,
+        templateDuplicatedExport,
+        templateDuplicatedImport,
+        templateExportHidesExport,
+        templateIllegalMethodName,
+        templateImportHidesImport,
+        templateLocalDefinitionHidesExport,
+        templateLocalDefinitionHidesImport,
+        templateTypeVariableDuplicatedNameCause;
 
 import '../loader.dart' show Loader;
 
 import '../modifier.dart'
     show abstractMask, namedMixinApplicationMask, staticMask;
 
-import '../source/source_library_builder.dart'
-    show DeclarationBuilder, SourceLibraryBuilder;
+import '../problems.dart' show unhandled;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../source/source_library_builder.dart'
+    show DeclarationBuilder, SourceLibraryBuilder;
 
 import '../util/relativize.dart' show relativizeUri;
 
 import 'kernel_builder.dart'
     show
-        deprecated_AccessErrorBuilder,
+        AccessErrorBuilder,
         Builder,
         BuiltinTypeBuilder,
         ClassBuilder,
@@ -98,6 +114,7 @@ class KernelLibraryBuilder
   }
 
   void addClass(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String className,
@@ -122,6 +139,7 @@ class KernelLibraryBuilder
     Scope constructorScope =
         new Scope(constructors, null, null, isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
+        documentationComment,
         metadata,
         modifiers,
         className,
@@ -148,10 +166,11 @@ class KernelLibraryBuilder
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.deprecated_addCompileTimeError(
-              member.charOffset, "Conflict with type variable '$name'.");
-          cls.deprecated_addCompileTimeError(
-              tv.charOffset, "This is the type variable.");
+          cls.addCompileTimeError(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset);
+          cls.addCompileTimeError(
+              messageConflictsWithTypeVariableCause, tv.charOffset);
         }
       }
       setParent(name, member);
@@ -173,20 +192,20 @@ class KernelLibraryBuilder
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        deprecated_addCompileTimeError(tv.charOffset,
-            "A type variable can't have the same name as another.");
-        deprecated_addCompileTimeError(
-            existing.charOffset, "The other type variable named '${tv.name}'.");
+        addCompileTimeError(
+            messageTypeVariableDuplicatedName, tv.charOffset, fileUri);
+        addCompileTimeError(
+            templateTypeVariableDuplicatedNameCause.withArguments(tv.name),
+            existing.charOffset,
+            fileUri);
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {
           // Only classes and type variables can't have the same name. See
           // [#29555](https://github.com/dart-lang/sdk/issues/29555).
           if (tv.name == owner.name) {
-            deprecated_addCompileTimeError(
-                tv.charOffset,
-                "A type variable can't have the same name as its enclosing "
-                "declaration.");
+            addCompileTimeError(
+                messageTypeVariableSameNameAsEnclosing, tv.charOffset, fileUri);
           }
         }
       }
@@ -196,7 +215,8 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder applyMixin(
       KernelTypeBuilder supertype, KernelTypeBuilder mixin, String signature,
-      {List<MetadataBuilder> metadata,
+      {String documentationComment,
+      List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers: abstractMask,
@@ -218,6 +238,7 @@ class KernelLibraryBuilder
     }
     if (builder == null) {
       builder = new SourceClassBuilder(
+          documentationComment,
           metadata,
           modifiers,
           name,
@@ -497,10 +518,10 @@ class KernelLibraryBuilder
       return null;
     }
     String suffix = name.substring(index + 1);
-    deprecated_addCompileTimeError(
+    addCompileTimeError(
+        templateIllegalMethodName.withArguments(name, "$className.$suffix"),
         charOffset,
-        "'$name' isn't a legal method name.\n"
-        "Did you mean '$className.$suffix'?");
+        fileUri);
     return suffix;
   }
 
@@ -675,7 +696,8 @@ class KernelLibraryBuilder
     } else if (builder is BuiltinTypeBuilder) {
       // Nothing needed.
     } else {
-      deprecated_internalProblem("Unhandled builder: ${builder.runtimeType}");
+      unhandled("${builder.runtimeType}", "buildBuilder", builder.charOffset,
+          builder.fileUri);
     }
   }
 
@@ -695,12 +717,12 @@ class KernelLibraryBuilder
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
     if (other is InvalidTypeBuilder) return other;
-    if (builder is deprecated_AccessErrorBuilder) {
-      deprecated_AccessErrorBuilder error = builder;
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
       builder = error.builder;
     }
-    if (other is deprecated_AccessErrorBuilder) {
-      deprecated_AccessErrorBuilder error = other;
+    if (other is AccessErrorBuilder) {
+      AccessErrorBuilder error = other;
       other = error.builder;
     }
     bool isLocal = false;
@@ -728,25 +750,15 @@ class KernelLibraryBuilder
     }
     if (preferred != null) {
       if (isLocal) {
-        if (isExport) {
-          deprecated_addNit(charOffset,
-              "Local definition of '$name' hides export from '${hiddenUri}'.");
-        } else {
-          deprecated_addNit(charOffset,
-              "Local definition of '$name' hides import from '${hiddenUri}'.");
-        }
+        var template = isExport
+            ? templateLocalDefinitionHidesExport
+            : templateLocalDefinitionHidesImport;
+        addNit(template.withArguments(name, hiddenUri), charOffset, fileUri);
       } else {
-        if (isExport) {
-          deprecated_addNit(
-              charOffset,
-              "Export of '$name' (from '${preferredUri}') hides export from "
-              "'${hiddenUri}'.");
-        } else {
-          deprecated_addNit(
-              charOffset,
-              "Import of '$name' (from '${preferredUri}') hides import from "
-              "'${hiddenUri}'.");
-        }
+        var template =
+            isExport ? templateExportHidesExport : templateImportHidesImport;
+        addNit(template.withArguments(name, preferredUri, hiddenUri),
+            charOffset, fileUri);
       }
       return preferred;
     }
@@ -762,10 +774,10 @@ class KernelLibraryBuilder
           });
       }
     }
-    String message = isExport
-        ? "'$name' is exported from both '${uri}' and '${otherUri}'."
-        : "'$name' is imported from both '${uri}' and '${otherUri}'.";
-    deprecated_addNit(charOffset, message);
+    var template =
+        isExport ? templateDuplicatedExport : templateDuplicatedImport;
+    Message message = template.withArguments(name, uri, otherUri);
+    addNit(message, charOffset, fileUri);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
   }
 

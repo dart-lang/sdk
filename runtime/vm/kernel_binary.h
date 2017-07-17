@@ -16,9 +16,7 @@
 namespace dart {
 namespace kernel {
 
-
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-
 
 // Keep in sync with package:dynamo/lib/binary/tag.dart
 enum Tag {
@@ -134,9 +132,7 @@ enum Tag {
   kSpecialIntLiteral = 144,
 };
 
-
 static const int SpecializedIntLiteralBias = 3;
-
 
 class Reader {
  public:
@@ -296,7 +292,6 @@ class Reader {
   friend class PositionScope;
   friend class Program;
 };
-
 
 // A helper class that resets the readers min and max positions both upon
 // initialization and upon destruction, i.e. when created the min an max

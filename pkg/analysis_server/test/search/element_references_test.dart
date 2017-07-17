@@ -439,9 +439,7 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(
-        getPathString(result.path),
-        '''
+    expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
 CONSTRUCTOR named
 CLASS B
@@ -463,9 +461,7 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(
-        getPathString(result.path),
-        '''
+    expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
 CONSTRUCTOR
 CLASS B
@@ -485,9 +481,7 @@ main() {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(
-        getPathString(result.path),
-        '''
+    expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
 FUNCTION main
 COMPILATION_UNIT test.dart

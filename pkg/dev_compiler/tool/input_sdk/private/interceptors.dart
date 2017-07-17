@@ -94,6 +94,21 @@ class UnknownJavaScriptObject extends JavaScriptObject {
   String toString() => JS('String', 'String(#)', this);
 }
 
+// Note that this needs to be in interceptors.dart in order for
+// it to be picked up as an extension type.
+@JsPeerInterface(name: 'TypeError')
+class NullError extends Interceptor implements NoSuchMethodError {
+  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+
+  String toString() {
+    // TODO(vsm): Distinguish between null reference errors and other
+    // TypeErrors.  We should not get non-null TypeErrors from DDC code,
+    // but we may from native JavaScript.
+    var message = JS('String', '#.message', this);
+    return "NullError: $message";
+  }
+}
+
 // Obsolete in dart dev compiler. Added only so that the same version of
 // dart:html can be used in dart2js an dev compiler.
 // Warning: calls to these methods need to be removed before custom elements

@@ -34,7 +34,6 @@ void CpuId::GetCpuId(int32_t level, uint32_t info[4]) {
 #endif
 }
 
-
 void CpuId::InitOnce() {
   uint32_t info[4] = {static_cast<uint32_t>(-1)};
 
@@ -63,7 +62,6 @@ void CpuId::InitOnce() {
   CpuId::brand_string_ = brand_string;
 }
 
-
 void CpuId::Cleanup() {
   ASSERT(id_string_ != NULL);
   free(const_cast<char*>(id_string_));
@@ -74,16 +72,13 @@ void CpuId::Cleanup() {
   brand_string_ = NULL;
 }
 
-
 const char* CpuId::id_string() {
   return strdup(id_string_);
 }
 
-
 const char* CpuId::brand_string() {
   return strdup(brand_string_);
 }
-
 
 const char* CpuId::field(CpuInfoIndices idx) {
   switch (idx) {

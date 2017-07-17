@@ -51,26 +51,20 @@ class SearchEngineImpl2Test {
     var b = _p('/test/b.dart');
     var c = _p('/test/c.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 class B extends A {
   void a() {}
 }
 ''');
-    provider.newFile(
-        c,
-        '''
+    provider.newFile(c, '''
 import 'a.dart';
 class C extends A {
   void b() {}
@@ -97,18 +91,14 @@ class C extends A {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 class B extends A {}
 ''');
@@ -131,18 +121,14 @@ class B extends A {}
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 class B {
   void a() {}
@@ -167,9 +153,7 @@ class B {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {
   void a() {}
   void _b() {}
@@ -179,9 +163,7 @@ class B extends A {
   void _b() {}
 }
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 class C extends A {
   void a() {}
@@ -210,9 +192,7 @@ class D extends B {
   test_searchAllSubtypes() async {
     var p = _p('/test.dart');
 
-    provider.newFile(
-        p,
-        '''
+    provider.newFile(p, '''
 class T {}
 class A extends T {}
 class B extends A {}
@@ -237,15 +217,11 @@ class C implements B {}
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class T {}
 class A extends T {}
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 class B extends A {}
 class C extends B {}
@@ -321,9 +297,7 @@ int test;
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {
   int test;
 }
@@ -331,9 +305,7 @@ foo(p) {
   p.test;
 }
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 bar(p) {
   p.test = 1;
@@ -364,15 +336,11 @@ bar(p) {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class T {}
 T a;
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 import 'a.dart';
 T b;
 ''');
@@ -399,15 +367,11 @@ T b;
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
 
-    provider.newFile(
-        a,
-        '''
+    provider.newFile(a, '''
 class A {}
 int a;
 ''');
-    provider.newFile(
-        b,
-        '''
+    provider.newFile(b, '''
 class B {}
 get b => 42;
 ''');

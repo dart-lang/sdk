@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_internalProblem;
+import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
@@ -369,8 +368,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw deprecated_internalProblem(
-          'Unexpected invocation type: ${methodInvocation.runtimeType}');
+      throw unhandled(
+          "${methodInvocation.runtimeType}",
+          "findMethodInvocationMember",
+          methodInvocation.fileOffset,
+          Uri.parse(uri));
     }
   }
 
@@ -397,8 +399,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw deprecated_internalProblem(
-          'Unexpected propertyGet type: ${propertyGet.runtimeType}');
+      return unhandled("${propertyGet.runtimeType}", "findPropertyGetMember",
+          propertyGet.fileOffset, Uri.parse(uri));
     }
   }
 
@@ -423,8 +425,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw deprecated_internalProblem(
-          'Unexpected propertySet type: ${propertySet.runtimeType}');
+      throw unhandled("${propertySet.runtimeType}", "findPropertySetMember",
+          propertySet.fileOffset, Uri.parse(uri));
     }
   }
 

@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int x = 2;
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object implements self::A {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   get x() → dynamic

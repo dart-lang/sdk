@@ -371,12 +371,12 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
       jsInteropMemberNames);
 }
 
-class NativeDataImpl implements NativeData {
+class NativeDataImpl implements NativeData, NativeBasicDataImpl {
   /// Prefix used to escape JS names that are not valid Dart names
   /// when using JSInterop.
   static const String _jsInteropEscapePrefix = r'JS$';
 
-  final NativeBasicData _nativeBasicData;
+  final NativeBasicDataImpl _nativeBasicData;
 
   /// The JavaScript names for native JavaScript elements implemented.
   final Map<MemberEntity, String> nativeMemberName;
@@ -603,6 +603,20 @@ class NativeDataImpl implements NativeData {
         ? name.substring(_jsInteropEscapePrefix.length)
         : name;
   }
+
+  @override
+  Set<ClassEntity> get jsInteropClasses => _nativeBasicData.jsInteropClasses;
+
+  @override
+  Set<LibraryEntity> get jsInteropLibraries =>
+      _nativeBasicData.jsInteropLibraries;
+
+  @override
+  Map<ClassEntity, NativeClassTag> get nativeClassTagInfo =>
+      _nativeBasicData.nativeClassTagInfo;
+
+  @override
+  ElementEnvironment get _env => _nativeBasicData._env;
 }
 
 class NativeClassTag {

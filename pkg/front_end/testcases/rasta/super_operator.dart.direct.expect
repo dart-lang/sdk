@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   operator +(core::String s) → dynamic
@@ -13,7 +13,7 @@ class A extends core::Object {
   operator []=(dynamic i, dynamic val) → dynamic {}
 }
 class B extends self::A {
-  constructor •() → void
+  default constructor •() → void
     : super self::A::•()
     ;
   operator +(core::String s) → dynamic
@@ -24,7 +24,7 @@ class B extends self::A {
     return let final dynamic #t1 = let final dynamic #t2 = i in let final dynamic #t3 = i = #t2.+(1) in #t2 in let final dynamic #t4 = this.{=self::A::[]}(#t1).+(val) in let final dynamic #t5 = this.{=self::A::[]=}(#t1, #t4) in #t4;
 }
 class Autobianchi extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method g() → dynamic

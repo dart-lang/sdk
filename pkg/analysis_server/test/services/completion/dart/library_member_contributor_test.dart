@@ -88,9 +88,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
   test_libraryPrefix_deferred_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
-    addSource(
-        libFile,
-        '''
+    addSource(libFile, '''
         library testA;
         import "dart:async" deferred as bar;
         part "$testFile";''');
@@ -105,9 +103,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
-    addSource(
-        '/libB.dart',
-        '''
+    addSource('/libB.dart', '''
         library libB;
         export "/libA.dart";
         class B { }
@@ -122,9 +118,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
@@ -150,16 +144,12 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
   test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
-    addSource(
-        libFile,
-        '''
+    addSource(libFile, '''
         library testA;
         import "/testB.dart" as b;
         part "$testFile";
@@ -185,9 +175,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
@@ -212,9 +200,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
@@ -239,9 +225,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
@@ -255,9 +239,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''

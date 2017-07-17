@@ -22,7 +22,6 @@ void BytecodeRegExpMacroAssembler::Emit(uint32_t byte,
   pc_ += 4;
 }
 
-
 void BytecodeRegExpMacroAssembler::Emit16(uint32_t word) {
   ASSERT(pc_ <= buffer_->length());
   if (pc_ + 1 >= buffer_->length()) {
@@ -32,7 +31,6 @@ void BytecodeRegExpMacroAssembler::Emit16(uint32_t word) {
   pc_ += 2;
 }
 
-
 void BytecodeRegExpMacroAssembler::Emit8(uint32_t word) {
   ASSERT(pc_ <= buffer_->length());
   if (pc_ == buffer_->length()) {
@@ -41,7 +39,6 @@ void BytecodeRegExpMacroAssembler::Emit8(uint32_t word) {
   *reinterpret_cast<unsigned char*>(buffer_->data() + pc_) = word;
   pc_ += 1;
 }
-
 
 void BytecodeRegExpMacroAssembler::Emit32(uint32_t word) {
   ASSERT(pc_ <= buffer_->length());

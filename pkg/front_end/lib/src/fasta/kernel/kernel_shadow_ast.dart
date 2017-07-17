@@ -30,7 +30,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../deprecated_problems.dart' show deprecated_internalProblem;
+import '../problems.dart' show unhandled, unsupported;
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
@@ -537,8 +537,8 @@ class KernelDirectMethodInvocation extends DirectMethodInvocation
     // DirectMethodInvocation can only occur as a result of a use of `super`,
     // and `super` can't appear inside a field initializer.  So this code should
     // never be reached.
-    deprecated_internalProblem(
-        'Unexpected call to _collectDependencies for DirectMethodInvocation');
+    unsupported(
+        "DirectMethodInvocation._collectDependencies", fileOffset, null);
   }
 
   @override
@@ -563,8 +563,7 @@ class KernelDirectPropertyGet extends DirectPropertyGet
     // DirectPropertyGet can only occur as a result of a use of `super`, and
     // `super` can't appear inside a field initializer.  So this code should
     // never be reached.
-    deprecated_internalProblem(
-        'Unexpected call to _collectDependencies for DirectPropertyGet');
+    unsupported("DirectPropertyGet._collectDependencies", fileOffset, null);
   }
 
   @override
@@ -1451,8 +1450,7 @@ class KernelProcedure extends Procedure implements KernelMember {
           new InstrumentationValueForType(inferredType));
       function.returnType = inferredType;
     } else {
-      deprecated_internalProblem(
-          'setInferredType called on a procedure that is not an accessor');
+      unhandled("setInferredType", "not accessor", fileOffset, Uri.parse(uri));
     }
   }
 
@@ -2412,23 +2410,13 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
 }
 
 class _UnfinishedCascade extends Expression {
-  accept(v) {
-    return deprecated_internalProblem("Internal error: Unsupported operation.");
-  }
+  accept(v) => unsupported("accept", -1, null);
 
-  accept1(v, arg) {
-    return deprecated_internalProblem("Internal error: Unsupported operation.");
-  }
+  accept1(v, arg) => unsupported("accept1", -1, null);
 
-  getStaticType(types) {
-    return deprecated_internalProblem("Internal error: Unsupported operation.");
-  }
+  getStaticType(types) => unsupported("getStaticType", -1, null);
 
-  transformChildren(v) {
-    return deprecated_internalProblem("Internal error: Unsupported operation.");
-  }
+  transformChildren(v) => unsupported("transformChildren", -1, null);
 
-  visitChildren(v) {
-    return deprecated_internalProblem("Internal error: Unsupported operation.");
-  }
+  visitChildren(v) => unsupported("visitChildren", -1, null);
 }

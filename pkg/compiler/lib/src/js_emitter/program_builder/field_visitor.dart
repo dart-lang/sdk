@@ -79,7 +79,7 @@ class FieldVisitor {
       isLibrary = true;
       assert(visitStatics, failedAt(library));
     } else {
-      throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE,
+      failedAt(NO_LOCATION_SPANNABLE,
           'Expected a ClassElement or a LibraryElement.');
     }
 

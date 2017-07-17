@@ -5224,7 +5224,7 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
 
   @override
   internalError(Spannable spannable, String message) {
-    throw new SpannableAssertionFailure(spannable, message);
+    failedAt(spannable, message);
   }
 
   @override

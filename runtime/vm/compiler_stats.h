@@ -11,12 +11,10 @@
 #include "vm/isolate.h"
 #include "vm/timer.h"
 
-
 namespace dart {
 
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(bool, compiler_benchmark);
-
 
 #define STAT_TIMERS(V)                                                         \
   V(parser_timer, "parser timer")                                              \
@@ -33,7 +31,6 @@ DECLARE_FLAG(bool, compiler_benchmark);
   V(graphoptimizer_timer, "flow graph optimizer timer")                        \
   V(graphcompiler_timer, "flow graph compiler timer")                          \
   V(codefinalizer_timer, "code finalization timer")
-
 
 #define STAT_COUNTERS(V)                                                       \
   V(num_tokens_total)                                                          \
@@ -105,7 +102,6 @@ class CompilerStats {
   char* text;
   bool use_benchmark_output;
 
-
   void EnableBenchmark();
   char* BenchmarkOutput();
   char* PrintToZone();
@@ -140,7 +136,6 @@ class CompilerStats {
                        ? &((thr)->compiler_stats()->t)                         \
                        : NULL,                                                 \
                    thr);
-
 
 }  // namespace dart
 

@@ -31,13 +31,11 @@ void CpuInfo::InitOnce() {
 #endif
 }
 
-
 void CpuInfo::Cleanup() {
   if (method_ == kCpuInfoCpuId) {
     CpuId::Cleanup();
   }
 }
-
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   if (method_ == kCpuInfoCpuId) {
@@ -47,7 +45,6 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   }
 }
 
-
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   if (method_ == kCpuInfoCpuId) {
     return CpuId::field(idx);
@@ -55,7 +52,6 @@ const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
     return strdup("");
   }
 }
-
 
 bool CpuInfo::HasField(const char* field) {
   if (method_ == kCpuInfoCpuId) {

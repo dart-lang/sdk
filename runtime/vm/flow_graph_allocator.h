@@ -18,7 +18,6 @@ class LiveRange;
 class UseInterval;
 class UsePosition;
 
-
 class ReachingDefs : public ValueObject {
  public:
   explicit ReachingDefs(const FlowGraph& flow_graph)
@@ -34,7 +33,6 @@ class ReachingDefs : public ValueObject {
   GrowableArray<PhiInstr*> phis_;
 };
 
-
 class SSALivenessAnalysis : public LivenessAnalysis {
  public:
   explicit SSALivenessAnalysis(const FlowGraph& flow_graph)
@@ -48,7 +46,6 @@ class SSALivenessAnalysis : public LivenessAnalysis {
 
   GraphEntryInstr* graph_entry_;
 };
-
 
 class FlowGraphAllocator : public ValueObject {
  public:
@@ -152,7 +149,6 @@ class FlowGraphAllocator : public ValueObject {
                             const GrowableArray<LiveRange*>& unallocated,
                             LiveRange** blocking_ranges,
                             bool* blocked_registers);
-
 
   // Process live ranges sorted by their start and assign registers
   // to them
@@ -311,7 +307,6 @@ class FlowGraphAllocator : public ValueObject {
 
   GrowableArray<bool> blocked_registers_;
 
-
   // Worklist for register allocator. Always maintained sorted according
   // to ShouldBeAllocatedBefore predicate.
   GrowableArray<LiveRange*> unallocated_;
@@ -336,7 +331,6 @@ class FlowGraphAllocator : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
 };
-
 
 // Additional information about a block that is not contained in a
 // block entry.
@@ -400,7 +394,6 @@ class BlockInfo : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(BlockInfo);
 };
 
-
 // UsePosition represents a single use of an SSA value by some instruction.
 // It points to a location slot which either tells register allocator
 // where instruction expects the value (if slot contains a fixed location) or
@@ -427,7 +420,6 @@ class UsePosition : public ZoneAllocated {
 
   bool HasHint() const { return (hint_ != NULL) && !hint_->IsUnallocated(); }
 
-
   void set_next(UsePosition* next) { next_ = next; }
   UsePosition* next() const { return next_; }
 
@@ -441,7 +433,6 @@ class UsePosition : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(UsePosition);
 };
-
 
 // UseInterval represents a holeless half open interval of liveness for a given
 // SSA value: [start, end) in terms of lifetime positions that
@@ -479,7 +470,6 @@ class UseInterval : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(UseInterval);
 };
 
-
 // AllocationFinger is used to keep track of currently active position
 // for the register allocator and cache lookup results.
 class AllocationFinger : public ValueObject {
@@ -512,7 +502,6 @@ class AllocationFinger : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(AllocationFinger);
 };
 
-
 class SafepointPosition : public ZoneAllocated {
  public:
   SafepointPosition(intptr_t pos, LocationSummary* locs)
@@ -531,7 +520,6 @@ class SafepointPosition : public ZoneAllocated {
 
   SafepointPosition* next_;
 };
-
 
 // LiveRange represents a sequence of UseIntervals for a given SSA value.
 class LiveRange : public ZoneAllocated {
@@ -657,7 +645,6 @@ class LiveRange : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(LiveRange);
 };
-
 
 }  // namespace dart
 

@@ -59,14 +59,12 @@ Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 
-
 void ThreadInterrupter::InitOnce() {
   ASSERT(!initialized_);
   monitor_ = new Monitor();
   ASSERT(monitor_ != NULL);
   initialized_ = true;
 }
-
 
 void ThreadInterrupter::Startup() {
   ASSERT(initialized_);
@@ -96,7 +94,6 @@ void ThreadInterrupter::Startup() {
   }
 }
 
-
 void ThreadInterrupter::Shutdown() {
   {
     MonitorLocker shutdown_ml(monitor_);
@@ -123,7 +120,6 @@ void ThreadInterrupter::Shutdown() {
   }
 }
 
-
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
   if (shutdown_) {
@@ -133,7 +129,6 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
   ASSERT(period > 0);
   interrupt_period_ = period;
 }
-
 
 void ThreadInterrupter::WakeUp() {
   if (!initialized_) {
@@ -152,7 +147,6 @@ void ThreadInterrupter::WakeUp() {
     ml.Notify();
   }
 }
-
 
 void ThreadInterrupter::ThreadMain(uword parameters) {
   ASSERT(initialized_);

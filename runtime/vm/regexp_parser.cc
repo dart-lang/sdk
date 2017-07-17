@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/regexp_parser.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
-#include "vm/regexp_parser.h"
 
 namespace dart {
 
@@ -27,7 +27,6 @@ RegExpBuilder::RegExpBuilder()
 {
 }
 
-
 void RegExpBuilder::FlushCharacters() {
   pending_empty_ = false;
   if (characters_ != NULL) {
@@ -37,7 +36,6 @@ void RegExpBuilder::FlushCharacters() {
     LAST(ADD_ATOM);
   }
 }
-
 
 void RegExpBuilder::FlushText() {
   FlushCharacters();
@@ -55,7 +53,6 @@ void RegExpBuilder::FlushText() {
   text_.Clear();
 }
 
-
 void RegExpBuilder::AddCharacter(uint16_t c) {
   pending_empty_ = false;
   if (characters_ == NULL) {
@@ -65,11 +62,9 @@ void RegExpBuilder::AddCharacter(uint16_t c) {
   LAST(ADD_CHAR);
 }
 
-
 void RegExpBuilder::AddEmpty() {
   pending_empty_ = true;
 }
-
 
 void RegExpBuilder::AddAtom(RegExpTree* term) {
   if (term->IsEmpty()) {
@@ -86,18 +81,15 @@ void RegExpBuilder::AddAtom(RegExpTree* term) {
   LAST(ADD_ATOM);
 }
 
-
 void RegExpBuilder::AddAssertion(RegExpTree* assert) {
   FlushText();
   terms_.Add(assert);
   LAST(ADD_ASSERT);
 }
 
-
 void RegExpBuilder::NewAlternative() {
   FlushTerms();
 }
-
 
 void RegExpBuilder::FlushTerms() {
   FlushText();
@@ -120,7 +112,6 @@ void RegExpBuilder::FlushTerms() {
   LAST(ADD_NONE);
 }
 
-
 RegExpTree* RegExpBuilder::ToRegExp() {
   FlushTerms();
   intptr_t num_alternatives = alternatives_.length();
@@ -137,7 +128,6 @@ RegExpTree* RegExpBuilder::ToRegExp() {
   }
   return new (Z) RegExpDisjunction(alternatives);
 }
-
 
 void RegExpBuilder::AddQuantifierToAtom(
     intptr_t min,
@@ -215,7 +205,6 @@ RegExpParser::RegExpParser(const String& in, String* error, bool multiline)
   Advance();
 }
 
-
 uint32_t RegExpParser::Next() {
   if (has_next()) {
     return in().CharAt(next_pos_);
@@ -223,7 +212,6 @@ uint32_t RegExpParser::Next() {
     return kEndMarker;
   }
 }
-
 
 void RegExpParser::Advance() {
   if (next_pos_ < in().Length()) {
@@ -235,24 +223,20 @@ void RegExpParser::Advance() {
   }
 }
 
-
 void RegExpParser::Reset(intptr_t pos) {
   next_pos_ = pos;
   has_more_ = (pos < in().Length());
   Advance();
 }
 
-
 void RegExpParser::Advance(intptr_t dist) {
   next_pos_ += dist - 1;
   Advance();
 }
 
-
 bool RegExpParser::simple() {
   return simple_;
 }
-
 
 void RegExpParser::ReportError(const char* message) {
   failed_ = true;
@@ -266,7 +250,6 @@ void RegExpParser::ReportError(const char* message) {
   UNREACHABLE();
 }
 
-
 // Pattern ::
 //   Disjunction
 RegExpTree* RegExpParser::ParsePattern() {
@@ -279,7 +262,6 @@ RegExpTree* RegExpParser::ParsePattern() {
   }
   return result;
 }
-
 
 // Disjunction ::
 //   Alternative
@@ -632,7 +614,6 @@ RegExpTree* RegExpParser::ParseDisjunction() {
   }
 }
 
-
 #ifdef DEBUG
 // Currently only used in an ASSERT.
 static bool IsSpecialClassEscape(uint32_t c) {
@@ -649,7 +630,6 @@ static bool IsSpecialClassEscape(uint32_t c) {
   }
 }
 #endif
-
 
 // In order to know whether an escape is a backreference or not we have to scan
 // the entire regexp and find the number of capturing parentheses.  However we
@@ -689,11 +669,9 @@ void RegExpParser::ScanForCaptures() {
   is_scanned_for_captures_ = true;
 }
 
-
 static inline bool IsDecimalDigit(int32_t c) {
   return '0' <= c && c <= '9';
 }
-
 
 bool RegExpParser::ParseBackReferenceIndex(intptr_t* index_out) {
   ASSERT('\\' == current());
@@ -730,7 +708,6 @@ bool RegExpParser::ParseBackReferenceIndex(intptr_t* index_out) {
   *index_out = value;
   return true;
 }
-
 
 // QuantifierPrefix ::
 //   { DecimalDigits }
@@ -799,7 +776,6 @@ bool RegExpParser::ParseIntervalQuantifier(intptr_t* min_out,
   return true;
 }
 
-
 uint32_t RegExpParser::ParseOctalLiteral() {
   ASSERT(('0' <= current() && current() <= '7') || current() == kEndMarker);
   // For compatibility with some other browsers (not all), we parse
@@ -817,7 +793,6 @@ uint32_t RegExpParser::ParseOctalLiteral() {
   return value;
 }
 
-
 // Returns the value (0 .. 15) of a hexadecimal character c.
 // If c is not a legal hexadecimal character, returns a value < 0.
 static inline intptr_t HexValue(uint32_t c) {
@@ -827,7 +802,6 @@ static inline intptr_t HexValue(uint32_t c) {
   if (static_cast<unsigned>(c) <= 5) return c + 10;
   return -1;
 }
-
 
 bool RegExpParser::ParseHexEscape(intptr_t length, uint32_t* value) {
   intptr_t start = position();
@@ -849,7 +823,6 @@ bool RegExpParser::ParseHexEscape(intptr_t length, uint32_t* value) {
   *value = val;
   return true;
 }
-
 
 uint32_t RegExpParser::ParseClassCharacterEscape() {
   ASSERT(current() == '\\');
@@ -936,7 +909,6 @@ uint32_t RegExpParser::ParseClassCharacterEscape() {
   return 0;
 }
 
-
 CharacterRange RegExpParser::ParseClassAtom(uint16_t* char_class) {
   ASSERT(0 == *char_class);
   uint32_t first = current();
@@ -965,7 +937,6 @@ CharacterRange RegExpParser::ParseClassAtom(uint16_t* char_class) {
   }
 }
 
-
 static const uint16_t kNoCharClass = 0;
 
 // Adds range or pre-defined character class to character ranges.
@@ -980,7 +951,6 @@ static inline void AddRangeOrEscape(ZoneGrowableArray<CharacterRange>* ranges,
     ranges->Add(range);
   }
 }
-
 
 RegExpTree* RegExpParser::ParseCharacterClass() {
   static const char* kUnterminated = "Unterminated character class";
@@ -1038,7 +1008,6 @@ RegExpTree* RegExpParser::ParseCharacterClass() {
   }
   return new (Z) RegExpCharacterClass(ranges, is_negated);
 }
-
 
 // ----------------------------------------------------------------------------
 // The Parser interface.

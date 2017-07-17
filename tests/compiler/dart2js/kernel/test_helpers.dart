@@ -175,6 +175,7 @@ class KernelEquivalence {
       {TestStrategy strategy}) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
+    a = unalias(a);
     strategy ??= defaultStrategy;
     switch (a.kind) {
       case ResolutionTypeKind.DYNAMIC:

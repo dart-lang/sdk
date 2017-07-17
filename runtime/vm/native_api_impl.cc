@@ -23,7 +23,6 @@ static uint8_t* malloc_allocator(uint8_t* ptr,
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
-
 class IsolateSaver {
  public:
   explicit IsolateSaver(Isolate* current_isolate)
@@ -46,7 +45,6 @@ class IsolateSaver {
   DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
 };
 
-
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, malloc_allocator);
@@ -62,11 +60,9 @@ static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
       port_id, buffer, writer.BytesWritten(), Message::kNormalPriority));
 }
 
-
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   return PostCObjectHelper(port_id, message);
 }
-
 
 DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
   if (Smi::IsValid(message)) {
@@ -78,7 +74,6 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
   cobj.value.as_int64 = message;
   return PostCObjectHelper(port_id, &cobj);
 }
-
 
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
@@ -101,7 +96,6 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   return port_id;
 }
 
-
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // Close the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
@@ -109,7 +103,6 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // TODO(turnidge): Check that the port is native before trying to close.
   return PortMap::ClosePort(native_port_id);
 }
-
 
 // --- Verification tools ---
 
@@ -123,7 +116,6 @@ static void CompileAll(Thread* thread, Dart_Handle* result) {
   }
 }
 
-
 DART_EXPORT Dart_Handle Dart_CompileAll() {
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
@@ -135,7 +127,6 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   return result;
 }
 
-
 static void ParseAll(Thread* thread, Dart_Handle* result) {
   ASSERT(thread != NULL);
   const Error& error = Error::Handle(thread->zone(), Library::ParseAll(thread));
@@ -145,7 +136,6 @@ static void ParseAll(Thread* thread, Dart_Handle* result) {
     *result = Api::NewHandle(thread, error.raw());
   }
 }
-
 
 DART_EXPORT Dart_Handle Dart_ParseAll() {
   DARTSCOPE(Thread::Current());

@@ -5,8 +5,8 @@
 #include "vm/globals.h"
 #if defined(HOST_OS_LINUX)
 
-#include "vm/cpuinfo.h"
 #include "vm/cpuid.h"
+#include "vm/cpuinfo.h"
 #include "vm/proccpuinfo.h"
 
 #include "platform/assert.h"
@@ -50,7 +50,6 @@ void CpuInfo::InitOnce() {
 #endif
 }
 
-
 void CpuInfo::Cleanup() {
   if (method_ == kCpuInfoCpuId) {
     CpuId::Cleanup();
@@ -59,7 +58,6 @@ void CpuInfo::Cleanup() {
     ProcCpuInfo::Cleanup();
   }
 }
-
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   if (method_ == kCpuInfoCpuId) {
@@ -73,7 +71,6 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   }
 }
 
-
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   if (method_ == kCpuInfoCpuId) {
     return CpuId::field(idx);
@@ -82,7 +79,6 @@ const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
     return ProcCpuInfo::ExtractField(FieldName(idx));
   }
 }
-
 
 bool CpuInfo::HasField(const char* field) {
   if (method_ == kCpuInfoCpuId) {

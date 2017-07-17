@@ -238,9 +238,7 @@ List<A> v2 = null;
   }
 
   test_searchReferences_ClassElement_definedOutside() async {
-    provider.newFile(
-        _p('$testProject/lib.dart'),
-        r'''
+    provider.newFile(_p('$testProject/lib.dart'), r'''
 class A {};
 ''');
     await _resolveTestUnit('''
@@ -964,9 +962,7 @@ class A {
   }
 
   test_searchReferences_TopLevelVariableElement() async {
-    provider.newFile(
-        _p('$testProject/lib.dart'),
-        '''
+    provider.newFile(_p('$testProject/lib.dart'), '''
 library lib;
 var V;
 ''');
@@ -1139,15 +1135,11 @@ class F {}
   test_subtypes_files() async {
     String pathB = _p('$testProject/b.dart');
     String pathC = _p('$testProject/c.dart');
-    provider.newFile(
-        pathB,
-        r'''
+    provider.newFile(pathB, r'''
 import 'test.dart';
 class B extends A {}
 ''');
-    provider.newFile(
-        pathC,
-        r'''
+    provider.newFile(pathC, r'''
 import 'test.dart';
 class C extends A {}
 class D {}

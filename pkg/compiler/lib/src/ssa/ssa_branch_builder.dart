@@ -27,8 +27,7 @@ class SsaBranchBuilder {
 
   void checkNotAborted() {
     if (builder.isAborted()) {
-      throw new SpannableAssertionFailure(
-          diagnosticNode, "aborted control flow");
+      failedAt(diagnosticNode, "aborted control flow");
     }
   }
 

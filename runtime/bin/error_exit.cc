@@ -4,10 +4,10 @@
 
 #include "bin/error_exit.h"
 
+#include "bin/eventhandler.h"
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
-#include "bin/eventhandler.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"

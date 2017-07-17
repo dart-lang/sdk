@@ -291,7 +291,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid invoke: ${semantics}");
+    throw failedAt(node, "Invalid invoke: ${semantics}");
   }
 
   String toString() => 'invoke($selector, $semantics)';
@@ -334,8 +334,7 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
         // TODO(johnniwinther): Support more variants of this invoke structure.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid incompatible invoke: ${semantics}");
+    throw failedAt(node, "Invalid incompatible invoke: ${semantics}");
   }
 
   String toString() => 'incompatible-invoke($selector, $semantics)';
@@ -425,7 +424,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid getter: ${semantics}");
+    throw failedAt(node, "Invalid getter: ${semantics}");
   }
 
   String toString() => 'get($semantics)';
@@ -546,7 +545,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
+    throw failedAt(node, "Invalid setter: ${semantics}");
   }
 
   String toString() => 'set($semantics)';
@@ -596,7 +595,7 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
+    throw failedAt(node, "Invalid setter: ${semantics}");
   }
 
   String toString() => 'unary($operator,$semantics)';
@@ -648,7 +647,7 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid index: ${semantics}");
+    throw failedAt(node, "Invalid index: ${semantics}");
   }
 }
 
@@ -678,7 +677,7 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid equals: ${semantics}");
+    throw failedAt(node, "Invalid equals: ${semantics}");
   }
 
   String toString() => '==($semantics)';
@@ -710,8 +709,7 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid not equals: ${semantics}");
+    throw failedAt(node, "Invalid not equals: ${semantics}");
   }
 
   String toString() => '!=($semantics)';
@@ -749,7 +747,7 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(node, "Invalid binary: ${semantics}");
+    throw failedAt(node, "Invalid binary: ${semantics}");
   }
 
   String toString() => 'binary($operator,$semantics)';
@@ -801,8 +799,7 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid index set: ${semantics}");
+    throw failedAt(node, "Invalid index set: ${semantics}");
   }
 
   String toString() => '[]=($semantics)';
@@ -864,8 +861,7 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid index prefix: ${semantics}");
+    throw failedAt(node, "Invalid index prefix: ${semantics}");
   }
 }
 
@@ -930,8 +926,7 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid index postfix: ${semantics}");
+    throw failedAt(node, "Invalid index postfix: ${semantics}");
   }
 }
 
@@ -1181,8 +1176,7 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
         }
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid compound assigment: ${semantics}");
+    throw failedAt(node, "Invalid compound assigment: ${semantics}");
   }
 
   String toString() => 'compound($operator,$semantics)';
@@ -1411,8 +1405,7 @@ class SetIfNullStructure<R, A> implements SendStructure<R, A> {
         }
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid if-null assigment: ${semantics}");
+    throw failedAt(node, "Invalid if-null assigment: ${semantics}");
   }
 
   String toString() => 'ifNull($semantics)';
@@ -1487,8 +1480,7 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid compound index set: ${semantics}");
+    throw failedAt(node, "Invalid compound index set: ${semantics}");
   }
 
   String toString() => 'compound []=($operator,$semantics)';
@@ -1556,8 +1548,7 @@ class IndexSetIfNullStructure<R, A> implements SendStructure<R, A> {
         // This is not a valid case.
         break;
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid index set if-null: ${semantics}");
+    throw failedAt(node, "Invalid index set if-null: ${semantics}");
   }
 
   String toString() => 'index set if-null []??=($semantics)';
@@ -1795,8 +1786,7 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
                 arg);
         }
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid compound assigment: ${semantics}");
+    throw failedAt(node, "Invalid compound assigment: ${semantics}");
   }
 
   String toString() => 'prefix($operator,$semantics)';
@@ -2027,8 +2017,7 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
                 arg);
         }
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid compound assigment: ${semantics}");
+    throw failedAt(node, "Invalid compound assigment: ${semantics}");
   }
 
   String toString() => 'postfix($operator,$semantics)';
@@ -2179,7 +2168,7 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
             callStructure,
             arg);
     }
-    throw new SpannableAssertionFailure(
+    throw failedAt(
         node, "Unhandled constructor invocation kind: ${semantics.kind}");
   }
 
@@ -2266,7 +2255,7 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
           kind = ConstantInvokeKind.STRING_FROM_ENVIRONMENT;
           break;
         default:
-          throw new SpannableAssertionFailure(
+          throw failedAt(
               node, "Unexpected constant kind $kind: ${constant.toDartText()}");
       }
       return new ConstInvokeStructure(kind, constant);
@@ -2300,7 +2289,7 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
           return visitor.visitStringFromEnvironmentConstructorInvoke(
               node, constant, arg);
         default:
-          throw new SpannableAssertionFailure(
+          throw failedAt(
               node, "Unexpected constant kind $kind: ${constant.toDartText()}");
       }
     }
@@ -2444,8 +2433,7 @@ class ConstantVariableStructure<R, A> extends VariableStructure<R, A> {
             definitions, node, variable, constant, arg);
       default:
     }
-    throw new SpannableAssertionFailure(
-        node, "Invalid constant variable: $variable");
+    throw failedAt(node, "Invalid constant variable: $variable");
   }
 }
 

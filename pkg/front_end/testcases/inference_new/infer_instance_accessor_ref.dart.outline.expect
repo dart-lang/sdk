@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field self::B b;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class B extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   get c() → self::C
     ;
@@ -16,11 +16,11 @@ class B extends core::Object {
     ;
 }
 class C extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class D extends self::C {
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static field dynamic a;

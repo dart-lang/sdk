@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method method(dynamic x, [dynamic y = null, dynamic z = null]) → dynamic {
@@ -11,32 +11,32 @@ class Foo extends core::Object {
   }
 }
 abstract class External extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method externalMethod(core::int x, [core::int y = null, core::int z = null]) → core::String;
   abstract method listen(self::Listener listener) → void;
 }
 abstract class Listener extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   abstract method event(core::String input, [core::int x = null, core::int y = null]) → void;
 }
 class TestListener extends self::Listener {
-  constructor •() → void
+  default constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic input, [dynamic x = null, dynamic y = null]) → void {}
+  method event(core::String input, [core::int x = null, core::int y = null]) → void {}
 }
 class ExtendedListener extends self::Listener {
-  constructor •() → void
+  default constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic input, [dynamic x = null, dynamic y = null, dynamic z = null]) → void {}
+  method event(core::String input, [core::int x = null, core::int y = null, dynamic z = null]) → void {}
 }
 class InvalidListener extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method event(dynamic input, [dynamic x = null]) → void {}

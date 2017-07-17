@@ -102,7 +102,6 @@ struct ExceptionHandlerInfo {
   int8_t is_generated;         // True if this is a generated handler.
 };
 
-
 class CatchEntryState {
  public:
   enum { kCatchEntryStateIsMove = 1, kCatchEntryStateDestShift = 1 };

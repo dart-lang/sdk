@@ -19,7 +19,6 @@ ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
       vm_isolate_references_(kNumInitialReferences),
       vm_symbol_references_(NULL) {}
 
-
 ApiMessageReader::ApiMessageReader(Message* msg)
     : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
                               : msg->data(),
@@ -28,7 +27,6 @@ ApiMessageReader::ApiMessageReader(Message* msg)
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
       vm_symbol_references_(NULL) {}
-
 
 void ApiMessageReader::Init() {
   // We need to have an enclosing ApiNativeScope.
@@ -47,7 +45,6 @@ void ApiMessageReader::Init() {
       static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kDynamicType);
 }
 
-
 Dart_CObject* ApiMessageReader::ReadMessage() {
   Init();
   if (PendingBytes() > 0) {
@@ -64,7 +61,6 @@ Dart_CObject* ApiMessageReader::ReadMessage() {
   }
 }
 
-
 intptr_t ApiMessageReader::LookupInternalClass(intptr_t class_header) {
   if (IsVMIsolateObject(class_header)) {
     return GetVMIsolateObjectId(class_header);
@@ -72,7 +68,6 @@ intptr_t ApiMessageReader::LookupInternalClass(intptr_t class_header) {
   ASSERT(SerializedHeaderTag::decode(class_header) == kObjectId);
   return SerializedHeaderData::decode(class_header);
 }
-
 
 Dart_CObject* ApiMessageReader::AllocateDartCObject(Dart_CObject_Type type) {
   Dart_CObject* value =
@@ -82,16 +77,13 @@ Dart_CObject* ApiMessageReader::AllocateDartCObject(Dart_CObject_Type type) {
   return value;
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectUnsupported() {
   return AllocateDartCObject(Dart_CObject_kUnsupported);
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectNull() {
   return AllocateDartCObject(Dart_CObject_kNull);
 }
-
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectBool(bool val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kBool);
@@ -99,20 +91,17 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectBool(bool val) {
   return value;
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectInt32(int32_t val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kInt32);
   value->value.as_int32 = val;
   return value;
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kInt64);
   value->value.as_int64 = val;
   return value;
 }
-
 
 _Dart_CObject* ApiMessageReader::singleton_uint32_typed_data_ = NULL;
 
@@ -129,13 +118,11 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint() {
   return value;
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kDouble);
   value->value.as_double = val;
   return value;
 }
-
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of chars
@@ -148,7 +135,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
   value->type = Dart_CObject_kString;
   return value;
 }
-
 
 static int GetTypedDataSizeInBytes(Dart_TypedData_Type type) {
   switch (type) {
@@ -174,7 +160,6 @@ static int GetTypedDataSizeInBytes(Dart_TypedData_Type type) {
   return -1;
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectTypedData(
     Dart_TypedData_Type type,
     intptr_t length) {
@@ -197,7 +182,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectTypedData(
   return value;
 }
 
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of
   // pointers to Dart_CObject structures. The pointer to the array
@@ -214,7 +198,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
   }
   return value;
 }
-
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
   RawObject* raw = VmIsolateSnapshotObject(id);
@@ -254,7 +237,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
   }
 }
 
-
 Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectInternal(
     Dart_CObject_Internal::Type type) {
   Dart_CObject_Internal* value = reinterpret_cast<Dart_CObject_Internal*>(
@@ -264,11 +246,9 @@ Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectInternal(
   return value;
 }
 
-
 Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectClass() {
   return AllocateDartCObjectInternal(Dart_CObject_Internal::kClass);
 }
-
 
 ApiMessageReader::BackRefNode* ApiMessageReader::AllocateBackRefNode(
     Dart_CObject* reference,
@@ -279,7 +259,6 @@ ApiMessageReader::BackRefNode* ApiMessageReader::AllocateBackRefNode(
   value->set_state(state);
   return value;
 }
-
 
 static Dart_TypedData_Type GetTypedDataTypeFromView(
     Dart_CObject_Internal* object,
@@ -313,7 +292,6 @@ static Dart_TypedData_Type GetTypedDataTypeFromView(
   }
   return Dart_TypedData_kInvalid;
 }
-
 
 Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
@@ -407,7 +385,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
   return ReadInternalVMObject(class_id, object_id);
 }
 
-
 Dart_CObject* ApiMessageReader::ReadPredefinedSymbol(intptr_t object_id) {
   ASSERT(Symbols::IsPredefinedSymbolId(object_id));
   intptr_t symbol_id = object_id - kMaxPredefinedObjectIds;
@@ -430,11 +407,9 @@ Dart_CObject* ApiMessageReader::ReadPredefinedSymbol(intptr_t object_id) {
   return object;
 }
 
-
 intptr_t ApiMessageReader::NextAvailableObjectId() const {
   return backward_references_.length() + kMaxPredefinedObjectIds;
 }
-
 
 Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
   ASSERT(RawObject::IsOneByteStringClassId(raw->GetClassId()));
@@ -446,7 +421,6 @@ Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
   p[len] = '\0';
   return object;
 }
-
 
 Dart_CObject* ApiMessageReader::GetCanonicalMintObject(Dart_CObject_Type type,
                                                        int64_t value64) {
@@ -467,7 +441,6 @@ Dart_CObject* ApiMessageReader::GetCanonicalMintObject(Dart_CObject_Type type,
   vm_isolate_references_.Add(object);
   return object;
 }
-
 
 Dart_CObject* ApiMessageReader::ReadObjectRef() {
   int64_t value64 = Read<int64_t>();
@@ -523,7 +496,6 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   return ReadInternalVMObject(class_id, object_id);
 }
 
-
 Dart_CObject* ApiMessageReader::ReadVMIsolateObject(intptr_t value) {
   intptr_t object_id = GetVMIsolateObjectId(value);
   if (object_id == kNullObject) {
@@ -544,7 +516,6 @@ Dart_CObject* ApiMessageReader::ReadVMIsolateObject(intptr_t value) {
   // No other VM isolate objects are supported.
   return AllocateDartCObjectNull();
 }
-
 
 Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
                                                      intptr_t object_id) {
@@ -705,7 +676,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       AllocateDartCObjectTypedData(Dart_TypedData_k##type, len);               \
   AddBackRef(object_id, object, kIsDeserialized);
 
-
 #define READ_TYPED_DATA(type, ctype)                                           \
   {                                                                            \
     READ_TYPED_DATA_HEADER(type);                                              \
@@ -817,7 +787,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
   }
 }
 
-
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
   if (object_id == kDynamicType || object_id == kDoubleType ||
       object_id == kIntType || object_id == kBoolType ||
@@ -831,7 +800,6 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
   return backward_references_[index]->reference();
 }
 
-
 Dart_CObject* ApiMessageReader::ReadObject() {
   Dart_CObject* value = ReadObjectImpl();
   for (intptr_t i = 0; i < backward_references_.length(); i++) {
@@ -842,7 +810,6 @@ Dart_CObject* ApiMessageReader::ReadObject() {
   }
   return value;
 }
-
 
 Dart_CObject* ApiMessageReader::ReadObjectImpl() {
   int64_t value64 = Read<int64_t>();
@@ -871,7 +838,6 @@ Dart_CObject* ApiMessageReader::ReadObjectImpl() {
   return ReadInlinedObject(object_id);
 }
 
-
 void ApiMessageReader::AddBackRef(intptr_t id,
                                   Dart_CObject* obj,
                                   DeserializeState state) {
@@ -882,7 +848,6 @@ void ApiMessageReader::AddBackRef(intptr_t id,
   backward_references_.Add(node);
 }
 
-
 Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   ASSERT(id >= kMaxPredefinedObjectIds);
   intptr_t index = (id - kMaxPredefinedObjectIds);
@@ -891,7 +856,6 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   }
   return NULL;
 }
-
 
 void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t* data) {
   // Write out the serialization header value for this object.
@@ -913,7 +877,6 @@ void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t* data) {
   }
 }
 
-
 void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
   // Mark the object as serialized by adding the object id to the
   // upper bits of the type field in the Dart_CObject structure. Add
@@ -924,18 +887,15 @@ void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
       ((mark_value) << kDartCObjectTypeBits) | object->type);
 }
 
-
 void ApiMessageWriter::UnmarkCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   object->type =
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
 }
 
-
 bool ApiMessageWriter::IsCObjectMarked(Dart_CObject* object) {
   return (object->type & kDartCObjectMarkMask) != 0;
 }
-
 
 intptr_t ApiMessageWriter::GetMarkedCObjectMark(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
@@ -944,7 +904,6 @@ intptr_t ApiMessageWriter::GetMarkedCObjectMark(Dart_CObject* object) {
   // An offset was added to object id for making marking object id 0 possible.
   return mark_value - kDartCObjectMarkOffset;
 }
-
 
 void ApiMessageWriter::UnmarkAllCObjects(Dart_CObject* object) {
   if (!IsCObjectMarked(object)) return;
@@ -956,7 +915,6 @@ void ApiMessageWriter::UnmarkAllCObjects(Dart_CObject* object) {
     }
   }
 }
-
 
 void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
   if (forward_id_ >= forward_list_length_) {
@@ -977,17 +935,14 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
   forward_id_ += 1;
 }
 
-
 void ApiMessageWriter::WriteSmi(int64_t value) {
   ASSERT(Smi::IsValid(value));
   Write<RawObject*>(Smi::New(static_cast<intptr_t>(value)));
 }
 
-
 void ApiMessageWriter::WriteNullObject() {
   WriteVMIsolateObject(kNullObject);
 }
-
 
 void ApiMessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
   ASSERT(!Smi::IsValid(value));
@@ -1000,7 +955,6 @@ void ApiMessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
   Write<int64_t>(value);
 }
 
-
 void ApiMessageWriter::WriteInt32(Dart_CObject* object) {
   int64_t value = object->value.as_int32;
   if (Smi::IsValid(value)) {
@@ -1009,7 +963,6 @@ void ApiMessageWriter::WriteInt32(Dart_CObject* object) {
     WriteMint(object, value);
   }
 }
-
 
 void ApiMessageWriter::WriteInt64(Dart_CObject* object) {
   int64_t value = object->value.as_int64;
@@ -1020,7 +973,6 @@ void ApiMessageWriter::WriteInt64(Dart_CObject* object) {
   }
 }
 
-
 void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
   // Write out the serialization header value for this object.
   WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id_);
@@ -1029,7 +981,6 @@ void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
   // Advance object id.
   object_id_++;
 }
-
 
 bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
@@ -1064,7 +1015,6 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   return WriteCObjectInlined(object, type);
 }
 
-
 bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
@@ -1091,7 +1041,6 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   }
   return WriteCObjectInlined(object, type);
 }
-
 
 bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
@@ -1120,7 +1069,6 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   }
   return true;
 }
-
 
 bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
                                            Dart_CObject_Type type) {
@@ -1269,9 +1217,8 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
       WriteTags(0);
       intptr_t length = object->value.as_external_typed_data.length;
-      if (length < 0 ||
-          length >
-              ExternalTypedData::MaxElements(kExternalTypedDataUint8ArrayCid)) {
+      if (length < 0 || length > ExternalTypedData::MaxElements(
+                                     kExternalTypedDataUint8ArrayCid)) {
         return false;
       }
       uint8_t* data = object->value.as_external_typed_data.data;
@@ -1305,7 +1252,6 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
 
   return true;
 }
-
 
 bool ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
   bool success = WriteCObject(object);

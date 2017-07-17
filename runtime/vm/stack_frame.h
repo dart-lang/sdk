@@ -29,7 +29,6 @@ namespace dart {
 class ObjectPointerVisitor;
 class RawContext;
 
-
 // Generic stack frame.
 class StackFrame : public ValueObject {
  public:
@@ -150,7 +149,6 @@ class StackFrame : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(StackFrame);
 };
 
-
 // Exit frame is used to mark the transition from dart code into dart VM
 // runtime code.
 class ExitFrame : public StackFrame {
@@ -173,7 +171,6 @@ class ExitFrame : public StackFrame {
   DISALLOW_COPY_AND_ASSIGN(ExitFrame);
 };
 
-
 // Entry Frame is used to mark the transition from dart VM runtime code into
 // dart code.
 class EntryFrame : public StackFrame {
@@ -195,7 +192,6 @@ class EntryFrame : public StackFrame {
   friend class StackFrameIterator;
   DISALLOW_COPY_AND_ASSIGN(EntryFrame);
 };
-
 
 // A StackFrameIterator can be initialized with a thread other than the
 // current thread. Because this is generally a bad idea, it is only allowed on
@@ -299,7 +295,6 @@ class StackFrameIterator : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(StackFrameIterator);
 };
 
-
 // Iterator for iterating over all dart frames (skips over exit frames,
 // entry frames and stub frames).
 // A DartFrameIterator can be initialized with an isolate other than the
@@ -353,7 +348,6 @@ class DartFrameIterator : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(DartFrameIterator);
 };
 
-
 // Iterator for iterating over all inlined dart functions in an optimized
 // dart frame (the iteration includes the function that is inlining the
 // other functions).
@@ -396,11 +390,9 @@ class InlinedFunctionsIterator : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsIterator);
 };
 
-
 #if defined(DEBUG)
 void ValidateFrames();
 #endif
-
 
 #if !defined(TARGET_ARCH_DBC)
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
@@ -408,11 +400,9 @@ DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
   return fp_offset + var_index;
 }
 
-
 DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
   return fp + (kParamEndSlotFromFp * kWordSize) + (reverse_index * kWordSize);
 }
-
 
 DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
   return other_fp < fp;
@@ -424,11 +414,9 @@ DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
 static const uword kInterruptStackLimit = ~static_cast<uword>(0);
 #endif
 
-
 DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
   return fp + LocalVarIndex(0, index) * kWordSize;
 }
-
 
 }  // namespace dart
 

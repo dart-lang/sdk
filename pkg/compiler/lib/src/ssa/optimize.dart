@@ -850,7 +850,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    ResolutionDartType type = node.typeExpression;
+    DartType type = node.typeExpression;
     if (type != null) {
       if (type.isMalformed) {
         // Malformed types are treated as dynamic statically, but should
@@ -1257,15 +1257,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    ResolutionTypeVariableType variable = node.variable;
+    TypeVariableType variable = node.variable;
+    ClassEntity contextClass = variable.element.typeDeclaration;
     HInstruction object = node.object;
 
-    HInstruction finishGroundType(ResolutionInterfaceType groundType) {
-      ResolutionInterfaceType typeAtVariable =
-          groundType.asInstanceOf(variable.element.enclosingClass);
+    HInstruction finishGroundType(InterfaceType groundType) {
+      InterfaceType typeAtVariable =
+          _closedWorld.dartTypes.asInstanceOf(groundType, contextClass);
       if (typeAtVariable != null) {
         int index = variable.element.index;
-        ResolutionDartType typeArgument = typeAtVariable.typeArguments[index];
+        DartType typeArgument = typeAtVariable.typeArguments[index];
         HInstruction replacement = new HTypeInfoExpression(
             TypeInfoExpressionKind.COMPLETE,
             typeArgument,
@@ -1279,17 +1280,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
     /// Read the type variable from an allocation of type [createdClass], where
     /// [selectTypeArgumentFromObjectCreation] extracts the type argument from
     /// the allocation for factory constructor call.
-    HInstruction finishSubstituted(ClassElement createdClass,
+    HInstruction finishSubstituted(ClassEntity createdClass,
         HInstruction selectTypeArgumentFromObjectCreation(int index)) {
+      InterfaceType thisType = _closedWorld.dartTypes.getThisType(createdClass);
+
       HInstruction instructionForTypeVariable(ResolutionTypeVariableType tv) {
         return selectTypeArgumentFromObjectCreation(
-            createdClass.thisType.typeArguments.indexOf(tv));
+            thisType.typeArguments.indexOf(tv));
       }
 
-      ResolutionDartType type = createdClass.thisType
-          .asInstanceOf(variable.element.enclosingClass)
+      DartType type = _closedWorld.dartTypes
+          .asInstanceOf(thisType, contextClass)
           .typeArguments[variable.element.index];
-      if (type is ResolutionTypeVariableType) {
+      if (type is TypeVariableType) {
         return instructionForTypeVariable(type);
       }
       List<HInstruction> arguments = <HInstruction>[];

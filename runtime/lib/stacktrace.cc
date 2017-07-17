@@ -40,7 +40,6 @@ static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
   return StackTrace::New(code_array, pc_offset_array);
 }
 
-
 static RawStackTrace* CurrentStackTrace(
     Thread* thread,
     bool for_async_function,
@@ -98,17 +97,14 @@ static RawStackTrace* CurrentStackTrace(
   return StackTrace::New(code_array, pc_offset_array, async_stack_trace);
 }
 
-
 RawStackTrace* GetStackTraceForException() {
   Thread* thread = Thread::Current();
   return CurrentStackTrace(thread, false, 0);
 }
 
-
 DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {
   return CurrentStackTrace(thread, false);
 }
-
 
 DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 1) {
   GET_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
@@ -123,12 +119,10 @@ DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 1) {
   return CurrentStackTrace(thread, true);
 }
 
-
 DEFINE_NATIVE_ENTRY(StackTrace_clearAsyncThreadStackTrace, 0) {
   thread->clear_async_stack_trace();
   return Object::null();
 }
-
 
 DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(StackTrace, stack_trace,
@@ -136,7 +130,6 @@ DEFINE_NATIVE_ENTRY(StackTrace_setAsyncThreadStackTrace, 1) {
   thread->set_async_stack_trace(stack_trace);
   return Object::null();
 }
-
 
 static void AppendFrames(const GrowableObjectArray& code_list,
                          const GrowableObjectArray& pc_offset_list,
@@ -162,7 +155,6 @@ static void AppendFrames(const GrowableObjectArray& code_list,
     frame = frames.NextFrame();
   }
 }
-
 
 // Creates a StackTrace object from the current stack.
 //

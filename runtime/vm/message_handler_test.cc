@@ -29,7 +29,6 @@ class MessageHandlerTestPeer {
   DISALLOW_COPY_AND_ASSIGN(MessageHandlerTestPeer);
 };
 
-
 class TestMessageHandler : public MessageHandler {
  public:
   TestMessageHandler()
@@ -106,16 +105,13 @@ class TestMessageHandler : public MessageHandler {
   DISALLOW_COPY_AND_ASSIGN(TestMessageHandler);
 };
 
-
 MessageHandler::MessageStatus TestStartFunction(uword data) {
   return (reinterpret_cast<TestMessageHandler*>(data))->Start();
 }
 
-
 void TestEndFunction(uword data) {
   return (reinterpret_cast<TestMessageHandler*>(data))->End();
 }
-
 
 VM_UNIT_TEST_CASE(MessageHandler_PostMessage) {
   TestMessageHandler handler;
@@ -146,7 +142,6 @@ VM_UNIT_TEST_CASE(MessageHandler_PostMessage) {
   EXPECT(NULL == handler_peer.queue()->Dequeue());
   delete message;
 }
-
 
 VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   TestMessageHandler handler;
@@ -180,7 +175,6 @@ VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   handler_peer.CloseAllPorts();
 }
 
-
 VM_UNIT_TEST_CASE(MessageHandler_ClosePort) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
@@ -198,7 +192,6 @@ VM_UNIT_TEST_CASE(MessageHandler_ClosePort) {
   delete message2;
 }
 
-
 VM_UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
@@ -212,7 +205,6 @@ VM_UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   // All messages are dropped from the queue.
   EXPECT(NULL == handler_peer.queue()->Dequeue());
 }
-
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   TestMessageHandler handler;
@@ -238,7 +230,6 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   EXPECT_EQ(port1, ports[2]);
   PortMap::ClosePorts(&handler);
 }
-
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   TestMessageHandler handler;
@@ -268,7 +259,6 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   EXPECT_EQ(port3, ports[1]);  // oob_message2, ok
   handler_peer.CloseAllPorts();
 }
-
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   TestMessageHandler handler;
@@ -307,7 +297,6 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   handler_peer.CloseAllPorts();
 }
 
-
 VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
@@ -333,13 +322,11 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   handler_peer.CloseAllPorts();
 }
 
-
 struct ThreadStartInfo {
   MessageHandler* handler;
   Dart_Port* ports;
   int count;
 };
-
 
 static void SendMessages(uword param) {
   ThreadStartInfo* info = reinterpret_cast<ThreadStartInfo*>(param);
@@ -351,7 +338,6 @@ static void SendMessages(uword param) {
     handler_peer.PostMessage(message);
   }
 }
-
 
 VM_UNIT_TEST_CASE(MessageHandler_Run) {
   ThreadPool pool;

@@ -90,7 +90,6 @@ void VmarList::AddVmar(mx_handle_t vmar, uword addr, intptr_t size) {
   vmar_array_.InsertAt(idx, new_mapping);
 }
 
-
 intptr_t VmarList::LookupVmarIndexLocked(uword addr) {
   // Binary search for the vmar containing addr.
   intptr_t imin = 0;
@@ -109,7 +108,6 @@ intptr_t VmarList::LookupVmarIndexLocked(uword addr) {
   return -1;
 }
 
-
 mx_handle_t VmarList::LookupVmar(uword addr) {
   MutexLocker ml(vmar_array_lock_);
   LOG_INFO("LookupVmar(%lx)\n", addr);
@@ -121,7 +119,6 @@ mx_handle_t VmarList::LookupVmar(uword addr) {
   LOG_INFO("LookupVmar(%lx) found at %ld\n", addr, idx);
   return vmar_array_[idx].vmar;
 }
-
 
 void VmarList::RemoveVmar(uword addr) {
   MutexLocker ml(vmar_array_lock_);
@@ -143,14 +140,11 @@ void VmarList::RemoveVmar(uword addr) {
   vmar_array_.RemoveLast();
 }
 
-
 uword VirtualMemory::page_size_ = 0;
-
 
 void VirtualMemory::InitOnce() {
   page_size_ = getpagesize();
 }
-
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   ASSERT(Utils::IsAligned(size, page_size_));
@@ -171,7 +165,6 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   return new VirtualMemory(region, vmar);
 }
 
-
 VirtualMemory::~VirtualMemory() {
   if (vm_owns_region()) {
     mx_handle_t vmar = static_cast<mx_handle_t>(handle());
@@ -187,7 +180,6 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-
 bool VirtualMemory::FreeSubSegment(int32_t handle,
                                    void* address,
                                    intptr_t size) {
@@ -200,7 +192,6 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
   }
   return true;
 }
-
 
 bool VirtualMemory::Commit(uword addr,
                            intptr_t size,
@@ -244,7 +235,6 @@ bool VirtualMemory::Commit(uword addr,
            executable ? "executable" : "");
   return true;
 }
-
 
 bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   ASSERT(Thread::Current()->IsMutatorThread() ||

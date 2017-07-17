@@ -230,8 +230,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   @override
   void checkQueueIsEmpty() {
     if (_queue.isNotEmpty) {
-      throw new SpannableAssertionFailure(
-          _queue.first.element, "$name queue is not empty.");
+      failedAt(_queue.first.element, "$name queue is not empty.");
     }
   }
 
@@ -435,7 +434,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     if (workItem == null) return;
 
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           entity, "Resolution work list is closed. Trying to add $entity.");
     }
 
@@ -452,7 +451,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// The queue is processed in FIFO order.
   void addDeferredAction(DeferredAction deferredAction) {
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           deferredAction.element,
           "Resolution work list is closed. "
           "Trying to add deferred action for ${deferredAction.element}");

@@ -152,9 +152,7 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   LibrarySpecificUnit target;
 
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -362,9 +360,7 @@ library libB;
     newSource('/foo.dart', '');
     var foo_io = newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
-    var testSource = newSource(
-        '/test.dart',
-        r'''
+    var testSource = newSource('/test.dart', r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -385,9 +381,7 @@ export 'foo.dart'
     newSource('/foo.dart', '');
     var foo_io = newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
-    var testSource = newSource(
-        '/test.dart',
-        r'''
+    var testSource = newSource('/test.dart', r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -605,9 +599,7 @@ part 'part.dart';''',
 @reflectiveTest
 class BuildEnumMemberElementsTaskTest extends _AbstractDartTaskTest {
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -618,9 +610,7 @@ class A {}
   }
 
   test_perform() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 enum MyEnum {
   A, B
 }
@@ -683,15 +673,11 @@ enum MyEnum {
 @reflectiveTest
 class BuildExportNamespaceTaskTest extends _AbstractDartTaskTest {
   test_perform_entryPoint() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
+    Source sourceA = newSource('/a.dart', '''
 library lib_a;
 export 'b.dart';
 ''');
-    Source sourceB = newSource(
-        '/b.dart',
-        '''
+    Source sourceB = newSource('/b.dart', '''
 library lib_b;
 main() {}
 ''');
@@ -705,27 +691,21 @@ main() {}
   }
 
   test_perform_hideCombinator() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
+    Source sourceA = newSource('/a.dart', '''
 library lib_a;
 export 'b.dart' hide B1;
 class A1 {}
 class A2 {}
 class _A3 {}
 ''');
-    newSource(
-        '/b.dart',
-        '''
+    newSource('/b.dart', '''
 library lib_b;
 class B1 {}
 class B2 {}
 class B3 {}
 class _B4 {}
 ''');
-    newSource(
-        '/c.dart',
-        '''
+    newSource('/c.dart', '''
 library lib_c;
 class C1 {}
 class C2 {}
@@ -741,18 +721,14 @@ class C3 {}
   }
 
   test_perform_showCombinator() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
+    Source sourceA = newSource('/a.dart', '''
 library lib_a;
 export 'b.dart' show B1;
 class A1 {}
 class A2 {}
 class _A3 {}
 ''');
-    newSource(
-        '/b.dart',
-        '''
+    newSource('/b.dart', '''
 library lib_b;
 class B1 {}
 class B2 {}
@@ -768,16 +744,12 @@ class _B3 {}
   }
 
   test_perform_showCombinator_setter() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
+    Source sourceA = newSource('/a.dart', '''
 library lib_a;
 export 'b.dart' show topLevelB;
 class A {}
 ''');
-    newSource(
-        '/b.dart',
-        '''
+    newSource('/b.dart', '''
 library lib_b;
 int topLevelB;
 ''');
@@ -1086,27 +1058,19 @@ class BuildSourceExportClosureTaskTest extends _AbstractDartTaskTest {
   }
 
   test_perform_exportClosure() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
+    Source sourceA = newSource('/a.dart', '''
 library lib_a;
 export 'b.dart';
 ''');
-    Source sourceB = newSource(
-        '/b.dart',
-        '''
+    Source sourceB = newSource('/b.dart', '''
 library lib_b;
 export 'c.dart';
 ''');
-    Source sourceC = newSource(
-        '/c.dart',
-        '''
+    Source sourceC = newSource('/c.dart', '''
 library lib_c;
 export 'a.dart';
 ''');
-    Source sourceD = newSource(
-        '/d.dart',
-        '''
+    Source sourceD = newSource('/d.dart', '''
 library lib_d;
 ''');
     // a.dart
@@ -1161,9 +1125,7 @@ class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
   }
 
   test_annotation_with_args() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const x = 1;
 @D(x) class C {}
 class D { const D(value); }
@@ -1196,9 +1158,7 @@ class D { const D(value); }
   }
 
   test_annotation_with_nonConstArg() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class A {
   const A(x);
 }
@@ -1224,9 +1184,7 @@ class C {
   }
 
   test_annotation_without_args() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const x = 1;
 @x class C {}
 ''');
@@ -1252,9 +1210,7 @@ const x = 1;
   }
 
   test_enumConstant() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 enum E {A, B, C}
 ''');
     // First compute the resolved unit for the source.
@@ -1274,9 +1230,7 @@ enum E {A, B, C}
   }
 
   test_perform() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const x = y;
 const y = 1;
 ''');
@@ -1328,9 +1282,7 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
   test_annotation_non_const_constructor() {
     // Calling a non-const constructor from an annotation that is illegal, but
     // shouldn't crash analysis.
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class A {
   final int i;
   A(this.i);
@@ -1350,9 +1302,7 @@ class C {}
   }
 
   test_annotation_with_args() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const x = 1;
 @D(x) class C {}
 class D {
@@ -1375,9 +1325,7 @@ class D {
   }
 
   test_annotation_without_args() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const x = 1;
 @x class C {}
 ''');
@@ -1393,10 +1341,7 @@ const x = 1;
   }
 
   test_circular_reference() {
-    _checkCircularities(
-        'x',
-        ['y'],
-        '''
+    _checkCircularities('x', ['y'], '''
 const x = y + 1;
 const y = x + 1;
 ''');
@@ -1410,10 +1355,7 @@ const y = x + 1;
   test_circular_reference_strongly_connected_component() {
     // When there is a circularity, all elements in the strongly connected
     // component should be marked as having an error.
-    _checkCircularities(
-        'a',
-        ['b', 'c', 'd'],
-        '''
+    _checkCircularities('a', ['b', 'c', 'd'], '''
 const a = b;
 const b = c + d;
 const c = a;
@@ -1425,9 +1367,8 @@ const d = a;
     // Note: the situation below is a compile-time error (since the synthetic
     // constructor for Base is non-const), but we need to handle it without
     // throwing an exception.
-    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
-        'x',
-        '''
+    EvaluationResultImpl evaluationResult =
+        _computeTopLevelVariableConstValue('x', '''
 class Base {}
 class Derived extends Base {
   const Derived();
@@ -1438,9 +1379,8 @@ const x = const Derived();
   }
 
   test_dependency() {
-    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
-        'x',
-        '''
+    EvaluationResultImpl evaluationResult =
+        _computeTopLevelVariableConstValue('x', '''
 const x = y + 1;
 const y = 1;
 ''');
@@ -1450,9 +1390,8 @@ const y = 1;
   }
 
   test_external_const_factory() {
-    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
-        'x',
-        '''
+    EvaluationResultImpl evaluationResult =
+        _computeTopLevelVariableConstValue('x', '''
 const x = const C.foo();
 
 class C extends B {
@@ -1465,9 +1404,8 @@ class B {}
   }
 
   test_simple_constant() {
-    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
-        'x',
-        '''
+    EvaluationResultImpl evaluationResult =
+        _computeTopLevelVariableConstValue('x', '''
 const x = 1;
 ''');
     expect(evaluationResult, isNotNull);
@@ -1541,9 +1479,7 @@ class ComputeInferableStaticVariableDependenciesTaskTest
   }
 
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -1554,9 +1490,7 @@ class A {}
   }
 
   test_perform() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 const a = b;
 const b = 0;
 ''');
@@ -1604,20 +1538,14 @@ class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
 
   void test_library_cycle_incremental() {
     enableStrongMode();
-    Source a = newSource(
-        '/a.dart',
-        '''
+    Source a = newSource('/a.dart', '''
 library a;
 ''');
-    Source b = newSource(
-        '/b.dart',
-        '''
+    Source b = newSource('/b.dart', '''
 library b;
 import 'a.dart';
 ''');
-    Source c = newSource(
-        '/c.dart',
-        '''
+    Source c = newSource('/c.dart', '''
 library c;
 import 'b.dart';
 ''');
@@ -1627,9 +1555,7 @@ import 'b.dart';
     _assertLibraryCycle(c, [c]);
 
     // Create a cycle.
-    context.setContents(
-        a,
-        '''
+    context.setContents(a, '''
 library a;
 import 'c.dart';
 ''');
@@ -1642,9 +1568,7 @@ import 'c.dart';
     _assertLibraryCycle(c, [a, b, c]);
 
     // Break the cycle again.
-    context.setContents(
-        a,
-        '''
+    context.setContents(a, '''
 library a;
 ''');
     _expectInvalid(a);
@@ -1658,20 +1582,14 @@ library a;
 
   void test_library_cycle_incremental_partial() {
     enableStrongMode();
-    Source a = newSource(
-        '/a.dart',
-        r'''
+    Source a = newSource('/a.dart', r'''
 library a;
 ''');
-    Source b = newSource(
-        '/b.dart',
-        r'''
+    Source b = newSource('/b.dart', r'''
 library b;
 import 'a.dart';
 ''');
-    Source c = newSource(
-        '/c.dart',
-        r'''
+    Source c = newSource('/c.dart', r'''
 library c;
 import 'b.dart';
 ''');
@@ -1681,9 +1599,7 @@ import 'b.dart';
     // 'c' is not reachable, so we have not yet computed its library cycles.
 
     // Complete the cycle, via 'c'.
-    context.setContents(
-        a,
-        r'''
+    context.setContents(a, r'''
 library a;
 import 'c.dart';
 ''');
@@ -1700,21 +1616,15 @@ import 'c.dart';
 
   void test_library_cycle_incremental_partial2() {
     enableStrongMode();
-    Source a = newSource(
-        '/a.dart',
-        r'''
+    Source a = newSource('/a.dart', r'''
 library a;
 import 'b.dart';
 ''');
-    Source b = newSource(
-        '/b.dart',
-        r'''
+    Source b = newSource('/b.dart', r'''
 library b;
 import 'a.dart';
 ''');
-    Source c = newSource(
-        '/c.dart',
-        r'''
+    Source c = newSource('/c.dart', r'''
 library c;
 import 'b.dart';
 ''');
@@ -1724,9 +1634,7 @@ import 'b.dart';
     _assertLibraryCycle(c, [c]);
 
     // Include 'c' into the cycle.
-    context.setContents(
-        a,
-        r'''
+    context.setContents(a, r'''
 library a;
 import 'b.dart';
 import 'c.dart';
@@ -1808,21 +1716,15 @@ import 'a.dart';
 
   void test_library_cycle_override_inference_incremental() {
     enableStrongMode();
-    Source lib1Source = newSource(
-        '/my_lib1.dart',
-        '''
+    Source lib1Source = newSource('/my_lib1.dart', '''
 library my_lib1;
 import 'my_lib3.dart';
 ''');
-    Source lib2Source = newSource(
-        '/my_lib2.dart',
-        '''
+    Source lib2Source = newSource('/my_lib2.dart', '''
 library my_lib2;
 import 'my_lib1.dart';
 ''');
-    Source lib3Source = newSource(
-        '/my_lib3.dart',
-        '''
+    Source lib3Source = newSource('/my_lib3.dart', '''
 library my_lib3;
 import 'my_lib2.dart';
 
@@ -1845,9 +1747,7 @@ class B extends A {
     expect(b.getMethod('foo').returnType.toString(), 'int');
 
     // add a dummy edit.
-    context.setContents(
-        lib1Source,
-        '''
+    context.setContents(lib1Source, '''
 library my_lib1;
 import 'my_lib3.dart';
 var foo = 123;
@@ -1884,9 +1784,7 @@ var foo = 123;
   }
 
   void test_library_cycle_singleton() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 import 'dart:core';
 ''');
     computeResult(source, LIBRARY_CYCLE);
@@ -2145,9 +2043,7 @@ class DartErrorsTaskTest extends _AbstractDartTaskTest {
 @reflectiveTest
 class EvaluateUnitConstantsTaskTest extends _AbstractDartTaskTest {
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -2158,9 +2054,7 @@ class A {}
   }
 
   test_perform() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class C {
   const C();
 }
@@ -2196,21 +2090,15 @@ class GatherUsedImportedElementsTaskTest extends _AbstractDartTaskTest {
   Set<String> usedElementNames;
 
   test_perform_inBody() {
-    newSource(
-        '/a.dart',
-        r'''
+    newSource('/a.dart', r'''
 library lib_a;
 class A {}
 ''');
-    newSource(
-        '/b.dart',
-        r'''
+    newSource('/b.dart', r'''
 library lib_b;
 class B {}
 ''');
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'a.dart';
 import 'b.dart';
 main() {
@@ -2222,9 +2110,7 @@ main() {
   }
 
   test_perform_inComment_exportDirective() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'dart:async';
 /// Use [Future].
 export 'dart:math';
@@ -2234,9 +2120,7 @@ export 'dart:math';
   }
 
   test_perform_inComment_importDirective() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'dart:async';
 /// Use [Future].
 import 'dart:math';
@@ -2246,9 +2130,7 @@ import 'dart:math';
   }
 
   test_perform_inComment_libraryDirective() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 /// Use [Future].
 library test;
 import 'dart:async';
@@ -2258,9 +2140,7 @@ import 'dart:async';
   }
 
   test_perform_inComment_topLevelFunction() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'dart:async';
 /// Use [Future].
 main() {}
@@ -2284,17 +2164,13 @@ class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
   Set<String> usedElementNames;
 
   test_perform_forPart_afterLibraryUpdate() {
-    Source libSource = newSource(
-        '/my_lib.dart',
-        '''
+    Source libSource = newSource('/my_lib.dart', '''
 library my_lib;
 part 'my_part.dart';
 foo() => null;
 class _LocalClass {}
 ''');
-    Source partSource = newSource(
-        '/my_part.dart',
-        '''
+    Source partSource = newSource('/my_part.dart', '''
 part of my_lib;
 bar() {
   print(_LocalClass);
@@ -2313,9 +2189,7 @@ bar() {
       })));
     }
     // change my_lib.dart and recompute
-    context.setContents(
-        libSource,
-        '''
+    context.setContents(libSource, '''
 library my_lib;
 part 'my_part.dart';
 String foo() => null;
@@ -2334,9 +2208,7 @@ class _LocalClass {}
   }
 
   test_perform_localVariable() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 main() {
   var v1 = 1;
   var v2 = 2;
@@ -2348,9 +2220,7 @@ main() {
   }
 
   test_perform_method() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 class A {
   _m1() {}
   _m2() {}
@@ -2379,9 +2249,7 @@ main(A a, p) {
 @reflectiveTest
 class GenerateHintsTaskTest extends _AbstractDartTaskTest {
   test_perform_bestPractices_missingReturn() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 int main() {
 }
 ''');
@@ -2396,9 +2264,7 @@ int main() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.dart2jsHint = true;
     prepareAnalysisContext(options);
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main(p) {
   if (p is double) {
     print('double');
@@ -2413,9 +2279,7 @@ main(p) {
   }
 
   test_perform_deadCode() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main() {
   if (false) {
     print('how?');
@@ -2432,9 +2296,7 @@ main() {
   test_perform_disabled() {
     context.analysisOptions =
         new AnalysisOptionsImpl.from(context.analysisOptions)..hint = false;
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 int main() {
 }
 ''');
@@ -2446,15 +2308,11 @@ int main() {
   }
 
   test_perform_imports_duplicateImport() {
-    newSource(
-        '/a.dart',
-        r'''
+    newSource('/a.dart', r'''
 library lib_a;
 class A {}
 ''');
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'a.dart';
 import 'a.dart';
 main() {
@@ -2469,21 +2327,15 @@ main() {
   }
 
   test_perform_imports_unusedImport_one() {
-    newSource(
-        '/a.dart',
-        r'''
+    newSource('/a.dart', r'''
 library lib_a;
 class A {}
 ''');
-    newSource(
-        '/b.dart',
-        r'''
+    newSource('/b.dart', r'''
 library lib_b;
 class B {}
 ''');
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'a.dart';
 import 'b.dart';
 main() {
@@ -2497,15 +2349,11 @@ main() {
   }
 
   test_perform_imports_unusedImport_zero() {
-    newSource(
-        '/a.dart',
-        r'''
+    newSource('/a.dart', r'''
 library lib_a;
 class A {}
 ''');
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 import 'a.dart';
 main() {
   new A();
@@ -2518,9 +2366,7 @@ main() {
   }
 
   test_perform_overrideVerifier() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class A {}
 class B {
   @override
@@ -2536,9 +2382,7 @@ class B {
   }
 
   test_perform_todo() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main() {
   // TODO(developer) foo bar
 }
@@ -2551,9 +2395,7 @@ main() {
   }
 
   test_perform_unusedLocalElements_class() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class _A {}
 class _B {}
 main() {
@@ -2568,9 +2410,7 @@ main() {
   }
 
   test_perform_unusedLocalElements_localVariable() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main() {
   var v = 42;
 }
@@ -2584,9 +2424,7 @@ main() {
   }
 
   test_perform_unusedLocalElements_method() {
-    Source source = newSource(
-        '/my_lib.dart',
-        '''
+    Source source = newSource('/my_lib.dart', '''
 library my_lib;
 part 'my_part.dart';
 class A {
@@ -2595,9 +2433,7 @@ class A {
   _mc() {}
 }
 ''');
-    newSource(
-        '/my_part.dart',
-        '''
+    newSource('/my_part.dart', '''
 part of my_lib;
 
 f(A a) {
@@ -2635,9 +2471,7 @@ class GenerateLintsTaskTest extends _AbstractDartTaskTest {
   }
 
   test_camel_case_types() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class a { }
 ''');
 
@@ -2673,9 +2507,7 @@ class GenerateLintsTaskTest_TestLinter extends Linter {
 @reflectiveTest
 class InferInstanceMembersInUnitTaskTest extends _AbstractDartTaskTest {
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -2687,9 +2519,7 @@ class A {}
 
   void test_perform() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 class A {
   X f;
   Y m(Z x) {}
@@ -2731,16 +2561,12 @@ class Z {}
 
   void test_perform_cross_library_const() {
     enableStrongMode();
-    AnalysisTarget firstSource = newSource(
-        '/first.dart',
-        '''
+    AnalysisTarget firstSource = newSource('/first.dart', '''
 library first;
 
 const a = 'hello';
 ''');
-    AnalysisTarget secondSource = newSource(
-        '/second.dart',
-        '''
+    AnalysisTarget secondSource = newSource('/second.dart', '''
 import 'first.dart';
 
 const b = a;
@@ -2776,9 +2602,7 @@ class M {
 
   void test_perform_reresolution() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 const topLevel = '';
 class C {
   String field = topLevel;
@@ -2809,9 +2633,7 @@ class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
   }
 
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -2823,9 +2645,7 @@ class A {}
 
   void test_perform_const_field() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 class M {
   static const X = "";
 }
@@ -2840,9 +2660,7 @@ class M {
   }
 
   test_perform_hasParseError() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 @(i $=
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -2853,9 +2671,7 @@ class M {
 
   void test_perform_nestedDeclarations() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var f = (int x) {
   int squared(int value) => value * value;
   var xSquared = squared(x);
@@ -2868,17 +2684,13 @@ var f = (int x) {
 
   void test_perform_recursive() {
     enableStrongMode();
-    AnalysisTarget firstSource = newSource(
-        '/first.dart',
-        '''
+    AnalysisTarget firstSource = newSource('/first.dart', '''
 import 'second.dart';
 
 var a = new M();
 var c = b;
 ''');
-    AnalysisTarget secondSource = newSource(
-        '/second.dart',
-        '''
+    AnalysisTarget secondSource = newSource('/second.dart', '''
 import 'first.dart';
 
 var b = a;
@@ -2914,9 +2726,7 @@ class M {}
 
   void test_perform_simple() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var X = 1;
 var Y = () => 1 + X;
 ''');
@@ -2936,9 +2746,7 @@ var Y = () => 1 + X;
     context.analysisOptions =
         new AnalysisOptionsImpl.from(context.analysisOptions)
           ..strongModeHints = true;
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 var V = [42];
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -2957,9 +2765,7 @@ var V = [42];
 @reflectiveTest
 class InferStaticVariableTypeTaskTest extends _AbstractDartTaskTest {
   void test_getDeclaration_staticField() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 class C {
   var field = '';
 }
@@ -2975,9 +2781,7 @@ class C {
   }
 
   void test_getDeclaration_topLevel() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var topLevel = '';
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7);
@@ -2992,9 +2796,7 @@ var topLevel = '';
 
   void test_perform() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test3.dart',
-        '''
+    AnalysisTarget source = newSource('/test3.dart', '''
 var topLevel3 = '';
 class C {
   var field3 = topLevel3;
@@ -3019,9 +2821,7 @@ class C {
 
   void test_perform_const() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 const topLevel = "hello";
 class C {
   var field = topLevel;
@@ -3043,9 +2843,7 @@ class C {
 
   void test_perform_cycle() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var piFirst = true;
 var pi = piFirst ? 3.14 : tau / 2;
 var tau = piFirst ? pi * 2 : 6.28;
@@ -3068,9 +2866,7 @@ var tau = piFirst ? pi * 2 : 6.28;
 
   void test_perform_error() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var a = '' / null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7);
@@ -3085,9 +2881,7 @@ var a = '' / null;
 
   void test_perform_null() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var a = null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7);
@@ -3104,23 +2898,17 @@ var a = null;
 @reflectiveTest
 class LibraryErrorsReadyTaskTest extends _AbstractDartTaskTest {
   test_perform() {
-    Source library = newSource(
-        '/lib.dart',
-        r'''
+    Source library = newSource('/lib.dart', r'''
 library lib;
 part 'part1.dart';
 part 'part2.dart';
 X v1;
 ''');
-    Source part1 = newSource(
-        '/part1.dart',
-        r'''
+    Source part1 = newSource('/part1.dart', r'''
 part of lib;
 X v2;
 ''');
-    Source part2 = newSource(
-        '/part2.dart',
-        r'''
+    Source part2 = newSource('/part2.dart', r'''
 part of lib;
 X v3;
 ''');
@@ -3188,14 +2976,10 @@ class B {}''');
 
   test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
     // Parse "lib.dart" to let the context know that "test.dart" is included.
-    computeResult(
-        newSource(
-            '/lib.dart',
-            r'''
+    computeResult(newSource('/lib.dart', r'''
 library lib;
 part 'test.dart';
-'''),
-        PARSED_UNIT);
+'''), PARSED_UNIT);
     // If there are no the "part of" directive, then it is not a part.
     _performParseTask('');
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
@@ -3448,23 +3232,17 @@ class B {}''');
 @reflectiveTest
 class PartiallyResolveUnitReferencesTaskTest extends _AbstractDartTaskTest {
   test_perform_strong_importExport() {
-    newSource(
-        '/a.dart',
-        '''
+    newSource('/a.dart', '''
 library a;
 class A<T> {
   T m() {}
 }
 ''');
-    newSource(
-        '/b.dart',
-        '''
+    newSource('/b.dart', '''
 library b;
 export 'a.dart';
 ''');
-    Source sourceC = newSource(
-        '/c.dart',
-        '''
+    Source sourceC = newSource('/c.dart', '''
 library c;
 import 'b.dart';
 main() {
@@ -3490,9 +3268,7 @@ main() {
 
   test_perform_strong_inferable() {
     enableStrongMode();
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 int a = b;
 int b = c;
 var d = 0;
@@ -3523,9 +3299,7 @@ class C {
 
   test_perform_strong_notResolved() {
     enableStrongMode();
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 int A;
 f1() {
   A;
@@ -3648,9 +3422,7 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
   }
 
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -3887,9 +3659,7 @@ class A {}
 @reflectiveTest
 class ResolveLibraryTaskTest extends _AbstractDartTaskTest {
   test_perform() {
-    Source sourceLib = newSource(
-        '/my_lib.dart',
-        '''
+    Source sourceLib = newSource('/my_lib.dart', '''
 library my_lib;
 const a = new A();
 class A {
@@ -3913,17 +3683,13 @@ class C {}
 @reflectiveTest
 class ResolveLibraryTypeNamesTaskTest extends _AbstractDartTaskTest {
   test_perform() {
-    Source sourceLib = newSource(
-        '/my_lib.dart',
-        '''
+    Source sourceLib = newSource('/my_lib.dart', '''
 library my_lib;
 part 'my_part.dart';
 class A {}
 class B extends A {}
 ''');
-    newSource(
-        '/my_part.dart',
-        '''
+    newSource('/my_part.dart', '''
 part of my_lib;
 class C extends A {}
 ''');
@@ -3943,16 +3709,12 @@ class C extends A {}
   }
 
   test_perform_external() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
+    Source sourceA = newSource('/a.dart', '''
 library a;
 import 'b.dart';
 class A extends B {}
 ''');
-    newSource(
-        '/b.dart',
-        '''
+    newSource('/b.dart', '''
 library b;
 class B {}
 ''');
@@ -3974,9 +3736,7 @@ class B {}
 @reflectiveTest
 class ResolveTopLevelUnitTypeBoundsTaskTest extends _AbstractDartTaskTest {
   test_perform_boundIsGenericType() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class C<T extends Map<String, List<int>>> {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -3990,9 +3750,7 @@ class C<T extends Map<String, List<int>>> {}
   }
 
   test_perform_errors() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class C<T extends NoSuchClass> {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4005,9 +3763,7 @@ class C<T extends NoSuchClass> {}
   }
 
   test_perform_ignoreBoundsOfBounds() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class A<T1 extends num> {}
 class B<T2 extends A> {}
 ''');
@@ -4022,9 +3778,7 @@ class B<T2 extends A> {}
   }
 
   test_perform_outputs() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 class C<T extends int> {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4035,9 +3789,7 @@ class C<T extends int> {}
   }
 
   test_perform_unitMember_ClassDeclaration() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class C<T extends int> extends Object {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4054,9 +3806,7 @@ class C<T extends int> extends Object {}
   }
 
   test_perform_unitMember_ClassTypeAlias() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class C<T extends double> = Object;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4073,9 +3823,7 @@ class C<T extends double> = Object;
   }
 
   test_perform_unitMember_FunctionTypeAlias() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 typedef F<T extends String>();
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4106,9 +3854,7 @@ typedef F<T extends String>();
 @reflectiveTest
 class ResolveUnitTaskTest extends _AbstractDartTaskTest {
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -4119,9 +3865,7 @@ class A {}
   }
 
   void test_perform() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 void f() {
   var c = new C();
   c.m();
@@ -4155,9 +3899,7 @@ class C {
 @reflectiveTest
 class ResolveUnitTypeNamesTaskTest extends _AbstractDartTaskTest {
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -4168,9 +3910,7 @@ class A {}
   }
 
   test_perform() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class A {}
 class B extends A {}
 int f(String p) => p.length;
@@ -4202,9 +3942,7 @@ int f(String p) => p.length;
   }
 
   test_perform_errors() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 NoSuchClass f() => null;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4217,9 +3955,7 @@ NoSuchClass f() => null;
   }
 
   test_perform_typedef() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 typedef int F(G g);
 typedef String G(int p);
 ''');
@@ -4250,9 +3986,7 @@ typedef String G(int p);
   }
 
   test_perform_typedef_errors() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 typedef int F(NoSuchType p);
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -4278,9 +4012,7 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
   }
 
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -4291,9 +4023,7 @@ class A {}
   }
 
   test_perform_buildClosureLibraryElements() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main() {
 }
 ''');
@@ -4303,9 +4033,7 @@ main() {
   }
 
   test_perform_local() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main() {
   var v1 = 1;
   var v2 = 1;
@@ -4337,9 +4065,7 @@ main() {
   }
 
   test_perform_parameter() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main(p1, p2, p3, p4) {
   p2 = 2;
   p4 = 2;
@@ -4472,9 +4198,7 @@ class StrongModeInferenceTest extends _AbstractDartTaskTest {
   // Check that even within a static variable cycle, inferred
   // types get propagated to the members of the cycle.
   void test_perform_cycle() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 var piFirst = true;
 var pi = piFirst ? 3.14 : tau / 2;
 var tau = piFirst ? pi * 2 : 6.28;
@@ -4499,16 +4223,12 @@ var tau = piFirst ? pi * 2 : 6.28;
   }
 
   void test_perform_inference_cross_unit_cyclic() {
-    AnalysisTarget firstSource = newSource(
-        '/a.dart',
-        '''
+    AnalysisTarget firstSource = newSource('/a.dart', '''
           import 'test.dart';
           var x = 2;
           class A { static var x = 2; }
 ''');
-    AnalysisTarget secondSource = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget secondSource = newSource('/test.dart', '''
           import 'a.dart';
           var y = x;
           class B { static var y = A.x; }
@@ -4641,15 +4361,11 @@ var tau = piFirst ? pi * 2 : 6.28;
   // Test inference interactions between local variables and top level
   // variables
   void test_perform_inference_cross_unit_non_cyclic() {
-    AnalysisTarget firstSource = newSource(
-        '/a.dart',
-        '''
+    AnalysisTarget firstSource = newSource('/a.dart', '''
           var x = 2;
           class A { static var x = 2; }
 ''');
-    AnalysisTarget secondSource = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget secondSource = newSource('/test.dart', '''
           import 'a.dart';
           var y = x;
           class B { static var y = A.x; }
@@ -4743,9 +4459,7 @@ var tau = piFirst ? pi * 2 : 6.28;
 
   // Test inference across units (non-cyclic)
   void test_perform_inference_local_variables() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
       test() {
         int x = 3;
         x = "hi";
@@ -4770,9 +4484,7 @@ var tau = piFirst ? pi * 2 : 6.28;
 
   // Test inference across units (cyclic)
   void test_perform_inference_local_variables_fields() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
       class A {
         int x = 0;
 
@@ -4821,9 +4533,7 @@ var tau = piFirst ? pi * 2 : 6.28;
 
   // Test inference of instance fields across units
   void test_perform_inference_local_variables_topLevel() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
       int x = 0;
 
       test1() {
@@ -4872,9 +4582,7 @@ var tau = piFirst ? pi * 2 : 6.28;
 
   // Test inference between static and instance fields
   void test_perform_inference_null() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
       var x = null;
       var y = 3;
       class A {
@@ -4928,9 +4636,7 @@ var tau = piFirst ? pi * 2 : 6.28;
 
   // Test inference between fields and method bodies
   void test_perform_local_explicit_disabled() {
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
       test() {
         int x = 3;
         x = "hi";
@@ -4966,9 +4672,7 @@ class StrongModeVerifyUnitTaskTest extends _AbstractDartTaskTest {
   }
 
   test_created_resolved_unit() {
-    Source source = newSource(
-        '/test.dart',
-        r'''
+    Source source = newSource('/test.dart', r'''
 library lib;
 class A {}
 ''');
@@ -4980,9 +4684,7 @@ class A {}
 
   void test_perform_recordDynamicInvoke() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 void main() {
   dynamic a = [];
   a[0];
@@ -5004,9 +4706,7 @@ void main() {
 
   void test_perform_verifyError() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 class A {}
 class B extends A {}
 B b = new A();
@@ -5024,9 +4724,7 @@ B b = new A();
 @reflectiveTest
 class VerifyUnitTaskTest extends _AbstractDartTaskTest {
   test_perform_constantError() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main(int p) {
   const v = p;
 }
@@ -5041,9 +4739,7 @@ main(int p) {
   }
 
   test_perform_ConstantValidator_declaredIdentifier() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 void main() {
   for (const foo in []) {
     print(foo);
@@ -5058,9 +4754,7 @@ void main() {
   }
 
   test_perform_ConstantValidator_dependencyCycle() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const int a = b;
 const int b = c;
 const int c = a;
@@ -5077,9 +4771,7 @@ const int c = a;
   }
 
   test_perform_ConstantValidator_duplicateFields() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 class Test {
   final int x = 1;
   final int x = 2;
@@ -5099,9 +4791,7 @@ main() {
   }
 
   test_perform_ConstantValidator_noInitializer() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 const x;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -5113,9 +4803,7 @@ const x;
   }
 
   test_perform_ConstantValidator_unknownValue() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 import 'no-such-file.dart' as p;
 
 const int x = p.y;
@@ -5131,9 +4819,7 @@ const int x = p.y;
   }
 
   test_perform_directiveError_generated() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 import 'generated-file.g.dart';
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -5145,9 +4831,7 @@ import 'generated-file.g.dart';
   }
 
   test_perform_directiveError_nonGenerated() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 import 'no-such-file.dart';
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
@@ -5160,9 +4844,7 @@ import 'no-such-file.dart';
 
   void test_perform_reresolution() {
     enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
+    AnalysisTarget source = newSource('/test.dart', '''
 const topLevel = 3;
 class C {
   String field = topLevel;
@@ -5178,9 +4860,7 @@ class C {
   }
 
   test_perform_verifyError() {
-    Source source = newSource(
-        '/test.dart',
-        '''
+    Source source = newSource('/test.dart', '''
 main() {
   if (42) {
     print('Not bool!');

@@ -5,7 +5,7 @@ library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal';
+import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_native_typed_data';

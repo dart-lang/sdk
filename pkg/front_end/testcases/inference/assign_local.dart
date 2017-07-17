@@ -14,8 +14,7 @@ main() {
   var /*@type=int*/ x1 = (x = 1);
   var /*@type=double*/ x2 = (x = 1.0);
 
-  // TODO(scheglov) uncomment when constructor inference is implemented.
-//  A<int> y;
-//  var /*@type=A<int>*/ y1 = (y = /*@typeArgs=int*/ new A());
-//  var /*@type=B<int>*/ y2 = (y = /*@typeArgs=int*/ new B());
+  A<int> y;
+  var /*@type=A<int>*/ y1 = (y = new /*@typeArgs=int*/ A());
+  var /*@type=B<int>*/ y2 = (y = new /*@typeArgs=int*/ B());
 }

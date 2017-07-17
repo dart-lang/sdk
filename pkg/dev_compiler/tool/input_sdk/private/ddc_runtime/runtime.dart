@@ -12,7 +12,7 @@ import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
     show
-        AssertionErrorWithMessage,
+        AssertionErrorImpl,
         BooleanConversionAssertionError,
         CastErrorImplementation,
         getTraceFromException,

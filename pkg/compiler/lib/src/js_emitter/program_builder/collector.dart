@@ -50,7 +50,7 @@ class Collector {
 
   final List<ClassElement> nativeClassesAndSubclasses = <ClassElement>[];
 
-  List<TypedefElement> typedefsNeededForReflection;
+  List<TypedefEntity> typedefsNeededForReflection;
 
   Collector(
       this._options,
@@ -138,16 +138,7 @@ class Collector {
       // multiple times.
       for (MemberElement element in _generatedCode.keys) {
         if (_mirrorsData.isMemberAccessibleByReflection(element)) {
-          bool shouldRetainMetadata =
-              _mirrorsData.retainMetadataOfMember(element);
-          if (shouldRetainMetadata &&
-              (element.isFunction ||
-                  element.isConstructor ||
-                  element.isSetter)) {
-            MethodElement function = element;
-            function.functionSignature.forEachParameter((parameter) =>
-                _mirrorsData.retainMetadataOfParameter(parameter));
-          }
+          _mirrorsData.retainMetadataOfMember(element);
         }
       }
       for (ClassElement cls in neededClasses) {
@@ -197,8 +188,7 @@ class Collector {
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(_closedWorld
-        .allTypedefs
+    typedefsNeededForReflection = _sorter.sortTypedefs(_closedWorld.allTypedefs
         .where(_mirrorsData.isTypedefAccessibleByReflection)
         .toList());
 
@@ -242,11 +232,11 @@ class Collector {
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-    classesOnlyNeededForRti = new Set<ClassElement>();
-    for (ClassElement cls in _rtiNeededClasses) {
+    classesOnlyNeededForRti = new Set<ClassEntity>();
+    for (ClassEntity cls in _rtiNeededClasses) {
       while (cls != null && !neededClasses.contains(cls)) {
         if (!classesOnlyNeededForRti.add(cls)) break;
-        cls = cls.superclass;
+        cls = _elementEnvironment.getSuperClass(cls);
       }
     }
 

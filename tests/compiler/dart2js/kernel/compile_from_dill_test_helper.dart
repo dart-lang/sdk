@@ -50,6 +50,7 @@ const List<Test> TESTS = const <Test>[
   const Test(const {
     'main.dart': '''
 import 'dart:html';
+import 'package:expect/expect.dart';
 
 foo({named}) => 1;
 bar(a) => !a;
@@ -71,12 +72,17 @@ class SubClass extends Class {
   }  
 }
 
+class Generic<T> {
+  method(o) => o is T;
+}
+
 var toplevel;
 
 main() {
   foo();
   bar(true);
   [];
+  <int>[];
   {};
   new Object();
   new Class.named('');
@@ -123,9 +129,20 @@ main() {
     break;
   }
   x = toplevel;
+  x = testIs(x);
+  x = new Generic<int>().method(x);
+  x = testAsGeneric(x);
+  x = testAsFunction(x);
   print(x);
   return x;
 }
+typedef NoArg();
+@NoInline()
+testIs(o) => o is Generic<int> || o is NoArg;
+@NoInline()
+testAsGeneric(o) => o as Generic<int>;
+@NoInline()
+testAsFunction(o) => o as NoArg;
 '''
   }),
   const Test(const {
@@ -144,6 +161,22 @@ main() {
 } 
 '''
   }, expectIdenticalOutput: false),
+  const Test(const {
+    'main.dart': '''
+class A<U,V> {
+  var a = U;
+  var b = V;
+}
+class B<Q, R> extends A<R, W<Q>> {
+}
+class C<Y> extends B<Y, W<Y>> {
+}
+class W<Z> {}
+main() {
+  print(new C<String>().a);
+}
+'''
+  }, expectIdenticalOutput: true),
 ];
 
 enum ResultKind { crashes, errors, warnings, success, failure }
@@ -284,6 +317,7 @@ Future<ResultKind> runTest(
       verbose: verbose);
 
   checkEmitters(compiler1.backend.emitter, compiler2.backend.emitter,
+      equivalence2.defaultStrategy,
       elementEquivalence: (a, b) => equivalence2.entityEquivalence(a, b),
       typeEquivalence: (DartType a, DartType b) {
         return equivalence2.typeEquivalence(unalias(a), b);

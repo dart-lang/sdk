@@ -31,7 +31,11 @@ import 'locals.dart';
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  Map<ir.Node, ClosureScope> _closureScopeMap = <ir.Node, ClosureScope>{};
+
+  /// Map of the scoping information that corresponds to a particular entity.
+  Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
+  Map<ir.Node, CapturedScope> _scopesCapturedInClosureMap =
+      <ir.Node, CapturedScope>{};
 
   Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
       <Entity, ClosureRepresentationInfo>{};
@@ -54,7 +58,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {
-    var closuresToGenerate = <ir.Node, ScopeInfo>{};
+    var closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
     processedEntities.forEach((MemberEntity kEntity) {
       MemberEntity entity = kEntity;
       if (_kToJElementMap != null) {
@@ -69,7 +73,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _buildClosureModel(entity, closuresToGenerate, closedWorldRefiner);
     });
 
-    for (ir.Node node in closuresToGenerate.keys) {
+    for (ir.TreeNode node in closuresToGenerate.keys) {
       _produceSyntheticElements(
           node, closuresToGenerate[node], closedWorldRefiner);
     }
@@ -79,12 +83,18 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// be marked as free variables.
   void _buildClosureModel(
       MemberEntity entity,
-      Map<ir.Node, ScopeInfo> closuresToGenerate,
+      Map<ir.TreeNode, ScopeInfo> closuresToGenerate,
       ClosedWorldRefiner closedWorldRefiner) {
+    if (_scopeMap.keys.contains(entity)) return;
     ir.Node node = _elementMap.getMemberNode(entity);
-    if (_closureScopeMap.keys.contains(node)) return;
-    ClosureScopeBuilder translator = new ClosureScopeBuilder(_closureScopeMap,
-        closuresToGenerate, _globalLocalsMap.getLocalsMap(entity), _elementMap);
+    if (_scopesCapturedInClosureMap.keys.contains(node)) return;
+    CapturedScopeBuilder translator = new CapturedScopeBuilder(
+        _scopesCapturedInClosureMap,
+        _scopeMap,
+        entity,
+        closuresToGenerate,
+        _globalLocalsMap.getLocalsMap(entity),
+        _elementMap);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         translator.translateLazyInitializer(node);
@@ -99,7 +109,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// with fields containing the captured variables to replicate the Dart
   /// closure semantics in JS.
   void _produceSyntheticElements(
-      ir.Node node, ScopeInfo info, ClosedWorldRefiner closedWorldRefiner) {
+      ir.TreeNode /* ir.Field | ir.FunctionNode */ node,
+      ScopeInfo info,
+      ClosedWorldRefiner closedWorldRefiner) {
     Entity entity;
     KernelClosureClass closureClass =
         new KernelClosureClass.fromScopeInfo(info);
@@ -119,33 +131,14 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     assert(entity != null);
 
     _closureRepresentationMap[entity] = closureClass;
+
+    // Register that a new class has been created.
+    closedWorldRefiner.registerClosureClass(
+        closureClass, node is ir.Member && node.isInstanceMember);
   }
 
   @override
   ScopeInfo getScopeInfo(Entity entity) {
-    return getClosureRepresentationInfo(entity);
-  }
-
-  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
-  // and we should just test that with an assert.
-  ClosureScope _getClosureScope(ir.Node node) =>
-      _closureScopeMap[node] ?? const ClosureScope();
-
-  @override
-  ClosureScope getClosureScope(MemberEntity entity) {
-    return _getClosureScope(_elementMap.getMemberNode(entity));
-  }
-
-  @override
-  // TODO(efortuna): Eventually closureScopeMap[node] should always be non-null,
-  // and we should just test that with an assert.
-  LoopClosureScope getLoopClosureScope(ir.Node loopNode) =>
-      _closureScopeMap[loopNode] ?? const LoopClosureScope();
-
-  @override
-  // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
-  // non-null, and we should just test that with an assert.
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
     // TODO(johnniwinther): Remove this check when constructor bodies a created
     // eagerly with the J-model; a constructor body should have it's own
     // [ClosureRepresentationInfo].
@@ -153,6 +146,27 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ConstructorBodyEntity constructorBody = entity;
       entity = constructorBody.constructor;
     }
+
+    return _scopeMap[entity] ?? getClosureRepresentationInfo(entity);
+  }
+
+  // TODO(efortuna): Eventually scopesCapturedInClosureMap[node] should always
+  // be non-null, and we should just test that with an assert.
+  @override
+  CapturedScope getCapturedScope(MemberEntity entity) =>
+      _scopesCapturedInClosureMap[_elementMap.getMemberNode(entity)] ??
+      const CapturedScope();
+
+  @override
+  // TODO(efortuna): Eventually scopesCapturedInClosureMap[node] should always
+  // be non-null, and we should just test that with an assert.
+  CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
+      _scopesCapturedInClosureMap[loopNode] ?? const CapturedLoopScope();
+
+  @override
+  // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
+  // non-null, and we should just test that with an assert.
+  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
     return _closureRepresentationMap[entity] ??
         const ClosureRepresentationInfo();
   }
@@ -198,20 +212,20 @@ class KernelScopeInfo extends ScopeInfo {
   bool isBoxed(Local variable) => boxedVariables.contains(variable);
 }
 
-class KernelClosureScope extends KernelScopeInfo implements ClosureScope {
+class KernelCapturedScope extends KernelScopeInfo implements CapturedScope {
   final Local context;
 
-  KernelClosureScope(Set<Local> boxedVariables, this.context, Local thisLocal)
+  KernelCapturedScope(Set<Local> boxedVariables, this.context, Local thisLocal)
       : super.withBoxedVariables(boxedVariables, thisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
 
-class KernelLoopClosureScope extends KernelClosureScope
-    implements LoopClosureScope {
+class KernelCapturedLoopScope extends KernelCapturedScope
+    implements CapturedLoopScope {
   final List<Local> boxedLoopVariables;
 
-  KernelLoopClosureScope(Set<Local> boxedVariables, this.boxedLoopVariables,
+  KernelCapturedLoopScope(Set<Local> boxedVariables, this.boxedLoopVariables,
       Local context, Local thisLocal)
       : super(boxedVariables, context, thisLocal);
 
@@ -220,15 +234,23 @@ class KernelLoopClosureScope extends KernelClosureScope
 
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class KernelClosureClass extends KernelScopeInfo
-    implements ClosureRepresentationInfo {
-  KernelClosureClass.fromScopeInfo(ScopeInfo info)
+    implements ClosureRepresentationInfo, JClass {
+  // TODO(efortuna): Generate unique name for each closure class.
+  final String name = 'ClosureClass';
+
+  /// Index into the classData, classList and classEnvironment lists where this
+  /// entity is stored in [JsToFrontendMapImpl].
+  int classIndex;
+
+  final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
+
+  KernelClosureClass.fromScopeInfo(KernelScopeInfo info)
       : super.from(info.thisLocal, info);
 
   // TODO(efortuna): Implement.
   Local get closureEntity => null;
 
-  // TODO(efortuna): Implement.
-  ClassEntity get closureClassEntity => null;
+  ClassEntity get closureClassEntity => this;
 
   // TODO(efortuna): Implement.
   FunctionEntity get callMethod => null;
@@ -258,4 +280,11 @@ class KernelClosureClass extends KernelScopeInfo
   // ClosedWorldRefiner, which currently only takes elements. The change to
   // that (and the subsequent adjustment here) will follow soon.
   bool get isClosure => false;
+
+  bool get isAbstract => false;
+
+  // TODO(efortuna): Talk to Johnni.
+  JLibrary get library => null;
+
+  String toString() => '${jsElementPrefix}class($name)';
 }

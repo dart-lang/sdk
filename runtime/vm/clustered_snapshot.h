@@ -64,7 +64,6 @@ class SerializationCluster : public ZoneAllocated {
   virtual void WriteFill(Serializer* serializer) = 0;
 };
 
-
 class DeserializationCluster : public ZoneAllocated {
  public:
   DeserializationCluster() : start_index_(-1), stop_index_(-1) {}
@@ -87,7 +86,6 @@ class DeserializationCluster : public ZoneAllocated {
   intptr_t stop_index_;
 };
 
-
 class SmiObjectIdPair {
  public:
   SmiObjectIdPair() : smi_(NULL), id_(0) {}
@@ -98,7 +96,6 @@ class SmiObjectIdPair {
     return (smi_ == other.smi_) && (id_ == other.id_);
   }
 };
-
 
 class SmiObjectIdPairTrait {
  public:
@@ -112,9 +109,7 @@ class SmiObjectIdPairTrait {
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv.smi_ == key; }
 };
 
-
 typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
-
 
 class Serializer : public StackResource {
  public:
@@ -280,7 +275,6 @@ class Serializer : public StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
 
-
 class Deserializer : public StackResource {
  public:
   Deserializer(Thread* thread,
@@ -380,7 +374,6 @@ class Deserializer : public StackResource {
   DeserializationCluster** clusters_;
 };
 
-
 class FullSnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
@@ -438,7 +431,6 @@ class FullSnapshotWriter {
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };
-
 
 class FullSnapshotReader {
  public:

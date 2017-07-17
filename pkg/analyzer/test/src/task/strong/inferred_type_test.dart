@@ -2633,19 +2633,15 @@ var x = new C()./*info:USE_OF_VOID_RESULT*/f();
   }
 
   test_inferConstsTransitively() async {
-    addFile(
-        '''
+    addFile('''
 const b1 = 2;
-''',
-        name: '/b.dart');
-    addFile(
-        '''
+''', name: '/b.dart');
+    addFile('''
 import 'main.dart';
 import 'b.dart';
 const a1 = m2;
 const a2 = b1;
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 const m1 = a1;
@@ -2816,12 +2812,10 @@ foo() {
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn() async {
-    addFile(
-        '''
+    addFile('''
 import 'main.dart';
 var x = 2; // ok to infer
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 var y = x; // now ok :)
@@ -2835,12 +2829,10 @@ test1() {
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn2() async {
-    addFile(
-        '''
+    addFile('''
 import 'main.dart';
 class A { static var x = 2; }
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 class B { static var y = A.x; }
@@ -2854,11 +2846,9 @@ test1() {
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag() async {
-    addFile(
-        '''
+    addFile('''
 var x = 2;
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 var y = x;
@@ -2871,11 +2861,9 @@ test1() {
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag2() async {
-    addFile(
-        '''
+    addFile('''
 class A { static var x = 2; }
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 class B { static var y = A.x; }
@@ -3378,21 +3366,17 @@ List<String> strings() {
   }
 
   test_inferStaticsTransitively() async {
-    addFile(
-        '''
+    addFile('''
 final b1 = 2;
-''',
-        name: '/b.dart');
-    addFile(
-        '''
+''', name: '/b.dart');
+    addFile('''
 import 'main.dart';
 import 'b.dart';
 final a1 = m2;
 class A {
   static final a2 = b1;
 }
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 final m1 = a1;
@@ -3421,15 +3405,13 @@ foo() {
   }
 
   test_inferStaticsTransitively3() async {
-    addFile(
-        '''
+    addFile('''
 const a1 = 3;
 const a2 = 4;
 class A {
   static const a3 = null;
 }
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart' show a1, A;
 import 'a.dart' as p show a2, A;
@@ -3451,11 +3433,9 @@ foo() {
   }
 
   test_inferStaticsWithMethodInvocations() async {
-    addFile(
-        '''
+    addFile('''
 m3(String a, String b, [a1,a2]) {}
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 class T {
@@ -3564,13 +3544,11 @@ final z = 42; // should infer `int`
   }
 
   test_inferTypeRegardlessOfDeclarationOrderOrCycles() async {
-    addFile(
-        '''
+    addFile('''
 import 'main.dart';
 
 class B extends A { }
-''',
-        name: '/b.dart');
+''', name: '/b.dart');
     await checkFileElement('''
 import 'b.dart';
 class C extends B {
@@ -3673,14 +3651,12 @@ foo() {
     // Note: this is a regression test for a non-deterministic behavior we used to
     // have with inference in library cycles. If you see this test flake out,
     // change `test` to `skip_test` and reopen bug #48.
-    addFile(
-        '''
+    addFile('''
 import 'main.dart';
 abstract class I<E> {
   A<E> m(a, String f(v, int e));
 }
-''',
-        name: '/a.dart');
+''', name: '/a.dart');
     await checkFileElement('''
 import 'a.dart';
 

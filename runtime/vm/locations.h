@@ -12,13 +12,11 @@
 
 namespace dart {
 
-
 class BufferFormatter;
 class ConstantInstr;
 class Definition;
 class PairLocation;
 class Value;
-
 
 enum Representation {
   kNoRepresentation,
@@ -34,7 +32,6 @@ enum Representation {
   kPairOfTagged,
   kNumRepresentations
 };
-
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -389,7 +386,6 @@ class Location : public ValueObject {
   uword value_;
 };
 
-
 class PairLocation : public ZoneAllocated {
  public:
   PairLocation() {
@@ -423,7 +419,6 @@ class PairLocation : public ZoneAllocated {
   Location locations_[kPairLength];
 };
 
-
 template <typename T>
 class SmallSet {
  public:
@@ -450,7 +445,6 @@ class SmallSet {
   intptr_t data_;
 };
 
-
 class RegisterSet : public ValueObject {
  public:
   RegisterSet()
@@ -458,7 +452,6 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfCpuRegisters <= (kWordSize * kBitsPerByte));
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
-
 
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
@@ -547,7 +540,6 @@ class RegisterSet : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(RegisterSet);
 };
-
 
 // Specification of locations for inputs and output.
 class LocationSummary : public ZoneAllocated {
@@ -674,7 +666,6 @@ class LocationSummary : public ZoneAllocated {
   intptr_t writable_inputs_;
 #endif
 };
-
 
 }  // namespace dart
 

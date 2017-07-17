@@ -104,9 +104,7 @@ class ElementTest extends AbstractContextTest {
   }
 
   test_fromElement_CLASS() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
@@ -145,9 +143,7 @@ class B<K, V> {}''');
   }
 
   test_fromElement_CONSTRUCTOR() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
@@ -185,9 +181,7 @@ class A {
   }
 
   test_fromElement_ENUM() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -226,9 +220,7 @@ enum E2 { three, four }''');
   }
 
   test_fromElement_ENUM_CONSTANT() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -316,9 +308,7 @@ enum E2 { three, four }''');
   }
 
   test_fromElement_FIELD() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   static const myField = 42;
 }''');
@@ -342,9 +332,7 @@ class A {
   }
 
   test_fromElement_FUNCTION_TYPE_ALIAS() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 typedef int F<T>(String x);
 ''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
@@ -369,9 +357,7 @@ typedef int F<T>(String x);
   }
 
   test_fromElement_GETTER() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   String get myGetter => 42;
 }''');
@@ -396,9 +382,7 @@ class A {
   }
 
   test_fromElement_LABEL() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 main() {
 myLabel:
   while (true) {
@@ -425,9 +409,7 @@ myLabel:
   }
 
   test_fromElement_METHOD() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
@@ -453,9 +435,7 @@ class A {
   }
 
   test_fromElement_SETTER() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   set mySetter(String x) {}
 }''');

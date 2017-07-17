@@ -3,18 +3,18 @@ import self as self;
 import "dart:core" as core;
 
 class CallableClass extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     ;
   method call() → core::int
     ;
 }
 class C extends core::Object {
   field dynamic f;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 class D extends self::C {
-  constructor •() → void
+  default constructor •() → void
     ;
   method g() → void
     ;

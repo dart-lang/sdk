@@ -138,7 +138,6 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   DISALLOW_IMPLICIT_CONSTRUCTORS(BytecodeRegExpMacroAssembler);
 };
 
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_H_

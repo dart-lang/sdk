@@ -1836,10 +1836,14 @@ class CodeGenerator extends Object
     // handled at runtime by the dynamic call mechanism. So we only
     // concern ourselves with statically known function types.
     //
-    // For the same reason, we can ignore "noSuchMethod".
-    // call-implemented-by-nSM will be dispatched by dcall at runtime.
-    bool isCallable = classElem.lookUpMethod('call', null) != null ||
-        classElem.lookUpGetter('call', null)?.returnType is FunctionType;
+    // We can ignore `noSuchMethod` because:
+    // * `dynamic d; d();` without a declared `call` method is handled by dcall.
+    // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
+    //   the `call` method on the `Callable` interface.
+    var callMethod = classElem.type.lookUpInheritedGetterOrMethod('call');
+    bool isCallable = callMethod is PropertyAccessorElement
+        ? callMethod.returnType is FunctionType
+        : callMethod != null;
 
     var body = <JS.Statement>[];
     void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
@@ -3953,19 +3957,30 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitAssertStatement(AssertStatement node) {
     // TODO(jmesserly): only emit in checked mode.
-    if (node.message != null) {
-      return _callHelperStatement('assert(#, () => #);',
-          [_visit(node.condition), _visit(node.message)]);
-    }
+    var condition = node.condition;
+    var conditionType = condition.staticType;
+    JS.Expression jsCondition = _visit(condition);
 
-    return _callHelperStatement('assert(#);', _visit(node.condition));
+    var assertHelper = 'assert';
+    if (conditionType is FunctionType &&
+        conditionType.parameters.isEmpty &&
+        conditionType.returnType == types.boolType) {
+      jsCondition = new JS.Call(jsCondition, []);
+    } else if (conditionType != types.boolType) {
+      assertHelper = 'dassert';
+    }
+    var args = [jsCondition];
+    if (node.message != null) {
+      args.add(js.call('() => #', [_visit(node.message)]));
+    }
+    return _callHelperStatement('$assertHelper(#);', [args]);
   }
 
   @override
   JS.Statement visitReturnStatement(ReturnStatement node) {
     var e = node.expression;
     if (e == null) return new JS.Return();
-    return (_visit(e) as JS.Expression).toReturn();
+    return _visit<JS.Expression>(e).toReturn();
   }
 
   @override
@@ -4977,8 +4992,8 @@ class CodeGenerator extends Object
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
-        return _callHelper('$dynamicHelper(#, #)',
-            [_visit(target) as JS.Expression, _visitList(args)]);
+        return _callHelper(
+            '$dynamicHelper(#, #)', [_visit(target), _visitList(args)]);
       } else {
         return _callHelper(
             'dsend(#, #, #)', [_visit(target), memberName, _visitList(args)]);

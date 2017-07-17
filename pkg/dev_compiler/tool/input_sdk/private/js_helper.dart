@@ -576,19 +576,6 @@ throwConcurrentModificationError(collection) {
   throw new ConcurrentModificationError(collection);
 }
 
-@JsPeerInterface(name: 'TypeError')
-class NullError extends Interceptor implements NoSuchMethodError {
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
-
-  String toString() {
-    // TODO(vsm): Distinguish between null reference errors and other
-    // TypeErrors.  We should not get non-null TypeErrors from DDC code,
-    // but we may from native JavaScript.
-    var message = JS('String', '#.message', this);
-    return "NullError: $message";
-  }
-}
-
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
@@ -861,15 +848,12 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
-/**
- * Error thrown when an assert() fails with a message:
- *
- *     assert(false, "Message here");
- */
-class AssertionErrorWithMessage extends AssertionError {
-  final Object _message;
-  AssertionErrorWithMessage(this._message);
-  String toString() => "Assertion failed: ${_message}";
+/// Error thrown by DDC when an `assert()` fails (with or without a message).
+class AssertionErrorImpl extends AssertionError {
+  AssertionErrorImpl(message) : super(message);
+  String toString() =>
+      "Assertion failed: " +
+      (message != null ? Error.safeToString(message) : "is not true");
 }
 
 /**

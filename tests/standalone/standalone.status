@@ -390,7 +390,6 @@ io/web_socket_error_test: Skip # Flaky
 io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-package/scenarios/invalid/*: DartkCrash # Issue 30110
 
 regress_29350_test: MissingCompileTimeError
 assert_test: RuntimeError
@@ -404,7 +403,6 @@ package/package_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
-package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
 
 [ $compiler == dartkp ]
 causal_async_stack_test: Fail

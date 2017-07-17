@@ -373,7 +373,6 @@ class DeoptInstr : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DeoptInstr);
 };
 
-
 // Helper class that allows to read a value of the given register from
 // the DeoptContext as the specified type.
 // It calls different method depending on which kind of register (cpu/fpu) and
@@ -395,14 +394,12 @@ struct RegisterReader<FpuRegister, double> {
   }
 };
 
-
 template <>
 struct RegisterReader<FpuRegister, simd128_value_t> {
   static simd128_value_t Read(DeoptContext* context, FpuRegister reg) {
     return context->FpuRegisterValueAsSimd128(reg);
   }
 };
-
 
 // Class that encapsulates reading and writing of values that were either in
 // the registers in the optimized code or were spilled from those registers
@@ -473,10 +470,8 @@ class RegisterSource {
   const intptr_t source_index_;
 };
 
-
 typedef RegisterSource<Register> CpuRegisterSource;
 typedef RegisterSource<FpuRegister> FpuRegisterSource;
-
 
 // Builds a deoptimization info table, one DeoptInfo at a time.  Call AddXXX
 // methods in the order of their target, starting wih deoptimized code
@@ -563,7 +558,6 @@ class DeoptInfoBuilder : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptInfoBuilder);
 };
-
 
 // Utilities for managing the deopt table and its entries.  The table is
 // stored in an Array in the heap.  It consists of triples of (PC offset,

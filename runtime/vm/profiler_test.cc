@@ -34,7 +34,6 @@ class DisableNativeProfileScope : public ValueObject {
   const bool FLAG_profile_vm_;
 };
 
-
 class DisableBackgroundCompilationScope : public ValueObject {
  public:
   DisableBackgroundCompilationScope()
@@ -50,7 +49,6 @@ class DisableBackgroundCompilationScope : public ValueObject {
   const bool FLAG_background_compilation_;
 };
 
-
 // Temporarily adjust the maximum profile depth.
 class MaxProfileDepthScope : public ValueObject {
  public:
@@ -64,7 +62,6 @@ class MaxProfileDepthScope : public ValueObject {
  private:
   const intptr_t FLAG_max_profile_depth_;
 };
-
 
 class ProfileSampleBufferTestHelper {
  public:
@@ -81,7 +78,6 @@ class ProfileSampleBufferTestHelper {
     return c;
   }
 
-
   static intptr_t IterateSumPC(const Dart_Port port,
                                const SampleBuffer& sample_buffer) {
     intptr_t c = 0;
@@ -95,7 +91,6 @@ class ProfileSampleBufferTestHelper {
     return c;
   }
 };
-
 
 TEST_CASE(Profiler_SampleBufferWrapTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
@@ -121,7 +116,6 @@ TEST_CASE(Profiler_SampleBufferWrapTest) {
   delete sample_buffer;
 }
 
-
 TEST_CASE(Profiler_SampleBufferIterateTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
   Dart_Port i = 123;
@@ -142,7 +136,6 @@ TEST_CASE(Profiler_SampleBufferIterateTest) {
   delete sample_buffer;
 }
 
-
 TEST_CASE(Profiler_AllocationSampleTest) {
   Isolate* isolate = Isolate::Current();
   SampleBuffer* sample_buffer = new SampleBuffer(3);
@@ -154,7 +147,6 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(
       String::Handle(Symbols::New(Thread::Current(), name))));
@@ -162,14 +154,12 @@ static RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-
 static RawFunction* GetFunction(const Library& lib, const char* name) {
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
   return func.raw();
 }
-
 
 class AllocationFilter : public SampleFilter {
  public:
@@ -198,7 +188,6 @@ class AllocationFilter : public SampleFilter {
   intptr_t cid_;
   bool enable_vm_ticks_;
 };
-
 
 TEST_CASE(Profiler_TrivialRecordAllocation) {
   DisableNativeProfileScope dnps;
@@ -323,7 +312,6 @@ DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
   ASSERT(result != NULL);
   *result = static_cast<char*>(malloc(sizeof(char) * 1024));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
@@ -527,7 +515,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
 #endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
         // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
-
 TEST_CASE(Profiler_ToggleRecordAllocation) {
   DisableNativeProfileScope dnps;
   const char* kScript =
@@ -554,7 +541,6 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-
 
   {
     Thread* thread = Thread::Current();
@@ -658,7 +644,6 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   }
 }
 
-
 TEST_CASE(Profiler_CodeTicks) {
   DisableNativeProfileScope dnps;
   const char* kScript =
@@ -760,7 +745,6 @@ TEST_CASE(Profiler_CodeTicks) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_FunctionTicks) {
   DisableNativeProfileScope dnps;
@@ -864,7 +848,6 @@ TEST_CASE(Profiler_FunctionTicks) {
   }
 }
 
-
 TEST_CASE(Profiler_IntrinsicAllocation) {
   DisableNativeProfileScope dnps;
   const char* kScript = "double foo(double a, double b) => a + b;";
@@ -935,7 +918,6 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
     EXPECT_EQ(1, profile.sample_count());
   }
 }
-
 
 TEST_CASE(Profiler_ArrayAllocation) {
   DisableNativeProfileScope dnps;
@@ -1033,7 +1015,6 @@ TEST_CASE(Profiler_ArrayAllocation) {
   }
 }
 
-
 TEST_CASE(Profiler_ContextAllocation) {
   DisableNativeProfileScope dnps;
   const char* kScript =
@@ -1102,7 +1083,6 @@ TEST_CASE(Profiler_ContextAllocation) {
     EXPECT_EQ(1, profile.sample_count());
   }
 }
-
 
 TEST_CASE(Profiler_ClosureAllocation) {
   DisableNativeProfileScope dnps;
@@ -1174,7 +1154,6 @@ TEST_CASE(Profiler_ClosureAllocation) {
     EXPECT_EQ(1, profile.sample_count());
   }
 }
-
 
 TEST_CASE(Profiler_TypedArrayAllocation) {
   DisableNativeProfileScope dnps;
@@ -1260,7 +1239,6 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   }
 }
 
-
 TEST_CASE(Profiler_StringAllocation) {
   DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => a + b;";
@@ -1345,7 +1323,6 @@ TEST_CASE(Profiler_StringAllocation) {
     EXPECT_EQ(2, profile.sample_count());
   }
 }
-
 
 TEST_CASE(Profiler_StringInterpolation) {
   DisableNativeProfileScope dnps;
@@ -1434,7 +1411,6 @@ TEST_CASE(Profiler_StringInterpolation) {
     EXPECT_EQ(2, profile.sample_count());
   }
 }
-
 
 TEST_CASE(Profiler_FunctionInline) {
   DisableNativeProfileScope dnps;
@@ -1720,7 +1696,6 @@ TEST_CASE(Profiler_FunctionInline) {
   }
 }
 
-
 TEST_CASE(Profiler_InliningIntervalBoundry) {
   // The PC of frames below the top frame is a call's return address,
   // which can belong to a different inlining interval than the call.
@@ -1857,7 +1832,6 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   }
 }
 
-
 TEST_CASE(Profiler_ChainedSamples) {
   MaxProfileDepthScope mpds(32);
   DisableNativeProfileScope dnps;
@@ -1907,7 +1881,6 @@ TEST_CASE(Profiler_ChainedSamples) {
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-
 
   {
     Thread* thread = Thread::Current();
@@ -1970,7 +1943,6 @@ TEST_CASE(Profiler_ChainedSamples) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_BasicSourcePosition) {
   DisableNativeProfileScope dnps;
@@ -2045,7 +2017,6 @@ TEST_CASE(Profiler_BasicSourcePosition) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   DisableNativeProfileScope dnps;
@@ -2139,7 +2110,6 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_SourcePosition) {
   DisableNativeProfileScope dnps;
@@ -2244,7 +2214,6 @@ TEST_CASE(Profiler_SourcePosition) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_SourcePositionOptimized) {
   DisableNativeProfileScope dnps;
@@ -2370,7 +2339,6 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
   }
 }
 
-
 TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
@@ -2483,7 +2451,6 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     EXPECT(!walker.Down());
   }
 }
-
 
 TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   DisableNativeProfileScope dnps;
@@ -2618,7 +2585,6 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   }
 }
 
-
 static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
   ASSERT(sample_buffer != NULL);
   Isolate* isolate = Isolate::Current();
@@ -2644,9 +2610,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
   sample->SetAt(i, 0);
 }
 
-
-static uword FindPCForTokenPosition(const Code& code,
-                                    TokenPosition tp) {
+static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
   GrowableArray<const Function*> functions;
   GrowableArray<TokenPosition> token_positions;
   for (intptr_t pc_offset = 0; pc_offset < code.Size(); pc_offset++) {
@@ -2659,7 +2623,6 @@ static uword FindPCForTokenPosition(const Code& code,
 
   return 0;
 }
-
 
 TEST_CASE(Profiler_GetSourceReport) {
   const char* kScript =
@@ -2793,7 +2756,6 @@ TEST_CASE(Profiler_GetSourceReport) {
   // Verify inclusive ticks in main.
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 }
-
 
 TEST_CASE(Profiler_ProfileCodeTableTest) {
   Zone* Z = Thread::Current()->zone();

@@ -21,7 +21,6 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
   return count;
 }
 
-
 LocationSummary::LocationSummary(Zone* zone,
                                  intptr_t input_count,
                                  intptr_t temp_count,
@@ -38,7 +37,6 @@ LocationSummary::LocationSummary(Zone* zone,
   temp_locations_ = zone->Alloc<Location>(num_temps_);
 }
 
-
 LocationSummary* LocationSummary::Make(
     Zone* zone,
     intptr_t input_count,
@@ -53,7 +51,6 @@ LocationSummary* LocationSummary::Make(
   return summary;
 }
 
-
 Location Location::Pair(Location first, Location second) {
   PairLocation* pair_location = new PairLocation();
   ASSERT((reinterpret_cast<intptr_t>(pair_location) & kLocationTagMask) == 0);
@@ -63,12 +60,10 @@ Location Location::Pair(Location first, Location second) {
   return loc;
 }
 
-
 PairLocation* Location::AsPairLocation() const {
   ASSERT(IsPairLocation());
   return reinterpret_cast<PairLocation*>(value_ & ~kLocationTagMask);
 }
-
 
 Location Location::RegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
@@ -77,14 +72,12 @@ Location Location::RegisterOrConstant(Value* value) {
              : Location::RequiresRegister();
 }
 
-
 Location Location::RegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::RequiresRegister();
 }
-
 
 Location Location::WritableRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
@@ -93,14 +86,12 @@ Location Location::WritableRegisterOrSmiConstant(Value* value) {
              : Location::WritableRegister();
 }
 
-
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
 }
-
 
 Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
@@ -109,14 +100,12 @@ Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
              : Location::RegisterLocation(reg);
 }
 
-
 Location Location::AnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::Any();
 }
-
 
 // DBC does not have an notion of 'address' in its instruction set.
 #if !defined(TARGET_ARCH_DBC)
@@ -154,11 +143,9 @@ intptr_t Location::ToStackSlotOffset() const {
   }
 }
 
-
 const Object& Location::constant() const {
   return constant_instruction()->value();
 }
-
 
 const char* Location::Name() const {
   switch (kind()) {
@@ -201,7 +188,6 @@ const char* Location::Name() const {
   return "?";
 }
 
-
 void Location::PrintTo(BufferFormatter* f) const {
   if (!FLAG_support_il_printer) {
     return;
@@ -223,14 +209,12 @@ void Location::PrintTo(BufferFormatter* f) const {
   }
 }
 
-
 const char* Location::ToCString() const {
   char buffer[1024];
   BufferFormatter bf(buffer, 1024);
   PrintTo(&bf);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
-
 
 void Location::Print() const {
   if (kind() == kStackSlot) {
@@ -239,7 +223,6 @@ void Location::Print() const {
     THR_Print("%s", Name());
   }
 }
-
 
 Location Location::Copy() const {
   if (IsPairLocation()) {
@@ -252,7 +235,6 @@ Location Location::Copy() const {
     return *this;
   }
 }
-
 
 Location Location::RemapForSlowPath(Definition* def,
                                     intptr_t* cpu_reg_slots,
@@ -306,7 +288,6 @@ Location Location::RemapForSlowPath(Definition* def,
   return *this;
 }
 
-
 void LocationSummary::PrintTo(BufferFormatter* f) const {
   if (!FLAG_support_il_printer) {
     return;
@@ -337,7 +318,6 @@ void LocationSummary::PrintTo(BufferFormatter* f) const {
   if (always_calls()) f->Print(" C");
 }
 
-
 #if defined(DEBUG)
 void LocationSummary::DiscoverWritableInputs() {
   if (!HasCallOnSlowPath()) {
@@ -351,7 +331,6 @@ void LocationSummary::DiscoverWritableInputs() {
     }
   }
 }
-
 
 void LocationSummary::CheckWritableInputs() {
   ASSERT(HasCallOnSlowPath());

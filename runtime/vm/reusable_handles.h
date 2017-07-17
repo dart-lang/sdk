@@ -30,7 +30,6 @@ namespace dart {
 // }
 //
 
-
 #if defined(DEBUG)
 #define REUSABLE_SCOPE(name)                                                   \
   class Reusable##name##HandleScope : public ValueObject {                     \

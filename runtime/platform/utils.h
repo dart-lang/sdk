@@ -183,7 +183,6 @@ class Utils {
            ((b < 0) && (a > (kMaxInt64 + b)));
   }
 
-
   // Adds two int64_t values with wrapping around
   // (two's complement arithmetic).
   static inline int64_t AddWithWrapAround(int64_t a, int64_t b) {
@@ -191,7 +190,6 @@ class Utils {
     return static_cast<int64_t>(static_cast<uint64_t>(a) +
                                 static_cast<uint64_t>(b));
   }
-
 
   // Subtracts two int64_t values with wrapping around
   // (two's complement arithmetic).
@@ -201,7 +199,6 @@ class Utils {
                                 static_cast<uint64_t>(b));
   }
 
-
   // Multiplies two int64_t values with wrapping around
   // (two's complement arithmetic).
   static inline int64_t MulWithWrapAround(int64_t a, int64_t b) {
@@ -209,7 +206,6 @@ class Utils {
     return static_cast<int64_t>(static_cast<uint64_t>(a) *
                                 static_cast<uint64_t>(b));
   }
-
 
   // Shifts int64_t value left. Supports any non-negative number of bits and
   // silently discards shifted out bits.
@@ -221,7 +217,6 @@ class Utils {
     // Avoid undefined behavior by doing arithmetic in the unsigned type.
     return static_cast<int64_t>(static_cast<uint64_t>(a) << b);
   }
-
 
   // Utility functions for converting values from host endianness to
   // big or little endian values.

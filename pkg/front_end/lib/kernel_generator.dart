@@ -12,6 +12,7 @@ import 'package:kernel/kernel.dart' show Program;
 
 import 'compiler_options.dart';
 import 'src/base/processed_options.dart';
+import 'src/fasta/fasta_codes.dart';
 import 'src/kernel_generator_impl.dart';
 
 /// Generates a kernel representation of the program whose main library is in
@@ -40,7 +41,7 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   if (program == null) return null;
 
   if (program.mainMethod == null) {
-    pOptions.reportError("No 'main' method found.");
+    pOptions.reportMessage(messageMissingMain.withLocation(source, -1));
     return null;
   }
 

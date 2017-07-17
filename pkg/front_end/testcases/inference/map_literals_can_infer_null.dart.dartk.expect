@@ -1,7 +1,0 @@
-library test;
-import self as self;
-
-static method test1() → dynamic {
-  dynamic x = <dynamic, dynamic>{null: null};
-  x.[]=(3, "z");
-}

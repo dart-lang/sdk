@@ -19,6 +19,7 @@ analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_test: Slow, Pass
+analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
@@ -38,7 +39,6 @@ front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
-front_end/test/fasta/kompile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 

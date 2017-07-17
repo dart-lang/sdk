@@ -59,9 +59,7 @@ class StreamingDartTypeTranslator {
           translator_(translator) {
       translator_->type_parameter_scope_ = this;
     }
-    ~TypeParameterScope() {
-      translator_->type_parameter_scope_ = outer_;
-    }
+    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
 
     TypeParameterScope* outer() const { return outer_; }
     intptr_t parameters_offset() const { return parameters_offset_; }
@@ -89,7 +87,6 @@ class StreamingDartTypeTranslator {
   friend class StreamingScopeBuilder;
   friend class KernelReader;
 };
-
 
 class StreamingScopeBuilder {
  public:
@@ -200,7 +197,6 @@ class StreamingScopeBuilder {
   StreamingFlowGraphBuilder* builder_;
   StreamingDartTypeTranslator type_translator_;
 };
-
 
 // There are several cases when we are compiling constant expressions:
 //
@@ -946,7 +942,6 @@ class FieldHelper {
   intptr_t next_read_;
 };
 
-
 // Helper class that reads a kernel Procedure from binary.
 //
 // Use ReadUntilExcluding to read up to but not including a field.
@@ -1217,6 +1212,7 @@ class ClassHelper {
     kIsAbstract,
     kNameIndex,
     kSourceUriIndex,
+    kDocumentationCommentIndex,
     kAnnotations,
     kTypeParameters,
     kSuperClass,
@@ -1267,6 +1263,9 @@ class ClassHelper {
         source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
         builder_->current_script_id_ = source_uri_index_;
         builder_->record_token_position(position_);
+        if (++next_read_ == field) return;
+      case kDocumentationCommentIndex:
+        builder_->ReadStringReference();
         if (++next_read_ == field) return;
       case kAnnotations: {
         annotation_count_ = builder_->ReadListLength();  // read list length.

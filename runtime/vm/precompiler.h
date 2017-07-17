@@ -45,7 +45,6 @@ class TypeRangeCache : public ValueObject {
   intptr_t* upper_limits_;
 };
 
-
 class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -65,7 +64,6 @@ class SymbolKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
-
 
 class UnlinkedCallKeyValueTrait {
  public:
@@ -122,7 +120,6 @@ class FunctionKeyValueTrait {
 
 typedef DirectChainedHashMap<FunctionKeyValueTrait> FunctionSet;
 
-
 class FieldKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -151,7 +148,6 @@ class FieldKeyValueTrait {
 
 typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
 
-
 class ClassKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -171,7 +167,6 @@ class ClassKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<ClassKeyValueTrait> ClassSet;
-
 
 class AbstractTypeKeyValueTrait {
  public:
@@ -193,7 +188,6 @@ class AbstractTypeKeyValueTrait {
 
 typedef DirectChainedHashMap<AbstractTypeKeyValueTrait> AbstractTypeSet;
 
-
 class TypeArgumentsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -214,7 +208,6 @@ class TypeArgumentsKeyValueTrait {
 
 typedef DirectChainedHashMap<TypeArgumentsKeyValueTrait> TypeArgumentsSet;
 
-
 class InstanceKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -234,7 +227,6 @@ class InstanceKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<InstanceKeyValueTrait> InstanceSet;
-
 
 struct FieldTypePair {
   // Typedefs needed for the DirectChainedHashMap template.
@@ -264,7 +256,6 @@ struct FieldTypePair {
 
 typedef DirectChainedHashMap<FieldTypePair> FieldTypeMap;
 
-
 struct IntptrPair {
   // Typedefs needed for the DirectChainedHashMap template.
   typedef intptr_t Key;
@@ -289,7 +280,6 @@ struct IntptrPair {
 
 typedef DirectChainedHashMap<IntptrPair> CidMap;
 
-
 struct FunctionFeedbackKey {
   FunctionFeedbackKey() : owner_cid_(kIllegalCid), token_(0), kind_(0) {}
   FunctionFeedbackKey(intptr_t owner_cid, intptr_t token, intptr_t kind)
@@ -299,7 +289,6 @@ struct FunctionFeedbackKey {
   intptr_t token_;
   intptr_t kind_;
 };
-
 
 struct FunctionFeedbackPair {
   // Typedefs needed for the DirectChainedHashMap template.
@@ -329,7 +318,6 @@ struct FunctionFeedbackPair {
 };
 
 typedef DirectChainedHashMap<FunctionFeedbackPair> FunctionFeedbackMap;
-
 
 class Precompiler : public ValueObject {
  public:
@@ -461,7 +449,6 @@ class Precompiler : public ValueObject {
   bool get_runtime_type_is_unique_;
 };
 
-
 class FunctionsTraits {
  public:
   static const char* Name() { return "FunctionsTraits"; }
@@ -488,7 +475,6 @@ class FunctionsTraits {
 };
 
 typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
-
 
 }  // namespace dart
 

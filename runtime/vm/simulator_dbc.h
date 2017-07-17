@@ -34,7 +34,6 @@ typedef bool (*IntrinsicHandler)(Thread* thread,
                                  RawObject** FP,
                                  RawObject** result);
 
-
 class Simulator {
  public:
   static const uword kSimulatorStackUnderflowSize = 0x80;

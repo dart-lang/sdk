@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_SNAPSHOT_IDS_H_
 #define RUNTIME_VM_SNAPSHOT_IDS_H_
 
-#include "vm/raw_object.h"
 #include "vm/dart_entry.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 

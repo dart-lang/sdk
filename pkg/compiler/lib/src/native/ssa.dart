@@ -48,8 +48,7 @@ void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {
-      throw new SpannableAssertionFailure(
-          nativeBody, "Deprecated syntax, use @JSName('name') instead.");
+      failedAt(nativeBody, "Deprecated syntax, use @JSName('name') instead.");
     }
     hasBody = true;
   }
@@ -89,8 +88,7 @@ void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
     } else if (element.kind == ElementKind.SETTER) {
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
-      throw new SpannableAssertionFailure(
-          element, 'Unexpected kind: "${element.kind}".');
+      failedAt(element, 'Unexpected kind: "${element.kind}".');
     }
 
     builder.push(new HForeignCode(
@@ -107,7 +105,7 @@ void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
         .addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
-      throw new SpannableAssertionFailure(
+      failedAt(
           nativeBody,
           'native "..." syntax is restricted to '
           'functions with zero parameters.');

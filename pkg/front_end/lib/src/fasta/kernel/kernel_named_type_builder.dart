@@ -6,7 +6,12 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, DynamicType, Supertype;
 
-import '../messages.dart' show templateTypeNotFound, warning;
+import '../messages.dart'
+    show
+        templateSupertypeIsIllegal,
+        templateSupertypeIsTypeVariable,
+        templateTypeNotFound,
+        warning;
 
 import 'kernel_builder.dart'
     show
@@ -43,11 +48,11 @@ class KernelNamedTypeBuilder
   }
 
   Supertype handleInvalidSupertype(LibraryBuilder library) {
-    String message = builder.isTypeVariable
-        ? "The type variable '$name' can't be used as supertype."
-        : "The type '$name' can't be used as supertype.";
-    library.deprecated_addCompileTimeError(charOffset, message,
-        fileUri: fileUri);
+    var template = builder.isTypeVariable
+        ? templateSupertypeIsTypeVariable
+        : templateSupertypeIsIllegal;
+    library.addCompileTimeError(
+        template.withArguments(name), charOffset, fileUri);
     return null;
   }
 

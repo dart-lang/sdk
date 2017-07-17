@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int f;
-  constructor •() → void
+  default constructor •() → void
     ;
 }
 static field self::A a;

@@ -83,10 +83,11 @@ def HostCpuForArch(arch):
     return 'x64'
 
 
+# The C compiler's target.
 def TargetCpuForArch(arch, target_os):
   if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
     return 'x86'
-  if arch in ['simarm64']:
+  if arch in ['x64', 'simarm64']:
     return 'x64'
   if arch == 'simdbc':
     return 'arm' if target_os == 'android' else 'x86'
@@ -96,6 +97,25 @@ def TargetCpuForArch(arch, target_os):
     return 'arm'
   if arch == 'armsimdbc64':
     return 'arm64'
+  return arch
+
+
+# The Dart compiler's target.
+def DartTargetCpuForArch(arch):
+  if arch in ['ia32']:
+    return 'ia32'
+  if arch in ['x64']:
+    return 'x64'
+  if arch in ['arm', 'simarm']:
+    return 'arm'
+  if arch in ['armv6', 'simarmv6']:
+    return 'armv6'
+  if arch in ['armv5te', 'simarmv5te']:
+    return 'armv5te'
+  if arch in ['arm64', 'simarm64']:
+    return 'arm64'
+  if arch in ['simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']:
+    return 'dbc'
   return arch
 
 
@@ -142,9 +162,9 @@ def ToGnArgs(args, mode, arch, target_os):
   else:
     gn_args['target_os'] = target_os
 
-  gn_args['dart_target_arch'] = arch
-  gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['host_cpu'] = HostCpuForArch(arch)
+  gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
+  gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
   crossbuild = gn_args['target_cpu'] != gn_args['host_cpu']
 
   if arch != HostCpuForArch(arch):

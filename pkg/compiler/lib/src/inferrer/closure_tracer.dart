@@ -32,7 +32,9 @@ class ClosureTracerVisitor extends TracerVisitor {
     _callsToAnalyze.forEach(_analyzeCall);
     for (MethodElement element in tracedElements) {
       MethodElement implementation = element.implementation;
-      implementation.functionSignature.forEachParameter((Element parameter) {
+      implementation.functionSignature
+          .forEachParameter((FormalElement _parameter) {
+        ParameterElement parameter = _parameter;
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOfParameter(parameter);
         info.disableInferenceForClosures = false;
@@ -82,7 +84,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     if (inferrer.closedWorld.commonElements.isForeign(called)) {
       String name = called.name;
       if (name == JavaScriptBackend.JS || name == 'DART_CLOSURE_TO_JS') {
-        bailout('Used in JS ${info.call}');
+        bailout('Used in JS ${info.debugName}');
       }
     }
     if (called.isGetter &&

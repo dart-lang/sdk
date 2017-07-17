@@ -58,7 +58,6 @@ enum Register {
   LR = R30,
 };
 
-
 enum VRegister {
   V0 = 0,
   V1 = 1,
@@ -137,7 +136,6 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
-
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
@@ -631,7 +629,6 @@ enum FPIntCvtOp {
   SCVTFD = FPIntCvtFixed | B22 | B17,
 };
 
-
 #define APPLY_OP_LIST(_V)                                                      \
   _V(DPImmediate)                                                              \
   _V(CompareBranch)                                                            \
@@ -670,7 +667,6 @@ enum FPIntCvtOp {
   _V(FPTwoSource)                                                              \
   _V(FPImm)                                                                    \
   _V(FPIntCvt)
-
 
 enum Shift {
   kNoShift = -1,
@@ -805,7 +801,6 @@ enum InstructionFields {
   kHintOp2Shift = 5,
   kHintOp2Bits = 3,
 };
-
 
 // Helper functions for decoding logical immediates.
 static inline uint64_t RotateRight(uint64_t value,

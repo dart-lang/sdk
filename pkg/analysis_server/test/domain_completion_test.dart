@@ -488,9 +488,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
   }
 
   test_inDartDoc_reference1() async {
-    addFile(
-        '/testA.dart',
-        '''
+    addFile('/testA.dart', '''
   part of libA;
   foo(bar) => 0;''');
     addTestFile('''
@@ -654,9 +652,7 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    addFile(
-        '/project/bin/testA.dart',
-        '''
+    addFile('/project/bin/testA.dart', '''
       library libA;
       part "$testFile";
       import 'dart:html';
@@ -676,9 +672,7 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    addFile(
-        '/testA.dart',
-        '''
+    addFile('/testA.dart', '''
       part of libA;
       class A { }''');
     addTestFile('''

@@ -56,7 +56,6 @@ void SSLCertContext::TrustBuiltinRoots() {
   return;
 }
 
-
 void SSLCertContext::RegisterCallbacks(SSL* ssl) {
   // No callbacks to register for implementations using BoringSSL's built-in
   // verification mechanism.

@@ -13,6 +13,8 @@ import 'package:kernel/ast.dart'
         Supertype,
         TypeParameter;
 
+import '../fasta_codes.dart' show messageSupertypeIsFunction;
+
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
@@ -70,9 +72,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   Supertype buildSupertype(LibraryBuilder library) {
-    library.deprecated_addCompileTimeError(
-        charOffset, "Can't use a function type as supertype.",
-        fileUri: fileUri);
+    library.addCompileTimeError(
+        messageSupertypeIsFunction, charOffset, fileUri);
     return null;
   }
 }

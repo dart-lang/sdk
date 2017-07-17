@@ -12,21 +12,23 @@ import 'package:kernel/ast.dart';
 class TypeInferenceBase {
   void debugDependency(AccessorNode accessorNode) {}
 
-  bool debugExpressionEnter(
+  bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     return false;
   }
 
-  void debugExpressionExit(
+  void genericExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {}
 
-  void debugInitializerEnter(String initializerType, Initializer initializer) {}
+  void genericInitializerEnter(
+      String initializerType, Initializer initializer) {}
 
-  void debugInitializerExit(String initializerType, Initializer initializer) {}
+  void genericInitializerExit(
+      String initializerType, Initializer initializer) {}
 
-  void debugStatementEnter(String statementType, Statement statement) {}
+  void genericStatementEnter(String statementType, Statement statement) {}
 
-  void debugStatementExit(String statementType, Statement statement) {}
+  void genericStatementExit(String statementType, Statement statement) {}
 }
 
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
@@ -36,30 +38,31 @@ class TypeInferenceDebugging implements TypeInferenceBase {
     print('Dependency $accessorNode');
   }
 
-  bool debugExpressionEnter(
+  bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     print('Enter $expressionType($expression) (context=$typeContext)');
     return true;
   }
 
-  void debugExpressionExit(
+  void genericExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {
     print('Exit $expressionType($expression) (type=$inferredType)');
   }
 
-  void debugInitializerEnter(String initializerType, Initializer initializer) {
+  void genericInitializerEnter(
+      String initializerType, Initializer initializer) {
     print('Enter $initializerType($initializer)');
   }
 
-  void debugInitializerExit(String initializerType, Initializer initializer) {
+  void genericInitializerExit(String initializerType, Initializer initializer) {
     print('Exit $initializerType($initializer)');
   }
 
-  void debugStatementEnter(String statementType, Statement statement) {
+  void genericStatementEnter(String statementType, Statement statement) {
     print('Enter $statementType($statement)');
   }
 
-  void debugStatementExit(String statementType, Statement statement) {
+  void genericStatementExit(String statementType, Statement statement) {
     print('Exit $statementType($statement)');
   }
 }
@@ -82,345 +85,345 @@ class TypeInferenceListener
     extends TypeInferenceBase // with TypeInferenceDebugging
 {
   bool asExpressionEnter(AsExpression expression, DartType typeContext) =>
-      debugExpressionEnter("asExpression", expression, typeContext);
+      genericExpressionEnter("asExpression", expression, typeContext);
 
   void asExpressionExit(AsExpression expression, DartType inferredType) =>
-      debugExpressionExit("asExpression", expression, inferredType);
+      genericExpressionExit("asExpression", expression, inferredType);
 
   void assertStatementEnter(AssertStatement statement) =>
-      debugStatementEnter('assertStatement', statement);
+      genericStatementEnter('assertStatement', statement);
 
   void assertStatementExit(AssertStatement statement) =>
-      debugStatementExit('assertStatement', statement);
+      genericStatementExit('assertStatement', statement);
 
   bool awaitExpressionEnter(AwaitExpression expression, DartType typeContext) =>
-      debugExpressionEnter("awaitExpression", expression, typeContext);
+      genericExpressionEnter("awaitExpression", expression, typeContext);
 
   void awaitExpressionExit(AwaitExpression expression, DartType inferredType) =>
-      debugExpressionExit("awaitExpression", expression, inferredType);
+      genericExpressionExit("awaitExpression", expression, inferredType);
 
-  void blockEnter(Block statement) => debugStatementEnter('block', statement);
+  void blockEnter(Block statement) => genericStatementEnter('block', statement);
 
-  void blockExit(Block statement) => debugStatementExit('block', statement);
+  void blockExit(Block statement) => genericStatementExit('block', statement);
 
   bool boolLiteralEnter(BoolLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("boolLiteral", expression, typeContext);
+      genericExpressionEnter("boolLiteral", expression, typeContext);
 
   void boolLiteralExit(BoolLiteral expression, DartType inferredType) =>
-      debugExpressionExit("boolLiteral", expression, inferredType);
+      genericExpressionExit("boolLiteral", expression, inferredType);
 
   void breakStatementEnter(BreakStatement statement) =>
-      debugStatementEnter('breakStatement', statement);
+      genericStatementEnter('breakStatement', statement);
 
   void breakStatementExit(BreakStatement statement) =>
-      debugStatementExit('breakStatement', statement);
+      genericStatementExit('breakStatement', statement);
 
   bool cascadeExpressionEnter(Let expression, DartType typeContext) =>
-      debugExpressionEnter("cascade", expression, typeContext);
+      genericExpressionEnter("cascade", expression, typeContext);
 
   void cascadeExpressionExit(Let expression, DartType inferredType) =>
-      debugExpressionExit("cascade", expression, inferredType);
+      genericExpressionExit("cascade", expression, inferredType);
 
   bool conditionalExpressionEnter(
           ConditionalExpression expression, DartType typeContext) =>
-      debugExpressionEnter("conditionalExpression", expression, typeContext);
+      genericExpressionEnter("conditionalExpression", expression, typeContext);
 
   void conditionalExpressionExit(
           ConditionalExpression expression, DartType inferredType) =>
-      debugExpressionExit("conditionalExpression", expression, inferredType);
+      genericExpressionExit("conditionalExpression", expression, inferredType);
 
   bool constructorInvocationEnter(
           InvocationExpression expression, DartType typeContext) =>
-      debugExpressionEnter("constructorInvocation", expression, typeContext);
+      genericExpressionEnter("constructorInvocation", expression, typeContext);
 
   void constructorInvocationExit(
           InvocationExpression expression, DartType inferredType) =>
-      debugExpressionExit("constructorInvocation", expression, inferredType);
+      genericExpressionExit("constructorInvocation", expression, inferredType);
 
   void continueSwitchStatementEnter(ContinueSwitchStatement statement) =>
-      debugStatementEnter('continueSwitchStatement', statement);
+      genericStatementEnter('continueSwitchStatement', statement);
 
   void continueSwitchStatementExit(ContinueSwitchStatement statement) =>
-      debugStatementExit('continueSwitchStatement', statement);
+      genericStatementExit('continueSwitchStatement', statement);
 
   void doStatementEnter(DoStatement statement) =>
-      debugStatementEnter("doStatement", statement);
+      genericStatementEnter("doStatement", statement);
 
   void doStatementExit(DoStatement statement) =>
-      debugStatementExit("doStatement", statement);
+      genericStatementExit("doStatement", statement);
 
   bool doubleLiteralEnter(DoubleLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("doubleLiteral", expression, typeContext);
+      genericExpressionEnter("doubleLiteral", expression, typeContext);
 
   void doubleLiteralExit(DoubleLiteral expression, DartType inferredType) =>
-      debugExpressionExit("doubleLiteral", expression, inferredType);
+      genericExpressionExit("doubleLiteral", expression, inferredType);
 
   void dryRunEnter(Expression expression) =>
-      debugExpressionEnter("dryRun", expression, null);
+      genericExpressionEnter("dryRun", expression, null);
 
   void dryRunExit(Expression expression) =>
-      debugExpressionExit("dryRun", expression, null);
+      genericExpressionExit("dryRun", expression, null);
 
   void expressionStatementEnter(ExpressionStatement statement) =>
-      debugStatementEnter('expressionStatement', statement);
+      genericStatementEnter('expressionStatement', statement);
 
   void expressionStatementExit(ExpressionStatement statement) =>
-      debugStatementExit('expressionStatement', statement);
+      genericStatementExit('expressionStatement', statement);
 
   void forInStatementEnter(ForInStatement statement) =>
-      debugStatementEnter('forInStatement', statement);
+      genericStatementEnter('forInStatement', statement);
 
   void forInStatementExit(ForInStatement statement) =>
-      debugStatementExit('forInStatement', statement);
+      genericStatementExit('forInStatement', statement);
 
   void forStatementEnter(ForStatement statement) =>
-      debugStatementEnter('forStatement', statement);
+      genericStatementEnter('forStatement', statement);
 
   void forStatementExit(ForStatement statement) =>
-      debugStatementExit('forStatement', statement);
+      genericStatementExit('forStatement', statement);
 
   void functionDeclarationEnter(FunctionDeclaration statement) =>
-      debugStatementEnter('functionDeclaration', statement);
+      genericStatementEnter('functionDeclaration', statement);
 
   void functionDeclarationExit(FunctionDeclaration statement) =>
-      debugStatementExit('functionDeclaration', statement);
+      genericStatementExit('functionDeclaration', statement);
 
   bool functionExpressionEnter(
           FunctionExpression expression, DartType typeContext) =>
-      debugExpressionEnter("functionExpression", expression, typeContext);
+      genericExpressionEnter("functionExpression", expression, typeContext);
 
   void functionExpressionExit(
           FunctionExpression expression, DartType inferredType) =>
-      debugExpressionExit("functionExpression", expression, inferredType);
+      genericExpressionExit("functionExpression", expression, inferredType);
 
   bool ifNullEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter('ifNull', expression, typeContext);
+      genericExpressionEnter('ifNull', expression, typeContext);
 
   void ifNullExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit('ifNull', expression, inferredType);
+      genericExpressionExit('ifNull', expression, inferredType);
 
   void ifStatementEnter(IfStatement statement) =>
-      debugStatementEnter('ifStatement', statement);
+      genericStatementEnter('ifStatement', statement);
 
   void ifStatementExit(IfStatement statement) =>
-      debugStatementExit('ifStatement', statement);
+      genericStatementExit('ifStatement', statement);
 
   bool indexAssignEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter("indexAssign", expression, typeContext);
+      genericExpressionEnter("indexAssign", expression, typeContext);
 
   void indexAssignExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit("indexAssign", expression, inferredType);
+      genericExpressionExit("indexAssign", expression, inferredType);
 
   bool intLiteralEnter(IntLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("intLiteral", expression, typeContext);
+      genericExpressionEnter("intLiteral", expression, typeContext);
 
   void intLiteralExit(IntLiteral expression, DartType inferredType) =>
-      debugExpressionExit("intLiteral", expression, inferredType);
+      genericExpressionExit("intLiteral", expression, inferredType);
 
   bool isExpressionEnter(IsExpression expression, DartType typeContext) =>
-      debugExpressionEnter("isExpression", expression, typeContext);
+      genericExpressionEnter("isExpression", expression, typeContext);
 
   void isExpressionExit(IsExpression expression, DartType inferredType) =>
-      debugExpressionExit("isExpression", expression, inferredType);
+      genericExpressionExit("isExpression", expression, inferredType);
 
   bool isNotExpressionEnter(Not expression, DartType typeContext) =>
-      debugExpressionEnter("isNotExpression", expression, typeContext);
+      genericExpressionEnter("isNotExpression", expression, typeContext);
 
   void isNotExpressionExit(Not expression, DartType inferredType) =>
-      debugExpressionExit("isNotExpression", expression, inferredType);
+      genericExpressionExit("isNotExpression", expression, inferredType);
 
   void labeledStatementEnter(LabeledStatement statement) =>
-      debugStatementEnter('labeledStatement', statement);
+      genericStatementEnter('labeledStatement', statement);
 
   void labeledStatementExit(LabeledStatement statement) =>
-      debugStatementExit('labeledStatement', statement);
+      genericStatementExit('labeledStatement', statement);
 
   bool listLiteralEnter(ListLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("listLiteral", expression, typeContext);
+      genericExpressionEnter("listLiteral", expression, typeContext);
 
   void listLiteralExit(ListLiteral expression, DartType inferredType) =>
-      debugExpressionExit("listLiteral", expression, inferredType);
+      genericExpressionExit("listLiteral", expression, inferredType);
 
   bool logicalExpressionEnter(
           LogicalExpression expression, DartType typeContext) =>
-      debugExpressionEnter("logicalExpression", expression, typeContext);
+      genericExpressionEnter("logicalExpression", expression, typeContext);
 
   void logicalExpressionExit(
           LogicalExpression expression, DartType inferredType) =>
-      debugExpressionExit("logicalExpression", expression, inferredType);
+      genericExpressionExit("logicalExpression", expression, inferredType);
 
   bool mapLiteralEnter(MapLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("mapLiteral", expression, typeContext);
+      genericExpressionEnter("mapLiteral", expression, typeContext);
 
   void mapLiteralExit(MapLiteral expression, DartType typeContext) =>
-      debugExpressionExit("mapLiteral", expression, typeContext);
+      genericExpressionExit("mapLiteral", expression, typeContext);
 
   bool methodInvocationEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter("methodInvocation", expression, typeContext);
+      genericExpressionEnter("methodInvocation", expression, typeContext);
 
   void methodInvocationExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit("methodInvocation", expression, inferredType);
+      genericExpressionExit("methodInvocation", expression, inferredType);
 
   bool notEnter(Not expression, DartType typeContext) =>
-      debugExpressionEnter("not", expression, typeContext);
+      genericExpressionEnter("not", expression, typeContext);
 
   void notExit(Not expression, DartType inferredType) =>
-      debugExpressionExit("not", expression, inferredType);
+      genericExpressionExit("not", expression, inferredType);
 
   bool nullLiteralEnter(NullLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("nullLiteral", expression, typeContext);
+      genericExpressionEnter("nullLiteral", expression, typeContext);
 
   void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
-      debugExpressionExit("nullLiteral", expression, inferredType);
+      genericExpressionExit("nullLiteral", expression, inferredType);
 
   bool propertyAssignEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter("propertyAssign", expression, typeContext);
+      genericExpressionEnter("propertyAssign", expression, typeContext);
 
   void propertyAssignExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit("propertyAssign", expression, inferredType);
+      genericExpressionExit("propertyAssign", expression, inferredType);
 
   bool propertyGetEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter("propertyGet", expression, typeContext);
+      genericExpressionEnter("propertyGet", expression, typeContext);
 
   void propertyGetExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit("propertyGet", expression, inferredType);
+      genericExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
-      debugExpressionEnter("propertySet", expression, typeContext);
+      genericExpressionEnter("propertySet", expression, typeContext);
 
   void propertySetExit(PropertySet expression, DartType inferredType) =>
-      debugExpressionExit("propertySet", expression, inferredType);
+      genericExpressionExit("propertySet", expression, inferredType);
 
   void recordDependency(AccessorNode accessorNode) =>
       debugDependency(accessorNode);
 
   void redirectingInitializerEnter(RedirectingInitializer initializer) =>
-      debugInitializerEnter("redirectingInitializer", initializer);
+      genericInitializerEnter("redirectingInitializer", initializer);
 
   void redirectingInitializerExit(RedirectingInitializer initializer) =>
-      debugInitializerExit("redirectingInitializer", initializer);
+      genericInitializerExit("redirectingInitializer", initializer);
 
   bool rethrowEnter(Rethrow expression, DartType typeContext) =>
-      debugExpressionEnter('rethrow', expression, typeContext);
+      genericExpressionEnter('rethrow', expression, typeContext);
 
   void rethrowExit(Rethrow expression, DartType inferredType) =>
-      debugExpressionExit('rethrow', expression, inferredType);
+      genericExpressionExit('rethrow', expression, inferredType);
 
   void returnStatementEnter(ReturnStatement statement) =>
-      debugStatementEnter('returnStatement', statement);
+      genericStatementEnter('returnStatement', statement);
 
   void returnStatementExit(ReturnStatement statement) =>
-      debugStatementExit('returnStatement', statement);
+      genericStatementExit('returnStatement', statement);
 
   bool staticAssignEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter("staticAssign", expression, typeContext);
+      genericExpressionEnter("staticAssign", expression, typeContext);
 
   void staticAssignExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit("staticAssign", expression, inferredType);
+      genericExpressionExit("staticAssign", expression, inferredType);
 
   bool staticGetEnter(StaticGet expression, DartType typeContext) =>
-      debugExpressionEnter("staticGet", expression, typeContext);
+      genericExpressionEnter("staticGet", expression, typeContext);
 
   void staticGetExit(StaticGet expression, DartType inferredType) =>
-      debugExpressionExit("staticGet", expression, inferredType);
+      genericExpressionExit("staticGet", expression, inferredType);
 
   bool staticInvocationEnter(
           StaticInvocation expression, DartType typeContext) =>
-      debugExpressionEnter("staticInvocation", expression, typeContext);
+      genericExpressionEnter("staticInvocation", expression, typeContext);
 
   void staticInvocationExit(
           StaticInvocation expression, DartType inferredType) =>
-      debugExpressionExit("staticInvocation", expression, inferredType);
+      genericExpressionExit("staticInvocation", expression, inferredType);
 
   bool stringConcatenationEnter(
           StringConcatenation expression, DartType typeContext) =>
-      debugExpressionEnter("stringConcatenation", expression, typeContext);
+      genericExpressionEnter("stringConcatenation", expression, typeContext);
 
   void stringConcatenationExit(
           StringConcatenation expression, DartType inferredType) =>
-      debugExpressionExit("stringConcatenation", expression, inferredType);
+      genericExpressionExit("stringConcatenation", expression, inferredType);
 
   bool stringLiteralEnter(StringLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("StringLiteral", expression, typeContext);
+      genericExpressionEnter("StringLiteral", expression, typeContext);
 
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
-      debugExpressionExit("StringLiteral", expression, inferredType);
+      genericExpressionExit("StringLiteral", expression, inferredType);
 
   void switchStatementEnter(SwitchStatement statement) =>
-      debugStatementEnter('switchStatement', statement);
+      genericStatementEnter('switchStatement', statement);
 
   void switchStatementExit(SwitchStatement statement) =>
-      debugStatementExit('switchStatement', statement);
+      genericStatementExit('switchStatement', statement);
 
   bool symbolLiteralEnter(SymbolLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("symbolLiteral", expression, typeContext);
+      genericExpressionEnter("symbolLiteral", expression, typeContext);
 
   void symbolLiteralExit(SymbolLiteral expression, DartType inferredType) =>
-      debugExpressionExit("symbolLiteral", expression, inferredType);
+      genericExpressionExit("symbolLiteral", expression, inferredType);
 
   bool thisExpressionEnter(ThisExpression expression, DartType typeContext) =>
-      debugExpressionEnter("thisExpression", expression, typeContext);
+      genericExpressionEnter("thisExpression", expression, typeContext);
 
   void thisExpressionExit(ThisExpression expression, DartType inferredType) =>
-      debugExpressionExit("thisExpression", expression, inferredType);
+      genericExpressionExit("thisExpression", expression, inferredType);
 
   bool throwEnter(Throw expression, DartType typeContext) =>
-      debugExpressionEnter('throw', expression, typeContext);
+      genericExpressionEnter('throw', expression, typeContext);
 
   void throwExit(Throw expression, DartType inferredType) =>
-      debugExpressionExit('throw', expression, inferredType);
+      genericExpressionExit('throw', expression, inferredType);
 
   void tryCatchEnter(TryCatch statement) =>
-      debugStatementEnter('tryCatch', statement);
+      genericStatementEnter('tryCatch', statement);
 
   void tryCatchExit(TryCatch statement) =>
-      debugStatementExit('tryCatch', statement);
+      genericStatementExit('tryCatch', statement);
 
   void tryFinallyEnter(TryFinally statement) =>
-      debugStatementEnter('tryFinally', statement);
+      genericStatementEnter('tryFinally', statement);
 
   void tryFinallyExit(TryFinally statement) =>
-      debugStatementExit('tryFinally', statement);
+      genericStatementExit('tryFinally', statement);
 
   bool typeLiteralEnter(TypeLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("typeLiteral", expression, typeContext);
+      genericExpressionEnter("typeLiteral", expression, typeContext);
 
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) =>
-      debugExpressionExit("typeLiteral", expression, inferredType);
+      genericExpressionExit("typeLiteral", expression, inferredType);
 
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
-      debugExpressionEnter("variableAssign", expression, typeContext);
+      genericExpressionEnter("variableAssign", expression, typeContext);
 
   void variableAssignExit(Expression expression, DartType inferredType) =>
-      debugExpressionExit("variableAssign", expression, inferredType);
+      genericExpressionExit("variableAssign", expression, inferredType);
 
   void variableDeclarationEnter(VariableDeclaration statement) =>
-      debugStatementEnter('variableDeclaration', statement);
+      genericStatementEnter('variableDeclaration', statement);
 
   void variableDeclarationExit(VariableDeclaration statement) =>
-      debugStatementExit('variableDeclaration', statement);
+      genericStatementExit('variableDeclaration', statement);
 
   bool variableGetEnter(VariableGet expression, DartType typeContext) =>
-      debugExpressionEnter("variableGet", expression, typeContext);
+      genericExpressionEnter("variableGet", expression, typeContext);
 
   void variableGetExit(VariableGet expression, DartType inferredType) =>
-      debugExpressionExit("variableGet", expression, inferredType);
+      genericExpressionExit("variableGet", expression, inferredType);
 
   bool variableSetEnter(VariableSet expression, DartType typeContext) =>
-      debugExpressionEnter("variableSet", expression, typeContext);
+      genericExpressionEnter("variableSet", expression, typeContext);
 
   void variableSetExit(VariableSet expression, DartType inferredType) =>
-      debugExpressionExit("variableSet", expression, inferredType);
+      genericExpressionExit("variableSet", expression, inferredType);
 
   void whileStatementEnter(WhileStatement statement) =>
-      debugStatementEnter("whileStatement", statement);
+      genericStatementEnter("whileStatement", statement);
 
   void whileStatementExit(WhileStatement statement) =>
-      debugStatementExit("whileStatement", statement);
+      genericStatementExit("whileStatement", statement);
 
   void yieldStatementEnter(YieldStatement statement) =>
-      debugStatementEnter('yieldStatement', statement);
+      genericStatementEnter('yieldStatement', statement);
 
   void yieldStatementExit(YieldStatement statement) =>
-      debugStatementExit('yieldStatement', statement);
+      genericStatementExit('yieldStatement', statement);
 }

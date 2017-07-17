@@ -86,7 +86,6 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments)
 
-
 // Helper that throws an argument exception.
 void DartNativeThrowArgumentException(const Instance& instance);
 
@@ -100,7 +99,6 @@ void DartNativeThrowArgumentException(const Instance& instance);
   }                                                                            \
   const type& name = type::Cast(__##name##_instance__);
 
-
 // Natives should throw an exception if an illegal argument is passed.
 // type name = value.
 #define GET_NATIVE_ARGUMENT(type, name, value)                                 \
@@ -113,7 +111,6 @@ void DartNativeThrowArgumentException(const Instance& instance);
     }                                                                          \
   }                                                                            \
   name ^= value;
-
 
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {

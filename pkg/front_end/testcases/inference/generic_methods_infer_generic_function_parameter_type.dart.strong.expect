@@ -4,13 +4,13 @@ import "dart:core" as core;
 
 typedef F<V extends core::Object> = (V) → void;
 class C<T extends core::Object> extends self::D<self::C::T> {
-  constructor •() → void
+  default constructor •() → void
     : super self::D::•()
     ;
   method f<U extends core::Object>(self::C::f::U x) → (self::C::f::U) → void {}
 }
 class D<T extends core::Object> extends core::Object {
-  constructor •() → void
+  default constructor •() → void
     : super core::Object::•()
     ;
   method f<U extends core::Object>(self::D::f::U u) → (self::D::f::U) → void

@@ -65,9 +65,7 @@ class FileSystemStateTest {
 
   test_definedClassMemberNames() {
     String path = _p('/aaa/lib/a.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class A {
   int a, b;
   A();
@@ -87,9 +85,7 @@ class B {
 
   test_definedTopLevelNames() {
     String path = _p('/aaa/lib/a.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class A {}
 class B = Object with A;
 typedef C();
@@ -106,14 +102,10 @@ var G, H;
   test_exportedTopLevelDeclarations_export() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'a.dart';
 class B {}
 ''');
@@ -127,23 +119,17 @@ class B {}
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
     String c = _p('/aaa/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A1 {}
 class A2 {}
 class A3 {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'a.dart' show A1, A2;
 class B1 {}
 class B2 {}
 ''');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 export 'b.dart' show A2, A3, B1;
 class C {}
 ''');
@@ -153,14 +139,10 @@ class C {}
   test_exportedTopLevelDeclarations_export_flushOnChange() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'a.dart';
 class B {}
 ''');
@@ -177,16 +159,12 @@ class B {}
   test_exportedTopLevelDeclarations_export_hide() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A1 {}
 class A2 {}
 class A3 {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'a.dart' hide A2;
 class B {}
 ''');
@@ -196,14 +174,10 @@ class B {}
   test_exportedTopLevelDeclarations_export_preferLocal() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class V {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'a.dart';
 int V;
 ''');
@@ -217,15 +191,11 @@ int V;
   test_exportedTopLevelDeclarations_export_show() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A1 {}
 class A2 {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'a.dart' show A2;
 class B {}
 ''');
@@ -237,25 +207,17 @@ class B {}
     String b = _p('/aaa/lib/b.dart');
     String c = _p('/aaa/lib/c.dart');
     String d = _p('/aaa/lib/d.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 export 'b.dart' show Foo;
 export 'c.dart' show Bar;
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 export 'd.dart';
 ''');
-    provider.newFile(
-        c,
-        r'''
+    provider.newFile(c, r'''
 export 'd.dart';
 ''');
-    provider.newFile(
-        d,
-        r'''
+    provider.newFile(d, r'''
 class Foo {}
 class Bar {}
 ''');
@@ -265,14 +227,10 @@ class Bar {}
   test_exportedTopLevelDeclarations_import() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 class A {}
 ''');
-    provider.newFile(
-        b,
-        r'''
+    provider.newFile(b, r'''
 import 'a.dart';
 class B {}
 ''');
@@ -282,16 +240,12 @@ class B {}
   test_exportedTopLevelDeclarations_parts() {
     String a = _p('/aaa/lib/a.dart');
     String a2 = _p('/aaa/lib/a2.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library lib;
 part 'a2.dart';
 class A1 {}
 ''');
-    provider.newFile(
-        a2,
-        r'''
+    provider.newFile(a2, r'''
 part of lib;
 class A2 {}
 ''');
@@ -317,9 +271,7 @@ class A2 {}
 
   test_getFileForPath_emptyUri() {
     String path = _p('/test.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 import '';
 export '';
 part '';
@@ -333,9 +285,7 @@ part '';
 
   test_getFileForPath_hasLibraryDirective_hasPartOfDirective() {
     String a = _p('/test/lib/a.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library L;
 part of L;
 ''');
@@ -441,9 +391,7 @@ class A1 {}
     String b = _p('/test/lib/b.dart');
     String c = _p('/test/lib/c.dart');
     String d = _p('/test/lib/d.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 library lib;
 import 'dart:math';
 import 'b.dart';
@@ -466,15 +414,11 @@ part 'not_dart.txt';
   test_getFileForPath_part() {
     String a1 = _p('/aaa/lib/a1.dart');
     String a2 = _p('/aaa/lib/a2.dart');
-    provider.newFile(
-        a1,
-        r'''
+    provider.newFile(a1, r'''
 library a1;
 part 'a2.dart';
 ''');
-    provider.newFile(
-        a2,
-        r'''
+    provider.newFile(a2, r'''
 part of a1;
 class A2 {}
 ''');
@@ -509,9 +453,7 @@ class A2 {}
     // Now update the library, and refresh its file.
     // The 'a2.dart' is not referenced anymore.
     // So the part file does not have the library anymore.
-    provider.newFile(
-        a1,
-        r'''
+    provider.newFile(a1, r'''
 library a1;
 part 'not-a2.dart';
 ''');
@@ -569,9 +511,7 @@ part 'not-a2.dart';
     String a = _p('/test/lib/a.dart');
     String b = _p('/test/lib/b.dart');
     String c = _p('/test/lib/c.dart');
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 ''');
     provider.newFile(b, '');
@@ -590,9 +530,7 @@ import 'b.dart';
 
     // Update a.dart to import c.dart and refresh.
     // So, c.dart should be reported as added in the next change event.
-    provider.newFile(
-        a,
-        r'''
+    provider.newFile(a, r'''
 import 'b.dart';
 import 'c.dart';
 ''');
@@ -606,9 +544,7 @@ import 'c.dart';
 
   test_referencedNames() {
     String path = _p('/aaa/lib/a.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 A foo(B p) {
   foo(null);
   C c = new C(p);
@@ -621,9 +557,7 @@ A foo(B p) {
 
   test_refresh_differentApiSignature() {
     String path = _p('/aaa/lib/a.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class A {}
 ''');
     FileState file = fileSystemState.getFileForPath(path);
@@ -631,9 +565,7 @@ class A {}
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class B {}
 ''');
     bool apiSignatureChanged = file.refresh();
@@ -645,9 +577,7 @@ class B {}
 
   test_refresh_sameApiSignature() {
     String path = _p('/aaa/lib/a.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class C {
   foo() {
     print(111);
@@ -658,9 +588,7 @@ class C {
     List<int> signature = file.apiSignature;
 
     // Update the resource and refresh the file state.
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class C {
   foo() {
     print(222);
@@ -675,9 +603,7 @@ class C {
 
   test_subtypedNames() {
     String path = _p('/test.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class X extends A {}
 class Y extends A with B {}
 class Z implements C, D {}
@@ -688,9 +614,7 @@ class Z implements C, D {}
 
   test_topLevelDeclarations() {
     String path = _p('/aaa/lib/a.dart');
-    provider.newFile(
-        path,
-        r'''
+    provider.newFile(path, r'''
 class C {}
 typedef F();
 enum E {E1, E2}

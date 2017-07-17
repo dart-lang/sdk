@@ -144,14 +144,10 @@ class C extends B {
 library L;
 export 'lib1.dart';
 export 'lib2.dart';''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class M {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -164,15 +160,11 @@ class N {}''');
 library L;
 export 'lib1.dart';
 export 'lib2.dart' hide B;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library L1;
 class A {}
 class B {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library L2;
 class B {}
 class C {}''');
@@ -186,15 +178,11 @@ class C {}''');
 library L;
 export 'lib1.dart';
 export 'lib2.dart' show C;''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library L1;
 class A {}
 class B {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library L2;
 class B {}
 class C {}''');
@@ -208,9 +196,7 @@ class C {}''');
 library L;
 export 'lib.dart';
 export 'lib.dart';''');
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class N {}''');
     await computeAnalysisResult(source);
@@ -228,21 +214,15 @@ main() {
   new N2();
   new N3();
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}
 class N1 {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}
 class N2 {}''');
-    addNamedSource(
-        "/lib3.dart",
-        r'''
+    addNamedSource("/lib3.dart", r'''
 library lib3;
 class N {}
 class N3 {}''');
@@ -258,15 +238,11 @@ main() {
   new N1();
   new N2();
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}
 class N1 {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}
 class N2 {}''');
@@ -528,9 +504,7 @@ import 'lib1.dart' as foo;
 main() {
   foo.x = true;
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 bool x = false;''');
     await computeAnalysisResult(source);
@@ -1313,23 +1287,17 @@ const Type d = dynamic;
 
   test_const_imported_defaultParameterValue_withImportPrefix() async {
     resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addNamedSource(
-        "/a.dart",
-        r'''
+    Source source = addNamedSource("/a.dart", r'''
 import 'b.dart';
 const b = const B();
 ''');
-    addNamedSource(
-        "/b.dart",
-        r'''
+    addNamedSource("/b.dart", r'''
 import 'c.dart' as ccc;
 class B {
   const B([p = ccc.value]);
 }
 ''');
-    addNamedSource(
-        "/c.dart",
-        r'''
+    addNamedSource("/c.dart", r'''
 const int value = 12345;
 ''');
     await computeAnalysisResult(source);
@@ -1453,9 +1421,7 @@ const C = F;''');
   }
 
   test_constEval_propertyExtraction_fieldStatic_targetType() async {
-    addNamedSource(
-        "/math.dart",
-        r'''
+    addNamedSource("/math.dart", r'''
 library math;
 const PI = 3.14;''');
     Source source = addSource(r'''
@@ -1479,9 +1445,7 @@ const C = A.m;''');
   }
 
   test_constEval_symbol() async {
-    addNamedSource(
-        "/math.dart",
-        r'''
+    addNamedSource("/math.dart", r'''
 library math;
 const PI = 3.14;''');
     Source source = addSource(r'''
@@ -1721,9 +1685,7 @@ f() {
 library lib;
 import 'lib1.dart' hide B;
 A a = new A();''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class A {}
 @deprecated
@@ -2526,9 +2488,7 @@ import 'lib2.dart';''');
 library lib;
 import 'part.dart';
 A a;''');
-    addNamedSource(
-        "/part.dart",
-        r'''
+    addNamedSource("/part.dart", r'''
 library lib1;
 class A {}''');
     await computeAnalysisResult(source);
@@ -2556,14 +2516,10 @@ main() {
   math.test1();
   path.test2();
 }''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 test1() {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 test2() {}''');
     await computeAnalysisResult(source);
@@ -2805,9 +2761,7 @@ import 'lib.dart';
 class B extends A {
   _m() {}
 }''');
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library L;
 class A {
   static var _m;
@@ -2823,9 +2777,7 @@ import 'lib.dart';
 class B extends A {
   _m() {}
 }''');
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library L;
 class A {
   static _m() {}
@@ -2847,9 +2799,7 @@ class A {
   }
 
   test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A {
   static const C = 0;
@@ -2876,9 +2826,7 @@ main() {
   }
 
   test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 const C = 0;''');
     Source source = addSource(r'''
@@ -2892,9 +2840,7 @@ main() {
   }
 
   test_invalidAnnotation_constConstructor_importWithPrefix() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A {
   const A(int p);
@@ -2910,9 +2856,7 @@ main() {
   }
 
   test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A {
   const A.named(int p);
@@ -3240,9 +3184,7 @@ class B extends A {
   }
 
   test_invalidOverrideReturnType_returnType_interface() async {
-    Source source = addNamedSource(
-        "/test.dart",
-        r'''
+    Source source = addNamedSource("/test.dart", r'''
 abstract class A {
   num m();
 }
@@ -3255,9 +3197,7 @@ class B implements A {
   }
 
   test_invalidOverrideReturnType_returnType_interface2() async {
-    Source source = addNamedSource(
-        "/test.dart",
-        r'''
+    Source source = addNamedSource("/test.dart", r'''
 abstract class A {
   num m();
 }
@@ -3272,9 +3212,7 @@ class C implements B {
   }
 
   test_invalidOverrideReturnType_returnType_mixin() async {
-    Source source = addNamedSource(
-        "/test.dart",
-        r'''
+    Source source = addNamedSource("/test.dart", r'''
 class A {
   num m() { return 0; }
 }
@@ -3300,9 +3238,7 @@ class B extends A<dynamic> {
   }
 
   test_invalidOverrideReturnType_returnType_sameType() async {
-    Source source = addNamedSource(
-        "/test.dart",
-        r'''
+    Source source = addNamedSource("/test.dart", r'''
 class A {
   int m() { return 0; }
 }
@@ -3315,9 +3251,7 @@ class B extends A {
   }
 
   test_invalidOverrideReturnType_returnType_superclass() async {
-    Source source = addNamedSource(
-        "/test.dart",
-        r'''
+    Source source = addNamedSource("/test.dart", r'''
 class A {
   num m() { return 0; }
 }
@@ -3330,9 +3264,7 @@ class B extends A {
   }
 
   test_invalidOverrideReturnType_returnType_superclass2() async {
-    Source source = addNamedSource(
-        "/test.dart",
-        r'''
+    Source source = addNamedSource("/test.dart", r'''
 class A {
   num m() { return 0; }
 }
@@ -4770,9 +4702,7 @@ h(x) {}
   }
 
   test_prefixCollidesWithTopLevelMembers() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A {}''');
     Source source = addSource(r'''
@@ -5770,9 +5700,7 @@ main() {
   }
 
   test_typeType_class_prefixed() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class C {}''');
     Source source = addSource(r'''
@@ -5799,9 +5727,7 @@ main() {
   }
 
   test_typeType_functionTypeAlias_prefixed() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 typedef F();''');
     Source source = addSource(r'''
@@ -6001,9 +5927,7 @@ const B = ~((1 << A) - 1);''');
   }
 
   test_undefinedSetter_importWithPrefix() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 set y(int value) {}''');
     Source source = addSource(r'''

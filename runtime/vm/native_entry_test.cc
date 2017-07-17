@@ -15,7 +15,6 @@
 
 namespace dart {
 
-
 // A native call for test purposes.
 // Arg0: a smi.
 // Arg1: a smi.
@@ -33,7 +32,6 @@ void TestSmiSub(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(result));
 }
 
-
 // A native call for test purposes.
 // Arg0-4: 5 smis.
 // Result: a smi representing the sum of all arguments.
@@ -50,7 +48,6 @@ void TestSmiSum(Dart_NativeArguments args) {
   }
   Dart_SetReturnValue(args, Dart_NewInteger(result));
 }
-
 
 // Test for accepting null arguments in native function.
 // Arg0-4: 5 smis or null.

@@ -6,30 +6,23 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
-import '../fasta_codes.dart' show Message, codeExpectedBlockToSkip;
-
-import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
-
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../../scanner/token.dart' show Token;
-
-import '../util/link.dart' show Link;
-
-import '../combinator.dart' show Combinator;
-
-import '../deprecated_problems.dart' show deprecated_internalProblem;
 
 import '../builder/builder.dart';
 
+import '../combinator.dart' show Combinator;
+
+import '../fasta_codes.dart'
+    show
+        Message,
+        codeExpectedBlockToSkip,
+        messageOperatorWithOptionalFormals,
+        messageTypedefNotFunction,
+        templateDuplicatedParameterName,
+        templateDuplicatedParameterNameCause,
+        templateOperatorParameterMismatch;
+
 import '../modifier.dart' show abstractMask, externalMask, Modifier;
-
-import 'source_library_builder.dart' show SourceLibraryBuilder;
-
-import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
-
-import '../parser/native_support.dart'
-    show extractNativeMethodName, removeNativeClause, skipNativeClause;
 
 import '../operator.dart'
     show
@@ -38,7 +31,22 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
+import '../parser/identifier_context.dart' show IdentifierContext;
+
+import '../parser/native_support.dart'
+    show extractNativeMethodName, removeNativeClause, skipNativeClause;
+
+import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
+
+import '../problems.dart' show unhandled, unimplemented;
+
 import '../quote.dart' show unescapeString;
+
+import '../util/link.dart' show Link;
+
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 
 enum MethodBody {
   Abstract,
@@ -206,7 +214,7 @@ class OutlineBuilder extends UnhandledListener {
       push(unescapeString(token.lexeme));
       push(token.charOffset);
     } else {
-      deprecated_internalProblem("String interpolation not implemented.");
+      unimplemented("string interpolation", endToken.charOffset, uri);
     }
   }
 
@@ -275,6 +283,13 @@ class OutlineBuilder extends UnhandledListener {
       Token implementsKeyword,
       Token endToken) {
     debugEvent("endClassDeclaration");
+
+    String documentationComment = null;
+    if (beginToken.precedingComments != null) {
+      documentationComment = beginToken.precedingComments.lexeme;
+      // TODO(scheglov): Add support for line comments.
+    }
+
     List<TypeBuilder> interfaces = popList(interfacesCount);
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -286,8 +301,8 @@ class OutlineBuilder extends UnhandledListener {
     }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addClass(metadata, modifiers, name, typeVariables, supertype,
-        interfaces, charOffset);
+    library.addClass(documentationComment, metadata, modifiers, name,
+        typeVariables, supertype, interfaces, charOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -295,7 +310,8 @@ class OutlineBuilder extends UnhandledListener {
     if (token == null) return ProcedureKind.Method;
     if (optional("get", token)) return ProcedureKind.Getter;
     if (optional("set", token)) return ProcedureKind.Setter;
-    return deprecated_internalProblem("Unhandled: ${token.lexeme}");
+    return unhandled(
+        token.lexeme, "computeProcedureKind", token.charOffset, uri);
   }
 
   @override
@@ -373,16 +389,16 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        library.deprecated_addCompileTimeError(
-            charOffset,
-            "Operator '$name' must have exactly $requiredArgumentCount "
-            "parameters.");
+        addCompileTimeError(
+            templateOperatorParameterMismatch.withArguments(
+                name, requiredArgumentCount),
+            charOffset);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              library.deprecated_addCompileTimeError(formal.charOffset,
-                  "An operator can't have optional parameters.");
+              addCompileTimeError(
+                  messageOperatorWithOptionalFormals, formal.charOffset);
             }
           }
         }
@@ -552,10 +568,13 @@ class OutlineBuilder extends UnhandledListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          library.deprecated_addCompileTimeError(formals[1].charOffset,
-              "Duplicated parameter name '${formals[1].name}'.");
-          library.deprecated_addCompileTimeError(formals[0].charOffset,
-              "Other parameter named '${formals[1].name}'.");
+          addCompileTimeError(
+              templateDuplicatedParameterName.withArguments(formals[1].name),
+              formals[1].charOffset);
+          addCompileTimeError(
+              templateDuplicatedParameterNameCause
+                  .withArguments(formals[1].name),
+              formals[0].charOffset);
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -563,11 +582,12 @@ class OutlineBuilder extends UnhandledListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            library.deprecated_addCompileTimeError(formal.charOffset,
-                "Duplicated parameter name '${formal.name}'.");
-            library.deprecated_addCompileTimeError(
-                seenNames[formal.name].charOffset,
-                "Other parameter named '${formal.name}'.");
+            addCompileTimeError(
+                templateDuplicatedParameterName.withArguments(formal.name),
+                formal.charOffset);
+            addCompileTimeError(
+                templateDuplicatedParameterNameCause.withArguments(formal.name),
+                seenNames[formal.name].charOffset);
           } else {
             seenNames[formal.name] = formal;
           }
@@ -669,8 +689,7 @@ class OutlineBuilder extends UnhandledListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        library.deprecated_addCompileTimeError(
-            equals.charOffset, "Can't create typedef from non-function type.");
+        addCompileTimeError(messageTypedefNotFunction, equals.charOffset);
       }
     }
     List<MetadataBuilder> metadata = pop();
@@ -867,8 +886,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void addCompileTimeError(Message message, int charOffset) {
-    library.deprecated_addCompileTimeError(charOffset, message.message,
-        fileUri: uri);
+    library.addCompileTimeError(message, charOffset, uri);
   }
 
   @override

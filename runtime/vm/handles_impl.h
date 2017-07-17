@@ -25,7 +25,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   VisitScopedHandles(visitor);
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     VisitScopedHandles(ObjectPointerVisitor* visitor) {
@@ -39,7 +38,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   } while (block != NULL);
   UNREACHABLE();
 }
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Visit(
@@ -59,7 +57,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Visit(
   } while (block != NULL);
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Reset() {
   // Delete all the extra zone handle blocks allocated and reinit the first
@@ -75,7 +72,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::Reset() {
   first_scoped_block_.ReInit();
   scoped_blocks_ = &first_scoped_block_;
 }
-
 
 // Figure out the current handle scope using the current Zone and
 // allocate a handle in that scope. The function assumes that a
@@ -93,7 +89,6 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return handles->AllocateScopedHandle();
 }
 
-
 // The function assumes that 'zone' is the current zone and asserts for
 // this appropriately.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
@@ -110,7 +105,6 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return address;
 }
 
-
 // Figure out the current zone using the current Thread and
 // check if the specified handle has been allocated in this zone.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
@@ -125,7 +119,6 @@ bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(handles != NULL);
   return handles->IsValidZoneHandle(handle);
 }
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
@@ -144,7 +137,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   scoped_blocks_ = &first_scoped_block_;
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     DeleteHandleBlocks(HandlesBlock* blocks) {
@@ -154,7 +146,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     delete block;
   }
 }
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
@@ -174,7 +165,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
 #endif
 }
 
-
 // Validation of the handle involves iterating through all the
 // handle blocks to check if the handle is valid, please
 // use this only in ASSERT code for verification purposes.
@@ -191,7 +181,6 @@ bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return false;
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     IsValidZoneHandle(uword handle) const {
@@ -205,7 +194,6 @@ bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return false;
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     SetupNextZoneBlock() {
@@ -217,7 +205,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   zone_blocks_ = new HandlesBlock(zone_blocks_);
   ASSERT(zone_blocks_ != NULL);
 }
-
 
 #if defined(DEBUG)
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
@@ -234,7 +221,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(false);
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     ZapFreeScopedHandles() {
@@ -245,7 +231,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   }
 }
 #endif
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
@@ -263,7 +248,6 @@ int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return 0;
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     CountZoneHandles() const {
@@ -276,7 +260,6 @@ int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return count;
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::HandlesBlock::
     ~HandlesBlock() {
@@ -284,7 +267,6 @@ Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::HandlesBlock::
   ReInit();
 #endif
 }
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
@@ -296,7 +278,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
 #endif
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     HandlesBlock::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -307,7 +288,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   }
 }
 
-
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     HandlesBlock::Visit(HandleVisitor* visitor) {
@@ -316,7 +296,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
     visitor->VisitHandle(reinterpret_cast<uword>(&data_[i]));
   }
 }
-
 
 #if defined(DEBUG)
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
@@ -329,7 +308,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   }
 }
 #endif
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::

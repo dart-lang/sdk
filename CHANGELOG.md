@@ -27,6 +27,10 @@
     the system level timeout duration, a timeout may occur sooner than specified
     in 'timeout'.
 
+* `dart:core`
+  * The `Uri` class now correctly handles paths while running on Node.js on
+    Windows.
+
 ### Dart VM
 * Support for MIPS has been remvoed.
 

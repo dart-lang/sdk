@@ -37,7 +37,6 @@ static uword NewContents(intptr_t capacity) {
   return result;
 }
 
-
 #if defined(DEBUG)
 AssemblerBuffer::EnsureCapacity::EnsureCapacity(AssemblerBuffer* buffer) {
   if (buffer->cursor() >= buffer->limit()) buffer->ExtendCapacity();
@@ -55,7 +54,6 @@ AssemblerBuffer::EnsureCapacity::EnsureCapacity(AssemblerBuffer* buffer) {
   buffer->has_ensured_capacity_ = true;
 }
 
-
 AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
   // Unmark the buffer, so we cannot emit after this.
   buffer_->has_ensured_capacity_ = false;
@@ -65,7 +63,6 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
   ASSERT(delta <= kMinimumGap);
 }
 #endif
-
 
 AssemblerBuffer::AssemblerBuffer()
     : pointer_offsets_(new ZoneGrowableArray<intptr_t>(16)) {
@@ -84,9 +81,7 @@ AssemblerBuffer::AssemblerBuffer()
   ASSERT(Size() == 0);
 }
 
-
 AssemblerBuffer::~AssemblerBuffer() {}
-
 
 void AssemblerBuffer::ProcessFixups(const MemoryRegion& region) {
   AssemblerFixup* fixup = fixup_;
@@ -95,7 +90,6 @@ void AssemblerBuffer::ProcessFixups(const MemoryRegion& region) {
     fixup = fixup->previous();
   }
 }
-
 
 void AssemblerBuffer::FinalizeInstructions(const MemoryRegion& instructions) {
   // Copy the instructions from the buffer.
@@ -108,7 +102,6 @@ void AssemblerBuffer::FinalizeInstructions(const MemoryRegion& instructions) {
   fixups_processed_ = true;
 #endif
 }
-
 
 void AssemblerBuffer::ExtendCapacity() {
   intptr_t old_size = Size();
@@ -137,7 +130,6 @@ void AssemblerBuffer::ExtendCapacity() {
   ASSERT(Size() == old_size);
 }
 
-
 class PatchCodeWithHandle : public AssemblerFixup {
  public:
   PatchCodeWithHandle(ZoneGrowableArray<intptr_t>* pointer_offsets,
@@ -159,7 +151,6 @@ class PatchCodeWithHandle : public AssemblerFixup {
   const Object& object_;
 };
 
-
 intptr_t AssemblerBuffer::CountPointerOffsets() const {
   intptr_t count = 0;
   AssemblerFixup* current = fixup_;
@@ -170,7 +161,6 @@ intptr_t AssemblerBuffer::CountPointerOffsets() const {
   return count;
 }
 
-
 void AssemblerBuffer::EmitObject(const Object& object) {
   // Since we are going to store the handle as part of the fixup information
   // the handle needs to be a zone handle.
@@ -179,7 +169,6 @@ void AssemblerBuffer::EmitObject(const Object& object) {
   EmitFixup(new PatchCodeWithHandle(pointer_offsets_, object));
   cursor_ += kWordSize;  // Reserve space for pointer.
 }
-
 
 // Shared macros are implemented here.
 void Assembler::Unimplemented(const char* message) {
@@ -190,7 +179,6 @@ void Assembler::Unimplemented(const char* message) {
   Stop(buffer);
 }
 
-
 void Assembler::Untested(const char* message) {
   const char* format = "Untested: %s";
   const intptr_t len = OS::SNPrint(NULL, 0, format, message);
@@ -199,7 +187,6 @@ void Assembler::Untested(const char* message) {
   Stop(buffer);
 }
 
-
 void Assembler::Unreachable(const char* message) {
   const char* format = "Unreachable: %s";
   const intptr_t len = OS::SNPrint(NULL, 0, format, message);
@@ -207,7 +194,6 @@ void Assembler::Unreachable(const char* message) {
   OS::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
 }
-
 
 void Assembler::Comment(const char* format, ...) {
   if (EmittingComments()) {
@@ -224,11 +210,9 @@ void Assembler::Comment(const char* format, ...) {
   }
 }
 
-
 bool Assembler::EmittingComments() {
   return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
 }
-
 
 const Code::Comments& Assembler::GetCodeComments() const {
   Code::Comments& comments = Code::Comments::New(comments_.length());
@@ -241,13 +225,11 @@ const Code::Comments& Assembler::GetCodeComments() const {
   return comments;
 }
 
-
 intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
                                       Patchability patchable) {
   ASSERT(obj.IsNotTemporaryScopedHandle());
   return AddObject(ObjectPoolWrapperEntry(&obj), patchable);
 }
-
 
 intptr_t ObjectPoolWrapper::AddImmediate(uword imm) {
   return AddObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate),
@@ -269,7 +251,6 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry,
   return object_pool_.length() - 1;
 }
 
-
 intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry,
                                        Patchability patchable) {
   // If the object is not patchable, check if we've already got it in the
@@ -283,24 +264,20 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry,
   return AddObject(entry, patchable);
 }
 
-
 intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
                                        Patchability patchable) {
   return FindObject(ObjectPoolWrapperEntry(&obj), patchable);
 }
-
 
 intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
                                        const Object& equivalence) {
   return FindObject(ObjectPoolWrapperEntry(&obj, &equivalence), kNotPatchable);
 }
 
-
 intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
   return FindObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate),
                     kNotPatchable);
 }
-
 
 intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
                                             Patchability patchable) {
@@ -308,7 +285,6 @@ intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
       ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeEntry),
       patchable);
 }
-
 
 RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
   intptr_t len = object_pool_.length();
@@ -328,6 +304,5 @@ RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
   }
   return result.raw();
 }
-
 
 }  // namespace dart

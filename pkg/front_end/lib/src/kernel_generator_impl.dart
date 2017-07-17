@@ -11,14 +11,15 @@ import 'dart:async';
 import 'package:kernel/kernel.dart' show Program, CanonicalName;
 
 import 'base/processed_options.dart';
-import 'fasta/dill/dill_target.dart' show DillTarget;
+import 'fasta/compiler_command_line.dart' show CompilerCommandLine;
+import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
+import 'fasta/dill/dill_target.dart' show DillTarget;
 import 'fasta/kernel/kernel_outline_shaker.dart';
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
-import 'fasta/kernel/verifier.dart';
 import 'fasta/kernel/utils.dart';
-import 'fasta/compiler_command_line.dart';
-import 'fasta/translate_uri.dart' show TranslateUri;
+import 'fasta/kernel/verifier.dart';
+import 'fasta/uri_translator.dart' show UriTranslator;
 
 /// Implementation for the `package:front_end/kernel_generator.dart` and
 /// `package:front_end/summary_generator.dart` APIs.
@@ -27,13 +28,22 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
     bool buildProgram: true,
     bool trimDependencies: false}) async {
   // TODO(sigmund): Replace CompilerCommandLine and instead simply use a
-  // CompilerContext that directly uses the ProcessedOptions throught the
+  // CompilerContext that directly uses the ProcessedOptions through the
   // system.
-  return await CompilerCommandLine.withGlobalOptions("", [""], (context) async {
-    context.options.options['--target'] = options.target;
-    context.options.options['--strong-mode'] = options.strongMode;
-    context.options.options['--verbose'] = options.verbose;
-
+  String programName = "";
+  List<String> arguments = <String>[programName, "--target=none"];
+  if (options.strongMode) {
+    arguments.add("--strong-mode");
+  }
+  if (options.verbose) {
+    arguments.add("--verbose");
+  }
+  if (options.setExitCodeOnProblem) {
+    arguments.add("--set-exit-code-on-problem");
+  }
+  return await CompilerCommandLine.withGlobalOptions(programName, arguments,
+      (CompilerContext context) async {
+    context.options.options["--target"] = options.target;
     return await generateKernelInternal(options,
         buildSummary: buildSummary,
         buildProgram: buildProgram,
@@ -50,7 +60,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
   options.ticker.logMs("Validated arguments");
 
   try {
-    TranslateUri uriTranslator = await options.getUriTranslator();
+    UriTranslator uriTranslator = await options.getUriTranslator();
 
     var dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
@@ -92,7 +102,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
 
     await dillTarget.buildOutlines();
 
-    var kernelTarget = new KernelTarget(fs, dillTarget, uriTranslator);
+    var kernelTarget = new KernelTarget(fs, false, dillTarget, uriTranslator);
     options.inputs.forEach(kernelTarget.read);
     Program summaryProgram =
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
@@ -110,7 +120,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         trimProgram(summaryProgram, (uri) => !excluded.contains(uri));
       }
       if (options.verify) {
-        verifyProgram(summaryProgram).forEach((e) => options.reportError('$e'));
+        verifyProgram(summaryProgram).forEach(options.reportMessage);
       }
       if (options.debugDump) {
         printProgramText(summaryProgram,
@@ -137,7 +147,8 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
     }
 
     if (kernelTarget.errors.isNotEmpty) {
-      kernelTarget.errors.forEach(options.reportError);
+      // TODO(ahe): The errors have already been reported via CompilerContext.
+      kernelTarget.errors.forEach(options.reportMessage);
       return null;
     }
 
@@ -146,7 +157,7 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         program: program,
         deps: kernelTarget.loader.getDependencies());
   } on deprecated_InputError catch (e) {
-    options.reportError(e.deprecated_format());
+    options.reportMessage(deprecated_InputError.toMessage(e));
     return null;
   } catch (e, t) {
     return reportCrash(e, t);
