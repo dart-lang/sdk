@@ -599,6 +599,7 @@ Uri _sourceToUri(String source) {
       return uri;
     default:
       // Assume a file path.
+      // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
       return new Uri.file(path.absolute(source));
   }
 }
