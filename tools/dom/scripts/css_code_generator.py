@@ -119,15 +119,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValueHelper(propertyName);
-    return propValue != null ? propValue : '';
+    return propValue ?? '';
   }
 
   String _getPropertyValueHelper(String propertyName) {
-    if (_supportsProperty(_camelCase(propertyName))) {
-      return _getPropertyValue(propertyName);
-    } else {
-      return _getPropertyValue(Device.cssPrefix + propertyName);
-    }
+    return _getPropertyValue(_browserPropertyName(propertyName));
   }
 
   /**
@@ -140,7 +136,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
    */
   bool supportsProperty(String propertyName) {
     return _supportsProperty(propertyName) ||
-        _supportsProperty(_camelCase(Device.cssPrefix + propertyName));
+        _supportsProperty(_camelCase("${Device.cssPrefix}$propertyName"));
   }
 
   bool _supportsProperty(String propertyName) {
@@ -170,13 +166,21 @@ $endif
   String _browserPropertyName(String propertyName) {
     String name = _readCache(propertyName);
     if (name is String) return name;
-    if (_supportsProperty(_camelCase(propertyName))) {
-      name = propertyName;
-    } else {
-      name = Device.cssPrefix + propertyName;
-    }
+    name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
     return name;
+  }
+
+  String _supportedBrowserPropertyName(String propertyName) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return propertyName;
+    }
+    var prefixed = "${Device.cssPrefix}$propertyName";
+    if (_supportsProperty(prefixed)) {
+      return prefixed;
+    }
+    // May be a CSS variable, just use it as provided.
+    return propertyName;
   }
 
 $if DART2JS

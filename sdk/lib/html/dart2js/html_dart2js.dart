@@ -4301,15 +4301,11 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValueHelper(propertyName);
-    return propValue != null ? propValue : '';
+    return propValue ?? '';
   }
 
   String _getPropertyValueHelper(String propertyName) {
-    if (_supportsProperty(_camelCase(propertyName))) {
-      return _getPropertyValue(propertyName);
-    } else {
-      return _getPropertyValue(Device.cssPrefix + propertyName);
-    }
+    return _getPropertyValue(_browserPropertyName(propertyName));
   }
 
   /**
@@ -4322,7 +4318,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
    */
   bool supportsProperty(String propertyName) {
     return _supportsProperty(propertyName) ||
-        _supportsProperty(_camelCase(Device.cssPrefix + propertyName));
+        _supportsProperty(_camelCase("${Device.cssPrefix}$propertyName"));
   }
 
   bool _supportsProperty(String propertyName) {
@@ -4338,13 +4334,21 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String _browserPropertyName(String propertyName) {
     String name = _readCache(propertyName);
     if (name is String) return name;
-    if (_supportsProperty(_camelCase(propertyName))) {
-      name = propertyName;
-    } else {
-      name = Device.cssPrefix + propertyName;
-    }
+    name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
     return name;
+  }
+
+  String _supportedBrowserPropertyName(String propertyName) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return propertyName;
+    }
+    var prefixed = "${Device.cssPrefix}$propertyName";
+    if (_supportsProperty(prefixed)) {
+      return prefixed;
+    }
+    // May be a CSS variable, just use it as provided.
+    return propertyName;
   }
 
   static final _propertyCache = JS('', '{}');
