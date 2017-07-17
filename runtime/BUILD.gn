@@ -197,6 +197,7 @@ template("libdart_library") {
 }
 
 libdart_library("libdart_jit") {
+  extra_configs = [ ":dart_maybe_product_config" ]
   extra_deps = [
     "vm:libdart_platform",
     "vm:libdart_lib_jit",
