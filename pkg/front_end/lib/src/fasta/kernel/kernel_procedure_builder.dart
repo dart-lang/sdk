@@ -251,12 +251,15 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
-    if (!isInstanceMember) return false;
-    if (returnType == null) return true;
-    if (formals != null) {
-      for (var formal in formals) {
-        if (formal.type == null) return true;
+    if (isInstanceMember) {
+      if (returnType == null) return true;
+      if (formals != null) {
+        for (var formal in formals) {
+          if (formal.type == null) return true;
+        }
       }
+    } else {
+      if (isSetter && returnType == null) return true;
     }
     return false;
   }

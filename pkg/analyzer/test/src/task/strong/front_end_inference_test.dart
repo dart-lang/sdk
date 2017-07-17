@@ -17,8 +17,8 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
-import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_command_line.dart' as fasta;
+import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     as fasta;
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
@@ -389,13 +389,17 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
-    if (node.element is LocalElement &&
-        node.element.enclosingElement is! CompilationUnitElement) {
+
+    bool isSetter = node.element.kind == ElementKind.SETTER;
+    bool isLocalFunction = node.element is LocalElement &&
+        node.element.enclosingElement is! CompilationUnitElement;
+
+    if (isSetter || isLocalFunction) {
       if (node.returnType == null) {
         _instrumentation.record(
             uri,
             node.name.offset,
-            'returnType',
+            isSetter ? 'topType' : 'returnType',
             new _InstrumentationValueForType(
                 node.element.returnType, elementNamer));
       }
@@ -496,10 +500,10 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
+    if (node.returnType == null) {
+      _recordTopType(node.name.offset, node.element.returnType);
+    }
     if (node.element.enclosingElement is ClassElement && !node.isStatic) {
-      if (node.returnType == null) {
-        _recordTopType(node.name.offset, node.element.returnType);
-      }
       if (node.parameters != null) {
         for (var parameter in node.parameters.parameters) {
           // Note: it's tempting to check `parameter.type == null`, but that
