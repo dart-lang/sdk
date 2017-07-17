@@ -1386,6 +1386,17 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
         message: r"""Can't extend an unmodifiable scope.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemMissingContext =
+    messageInternalProblemMissingContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemMissingContext = const MessageCode(
+    "InternalProblemMissingContext",
+    message: r"""Compiler cannot run without a compiler context.""",
+    tip:
+        r"""Are calls to the compiler wrapped in CompilerContext.withGlobalOptions?""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Couldn't find '#name'.""",

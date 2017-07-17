@@ -21,6 +21,7 @@ import 'dart:io' show File;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/fasta/compiler_command_line.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
@@ -97,32 +98,35 @@ class BuildProgram
   String get name => "build program";
   Future<Result<_IntermediateData>> run(
       TestDescription description, TreeShakerContext context) async {
-    try {
-      var platformOutline = context.loadPlatformOutline();
-      platformOutline.unbindCanonicalNames();
-      var dillTarget = new DillTarget(
-          new Ticker(isVerbose: false),
-          context.uriTranslator,
-          new VmFastaTarget(new TargetFlags(strongMode: false)));
-      dillTarget.loader.appendLibraries(platformOutline);
-      var sourceTarget = new KernelTarget(PhysicalFileSystem.instance, false,
-          dillTarget, context.uriTranslator);
-      await dillTarget.buildOutlines();
+    return await CompilerCommandLine.withGlobalOptions("", [""], (_) async {
+      try {
+        var platformOutline = context.loadPlatformOutline();
+        platformOutline.unbindCanonicalNames();
+        var dillTarget = new DillTarget(
+            new Ticker(isVerbose: false),
+            context.uriTranslator,
+            new VmFastaTarget(new TargetFlags(strongMode: false)));
+        dillTarget.loader.appendLibraries(platformOutline);
+        var sourceTarget = new KernelTarget(PhysicalFileSystem.instance, false,
+            dillTarget, context.uriTranslator);
+        await dillTarget.buildOutlines();
 
-      var inputUri = description.uri;
-      var libUri = inputUri.resolve('lib/lib.dart');
-      sourceTarget.read(libUri);
-      sourceTarget.read(inputUri);
-      var contents = new File.fromUri(inputUri).readAsStringSync();
-      var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
-      await sourceTarget.buildOutlines();
-      var program = await sourceTarget.buildProgram();
-      bool isIncluded(Uri uri) => !_isTreeShaken(uri);
-      trimProgram(program, isIncluded);
-      return pass(new _IntermediateData(inputUri, program, showCoreLibraries));
-    } on deprecated_InputError catch (e, s) {
-      return fail(null, e.error, s);
-    }
+        var inputUri = description.uri;
+        var libUri = inputUri.resolve('lib/lib.dart');
+        sourceTarget.read(libUri);
+        sourceTarget.read(inputUri);
+        var contents = new File.fromUri(inputUri).readAsStringSync();
+        var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
+        await sourceTarget.buildOutlines();
+        var program = await sourceTarget.buildProgram();
+        bool isIncluded(Uri uri) => !_isTreeShaken(uri);
+        trimProgram(program, isIncluded);
+        return pass(
+            new _IntermediateData(inputUri, program, showCoreLibraries));
+      } on deprecated_InputError catch (e, s) {
+        return fail(null, e.error, s);
+      }
+    });
   }
 }
 

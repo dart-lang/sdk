@@ -25,6 +25,8 @@ import 'package:kernel/ast.dart' show Library, Program;
 
 import '../kernel/verifier.dart' show verifyProgram;
 
+import '../compiler_command_line.dart';
+
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -65,13 +67,15 @@ class Verify extends Step<Program, Program, ChainContext> {
   String get name => "verify";
 
   Future<Result<Program>> run(Program program, ChainContext context) async {
-    var errors = verifyProgram(program, isOutline: !fullCompile);
-    if (errors.isEmpty) {
-      return pass(program);
-    } else {
-      return new Result<Program>(
-          null, context.expectationSet["VerificationError"], errors, null);
-    }
+    return await CompilerCommandLine.withGlobalOptions("", [""], (_) async {
+      var errors = verifyProgram(program, isOutline: !fullCompile);
+      if (errors.isEmpty) {
+        return pass(program);
+      } else {
+        return new Result<Program>(
+            null, context.expectationSet["VerificationError"], errors, null);
+      }
+    });
   }
 }
 

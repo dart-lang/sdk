@@ -628,6 +628,10 @@ InternalProblemAlreadyInitialized:
 InternalProblemBodyOnAbstractMethod:
   template: "Attempting to set body on abstract method."
 
+InternalProblemMissingContext:
+  template: "Compiler cannot run without a compiler context."
+  tip: "Are calls to the compiler wrapped in CompilerContext.withGlobalOptions?"
+
 InternalVerificationError:
   template: "Verification of the generated program failed: #string."
 

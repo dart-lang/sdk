@@ -81,8 +81,9 @@ Future<KernelTarget> outline(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    CompilerContext.current
-        .report(deprecated_InputError.toMessage(e), Severity.error);
+    CompilerCommandLine.deprecated_withDefaultOptions(() => CompilerContext
+        .current
+        .report(deprecated_InputError.toMessage(e), Severity.error));
     return null;
   }
 }
@@ -100,8 +101,9 @@ Future<Uri> compile(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    CompilerContext.current
-        .report(deprecated_InputError.toMessage(e), Severity.error);
+    CompilerCommandLine.deprecated_withDefaultOptions(() => CompilerContext
+        .current
+        .report(deprecated_InputError.toMessage(e), Severity.error));
     return null;
   }
 }

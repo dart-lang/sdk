@@ -8,6 +8,7 @@ import 'dart:async' show Zone, runZoned;
 
 import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/ast.dart' show Source;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
@@ -19,9 +20,6 @@ import 'fasta_codes.dart' show LocatedMessage, Message;
 import 'severity.dart' show Severity;
 
 final Object compilerContextKey = new Object();
-
-final CompilerContext rootContext =
-    new CompilerContext(CompilerCommandLine.forRootContext());
 
 class CompilerContext {
   final FileSystem fileSystem = PhysicalFileSystem.instance;
@@ -59,7 +57,15 @@ class CompilerContext {
   }
 
   static CompilerContext get current {
-    return Zone.current[compilerContextKey] ?? rootContext;
+    var context = Zone.current[compilerContextKey];
+    if (context == null) {
+      // Note: we throw directly and don't use internalProblem, because
+      // internalProblem depends on having a compiler context available.
+      var message = messageInternalProblemMissingContext.message;
+      var tip = messageInternalProblemMissingContext.tip;
+      throw "Internal problem: $message\nTip: $tip";
+    }
+    return context;
   }
 
   /// Perform [action] in a [Zone] where [cl] will be available as

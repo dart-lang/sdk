@@ -37,8 +37,9 @@ Future mainEntryPoint(List<String> arguments) async {
       await compilePlatform(arguments);
     } on deprecated_InputError catch (e) {
       exitCode = 1;
-      CompilerContext.current
-          .report(deprecated_InputError.toMessage(e), Severity.error);
+      CompilerCommandLine.deprecated_withDefaultOptions(() => CompilerContext
+          .current
+          .report(deprecated_InputError.toMessage(e), Severity.error));
       return null;
     }
   }

@@ -6,12 +6,14 @@ library fasta.compiler_command_line;
 
 import 'dart:io' show exit;
 
+import 'dart:async' show runZoned;
+
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
 
 import 'command_line.dart' show CommandLine, deprecated_argumentError;
 
-import 'compiler_context.dart' show CompilerContext;
+import 'compiler_context.dart' show CompilerContext, compilerContextKey;
 
 import 'command_line_reporting.dart' as command_line_reporting;
 
@@ -153,12 +155,23 @@ class CompilerCommandLine extends CommandLine {
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {
-    return CompilerContext.withGlobalOptions(
-        new CompilerCommandLine(programName, arguments), f);
+    CompilerCommandLine cl = deprecated_withDefaultOptions(
+        () => new CompilerCommandLine(programName, arguments));
+    return CompilerContext.withGlobalOptions(cl, f);
   }
 
-  static CompilerCommandLine forRootContext() {
-    return new CompilerCommandLine("", [""]);
+  // TODO(sigmund, ahe): delete. We use this to wrap places where we require a
+  // context but we shoudln't. Right now this includes:
+  //   - constructor calls to CompilerCommandLine (because it is calling
+  //   [validate] which may report errors). This should be fixed by doing
+  //   validation after creating these objects.
+  //   - top-level try-catch in command-line tools that capture
+  //   deprecated_InputError, and then report errors using fasta's error
+  //   reporting mechanism. Those should be unnecessary once we get rid of all
+  //   deprecated_InputErrors.
+  static dynamic deprecated_withDefaultOptions(dynamic f()) {
+    var defaultContext = new CompilerContext(new CompilerCommandLine("", [""]));
+    return runZoned(f, zoneValues: {compilerContextKey: defaultContext});
   }
 }
 
