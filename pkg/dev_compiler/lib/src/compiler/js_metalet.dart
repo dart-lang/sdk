@@ -65,22 +65,43 @@ class MetaLet extends Expression {
     return _toInvokedFunction(block);
   }
 
-  Expression toAssignExpression(Expression left) {
+  Expression toAssignExpression(Expression left, [String op]) {
     if (left is Identifier) {
-      var simple = _simplifyAssignment(left);
-      if (simple != null) return simple;
-
-      var exprs = body.toList();
-      exprs.add(exprs.removeLast().toAssignExpression(left));
-      return new MetaLet(variables, exprs);
+      return _simplifyAssignment(left, op: op) ?? _toAssign(left, op);
+    } else if (left is PropertyAccess &&
+        left.receiver is This &&
+        (left.selector is Identifier || left.selector is LiteralString)) {
+      return _toAssign(left, op);
     }
-    return super.toAssignExpression(left);
+    return super.toAssignExpression(left, op);
+  }
+
+  Expression _toAssign(Expression left, [String op]) {
+    var exprs = body.toList();
+    exprs.add(exprs.removeLast().toAssignExpression(left, op));
+    return new MetaLet(variables, exprs);
   }
 
   Statement toVariableDeclaration(Identifier name) {
     var simple = _simplifyAssignment(name, isDeclaration: true);
     if (simple != null) return simple.toStatement();
-    return super.toVariableDeclaration(name);
+
+    // We can still optimize something like:
+    //
+    //     let x = ((l) => l == null ? null : l.xyz)(some.expr);
+    //
+    // can be transformed to:
+    //
+    //     let l = some.expr;
+    //     let x = l == null ? null : l.xyz;
+    //
+    // Because `x` is a declaration, we know it is safe to move.
+    // (see also _toAssign)
+    var statements = body
+        .map((e) =>
+            e == body.last ? e.toVariableDeclaration(name) : e.toStatement())
+        .toList();
+    return _finishStatement(statements);
   }
 
   Expression toExpression() {
@@ -198,8 +219,11 @@ class MetaLet extends Expression {
     // Interpolate the body.
     node = _substitute(node, substitutions);
     if (initializers.isNotEmpty) {
+      var first = initializers[0];
       node = new Block([
-        new VariableDeclarationList('let', initializers).toStatement(),
+        initializers.length == 1
+            ? first.value.toVariableDeclaration(first.declaration)
+            : new VariableDeclarationList('let', initializers).toStatement(),
         node
       ]);
     }
@@ -209,7 +233,7 @@ class MetaLet extends Expression {
   /// If we finish with an assignment to an identifier, try to simplify the
   /// block. For example:
   ///
-  ///     ((_) => _.add(1), _.add(2), result = _)([])
+  ///     result = ((_) => _.add(1), _.add(2), _)([])
   ///
   /// Can be transformed to:
   ///
@@ -217,48 +241,37 @@ class MetaLet extends Expression {
   ///
   /// However we should not simplify in this case because `result` is read:
   ///
-  ///     ((_) => _.addAll(result), _.add(2), result = _)([])
+  ///     result = ((_) => _.addAll(result), _.add(2), _)([])
   ///
-  MetaLet _simplifyAssignment(Identifier left, {bool isDeclaration: false}) {
+  MetaLet _simplifyAssignment(Identifier left,
+      {String op, bool isDeclaration: false}) {
     // See if the result value is a let* temporary variable.
-    if (body.last is! MetaLetVariable) return null;
+    var result = body.last;
+    if (result is MetaLetVariable && variables.containsKey(result)) {
+      // For assignments, make sure the identifier isn't used in body, as that
+      // would change the assignment order and be an invalid optimization.
+      if (!isDeclaration && _IdentFinder.foundIn(left.name, body)) return null;
 
-    MetaLetVariable result = body.last;
-    if (!variables.containsKey(result)) return null;
-
-    // Variables declared can't be used inside their initializer, so make
-    // sure we don't transform an assignment into an initializer.
-    // If this already was a declaration, then we know it's legal, so we can
-    // skip the check.
-    if (!isDeclaration) {
-      var finder = new _IdentFinder(left.name);
-      for (var expr in body) {
-        if (finder.found) break;
-        expr.accept(finder);
+      var vars = new Map<MetaLetVariable, Expression>.from(variables);
+      var value = vars.remove(result);
+      Expression assign;
+      if (isDeclaration) {
+        // Technically, putting one of these in a comma expression is not
+        // legal. However when isDeclaration is true, toStatement will be
+        // called immediately on the MetaLet, which results in legal JS.
+        assign = new VariableDeclarationList(
+            'let', [new VariableInitialization(left, value)]);
+      } else {
+        assign = value.toAssignExpression(left, op);
       }
-      // If the identifier was used elsewhere, bail, because we're going to
-      // change the order of when the assignment happens.
-      if (finder.found) return null;
-    }
 
-    var vars = new Map<MetaLetVariable, Expression>.from(variables);
-    var value = vars.remove(result);
-    Expression assign;
-    if (isDeclaration) {
-      // Technically, putting one of these in a comma expression is not
-      // legal. However when isDeclaration is true, toStatement will be
-      // called immediately on the MetaLet, which results in legal JS.
-      assign = new VariableDeclarationList(
-          'let', [new VariableInitialization(left, value)]);
-    } else {
-      assign = value.toAssignExpression(left);
+      assert(body.isNotEmpty);
+      Binary newBody = new Expression.binary([assign]..addAll(body), ',');
+      newBody = _substitute(newBody, {result: left});
+      return new MetaLet(vars, newBody.commaToExpressionList(),
+          statelessResult: statelessResult);
     }
-
-    assert(body.isNotEmpty);
-    Binary newBody = new Expression.binary([assign]..addAll(body), ',');
-    newBody = _substitute(newBody, {result: left});
-    return new MetaLet(vars, newBody.commaToExpressionList(),
-        statelessResult: statelessResult);
+    return null;
   }
 }
 
@@ -316,6 +329,15 @@ class _IdentFinder extends BaseVisitor {
   final String name;
   bool found = false;
   _IdentFinder(this.name);
+
+  static bool foundIn(String name, List<Node> body) {
+    var finder = new _IdentFinder(name);
+    for (var expr in body) {
+      expr.accept(finder);
+      if (finder.found) return true;
+    }
+    return false;
+  }
 
   @override
   visitIdentifier(Identifier node) {

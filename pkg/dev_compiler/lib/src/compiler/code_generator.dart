@@ -2652,7 +2652,7 @@ class CodeGenerator extends Object
         fn.typeParams,
         new JS.Block([
           // Convert the function to an => function, to ensure `this` binding.
-          new JS.Return(_toArrowFunction(fn))
+          _toArrowFunction(fn).toReturn()
         ]));
   }
 
@@ -3422,7 +3422,8 @@ class CodeGenerator extends Object
     var savedFunction = _currentFunction;
     _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
-    var ret = annotate(new JS.Return(_visit(node.expression)), node.expression);
+    var ret = annotate(
+        _visit<JS.Expression>(node.expression).toReturn(), node.expression);
     _currentFunction = savedFunction;
     var _statements = initArgs != null ? [initArgs, ret] : [ret];
     var block = annotate(new JS.Block(_statements), node);

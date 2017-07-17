@@ -409,7 +409,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeBody = visit(node.body);
     return (arguments) {
       return new For(makeInit(arguments), makeCondition(arguments),
-          makeUpdate(arguments), makeBody(arguments));
+          makeUpdate(arguments)?.toVoidExpression(), makeBody(arguments));
     };
   }
 
@@ -460,8 +460,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new Break(node.targetLabel);
 
   Instantiator visitReturn(Return node) {
-    Instantiator makeExpression = visitNullable(node.value);
-    return (arguments) => new Return(makeExpression(arguments));
+    if (node.value == null) return (args) => new Return();
+    Instantiator makeExpression = visit(node.value);
+    return (args) => makeExpression(args).toReturn();
   }
 
   Instantiator visitDartYield(DartYield node) {
@@ -552,8 +553,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     String op = node.op;
     Instantiator makeValue = visitNullable(node.value);
     return (arguments) {
-      return new Assignment.compound(
-          makeLeftHandSide(arguments), op, makeValue(arguments));
+      return makeValue(arguments)
+          .toAssignExpression(makeLeftHandSide(arguments), op);
     };
   }
 

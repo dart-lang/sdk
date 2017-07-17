@@ -709,11 +709,16 @@ abstract class Expression extends Node {
 
   Statement toStatement() => new ExpressionStatement(toVoidExpression());
   Statement toReturn() => new Return(this);
+
+  // TODO(jmesserly): make this return a Yield?
   Statement toYieldStatement({bool star: false}) =>
       new ExpressionStatement(new Yield(this, star: star));
 
   Expression toVoidExpression() => this;
-  Expression toAssignExpression(Expression left) => new Assignment(left, this);
+  Expression toAssignExpression(Expression left, [String op]) =>
+      new Assignment.compound(left, op, this);
+
+  // TODO(jmesserly): make this work for more cases?
   Statement toVariableDeclaration(Identifier name) =>
       new VariableDeclarationList(
           'let', [new VariableInitialization(name, this)]).toStatement();
