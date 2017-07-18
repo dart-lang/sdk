@@ -5,10 +5,9 @@
 import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
-import '../elements/types.dart' show TypeVariableType;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
+import '../elements/resolution_types.dart' show ResolutionTypedefType;
+import '../elements/types.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -225,7 +224,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       return new jsAst.ArrayInitializer(data);
     }
 
-    ClassElement classElement = constant.type.element;
+    ClassEntity classElement = constant.type.element;
     String className = classElement.name;
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
@@ -233,8 +232,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // The arguments of the JavaScript constructor for any given Dart class
     // are in the same order as the members of the class element.
     int emittedArgumentCount = 0;
-    classElement.implementation.forEachInstanceField(
-        (ClassElement enclosing, Element field) {
+    _worldBuilder.forEachInstanceField(classElement,
+        (ClassEntity enclosing, FieldEntity field) {
       if (field.name == JavaScriptMapConstant.LENGTH_NAME) {
         arguments
             .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
@@ -252,7 +251,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
             "Compiler has unexpected field ${field.name} for ${className}.");
       }
       emittedArgumentCount++;
-    }, includeSuperAndInjectedMembers: true);
+    });
     if ((className == JavaScriptMapConstant.DART_STRING_CLASS &&
             emittedArgumentCount != 3) ||
         (className == JavaScriptMapConstant.DART_PROTO_CLASS &&
@@ -272,14 +271,24 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return value;
   }
 
-  jsAst.PropertyAccess getHelperProperty(MethodElement helper) {
+  jsAst.PropertyAccess getHelperProperty(FunctionEntity helper) {
     return _emitter.staticFunctionAccess(helper);
   }
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    ResolutionDartType type = constant.representedType;
-    jsAst.Name typeName = _namer.runtimeTypeName(type.element);
+    DartType type = constant.representedType;
+    jsAst.Name typeName;
+    Entity element;
+    if (type is InterfaceType) {
+      element = type.element;
+    } else if (type is ResolutionTypedefType) {
+      // TODO(redemption): Handle typedef type literals from .dill.
+      element = type.element;
+    } else {
+      assert(type is DynamicType);
+    }
+    typeName = _namer.runtimeTypeName(element);
     return new jsAst.Call(getHelperProperty(_commonElements.createRuntimeType),
         [js.quoteName(typeName)]);
   }
@@ -331,8 +340,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   jsAst.Expression maybeAddTypeArguments(
-      ResolutionInterfaceType type, jsAst.Expression value) {
-    if (type is ResolutionInterfaceType &&
+      InterfaceType type, jsAst.Expression value) {
+    if (type is InterfaceType &&
         !type.treatAsRaw &&
         _rtiNeed.classNeedsRti(type.element)) {
       return new jsAst.Call(
@@ -342,17 +351,17 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     return value;
   }
 
-  jsAst.Expression _reifiedTypeArguments(ResolutionInterfaceType type) {
+  jsAst.Expression _reifiedTypeArguments(InterfaceType type) {
     jsAst.Expression unexpected(TypeVariableType _variable) {
-      ResolutionTypeVariableType variable = _variable;
+      TypeVariableType variable = _variable;
       throw failedAt(
           NO_LOCATION_SPANNABLE,
-          "Unexpected type variable '${variable.getStringAsDeclared(null)}'"
-          " in constant type '${type.getStringAsDeclared(null)}'");
+          "Unexpected type variable '${variable}'"
+          " in constant type '${type}'");
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    for (ResolutionDartType argument in type.typeArguments) {
+    for (DartType argument in type.typeArguments) {
       arguments.add(
           _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }
