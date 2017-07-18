@@ -64,6 +64,8 @@ assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
 
+generalized_void_syntax_test: CompileTimeError # Issue #30176.
+
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported

@@ -209,6 +209,8 @@ syntax_test/64: MissingCompileTimeError # Test bug: Test doesn't execute erroneo
 syntax_test/65: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
 try_catch_syntax_test/16: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
 
+generalized_void_syntax_test: CompileTimeError # Issue #30176.
+
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 const_instance_field_test/01: Crash
