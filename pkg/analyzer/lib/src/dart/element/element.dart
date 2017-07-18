@@ -1823,7 +1823,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         return typeImpl;
       }
     }
-    for (ClassElement type in _enums) {
+    for (ClassElement type in enums) {
       EnumElementImpl typeImpl = type;
       if (typeImpl.identifier == identifier) {
         return typeImpl;
@@ -1919,6 +1919,13 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forSerialized(
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ConstFieldElementImpl.forKernel(
+      ElementImpl enclosingElement, kernel.Field kernel)
+      : super.forKernel(enclosingElement, kernel);
 }
 
 /**
@@ -4337,18 +4344,21 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl(String name, int offset) : super(name, offset);
 
   /**
-   * Initialize using the given serialized information.
+   * Initialize using the given kernel.
    */
   FieldElementImpl.forKernel(ElementImpl enclosingElement, kernel.Field kernel)
       : super.forKernel(enclosingElement, kernel);
 
   /**
-   * Initialize using the given serialized information.
+   * Initialize using the given kernel.
    */
   factory FieldElementImpl.forKernelFactory(
       ClassElementImpl enclosingClass, kernel.Field kernel) {
-    // TODO(scheglov) add support for constants.
-    return new FieldElementImpl.forKernel(enclosingClass, kernel);
+    if (kernel.isConst) {
+      return new ConstFieldElementImpl.forKernel(enclosingClass, kernel);
+    } else {
+      return new FieldElementImpl.forKernel(enclosingClass, kernel);
+    }
   }
 
   /**

@@ -65,6 +65,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   bool shouldCompareLibraryElements = true;
 
   /**
+   * Return `true` if shared front-end is used.
+   */
+  bool get isSharedFrontEnd => false;
+
+  /**
    * Return `true` if resynthesizing should be done is strong mode.
    */
   bool get isStrongMode;
@@ -3686,10 +3691,17 @@ const int v =
 const v = 'abc'.length;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+const int v = 'abc'.
+        length/*location: dart:core;String;length?*/;
+''');
+      } else {
+        checkElementText(library, r'''
 const dynamic v/*error: instanceGetter*/ = 'abc'.
         length/*location: dart:core;String;length?*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 const dynamic v = 'abc'.
@@ -3704,12 +3716,21 @@ const String S = 'abc';
 const v = S.length;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+const String S = 'abc';
+const int v =
+        S/*location: test.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+      } else {
+        checkElementText(library, r'''
 const String S = 'abc';
 const dynamic v/*error: instanceGetter*/ =
         S/*location: test.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 const String S = 'abc';

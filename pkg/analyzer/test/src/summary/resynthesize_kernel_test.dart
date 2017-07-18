@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -40,6 +41,9 @@ main() {
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   final resourceProvider = new MemoryResourceProvider(context: pathos.posix);
+
+  @override
+  bool get isSharedFrontEnd => true;
 
   @override
   bool get isStrongMode => true;
@@ -224,11 +228,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_field_const() async {
-    await super.test_class_field_const();
-  }
-
-  @failingTest
   test_class_interfaces_unresolved() async {
     await super.test_class_interfaces_unresolved();
   }
@@ -406,11 +405,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_length_ofClassConstField() async {
-    await super.test_const_length_ofClassConstField();
-  }
-
-  @failingTest
   test_const_length_ofClassConstField_imported() async {
     await super.test_const_length_ofClassConstField_imported();
   }
@@ -418,16 +412,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_length_ofClassConstField_imported_withPrefix() async {
     await super.test_const_length_ofClassConstField_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_length_ofStringLiteral() async {
-    await super.test_const_length_ofStringLiteral();
-  }
-
-  @failingTest
-  test_const_length_ofTopLevelVariable() async {
-    await super.test_const_length_ofTopLevelVariable();
   }
 
   @failingTest
@@ -465,11 +449,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_parameterDefaultValue_normal() async {
     await super.test_const_parameterDefaultValue_normal();
-  }
-
-  @failingTest
-  test_const_reference_staticField() async {
-    await super.test_const_reference_staticField();
   }
 
   @failingTest
@@ -640,11 +619,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constExpr_pushReference_enum_method() async {
     await super.test_constExpr_pushReference_enum_method();
-  }
-
-  @failingTest
-  test_constExpr_pushReference_field_simpleIdentifier() async {
-    await super.test_constExpr_pushReference_field_simpleIdentifier();
   }
 
   @failingTest
@@ -981,11 +955,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_field_formal_param_inferred_type_implicit() async {
     await super.test_field_formal_param_inferred_type_implicit();
-  }
-
-  @failingTest
-  test_field_propagatedType_const_noDep() async {
-    await super.test_field_propagatedType_const_noDep();
   }
 
   @failingTest
@@ -2172,6 +2141,10 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
  * Builder of [Expression]s from [kernel.Expression]s.
  */
 class _ExprBuilder {
+  final _KernelLibraryResynthesizerContextImpl _context;
+
+  _ExprBuilder(this._context);
+
   Expression build(kernel.Expression expr) {
     if (expr is kernel.NullLiteral) {
       return AstTestFactory.nullLiteral();
@@ -2199,8 +2172,47 @@ class _ExprBuilder {
       List<String> components = expr.value.split('.').toList();
       return AstTestFactory.symbolLiteral(components);
     }
+    if (expr is kernel.StaticGet) {
+      return _buildIdentifier(expr.targetReference, isGet: true);
+    }
+    if (expr is kernel.PropertyGet) {
+      Expression target = build(expr.receiver);
+      kernel.Reference reference = expr.interfaceTargetReference;
+      SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
+      return AstTestFactory.propertyAccess(target, identifier);
+    }
     // TODO(scheglov): complete getExpression
-    throw new UnimplementedError('kernel: $expr');
+    throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
+  }
+
+  Expression _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
+    Element element = _getElement(reference);
+    if (isGet && element is PropertyInducingElement) {
+      element = (element as PropertyInducingElement).getter;
+    }
+    SimpleIdentifier property = AstTestFactory.identifier3(element.displayName)
+      ..staticElement = element;
+    Element enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement) {
+      SimpleIdentifier classRef = AstTestFactory
+          .identifier3(enclosingElement.name)
+            ..staticElement = enclosingElement;
+      return AstTestFactory.propertyAccess(classRef, property);
+    } else {
+      return property;
+    }
+  }
+
+  SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
+    String name = reference.canonicalName.name;
+    SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+    Element element = _getElement(reference);
+    identifier.staticElement = element;
+    return identifier;
+  }
+
+  ElementImpl _getElement(kernel.Reference reference) {
+    return _context._getElement(reference?.canonicalName);
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -2268,7 +2280,7 @@ class _KernelLibraryResynthesizerContextImpl
 
   @override
   Expression getExpression(kernel.Expression expression) {
-    return new _ExprBuilder().build(expression);
+    return new _ExprBuilder(this).build(expression);
   }
 
   @override
@@ -2287,6 +2299,64 @@ class _KernelLibraryResynthesizerContextImpl
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
+  }
+
+  /**
+   * Return the [ElementImpl] that corresponds to the given [name], or `null`
+   * if the corresponding element cannot be found.
+   */
+  ElementImpl _getElement(kernel.CanonicalName name) {
+    if (name == null) return null;
+    kernel.CanonicalName parentName = name.parent;
+
+    // If the parent is the root, then this name is a library.
+    if (parentName.isRoot) {
+      return _resynthesizer.getLibrary(name.name);
+    }
+
+    // Skip qualifiers.
+    bool isGetter = false;
+    bool isSetter = false;
+    bool isField = false;
+    if (parentName.name == '@getters') {
+      isGetter = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@setters') {
+      isSetter = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@fields') {
+      isField = true;
+      parentName = parentName.parent;
+    }
+
+    ElementImpl parentElement = _getElement(parentName);
+    if (parentElement == null) return null;
+
+    // Search in units of the library.
+    if (parentElement is LibraryElementImpl) {
+      for (CompilationUnitElement unit in parentElement.units) {
+        CompilationUnitElementImpl unitImpl = unit;
+        ElementImpl child = unitImpl.getChild(name.name);
+        if (child != null) {
+          return child;
+        }
+      }
+      return null;
+    }
+
+    // Search in the class.
+    if (parentElement is ClassElementImpl) {
+      if (isGetter) {
+        return parentElement.getGetter(name.name) as ElementImpl;
+      } else if (isSetter) {
+        return parentElement.getSetter(name.name) as ElementImpl;
+      } else if (isField) {
+        return parentElement.getField(name.name) as ElementImpl;
+      }
+      return null;
+    }
+
+    throw new UnimplementedError('Should not be reached.');
   }
 
   InterfaceType _getInterfaceType(
@@ -2314,15 +2384,36 @@ class _KernelResynthesizer {
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
+  /**
+   * Cache of [Source] objects that have already been converted from URIs.
+   */
+  final Map<String, Source> _sources = <String, Source>{};
+
   _KernelResynthesizer(this._analysisContext, this._kernelMap);
 
   LibraryElementImpl getLibrary(String uriStr) {
     return _libraryMap.putIfAbsent(uriStr, () {
       var kernel = _kernelMap[uriStr];
       if (kernel == null) return null;
+
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
-      return new LibraryElementImpl.forKernel(_analysisContext, libraryContext);
+      Source librarySource = _getSource(uriStr);
+      LibraryElementImpl libraryElement =
+          new LibraryElementImpl.forKernel(_analysisContext, libraryContext);
+      CompilationUnitElementImpl definingUnit =
+          libraryElement.definingCompilationUnit;
+      definingUnit.source = librarySource;
+      definingUnit.librarySource = librarySource;
+      return libraryElement;
     });
+  }
+
+  /**
+   * Get the [Source] object for the given [uri].
+   */
+  Source _getSource(String uri) {
+    return _sources.putIfAbsent(
+        uri, () => _analysisContext.sourceFactory.forUri(uri));
   }
 }
