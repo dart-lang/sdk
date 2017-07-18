@@ -9176,21 +9176,21 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       stream_expr_pos, new (Z) LoadLocalNode(stream_expr_pos, iterator_var),
       Symbols::MoveNext(), no_args);
   OpenBlock();
-  if (FLAG_support_debugger) {
-    // Call '_asyncStarMoveNextHelper' so that the debugger can intercept and
-    // handle single stepping into a async* generator.
-    const Function& async_star_move_next_helper = Function::ZoneHandle(
-        Z, isolate()->object_store()->async_star_move_next_helper());
-    ASSERT(!async_star_move_next_helper.IsNull());
-    ArgumentListNode* async_star_move_next_helper_args =
-        new (Z) ArgumentListNode(stream_expr_pos);
-    async_star_move_next_helper_args->Add(
-        new (Z) LoadLocalNode(stream_expr_pos, stream_var));
-    StaticCallNode* async_star_move_next_helper_call =
-        new (Z) StaticCallNode(stream_expr_pos, async_star_move_next_helper,
-                               async_star_move_next_helper_args);
-    current_block_->statements->Add(async_star_move_next_helper_call);
-  }
+#if !defined(PRODUCT)
+  // Call '_asyncStarMoveNextHelper' so that the debugger can intercept and
+  // handle single stepping into a async* generator.
+  const Function& async_star_move_next_helper = Function::ZoneHandle(
+      Z, isolate()->object_store()->async_star_move_next_helper());
+  ASSERT(!async_star_move_next_helper.IsNull());
+  ArgumentListNode* async_star_move_next_helper_args =
+      new (Z) ArgumentListNode(stream_expr_pos);
+  async_star_move_next_helper_args->Add(
+      new (Z) LoadLocalNode(stream_expr_pos, stream_var));
+  StaticCallNode* async_star_move_next_helper_call =
+      new (Z) StaticCallNode(stream_expr_pos, async_star_move_next_helper,
+                             async_star_move_next_helper_args);
+  current_block_->statements->Add(async_star_move_next_helper_call);
+#endif
   AstNode* await_moveNext = new (Z) AwaitNode(
       stream_expr_pos, iterator_moveNext, saved_try_ctx, async_saved_try_ctx,
       outer_saved_try_ctx, outer_async_saved_try_ctx, current_block_->scope);

@@ -3975,10 +3975,9 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_EQ(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
 }
 
+#ifndef PRODUCT
+
 TEST_CASE(FunctionWithBreakpointNotInlined) {
-  if (!FLAG_support_debugger) {
-    return;
-  }
   const char* kScriptChars =
       "class A {\n"
       "  a() {\n"
@@ -4042,8 +4041,6 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
-
-#ifndef PRODUCT
 
 class ObjectAccumulator : public ObjectVisitor {
  public:

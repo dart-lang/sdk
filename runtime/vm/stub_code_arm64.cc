@@ -1422,8 +1422,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+#if !defined(PRODUCT)
   Label stepping, done_stepping;
-  if (FLAG_support_debugger && !optimized) {
+  if (!optimized) {
     __ Comment("Check single stepping");
     __ LoadIsolate(R6);
     __ LoadFromOffset(R6, R6, Isolate::single_step_offset(), kUnsignedByte);
@@ -1431,6 +1432,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ b(&stepping, NE);
     __ Bind(&done_stepping);
   }
+#endif
 
   Label not_smi_or_overflow;
   if (kind != Token::kILLEGAL) {
@@ -1558,7 +1560,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   __ br(R2);
 
-  if (FLAG_support_debugger && !optimized) {
+#if !defined(PRODUCT)
+  if (!optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ Push(R5);  // Preserve IC data.
@@ -1568,6 +1571,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LeaveStubFrame();
     __ b(&done_stepping);
   }
+#endif
 }
 
 // Use inline cache data array to invoke the target or continue in inline
@@ -1646,14 +1650,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
 
   // Check single stepping.
+#if !defined(PRODUCT)
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(R6);
-    __ LoadFromOffset(R6, R6, Isolate::single_step_offset(), kUnsignedByte);
-    __ CompareImmediate(R6, 0);
-    __ b(&stepping, NE);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(R6);
+  __ LoadFromOffset(R6, R6, Isolate::single_step_offset(), kUnsignedByte);
+  __ CompareImmediate(R6, 0);
+  __ b(&stepping, NE);
+  __ Bind(&done_stepping);
+#endif
 
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
@@ -1679,16 +1683,16 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   __ br(R2);
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ Push(R5);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R5);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ b(&done_stepping);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ Pop(R5);
+  __ RestoreCodePointer();
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
+#endif
 }
 
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
@@ -2037,15 +2041,15 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(R1);
-    __ LoadFromOffset(R1, R1, Isolate::single_step_offset(), kUnsignedByte);
-    __ CompareImmediate(R1, 0);
-    __ b(&stepping, NE);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(R1);
+  __ LoadFromOffset(R1, R1, Isolate::single_step_offset(), kUnsignedByte);
+  __ CompareImmediate(R1, 0);
+  __ b(&stepping, NE);
+  __ Bind(&done_stepping);
+#endif
 
   const Register left = R1;
   const Register right = R0;
@@ -2054,14 +2058,14 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ ret();
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ b(&done_stepping);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ RestoreCodePointer();
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
+#endif
 }
 
 // Called from optimized code only.

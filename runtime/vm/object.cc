@@ -5173,11 +5173,12 @@ intptr_t Function::Hash() const {
 }
 
 bool Function::HasBreakpoint() const {
-  if (!FLAG_support_debugger) {
-    return false;
-  }
+#if defined(PRODUCT)
+  return false;
+#else
   Thread* thread = Thread::Current();
   return thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+#endif
 }
 
 void Function::InstallOptimizedCode(const Code& code) const {
@@ -5958,10 +5959,13 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::CanBeInlined() const {
+#if defined(PRODUCT)
+  return is_inlinable() && !is_external() && !is_generated_body();
+#else
   Thread* thread = Thread::Current();
   return is_inlinable() && !is_external() && !is_generated_body() &&
-         (!FLAG_support_debugger ||
-          !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone()));
+         !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+#endif
 }
 
 intptr_t Function::NumParameters() const {
@@ -13588,10 +13592,11 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 bool Code::HasBreakpoint() const {
-  if (!FLAG_support_debugger) {
-    return false;
-  }
+#if defined(PRODUCT)
+  return false;
+#else
   return Isolate::Current()->debugger()->HasBreakpoint(*this);
+#endif
 }
 
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,

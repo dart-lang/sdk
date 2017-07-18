@@ -319,13 +319,12 @@ class Isolate : public BaseIsolate {
   }
   Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
 
+#if !defined(PRODUCT)
   Debugger* debugger() const {
-    if (!FLAG_support_debugger) {
-      return NULL;
-    }
     ASSERT(debugger_ != NULL);
     return debugger_;
   }
+#endif
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -766,7 +765,7 @@ class Isolate : public BaseIsolate {
   Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
-  Debugger* debugger_;
+  NOT_IN_PRODUCT(Debugger* debugger_);
   bool resume_request_;
   int64_t last_resume_timestamp_;
   Random random_;

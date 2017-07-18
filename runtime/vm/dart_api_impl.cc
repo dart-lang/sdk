@@ -5633,14 +5633,14 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
 
   I->DoneFinalizing();
 
+#if !defined(PRODUCT)
   // Now that the newly loaded classes are finalized, notify the debugger
   // that new code has been loaded. If there are latent breakpoints in
   // the new code, the debugger convert them to unresolved source breakpoints.
   // The code that completes the futures (invoked below) may call into the
   // newly loaded code and trigger one of these breakpoints.
-  if (FLAG_support_debugger) {
-    I->debugger()->NotifyDoneLoading();
-  }
+  I->debugger()->NotifyDoneLoading();
+#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_mirrors) {

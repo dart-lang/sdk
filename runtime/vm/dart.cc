@@ -617,9 +617,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   ServiceIsolate::SendIsolateStartupMessage();
-  if (FLAG_support_debugger) {
-    I->debugger()->NotifyIsolateCreated();
-  }
+#if !defined(PRODUCT)
+  I->debugger()->NotifyIsolateCreated();
+#endif
+
   // Create tag table.
   I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
   // Set up default UserTag.
@@ -646,10 +647,6 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
 #endif
 
   if (Snapshot::IncludesCode(kind)) {
-    if (FLAG_support_debugger) {
-      buffer.AddString(" support-debugger");
-    }
-
 // Checked mode affects deopt ids.
 #define ADD_FLAG(name, isolate_flag, flag)                                     \
   do {                                                                         \

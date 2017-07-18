@@ -770,14 +770,15 @@ static void CheckResultError(const Object& result) {
   }
 }
 
-#if !defined(TARGET_ARCH_DBC)
+#if defined(PRODUCT)
+DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  UNREACHABLE();
+  return;
+}
+#elif !defined(TARGET_ARCH_DBC)
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
-  if (!FLAG_support_debugger) {
-    UNREACHABLE();
-    return;
-  }
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
@@ -795,10 +796,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 #else
 // Gets called from the simulator when the breakpoint is reached.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
-  if (!FLAG_support_debugger) {
-    UNREACHABLE();
-    return;
-  }
   const Error& error = Error::Handle(isolate->debugger()->PauseBreakpoint());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
@@ -808,16 +805,17 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 #endif  // !defined(TARGET_ARCH_DBC)
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  if (!FLAG_support_debugger) {
-    UNREACHABLE();
-    return;
-  }
+#if defined(PRODUCT)
+  UNREACHABLE();
+  return;
+#else
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseStepping());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
+#endif
 }
 
 // An instance call of the form o.f(...) could not be resolved.  Check if
@@ -1691,7 +1689,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
 #endif
   }
-  if (FLAG_support_debugger && do_stacktrace) {
+#if !defined(PRODUCT)
+  if (do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
     // Collecting the stack trace and accessing local variables
@@ -1723,6 +1722,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
+#endif  // !defined(PRODUCT)
 
   const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {

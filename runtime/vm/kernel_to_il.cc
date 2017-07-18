@@ -1850,15 +1850,19 @@ Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
 
 bool FlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
                                            TokenPosition position) {
-  return FLAG_support_debugger && position.IsDebugPause() &&
-         !function.is_native() && function.is_debuggable();
+  return position.IsDebugPause() && !function.is_native() &&
+         function.is_debuggable();
 }
 
 bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
                                            TokenPosition position) {
-  if (!FLAG_support_debugger || !position.IsDebugPause()) return false;
+  if (!position.IsDebugPause()) {
+    return false;
+  }
   Definition* definition = value->definition();
-  if (definition->IsConstant() || definition->IsLoadStaticField()) return true;
+  if (definition->IsConstant() || definition->IsLoadStaticField()) {
+    return true;
+  }
   if (definition->IsAllocateObject()) {
     return !definition->AsAllocateObject()->closure_function().IsNull();
   }

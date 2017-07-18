@@ -232,16 +232,16 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 }
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
-  if (FLAG_support_debugger) {
-    Isolate* isolate = thread->isolate();
-    if (isolate->debugger()->IsStepping() ||
-        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
-      // We cannot set breakpoints and single step in optimized code,
-      // so do not optimize the function.
-      function.set_usage_counter(0);
-      return false;
-    }
+#if !defined(PRODUCT)
+  Isolate* isolate = thread->isolate();
+  if (isolate->debugger()->IsStepping() ||
+      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+    // We cannot set breakpoints and single step in optimized code,
+    // so do not optimize the function.
+    function.set_usage_counter(0);
+    return false;
   }
+#endif
   if (function.deoptimization_counter() >=
       FLAG_max_deoptimization_counter_threshold) {
     if (FLAG_trace_failed_optimization_attempts ||
@@ -554,29 +554,26 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   code.set_is_optimized(optimized());
   code.set_owner(function);
 #if !defined(PRODUCT)
-  if (FLAG_support_debugger) {
-    ZoneGrowableArray<TokenPosition>* await_token_positions =
-        flow_graph->await_token_positions();
-    if (await_token_positions != NULL) {
-      Smi& token_pos_value = Smi::Handle(zone);
-      if (await_token_positions->length() > 0) {
-        const Array& await_to_token_map = Array::Handle(
-            zone, Array::New(await_token_positions->length(), Heap::kOld));
-        ASSERT(!await_to_token_map.IsNull());
-        for (intptr_t i = 0; i < await_token_positions->length(); i++) {
-          TokenPosition token_pos =
-              await_token_positions->At(i).FromSynthetic();
-          if (!token_pos.IsReal()) {
-            // Some async machinary uses sentinel values. Map them to
-            // no source position.
-            token_pos_value = Smi::New(TokenPosition::kNoSourcePos);
-          } else {
-            token_pos_value = Smi::New(token_pos.value());
-          }
-          await_to_token_map.SetAt(i, token_pos_value);
+  ZoneGrowableArray<TokenPosition>* await_token_positions =
+      flow_graph->await_token_positions();
+  if (await_token_positions != NULL) {
+    Smi& token_pos_value = Smi::Handle(zone);
+    if (await_token_positions->length() > 0) {
+      const Array& await_to_token_map = Array::Handle(
+          zone, Array::New(await_token_positions->length(), Heap::kOld));
+      ASSERT(!await_to_token_map.IsNull());
+      for (intptr_t i = 0; i < await_token_positions->length(); i++) {
+        TokenPosition token_pos = await_token_positions->At(i).FromSynthetic();
+        if (!token_pos.IsReal()) {
+          // Some async machinary uses sentinel values. Map them to
+          // no source position.
+          token_pos_value = Smi::New(TokenPosition::kNoSourcePos);
+        } else {
+          token_pos_value = Smi::New(token_pos.value());
         }
-        code.set_await_token_positions(await_to_token_map);
+        await_to_token_map.SetAt(i, token_pos_value);
       }
+      code.set_await_token_positions(await_to_token_map);
     }
   }
 #endif  // !defined(PRODUCT)
@@ -1350,9 +1347,9 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                 per_compile_timer.TotalElapsedTime());
     }
 
-    if (FLAG_support_debugger) {
-      isolate->debugger()->NotifyCompilation(function);
-    }
+#if !defined(PRODUCT)
+    isolate->debugger()->NotifyCompilation(function);
+#endif
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
       Disassembler::DisassembleCode(function, result, optimized);

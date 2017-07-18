@@ -1355,14 +1355,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+#if !defined(PRODUCT)
   Label stepping, done_stepping;
-  if (FLAG_support_debugger && !optimized) {
+  if (!optimized) {
     __ Comment("Check single stepping");
     __ LoadIsolate(RAX);
     __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
+#endif
 
   Label not_smi_or_overflow;
   if (kind != Token::kILLEGAL) {
@@ -1478,7 +1480,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 
-  if (FLAG_support_debugger && !optimized) {
+#if !defined(PRODUCT)
+  if (!optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ pushq(RBX);
@@ -1488,6 +1491,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LeaveStubFrame();
     __ jmp(&done_stepping);
   }
+#endif
 }
 
 // Use inline cache data array to invoke the target or continue in inline
@@ -1578,20 +1582,20 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   }
 #endif  // DEBUG
 
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(RAX);
-    __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
-    __ cmpq(RAX, Immediate(0));
+  __ LoadIsolate(RAX);
+  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+  __ cmpq(RAX, Immediate(0));
 #if defined(DEBUG)
-    static const bool kJumpLength = Assembler::kFarJump;
+  static const bool kJumpLength = Assembler::kFarJump;
 #else
-    static const bool kJumpLength = Assembler::kNearJump;
+  static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
-    __ j(NOT_EQUAL, &stepping, kJumpLength);
-    __ Bind(&done_stepping);
-  }
+  __ j(NOT_EQUAL, &stepping, kJumpLength);
+  __ Bind(&done_stepping);
+#endif
 
   // RBX: IC data object (preserved).
   __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
@@ -1615,16 +1619,16 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ pushq(RBX);  // Preserve IC data object.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popq(RBX);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ jmp(&done_stepping, Assembler::kNearJump);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ pushq(RBX);  // Preserve IC data object.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ popq(RBX);
+  __ RestoreCodePointer();
+  __ LeaveStubFrame();
+  __ jmp(&done_stepping, Assembler::kNearJump);
+#endif
 }
 
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
@@ -1981,15 +1985,15 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Returns ZF set.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(RAX);
-    __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
-    __ cmpq(RAX, Immediate(0));
-    __ j(NOT_EQUAL, &stepping);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(RAX);
+  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(NOT_EQUAL, &stepping);
+  __ Bind(&done_stepping);
+#endif
 
   const Register left = RAX;
   const Register right = RDX;
@@ -1999,14 +2003,14 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ ret();
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ jmp(&done_stepping);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ RestoreCodePointer();
+  __ LeaveStubFrame();
+  __ jmp(&done_stepping);
+#endif
 }
 
 // Called from optimized code only.

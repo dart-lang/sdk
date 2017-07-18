@@ -1299,14 +1299,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+#if !defined(PRODUCT)
   Label stepping, done_stepping;
-  if (FLAG_support_debugger && !optimized) {
+  if (!optimized) {
     __ Comment("Check single stepping");
     __ LoadIsolate(EAX);
     __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
+#endif
   Label not_smi_or_overflow;
   if (kind != Token::kILLEGAL) {
     EmitFastSmiOp(assembler, kind, num_args, &not_smi_or_overflow);
@@ -1432,7 +1434,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EBX);
 
-  if (FLAG_support_debugger && !optimized) {
+#if !defined(PRODUCT)
+  if (!optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ pushl(ECX);
@@ -1441,6 +1444,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LeaveFrame();
     __ jmp(&done_stepping);
   }
+#endif
 }
 
 // Use inline cache data array to invoke the target or continue in inline
@@ -1531,14 +1535,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
+
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(EAX);
-    __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
-    __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(EAX);
+  __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
+  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+  __ Bind(&done_stepping);
+#endif
 
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
@@ -1561,15 +1566,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EBX);
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ pushl(ECX);
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popl(ECX);
-    __ LeaveFrame();
-    __ jmp(&done_stepping, Assembler::kNearJump);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ pushl(ECX);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ popl(ECX);
+  __ LeaveFrame();
+  __ jmp(&done_stepping, Assembler::kNearJump);
+#endif
 }
 
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
@@ -1928,15 +1933,15 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Returns ZF set.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(EAX);
-    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-    __ cmpl(EAX, Immediate(0));
-    __ j(NOT_EQUAL, &stepping);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(EAX);
+  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(NOT_EQUAL, &stepping);
+  __ Bind(&done_stepping);
+#endif
 
   const Register left = EAX;
   const Register right = EDX;
@@ -1946,13 +1951,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ ret();
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ LeaveFrame();
-    __ jmp(&done_stepping);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveFrame();
+  __ jmp(&done_stepping);
+#endif
 }
 
 // Called from optimized code only.
