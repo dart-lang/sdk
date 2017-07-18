@@ -1292,27 +1292,3 @@ List<InterpreterExpression> _createArgumentExpressionList(
 
   return args;
 }
-
-Expression _getExpression(Initializer initializer) {
-  if (initializer is FieldInitializer) {
-    return initializer.value;
-  }
-  if (initializer is LocalInitializer) {
-    return initializer.variable.initializer;
-  }
-
-  throw '${initializer.runtimeType} has no epxression.';
-}
-
-/// Initializes all non initialized fields in given class with
-/// [Value.nullInstance].
-void _initializeNullFields(Class class_, ObjectValue newObject) {
-  int superClassSize = class_.superclass?.instanceSize ?? 0;
-  for (int i = superClassSize; i < class_.instanceSize; i++) {
-    Field field = class_.instanceFields[i];
-    if (class_.getProperty(newObject, field) == null) {
-      assert(field.initializer == null);
-      class_.setProperty(newObject, field, Value.nullInstance);
-    }
-  }
-}
