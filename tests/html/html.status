@@ -5,27 +5,6 @@
 interactive_test: Skip # Must be run manually.
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
-js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
-js_typed_interop_type1_test: Fail, OK # tests dart2js-specific behavior.
-js_typed_interop_type2_test: Fail, OK # tests dart2js-specific behavior.
-js_typed_interop_type3_test: Fail, OK # tests dart2js-specific behavior.
-svgelement_test/PathElement: RuntimeError # Issue 25665
-
-native_gc_test: Skip # Dartium JSInterop failure
-js_interop_constructor_name_test/HTMLDivElement-methods: Fail # Investigate.
-js_interop_constructor_name_test/HTMLDivElement-types: Fail # ditto
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
-worker_api_test: Fail # Issue 10223
-resource_http_test: Fail # Issue 24203
-js_function_getter_trust_types_test: Skip # dartium doesn't support trust types.
-websocket_test/supported: Skip # Dartium 45 roll timesout
-
-[ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium ) ]
-datalistelement_test: Skip # Issue 20540
-
 [ $compiler == dart2js ]
 input_element_test/attributes: Fail # Issue 21555
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
@@ -71,30 +50,6 @@ fontface_loaded_test: Fail # Support for promises.
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
-
-[ $compiler == none && $runtime == dartium && $system == macos]
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
-# postMessage in dartium always transfers the typed array buffer, never a view
-postmessage_structured_test/typed_arrays: Fail
-# Dartium seems to lose the data from the dispatchEvent.
-keyboard_event_test: Fail # Issue 13902
-fileapi_test/getFile: Pass, Fail # Issue 20488
-async_test: RuntimeError, OK  # Uses Isolate.spawn.
-isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
-websocket_test/websocket: Skip # Issue 17666
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
-
-element_offset_test/offset: RuntimeError # Issue 17550
-request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
-fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
-native_gc_test: Pass, Slow
-
-[ $compiler == none && $runtime == drt && $system == windows ]
-worker_test/functional: Pass, Crash # Issue 9929.
 
 [ $compiler == dart2js && $runtime == chrome ]
 element_types_test/supported_keygen: RuntimeError # Issue 29055
@@ -145,15 +100,8 @@ custom_elements_test: Pass, Timeout # Issue 26789
 custom_element_method_clash_test: Pass, Timeout # Issue 26789
 custom_element_name_clash_test: Pass, Timeout # Issue 26789
 
-[$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid ]
+[$runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows ]
-websql_test: Skip # Issue 4941: stderr contains a backtrace.
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
-websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
-native_gc_test: Pass, Slow
 
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
@@ -326,9 +274,6 @@ request_animation_frame_test: Skip # Async test hangs.
 [ $runtime == drt ]
 webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
 
-[ $runtime == dartium && ($system == windows || $system == linux) ]
-webgl_extensions_test: Fail # WebGL extension tests fail on Dartium without graphics. This is dependent on our bot configuration.
-
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 # TODO(sra): Change these tests to use a same-origin JavaScript script file.
@@ -353,9 +298,6 @@ postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js &&  ($runtime == chrome || $runtime == drt) ]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 25787
-
-[ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
-xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning

@@ -73,27 +73,6 @@ io/secure_builtin_roots_test: Skip
 io/http_basic_test: Pass, Slow, Timeout  # Issue 28046
 io/http_launch_test: Pass, Slow, Timeout  # Issue 28046
 
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
-typed_array_int64_uint64_test: RuntimeError, OK  # Uses Isolate.spawn
-typed_data_isolate_test: SkipByDesign # This test uses dart:io
-dwarf_stack_trace_test: SkipByDesign # This test uses dart:io
-regress_28854_1_test: SkipByDesign # Uses Isolate.spawn
-regress_28854_2_test: SkipByDesign # Uses Isolate.spawn
-io/*: SkipByDesign # Don't run tests using dart:io in the browser
-package/*: Skip # Do not run those in Dartium.
-http_launch_test: Skip
-vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
-issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
-oom_error_stacktrace_test: Skip
-out_of_memory_test: Skip
-map_insert_remove_oom_test: Skip  # Issue 24571
-verbose_gc_to_bmu_test: Skip
-regress_26031_test: SkipByDesign # Standalone only test
-env_test: Skip # This is testing a vm command line parsing scenario.
-dart_developer_disabled_env_test: SkipByDesign # Dartium does not respect VMOptions
-
 [ $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
 
@@ -128,9 +107,6 @@ oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ ($arch == simarm || $arch == simdbc || $arch == simdbc64) && $mode == debug && $checked ]
 io/web_socket_test: Pass, Fail # Issue 26814
-
-[ $compiler == none && $runtime == dartium && ! $checked ]
-assert_test: Fail # Issue 14651.
 
 [ $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
