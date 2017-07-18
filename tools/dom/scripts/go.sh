@@ -16,15 +16,7 @@ set -x
 #
 # I can inspect file Q if needed.
 #
-# To generate a subset of systems:
-#
-#   ./go.sh dart2js,htmldartium
-#
-# To re-gen all sdk/lib files (outside of a Dartium enlistment the file
-# 'sdk/lib/js/cached_patches.dart' might not need to be generated).  To run
-# go.sh w/o the patches files used --no-cached-patches switch e.g.,
-#
-#  ./go.sh --no-cached-patches
+# Re-gen all sdk/lib files
 #
 # The following gives a picture of the changes due to 'work'
 #
@@ -35,22 +27,11 @@ set -x
 #   ./go.sh
 #   meld ../generated0 ../generated   # compare directories with too
 
-ALLSYSTEMS="htmldart2js,htmldartium,_blink"
-SYSTEMS="$ALLSYSTEMS"
+SYSTEMS="htmldart2js"
 
 if [[ "$1" != "" ]] ; then
   if [[ "$1" =~ ^-- ]]; then
       ARG_OPTION="$1"
-  else
-      SYSTEMS="$1"
-  fi
-fi
-
-if [[ "$2" != "" ]] ; then
-  if [[ "$2" =~ ^-- ]]; then
-      ARG_OPTION="$2"
-  else
-      SYSTEMS="$2"
   fi
 fi
 
