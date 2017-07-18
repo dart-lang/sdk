@@ -239,9 +239,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void beginFunctionDeclaration(analyzer.Token token) {
-    listener.beginFunctionDeclaration(token);
-    _begin('FunctionDeclaration');
+  void beginLocalFunctionDeclaration(analyzer.Token token) {
+    listener.beginLocalFunctionDeclaration(token);
+    _begin('LocalFunctionDeclaration');
   }
 
   @override
@@ -780,9 +780,9 @@ class ForwardingTestListener implements fasta.Listener {
   }
 
   @override
-  void endFunctionDeclaration(analyzer.Token endToken) {
-    _end('FunctionDeclaration');
-    listener.endFunctionDeclaration(endToken);
+  void endLocalFunctionDeclaration(analyzer.Token endToken) {
+    _end('LocalFunctionDeclaration');
+    listener.endLocalFunctionDeclaration(endToken);
   }
 
   @override

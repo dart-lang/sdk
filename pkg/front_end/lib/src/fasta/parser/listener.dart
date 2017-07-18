@@ -275,7 +275,8 @@ class Listener {
     logEvent("NamedFunctionExpression");
   }
 
-  void beginFunctionDeclaration(Token token) {}
+  /// Handle the beginning of a local function declaration.
+  void beginLocalFunctionDeclaration(Token token) {}
 
   /// A function declaration.
   ///
@@ -288,7 +289,7 @@ class Listener {
   /// - Initializers
   /// - Async modifier
   /// - Function body (block or arrow expression).
-  void endFunctionDeclaration(Token endToken) {
+  void endLocalFunctionDeclaration(Token endToken) {
     logEvent("FunctionDeclaration");
   }
 
@@ -332,13 +333,13 @@ class Listener {
   /// - Metadata
   /// - Return type
   /// - Name (identifier)
-  /// - Template variables (type variables to the template)
+  /// - Alias type variables
   /// - Formal parameters
   ///
   /// If [equals] is not null, then the have the following substructures:
   /// - Metadata
   /// - Name (identifier)
-  /// - Template variables (type variables to the template)
+  /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {

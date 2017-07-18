@@ -508,7 +508,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionDeclaration(Token endToken) {
+  void endLocalFunctionDeclaration(Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();

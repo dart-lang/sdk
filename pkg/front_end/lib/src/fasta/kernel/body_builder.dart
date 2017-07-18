@@ -2427,8 +2427,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void beginFunctionDeclaration(Token token) {
-    debugEvent("beginNamedFunctionExpression");
+  void beginLocalFunctionDeclaration(Token token) {
+    debugEvent("beginLocalFunctionDeclaration");
     enterFunction();
   }
 
@@ -2474,8 +2474,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFunctionDeclaration(Token endToken) {
-    debugEvent("FunctionDeclaration");
+  void endLocalFunctionDeclaration(Token token) {
+    debugEvent("LocalFunctionDeclaration");
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     if (functionNestingLevel != 0) {
@@ -2486,7 +2486,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = formals.charOffset
-      ..fileEndOffset = endToken.charOffset);
+      ..fileEndOffset = token.charOffset);
     exitLocalScope();
     var declaration = pop();
     var returnType = pop();

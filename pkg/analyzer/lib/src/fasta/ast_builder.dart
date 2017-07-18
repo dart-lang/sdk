@@ -1523,8 +1523,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFunctionDeclaration(Token endToken) {
-    debugEvent("FunctionDeclaration");
+  void endLocalFunctionDeclaration(Token token) {
+    debugEvent("LocalFunctionDeclaration");
     FunctionBody body = pop();
     pop(); // constructor initializers
     pop(); // separator before constructor initializers

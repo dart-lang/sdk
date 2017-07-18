@@ -1328,7 +1328,7 @@ class Parser {
             if (looksLikeFunctionBody(getClose(afterId).next)) {
               // We are looking at `type identifier '(' ... ')'` followed
               // `( '{' | '=>' | 'async' | 'sync' )`.
-              return parseFunctionDeclaration(begin);
+              return parseLocalFunctionDeclaration(begin);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -1338,7 +1338,7 @@ class Parser {
               if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
-                return parseFunctionDeclaration(begin);
+                return parseLocalFunctionDeclaration(begin);
               }
             }
           }
@@ -1349,14 +1349,14 @@ class Parser {
             return parseLabeledStatement(token);
           } else if (optional('(', token.next)) {
             if (looksLikeFunctionBody(getClose(token.next).next)) {
-              return parseFunctionDeclaration(token);
+              return parseLocalFunctionDeclaration(token);
             }
           } else if (optional('<', token.next)) {
             Token afterTypeVariables = getClose(token.next)?.next;
             if (afterTypeVariables != null &&
                 optional("(", afterTypeVariables)) {
               if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
-                return parseFunctionDeclaration(token);
+                return parseLocalFunctionDeclaration(token);
               }
             }
             // Fall through to expression statement.
@@ -2460,8 +2460,8 @@ class Parser {
     return isBlock ? token.next : token;
   }
 
-  Token parseFunctionDeclaration(Token token) {
-    listener.beginFunctionDeclaration(token);
+  Token parseLocalFunctionDeclaration(Token token) {
+    listener.beginLocalFunctionDeclaration(token);
     Token beginToken = token;
     token = parseModifiers(token, MemberKind.Local);
     listener.beginFunctionName(token);
@@ -2477,7 +2477,7 @@ class Parser {
     token = parseFunctionBody(token, false, true);
     asyncState = savedAsyncModifier;
     token = token.next;
-    listener.endFunctionDeclaration(token);
+    listener.endLocalFunctionDeclaration(token);
     return token;
   }
 
