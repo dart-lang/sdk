@@ -25,12 +25,13 @@ import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, finalMask;
 
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../parser/native_support.dart' show skipNativeClause;
 
-import '../parser/parser.dart'
-    show Assert, FormalParameterType, MemberKind, optional;
+import '../parser.dart'
+    show Assert, FormalParameterKind, IdentifierContext, MemberKind, optional;
+
+import '../parser/formal_parameter_kind.dart'
+    show isOptionalPositionalFormalParameterKind;
 
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
@@ -1812,7 +1813,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     if (thisKeyword != null) {
       if (!inConstructor) {
@@ -1864,9 +1865,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterType kind = optional("{", beginToken)
-        ? FormalParameterType.NAMED
-        : FormalParameterType.POSITIONAL;
+    FormalParameterKind kind = optional("{", beginToken)
+        ? FormalParameterKind.optionalNamed
+        : FormalParameterKind.optionalPositional;
     push(new OptionalFormals(kind, popList(count) ?? []));
   }
 
@@ -3653,7 +3654,7 @@ class LabelTarget extends Builder implements JumpTarget {
 }
 
 class OptionalFormals {
-  final FormalParameterType kind;
+  final FormalParameterKind kind;
 
   final List<VariableDeclaration> formals;
 
@@ -3671,7 +3672,7 @@ class FormalParameters {
     function.requiredParameterCount = required.length;
     function.positionalParameters.addAll(required);
     if (optional != null) {
-      if (optional.kind.isPositional) {
+      if (isOptionalPositionalFormalParameterKind(optional.kind)) {
         function.positionalParameters.addAll(optional.formals);
       } else {
         function.namedParameters.addAll(optional.formals);
@@ -3693,7 +3694,7 @@ class FormalParameters {
       positionalParameters.add(parameter.type);
     }
     if (optional != null) {
-      if (optional.kind.isPositional) {
+      if (isOptionalPositionalFormalParameterKind(optional.kind)) {
         for (VariableDeclaration parameter in optional.formals) {
           positionalParameters.add(parameter.type);
         }

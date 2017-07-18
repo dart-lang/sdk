@@ -31,7 +31,7 @@ import 'package:front_end/src/fasta/source/stack_listener.dart'
 
 import 'package:front_end/src/fasta/builder/builder.dart';
 
-import 'package:front_end/src/fasta/parser/parser.dart' show MemberKind, Parser;
+import 'package:front_end/src/fasta/parser.dart' show MemberKind, Parser;
 
 import 'package:front_end/src/scanner/token.dart' show Token;
 

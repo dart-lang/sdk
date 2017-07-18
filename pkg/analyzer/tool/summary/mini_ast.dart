@@ -5,8 +5,7 @@
 import 'package:front_end/src/fasta/problems.dart'
     show internalProblem, unsupported;
 import 'package:front_end/src/fasta/messages.dart' show Message;
-import 'package:front_end/src/fasta/parser/identifier_context.dart';
-import 'package:front_end/src/fasta/parser/parser.dart';
+import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
 
@@ -258,7 +257,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type

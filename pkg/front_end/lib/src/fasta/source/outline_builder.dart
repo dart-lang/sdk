@@ -31,12 +31,11 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../parser/native_support.dart'
     show extractNativeMethodName, removeNativeClause, skipNativeClause;
 
-import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
+import '../parser.dart'
+    show FormalParameterKind, IdentifierContext, MemberKind, optional;
 
 import '../problems.dart' show unhandled, unimplemented;
 
@@ -495,7 +494,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
@@ -522,9 +521,9 @@ class OutlineBuilder extends UnhandledListener {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterType kind = optional("{", beginToken)
-        ? FormalParameterType.NAMED
-        : FormalParameterType.POSITIONAL;
+    FormalParameterKind kind = optional("{", beginToken)
+        ? FormalParameterKind.optionalNamed
+        : FormalParameterKind.optionalPositional;
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be

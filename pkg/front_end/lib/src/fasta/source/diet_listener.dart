@@ -25,7 +25,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../parser/native_support.dart'
     show removeNativeClause, skipNativeClause;
 
-import '../parser/parser.dart' show MemberKind, Parser, optional;
+import '../parser.dart' show MemberKind, Parser, optional;
 
 import '../problems.dart' show internalProblem;
 

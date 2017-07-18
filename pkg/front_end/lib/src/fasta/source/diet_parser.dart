@@ -4,15 +4,11 @@
 
 library fasta.diet_parser;
 
+import '../../scanner/token.dart' show BeginToken, Token;
+
 import '../fasta_codes.dart' show messageExpectedOpenParens;
 
-import '../parser/class_member_parser.dart' show ClassMemberParser;
-
-import '../parser/listener.dart' show Listener;
-
-import '../parser/parser.dart' show MemberKind, optional;
-
-import '../../scanner/token.dart' show BeginToken, Token;
+import '../parser.dart' show ClassMemberParser, Listener, MemberKind, optional;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {

@@ -7,8 +7,7 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/fasta/parser/listener.dart' as fasta;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/fasta/util/link.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -767,7 +766,7 @@ class ForwardingTestListener implements fasta.Listener {
 
   @override
   void endFormalParameter(analyzer.Token thisKeyword, analyzer.Token nameToken,
-      fasta.FormalParameterType kind, fasta.MemberKind memberKind) {
+      fasta.FormalParameterKind kind, fasta.MemberKind memberKind) {
     _end('FormalParameter');
     listener.endFormalParameter(thisKeyword, nameToken, kind, memberKind);
   }

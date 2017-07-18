@@ -9,8 +9,8 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show Assert, FormalParameterType, MemberKind, Parser;
+import 'package:front_end/src/fasta/parser.dart'
+    show Assert, FormalParameterKind, IdentifierContext, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
@@ -20,8 +20,6 @@ import 'package:front_end/src/fasta/messages.dart'
     show Code, Message, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
@@ -793,7 +791,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     _ParameterDefaultValue defaultValue = pop();
 
@@ -1757,10 +1755,10 @@ class AstBuilder extends ScopeListener {
         invocation?.argumentList));
   }
 
-  ParameterKind _toAnalyzerParameterKind(FormalParameterType type) {
-    if (type == FormalParameterType.POSITIONAL) {
+  ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
+    if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
-    } else if (type == FormalParameterType.NAMED) {
+    } else if (type == FormalParameterKind.optionalNamed) {
       return ParameterKind.NAMED;
     } else {
       return ParameterKind.REQUIRED;

@@ -52,152 +52,26 @@ import '../scanner/characters.dart' show $CLOSE_CURLY_BRACKET;
 
 import '../util/link.dart' show Link;
 
+import 'assert.dart' show Assert;
+
 import 'async_modifier.dart' show AsyncModifier;
 
-import 'listener.dart' show Listener;
+import 'formal_parameter_kind.dart'
+    show
+        FormalParameterKind,
+        isMandatoryFormalParameterKind,
+        isOptionalPositionalFormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
-/// Returns true if [token] is the symbol or keyword [value].
-bool optional(String value, Token token) {
-  return identical(value, token.stringValue);
-}
+import 'listener.dart' show Listener;
 
-// TODO(ahe): Convert this to an enum.
-class FormalParameterType {
-  final String type;
+import 'member_kind.dart' show MemberKind;
 
-  final TypeContinuation typeContinuation;
+import 'type_continuation.dart'
+    show TypeContinuation, typeContiunationFromFormalParameterKind;
 
-  const FormalParameterType(this.type, this.typeContinuation);
-
-  bool get isRequired => this == REQUIRED;
-
-  bool get isPositional => this == POSITIONAL;
-
-  bool get isNamed => this == NAMED;
-
-  static final REQUIRED = const FormalParameterType(
-      'required', TypeContinuation.NormalFormalParameter);
-
-  static final POSITIONAL = const FormalParameterType(
-      'positional', TypeContinuation.OptionalPositionalFormalParameter);
-
-  static final NAMED =
-      const FormalParameterType('named', TypeContinuation.NamedFormalParameter);
-}
-
-enum MemberKind {
-  /// A catch block, not a real member.
-  Catch,
-
-  /// A factory
-  Factory,
-
-  /// Old-style typedef.
-  FunctionTypeAlias,
-
-  /// Old-style function-typed parameter, not a real member.
-  FunctionTypedParameter,
-
-  /// A generalized function type, not a real member.
-  GeneralizedFunctionType,
-
-  /// A local function.
-  Local,
-
-  /// A non-static method in a class (including constructors).
-  NonStaticMethod,
-
-  /// A static method in a class.
-  StaticMethod,
-
-  /// A top-level method.
-  TopLevelMethod,
-
-  /// An instance field in a class.
-  NonStaticField,
-
-  /// A static field in a class.
-  StaticField,
-
-  /// A top-level field.
-  TopLevelField,
-}
-
-/// Syntactic forms of `assert`.
-///
-/// An assertion can legally occur as a statement. However, assertions are also
-/// experimentally allowed in initializers. For improved error recovery, we
-/// also attempt to parse asserts as expressions.
-enum Assert {
-  Expression,
-  Initializer,
-  Statement,
-}
-
-/// Indication of how the parser should continue after (attempting) to parse a
-/// type.
-///
-/// Depending on the continuation, the parser may not parse a type at all.
-enum TypeContinuation {
-  /// Indicates that a type is unconditionally expected.
-  Required,
-
-  /// Indicates that a type may follow. If the following matches one of these
-  /// productions, it is parsed as a type:
-  ///
-  ///  - `'void'`
-  ///  - `'Function' ( '(' | '<' )`
-  ///  - `identifier ('.' identifier)? ('<' ... '>')? identifer`
-  ///
-  /// Otherwise, do nothing.
-  Optional,
-
-  /// Same as [Optional], but we have seen `var`.
-  OptionalAfterVar,
-
-  /// Indicates that the keyword `typedef` has just been seen, and the parser
-  /// should parse the following as a type unless it is followed by `=`.
-  Typedef,
-
-  /// Indicates that what follows is either a local declaration or an
-  /// expression.
-  ExpressionStatementOrDeclaration,
-
-  /// Indicates that the keyword `const` has just been seen, and what follows
-  /// may be a local variable declaration or an expression.
-  ExpressionStatementOrConstDeclaration,
-
-  /// Indicates that the parser is parsing an expression and has just seen an
-  /// identifier.
-  SendOrFunctionLiteral,
-
-  /// Indicates that the parser has just parsed `for '('` and is looking to
-  /// parse a variable declaration or expression.
-  VariablesDeclarationOrExpression,
-
-  /// Indicates that an optional type followed by a normal formal parameter is
-  /// expected.
-  NormalFormalParameter,
-
-  /// Indicates that an optional type followed by an optional positional formal
-  /// parameter is expected.
-  OptionalPositionalFormalParameter,
-
-  /// Indicates that an optional type followed by a named formal parameter is
-  /// expected.
-  NamedFormalParameter,
-
-  /// Same as [NormalFormalParameter], but we have seen `var`.
-  NormalFormalParameterAfterVar,
-
-  /// Same as [OptionalPositionalFormalParameter], but we have seen `var`.
-  OptionalPositionalFormalParameterAfterVar,
-
-  /// Same as [NamedFormalParameter], but we have seen `var`.
-  NamedFormalParameterAfterVar,
-}
+import 'util.dart' show optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -719,14 +593,14 @@ class Parser {
         token = token.next;
         break;
       }
-      token = parseFormalParameter(token, FormalParameterType.REQUIRED, kind);
+      token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
     return expect(')', token);
   }
 
   Token parseFormalParameter(
-      Token token, FormalParameterType parameterKind, MemberKind memberKind) {
+      Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token, forParameter: true);
     listener.beginFormalParameter(token, memberKind);
     token = parseModifiers(token, memberKind, parameterKind: parameterKind);
@@ -746,8 +620,9 @@ class Parser {
       } else if (!isNamed && optional(']', token)) {
         break;
       }
-      var type =
-          isNamed ? FormalParameterType.NAMED : FormalParameterType.POSITIONAL;
+      var type = isNamed
+          ? FormalParameterKind.optionalNamed
+          : FormalParameterKind.optionalPositional;
       token = parseFormalParameter(token, type, kind);
       ++parameterCount;
     } while (optional(',', token));
@@ -1268,7 +1143,7 @@ class Parser {
           optional('sync', token);
     }
 
-    FormalParameterType parameterKind;
+    FormalParameterKind parameterKind;
     switch (continuation) {
       case TypeContinuation.Required:
         return commitType();
@@ -1407,13 +1282,13 @@ class Parser {
 
       case TypeContinuation.NormalFormalParameter:
       case TypeContinuation.NormalFormalParameterAfterVar:
-        parameterKind = FormalParameterType.REQUIRED;
+        parameterKind = FormalParameterKind.mandatory;
         hasVar = continuation == TypeContinuation.NormalFormalParameterAfterVar;
         continue handleParameters;
 
       case TypeContinuation.OptionalPositionalFormalParameter:
       case TypeContinuation.OptionalPositionalFormalParameterAfterVar:
-        parameterKind = FormalParameterType.POSITIONAL;
+        parameterKind = FormalParameterKind.optionalPositional;
         hasVar = continuation ==
             TypeContinuation.OptionalPositionalFormalParameterAfterVar;
         continue handleParameters;
@@ -1424,9 +1299,10 @@ class Parser {
 
       handleParameters:
       case TypeContinuation.NamedFormalParameter:
-        parameterKind ??= FormalParameterType.NAMED;
+        parameterKind ??= FormalParameterKind.optionalNamed;
         bool inFunctionType = memberKind == MemberKind.GeneralizedFunctionType;
-        bool isNamedParameter = parameterKind == FormalParameterType.NAMED;
+        bool isNamedParameter =
+            parameterKind == FormalParameterKind.optionalNamed;
 
         bool untyped = false;
         if (!looksLikeType || optional("this", begin)) {
@@ -1523,10 +1399,11 @@ class Parser {
           Token equal = token;
           token = parseExpression(token.next);
           listener.handleValuedFormalParameter(equal, token);
-          if (parameterKind.isRequired) {
+          if (isMandatoryFormalParameterKind(parameterKind)) {
             reportRecoverableError(
                 equal, fasta.messageRequiredParameterWithDefault);
-          } else if (parameterKind.isPositional && identical(':', value)) {
+          } else if (isOptionalPositionalFormalParameterKind(parameterKind) &&
+              identical(':', value)) {
             reportRecoverableError(
                 equal, fasta.messagePositionalParameterWithEquals);
           } else if (inFunctionType ||
@@ -2031,11 +1908,12 @@ class Parser {
   /// When parsing the formal parameters of any function, [parameterKind] is
   /// non-null.
   Token parseModifiers(Token token, MemberKind memberKind,
-      {FormalParameterType parameterKind, bool isVarAllowed: false}) {
+      {FormalParameterKind parameterKind, bool isVarAllowed: false}) {
     int count = 0;
 
     int currentOrder = -1;
-    TypeContinuation typeContinuation = parameterKind?.typeContinuation;
+    TypeContinuation typeContinuation =
+        typeContiunationFromFormalParameterKind(parameterKind);
 
     while (token.kind == KEYWORD_TOKEN) {
       if (token.type.isPseudo) {

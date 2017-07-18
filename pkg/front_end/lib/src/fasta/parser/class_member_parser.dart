@@ -8,9 +8,11 @@ import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart' show Message;
 
+import 'assert.dart' show Assert;
+
 import 'listener.dart' show Listener;
 
-import 'parser.dart' show Assert, Parser;
+import 'parser.dart' show Parser;
 
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
 /// their bodies).
