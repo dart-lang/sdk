@@ -224,6 +224,8 @@ def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   copy_dart_script = os.path.relpath('../../copy_dart.py',
       library_dir)
   output_dir = os.path.relpath(output_dir, library_dir)
+  if not os.path.exists(library_dir):
+      os.makedirs(library_dir)
   command = ' '.join(['cd', library_dir, ';',
                       copy_dart_script, output_dir, library_filename])
   subprocess.call([command], shell=True)
@@ -303,7 +305,7 @@ def main():
   systems = options.systems.split(',')
 
   output_dir = options.output_dir or os.path.join(
-      current_dir, '..', '..', utils.GetBuildDir(utils.GuessOS()),
+      current_dir, '..', '..', '..', utils.GetBuildDir(utils.GuessOS()),
       'generated')
 
   dart2js_output_dir = None
