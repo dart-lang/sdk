@@ -4850,9 +4850,16 @@ const dynamic vInterfaceWithTypeArguments = const <
 const v = const [1, 2, 3];
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+const List<int> v = const <
+        int/*location: dart:core;int*/>[1, 2, 3];
+''');
+      } else {
+        checkElementText(library, r'''
 const List<int> v = const [1, 2, 3];
 ''');
+      }
     } else {
       checkElementText(library, r'''
 const dynamic v = const [1, 2, 3];
@@ -4865,9 +4872,17 @@ const dynamic v = const [1, 2, 3];
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+const Map<int, String> v = const <
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>{0: 'aaa', 1: 'bbb', 2: 'ccc'};
+''');
+      } else {
+        checkElementText(library, r'''
 const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
+      }
     } else {
       checkElementText(library, r'''
 const dynamic v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};

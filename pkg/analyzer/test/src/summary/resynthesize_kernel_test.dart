@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -582,11 +583,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_topLevel_typedList() async {
-    await super.test_const_topLevel_typedList();
-  }
-
-  @failingTest
   test_const_topLevel_typedList_imported() async {
     await super.test_const_topLevel_typedList_imported();
   }
@@ -594,21 +590,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_topLevel_typedList_importedWithPrefix() async {
     await super.test_const_topLevel_typedList_importedWithPrefix();
-  }
-
-  @failingTest
-  test_const_topLevel_typedMap() async {
-    await super.test_const_topLevel_typedMap();
-  }
-
-  @failingTest
-  test_const_topLevel_untypedList() async {
-    await super.test_const_topLevel_untypedList();
-  }
-
-  @failingTest
-  test_const_topLevel_untypedMap() async {
-    await super.test_const_topLevel_untypedMap();
   }
 
   @failingTest
@@ -2172,15 +2153,42 @@ class _ExprBuilder {
       List<String> components = expr.value.split('.').toList();
       return AstTestFactory.symbolLiteral(components);
     }
+
+    if (expr is kernel.ListLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
+      var elements = expr.expressions.map(build).toList();
+      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
+    }
+
+    if (expr is kernel.MapLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments =
+          _buildTypeArgumentList([expr.keyType, expr.valueType]);
+
+      int numberOfEntries = expr.entries.length;
+      var entries = new List<MapLiteralEntry>(numberOfEntries);
+      for (int i = 0; i < numberOfEntries; i++) {
+        var entry = expr.entries[i];
+        Expression key = build(entry.key);
+        Expression value = build(entry.value);
+        entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
+      }
+
+      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+    }
+
     if (expr is kernel.StaticGet) {
       return _buildIdentifier(expr.targetReference, isGet: true);
     }
+
     if (expr is kernel.PropertyGet) {
       Expression target = build(expr.receiver);
       kernel.Reference reference = expr.interfaceTargetReference;
       SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
       return AstTestFactory.propertyAccess(target, identifier);
     }
+
     // TODO(scheglov): complete getExpression
     throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
   }
@@ -2211,6 +2219,40 @@ class _ExprBuilder {
     return identifier;
   }
 
+  TypeAnnotation _buildType(DartType type) {
+    if (type is InterfaceType) {
+      var name = AstTestFactory.identifier3(type.element.name)
+        ..staticElement = type.element
+        ..staticType = type;
+      List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
+      return AstTestFactory.typeName3(name, arguments)..type = type;
+    }
+    if (type is DynamicTypeImpl) {
+      var name = AstTestFactory.identifier3('dynamic')
+        ..staticElement = type.element
+        ..staticType = type;
+      return AstTestFactory.typeName3(name)..type = type;
+    }
+    // TODO(scheglov) Implement for other types.
+    throw new UnimplementedError('type: $type');
+  }
+
+  TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {
+    int length = kernels.length;
+    var types = new List<TypeAnnotation>(length);
+    for (int i = 0; i < length; i++) {
+      DartType type = _context.getType(null, kernels[i]);
+      TypeAnnotation typeAnnotation = _buildType(type);
+      types[i] = typeAnnotation;
+    }
+    return AstTestFactory.typeArgumentList(types);
+  }
+
+  List<TypeAnnotation> _buildTypeArguments(List<DartType> types) {
+    if (types.every((t) => t.isDynamic)) return null;
+    return types.map(_buildType).toList();
+  }
+
   ElementImpl _getElement(kernel.Reference reference) {
     return _context._getElement(reference?.canonicalName);
   }
@@ -2238,7 +2280,6 @@ class _FileSystemAdaptor implements FileSystem {
       throw new ArgumentError(
           'Only file:// URIs are supported, but $uri is given.');
     }
-    // TODO: implement entityForUri
   }
 }
 
