@@ -15,9 +15,5 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [replaceState]
    * * [state]
    */
-$if DART2JS
   static bool get supportsState => JS('bool', '!!window.history.pushState');
-$else
-  static bool get supportsState => true;
-$endif
 $!MEMBERS}

@@ -7,13 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _SVGCursorElement can't be abstract.
-  StringList get requiredExtensions => _blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(this);
-  StringList get requiredFeatures => _blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(this);
-  StringList get systemLanguage => _blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(this);
-  AnimatedString get href => _blink.BlinkSVGCursorElement.instance.href_Getter_(this);
-  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(this, extension);
-$endif
 }
 

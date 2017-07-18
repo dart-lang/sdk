@@ -7,12 +7,8 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasImageSource$IMPLEMENTS {
 $!MEMBERS
   /** An API for drawing on this canvas. */
-$if DART2JS
   CanvasRenderingContext2D get context2D =>
       JS('Null|CanvasRenderingContext2D', '#.getContext(#)', this, '2d');
-$else
-  CanvasRenderingContext2D get context2D => getContext('2d');
-$endif
 
   /**
    * Returns a new Web GL context for this canvas.

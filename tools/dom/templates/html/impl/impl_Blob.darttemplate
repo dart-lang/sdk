@@ -6,7 +6,6 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DART2JS
   factory Blob(List blobParts, [String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
@@ -25,22 +24,4 @@ $if DART2JS
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
-$else
-  $if JSINTEROP
-  factory Blob(List blobParts, [String type, String endings]) {
-    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
-    // array to ArrayBuffer if it is a total view.
-
-    var parts = convertDartToNative_List(blobParts);
-    if (type == null && endings == null) {
-      return _blink.BlinkBlob.instance.constructorCallback_1_(parts);
-    }
-    var bag = {};
-    if (type != null) bag['type'] = type;
-    if (endings != null) bag['endings'] = endings;
-    return _blink.BlinkBlob.instance.constructorCallback_2_(parts,
-        convertDartToNative_Dictionary(bag));
-  }
-  $endif
-$endif
 }

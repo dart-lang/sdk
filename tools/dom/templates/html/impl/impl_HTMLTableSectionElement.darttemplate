@@ -17,7 +17,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   TableRowElement insertRow(int index) => _insertRow(index);
 
-$if DART2JS
   DocumentFragment createFragment(String html,
       {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
@@ -31,6 +30,5 @@ $if DART2JS
     fragment.nodes.addAll(section.nodes);
     return fragment;
   }
-$endif
 
 $!MEMBERS}

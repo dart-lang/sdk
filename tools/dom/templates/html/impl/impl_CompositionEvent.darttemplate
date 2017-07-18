@@ -15,7 +15,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
     CompositionEvent e = document._createEvent("CompositionEvent");
 
-$if DART2JS
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.
       JS('void', '#.initCompositionEvent(#, #, #, #, #, #)',
@@ -23,9 +22,6 @@ $if DART2JS
     } else {
       e._initCompositionEvent(type, canBubble, cancelable, view, data);
     }
-$else
-      e._initCompositionEvent(type, canBubble, cancelable, view, data);
-$endif
 
     return e;
   }

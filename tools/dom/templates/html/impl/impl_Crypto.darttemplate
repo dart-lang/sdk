@@ -7,19 +7,7 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   TypedData getRandomValues(TypedData array) {
-$if DART2JS
     return _getRandomValues(array);
-$else
-    var random = _getRandomValues(array);
-    // The semantics of the operation are that it modifies the argument, but we
-    // have no way of making a Dart typed data created initially in Dart reference
-    // externalized storage. So we copy the values back from the returned copy.
-    // TODO(alanknight): Make this less ridiculously slow.
-    for (var i = 0; i < random.length; i++) {
-      array[i] = random[i];
-    }
-    return array;
-$endif
   }
 
 $!MEMBERS

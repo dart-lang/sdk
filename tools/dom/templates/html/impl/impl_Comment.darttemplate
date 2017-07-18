@@ -6,10 +6,8 @@ part of $LIBRARYNAME;
 
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
-$if DART2JS
   factory Comment([String data]) {
     return JS('returns:Comment;depends:none;effects:none;new:true',
         '#.createComment(#)', document, data == null ? "" : data);
   }
-$endif
 $!MEMBERS}

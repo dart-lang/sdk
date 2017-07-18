@@ -140,22 +140,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
   bool _supportsProperty(String propertyName) {
-$if DART2JS
     return JS('bool', '# in #', propertyName, this);
-$else
-    // You can't just check the value of a property, because there is no way
-    // to distinguish between property not being present in the browser and
-    // not having a value at all. (Ultimately we'll want the native method to
-    // return null if the property doesn't exist and empty string if it's
-    // defined but just doesn't have a value.
-    return _hasProperty(propertyName);
-$endif
   }
 
-$if DARTIUM
-  bool _hasProperty(String propertyName) =>
-      _blink.BlinkCSSStyleDeclaration.instance.$__get___propertyIsEnumerable_Callback_1_(this, propertyName);
-$endif
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
@@ -183,35 +170,22 @@ $endif
     return propertyName;
   }
 
-$if DART2JS
   static final _propertyCache = JS('', '{}');
   static String _readCache(String key) =>
     JS('String|Null', '#[#]', _propertyCache, key);
   static void _writeCache(String key, String value) {
     JS('void', '#[#] = #', _propertyCache, key, value);
   }
-$else
-  static String _readCache(String key) => null;
-  static void _writeCache(String key, value) {}
-$endif
 
   static String _camelCase(String hyphenated) {
-$if DART2JS
     var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
     return JS(
         'String',
         r'#.replace(/-([\da-z])/ig,'
             r'function(_, letter) { return letter.toUpperCase();})',
         replacedMs);
-$else
-    // The "ms" prefix is always lowercased.
-    return hyphenated.replaceFirst(new RegExp('^-ms-'), 'ms-').replaceAllMapped(
-        new RegExp('-([a-z]+)', caseSensitive: false),
-        (match) => match[0][1].toUpperCase() + match[0].substring(2));
-$endif
   }
 
-$if DART2JS
   void _setPropertyHelper(String propertyName, String value, [String priority]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
@@ -224,21 +198,7 @@ $if DART2JS
   static bool get supportsTransitions {
     return document.body.style.supportsProperty('transition');
   }
-$else
-  void _setPropertyHelper(String propertyName, String value, [String priority]) {
-    if (priority == null) {
-      priority = '';
-    }
-    _setProperty(propertyName, value, priority);
-  }
-
-  /**
-   * Checks to see if CSS Transitions are supported.
-   */
-  static bool get supportsTransitions => true;
-$endif
 $!MEMBERS
-$if DART2JS
 """)
 
   for camelName in sorted(universal_properties):
@@ -259,7 +219,6 @@ $if DART2JS
            camelName, camelName))
 
   class_file.write("""
-$endif
 }
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
@@ -283,7 +242,6 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 """)
 
   class_file.write("""
-$if DART2JS
   void _setAll(String propertyName, String value) {
     value = value == null ? '' : value;
     for (Element element in _elementIterable) {
@@ -303,7 +261,6 @@ $if DART2JS
     """ % (property, camelName, camelName))
 
   class_file.write("""
-$endif
 
   // Important note: CssStyleDeclarationSet does NOT implement every method
   // available in CssStyleDeclaration. Some of the methods don't make so much
@@ -312,23 +269,9 @@ $endif
   // items in the MEMBERS set if you want that functionality.
 }
 
-$if DART2JS
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
-$else
-  $if JSINTEROP
-class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName) =>
-    throw new StateError('getProperty not overridden in dart:html');
-  void setProperty(String propertyName, String value, [String priority]) =>
-    throw new StateError('setProperty not overridden in dart:html');
-  $else
-abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
-  $endif
-$endif
 """)
 
   class_lines = [];

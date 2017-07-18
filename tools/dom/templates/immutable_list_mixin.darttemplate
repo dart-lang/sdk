@@ -14,14 +14,11 @@ $endif
 
   $E get first {
     if (this.length > 0) {
-$if DART2JS
       return JS('$EJS', '#[0]', this);
-$else
 $if USE_NATIVE_INDEXED_GETTER
       return $GETTER(0);
 $else
       return this[0];
-$endif
 $endif
     }
     throw new StateError("No elements");
@@ -30,14 +27,11 @@ $endif
   $E get last {
     int len = this.length;
     if (len > 0) {
-$if DART2JS
       return JS('$EJS', '#[#]', this, len - 1);
-$else
 $if USE_NATIVE_INDEXED_GETTER
       return $GETTER(len - 1);
 $else
       return this[len - 1];
-$endif
 $endif
     }
     throw new StateError("No elements");
@@ -46,14 +40,11 @@ $endif
   $E get single {
     int len = this.length;
     if (len == 1) {
-$if DART2JS
       return JS('$EJS', '#[0]', this);
-$else
 $if USE_NATIVE_INDEXED_GETTER
       return $GETTER(0);
 $else
       return this[0];
-$endif
 $endif
     }
     if (len == 0) throw new StateError("No elements");

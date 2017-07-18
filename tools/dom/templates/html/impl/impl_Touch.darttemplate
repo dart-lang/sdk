@@ -10,7 +10,6 @@ $!MEMBERS
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatibility for the time being.
-$if DART2JS
   int get __clientX => JS('num', '#.clientX', this).round();
   int get __clientY => JS('num', '#.clientY', this).round();
   int get __screenX => JS('num', '#.screenX', this).round();
@@ -19,16 +18,6 @@ $if DART2JS
   int get __pageY => JS('num', '#.pageY', this).round();
   int get __radiusX => JS('num', '#.radiusX', this).round();
   int get __radiusY => JS('num', '#.radiusY', this).round();
-$else
-  int get __clientX => _blink.BlinkTouch.instance.clientX_Getter_(this).round();
-  int get __clientY => _blink.BlinkTouch.instance.clientY_Getter_(this).round();
-  int get __screenX => _blink.BlinkTouch.instance.screenX_Getter_(this).round();
-  int get __screenY => _blink.BlinkTouch.instance.screenY_Getter_(this).round();
-  int get __pageX => _blink.BlinkTouch.instance.pageX_Getter_(this).round();
-  int get __pageY => _blink.BlinkTouch.instance.pageY_Getter_(this).round();
-  int get __radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(this).round();
-  int get __radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(this).round();
-$endif
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
