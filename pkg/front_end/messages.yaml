@@ -46,8 +46,6 @@
 #
 # `#name2` another name (a string).
 #
-# `#number` a number (an integer).
-#
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string` a string.
@@ -774,8 +772,20 @@ DuplicatedParameterNameCause:
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
 
-OperatorParameterMismatch:
-  template: "Operator '#name' must have exactly #number parameters."
+OperatorParameterMismatch0:
+  template: "Operator '#name' shouldn't have any parameters."
+
+OperatorParameterMismatch1:
+  template: "Operator '#name' should have exactly one parameter."
+
+OperatorParameterMismatch2:
+  template: "Operator '#name' should have exactly two parameters."
+
+OperatorMinusParameterMismatch:
+  template: "Operator '#name' should have zero or one parameter."
+  tip: >-
+    With zero parameters, it has the syntactic form '-a', formally known as 'unary-'.
+    With one parameter, it has the syntactic form 'a - b', formally known as '-'.
 
 SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."

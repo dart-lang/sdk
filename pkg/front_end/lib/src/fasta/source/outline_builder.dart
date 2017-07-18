@@ -20,7 +20,10 @@ import '../fasta_codes.dart'
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
-        templateOperatorParameterMismatch;
+        templateOperatorMinusParameterMismatch,
+        templateOperatorParameterMismatch0,
+        templateOperatorParameterMismatch1,
+        templateOperatorParameterMismatch2;
 
 import '../modifier.dart' show abstractMask, externalMask, Modifier;
 
@@ -388,10 +391,29 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        addCompileTimeError(
-            templateOperatorParameterMismatch.withArguments(
-                name, requiredArgumentCount),
-            charOffset);
+        var template;
+        switch (requiredArgumentCount) {
+          case 0:
+            template = templateOperatorParameterMismatch0;
+            break;
+
+          case 1:
+            if (Operator.subtract == nameOrOperator) {
+              template = templateOperatorMinusParameterMismatch;
+            } else {
+              template = templateOperatorParameterMismatch1;
+            }
+            break;
+
+          case 2:
+            template = templateOperatorParameterMismatch2;
+            break;
+
+          default:
+            unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
+                charOffset, uri);
+        }
+        addCompileTimeError(template.withArguments(name), charOffset);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {

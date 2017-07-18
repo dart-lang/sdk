@@ -90,11 +90,6 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'name3': name3");
         break;
 
-      case "#number":
-        parameters.add("int number");
-        arguments.add("'number': number");
-        break;
-
       case "#lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");

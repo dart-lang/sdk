@@ -1973,26 +1973,95 @@ const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
     tip: r"""Did you forget to add a 'finally' block?""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int number)>
-    templateOperatorParameterMismatch =
-    const Template<Message Function(String name, int number)>(
-        messageTemplate:
-            r"""Operator '#name' must have exactly #number parameters.""",
-        withArguments: _withArgumentsOperatorParameterMismatch);
+const Template<
+    Message Function(
+        String
+            name)> templateOperatorMinusParameterMismatch = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""Operator '#name' should have zero or one parameter.""",
+    tipTemplate:
+        r"""With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
+    withArguments: _withArgumentsOperatorMinusParameterMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int number)>
-    codeOperatorParameterMismatch =
-    const Code<Message Function(String name, int number)>(
-  "OperatorParameterMismatch",
-  templateOperatorParameterMismatch,
+const Code<Message Function(String name)> codeOperatorMinusParameterMismatch =
+    const Code<Message Function(String name)>(
+  "OperatorMinusParameterMismatch",
+  templateOperatorMinusParameterMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch(String name, int number) {
-  return new Message(codeOperatorParameterMismatch,
-      message: """Operator '$name' must have exactly $number parameters.""",
-      arguments: {'name': name, 'number': number});
+Message _withArgumentsOperatorMinusParameterMismatch(String name) {
+  return new Message(codeOperatorMinusParameterMismatch,
+      message: """Operator '$name' should have zero or one parameter.""",
+      tip:
+          """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateOperatorParameterMismatch0 =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Operator '#name' shouldn't have any parameters.""",
+        withArguments: _withArgumentsOperatorParameterMismatch0);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOperatorParameterMismatch0 =
+    const Code<Message Function(String name)>(
+  "OperatorParameterMismatch0",
+  templateOperatorParameterMismatch0,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOperatorParameterMismatch0(String name) {
+  return new Message(codeOperatorParameterMismatch0,
+      message: """Operator '$name' shouldn't have any parameters.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateOperatorParameterMismatch1 =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Operator '#name' should have exactly one parameter.""",
+        withArguments: _withArgumentsOperatorParameterMismatch1);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOperatorParameterMismatch1 =
+    const Code<Message Function(String name)>(
+  "OperatorParameterMismatch1",
+  templateOperatorParameterMismatch1,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOperatorParameterMismatch1(String name) {
+  return new Message(codeOperatorParameterMismatch1,
+      message: """Operator '$name' should have exactly one parameter.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateOperatorParameterMismatch2 =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Operator '#name' should have exactly two parameters.""",
+        withArguments: _withArgumentsOperatorParameterMismatch2);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOperatorParameterMismatch2 =
+    const Code<Message Function(String name)>(
+  "OperatorParameterMismatch2",
+  templateOperatorParameterMismatch2,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOperatorParameterMismatch2(String name) {
+  return new Message(codeOperatorParameterMismatch2,
+      message: """Operator '$name' should have exactly two parameters.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
