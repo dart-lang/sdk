@@ -58,7 +58,6 @@ lookup_map:pkg/lookup_map/lib
 markdown:third_party/pkg/markdown/lib
 matcher:third_party/pkg/matcher/lib
 meta:pkg/meta/lib
-metatest:third_party/pkg/metatest/lib
 microlytics:pkg/microlytics/lib
 mime:third_party/pkg/mime/lib
 mustache4dart:third_party/pkg/mustache4dart/lib

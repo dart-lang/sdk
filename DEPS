@@ -85,7 +85,6 @@ vars = {
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.3",
   "matcher_tag": "@0.12.0+2",
-  "metatest_tag": "@0.2.2+3",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_tag" : "@v1.1.0",
   "oauth2_tag": "@1.0.2",
@@ -249,8 +248,6 @@ deps = {
       (Var("github_mirror") % "markdown") + Var("markdown_tag"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
-  Var("dart_root") + "/third_party/pkg/metatest":
-      (Var("github_mirror") % "metatest") + Var("metatest_tag"),
   Var("dart_root") + "/third_party/pkg/mime":
       (Var("github_mirror") % "mime") + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mustache4dart":
