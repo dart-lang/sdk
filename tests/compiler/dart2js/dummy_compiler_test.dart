@@ -6,11 +6,11 @@
 library dummy_compiler;
 
 import 'dart:async';
-import "package:async_helper/async_helper.dart";
 
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart';
 
-import '../compiler/dart2js/mock_libraries.dart';
+import 'mock_libraries.dart';
 
 String libProvider(Uri uri) {
   if (uri.path.endsWith(".platform")) {

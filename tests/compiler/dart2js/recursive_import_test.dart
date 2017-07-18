@@ -4,11 +4,13 @@
 
 // Test of "recursive" imports using the dart2js compiler API.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import 'dart:async';
-import 'dummy_compiler_test.dart';
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart';
+
+import 'dummy_compiler_test.dart';
 
 const String RECURSIVE_MAIN = """
 library fisk;
