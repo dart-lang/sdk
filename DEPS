@@ -65,7 +65,21 @@ vars = {
   "csslib_tag" : "@0.13.3+1",
   "dart2js_info_tag" : "@0.5.4+2",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@1.0.7",
+
+  # Note: updates to dart_style have to be coordinated carefully with
+  # the infrastructure-team so that the internal formatter in
+  # `sdk/tools/sdks/*/dart-sdk/bin/dartfmt` matches the version here.
+  #
+  # Please follow this process to make updates:
+  #   * file an issue with area-infrastructure requesting a roll for this
+  #     package (please also indicate what version to roll).
+  #   * let the infrastructure team submit the change on your behalf,
+  #     so they can build a new dev release and roll the submitted sdks a few
+  #     minutes later.
+  #
+  # For more details, see https://github.com/dart-lang/sdk/issues/30164
+  "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
+
   "dartdoc_tag" : "@v0.13.0+1",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@1.0.0",
