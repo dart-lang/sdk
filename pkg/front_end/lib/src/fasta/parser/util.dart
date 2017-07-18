@@ -6,7 +6,13 @@ library fasta.parser.util;
 
 import '../scanner.dart' show Token;
 
+import '../../scanner/token.dart' show BeginToken;
+
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
   return identical(value, token.stringValue);
 }
+
+/// Returns the close brace, bracket, or parenthesis of [left]. For '<', it may
+/// return null.
+Token closeBraceTokenFor(BeginToken left) => left.endToken;

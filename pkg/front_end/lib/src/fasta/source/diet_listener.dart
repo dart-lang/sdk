@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../../scanner/token.dart' show BeginToken, Token;
+import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 
@@ -25,7 +25,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../parser/native_support.dart'
     show removeNativeClause, skipNativeClause;
 
-import '../parser.dart' show MemberKind, Parser, optional;
+import '../parser.dart' show MemberKind, Parser, closeBraceTokenFor, optional;
 
 import '../problems.dart' show internalProblem;
 
@@ -378,11 +378,12 @@ class DietListener extends StackListener {
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod");
-    BeginToken bodyToken = pop();
+    Token bodyToken = pop();
     String name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
+    if (bodyToken == null ||
+        optional("=", closeBraceTokenFor(bodyToken).next)) {
       // TODO(ahe): Don't skip this. We need to compile metadata and
       // redirecting factory bodies.
       return;

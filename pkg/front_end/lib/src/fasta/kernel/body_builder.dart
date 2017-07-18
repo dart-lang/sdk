@@ -15,8 +15,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
-import '../../scanner/token.dart' show BeginToken, Token;
-
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
@@ -28,7 +26,13 @@ import '../modifier.dart' show Modifier, constMask, finalMask;
 import '../parser/native_support.dart' show skipNativeClause;
 
 import '../parser.dart'
-    show Assert, FormalParameterKind, IdentifierContext, MemberKind, optional;
+    show
+        Assert,
+        FormalParameterKind,
+        IdentifierContext,
+        MemberKind,
+        closeBraceTokenFor,
+        optional;
 
 import '../parser/formal_parameter_kind.dart'
     show isOptionalPositionalFormalParameterKind;
@@ -44,6 +48,8 @@ import '../quote.dart'
         unescapeFirstStringPart,
         unescapeLastStringPart,
         unescapeString;
+
+import '../scanner.dart' show Token;
 
 import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 
@@ -741,9 +747,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpression(this, popForValue(), token.endGroup));
+    push(new ParenthesizedExpression(
+        this, popForValue(), closeBraceTokenFor(token)));
   }
 
   @override

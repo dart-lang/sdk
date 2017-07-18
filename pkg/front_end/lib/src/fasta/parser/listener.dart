@@ -4,7 +4,7 @@
 
 library fasta.parser.listener;
 
-import '../../scanner/token.dart' show BeginToken, Token, TokenType;
+import '../../scanner/token.dart' show Token, TokenType;
 
 import '../fasta_codes.dart' show Message;
 
@@ -986,7 +986,7 @@ class Listener {
     logEvent("OperatorName");
   }
 
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }
 

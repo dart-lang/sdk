@@ -71,7 +71,7 @@ import 'member_kind.dart' show MemberKind;
 import 'type_continuation.dart'
     show TypeContinuation, typeContiunationFromFormalParameterKind;
 
-import 'util.dart' show optional;
+import 'util.dart' show closeBraceTokenFor, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -559,10 +559,9 @@ class Parser {
               token, fasta.templateExpectedButGot.withArguments("("))
           .next;
     }
-    BeginToken beginGroupToken = token;
-    Token endToken = beginGroupToken.endGroup;
-    listener.endFormalParameters(0, token, endToken, kind);
-    return endToken.next;
+    Token closeBrace = closeBraceTokenFor(token);
+    listener.endFormalParameters(0, token, closeBrace, kind);
+    return closeBrace.next;
   }
 
   /// Parses the formal parameter list of a function.
@@ -667,8 +666,7 @@ class Parser {
     /// [isValidMethodTypeArguments].
     Token tryParseMethodTypeArguments(Token token) {
       if (!identical(token.kind, LT_TOKEN)) return null;
-      BeginToken beginToken = token;
-      Token endToken = beginToken.endGroup;
+      Token endToken = closeBraceTokenFor(token);
       if (endToken == null ||
           !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
         return null;
@@ -763,12 +761,12 @@ class Parser {
       return reportUnrecoverableError(token, fasta.messageExpectedBlockToSkip)
           .next;
     }
-    BeginToken beginGroupToken = token;
-    Token endGroup = beginGroupToken.endGroup;
-    if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnmatchedToken(beginGroupToken).next;
+    Token closeBrace = closeBraceTokenFor(token);
+    if (closeBrace == null ||
+        !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
+      return reportUnmatchedToken(token).next;
     }
-    return beginGroupToken.endGroup;
+    return closeBrace;
   }
 
   Token parseEnum(Token token) {
@@ -963,10 +961,6 @@ class Parser {
       [TypeContinuation continuation = TypeContinuation.Required,
       IdentifierContext continuationContext,
       MemberKind memberKind]) {
-    /// Returns the close brace, bracket, or parenthesis of [left]. For '<', it
-    /// may return null.
-    Token getClose(BeginToken left) => left.endToken;
-
     /// True if we've seen the `var` keyword.
     bool hasVar = false;
 
@@ -987,7 +981,7 @@ class Parser {
     IdentifierContext context = IdentifierContext.typeReference;
 
     /// Non-null if type arguments were seen during analysis.
-    BeginToken typeArguments;
+    Token typeArguments;
 
     /// The number of function types seen during analysis.
     int functionTypes = 0;
@@ -995,7 +989,7 @@ class Parser {
     /// The start of type variables of function types seen during
     /// analysis. Notice that the tokens in this list might be either `'<'` or
     /// `'('` as not all function types have type parameters. Also, it is safe
-    /// to assume that [getClose] will return non-null for all these tokens.
+    /// to assume that [closeBraceTokenFor] will return non-null for all these tokens.
     Link<Token> typeVariableStarters = const Link<Token>();
 
     {
@@ -1031,7 +1025,7 @@ class Parser {
           token = token.next.next;
         }
         if (optional("<", token)) {
-          Token close = getClose(token);
+          Token close = closeBraceTokenFor(token);
           if (close != null &&
               (optional(">", close) || optional(">>", close))) {
             // We found some type arguments.
@@ -1048,7 +1042,7 @@ class Parser {
       while (optional("Function", token)) {
         Token typeVariableStart = token.next;
         if (optional("<", token.next)) {
-          Token close = getClose(token.next);
+          Token close = closeBraceTokenFor(token.next);
           if (close != null && optional(">", close)) {
             token = close;
           } else {
@@ -1057,7 +1051,7 @@ class Parser {
         }
         if (optional("(", token.next)) {
           // This is a function type.
-          Token close = getClose(token.next);
+          Token close = closeBraceTokenFor(token.next);
           assert(optional(")", close));
           looksLikeType = true;
           functionTypes++;
@@ -1115,7 +1109,7 @@ class Parser {
         token = token.next;
         if (optional("<", token)) {
           // Skip type parameters, they were parsed above.
-          token = getClose(token).next;
+          token = closeBraceTokenFor(token).next;
         }
         token =
             parseFormalParameters(token, MemberKind.GeneralizedFunctionType);
@@ -1200,17 +1194,18 @@ class Parser {
             return parseVariablesDeclaration(begin);
           } else if (OPEN_PAREN_TOKEN == afterIdKind) {
             // We are looking at `type identifier '('`.
-            if (looksLikeFunctionBody(getClose(afterId).next)) {
+            if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
               // We are looking at `type identifier '(' ... ')'` followed
               // `( '{' | '=>' | 'async' | 'sync' )`.
               return parseLocalFunctionDeclaration(begin);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
-            Token afterTypeVariables = getClose(afterId)?.next;
+            Token afterTypeVariables = closeBraceTokenFor(afterId)?.next;
             if (afterTypeVariables != null &&
                 optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
+              if (looksLikeFunctionBody(
+                  closeBraceTokenFor(afterTypeVariables).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
                 return parseLocalFunctionDeclaration(begin);
@@ -1223,14 +1218,15 @@ class Parser {
           if (optional(':', token.next)) {
             return parseLabeledStatement(token);
           } else if (optional('(', token.next)) {
-            if (looksLikeFunctionBody(getClose(token.next).next)) {
+            if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
               return parseLocalFunctionDeclaration(token);
             }
           } else if (optional('<', token.next)) {
-            Token afterTypeVariables = getClose(token.next)?.next;
+            Token afterTypeVariables = closeBraceTokenFor(token.next)?.next;
             if (afterTypeVariables != null &&
                 optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
+              if (looksLikeFunctionBody(
+                  closeBraceTokenFor(afterTypeVariables).next)) {
                 return parseLocalFunctionDeclaration(token);
               }
             }
@@ -1343,7 +1339,7 @@ class Parser {
 
         Token inlineFunctionTypeStart;
         if (optional("<", token)) {
-          Token closer = getClose(token);
+          Token closer = closeBraceTokenFor(token);
           if (closer != null) {
             if (optional("(", closer.next)) {
               inlineFunctionTypeStart = token;
@@ -1352,7 +1348,7 @@ class Parser {
           }
         } else if (optional("(", token)) {
           inlineFunctionTypeStart = token;
-          token = getClose(token).next;
+          token = closeBraceTokenFor(token).next;
         }
 
         if (inlineFunctionTypeStart != null) {
@@ -1728,11 +1724,12 @@ class Parser {
           }
           if (optional('<', token.next)) {
             if (token.next is BeginToken) {
-              BeginToken beginGroup = token.next;
-              if (beginGroup.endGroup == null) {
-                token = reportUnmatchedToken(beginGroup).next;
+              token = token.next;
+              Token closeBrace = closeBraceTokenFor(token);
+              if (closeBrace == null) {
+                token = reportUnmatchedToken(token).next;
               } else {
-                token = beginGroup.endGroup;
+                token = closeBrace;
               }
             }
           }
@@ -1755,11 +1752,11 @@ class Parser {
         token = token.next;
         if (optional('<', token)) {
           if (token is BeginToken) {
-            BeginToken beginGroup = token;
-            if (beginGroup.endGroup == null) {
-              token = reportUnmatchedToken(beginGroup).next;
+            Token closeBrace = closeBraceTokenFor(token);
+            if (closeBrace == null) {
+              token = reportUnmatchedToken(token).next;
             } else {
-              token = beginGroup.endGroup.next;
+              token = closeBrace.next;
             }
           }
         }
@@ -1770,11 +1767,11 @@ class Parser {
           token = expect("(", token);
         }
         if (token is BeginToken) {
-          BeginToken beginGroup = token;
-          if (beginGroup.endGroup == null) {
-            token = reportUnmatchedToken(beginGroup).next;
+          Token closeBrace = closeBraceTokenFor(token);
+          if (closeBrace == null) {
+            token = reportUnmatchedToken(token).next;
           } else {
-            token = beginGroup.endGroup.next;
+            token = closeBrace.next;
           }
         }
       }
@@ -2041,12 +2038,12 @@ class Parser {
               token, fasta.templateExpectedClassBodyToSkip)
           .next;
     }
-    BeginToken beginGroupToken = token;
-    Token endGroup = beginGroupToken.endGroup;
-    if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnmatchedToken(beginGroupToken).next;
+    Token closeBrace = closeBraceTokenFor(token);
+    if (closeBrace == null ||
+        !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
+      return reportUnmatchedToken(token).next;
     }
-    return endGroup;
+    return closeBrace;
   }
 
   Token parseClassBody(Token token) {
@@ -2732,8 +2729,7 @@ class Parser {
           //   Foo() : map = {};
           //   Foo.x() : map = true ? {} : {};
           // }
-          BeginToken begin = token.next;
-          token = (begin.endGroup != null) ? begin.endGroup : token;
+          token = closeBraceTokenFor(token.next) ?? token;
           token = token.next;
           continue;
         }
@@ -2744,12 +2740,10 @@ class Parser {
           //   Foo() : map = <String, Foo>{};
           //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
           // }
-          BeginToken begin = token.next;
-          token = (begin.endGroup != null) ? begin.endGroup : token;
+          token = closeBraceTokenFor(token.next) ?? token;
           token = token.next;
           if (identical(token.stringValue, '{')) {
-            begin = token;
-            token = (begin.endGroup != null) ? begin.endGroup : token;
+            token = closeBraceTokenFor(token) ?? token;
             token = token.next;
           }
           continue;
@@ -2759,8 +2753,7 @@ class Parser {
         break;
       }
       if (token is BeginToken) {
-        BeginToken begin = token;
-        token = (begin.endGroup != null) ? begin.endGroup : token;
+        token = closeBraceTokenFor(token) ?? token;
       } else if (token is ErrorToken) {
         reportErrorToken(token, false).next;
       }
@@ -3027,8 +3020,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    BeginToken beginGroup = token;
-    Token nextToken = beginGroup.endGroup.next;
+    Token nextToken = closeBraceTokenFor(token).next;
     int kind = nextToken.kind;
     if (mayParseFunctionExpressions &&
         (identical(kind, FUNCTION_TOKEN) ||
@@ -3149,9 +3141,9 @@ class Parser {
   /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
   Token parseLiteralFunctionSuffix(Token token) {
     assert(optional('(', token));
-    BeginToken beginGroup = token;
-    if (beginGroup.endGroup != null) {
-      Token nextToken = beginGroup.endGroup.next;
+    Token closeBrace = closeBraceTokenFor(token);
+    if (closeBrace != null) {
+      Token nextToken = closeBrace.next;
       int kind = nextToken.kind;
       if (identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
@@ -3175,10 +3167,10 @@ class Parser {
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
     assert(optional('<', token));
-    BeginToken begin = token;
+    Token closeBrace = closeBraceTokenFor(token);
     if (constKeyword == null &&
-        begin.endGroup != null &&
-        identical(begin.endGroup.next.kind, OPEN_PAREN_TOKEN)) {
+        closeBrace != null &&
+        identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
       token = parseTypeVariablesOpt(token);
       return parseLiteralFunctionSuffix(token);
     } else {
@@ -3213,13 +3205,12 @@ class Parser {
 
   bool isFunctionDeclaration(Token token) {
     if (optional('<', token)) {
-      BeginToken begin = token;
-      if (begin.endGroup == null) return false;
-      token = begin.endGroup.next;
+      Token closeBrace = closeBraceTokenFor(token);
+      if (closeBrace == null) return false;
+      token = closeBrace.next;
     }
     if (optional('(', token)) {
-      BeginToken begin = token;
-      String afterParens = begin.endGroup.next.stringValue;
+      String afterParens = closeBraceTokenFor(token).next.stringValue;
       if (identical(afterParens, '{') ||
           identical(afterParens, '=>') ||
           identical(afterParens, 'async') ||
@@ -3389,8 +3380,7 @@ class Parser {
   Token skipArgumentsOpt(Token token) {
     listener.handleNoArguments(token);
     if (optional('(', token)) {
-      BeginToken begin = token;
-      return begin.endGroup.next;
+      return closeBraceTokenFor(token).next;
     } else {
       return token;
     }

@@ -6,8 +6,6 @@ library fasta.stack_listener;
 
 import 'package:kernel/ast.dart' show AsyncMarker, Expression;
 
-import '../../scanner/token.dart' show BeginToken;
-
 import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../fasta_codes.dart' show Message, templateInternalProblemStackNotEmpty;
@@ -212,7 +210,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 
