@@ -857,7 +857,6 @@ number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 prefix10_negative_test: Fail # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
-regress_18535_test: RuntimeError # Issue 29920
 regress_22443_test: RuntimeError # Issue 29920
 regress_23089_test: CompileTimeError # Issue 29920
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
