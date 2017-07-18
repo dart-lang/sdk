@@ -53,14 +53,27 @@ class Environment {
   final List<Binding> bindings = <Binding>[];
   final Environment parent;
 
+  Value get thisInstance {
+    return containsThis()
+        ? lookupThis().value
+        : throw "Invalid reference to 'this' expression";
+  }
+
   Environment.empty() : parent = null;
   Environment(this.parent);
 
   bool contains(VariableDeclaration variable) {
-    for (Binding b in bindings.reversed) {
+    for (Binding b in bindings) {
       if (identical(b.variable, variable)) return true;
     }
     return parent?.contains(variable) ?? false;
+  }
+
+  bool containsThis() {
+    for (Binding b in bindings) {
+      if (identical(b.variable.name, 'this')) return true;
+    }
+    return parent?.containsThis() ?? false;
   }
 
   Binding lookupBinding(VariableDeclaration variable) {
@@ -69,6 +82,14 @@ class Environment {
       if (identical(b.variable, variable)) return b;
     }
     return parent.lookupBinding(variable);
+  }
+
+  Location lookupThis() {
+    assert(containsThis());
+    for (Binding b in bindings) {
+      if (identical(b.variable.name, 'this')) return b.location;
+    }
+    return parent.lookupThis();
   }
 
   Value lookup(VariableDeclaration variable) {
@@ -84,6 +105,11 @@ class Environment {
     assert(!contains(variable));
     return new Environment(this)
       ..bindings.add(new Binding(variable, new Location(value)));
+  }
+
+  Environment extendWithThis(ObjectValue v) {
+    assert(!containsThis());
+    return extend(new VariableDeclaration('this'), v);
   }
 }
 
@@ -892,6 +918,7 @@ class StatementExecuter
     while (configuration != null) {
       configuration = configuration.step(this);
     }
+    ;
   }
 
   Configuration exec(Statement statement, ExecConfiguration conf) =>
