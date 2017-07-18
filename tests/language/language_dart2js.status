@@ -500,6 +500,7 @@ this_conditional_operator_test/01: Crash # Issue 27394
 try_catch_syntax_test/13: Crash # Issue 27394
 try_catch_syntax_test/14: Crash # Issue 27394
 try_catch_syntax_test/15: Crash # Issue 27394
+generalized_void_syntax_test: Crash # Issue #30176
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
 abstract_beats_arguments2_test/01: RuntimeError # Issue 27394
