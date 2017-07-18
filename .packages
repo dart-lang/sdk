@@ -20,6 +20,7 @@ browser:pkg/browser/lib
 charcode:third_party/pkg/charcode/lib
 charted:third_party/observatory_pub_packages/packages/charted/lib
 cli_util:third_party/pkg/cli_util/lib
+code_transformers:third_party/pkg/code_transformers/lib
 collection:third_party/pkg/collection/lib
 compiler:pkg/compiler/lib
 # Compiler is imported as compiler_unsupported so it can work outside the SDK.
@@ -43,6 +44,7 @@ http:third_party/pkg/http/lib
 http_multi_server:third_party/pkg/http_multi_server/lib
 http_parser:third_party/pkg/http_parser/lib
 http_throttle:third_party/pkg/http_throttle/lib
+initialize:third_party/pkg/initialize/lib
 intl:third_party/pkg/intl/lib
 isolate:third_party/pkg/isolate/lib
 js:pkg/js/lib
@@ -61,7 +63,9 @@ microlytics:pkg/microlytics/lib
 mime:third_party/pkg/mime/lib
 mustache4dart:third_party/pkg/mustache4dart/lib
 oauth2:third_party/pkg/oauth2/lib
+observable:third_party/pkg/observable/lib
 observatory:runtime/observatory/lib
+observe:third_party/pkg/observe/lib
 package_config:third_party/pkg_tested/package_config/lib
 package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
@@ -80,6 +84,7 @@ shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib
 shelf_static:third_party/pkg/shelf_static/lib
 shelf_web_socket:third_party/pkg/shelf_web_socket/lib
+smoke:third_party/pkg/smoke/lib
 source_map_stack_trace:third_party/pkg/source_map_stack_trace/lib
 source_maps:third_party/pkg/source_maps/lib
 source_span:third_party/pkg/source_span/lib
@@ -98,5 +103,6 @@ unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 utf:third_party/pkg/utf/lib
 watcher:third_party/pkg/watcher/lib
+web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
 yaml:third_party/pkg/yaml/lib

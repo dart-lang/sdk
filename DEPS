@@ -58,6 +58,7 @@ vars = {
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.0",
+  "code_transformers_tag": "@v0.5.1",
   "collection_tag": "@1.13.0",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
@@ -75,6 +76,7 @@ vars = {
   "http_tag" : "@0.11.3+13",
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
+  "initialize_tag": "@v0.6.2+5",
   "intl_tag": "@0.14.0",
   "isolate_tag": "@1.0.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
@@ -87,7 +89,9 @@ vars = {
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_tag" : "@v1.1.0",
   "oauth2_tag": "@1.0.2",
+  "observable_tag": "@0.17.0",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
+  "observe_tag": "@0.15.0",
   "package_config_tag": "@1.0.0",
   "package_resolver_tag": "@1.0.2+1",
   "path_tag": "@1.4.1",
@@ -105,6 +109,7 @@ vars = {
   "shelf_packages_handler_tag": "@1.0.0",
   "shelf_tag": "@0.6.7+2",
   "shelf_web_socket_tag": "@0.2.1",
+  "smoke_tag" : "@v0.3.6+2",
   "source_map_stack_trace_tag": "@1.1.4",
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.4",
@@ -120,6 +125,7 @@ vars = {
   "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+3",
   "watcher_tag": "@0.9.7+3",
+  "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.4",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "yaml_tag": "@2.1.12",
@@ -197,6 +203,9 @@ deps = {
       (Var("github_mirror") % "crypto") + Var("crypto_tag"),
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
+  Var("dart_root") + "/third_party/pkg/code_transformers":
+      (Var("github_mirror") % "code_transformers") +
+      Var("code_transformers_tag"),
   Var("dart_root") + "/third_party/dart-services":
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
@@ -224,6 +233,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") +
       Var("http_throttle_tag"),
+  Var("dart_root") + "/third_party/pkg/initialize":
+      (Var("github_mirror") % "initialize") + Var("initialize_tag"),
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_tag"),
   Var("dart_root") + "/third_party/pkg/isolate":
@@ -248,6 +259,10 @@ deps = {
       + Var("mustache4dart_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_tag"),
+  Var("dart_root") + "/third_party/pkg/observable":
+      (Var("github_mirror") % "observable") + Var("observable_tag"),
+  Var("dart_root") + "/third_party/pkg/observe":
+      (Var("github_mirror") % "observe") + Var("observe_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
       (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
@@ -286,6 +301,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_tag"),
+  Var("dart_root") + "/third_party/pkg/smoke":
+      (Var("github_mirror") % "smoke") + Var("smoke_tag"),
   Var("dart_root") + "/third_party/pkg/source_maps":
       (Var("github_mirror") % "source_maps") + Var("source_maps_tag"),
   Var("dart_root") + "/third_party/pkg/source_span":
@@ -319,6 +336,9 @@ deps = {
       (Var("github_mirror") % "utf") + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
       (Var("github_mirror") % "watcher") + Var("watcher_tag"),
+  Var("dart_root") + "/third_party/pkg/web_components":
+      (Var("github_mirror") % "web-components") +
+      Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       (Var("github_mirror") % "web_socket_channel") +
       Var("web_socket_channel_tag"),
