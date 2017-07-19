@@ -134,8 +134,10 @@ Future<CompilerResult> generateKernelInternal(
     }
 
     if (kernelTarget.errors.isNotEmpty) {
-      // Note: we don't report errors here because they have been already
-      // reported through the compiler context.
+      // TODO(sigmund): remove duplicate error reporting. Currently
+      // kernelTarget.errors contains recoverable and unrecoverable errors. We
+      // are reporting unrecoverable errors twice.
+      kernelTarget.errors.forEach((e) => options.report(e, Severity.error));
       return null;
     }
 
