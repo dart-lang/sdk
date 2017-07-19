@@ -1621,6 +1621,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     UNREACHABLE();
   }
 
+#if !defined(PRODUCT)
   // The following code is used to stress test deoptimization and
   // debugger stack tracing.
   bool do_deopt = false;
@@ -1678,7 +1679,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     DeoptimizeFunctionsOnStack();
   }
   if (do_reload) {
-#ifndef PRODUCT
     JSONStream js;
     // Maybe adjust the rate of future reloads.
     isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
@@ -1687,9 +1687,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     if (!success) {
       FATAL1("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
-#endif
   }
-#if !defined(PRODUCT)
   if (do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
