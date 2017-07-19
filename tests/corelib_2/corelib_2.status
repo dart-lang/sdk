@@ -48,4 +48,3 @@ compare_to2_test: RuntimeError
 [ $compiler == none && $runtime == drt ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip
->>>>>>> Migrate test block 1 to Dart 2.0.
