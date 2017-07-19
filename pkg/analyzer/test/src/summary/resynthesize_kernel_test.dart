@@ -26,6 +26,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -493,11 +494,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_reference_topLevelVariable() async {
-    await super.test_const_reference_topLevelVariable();
-  }
-
-  @failingTest
   test_const_reference_topLevelVariable_imported() async {
     await super.test_const_reference_topLevelVariable_imported();
   }
@@ -548,33 +544,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_topLevel_binary() async {
-    await super.test_const_topLevel_binary();
-  }
-
-  @failingTest
-  test_const_topLevel_conditional() async {
-    await super.test_const_topLevel_conditional();
-  }
-
-  @failingTest
-  test_const_topLevel_identical() async {
-    await super.test_const_topLevel_identical();
-  }
-
-  @failingTest
   test_const_topLevel_ifNull() async {
     await super.test_const_topLevel_ifNull();
-  }
-
-  @failingTest
-  test_const_topLevel_parenthesis() async {
-    await super.test_const_topLevel_parenthesis();
-  }
-
-  @failingTest
-  test_const_topLevel_prefix() async {
-    await super.test_const_topLevel_prefix();
   }
 
   @failingTest
@@ -2194,6 +2165,49 @@ class _ExprBuilder {
       return AstTestFactory.propertyAccess(target, identifier);
     }
 
+    if (expr is kernel.ConditionalExpression) {
+      var condition = build(expr.condition);
+      var then = build(expr.then);
+      var otherwise = build(expr.otherwise);
+      return AstTestFactory.conditionalExpression(condition, then, otherwise);
+    }
+
+    if (expr is kernel.Not) {
+      kernel.Expression kernelOperand = expr.operand;
+      var operand = build(kernelOperand);
+      return AstTestFactory.prefixExpression(TokenType.BANG, operand);
+    }
+
+    if (expr is kernel.LogicalExpression) {
+      var operator = _toBinaryOperatorTokenType(expr.operator);
+      var left = build(expr.left);
+      var right = build(expr.right);
+      return AstTestFactory.binaryExpression(left, operator, right);
+    }
+
+    if (expr is kernel.MethodInvocation) {
+      kernel.Member member = expr.interfaceTarget;
+      if (member is kernel.Procedure) {
+        if (member.kind == kernel.ProcedureKind.Operator) {
+          var left = build(expr.receiver);
+          String operatorName = expr.name.name;
+          List<kernel.Expression> args = expr.arguments.positional;
+          if (args.isEmpty) {
+            if (operatorName == 'unary-') {
+              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
+            }
+            if (operatorName == '~') {
+              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
+            }
+          } else if (args.length == 1) {
+            var operator = _toBinaryOperatorTokenType(operatorName);
+            var right = build(args.single);
+            return AstTestFactory.binaryExpression(left, operator, right);
+          }
+        }
+      }
+    }
+
     // TODO(scheglov): complete getExpression
     throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
   }
@@ -2268,6 +2282,30 @@ class _ExprBuilder {
     } else {
       return AstTestFactory.interpolationExpression(expr);
     }
+  }
+
+  /// Return the [TokenType] for the given operator [name].
+  TokenType _toBinaryOperatorTokenType(String name) {
+    if (name == '==') return TokenType.EQ_EQ;
+    if (name == '&&') return TokenType.AMPERSAND_AMPERSAND;
+    if (name == '||') return TokenType.BAR_BAR;
+    if (name == '^') return TokenType.CARET;
+    if (name == '&') return TokenType.AMPERSAND;
+    if (name == '|') return TokenType.BAR;
+    if (name == '>>') return TokenType.GT_GT;
+    if (name == '<<') return TokenType.LT_LT;
+    if (name == '+') return TokenType.PLUS;
+    if (name == '-') return TokenType.MINUS;
+    if (name == '*') return TokenType.STAR;
+    if (name == '/') return TokenType.SLASH;
+    if (name == '~/') return TokenType.TILDE_SLASH;
+    if (name == '%') return TokenType.PERCENT;
+    if (name == '>') return TokenType.GT;
+    if (name == '<') return TokenType.LT;
+    if (name == '>=') return TokenType.GT_EQ;
+    if (name == '<=') return TokenType.LT_EQ;
+    if (name == 'unary-') return TokenType.MINUS;
+    throw new ArgumentError(name);
   }
 }
 
@@ -2364,6 +2402,7 @@ class _KernelLibraryResynthesizerContextImpl
     bool isGetter = false;
     bool isSetter = false;
     bool isField = false;
+    bool isMethod = false;
     if (parentName.name == '@getters') {
       isGetter = true;
       parentName = parentName.parent;
@@ -2372,6 +2411,9 @@ class _KernelLibraryResynthesizerContextImpl
       parentName = parentName.parent;
     } else if (parentName.name == '@fields') {
       isField = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@methods') {
+      isMethod = true;
       parentName = parentName.parent;
     }
 
@@ -2398,6 +2440,8 @@ class _KernelLibraryResynthesizerContextImpl
         return parentElement.getSetter(name.name) as ElementImpl;
       } else if (isField) {
         return parentElement.getField(name.name) as ElementImpl;
+      } else if (isMethod) {
+        return parentElement.getMethod(name.name) as ElementImpl;
       }
       return null;
     }

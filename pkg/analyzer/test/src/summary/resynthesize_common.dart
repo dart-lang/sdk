@@ -4667,12 +4667,21 @@ const vNegate = -1;
 const vComplement = ~1;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+const bool vNotEqual = !(1 == 2);
+const bool vNot = !true;
+const int vNegate = -1;
+const int vComplement = ~1;
+''');
+      } else {
+        checkElementText(library, r'''
 const bool vNotEqual = 1 != 2;
 const bool vNot = !true;
 const int vNegate = -1;
 const int vComplement = ~1;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 const dynamic vNotEqual = 1 != 2;
