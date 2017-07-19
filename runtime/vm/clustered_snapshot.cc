@@ -764,7 +764,6 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->ptr()->parent_function_ = static_cast<RawFunction*>(d->ReadRef());
       data->ptr()->signature_type_ = static_cast<RawType*>(d->ReadRef());
       data->ptr()->closure_ = static_cast<RawInstance*>(d->ReadRef());
-      data->ptr()->hash_ = Object::null();
     }
   }
 };

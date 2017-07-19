@@ -5,16 +5,23 @@
 class _Closure implements Function {
   bool operator ==(other) native "Closure_equals";
 
-  int get hashCode native "Closure_hashCode";
+  int get hashCode {
+    if (_hash == null) {
+      _hash = _computeHash();
+    }
+    return _hash;
+  }
 
   _Closure get call => this;
 
   _Closure _clone() native "Closure_clone";
 
+  int _computeHash() native "Closure_computeHash";
+
   // No instance fields should be declared before the following 4 fields whose
   // offsets must be identical in Dart and C++.
 
-  // The following 4 fields are declared both in raw_object.h (for direct access
+  // The following fields are declared both in raw_object.h (for direct access
   // from C++ code) and also here so that the offset-to-field map used by
   // deferred objects is properly initialized.
   // Caution: These fields are not Dart instances, but VM objects. Their Dart
@@ -23,4 +30,5 @@ class _Closure implements Function {
   var _function_type_arguments;
   var _function;
   var _context;
+  var _hash;
 }
