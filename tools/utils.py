@@ -726,16 +726,18 @@ class PosixCoreDumpEnabler(object):
   def __exit__(self, *_):
     resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
+# TODO(whesse): Re-enable after issue #30205 is addressed
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
   def __enter__(self):
+    pass
     # Bump core limits to unlimited if core_pattern is correctly configured.
-    if CheckLinuxCoreDumpPattern(fatal=False):
-      super(LinuxCoreDumpEnabler, self).__enter__()
+    # if CheckLinuxCoreDumpPattern(fatal=False):
+    #   super(LinuxCoreDumpEnabler, self).__enter__()
 
   def __exit__(self, *args):
-    # TODO(whesse): Re-enable after issue #30205 is addressed
+    pass
     # CheckLinuxCoreDumpPattern(fatal=True)
-    super(LinuxCoreDumpEnabler, self).__exit__(*args)
+    # super(LinuxCoreDumpEnabler, self).__exit__(*args)
 
 class WindowsCoreDumpEnabler(object):
   """Configure Windows Error Reporting to store crash dumps.
