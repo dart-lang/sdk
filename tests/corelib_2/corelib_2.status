@@ -22,6 +22,30 @@ big_integer_parsed_arith_vm_test: RuntimeError # Issue 10245
 
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
+bool_from_environment_test: Fail # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
+
+[ $hot_reload || $hot_reload_rollback ]
+big_integer_huge_mul_vm_test: Pass, Slow # Slow
+
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+compare_to2_test: Fail    # Bug 4018
+
+[ $compiler == dart2js && $runtime != none ]
+bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
+compare_to2_test: RuntimeError, OK # Requires bigint support.
+
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+bool_from_environment2_test/05: MissingCompileTimeError
+compare_to2_test: RuntimeError
+
+[ $compiler == none && $runtime == drt ]
+bool_from_environment2_test: Skip
+bool_from_environment_test: Skip
+>>>>>>> Migrate test block 1 to Dart 2.0.

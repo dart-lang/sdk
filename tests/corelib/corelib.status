@@ -5,9 +5,18 @@
 [ $strong ]
 *: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+from_environment_const_type_test: Skip
+from_environment_const_type_undefined_test: Skip
+int_from_environment2_test: Skip
+int_from_environment3_test: Skip
+int_from_environment_test: Skip
+string_from_environment2_test: Skip
+string_from_environment3_test: Skip
+string_from_environment_test: Skip
+
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 unicode_test: Fail        # Bug 6706
-compare_to2_test: Fail    # Bug 4018
 symbol_test/01: Fail, Pass # bug 11669
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
@@ -81,8 +90,6 @@ iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 iterable_to_list_test/01: RuntimeError # Issue 26501
 
 big_integer_*: Skip # VM specific test.
-bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
-compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
 regexp/pcre_test: Pass, Slow # Issue 21593
@@ -196,12 +203,6 @@ symbol_test/none: RuntimeError # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
-bool_from_environment2_test/01: MissingCompileTimeError
-bool_from_environment2_test/02: MissingCompileTimeError
-bool_from_environment2_test/03: MissingCompileTimeError
-bool_from_environment2_test/04: MissingCompileTimeError
-bool_from_environment2_test/05: MissingCompileTimeError
-compare_to2_test: RuntimeError
 int_from_environment3_test/01: MissingCompileTimeError
 int_from_environment3_test/02: MissingCompileTimeError
 int_from_environment3_test/03: MissingCompileTimeError
@@ -256,7 +257,6 @@ from_environment_const_type_undefined_test/08: MissingCompileTimeError
 format_exception_test: RuntimeError # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
-bool_from_environment_test: Fail # Flutter Issue 9111
 int_from_environment_test: Fail # Flutter Issue 9111
 int_from_environment2_test: Fail # Flutter Issue 9111
 from_environment_const_type_test/none: Fail # Flutter Issue 9111
