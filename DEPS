@@ -63,7 +63,6 @@ vars = {
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.3+1",
   "dart2js_info_tag" : "@0.5.4+2",
-  "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
@@ -210,9 +209,6 @@ deps = {
       (Var("github_mirror") % "crypto") + Var("crypto_tag"),
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
-  Var("dart_root") + "/third_party/dart-services":
-      (Var("github_mirror") % "dart-services") +
-      Var("dart_services_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
