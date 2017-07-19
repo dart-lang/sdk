@@ -5,18 +5,6 @@
 [ $strong ]
 *: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-bool_from_environment2_test: Skip
-bool_from_environment_test: Skip
-from_environment_const_type_test: Skip
-from_environment_const_type_undefined_test: Skip
-int_from_environment2_test: Skip
-int_from_environment3_test: Skip
-int_from_environment_test: Skip
-string_from_environment2_test: Skip
-string_from_environment3_test: Skip
-string_from_environment_test: Skip
-
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
@@ -32,7 +20,7 @@ symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm || $runtime == flutter)]
+[ $compiler == none && ($runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == precompiler || $compiler == app_jit ]
@@ -47,15 +35,6 @@ symbol_reserved_word_test/02: CompileTimeError # bug 20191
 symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-package_resource_test: RuntimeError # Issue 26842
-symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
-symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
-symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
-symbol_reserved_word_test/07: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
-symbol_reserved_word_test/10: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
-main_test: Fail  # Dartium needs to check for both main() and main(args).
 
 [ $compiler == dart2js ]
 symbol_reserved_word_test/03: RuntimeError # bug 19972, new Symbol('void') should be allowed.
@@ -132,10 +111,6 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
-
-[ $compiler == dart2js && $runtime == dartium ]
-string_case_test/02: Fail, OK  # Bug in dartium version of V8.
-string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
