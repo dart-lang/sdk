@@ -5,15 +5,20 @@ dart:
   - stable
   - 1.22.1
   - 1.21.1
-cache:
-  directories:
-    - $HOME/.pub-cache
+
 dart_task:
   - test: --platform vm
   - dartanalyzer
+
 matrix:
   include:
-    # Only validate formatting using the dev release
-    # Formatted with 1.23.0-dev.10.0 which has (good) changes since 1.22.1
-    - dart: dev
-      dart_task: dartfmt
+  - dart: stable
+    dart_task: dartfmt
+
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only: [master]
+
+cache:
+  directories:
+    - $HOME/.pub-cache
