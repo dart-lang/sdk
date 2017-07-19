@@ -338,8 +338,38 @@ mirrors/library_uri_package_test: RuntimeError
 # fstat bug, MG-479.
 mirrors/invocation_fuzz_test: Crash
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+async/future_or_bad_type_test/implements: Pass # Issue 28084
+
+mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
+async/schedule_microtask6_test: Fail # Issue 10910
+async/timer_test: Fail, Pass # Issue 15487
+async/multiple_timer_test: Fail, Pass # Issue 15487
+async/stream_periodic3_test: Fail, Pass # Issue 15487
+async/timer_isActive_test: Fail, Pass # Issue 22352
+mirrors/immutable_collections_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
+mirrors/mirrors_reader_test: SkipSlow # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
+mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
+mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
+mirrors/local_isolate_test: RuntimeError # Issue 12188
+mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
+
+[ $compiler == none && $runtime == dartium && $system == macos ]
+convert/streamed_conversion_utf8_decode_test: Pass, Slow
+
+[ $compiler == none && $runtime == drt && $system == windows ]
+async/multiple_timer_test: Fail, Pass # See Issue 10982
+async/timer_test: Fail, Pass # See Issue 10982
+
 [ $compiler == none && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+# TODO(terry): Failing tests with Dartium 50 roll (NEED TO FIX All)
+# ---------------------------------------------
+mirrors/regress_16321_test/01: Timeout, Pass # Roll 50 crash works on full build
+# ---------------------------------------------
+# TODO(terry): End of Dartium 50 roll failures
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.

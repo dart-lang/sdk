@@ -48,6 +48,14 @@ assertion_initializer_const_error2_test/cc02: Fail
 assertion_initializer_const_error_test/01: Fail
 assertion_initializer_const_function_error_test/01: Fail
 
+[$compiler == none && $runtime == dartium && !$checked]
+assertion_initializer_const_function_test/01: RuntimeError
+assertion_initializer_test: RuntimeError
+
+[$compiler == none && $runtime == dartium && $checked]
+assertion_initializer_const_function_test/01: RuntimeError
+assertion_initializer_test: RuntimeError
+
 [$compiler == app_jit && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
@@ -127,22 +135,86 @@ vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter || $runtime == drt || $runtime == dartium) ]
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dartk || $compiler == dartkp) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == flutter) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dartk || $compiler == dartkp) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium || $runtime == flutter) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
+
+[ $compiler == none && $runtime == dartium && ! $checked ]
+assertion_test: Fail # Issue 14651.
+generic_test: Fail # Issue 14651.
+list_literal4_test: Fail # Issue 14651.
+map_literal4_test: Fail # Issue 14651.
+named_parameters_type_test/01: Fail # Issue 14651.
+named_parameters_type_test/02: Fail # Issue 14651.
+named_parameters_type_test/03: Fail # Issue 14651.
+positional_parameters_type_test/01: Fail # Issue 14651.
+positional_parameters_type_test/02: Fail # Issue 14651.
+type_checks_in_factory_method_test: Fail # Issue 14651.
+vm/type_vm_test: Fail # Issue 14651.
+
+[ $compiler == none && ($runtime == dartium || $runtime == drt)]
+abstract_beats_arguments2_test/01: Skip # Issue 29171
+# Other issues.
+issue13474_test: Pass, Fail # Issue 14651.
+config_import_test: Fail # Issue 14651.
+vm/optimized_guarded_field_isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
+main_test/01: Fail # Issue 20028
+main_test/02: Fail # Issue 20028
+main_test/04: Fail # Issue 20028
+main_test/05: Fail # Issue 20028
+main_test/21: Fail # Issue 20028
+main_test/42: Fail # Issue 20028
+mirror_in_static_init_test: Fail # Issue 22071
+vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+vm/regress_28325_test: SkipByDesign  # Requires dart:io
+
+# These tests need the flag --initializing-formal-access to pass:
+initializing_formal_access_test: Skip
+initializing_formal_capture_test: Skip
+initializing_formal_final_test: Skip
+initializing_formal_promotion_test: Skip
+initializing_formal_type_test: Skip
+parameter_initializer5_test: Skip
+
+# Experimental feature: Syntactic support for generic methods.
+# Skip these in dartium, because the test framework can't pass VM flags to
+generic_methods_test: Skip # Issue 25869
+generic_functions_test: Skip # Issue 25869
+generic_local_functions_test: Skip # Issue 25869
+generic_sends_test: Skip # Issue 25869
+generic_methods_new_test: Skip # Issue 25869
+generic_methods_function_type_test: Skip # Issue 25869
+generic_methods_type_expression_test: Skip # Issue 25869
+
+config_import_test: Skip  # Issue 26250
+
+[ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
+issue_22780_test/01: Pass, Timeout # Issue 24473
+
+[ $compiler == none && $runtime == dartium && $system == linux && $arch == x64 ]
+async_await_test: Skip # Issue 26198
+
+[ $compiler == none && $runtime == drt ]
+disassemble_test: Pass, Fail # Issue 18122
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 closure_cycles_test: Pass, Slow
+
+[ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
+large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled)) && $arch == ia32 ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+issue23244_test: Fail # Issue 23244
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
@@ -330,7 +402,7 @@ vm/math_vm_test: Crash
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
 
-[ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
+[ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled || $runtime == dartium || $runtime == drt) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 

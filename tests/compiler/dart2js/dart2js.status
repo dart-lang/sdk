@@ -122,7 +122,7 @@ source_map_pub_build_validity_test: Pass, Slow
 analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
-[ $jscl || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari ]
+[ $jscl || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
 
 [ $system == linux ]
