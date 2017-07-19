@@ -630,6 +630,9 @@ InternalProblemMissingContext:
   template: "Compiler cannot run without a compiler context."
   tip: "Are calls to the compiler wrapped in CompilerContext.runInContext?"
 
+InternalProblemProvidedBothCompileSdkAndSdkSummary:
+  template: "The compileSdk and sdkSummary options are mutually exclusive"
+
 InternalVerificationError:
   template: "Verification of the generated program failed: #string."
 
@@ -812,13 +815,13 @@ MissingInput:
   template: "No input file provided to the compiler."
 
 InputFileNotFound:
-  template: "Input file not found: #string."
+  template: "Input file not found: #uri."
 
 SdkRootNotFound:
-  template: "SDK root directory not found: #string."
+  template: "SDK root directory not found: #uri."
 
 SdkSummaryNotFound:
-  template: "SDK summary not found: #string."
+  template: "SDK summary not found: #uri."
 
 ThisAccessInFieldInitializer:
   template: "Can't access 'this' in a field initializer to read '#name'."

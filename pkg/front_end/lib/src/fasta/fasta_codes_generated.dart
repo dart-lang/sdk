@@ -1325,23 +1325,23 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateInputFileNotFound =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Input file not found: #string.""",
+const Template<Message Function(Uri uri_)> templateInputFileNotFound =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""Input file not found: #uri.""",
         withArguments: _withArgumentsInputFileNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeInputFileNotFound =
-    const Code<Message Function(String string)>(
+const Code<Message Function(Uri uri_)> codeInputFileNotFound =
+    const Code<Message Function(Uri uri_)>(
   "InputFileNotFound",
   templateInputFileNotFound,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInputFileNotFound(String string) {
+Message _withArgumentsInputFileNotFound(Uri uri_) {
+  String uri = relativizeUri(uri_);
   return new Message(codeInputFileNotFound,
-      message: """Input file not found: $string.""",
-      arguments: {'string': string});
+      message: """Input file not found: $uri.""", arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1477,6 +1477,16 @@ Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
       message: """Can't access private constructor '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
+    messageInternalProblemProvidedBothCompileSdkAndSdkSummary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemProvidedBothCompileSdkAndSdkSummary =
+    const MessageCode("InternalProblemProvidedBothCompileSdkAndSdkSummary",
+        message:
+            r"""The compileSdk and sdkSummary options are mutually exclusive""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
@@ -2459,43 +2469,44 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
     message: r"""A function expression can't have a return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateSdkRootNotFound =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""SDK root directory not found: #string.""",
+const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""SDK root directory not found: #uri.""",
         withArguments: _withArgumentsSdkRootNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeSdkRootNotFound =
-    const Code<Message Function(String string)>(
+const Code<Message Function(Uri uri_)> codeSdkRootNotFound =
+    const Code<Message Function(Uri uri_)>(
   "SdkRootNotFound",
   templateSdkRootNotFound,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkRootNotFound(String string) {
+Message _withArgumentsSdkRootNotFound(Uri uri_) {
+  String uri = relativizeUri(uri_);
   return new Message(codeSdkRootNotFound,
-      message: """SDK root directory not found: $string.""",
-      arguments: {'string': string});
+      message: """SDK root directory not found: $uri.""",
+      arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateSdkSummaryNotFound =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""SDK summary not found: #string.""",
+const Template<Message Function(Uri uri_)> templateSdkSummaryNotFound =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""SDK summary not found: #uri.""",
         withArguments: _withArgumentsSdkSummaryNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeSdkSummaryNotFound =
-    const Code<Message Function(String string)>(
+const Code<Message Function(Uri uri_)> codeSdkSummaryNotFound =
+    const Code<Message Function(Uri uri_)>(
   "SdkSummaryNotFound",
   templateSdkSummaryNotFound,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkSummaryNotFound(String string) {
+Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
+  String uri = relativizeUri(uri_);
   return new Message(codeSdkSummaryNotFound,
-      message: """SDK summary not found: $string.""",
-      arguments: {'string': string});
+      message: """SDK summary not found: $uri.""", arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

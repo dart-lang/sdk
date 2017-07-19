@@ -173,7 +173,7 @@ class ProcessedOptions {
           source.scheme != 'packages' &&
           !await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
-            templateInputFileNotFound.withArguments('$source'), Severity.error);
+            templateInputFileNotFound.withArguments(source), Severity.error);
         return false;
       }
     }
@@ -181,21 +181,20 @@ class ProcessedOptions {
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
       reportWithoutLocation(
-          templateSdkRootNotFound.withArguments('$sdkRoot'), Severity.error);
+          templateSdkRootNotFound.withArguments(sdkRoot), Severity.error);
       return false;
     }
 
     var summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       reportWithoutLocation(
-          templateSdkSummaryNotFound.withArguments('$summary'), Severity.error);
+          templateSdkSummaryNotFound.withArguments(summary), Severity.error);
       return false;
     }
 
     if (compileSdk && summary != null) {
       reportWithoutLocation(
-          templateInternalProblemUnsupported.withArguments(
-              "The compileSdk and sdkSummary options are mutually exclusive"),
+          messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
           Severity.internalProblem);
       return false;
     }
@@ -407,7 +406,7 @@ class ProcessedOptions {
     if (_raw.sdkRoot == null) {
       // TODO(paulberry): implement the algorithm for finding the SDK
       // automagically.
-      return unimplemented('infer the default sdk location');
+      return unimplemented('infer the default sdk location', -1, null);
     }
     var root = _raw.sdkRoot;
     if (!root.path.endsWith('/')) {

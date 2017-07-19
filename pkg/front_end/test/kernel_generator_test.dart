@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/front_end.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
@@ -58,9 +59,7 @@ main() {
       var errors = [];
       var options = new CompilerOptions()..onError = (e) => errors.add(e);
       await compileScript('a() => print("hi");', options: options);
-      // TODO(sigmund): when we expose codes in the public APIs, we should
-      // compare the code here and not the message.
-      expect(errors.first.message, contains("No 'main' method found"));
+      expect(errors.first.message, messageMissingMain.message);
     });
 
     test('default error handler throws on errors', () async {
