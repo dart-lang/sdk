@@ -101,7 +101,7 @@ vars = {
   "mustache4dart_tag" : "@v1.1.0",
   "oauth2_tag": "@1.0.2",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
-  "package_config_tag": "@1.0.0",
+  "package_config_tag": "@1.0.1",
   "package_resolver_tag": "@1.0.2+1",
   "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
