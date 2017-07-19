@@ -30,8 +30,6 @@ add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_br
 
 [ $compiler == dartk ]
 next_through_simple_async_test: Pass, Fail # Issue 29145
-step_through_property_get_test : RuntimeError # Issue #29740
-step_through_property_set_test : RuntimeError # Issue #29740
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047

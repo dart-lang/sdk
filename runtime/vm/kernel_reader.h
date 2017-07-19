@@ -94,6 +94,10 @@ class KernelReader {
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
+  static bool FieldHasFunctionLiteralInitializer(const dart::Field& field,
+                                                 TokenPosition* start,
+                                                 TokenPosition* end);
+
  private:
   friend class BuildingTranslationHelper;
 

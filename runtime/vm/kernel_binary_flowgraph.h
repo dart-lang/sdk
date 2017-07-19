@@ -853,16 +853,24 @@ class FieldHelper {
     kEnd
   };
 
-  explicit FieldHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
+  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
+      : builder_(builder),
+        next_read_(kStart),
+        has_function_literal_initializer_(false) {}
+
+  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset)
+      : builder_(builder),
+        next_read_(kStart),
+        has_function_literal_initializer_(false) {
+    builder_->SetOffset(offset);
   }
 
   void ReadUntilIncluding(Fields field) {
     ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
+  void ReadUntilExcluding(Fields field,
+                          bool detect_function_literal_initializer = false) {
     if (field <= next_read_) return;
 
     // Ordered with fall-through.
@@ -909,8 +917,22 @@ class FieldHelper {
         builder_->SkipDartType();  // read type.
         if (++next_read_ == field) return;
       case kInitializer:
-        if (builder_->ReadTag() == kSomething)
+        if (builder_->ReadTag() == kSomething) {
+          if (detect_function_literal_initializer &&
+              builder_->PeekTag() == kFunctionExpression) {
+            has_function_literal_initializer_ = true;
+            intptr_t expr_offset = builder_->ReaderOffset();
+            Tag tag = builder_->ReadTag();
+            ASSERT(tag == kFunctionExpression);
+            tag = builder_->ReadTag();
+            ASSERT(tag == kFunctionNode);
+            function_literal_start_ = builder_->ReadPosition();
+            function_literal_end_ = builder_->ReadPosition();
+
+            builder_->SetOffset(expr_offset);
+          }
           builder_->SkipExpression();  // read initializer.
+        }
         if (++next_read_ == field) return;
       case kEnd:
         return;
@@ -929,6 +951,15 @@ class FieldHelper {
     return (flags_ & Field::kFlagStatic) == Field::kFlagStatic;
   }
 
+  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
+                                          TokenPosition* end) {
+    if (has_function_literal_initializer_) {
+      *start = function_literal_start_;
+      *end = function_literal_end_;
+    }
+    return has_function_literal_initializer_;
+  }
+
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
@@ -940,6 +971,10 @@ class FieldHelper {
  private:
   StreamingFlowGraphBuilder* builder_;
   intptr_t next_read_;
+
+  bool has_function_literal_initializer_;
+  TokenPosition function_literal_start_;
+  TokenPosition function_literal_end_;
 };
 
 // Helper class that reads a kernel Procedure from binary.

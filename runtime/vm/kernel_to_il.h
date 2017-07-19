@@ -262,6 +262,12 @@ class ActiveMemberScope {
 class TranslationHelper {
  public:
   explicit TranslationHelper(dart::Thread* thread);
+
+  TranslationHelper(dart::Thread* thread,
+                    dart::RawTypedData* string_offsets,
+                    dart::RawTypedData* string_data,
+                    dart::RawTypedData* canonical_names);
+
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }

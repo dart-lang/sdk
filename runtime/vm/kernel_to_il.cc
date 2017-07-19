@@ -76,6 +76,20 @@ TranslationHelper::TranslationHelper(Thread* thread)
       string_data_(TypedData::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)) {}
 
+TranslationHelper::TranslationHelper(Thread* thread,
+                                     dart::RawTypedData* string_offsets,
+                                     dart::RawTypedData* string_data,
+                                     dart::RawTypedData* canonical_names)
+    : thread_(thread),
+      zone_(thread->zone()),
+      isolate_(thread->isolate()),
+      allocation_space_(Heap::kNew),
+      string_offsets_(TypedData::Handle(Z, string_offsets)),
+      string_data_(TypedData::Handle(Z, string_data)),
+      canonical_names_(TypedData::Handle(Z, canonical_names)) {
+  ASSERT(thread->IsMutatorThread());
+}
+
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
   string_offsets_ = string_offsets.raw();

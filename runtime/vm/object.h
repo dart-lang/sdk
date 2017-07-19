@@ -3595,10 +3595,10 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  const uint8_t* kernel_data() { return raw_ptr()->kernel_data_; }
+  const uint8_t* kernel_data() const { return raw_ptr()->kernel_data_; }
   void set_kernel_data(const uint8_t* kernel_data) const;
 
-  intptr_t kernel_data_size() { return raw_ptr()->kernel_data_size_; }
+  intptr_t kernel_data_size() const { return raw_ptr()->kernel_data_size_; }
   void set_kernel_data_size(const intptr_t kernel_data_size) const;
 
   intptr_t kernel_script_index() { return raw_ptr()->kernel_script_index_; }
