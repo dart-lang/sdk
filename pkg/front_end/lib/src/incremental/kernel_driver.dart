@@ -5,9 +5,10 @@
 import 'dart:async';
 
 import 'package:front_end/file_system.dart';
+import 'package:front_end/compiler_options.dart';
 import 'package:front_end/src/base/api_signature.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/fasta/compiler_command_line.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
@@ -149,13 +150,15 @@ class KernelDriver {
   }
 
   Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    return await CompilerCommandLine.withGlobalOptions("", [""],
-        (CompilerContext context) {
-      context.options.options["--target"] = _target;
-      context.options.options["report"] = (message, severity) {};
-      context.options.options["reportWithoutLocation"] = (message, severity) {};
-      return _logger.runAsync(msg, f);
-    });
+    var options = new CompilerOptions()
+      ..target = _target
+      // Note: we do not report error on the console because the driver is an
+      // ongoing background service that shouldn't polute stdout.
+      // TODO(scheglov,sigmund): add an error handler to forward errors to
+      // analyzer driver and incremental kernel generator.
+      ..reportMessages = false;
+    return await CompilerContext.runWithOptions(
+        new ProcessedOptions(options), (_) => _logger.runAsync(msg, f));
   }
 
   /// The file with the given [uri] might have changed - updated, added, or

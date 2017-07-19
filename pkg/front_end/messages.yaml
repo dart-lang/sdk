@@ -628,7 +628,7 @@ InternalProblemBodyOnAbstractMethod:
 
 InternalProblemMissingContext:
   template: "Compiler cannot run without a compiler context."
-  tip: "Are calls to the compiler wrapped in CompilerContext.withGlobalOptions?"
+  tip: "Are calls to the compiler wrapped in CompilerContext.runInContext?"
 
 InternalVerificationError:
   template: "Verification of the generated program failed: #string."
@@ -881,7 +881,11 @@ CannotReadPackagesFile:
   template: "Unable to read '.packages' file:\n  #string."
 
 CantInferPackagesFromManyInputs:
-  template: "Cannot infer a .packages file when compiling multiple inputs."
+  template: "Can't infer a .packages file when compiling multiple inputs."
+  tip: "Try specifying the file explicitly with the --packages option."
+
+CantInferPackagesFromPackageUri:
+  template: "Can't infer a .packages file from an input 'package:*' URI."
   tip: "Try specifying the file explicitly with the --packages option."
 
 PackageNotFound:

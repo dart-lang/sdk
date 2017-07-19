@@ -12,8 +12,6 @@ import 'dart:convert' show JSON;
 
 import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
 
-import 'package:front_end/src/fasta/compiler_command_line.dart';
-
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
@@ -32,6 +30,11 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         StdioProcess;
+
+import 'package:front_end/compiler_options.dart' show CompilerOptions;
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -224,7 +227,9 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
-    return await CompilerCommandLine.withGlobalOptions("", [""], (_) async {
+    var options =
+        new ProcessedOptions(new CompilerOptions()..throwOnErrors = false);
+    return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
       CompilerContext.current.disableColors();

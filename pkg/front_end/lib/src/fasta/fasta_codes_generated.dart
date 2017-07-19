@@ -209,7 +209,17 @@ const Code<Null> codeCantInferPackagesFromManyInputs =
 const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
     "CantInferPackagesFromManyInputs",
     message:
-        r"""Cannot infer a .packages file when compiling multiple inputs.""",
+        r"""Can't infer a .packages file when compiling multiple inputs.""",
+    tip: r"""Try specifying the file explicitly with the --packages option.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCantInferPackagesFromPackageUri =
+    messageCantInferPackagesFromPackageUri;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
+    "CantInferPackagesFromPackageUri",
+    message: r"""Can't infer a .packages file from an input 'package:*' URI.""",
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1394,7 +1404,7 @@ const MessageCode messageInternalProblemMissingContext = const MessageCode(
     "InternalProblemMissingContext",
     message: r"""Compiler cannot run without a compiler context.""",
     tip:
-        r"""Are calls to the compiler wrapped in CompilerContext.withGlobalOptions?""");
+        r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =

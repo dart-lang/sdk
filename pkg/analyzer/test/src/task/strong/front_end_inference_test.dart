@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
-import 'package:front_end/src/fasta/compiler_command_line.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     as fasta;
@@ -135,7 +134,7 @@ class _ElementNamer {
 
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   Future<String> runTest(String path, String code) {
-    return fasta.CompilerCommandLine.withGlobalOptions("", [""], (_) async {
+    return fasta.CompilerContext.runWithDefaultOptions((_) async {
       Uri uri = provider.pathContext.toUri(path);
 
       List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;

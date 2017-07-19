@@ -34,16 +34,9 @@ const bool hideWarnings = false;
 /// command-line tool. This includes source snippets and different colors based
 /// on [severity].
 ///
-/// It is a assumed that a formatted message is reported to a user, so
-/// [exitCode] is also set depending on the value of
-/// `CompilerContext.current.options.setExitCodeOnProblem`.
-///
 /// This is shared implementation used by methods below, and isn't intended to
 /// be called directly.
 String formatInternal(Message message, Severity severity, Uri uri, int offset) {
-  if (CompilerContext.current.options.setExitCodeOnProblem) {
-    exitCode = 1;
-  }
   String text =
       "${severityName(severity, capitalized: true)}: ${message.message}";
   if (message.tip != null) {
@@ -107,16 +100,16 @@ bool isHidden(Severity severity) {
 bool isFatal(Severity severity) {
   switch (severity) {
     case Severity.error:
-      return CompilerContext.current.options.errorsAreFatal;
+      return CompilerContext.current.options.throwOnErrors;
 
     case Severity.internalProblem:
       return true;
 
     case Severity.nit:
-      return CompilerContext.current.options.nitsAreFatal;
+      return CompilerContext.current.options.throwOnNits;
 
     case Severity.warning:
-      return CompilerContext.current.options.warningsAreFatal;
+      return CompilerContext.current.options.throwOnWarnings;
   }
   return unhandled("$severity", "isFatal", -1, null);
 }
@@ -139,11 +132,25 @@ String severityName(Severity severity, {bool capitalized: false}) {
   return unhandled("$severity", "severityName", -1, null);
 }
 
+/// Print a formatted message and throw when errors are treated as fatal.
+/// Also set [exitCode] depending on the value of
+/// `CompilerContext.current.options.setExitCodeOnProblem`.
 void _printAndThrowIfFatal(
     String text, Severity severity, Uri uri, int charOffset) {
+  // I believe we should only set it if we are reporting something, if we are
+  // formatting to embed the error in the program, then we probably don't want
+  // to do it in format.
+  // Note: I also want to limit dependencies to dart:io for when we use the FE
+  // outside of the VM. This default reporting is likely not going to be used in
+  // that context, but the default formatter is.
+  if (CompilerContext.current.options.setExitCodeOnProblem) {
+    exitCode = 1;
+  }
   print(text);
   if (isFatal(severity)) {
     if (isVerbose) print(StackTrace.current);
+    // TODO(sigmund,ahe): ensure there is no circularity when InputError is
+    // handled.
     throw new deprecated_InputError(uri, charOffset,
         "Compilation aborted due to fatal ${severityName(severity)}.");
   }

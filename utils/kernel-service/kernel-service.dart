@@ -78,12 +78,22 @@ Future _processLoadRequest(request) async {
     ..packagesFileUri = packagesUri
     ..sdkSummary = sdkSummary
     ..verbose = verbose
-    ..onError = (CompilationError e) => errors.add(e.message);
+    ..throwOnErrors = false
+    ..reportMessages = true
+    ..onError = (CompilationMessage e) {
+      if (e.severity == Severity.error) {
+        // TODO(sigmund): support emitting code with errors as long as they are
+        // handled in the generated code (issue #30194).
+        errors.add(e.message);
+      }
+    };
 
   CompilationResult result;
   try {
     Program program = await kernelForProgram(script, options);
     if (errors.isNotEmpty) {
+      // TODO(sigmund): the compiler prints errors to the console, so we
+      // shouldn't print those messages again here.
       result = new CompilationResult.errors(errors);
     } else {
       // We serialize the program excluding platform.dill because the VM has

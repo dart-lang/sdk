@@ -10,9 +10,10 @@ import 'dart:convert' show JSON;
 
 import 'dart:io' show BytesBuilder, File, exitCode;
 
+import 'package:front_end/compiler_options.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
 
 import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
@@ -25,9 +26,9 @@ import 'deprecated_problems.dart'
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
-import 'dill/dill_target.dart' show DillTarget;
+import 'package:kernel/target/targets.dart' show Target;
 
-import 'compile_platform.dart' show compilePlatformInternal;
+import 'dill/dill_target.dart' show DillTarget;
 
 import 'severity.dart' show Severity;
 
@@ -70,8 +71,8 @@ outlineEntryPoint(List<String> arguments) async {
 
 Future<KernelTarget> outline(List<String> arguments) async {
   try {
-    return await CompilerCommandLine.withGlobalOptions("outline", arguments,
-        (CompilerContext c) async {
+    return await CompilerCommandLine.withGlobalOptions(
+        "outline", arguments, true, (CompilerContext c, _) async {
       if (c.options.verbose) {
         print("Building outlines for ${arguments.join(' ')}");
       }
@@ -81,17 +82,16 @@ Future<KernelTarget> outline(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    CompilerCommandLine.deprecated_withDefaultOptions(() => CompilerContext
-        .current
-        .report(deprecated_InputError.toMessage(e), Severity.error));
+    CompilerContext.runWithDefaultOptions(
+        (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
     return null;
   }
 }
 
 Future<Uri> compile(List<String> arguments) async {
   try {
-    return await CompilerCommandLine.withGlobalOptions("compile", arguments,
-        (CompilerContext c) async {
+    return await CompilerCommandLine.withGlobalOptions(
+        "compile", arguments, true, (CompilerContext c, _) async {
       if (c.options.verbose) {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
@@ -101,9 +101,8 @@ Future<Uri> compile(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    CompilerCommandLine.deprecated_withDefaultOptions(() => CompilerContext
-        .current
-        .report(deprecated_InputError.toMessage(e), Severity.error));
+    CompilerContext.runWithDefaultOptions(
+        (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
     return null;
   }
 }
@@ -125,8 +124,7 @@ class CompileTask {
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
-    UriTranslator uriTranslator = await UriTranslatorImpl
-        .parse(c.fileSystem, c.options.sdk, packages: c.options.packages);
+    UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
     KernelTarget kernelTarget =
@@ -134,13 +132,12 @@ class CompileTask {
     if (c.options.strongMode) {
       print("Note: strong mode support is preliminary and may not work.");
     }
-    Uri platform = c.options.platform;
+    Uri platform = c.options.sdkSummary;
     if (platform != null) {
       _appendDillForUri(dillTarget, platform);
     }
-    String argument = c.options.arguments.first;
-    Uri uri = Uri.base.resolve(argument);
-    String path = uriTranslator.translate(uri)?.path ?? argument;
+    Uri uri = c.options.inputs.first;
+    String path = uriTranslator.translate(uri)?.path ?? uri.path;
     if (path.endsWith(".dart")) {
       kernelTarget.read(uri);
     } else {
@@ -148,7 +145,7 @@ class CompileTask {
     }
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
-    if (c.options.dumpIr && output != null) {
+    if (c.options.debugDump && output != null) {
       printProgramText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
@@ -163,7 +160,7 @@ class CompileTask {
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
     var program = await kernelTarget.buildProgram(verify: c.options.verify);
-    if (c.options.dumpIr) {
+    if (c.options.debugDump) {
       printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
     }
     await writeProgramToFile(program, uri);
@@ -172,50 +169,26 @@ class CompileTask {
   }
 }
 
-Future compilePlatform(Uri patchedSdk, Uri fullOutput,
-    {Uri outlineOutput,
-    Uri packages,
-    bool verbose: false,
-    String backendTarget}) async {
-  backendTarget ??= "vm_fasta";
-  Ticker ticker = new Ticker(isVerbose: verbose);
-  await CompilerCommandLine.withGlobalOptions("", [""], (CompilerContext c) {
-    c.options.options["--target"] = backendTarget;
-    c.options.options["--packages"] = packages;
-    if (verbose) {
-      c.options.options["--verbose"] = true;
-    }
-    c.options.validate();
-    return compilePlatformInternal(
-        c, ticker, patchedSdk, fullOutput, outlineOutput);
-  });
-}
-
 // TODO(sigmund): reimplement this API using the directive listener intead.
 Future<List<Uri>> getDependencies(Uri script,
     {Uri sdk,
     Uri packages,
     Uri platform,
     bool verbose: false,
-    String backendTarget}) async {
-  backendTarget ??= "vm_fasta";
-  Ticker ticker = new Ticker(isVerbose: verbose);
-  return await CompilerCommandLine.withGlobalOptions("", [""],
+    Target target}) async {
+  var options = new CompilerOptions()
+    ..target = target
+    ..verbose = verbose
+    ..packagesFileUri = packages
+    ..sdkSummary = platform
+    ..sdkRoot = sdk;
+  var pOptions = new ProcessedOptions(options);
+  return await CompilerContext.runWithOptions(pOptions,
       (CompilerContext c) async {
-    c.options.options["--target"] = backendTarget;
-    c.options.options["--strong-mode"] = false;
-    c.options.options["--packages"] = packages;
-    if (verbose) {
-      c.options.options["--verbose"] = true;
-    }
-    c.options.validate();
-    sdk ??= c.options.sdk;
-
-    UriTranslator uriTranslator = await UriTranslatorImpl
-        .parse(c.fileSystem, sdk, packages: c.options.packages);
-    ticker.logMs("Read packages file");
+    UriTranslator uriTranslator = await c.options.getUriTranslator();
+    c.options.ticker.logMs("Read packages file");
     DillTarget dillTarget =
-        new DillTarget(ticker, uriTranslator, c.options.target);
+        new DillTarget(c.options.ticker, uriTranslator, c.options.target);
     if (platform != null) _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(PhysicalFileSystem.instance,
         false, dillTarget, uriTranslator, c.uriToSource);

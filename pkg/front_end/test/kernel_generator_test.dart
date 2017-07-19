@@ -4,6 +4,8 @@
 
 import 'package:front_end/front_end.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/ast.dart';
 
@@ -61,13 +63,14 @@ main() {
       expect(errors.first.message, contains("No 'main' method found"));
     });
 
-    test('default error handler throws', () async {
+    test('default error handler throws on errors', () async {
+      var options = new CompilerOptions();
       var exceptionThrown = false;
       try {
-        await compileScript('a() => print("hi");');
-      } on CompilationError catch (e) {
+        await compileScript('a() => print("hi");', options: options);
+      } on deprecated_InputError catch (e) {
         exceptionThrown = true;
-        expect(e.message, contains("No 'main' method found"));
+        expect('${e.error}', contains("Compilation aborted"));
       }
       expect(exceptionThrown, isTrue);
     });
