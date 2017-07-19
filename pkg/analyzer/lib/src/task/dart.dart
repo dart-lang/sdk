@@ -1551,9 +1551,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
           CompilationUnitElementImpl partElement = partUnit.element;
-          partElement.uriOffset = partUri.offset;
-          partElement.uriEnd = partUri.end;
-          partElement.uri = directive.uriContent;
           //
           // Validate that the part source is unique in the library.
           //

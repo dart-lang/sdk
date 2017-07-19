@@ -363,7 +363,8 @@ abstract class RenameRefactoring implements Refactoring {
           searchEngine, astProvider, element);
     }
     if (element is ImportElement) {
-      return new RenameImportRefactoringImpl(searchEngine, element);
+      return new RenameImportRefactoringImpl(
+          searchEngine, astProvider, element);
     }
     if (element is LabelElement) {
       return new RenameLabelRefactoringImpl(searchEngine, element);

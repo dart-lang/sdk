@@ -1371,7 +1371,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 /**
  * A concrete implementation of a [CompilationUnitElement].
  */
-class CompilationUnitElementImpl extends UriReferencedElementImpl
+class CompilationUnitElementImpl extends ElementImpl
     implements CompilationUnitElement {
   /**
    * The context in which this unit is resynthesized, or `null` if the
@@ -3354,6 +3354,17 @@ abstract class ElementImpl implements Element {
     }
   }
 
+  String _selectUri(
+      String defaultUri, List<UnlinkedConfiguration> configurations) {
+    for (UnlinkedConfiguration configuration in configurations) {
+      if (context.declaredVariables.get(configuration.name) ==
+          configuration.value) {
+        return configuration.uri;
+      }
+    }
+    return defaultUri;
+  }
+
   static int findElementIndexUsingIdentical(List items, Object item) {
     int length = items.length;
     for (int i = 0; i < length; i++) {
@@ -4178,8 +4189,7 @@ abstract class ExecutableElementImpl extends ElementImpl
 /**
  * A concrete implementation of an [ExportElement].
  */
-class ExportElementImpl extends UriReferencedElementImpl
-    implements ExportElement {
+class ExportElementImpl extends ElementImpl implements ExportElement {
   /**
    * The unlinked representation of the export in the summary.
    */
@@ -4238,8 +4248,11 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   LibraryElement get exportedLibrary {
     if (_unlinkedExportNonPublic != null && _exportedLibrary == null) {
+      _selectedUri ??= _selectUri(
+          _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
       LibraryElementImpl library = enclosingElement as LibraryElementImpl;
-      _exportedLibrary = library.resynthesizerContext.buildExportedLibrary(uri);
+      _exportedLibrary =
+          library.resynthesizerContext.buildExportedLibrary(_selectedUri);
     }
     return _exportedLibrary;
   }
@@ -4277,49 +4290,6 @@ class ExportElementImpl extends UriReferencedElementImpl
       return _unlinkedExportNonPublic.offset;
     }
     return offset;
-  }
-
-  @override
-  String get uri {
-    if (_unlinkedExportPublic != null) {
-      return _selectedUri ??= _selectUri(
-          _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
-    }
-    return super.uri;
-  }
-
-  @override
-  void set uri(String uri) {
-    _assertNotResynthesized(_unlinkedExportPublic);
-    super.uri = uri;
-  }
-
-  @override
-  int get uriEnd {
-    if (_unlinkedExportNonPublic != null) {
-      return _unlinkedExportNonPublic.uriEnd;
-    }
-    return super.uriEnd;
-  }
-
-  @override
-  void set uriEnd(int uriEnd) {
-    _assertNotResynthesized(_unlinkedExportNonPublic);
-    super.uriEnd = uriEnd;
-  }
-
-  @override
-  int get uriOffset {
-    if (_unlinkedExportNonPublic != null) {
-      return _unlinkedExportNonPublic.uriOffset;
-    }
-    return super.uriOffset;
-  }
-
-  @override
-  void set uriOffset(int uriOffset) {
-    _assertNotResynthesized(_unlinkedExportNonPublic);
-    super.uriOffset = uriOffset;
   }
 
   @override
@@ -5499,8 +5469,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 /**
  * A concrete implementation of an [ImportElement].
  */
-class ImportElementImpl extends UriReferencedElementImpl
-    implements ImportElement {
+class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
    * The unlinked representation of the import in the summary.
    */
@@ -5533,11 +5502,6 @@ class ImportElementImpl extends UriReferencedElementImpl
    * there was no prefix specified.
    */
   PrefixElement _prefix;
-
-  /**
-   * The URI that was selected based on the [context] declared variables.
-   */
-  String _selectedUri;
 
   /**
    * Initialize a newly created import element at the given [offset].
@@ -5672,58 +5636,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   void set prefixOffset(int prefixOffset) {
     _assertNotResynthesized(_unlinkedImport);
     _prefixOffset = prefixOffset;
-  }
-
-  @override
-  String get uri {
-    if (_unlinkedImport != null) {
-      if (_unlinkedImport.isImplicit) {
-        return null;
-      }
-      return _selectedUri ??=
-          _selectUri(_unlinkedImport.uri, _unlinkedImport.configurations);
-    }
-    return super.uri;
-  }
-
-  @override
-  void set uri(String uri) {
-    _assertNotResynthesized(_unlinkedImport);
-    super.uri = uri;
-  }
-
-  @override
-  int get uriEnd {
-    if (_unlinkedImport != null) {
-      if (_unlinkedImport.isImplicit) {
-        return -1;
-      }
-      return _unlinkedImport.uriEnd;
-    }
-    return super.uriEnd;
-  }
-
-  @override
-  void set uriEnd(int uriEnd) {
-    _assertNotResynthesized(_unlinkedImport);
-    super.uriEnd = uriEnd;
-  }
-
-  @override
-  int get uriOffset {
-    if (_unlinkedImport != null) {
-      if (_unlinkedImport.isImplicit) {
-        return -1;
-      }
-      return _unlinkedImport.uriOffset;
-    }
-    return super.uriOffset;
-  }
-
-  @override
-  void set uriOffset(int uriOffset) {
-    _assertNotResynthesized(_unlinkedImport);
-    super.uriOffset = uriOffset;
   }
 
   @override
@@ -9172,89 +9084,6 @@ class UnitExplicitTopLevelVariables {
       : variables = numberOfVariables != 0
             ? new List<TopLevelVariableElementImpl>(numberOfVariables)
             : const <TopLevelVariableElementImpl>[];
-}
-
-/**
- * A concrete implementation of a [UriReferencedElement].
- */
-abstract class UriReferencedElementImpl extends ElementImpl
-    implements UriReferencedElement {
-  /**
-   * The offset of the URI in the file, or `-1` if this node is synthetic.
-   */
-  int _uriOffset = -1;
-
-  /**
-   * The offset of the character immediately following the last character of
-   * this node's URI, or `-1` if this node is synthetic.
-   */
-  int _uriEnd = -1;
-
-  /**
-   * The URI that is specified by this directive.
-   */
-  String _uri;
-
-  /**
-   * Initialize a newly created import element to have the given [name] and
-   * [offset]. The offset may be `-1` if the element is synthetic.
-   */
-  UriReferencedElementImpl(String name, int offset) : super(name, offset);
-
-  /**
-   * Initialize using the given serialized information.
-   */
-  UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
-
-  /**
-   * Return the URI that is specified by this directive.
-   */
-  String get uri => _uri;
-
-  /**
-   * Set the URI that is specified by this directive to be the given [uri].
-   */
-  void set uri(String uri) {
-    _uri = uri;
-  }
-
-  /**
-   * Return the offset of the character immediately following the last character
-   * of this node's URI, or `-1` if this node is synthetic.
-   */
-  int get uriEnd => _uriEnd;
-
-  /**
-   * Set the offset of the character immediately following the last character of
-   * this node's URI to the given [offset].
-   */
-  void set uriEnd(int offset) {
-    _uriEnd = offset;
-  }
-
-  /**
-   * Return the offset of the URI in the file, or `-1` if this node is synthetic.
-   */
-  int get uriOffset => _uriOffset;
-
-  /**
-   * Set the offset of the URI in the file to the given [offset].
-   */
-  void set uriOffset(int offset) {
-    _uriOffset = offset;
-  }
-
-  String _selectUri(
-      String defaultUri, List<UnlinkedConfiguration> configurations) {
-    for (UnlinkedConfiguration configuration in configurations) {
-      if (context.declaredVariables.get(configuration.name) ==
-          configuration.value) {
-        return configuration.uri;
-      }
-    }
-    return defaultUri;
-  }
 }
 
 /**

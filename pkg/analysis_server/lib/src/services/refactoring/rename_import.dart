@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,7 +22,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * A [Refactoring] for renaming [ImportElement]s.
  */
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
-  RenameImportRefactoringImpl(SearchEngine searchEngine, ImportElement element)
+  final AstProvider astProvider;
+
+  RenameImportRefactoringImpl(
+      SearchEngine searchEngine, this.astProvider, ImportElement element)
       : super(searchEngine, element);
 
   @override
@@ -52,14 +56,17 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       PrefixElement prefix = element.prefix;
       SourceEdit edit = null;
       if (newName.isEmpty) {
-        int uriEnd = element.uriEnd;
+        ImportDirective node = await _findNode();
+        int uriEnd = node.uri.end;
         int prefixEnd = element.prefixOffset + prefix.nameLength;
         edit = newSourceEdit_range(
             range.startOffsetEndOffset(uriEnd, prefixEnd), "");
       } else {
         if (prefix == null) {
-          edit = newSourceEdit_range(
-              new SourceRange(element.uriEnd, 0), " as $newName");
+          ImportDirective node = await _findNode();
+          int uriEnd = node.uri.end;
+          edit =
+              newSourceEdit_range(new SourceRange(uriEnd, 0), " as $newName");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;
@@ -92,6 +99,16 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       }
     }
+  }
+
+  /**
+   * Return the [ImportDirective] node that corresponds to the [element].
+   */
+  Future<ImportDirective> _findNode() async {
+    LibraryElement library = element.library;
+    CompilationUnit unit = await astProvider.getParsedUnitForElement(library);
+    int index = library.imports.indexOf(element);
+    return unit.directives.where((d) => d is ImportDirective).toList()[index];
   }
 
   /**

@@ -278,7 +278,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
       CompilationUnitElementImpl original) {
     String desc = 'Compilation unit ${original.source.uri}';
-    compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
     compareLineInfo(resynthesized.lineInfo, original.lineInfo);
@@ -768,7 +767,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareExportElements(ExportElementImpl resynthesized,
       ExportElementImpl original, String desc) {
-    compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.exportedLibrary.location,
         original.exportedLibrary.location);
     expect(resynthesized.combinators.length, original.combinators.length);
@@ -850,7 +848,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareImportElements(ImportElementImpl resynthesized,
       ImportElementImpl original, String desc) {
-    compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.importedLibrary.location,
         original.importedLibrary.location,
         reason: '$desc importedLibrary location');
@@ -1152,15 +1149,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else {
       fail('Unimplemented comparison for ${original.runtimeType}');
     }
-  }
-
-  void compareUriReferencedElements(UriReferencedElementImpl resynthesized,
-      UriReferencedElementImpl original, String desc) {
-    compareElements(resynthesized, original, desc);
-    expect(resynthesized.uri, original.uri, reason: '$desc.uri');
-    expect(resynthesized.uriOffset, original.uriOffset,
-        reason: '$desc.uriOffset');
-    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc.uriEnd');
   }
 
   void compareVariableElements(
@@ -6432,7 +6420,6 @@ export 'foo.dart';
 export 'foo.dart';
 ''');
     }
-    expect(library.exports[0].uri, 'foo.dart');
     expect(library.exports[0].exportedLibrary.source.shortName, 'foo.dart');
   }
 
@@ -6456,7 +6443,6 @@ export 'foo_io.dart';
 export 'foo_io.dart';
 ''');
     }
-    expect(library.exports[0].uri, 'foo_io.dart');
     expect(library.exports[0].exportedLibrary.source.shortName, 'foo_io.dart');
   }
 
@@ -6481,7 +6467,6 @@ export 'foo_html.dart';
 ''');
     }
     ExportElement export = library.exports[0];
-    expect(export.uri, 'foo_html.dart');
     expect(export.exportedLibrary.source.shortName, 'foo_html.dart');
   }
 
@@ -7852,13 +7837,13 @@ import '';
       checkElementText(library, r'''
 @
         foo/*location: null*/
-import '';
+import '<unresolved>';
 ''');
     } else {
       checkElementText(library, r'''
 @
         foo/*location: null*/
-import '';
+import '<unresolved>';
 ''');
     }
   }
@@ -7935,12 +7920,12 @@ class D extends C {
     var library = await checkLibrary('import "/a.dart"; C c;');
     if (isStrongMode) {
       checkElementText(library, r'''
-import '/a.dart';
+import 'a.dart';
 C c;
 ''');
     } else {
       checkElementText(library, r'''
-import '/a.dart';
+import 'a.dart';
 C c;
 ''');
     }
@@ -8947,7 +8932,7 @@ class B extends A {}
 ''');
     if (isStrongMode) {
       checkElementText(library, r'''
-part '';
+part '<unresolved>';
 class B {
 }
 --------------------
@@ -8956,7 +8941,7 @@ unit: null
 ''');
     } else {
       checkElementText(library, r'''
-part '';
+part '<unresolved>';
 class B {
 }
 --------------------
@@ -8986,21 +8971,20 @@ part '[invalid uri]';
 part 'a3.dart';
 part '[invalid uri]';
 ''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
+    checkElementText(library, r'''
+import '<unresolved>';
+import '<unresolved>';
 import 'a1.dart';
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
+import '<unresolved>';
+import '<unresolved>';
+export '<unresolved>';
+export '<unresolved>';
 export 'a2.dart';
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
-part '[invalid uri]';
+export '<unresolved>';
+export '<unresolved>';
+part '<unresolved>';
 part 'a3.dart';
-part '[invalid uri]';
+part '<unresolved>';
 --------------------
 unit: null
 
@@ -9011,32 +8995,6 @@ unit: a3.dart
 unit: null
 
 ''');
-    } else {
-      checkElementText(library, r'''
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
-import 'a1.dart';
-import '[invalid uri]';
-import '[invalid uri]:foo.dart';
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
-export 'a2.dart';
-export '[invalid uri]';
-export '[invalid uri]:foo.dart';
-part '[invalid uri]';
-part 'a3.dart';
-part '[invalid uri]';
---------------------
-unit: null
-
---------------------
-unit: a3.dart
-
---------------------
-unit: null
-
-''');
-    }
   }
 
   test_library() async {
@@ -11095,7 +11053,7 @@ unit: b.dart
     if (isStrongMode) {
       checkElementText(library, r'''
 library my.lib;
-part 'foo/';
+part '<unresolved>';
 --------------------
 unit: null
 
@@ -11103,7 +11061,7 @@ unit: null
     } else {
       checkElementText(library, r'''
 library my.lib;
-part 'foo/';
+part '<unresolved>';
 --------------------
 unit: null
 
@@ -11122,7 +11080,7 @@ part "${foo}/bar.dart";
     if (isStrongMode) {
       checkElementText(library, r'''
 library my.lib;
-part '';
+part '<unresolved>';
 --------------------
 unit: null
 
@@ -11130,7 +11088,7 @@ unit: null
     } else {
       checkElementText(library, r'''
 library my.lib;
-part '';
+part '<unresolved>';
 --------------------
 unit: null
 
@@ -11924,14 +11882,14 @@ F f;
     var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
     if (isStrongMode) {
       checkElementText(library, r'''
-import 'a/a.dart';
+import 'a.dart';
 C c;
 E e;
 F f;
 ''');
     } else {
       checkElementText(library, r'''
-import 'a/a.dart';
+import 'a.dart';
 C c;
 E e;
 F f;
@@ -11945,14 +11903,14 @@ F f;
     var library = await checkLibrary('import "a/a.dart"; C c; E e; F f;');
     if (isStrongMode) {
       checkElementText(library, r'''
-import 'a/a.dart';
+import 'a.dart';
 C c;
 E e;
 F f;
 ''');
     } else {
       checkElementText(library, r'''
-import 'a/a.dart';
+import 'a.dart';
 C c;
 E e;
 F f;
@@ -12007,14 +11965,14 @@ C2 c2;
     var library = await checkLibrary('import "a/b.dart"; C c; E e; F f;');
     if (isStrongMode) {
       checkElementText(library, r'''
-import 'a/b.dart';
+import 'b.dart';
 C c;
 E e;
 F f;
 ''');
     } else {
       checkElementText(library, r'''
-import 'a/b.dart';
+import 'b.dart';
 C c;
 E e;
 F f;

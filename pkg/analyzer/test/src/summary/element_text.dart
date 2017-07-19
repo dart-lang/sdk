@@ -262,7 +262,7 @@ class _ElementWriter {
   void writeExportElement(ExportElement e) {
     writeMetadata(e, '', '\n');
     buffer.write('export ');
-    writeUri(e, e.exportedLibrary?.source);
+    writeUri(e.exportedLibrary?.source);
 
     e.combinators.forEach(writeNamespaceCombinator);
 
@@ -479,7 +479,7 @@ class _ElementWriter {
     if (!e.isSynthetic) {
       writeMetadata(e, '', '\n');
       buffer.write('import ');
-      writeUri(e, e.importedLibrary?.source);
+      writeUri(e.importedLibrary?.source);
 
       writeIf(e.isDeferred, ' deferred');
 
@@ -637,7 +637,7 @@ class _ElementWriter {
   void writePartElement(CompilationUnitElement e) {
     writeMetadata(e, '', '\n');
     buffer.write('part ');
-    writeUri(e, e.source);
+    writeUri(e.source);
     buffer.writeln(';');
   }
 
@@ -806,14 +806,16 @@ class _ElementWriter {
     e.functions.forEach(writeFunctionElement);
   }
 
-  void writeUri(UriReferencedElement e, Source source) {
-    String uri = e.uri ?? source.uri.toString();
-    buffer.write('\'$uri\'');
-    if (withOffsets) {
-      buffer.write('(');
-      buffer.write('${e.uriOffset}, ');
-      buffer.write('${e.uriEnd})');
-      buffer.write(')');
+  void writeUri(Source source) {
+    if (source != null) {
+      Uri uri = source.uri;
+      String uriStr = uri.toString();
+      if (uri.isScheme('file')) {
+        uriStr = uri.pathSegments.last;
+      }
+      buffer.write('\'$uriStr\'');
+    } else {
+      buffer.write('\'<unresolved>\'');
     }
   }
 

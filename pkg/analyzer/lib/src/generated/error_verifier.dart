@@ -3566,9 +3566,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInSystemLibrary) {
       return;
     }
+
+    LibraryElement exportedLibrary = exportElement.exportedLibrary;
+    if (exportedLibrary == null) {
+      return;
+    }
+
     // should be private
     DartSdk sdk = _currentLibrary.context.sourceFactory.dartSdk;
-    String uri = exportElement.uri;
+    String uri = exportedLibrary.source.uri.toString();
     SdkLibrary sdkLibrary = sdk.getSdkLibrary(uri);
     if (sdkLibrary == null) {
       return;
@@ -4179,9 +4185,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInSystemLibrary) {
       return;
     }
+
+    LibraryElement importedLibrary = importElement.importedLibrary;
+    if (importedLibrary == null) {
+      return;
+    }
+
     // should be private
     DartSdk sdk = _currentLibrary.context.sourceFactory.dartSdk;
-    String uri = importElement.uri;
+    String uri = importedLibrary.source.uri.toString();
     SdkLibrary sdkLibrary = sdk.getSdkLibrary(uri);
     if (sdkLibrary == null || !sdkLibrary.isInternal) {
       return;
