@@ -600,8 +600,9 @@ class _ElementWriter {
 
   void writeParameterElement(ParameterElement e) {
     String defaultValueSeparator;
-    Expression defaultValue =
-        e is DefaultParameterElementImpl ? e.constantInitializer : null;
+    Expression defaultValue = e is ConstVariableElement
+        ? (e as ConstVariableElement).constantInitializer
+        : null;
     String closeString;
     ParameterKind kind = e.parameterKind;
     if (kind == ParameterKind.REQUIRED) {

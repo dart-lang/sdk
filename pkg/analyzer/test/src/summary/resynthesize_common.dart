@@ -1987,14 +1987,14 @@ class C {
       checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x});
+  C({int this.x: 42});
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C {
   int x;
-  C({int this.x});
+  C({int this.x: 42});
 }
 ''');
     }
@@ -2025,14 +2025,14 @@ class C {
       checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x]);
+  C([int this.x = 42]);
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C {
   int x;
-  C([int this.x]);
+  C([int this.x = 42]);
 }
 ''');
     }
@@ -3821,7 +3821,8 @@ int foo() => 42;
       checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x});
+  const C({dynamic this.x:
+        foo/*location: test.dart;foo*/});
 }
 int foo() {}
 ''');
@@ -3829,7 +3830,8 @@ int foo() {}
       checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x});
+  const C({dynamic this.x:
+        foo/*location: test.dart;foo*/});
 }
 int foo() {}
 ''');
@@ -3847,14 +3849,14 @@ class C {
       checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x});
+  const C({dynamic this.x: 1 + 2});
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C({dynamic this.x});
+  const C({dynamic this.x: 1 + 2});
 }
 ''');
     }
@@ -3871,14 +3873,14 @@ class C {
       checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C([dynamic this.x]);
+  const C([dynamic this.x = 1 + 2]);
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C {
   final dynamic x;
-  const C([dynamic this.x]);
+  const C([dynamic this.x = 1 + 2]);
 }
 ''');
     }
@@ -9801,7 +9803,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x]);
+        a/*location: test.dart;a?*/ dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -9810,7 +9812,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x]);
+        a/*location: test.dart;a?*/ dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -10974,16 +10976,16 @@ class C {
       checkElementText(library, r'''
 class C {
   dynamic x;
-  C.positional([dynamic this.x]);
-  C.named({dynamic this.x});
+  C.positional([dynamic this.x = 1]);
+  C.named({dynamic this.x: 1});
 }
 ''');
     } else {
       checkElementText(library, r'''
 class C {
   dynamic x;
-  C.positional([dynamic this.x]);
-  C.named({dynamic this.x});
+  C.positional([dynamic this.x = 1]);
+  C.named({dynamic this.x: 1});
 }
 ''');
     }
