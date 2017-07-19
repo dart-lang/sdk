@@ -56,12 +56,14 @@ MessageHandler::MessageHandler()
       oob_message_handling_allowed_(true),
       live_ports_(0),
       paused_(0),
+#if !defined(PRODUCT)
       should_pause_on_start_(false),
       should_pause_on_exit_(false),
       is_paused_on_start_(false),
       is_paused_on_exit_(false),
-      delete_me_(false),
       paused_timestamp_(-1),
+#endif
+      delete_me_(false),
       pool_(NULL),
       task_(NULL),
       start_callback_(NULL),
@@ -281,6 +283,7 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   return HandleMessages(&ml, false, false);
 }
 
+#if !defined(PRODUCT)
 bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
   if (owning_isolate == NULL) {
@@ -302,6 +305,7 @@ bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
           status != MessageHandler::kShutdown) &&
          should_pause_on_exit() && owning_isolate->is_runnable();
 }
+#endif
 
 bool MessageHandler::HasOOBMessages() {
   MonitorLocker ml(&monitor_);
@@ -321,6 +325,7 @@ void MessageHandler::TaskCallback() {
     // all pending OOB messages, or we may miss a request for vm
     // shutdown.
     MonitorLocker ml(&monitor_);
+#if !defined(PRODUCT)
     if (ShouldPauseOnStart(kOK)) {
       if (!is_paused_on_start()) {
         PausedOnStartLocked(&ml, true);
@@ -336,6 +341,7 @@ void MessageHandler::TaskCallback() {
         PausedOnStartLocked(&ml, false);
       }
     }
+#endif
 
     if (status == kOK) {
       if (start_callback_) {
@@ -360,6 +366,7 @@ void MessageHandler::TaskCallback() {
     // The isolate exits when it encounters an error or when it no
     // longer has live ports.
     if (status != kOK || !HasLivePorts()) {
+#if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
         if (!is_paused_on_exit()) {
           if (FLAG_trace_service_pause_events) {
@@ -381,6 +388,7 @@ void MessageHandler::TaskCallback() {
           PausedOnExitLocked(&ml, false);
         }
       }
+#endif  // !defined(PRODUCT)
       if (FLAG_trace_isolates) {
         if (status != kOK && thread() != NULL) {
           const Error& error = Error::Handle(thread()->sticky_error());
@@ -482,13 +490,14 @@ void MessageHandler::decrement_live_ports() {
   live_ports_--;
 }
 
+#if !defined(PRODUCT)
+void MessageHandler::DebugDump() {
+  PortMap::DebugDumpForMessageHandler(this);
+}
+
 void MessageHandler::PausedOnStart(bool paused) {
   MonitorLocker ml(&monitor_);
   PausedOnStartLocked(&ml, paused);
-}
-
-void MessageHandler::DebugDump() {
-  PortMap::DebugDumpForMessageHandler(this);
 }
 
 void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
@@ -549,6 +558,7 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
     }
   }
 }
+#endif  // !defined(PRODUCT)
 
 MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
     : handler_(handler), ml_(&handler->monitor_) {

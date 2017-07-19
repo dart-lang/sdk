@@ -1311,13 +1311,22 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
 }
 
 DART_EXPORT bool Dart_ShouldPauseOnStart() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->should_pause_on_start();
+#endif
 }
 
 DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
+#if defined(PRODUCT)
+  if (should_pause) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
@@ -1325,53 +1334,84 @@ DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
     FATAL1("%s expects the current isolate to not be runnable yet.",
            CURRENT_FUNC);
   }
-  return isolate->message_handler()->set_should_pause_on_start(should_pause);
+  isolate->message_handler()->set_should_pause_on_start(should_pause);
+#endif
 }
 
 DART_EXPORT bool Dart_IsPausedOnStart() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->is_paused_on_start();
+#endif
 }
 
 DART_EXPORT void Dart_SetPausedOnStart(bool paused) {
+#if defined(PRODUCT)
+  if (paused) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   if (isolate->message_handler()->is_paused_on_start() != paused) {
     isolate->message_handler()->PausedOnStart(paused);
   }
+#endif
 }
 
 DART_EXPORT bool Dart_ShouldPauseOnExit() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->should_pause_on_exit();
+#endif
 }
 
 DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause) {
+#if defined(PRODUCT)
+  if (should_pause) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
-  return isolate->message_handler()->set_should_pause_on_exit(should_pause);
+  isolate->message_handler()->set_should_pause_on_exit(should_pause);
+#endif
 }
 
 DART_EXPORT bool Dart_IsPausedOnExit() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->is_paused_on_exit();
+#endif
 }
 
 DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
+#if defined(PRODUCT)
+  if (paused) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   if (isolate->message_handler()->is_paused_on_exit() != paused) {
     isolate->message_handler()->PausedOnExit(paused);
   }
+#endif
 }
 
 DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
@@ -1625,6 +1665,9 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
 }
 
 DART_EXPORT bool Dart_HandleServiceMessages() {
+#if defined(PRODUCT)
+  return true;
+#else
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
@@ -1636,13 +1679,18 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
       I->message_handler()->HandleOOBMessages();
   bool resume = I->GetAndClearResumeRequest();
   return (status != MessageHandler::kOK) || resume;
+#endif
 }
 
 DART_EXPORT bool Dart_HasServiceMessages() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->HasOOBMessages();
+#endif
 }
 
 DART_EXPORT bool Dart_HasLivePorts() {

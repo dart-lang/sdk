@@ -610,11 +610,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   is_kernel_isolate = KernelIsolate::IsKernelIsolate(I);
 #endif
   ServiceIsolate::MaybeMakeServiceIsolate(I);
+#if !defined(PRODUCT)
   if (!ServiceIsolate::IsServiceIsolate(I) && !is_kernel_isolate) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
   }
+#endif  // !defined(PRODUCT)
 
   ServiceIsolate::SendIsolateStartupMessage();
 #if !defined(PRODUCT)

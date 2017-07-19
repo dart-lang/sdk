@@ -759,9 +759,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       api_state_(NULL),
 #if !defined(PRODUCT)
       debugger_(NULL),
-#endif
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
+#endif
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
@@ -2279,7 +2279,6 @@ RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
   }
   return Instance::null();
 }
-#endif  // !PRODUCT
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
@@ -2335,6 +2334,7 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
 }
+#endif  // !PRODUCT
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == NULL) {

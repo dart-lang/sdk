@@ -79,8 +79,6 @@ class MessageHandler {
 
   intptr_t live_ports() const { return live_ports_; }
 
-  void DebugDump();
-
   bool paused() const { return paused_ > 0; }
 
   void increment_paused() { paused_++; }
@@ -89,7 +87,9 @@ class MessageHandler {
     paused_--;
   }
 
-  bool ShouldPauseOnStart(MessageStatus status) const;
+#if !defined(PRODUCT)
+  void DebugDump();
+
   bool should_pause_on_start() const { return should_pause_on_start_; }
 
   void set_should_pause_on_start(bool should_pause_on_start) {
@@ -98,7 +98,6 @@ class MessageHandler {
 
   bool is_paused_on_start() const { return is_paused_on_start_; }
 
-  bool ShouldPauseOnExit(MessageStatus status) const;
   bool should_pause_on_exit() const { return should_pause_on_exit_; }
 
   void set_should_pause_on_exit(bool should_pause_on_exit) {
@@ -110,8 +109,11 @@ class MessageHandler {
   // Timestamp of the paused on start or paused on exit.
   int64_t paused_timestamp() const { return paused_timestamp_; }
 
+  bool ShouldPauseOnStart(MessageStatus status) const;
+  bool ShouldPauseOnExit(MessageStatus status) const;
   void PausedOnStart(bool paused);
   void PausedOnExit(bool paused);
+#endif
 
   // Gives temporary ownership of |queue| and |oob_queue|. Using this object
   // has the side effect that no OOB messages will be handled if a stack
@@ -232,12 +234,14 @@ class MessageHandler {
   bool oob_message_handling_allowed_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
+#if !defined(PRODUCT)
   bool should_pause_on_start_;
   bool should_pause_on_exit_;
   bool is_paused_on_start_;
   bool is_paused_on_exit_;
-  bool delete_me_;
   int64_t paused_timestamp_;
+#endif
+  bool delete_me_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;
   StartCallback start_callback_;
