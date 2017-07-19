@@ -13,7 +13,6 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: SkipSlow
 cc/AllocGeneric_Overflow: SkipSlow
-cc/CodeImmutability: Crash
 cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
@@ -40,9 +39,12 @@ cc/VerifyExplicit_Crash: Crash
 # It can take some time for all the isolates to shutdown in a Debug build.
 dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
-# The following section refers to the dart vm tests which live under
-# runtime/tests/vm/dart.
+# CodeImmutability test ocassionally times out on Windows. Issue #30202.
+[ $system != windows ]
+cc/CodeImmutability: Crash
+
 [ $system == windows ]
+cc/CodeImmutability: Crash, Timeout
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
 cc/Service_Profile: Skip
