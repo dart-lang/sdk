@@ -910,6 +910,7 @@ class BooleanConversionAssertionError extends AssertionError {
 // Hook to register new global object.  This is invoked from dart:html
 // whenever a new window is accessed for the first time.
 void registerGlobalObject(object) {
-  dart.polyfill(object);
-  dart.applyAllExtensions(object);
+  if (dart.polyfill(object)) {
+    dart.applyAllExtensions(object);
+  }
 }
