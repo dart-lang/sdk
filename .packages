@@ -101,5 +101,7 @@ unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 utf:third_party/pkg/utf/lib
 watcher:third_party/pkg/watcher/lib
+# Note: this is pointing to the observatory_pub_packages version of pkg/observe
+web_components:third_party/observatory_pub_packages/packages/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
 yaml:third_party/pkg/yaml/lib
