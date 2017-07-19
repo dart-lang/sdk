@@ -439,14 +439,13 @@ void _installPropertiesForObject(jsProto) {
   }
 }
 
-/// Copy symbols from the prototype of the source to destination.
-/// These are the only properties safe to copy onto an existing public
-/// JavaScript class.
-registerExtension(jsType, dartExtType) => JS(
+final _extensionMap = JS('', 'new Map()');
+
+_applyExtension(jsType, dartExtType) => JS(
     '',
     '''(() => {
   // TODO(vsm): Not all registered js types are real.
-  if (!jsType) return;
+  if (!$jsType) return;
 
   let jsProto = $jsType.prototype;
 
@@ -470,6 +469,22 @@ registerExtension(jsType, dartExtType) => JS(
   updateSig($_getterSig);
   updateSig($_setterSig);
 })()''');
+
+/// Apply all registered extensions to a window.  This is intended for
+/// different frames, where registrations need to be reapplied.
+applyAllExtensions(global) {
+  JS('', '#.forEach((dartExtType, name) => #(#[name], dartExtType))',
+      _extensionMap, _applyExtension, global);
+}
+
+/// Copy symbols from the prototype of the source to destination.
+/// These are the only properties safe to copy onto an existing public
+/// JavaScript class.
+registerExtension(name, dartExtType) {
+  JS('', '#.set(#, #)', _extensionMap, name, dartExtType);
+  var jsType = JS('', '#[#]', global_, name);
+  _applyExtension(jsType, dartExtType);
+}
 
 ///
 /// Mark a concrete type as implementing extension methods.

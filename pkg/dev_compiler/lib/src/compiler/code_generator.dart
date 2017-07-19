@@ -1785,11 +1785,8 @@ class CodeGenerator extends Object
   void _registerExtensionType(
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     if (jsPeerName != null) {
-      body.add(_callHelperStatement('registerExtension(#.global.#, #);', [
-        _runtimeModule,
-        _propertyName(jsPeerName),
-        _emitTopLevelName(classElem)
-      ]));
+      body.add(_callHelperStatement('registerExtension(#, #);',
+          [js.string(jsPeerName), _emitTopLevelName(classElem)]));
     }
   }
 
