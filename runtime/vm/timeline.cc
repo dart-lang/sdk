@@ -10,6 +10,7 @@
 #include <cstdlib>
 
 #if defined(HOST_OS_FUCHSIA)
+#include "apps/tracing/lib/trace/cwriter.h"
 #include "apps/tracing/lib/trace/event.h"
 #endif
 
@@ -529,97 +530,88 @@ void TimelineEvent::StealArguments(intptr_t arguments_length,
 // "dart". Instead, we could have finer-grained categories that make use of
 // the name of the timeline stream, e.g. "VM", "GC", etc.
 
-#define FUCHSIA_EVENT_ARGS_LIST(V)                                             \
-  V(Begin, TRACE_DURATION_BEGIN)                                               \
-  V(End, TRACE_DURATION_END)
-
-#define EMIT_FUCHSIA_EVENT(__name, __macro)                                    \
-  static void EmitFuchsia##__name##Event(const char* label,                    \
-                                         TimelineEventArgument* arguments,     \
-                                         intptr_t arguments_length) {          \
-    if (arguments_length == 0) {                                               \
-      __macro("dart", label);                                                  \
-    } else if (arguments_length == 1) {                                        \
-      __macro("dart", label, arguments[0].name,                                \
-              const_cast<const char*>(arguments[0].value));                    \
-    } else {                                                                   \
-      __macro("dart", label, arguments[0].name,                                \
-              const_cast<const char*>(arguments[0].value), arguments[1].name,  \
-              const_cast<const char*>(arguments[1].value));                    \
-    }                                                                          \
-  }
-
-FUCHSIA_EVENT_ARGS_LIST(EMIT_FUCHSIA_EVENT)
-#undef EMIT_FUCHSIA_EVENT
-
-#define FUCHSIA_EVENT_ID_ARGS_LIST(V)                                          \
-  V(Instant, TRACE_INSTANT, ::tracing::EventScope)                             \
-  V(AsyncBegin, TRACE_ASYNC_BEGIN, int64_t)                                    \
-  V(AsyncEnd, TRACE_ASYNC_END, int64_t)                                        \
-  V(AsyncInstant, TRACE_ASYNC_INSTANT, int64_t)                                \
-  V(FlowBegin, TRACE_FLOW_BEGIN, int64_t)                                      \
-  V(FlowStep, TRACE_FLOW_STEP, int64_t)                                        \
-  V(FlowEnd, TRACE_FLOW_END, int64_t)
-
-#define EMIT_FUCHSIA_EVENT(__name, __macro, __id_typ)                          \
-  static void EmitFuchsia##__name##Event(const char* label, __id_typ id,       \
-                                         TimelineEventArgument* arguments,     \
-                                         intptr_t arguments_length) {          \
-    if (arguments_length == 0) {                                               \
-      __macro("dart", label, id);                                              \
-    } else if (arguments_length == 1) {                                        \
-      __macro("dart", label, id, arguments[0].name,                            \
-              const_cast<const char*>(arguments[0].value));                    \
-    } else {                                                                   \
-      __macro("dart", label, id, arguments[0].name,                            \
-              const_cast<const char*>(arguments[0].value), arguments[1].name,  \
-              const_cast<const char*>(arguments[1].value));                    \
-    }                                                                          \
-  }
-
-FUCHSIA_EVENT_ID_ARGS_LIST(EMIT_FUCHSIA_EVENT)
-#undef EMIT_FUCHSIA_EVENT
-
 void TimelineEvent::EmitFuchsiaEvent() {
+  if (!ctrace_is_enabled()) {
+    return;
+  }
+  auto writer = ctrace_writer_acquire();
+
+  // XXX: use ctrace_register_category_string();
+  ctrace_stringref_t category;
+  ctrace_register_string(writer, "dart", &category);
+
+  ctrace_stringref_t name;
+  ctrace_register_string(writer, label_, &name);
+
+  ctrace_threadref_t thread;
+  ctrace_register_current_thread(writer, &thread);
+
+  ctrace_argspec_t args[2];
+  ctrace_arglist_t arglist = {0, args};
+
+  if (arguments_length_ >= 1) {
+    args[0].type = CTRACE_ARGUMENT_STRING;
+    args[0].name = arguments_[0].name;
+    args[0].u.s = arguments_[0].value;
+    arglist.n_args += 1;
+  }
+  if (arguments_length_ >= 2) {
+    args[1].type = CTRACE_ARGUMENT_STRING;
+    args[1].name = arguments_[1].name;
+    args[1].u.s = arguments_[1].value;
+    arglist.n_args += 1;
+  }
+
+  const uint64_t time_scale = mx_ticks_per_second() / kMicrosecondsPerSecond;
+  const uint64_t start_time = LowTime() * time_scale;
+  const uint64_t end_time = HighTime() * time_scale;
+
   switch (event_type()) {
     case kBegin:
-      EmitFuchsiaBeginEvent(label_, arguments_, arguments_length_);
+      ctrace_write_duration_begin_event_record(writer, start_time, &thread,
+                                               &category, &name, &arglist);
       break;
     case kEnd:
-      EmitFuchsiaEndEvent(label_, arguments_, arguments_length_);
+      ctrace_write_duration_end_event_record(writer, end_time, &thread,
+                                             &category, &name, &arglist);
       break;
     case kInstant:
-      EmitFuchsiaInstantEvent(label_, TRACE_SCOPE_THREAD, arguments_,
-                              arguments_length_);
+      ctrace_write_instant_event_record(writer, start_time, &thread, &category,
+                                        &name, CTRACE_SCOPE_THREAD, &arglist);
       break;
     case kAsyncBegin:
-      EmitFuchsiaAsyncBeginEvent(label_, AsyncId(), arguments_,
-                                 arguments_length_);
+      ctrace_write_async_begin_event_record(
+          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
       break;
     case kAsyncEnd:
-      EmitFuchsiaAsyncEndEvent(label_, AsyncId(), arguments_,
-                               arguments_length_);
+      ctrace_write_async_end_event_record(writer, end_time, &thread, &category,
+                                          &name, AsyncId(), &arglist);
       break;
     case kAsyncInstant:
-      EmitFuchsiaAsyncInstantEvent(label_, AsyncId(), arguments_,
-                                   arguments_length_);
+      ctrace_write_async_instant_event_record(
+          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
+      break;
+    case kDuration:
+      ctrace_write_duration_event_record(writer, start_time, end_time, &thread,
+                                         &category, &name, &arglist);
       break;
     case kFlowBegin:
-      EmitFuchsiaFlowBeginEvent(label_, AsyncId(), arguments_,
-                                arguments_length_);
+      ctrace_write_flow_begin_event_record(
+          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
       break;
     case kFlowStep:
-      EmitFuchsiaFlowStepEvent(label_, AsyncId(), arguments_,
-                               arguments_length_);
+      ctrace_write_flow_step_event_record(
+          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
       break;
     case kFlowEnd:
-      EmitFuchsiaFlowEndEvent(label_, AsyncId(), arguments_, arguments_length_);
+      ctrace_write_flow_end_event_record(writer, start_time, &thread, &category,
+                                         &name, AsyncId(), &arglist);
       break;
     default:
-      // TODO(zra): Figure out what to do with kDuration, kCounter, and
-      // kMetadata.
+      // TODO(zra): Figure out what to do with kCounter and kMetadata.
       break;
   }
+  ctrace_writer_release(writer);
 }
 #endif
 
@@ -1004,12 +996,8 @@ TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
   if (!FLAG_support_timeline || !enabled()) {
     return;
   }
-#if defined(HOST_OS_FUCHSIA)
-  TRACE_DURATION_BEGIN("dart", label);
-#else
   timestamp_ = OS::GetCurrentMonotonicMicros();
   thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-#endif
 }
 
 TimelineDurationScope::TimelineDurationScope(Thread* thread,
@@ -1019,12 +1007,8 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
   if (!FLAG_support_timeline || !enabled()) {
     return;
   }
-#if defined(HOST_OS_FUCHSIA)
-  TRACE_DURATION_BEGIN("dart", label);
-#else
   timestamp_ = OS::GetCurrentMonotonicMicros();
   thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-#endif
 }
 
 TimelineDurationScope::~TimelineDurationScope() {
@@ -1034,9 +1018,6 @@ TimelineDurationScope::~TimelineDurationScope() {
   if (!ShouldEmitEvent()) {
     return;
   }
-#if defined(HOST_OS_FUCHSIA)
-  EmitFuchsiaEndEvent(label(), arguments(), arguments_length());
-#else
   TimelineEvent* event = stream()->StartEvent();
   if (event == NULL) {
     // Stream is now disabled.
@@ -1048,7 +1029,6 @@ TimelineDurationScope::~TimelineDurationScope() {
                   thread_timestamp_, OS::GetCurrentThreadCPUMicros());
   StealArguments(event);
   event->Complete();
-#endif
 }
 
 TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
