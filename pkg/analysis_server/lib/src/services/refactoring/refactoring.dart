@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
-import 'package:analysis_server/src/services/refactoring/move_file.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
@@ -22,10 +21,7 @@ import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
 
@@ -288,29 +284,6 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * The name of the method (or function) being inlined.
    */
   String get methodName;
-}
-
-/**
- * [Refactoring] to move/rename a file.
- */
-abstract class MoveFileRefactoring implements Refactoring {
-  /**
-   * Returns a new [MoveFileRefactoring] instance.
-   */
-  factory MoveFileRefactoring(
-      ResourceProvider resourceProvider,
-      SearchEngine searchEngine,
-      AnalysisContext context,
-      Source source,
-      String oldFile) {
-    return new MoveFileRefactoringImpl(
-        resourceProvider, searchEngine, context, source, oldFile);
-  }
-
-  /**
-   * The new file path to which the given file is being moved.
-   */
-  void set newFile(String newName);
 }
 
 /**
