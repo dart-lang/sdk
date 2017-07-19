@@ -1251,7 +1251,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         Function& signature =
             Function::Handle(zone, scope_class.signature_function());
         if (!scope_class.is_type_finalized()) {
-          FinalizeSignature(scope_class, signature);
+          FinalizeSignature(scope_class, signature, finalization);
         }
         // If the function type is a generic typedef, instantiate its signature
         // from its type arguments.
@@ -1277,11 +1277,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           // parameters were substituted in the signature with typedef type
           // arguments). Note also that the function type parameters were not
           // modified.
-          FinalizeSignature(scope_class, signature);  // Canonicalize signature.
+          FinalizeSignature(scope_class, signature, finalization);
         }
         fun_type.set_signature(signature);
       } else {
-        FinalizeSignature(cls, Function::Handle(zone, fun_type.signature()));
+        FinalizeSignature(cls, Function::Handle(zone, fun_type.signature()),
+                          finalization);
       }
     }
 

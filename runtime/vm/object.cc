@@ -4583,6 +4583,18 @@ bool TypeArguments::IsRecursive() const {
   return false;
 }
 
+void TypeArguments::SetScopeFunction(const Function& function) const {
+  if (IsNull()) return;
+  const intptr_t num_types = Length();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    if (!type.IsNull()) {
+      type.SetScopeFunction(function);
+    }
+  }
+}
+
 bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
                                    intptr_t from_index,
                                    intptr_t len) const {
@@ -5479,43 +5491,6 @@ RawType* Function::ExistingSignatureType() const {
   }
 }
 
-RawFunction* Function::CanonicalSignatureFunction(TrailPtr trail) const {
-  ASSERT(!IsSignatureFunction());
-  Zone* zone = Thread::Current()->zone();
-  Function& parent = Function::Handle(zone, parent_function());
-  if (!parent.IsNull() && !parent.IsSignatureFunction()) {
-    // Make sure the parent function is also a signature function.
-    parent = parent.CanonicalSignatureFunction(trail);
-  }
-  const Class& owner = Class::Handle(zone, Owner());
-  const Function& sig_fun = Function::Handle(
-      zone,
-      Function::NewSignatureFunction(owner, parent, TokenPosition::kNoSource));
-  // In case of a generic function, the function type parameters in the
-  // signature will still refer to the original function. This should not
-  // be a problem, since once finalized the indices will be identical.
-  sig_fun.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
-  ASSERT(HasGenericParent() == sig_fun.HasGenericParent());
-  ASSERT(IsGeneric() == sig_fun.IsGeneric());
-  AbstractType& type = AbstractType::Handle(zone);
-  type = result_type();
-  type = type.Canonicalize(trail);
-  sig_fun.set_result_type(type);
-  const intptr_t num_params = NumParameters();
-  sig_fun.set_num_fixed_parameters(num_fixed_parameters());
-  sig_fun.SetNumOptionalParameters(NumOptionalParameters(),
-                                   HasOptionalPositionalParameters());
-  sig_fun.set_parameter_types(
-      Array::Handle(Array::New(num_params, Heap::kOld)));
-  for (intptr_t i = 0; i < num_params; i++) {
-    type = ParameterTypeAt(i);
-    type = type.Canonicalize(trail);
-    sig_fun.SetParameterTypeAt(i, type);
-  }
-  sig_fun.set_parameter_names(Array::Handle(zone, parameter_names()));
-  return sig_fun.raw();
-}
-
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
@@ -5769,13 +5744,6 @@ void Function::set_native_name(const String& value) const {
 void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->result_type_, value.raw());
-  if (value.IsFunctionType()) {
-    // The function result type may refer to this function's type parameters.
-    // Change its parent function.
-    const Function& result_signature_function =
-        Function::Handle(Type::Cast(value).signature());
-    result_signature_function.set_parent_function(*this);
-  }
 }
 
 RawAbstractType* Function::ParameterTypeAt(intptr_t index) const {
@@ -5836,9 +5804,22 @@ intptr_t Function::NumParentTypeParameters() const {
   intptr_t num_parent_type_params = 0;
   while (!parent.IsNull()) {
     num_parent_type_params += parent.NumTypeParameters(thread);
+    if (parent.IsImplicitClosureFunction()) break;
     parent ^= parent.parent_function();
   }
   return num_parent_type_params;
+}
+
+void Function::PrintSignatureTypes() const {
+  Function& sig_fun = Function::Handle(raw());
+  Type& sig_type = Type::Handle();
+  while (!sig_fun.IsNull()) {
+    sig_type = sig_fun.SignatureType();
+    THR_Print("%s%s\n",
+              sig_fun.IsImplicitClosureFunction() ? "implicit closure: " : "",
+              sig_type.ToCString());
+    sig_fun ^= sig_fun.parent_function();
+  }
 }
 
 RawTypeParameter* Function::LookupTypeParameter(
@@ -6297,6 +6278,8 @@ RawFunction* Function::InstantiateSignatureFrom(
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
+  // Note that parent pointers in newly instantiated signatures still points to
+  // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
   Function& sig = Function::Handle(
@@ -6971,12 +6954,22 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
                                         intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
   if (genericity != kCurrentClass) {
-    // We only consider the function type parameters declared by the parents of
-    // this signature function.
-    const int num_parent_type_params = NumParentTypeParameters();
-    if (num_parent_type_params < num_free_fun_type_params) {
-      num_free_fun_type_params = num_parent_type_params;
+    // A generic typedef may declare a non-generic function type and get
+    // instantiated with unrelated function type parameters. In that case, its
+    // signature is still uninstantiated, because these type parameters are
+    // free (they are not declared by the typedef).
+    // For that reason, we only adjust num_free_fun_type_params if this
+    // signature is generic or has a generic parent.
+    if (IsGeneric() || HasGenericParent()) {
+      // We only consider the function type parameters declared by the parents
+      // of this signature function as free.
+      const int num_parent_type_params = NumParentTypeParameters();
+      if (num_parent_type_params < num_free_fun_type_params) {
+        num_free_fun_type_params = num_parent_type_params;
+      }
     }
+    // TODO(regis): Should we check the owners of the function type parameters
+    // in addition to their indexes to decide if they are free or not?
   }
   AbstractType& type = AbstractType::Handle(result_type());
   if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
@@ -15525,6 +15518,11 @@ bool AbstractType::IsRecursive() const {
   return false;
 }
 
+void AbstractType::SetScopeFunction(const Function& function) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+}
+
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
@@ -15926,7 +15924,6 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       if (type_param.Equals(other_type_param)) {
         return true;
       }
-      // TODO(regis): Should we update TypeParameter::IsEquivalent() instead?
       if (type_param.IsFunctionTypeParameter() &&
           other_type_param.IsFunctionTypeParameter() &&
           type_param.IsFinalized() && other_type_param.IsFinalized()) {
@@ -16509,6 +16506,16 @@ bool Type::IsRecursive() const {
   return TypeArguments::Handle(arguments()).IsRecursive();
 }
 
+void Type::SetScopeFunction(const Function& function) const {
+  TypeArguments::Handle(arguments()).SetScopeFunction(function);
+  if (IsFunctionType()) {
+    const Function& sig_fun = Function::Handle(signature());
+    sig_fun.set_parent_function(function);
+    // No need to traverse result type and parameter types (and bounds, in case
+    // sig_fun is generic), since they have sig_fun as scope function.
+  }
+}
+
 RawAbstractType* Type::CloneUnfinalized() const {
   ASSERT(IsResolved());
   if (IsFinalized()) {
@@ -16747,19 +16754,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     set_arguments(type_args);
     ASSERT(type_args.IsNull() || type_args.IsOld());
 
-    // In case of a function type, replace the actual function by a signature
-    // function.
-    if (IsFunctionType()) {
-      Function& sig_fun = Function::Handle(zone, signature());
-      if (!sig_fun.IsSignatureFunction()) {
-        sig_fun = sig_fun.CanonicalSignatureFunction(trail);
-        set_signature(sig_fun);
-        // Note that the signature type of the signature function may be
-        // different than the type being canonicalized.
-        // Consider F<int> being canonicalized, with F being a typedef and F<T>
-        // being its signature type.
-      }
-    }
+    // In case of a function type, the signature has already been canonicalized
+    // when finalizing the type and passing kCanonicalize as finalization.
+    // Therefore, we do not canonicalize the signature here, which would have no
+    // effect on selecting the canonical type anyway, because the function
+    // object is not replaced when canonicalizing the signature.
 
     // Check to see if the type got added to canonical list as part of the
     // type arguments canonicalization.
@@ -16991,6 +16990,12 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
   return !ref_type.IsNull() && ref_type.IsEquivalent(other, trail);
+}
+
+void TypeRef::SetScopeFunction(const Function& function) const {
+  // TypeRefs are created during finalization, when scope functions have
+  // already been adjusted.
+  UNREACHABLE();
 }
 
 RawTypeRef* TypeRef::InstantiateFrom(
@@ -17514,6 +17519,11 @@ bool BoundedType::IsEquivalent(const Instance& other, TrailPtr trail) const {
 
 bool BoundedType::IsRecursive() const {
   return AbstractType::Handle(type()).IsRecursive();
+}
+
+void BoundedType::SetScopeFunction(const Function& function) const {
+  AbstractType::Handle(type()).SetScopeFunction(function);
+  AbstractType::Handle(bound()).SetScopeFunction(function);
 }
 
 void BoundedType::set_type(const AbstractType& value) const {

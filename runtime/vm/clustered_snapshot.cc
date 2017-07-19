@@ -1570,7 +1570,8 @@ class CodeSerializationCluster : public SerializationCluster {
       }
       if (kind == Snapshot::kFullAOT) {
         if (code->ptr()->instructions_ != code->ptr()->active_instructions_) {
-          s->UnexpectedObject(code, "Disabled code");
+          // TODO(rmacnak): Fix references to disabled code before serializing.
+          // s->UnexpectedObject(code, "Disabled code");
         }
       }
 
@@ -4629,12 +4630,18 @@ void Serializer::Trace(RawObject* object) {
 }
 
 void Serializer::UnexpectedObject(RawObject* raw_object, const char* message) {
+  // Exit the no safepoint scope so we can allocate while printing.
+  while (thread()->no_safepoint_scope_depth() > 0) {
+    thread()->DecrementNoSafepointScopeDepth();
+  }
   Object& object = Object::Handle(raw_object);
-  OS::PrintErr("Unexpected object (%s): %s\n", message, object.ToCString());
+  OS::PrintErr("Unexpected object (%s): 0x%" Px " %s\n", message,
+               reinterpret_cast<uword>(object.raw()), object.ToCString());
 #if defined(SNAPSHOT_BACKTRACE)
   while (!object.IsNull()) {
     object = ParentOf(object);
-    OS::PrintErr("referenced by %s\n", object.ToCString());
+    OS::PrintErr("referenced by 0x%" Px " %s\n",
+                 reinterpret_cast<uword>(object.raw()), object.ToCString());
   }
 #endif
   OS::Abort();

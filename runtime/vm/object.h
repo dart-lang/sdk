@@ -1673,6 +1673,9 @@ class TypeArguments : public Object {
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
 
+  // Set the scope of this type argument vector to the given function.
+  void SetScopeFunction(const Function& function) const;
+
   // Clone this type argument vector and clone all unfinalized type arguments.
   // Finalized type arguments are shared.
   RawTypeArguments* CloneUnfinalized() const;
@@ -2210,9 +2213,6 @@ class Function : public Object {
   RawType* SignatureType() const;
   RawType* ExistingSignatureType() const;
 
-  // Allocate and return a signature function equivalent to this function.
-  RawFunction* CanonicalSignatureFunction(TrailPtr trail) const;
-
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
 
@@ -2222,14 +2222,16 @@ class Function : public Object {
       const TypeArguments& function_type_arguments,
       Heap::Space space) const;
 
-  // Build a string of the form '(T, {B b, C c}) => R' representing the
-  // internal signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
+  // internal signature of the given function. In this example, T is a type
+  // parameter of this function and R is a type parameter of class C, the owner
+  // of the function. B and C are not type parameters.
   RawString* Signature() const { return BuildSignature(kInternalName); }
 
-  // Build a string of the form '(T, {B b, C c}) => R' representing the
-  // user visible signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
+  // user visible signature of the given function. In this example, T is a type
+  // parameter of this function and R is a type parameter of class C, the owner
+  // of the function. B and C are not type parameters.
   // Implicit parameters are hidden.
   RawString* UserVisibleSignature() const {
     return BuildSignature(kUserVisibleName);
@@ -2237,6 +2239,9 @@ class Function : public Object {
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
+  // Note that function type parameters declared by this function do not make
+  // its signature uninstantiated, only type parameters declared by parent
+  // generic functions or class type parameters.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
                                 intptr_t num_free_fun_type_params = kMaxInt32,
                                 TrailPtr trail = NULL) const;
@@ -2296,6 +2301,9 @@ class Function : public Object {
 
   // Return the number of type parameters declared in parent generic functions.
   intptr_t NumParentTypeParameters() const;
+
+  // Print the signature type of this function and of all of its parents.
+  void PrintSignatureTypes() const;
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -3049,6 +3057,7 @@ class Function : public Object {
   // Function.
   friend class RawFunction;
   friend class ClassFinalizer;  // To reset parent_function.
+  friend class Type;            // To adjust parent_function.
 };
 
 class ClosureData : public Object {
@@ -5688,6 +5697,9 @@ class AbstractType : public Instance {
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
+  // Set the scope of this type to the given function.
+  virtual void SetScopeFunction(const Function& function) const;
+
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
 
@@ -5902,6 +5914,7 @@ class Type : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+  virtual void SetScopeFunction(const Function& function) const;
   // If signature is not null, this type represents a function type. Note that
   // the signature fully represents the type and type arguments can be ignored.
   // However, in case of a generic typedef, they document how the typedef class
@@ -6051,6 +6064,7 @@ class TypeRef : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
+  virtual void SetScopeFunction(const Function& function) const;
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -6136,6 +6150,7 @@ class TypeParameter : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
+  virtual void SetScopeFunction(const Function& function) const {}
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -6237,6 +6252,7 @@ class BoundedType : public AbstractType {
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+  virtual void SetScopeFunction(const Function& function) const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
