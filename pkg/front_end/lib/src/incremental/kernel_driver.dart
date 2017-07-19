@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-import 'package:front_end/file_system.dart';
 import 'package:front_end/compiler_options.dart';
+import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
@@ -19,8 +19,11 @@ import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Source;
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/target/targets.dart' show Target;
+import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
 
 /// This function is invoked for each newly discovered file, and the returned
@@ -145,20 +148,10 @@ class KernelDriver {
         }
       });
 
-      return new KernelResult(nameRoot, results);
-    });
-  }
+      TypeEnvironment types = _buildTypeEnvironment(nameRoot, results);
 
-  Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    var options = new CompilerOptions()
-      ..target = _target
-      // Note: we do not report error on the console because the driver is an
-      // ongoing background service that shouldn't polute stdout.
-      // TODO(scheglov,sigmund): add an error handler to forward errors to
-      // analyzer driver and incremental kernel generator.
-      ..reportMessages = false;
-    return await CompilerContext.runWithOptions(
-        new ProcessedOptions(options), (_) => _logger.runAsync(msg, f));
+      return new KernelResult(nameRoot, types, results);
+    });
   }
 
   /// The file with the given [uri] might have changed - updated, added, or
@@ -175,6 +168,28 @@ class KernelDriver {
   /// [invalidate] invocation.
   void invalidate(Uri uri) {
     _invalidatedFiles.add(uri);
+  }
+
+  Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
+    var options = new CompilerOptions()
+      ..target = _target
+      // Note: we do not report error on the console because the driver is an
+      // ongoing background service that shouldn't polute stdout.
+      // TODO(scheglov,sigmund): add an error handler to forward errors to
+      // analyzer driver and incremental kernel generator.
+      ..reportMessages = false;
+    return await CompilerContext.runWithOptions(
+        new ProcessedOptions(options), (_) => _logger.runAsync(msg, f));
+  }
+
+  /// Return the [TypeEnvironment] that corresponds to the [results].
+  /// All the libraries for [CoreTypes] are expected to be in the first result.
+  TypeEnvironment _buildTypeEnvironment(
+      CanonicalName nameRoot, List<LibraryCycleResult> results) {
+    var coreLibraries = results.first.kernelLibraries;
+    var program = new Program(nameRoot: nameRoot, libraries: coreLibraries);
+    return new TypeEnvironment(
+        new CoreTypes(program), new IncrementalClassHierarchy());
   }
 
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
@@ -349,9 +364,10 @@ class KernelDriver {
 /// The result of compiling of a single file.
 class KernelResult {
   final CanonicalName nameRoot;
+  final TypeEnvironment types;
   final List<LibraryCycleResult> results;
 
-  KernelResult(this.nameRoot, this.results);
+  KernelResult(this.nameRoot, this.types, this.results);
 }
 
 /// Compilation result for a library cycle.
