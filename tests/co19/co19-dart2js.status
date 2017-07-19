@@ -2864,6 +2864,7 @@ LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage t
 LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/counter-reset-subtree-insert-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/csstext-of-content-string_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cursor-parsing-image-set_t01: RuntimeError # Please triage this failure
