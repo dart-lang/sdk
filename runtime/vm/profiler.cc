@@ -52,6 +52,10 @@ DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
 #else
 DEFINE_FLAG(bool, profile_vm, false, "Always collect native stack traces.");
 #endif
+DEFINE_FLAG(bool,
+            profile_vm_allocation,
+            false,
+            "Collect native stack traces when tracing Dart allocations.");
 
 #ifndef PRODUCT
 
@@ -1155,7 +1159,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
   sample->SetAllocationCid(cid);
 
-  if (FLAG_profile_vm) {
+  if (FLAG_profile_vm_allocation) {
     ProfilerNativeStackWalker native_stack_walker(
         (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
         sample_buffer, stack_lower, stack_upper, pc, fp, sp);
