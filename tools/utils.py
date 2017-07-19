@@ -733,7 +733,8 @@ class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
       super(LinuxCoreDumpEnabler, self).__enter__()
 
   def __exit__(self, *args):
-    CheckLinuxCoreDumpPattern(fatal=True)
+    # TODO(whesse): Re-enable after issue #30205 is addressed
+    # CheckLinuxCoreDumpPattern(fatal=True)
     super(LinuxCoreDumpEnabler, self).__exit__(*args)
 
 class WindowsCoreDumpEnabler(object):
