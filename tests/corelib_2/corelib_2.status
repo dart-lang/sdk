@@ -1,3 +1,27 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js && $fast_startup ]
+apply3_test: Fail # mirrors not supported
+
+[ $compiler == precompiler ]
+apply3_test: SkipByDesign
+big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
+
+
+[ $compiler == dartdevc && $runtime != none ]
+apply2_test: RuntimeError # Issue 29921
+apply3_test: RuntimeError # Issue 29921
+big_integer_arith_vm_test: RuntimeError # Issue 30170
+big_integer_parsed_arith_vm_test: RuntimeError # Issue 29921
+
+[ $compiler == dart2js && $runtime != none ]
+big_integer_arith_vm_test: RuntimeError # Issue 10245
+big_integer_parsed_arith_vm_test: RuntimeError # Issue 10245
+
+[ $runtime == flutter ]
+apply3_test: CompileTimeError # mirrors not supported
+
+[ $hot_reload || $hot_reload_rollback ]
+big_integer_huge_mul_vm_test: Pass, Slow # Slow

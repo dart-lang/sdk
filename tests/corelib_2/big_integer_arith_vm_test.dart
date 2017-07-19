@@ -34,12 +34,12 @@ testBigintAdd() {
   a = 10000000000000000001;
   Expect.equals(20000000000000000002, a + a);
   // Bigint and double.
-  a = 100000000000000000000.0;
   b = 200000000000000000000;
-  Expect.isTrue((a + b) is double);
-  Expect.equals(300000000000000000000.0, a + b);
-  Expect.isTrue((b + a) is double);
-  Expect.equals(300000000000000000000.0, b + a);
+  var c = 100000000000000000000.0;
+  Expect.isTrue((c + b) is double);
+  Expect.equals(300000000000000000000.0, b + c);
+  Expect.isTrue((b + c) is double);
+  Expect.equals(300000000000000000000.0, c + b);
 }
 
 testBigintSub() {
@@ -52,12 +52,12 @@ testBigintSub() {
   a = 10000000000000000001;
   Expect.equals(20000000000000000002, a + a);
   // Bigint and double.
-  a = 100000000000000000000.0;
   b = 200000000000000000000;
-  Expect.isTrue((a + b) is double);
-  Expect.equals(-100000000000000000000.0, a - b);
-  Expect.isTrue((b + a) is double);
-  Expect.equals(100000000000000000000.0, b - a);
+  var c = 100000000000000000000.0;
+  Expect.isTrue((c + b) is double);
+  Expect.equals(-100000000000000000000.0, c - b);
+  Expect.isTrue((b + c) is double);
+  Expect.equals(100000000000000000000.0, b - c);
   Expect.equals(-1, 0xF00000000 - 0xF00000001);
 }
 
@@ -72,12 +72,12 @@ testBigintMul() {
   b = 10000000000000000;
   Expect.equals(123456789012345678900000000000000000, a * b);
   // Bigint and double.
-  a = 2.0;
   b = 200000000000000000000;
-  Expect.isTrue((a * b) is double);
-  Expect.equals(400000000000000000000.0, a * b);
-  Expect.isTrue((b * a) is double);
-  Expect.equals(400000000000000000000.0, b * a);
+  var c = 2.0;
+  Expect.isTrue((c * b) is double);
+  Expect.equals(400000000000000000000.0, c * b);
+  Expect.isTrue((b * c) is double);
+  Expect.equals(400000000000000000000.0, b * c);
 }
 
 testBigintTruncDiv() {
@@ -92,10 +92,10 @@ testBigintTruncDiv() {
   b = 10000000000000000;
   Expect.equals(1234, a ~/ b);
   // Bigint and double.
-  a = 100000000000000000000.0;
   b = 200000000000000000000;
-  Expect.equals(0, a ~/ b);
-  Expect.equals(2, b ~/ a);
+  var c = 100000000000000000000.0;
+  Expect.equals(0, c ~/ b);
+  Expect.equals(2, b ~/ c);
 }
 
 testBigintDiv() {
@@ -108,10 +108,10 @@ testBigintDiv() {
   var b = 10000000000000000;
   Expect.equals(1234.567, a / b);
   // Bigint and double.
-  a = 400000000000000000000.0;
   b = 200000000000000000000;
-  Expect.equals(2.0, a / b);
-  Expect.equals(0.5, b / a);
+  var c = 400000000000000000000.0;
+  Expect.equals(2.0, c / b);
+  Expect.equals(0.5, b / c);
 }
 
 testBigintModulo() {
@@ -126,10 +126,10 @@ testBigintModulo() {
   Expect.equals(1, a % b);
   Expect.equals(10000000000000000000, b % a);
   // Bigint & double.
-  a = 10000000100000000.0;
   b = 10000000000000000;
-  Expect.equals(100000000.0, a % b);
-  Expect.equals(10000000000000000.0, b % a);
+  var c = 10000000100000000.0;
+  Expect.equals(100000000.0, c % b);
+  Expect.equals(10000000000000000.0, b % c);
   // Transitioning from Mint to Bigint.
   var iStart = 4611686018427387900;
   var prevX = -23 % iStart;

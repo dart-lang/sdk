@@ -47,9 +47,6 @@ int_modulo_arith_test/modPow: RuntimeError # No bigints.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 symbol_reserved_word_test/05: Crash # bug 20191
 
-[ $compiler == dart2js && $fast_startup ]
-apply3_test: Fail # mirrors not supported
-
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != dartium && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
@@ -168,9 +165,7 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == precompiler ]
-apply3_test: SkipByDesign # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
@@ -185,7 +180,6 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
-big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
@@ -257,9 +251,6 @@ from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
 
 [ $runtime == flutter ]
-
-# No support for mirrors
-apply3_test: CompileTimeError
 
 # Possible bugs
 format_exception_test: RuntimeError # Flutter Issue 9111
