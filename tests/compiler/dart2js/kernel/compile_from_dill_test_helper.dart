@@ -7,7 +7,6 @@
 library dart2js.kernel.compile_from_dill_test_helper;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -228,12 +227,8 @@ Future<ResultKind> runTest(
   EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
 
-  Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
-  print('--- create temp directory $dir -------------------------------');
-  memorySourceFiles.forEach((String name, String source) {
-    new File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
-  });
-  entryPoint = dir.uri.resolve(entryPoint.path);
+  entryPoint =
+      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
 
   print('---- compile from ast ----------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
