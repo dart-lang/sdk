@@ -103,9 +103,13 @@ class CapturedScopeBuilder extends ir.Visitor {
       }
 
       assert(_scopeInfoMap[_nodeToEntity(node)] != null);
+      KernelScopeInfo from = _scopeInfoMap[_nodeToEntity(node)];
       _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
           capturedVariablesForScope,
           _nodeToEntity(_executableContext),
+          from.localsUsedInTryOrSync,
+          from.freeVariables,
+          from.localsMap,
           thisLocal);
     }
   }
@@ -221,6 +225,9 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.boxedVariables,
         boxedLoopVariables,
         scope.context,
+        scope.localsUsedInTryOrSync,
+        scope.freeVariables,
+        _localsMap,
         scope.thisLocal);
   }
 
@@ -233,7 +240,7 @@ class CapturedScopeBuilder extends ir.Visitor {
     // field, constructor, or method that is being analyzed.
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
-    _currentScopeInfo = new KernelScopeInfo(_nodeToThisLocal(node));
+    _currentScopeInfo = new KernelScopeInfo(_nodeToThisLocal(node), _localsMap);
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
     } else {
