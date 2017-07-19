@@ -4645,6 +4645,20 @@ const dynamic vSymbol = #aaa.bbb.ccc;
     }
   }
 
+  test_const_topLevel_parenthesis() async {
+    var library = await checkLibrary(r'''
+const int v1 = (1 + 2) * 3;
+const int v2 = -(1 + 2);
+const int v3 = ('aaa' + 'bbb').length;
+''');
+    checkElementText(library, r'''
+const int v1 = (1 + 2) * 3;
+const int v2 = -(1 + 2);
+const int v3 = ('aaa' + 'bbb').
+        length/*location: dart:core;String;length?*/;
+''');
+  }
+
   test_const_topLevel_prefix() async {
     var library = await checkLibrary(r'''
 const vNotEqual = 1 != 2;

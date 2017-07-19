@@ -568,6 +568,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_const_topLevel_parenthesis() async {
+    await super.test_const_topLevel_parenthesis();
+  }
+
+  @failingTest
   test_const_topLevel_prefix() async {
     await super.test_const_topLevel_prefix();
   }

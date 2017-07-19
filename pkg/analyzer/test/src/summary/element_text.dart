@@ -269,7 +269,15 @@ class _ElementWriter {
     buffer.writeln(';');
   }
 
-  void writeExpression(AstNode e) {
+  void writeExpression(AstNode e, [Expression enclosing]) {
+    bool needsParenthesis = e is Expression &&
+        enclosing != null &&
+        e.precedence < enclosing.precedence;
+
+    if (needsParenthesis) {
+      buffer.write('(');
+    }
+
     if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);
@@ -290,11 +298,11 @@ class _ElementWriter {
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
-      writeExpression(e.leftOperand);
+      writeExpression(e.leftOperand, e);
       buffer.write(' ');
       buffer.write(e.operator.lexeme);
       buffer.write(' ');
-      writeExpression(e.rightOperand);
+      writeExpression(e.rightOperand, e);
     } else if (e is BooleanLiteral) {
       buffer.write(e.value);
     } else if (e is ConditionalExpression) {
@@ -360,13 +368,13 @@ class _ElementWriter {
       buffer.write('null');
     } else if (e is PrefixExpression) {
       buffer.write(e.operator.lexeme);
-      writeExpression(e.operand);
+      writeExpression(e.operand, e);
     } else if (e is PrefixedIdentifier) {
       writeExpression(e.prefix);
       buffer.write('.');
       writeExpression(e.identifier);
     } else if (e is PropertyAccess) {
-      writeExpression(e.target);
+      writeExpression(e.target, e);
       buffer.write('.');
       writeExpression(e.propertyName);
     } else if (e is RedirectingConstructorInvocation) {
@@ -420,6 +428,10 @@ class _ElementWriter {
       }
     } else {
       fail('Unsupported expression type: ${e.runtimeType}');
+    }
+
+    if (needsParenthesis) {
+      buffer.write(')');
     }
   }
 
