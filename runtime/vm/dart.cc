@@ -605,10 +605,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   bool is_kernel_isolate = false;
+  USE(is_kernel_isolate);
+
 #ifndef DART_PRECOMPILED_RUNTIME
   KernelIsolate::InitCallback(I);
   is_kernel_isolate = KernelIsolate::IsKernelIsolate(I);
 #endif
+
   ServiceIsolate::MaybeMakeServiceIsolate(I);
 #if !defined(PRODUCT)
   if (!ServiceIsolate::IsServiceIsolate(I) && !is_kernel_isolate) {
