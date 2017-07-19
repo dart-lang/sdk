@@ -33,8 +33,6 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('runtime/observatory/tests/observatory_ui'),
   new Path('samples'),
   new Path('samples-dev'),
-  new Path('tests/benchmark_smoke'),
-  new Path('tests/chrome'),
   new Path('tests/compiler/dart2js'),
   new Path('tests/compiler/dart2js_extra'),
   new Path('tests/compiler/dart2js_native'),
@@ -51,8 +49,6 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/lib_strong'),
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
-  new Path('tests/utils'),
-  new Path('utils/tests/css'),
   new Path('utils/tests/peg'),
 ];
 
