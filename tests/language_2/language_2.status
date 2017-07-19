@@ -9,9 +9,12 @@ abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
 
-[ $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong]
 generic_methods_generic_function_result_test: CompileTimeError # Issue #30207
 
-[ $compiler == dart2js ]
-generic_methods_generic_function_result_test: CompileTimeError # Issue ##30208
+[ $compiler == dart2analyzer  && ! $strong]
+generic_methods_generic_function_result_test: StaticWarning # Issue #30207
+
+[ $compiler == dart2js || $compiler == dartk]
+generic_methods_generic_function_result_test: CompileTimeError # Issue #30208
 
