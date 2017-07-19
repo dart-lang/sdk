@@ -79,6 +79,7 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
       : super(context, dataStore) {
     createResynthesizer();
     context.typeProvider = resynthesizer.typeProvider;
+    resynthesizer.finishCoreAsyncLibraries();
   }
 
   @override
