@@ -176,6 +176,18 @@ main() {
 }
 '''
   }, expectIdenticalOutput: true),
+  const Test(const {
+    'main.dart': '''
+class _Marker { const _Marker(); }
+const _MARKER = const _Marker();
+class Thing<X> {
+  Thing([length = _MARKER]);
+}
+main() {
+  print(new Thing<String>(100));
+}
+'''
+  }, expectIdenticalOutput: true),
 ];
 
 enum ResultKind { crashes, errors, warnings, success, failure }
@@ -191,11 +203,15 @@ Future runTests(List<String> args,
     bool skipErrors: false,
     List<String> options: const <String>[]}) async {
   Arguments arguments = new Arguments.from(args);
-  List<Test> tests;
-  if (arguments.uri != null) {
+  List<Test> tests = TESTS;
+  if (arguments.start != null) {
+    int start = arguments.start;
+    int end = arguments.end ?? 0; // Default 'end' to single test.
+    if (end > tests.length) end = tests.length; // Large 'end' means all.
+    if (end <= start) end = start + 1; // Always at least one test (else Error).
+    tests = tests.sublist(start, end);
+  } else if (arguments.uri != null) {
     tests = <Test>[new Test.fromUri(arguments.uri)];
-  } else {
-    tests = TESTS;
   }
   for (Test test in tests) {
     if (test.uri != null) {

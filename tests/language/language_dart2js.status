@@ -356,7 +356,6 @@ covariant_test/10: Crash # Issue 27394
 covariant_test/11: Crash # Issue 27394
 covariant_test/20b: Crash # Issue 27394
 covariant_test/24: Crash # Issue 27394
-cyclic_default_values_test: RuntimeError # Issue 27394
 deferred_constraints_constants_test/metadata1: Crash # Issue 27394
 deferred_constraints_constants_test/metadata2: Crash # Issue 27394
 deferred_constraints_constants_test/metadata3: Crash # Issue 27394
