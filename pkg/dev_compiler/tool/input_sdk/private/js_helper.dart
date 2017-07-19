@@ -906,3 +906,6 @@ class SyncIterable<E> extends IterableBase<E> {
 class BooleanConversionAssertionError extends AssertionError {
   toString() => 'Failed assertion: boolean expression must not be null';
 }
+
+// Hook to register new global object.
+void registerGlobalObject(object) {}
