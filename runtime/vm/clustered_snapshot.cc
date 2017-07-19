@@ -1569,8 +1569,8 @@ class CodeSerializationCluster : public SerializationCluster {
       }
       if (kind == Snapshot::kFullAOT) {
         if (code->ptr()->instructions_ != code->ptr()->active_instructions_) {
-          // TODO(rmacnak): Fix references to disabled code before serializing.
-          // s->UnexpectedObject(code, "Disabled code");
+          // Disabled code is fatal in AOT since we cannot recompile.
+          s->UnexpectedObject(code, "Disabled code");
         }
       }
 
@@ -1580,6 +1580,8 @@ class CodeSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
         if (code->ptr()->active_instructions_ != code->ptr()->instructions_) {
+          // For now, we write the FixCallersTarget or equivalent stub. This
+          // will cause a fixup if this code is called.
           instr = code->ptr()->active_instructions_;
           text_offset = s->GetTextOffset(instr, code);
         }
