@@ -284,10 +284,10 @@ cc/Invoke_CrossLibrary:  Crash
 cc/IsolateReload_BadClass: Fail
 cc/IsolateReload_ClassFieldAdded: Crash
 cc/IsolateReload_ClassFieldAdded2: Crash
-cc/IsolateReload_ChangeInstanceFormat1: Crash
-cc/IsolateReload_ChangeInstanceFormat3: Crash
-cc/IsolateReload_ChangeInstanceFormat7: Fail
-cc/IsolateReload_ChangeInstanceFormat8: Crash
+cc/IsolateReload_ChangeInstanceFormat1: Skip
+cc/IsolateReload_ChangeInstanceFormat3: Skip
+cc/IsolateReload_ChangeInstanceFormat7: Skip
+cc/IsolateReload_ChangeInstanceFormat8: Skip
 cc/IsolateReload_DanglingGetter_Class: Fail
 cc/IsolateReload_DanglingGetter_Instance: Fail
 cc/IsolateReload_DanglingGetter_Library: Fail
@@ -298,7 +298,7 @@ cc/IsolateReload_DirectSubclasses_Failure: Fail
 cc/IsolateReload_DirectSubclasses_Success: Skip
 cc/IsolateReload_EnumDelete: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
-cc/IsolateReload_EnumToNotEnum: Crash
+cc/IsolateReload_EnumToNotEnum: Skip
 cc/IsolateReload_ExportedLibModified: Crash
 cc/IsolateReload_ImportedLibModified: Crash
 cc/IsolateReload_ImportedMixinFunction: Crash
@@ -422,7 +422,6 @@ cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
-cc/Invoke_PrivateStatic: Crash
 cc/IsolateReload_DanglingGetter_Class: Crash
 cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_DanglingGetter_Library: Crash
@@ -433,7 +432,6 @@ cc/IsolateReload_EnumDelete: Crash
 cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
 cc/IsolateReload_RunNewFieldInitializersThrows: Crash
-cc/IsolateReload_SavedClosure: Crash
 cc/IsolateReload_TearOff_AddArguments2: Crash
 cc/IsolateReload_TearOff_AddArguments: Crash
 cc/IsolateReload_TearOff_Class_Identity: Crash
