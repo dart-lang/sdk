@@ -47,7 +47,6 @@ inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_sync_star: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/call_corner_cases: Crash
-inference/coerce_bottom_and_null_types: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
 inference/conflicts_can_happen2: Crash
@@ -403,7 +402,6 @@ rasta/super_mixin: Crash
 rasta/super_operator: Crash
 rasta/supports_reflection: VerificationError
 rasta/switch_execution_case_t02: Crash
-rasta/switch_fall_through: Crash
 rasta/this_invoke: Crash
 rasta/try_label: Crash
 rasta/type_literals: Crash

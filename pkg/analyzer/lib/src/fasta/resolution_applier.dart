@@ -45,6 +45,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    node.visitChildren(this);
+    node.staticType = node.expression.staticType;
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.parent is VariableDeclarationList &&
         node.parent.parent is TopLevelVariableDeclaration) {
