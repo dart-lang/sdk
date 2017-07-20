@@ -334,9 +334,4 @@ if (typeof global != "undefined") self = global;  // Node.js.
       array[i] = Math.random() * 256;
     }
   }};
-
-  // D8 Workers are not sufficiently compatible with browser Workers
-  // so pretend they don't exist.
-  // TODO(30217): Try to use D8's worker.
-  delete self.Worker;
 })(self);
