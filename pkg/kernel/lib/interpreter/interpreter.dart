@@ -670,7 +670,7 @@ class PropertyGetEK extends ExpressionContinuation {
 
   Configuration call(Value receiver) {
     // TODO: CPS the invocation of the getter.
-    Value propertyValue = receiver.class_.lookupGetter(name)(receiver);
+    Value propertyValue = receiver.class_.lookupImplicitGetter(name)(receiver);
     return new ValuePassingConfiguration(continuation, propertyValue);
   }
 }
@@ -698,7 +698,7 @@ class SetterEK extends ExpressionContinuation {
   SetterEK(this.receiver, this.name, this.continuation);
 
   Configuration call(Value v) {
-    Setter setter = receiver.class_.lookupSetter(name);
+    Setter setter = receiver.class_.lookupImplicitSetter(name);
     setter(receiver, v);
     return new ValuePassingConfiguration(continuation, v);
   }
@@ -1034,14 +1034,11 @@ class Class {
 
   Class superclass;
   List<Field> instanceFields = <Field>[];
-  List<Field> staticFields = <Field>[];
   // Implicit getters and setters for instance Fields.
   Map<Name, Getter> getters = <Name, Getter>{};
   Map<Name, Setter> setters = <Name, Setter>{};
   // The initializers of static fields are evaluated the first time the field
   // is accessed.
-  List<Value> staticFieldValues = <Value>[];
-
   List<Procedure> methods = <Procedure>[];
 
   int get instanceSize => instanceFields.length;
@@ -1060,17 +1057,17 @@ class Class {
     // TODO: Populate methods.
   }
 
-  Getter lookupGetter(Name name) {
+  Getter lookupImplicitGetter(Name name) {
     Getter getter = getters[name];
     if (getter != null) return getter;
-    if (superclass != null) return superclass.lookupGetter(name);
+    if (superclass != null) return superclass.lookupImplicitGetter(name);
     return (Value receiver) => notImplemented(obj: name);
   }
 
-  Setter lookupSetter(Name name) {
+  Setter lookupImplicitSetter(Name name) {
     Setter setter = setters[name];
     if (setter != null) return setter;
-    if (superclass != null) return superclass.lookupSetter(name);
+    if (superclass != null) return superclass.lookupImplicitSetter(name);
     return (Value receiver, Value value) => notImplemented(obj: name);
   }
 
@@ -1079,7 +1076,7 @@ class Class {
       int index = instanceFields.indexOf(member);
       // TODO: throw NoSuchMethodError instead.
       if (index < 0) return notImplemented(m: 'NoSuchMethod: ${member}');
-      return object.fields[index];
+      return object.fields[index].value;
     }
     return notImplemented(obj: member);
   }
@@ -1089,7 +1086,7 @@ class Class {
       int index = instanceFields.indexOf(member);
       // TODO: throw NoSuchMethodError instead.
       if (index < 0) return notImplemented(m: 'NoSuchMethod: ${member}');
-      object.fields[index] = value;
+      object.fields[index] = new Location(value);
       return Value.nullInstance;
     }
     return notImplemented(obj: member);
@@ -1110,11 +1107,12 @@ class Class {
       int currentFieldIndex = instanceFields.length - 1;
 
       // Shadowing an inherited getter with the same name.
-      getters[f.name] = (Value receiver) => receiver.fields[currentFieldIndex];
+      getters[f.name] =
+          (Value receiver) => receiver.fields[currentFieldIndex].value;
       if (f.hasImplicitSetter) {
         // Shadowing an inherited setter with the same name.
         setters[f.name] = (Value receiver, Value value) =>
-            receiver.fields[currentFieldIndex] = value;
+            receiver.fields[currentFieldIndex] = new Location(value);
       }
     }
   }
@@ -1122,7 +1120,7 @@ class Class {
 
 abstract class Value {
   Class get class_;
-  List<Value> get fields;
+  List<Location> get fields;
   Object get value;
 
   static final NullValue nullInstance = const NullValue();
@@ -1148,7 +1146,7 @@ abstract class Value {
 
 class ObjectValue extends Value {
   Class class_;
-  List<Value> fields;
+  List<Location> fields;
   Object get value => this;
 
   ObjectValue(this.class_, this.fields);
@@ -1157,7 +1155,7 @@ class ObjectValue extends Value {
 abstract class LiteralValue extends Value {
   Class get class_ =>
       notImplemented(m: "Loading class for literal is not implemented.");
-  List<Value> get fields =>
+  List<Location> get fields =>
       notImplemented(m: "Literal value does not have fields");
 
   const LiteralValue();
