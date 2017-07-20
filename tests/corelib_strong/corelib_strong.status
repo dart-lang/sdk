@@ -51,8 +51,6 @@ string_test: Skip
 symbol_operator_test: Skip
 symbol_reserved_word_test: Skip
 symbol_test: Skip
-uri_path_test: Skip
-uri_query_test: Skip
 
 [ $compiler == dartdevc ]
 big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921

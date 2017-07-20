@@ -83,13 +83,13 @@ void testPathSegments() {
     }
     unencoded.writeCharCode(i);
   }
-  encoded = encoded.toString();
-  unencoded = unencoded.toString();
-  test(encoded, [unencoded]);
-  test(encoded + "/" + encoded, [unencoded, unencoded]);
+  var encodedStr = encoded.toString();
+  var unencodedStr = unencoded.toString();
+  test(encodedStr, [unencodedStr]);
+  test(encodedStr + "/" + encodedStr, [unencodedStr, unencodedStr]);
 
   Uri uri;
-  List pathSegments = ["xxx", "yyy", "zzz"];
+  var pathSegments = ["xxx", "yyy", "zzz"];
 
   uri = new Uri(pathSegments: pathSegments);
   Expect.equals(3, uri.pathSegments.length);

@@ -31,6 +31,7 @@ big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 compare_to2_test: Fail # Issue 4018
+unicode_test: Fail # Issue 6706
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 bool_from_environment2_test/01: MissingCompileTimeError

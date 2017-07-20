@@ -16,7 +16,6 @@ string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-unicode_test: Fail        # Bug 6706
 symbol_test/01: Fail, Pass # bug 11669
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
