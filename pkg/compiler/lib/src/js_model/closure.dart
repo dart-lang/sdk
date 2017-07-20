@@ -6,10 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common/tasks.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/entity_utils.dart' as utils;
-import '../elements/names.dart' show Name;
 import '../kernel/element_map.dart';
 import '../world.dart';
 import 'elements.dart';
@@ -37,7 +34,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
-  Map<ir.Node, CapturedScope> _capturedScopesMap = <ir.Node, CapturedScope>{};
+  Map<ir.Node, CapturedScope> _scopesCapturedInClosureMap =
+      <ir.Node, CapturedScope>{};
 
   Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
       <Entity, ClosureRepresentationInfo>{};
@@ -62,7 +60,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ClosedWorldRefiner closedWorldRefiner) {
     var closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
     processedEntities.forEach((MemberEntity kEntity) {
-      MemberEntity entity = _kToJElementMap.toBackendMember(kEntity);
+      MemberEntity entity = kEntity;
+      if (_kToJElementMap != null) {
+        entity = _kToJElementMap.toBackendMember(kEntity);
+      }
       if (entity.isAbstract) return;
       if (entity.isField && !entity.isInstanceMember) {
         ir.Field field = _elementMap.getMemberNode(entity);
@@ -86,9 +87,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ClosedWorldRefiner closedWorldRefiner) {
     if (_scopeMap.keys.contains(entity)) return;
     ir.Node node = _elementMap.getMemberNode(entity);
-    if (_capturedScopesMap.keys.contains(node)) return;
+    if (_scopesCapturedInClosureMap.keys.contains(node)) return;
     CapturedScopeBuilder translator = new CapturedScopeBuilder(
-        _capturedScopesMap,
+        _scopesCapturedInClosureMap,
         _scopeMap,
         entity,
         closuresToGenerate,
@@ -106,36 +107,14 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// Given what variables are captured at each point, construct closure classes
   /// with fields containing the captured variables to replicate the Dart
-  /// closure semantics in JS. If this closure captures any variables (meaning
-  /// the closure accesses a variable that gets accessed at some point), then
-  /// boxForCapturedVariables stores the local context for those variables.
-  /// If no variables are captured, this parameter is null.
+  /// closure semantics in JS.
   void _produceSyntheticElements(
       ir.TreeNode /* ir.Field | ir.FunctionNode */ node,
       ScopeInfo info,
       ClosedWorldRefiner closedWorldRefiner) {
     Entity entity;
-    ir.Library library;
-    if (node is ir.Member) {
-      entity = _elementMap.getMember(node);
-      library = node.enclosingLibrary;
-    } else {
-      entity = _elementMap.getLocalFunction(node);
-      // TODO(efortuna): Consider the less roundabout way of getting this value
-      // which is just storing the "enclosingLibrary" value of the original call
-      // to CapturedScopeBuilder.
-      ir.TreeNode temp = node;
-      while (temp != null && temp is! ir.Library) {
-        temp = temp.parent;
-      }
-      assert(temp is ir.Library);
-      library = temp;
-    }
-    assert(entity != null);
-
-    String name = _computeClosureName(node);
-    KernelClosureClass closureClass = new KernelClosureClass.fromScopeInfo(
-        name, _elementMap.getLibrary(library), info);
+    KernelClosureClass closureClass =
+        new KernelClosureClass.fromScopeInfo(info);
     if (node is ir.FunctionNode) {
       // We want the original declaration where that function is used to point
       // to the correct closure class.
@@ -144,53 +123,18 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _closureRepresentationMap[closureClass.callMethod] = closureClass;
     }
 
+    if (node is ir.Member) {
+      entity = _elementMap.getMember(node);
+    } else {
+      entity = _elementMap.getLocalFunction(node);
+    }
+    assert(entity != null);
+
     _closureRepresentationMap[entity] = closureClass;
 
     // Register that a new class has been created.
     closedWorldRefiner.registerClosureClass(
         closureClass, node is ir.Member && node.isInstanceMember);
-  }
-
-  // Returns a non-unique name for the given closure element.
-  String _computeClosureName(ir.TreeNode treeNode) {
-    var parts = <String>[];
-    if (treeNode is ir.Field && treeNode.name.name != "") {
-      parts.insert(treeNode.name.name);
-    } else {
-      parts.insert('closure');
-    }
-    ir.TreeNode node = treeNode.parent;
-    while (node != null &&
-        (node is ir.Constructor ||
-            node is ir.Class ||
-            node is ir.FunctionNode ||
-            node is ir.Procedure)) {
-      // TODO(johnniwinther): Simplify computed names.
-      if (node is ir.Constructor ||
-          node.parent is ir.Constructor ||
-          (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory)) {
-        FunctionEntity entity;
-        if (node.parent is ir.Constructor) {
-          entity = _elementMap.getConstructorBody(node);
-        } else {
-          entity = _elementMap.getMember(node);
-        }
-        parts.insert(utils.reconstructConstructorName(entity));
-      } else {
-        String surroundingName = '';
-        if (node is ir.Class) {
-          surroundingName = Elements.operatorNameToIdentifier(node.name);
-        } else if (node is ir.Procedure) {
-          surroundingName = Elements.operatorNameToIdentifier(node.name.name);
-        }
-        parts.insert(surroundingName);
-      }
-      // A generative constructors's parent is the class; the class name is
-      // already part of the generative constructor's name.
-      if (node is ir.Constructor) break;
-      node = node.parent;
-    }
-    return parts.reverse.join('_');
   }
 
   @override
@@ -206,18 +150,18 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     return _scopeMap[entity] ?? getClosureRepresentationInfo(entity);
   }
 
-  // TODO(efortuna): Eventually capturedScopesMap[node] should always
+  // TODO(efortuna): Eventually scopesCapturedInClosureMap[node] should always
   // be non-null, and we should just test that with an assert.
   @override
   CapturedScope getCapturedScope(MemberEntity entity) =>
-      _capturedScopesMap[_elementMap.getMemberNode(entity)] ??
+      _scopesCapturedInClosureMap[_elementMap.getMemberNode(entity)] ??
       const CapturedScope();
 
   @override
-  // TODO(efortuna): Eventually capturedScopesMap[node] should always
+  // TODO(efortuna): Eventually scopesCapturedInClosureMap[node] should always
   // be non-null, and we should just test that with an assert.
   CapturedLoopScope getCapturedLoopScope(ir.Node loopNode) =>
-      _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
+      _scopesCapturedInClosureMap[loopNode] ?? const CapturedLoopScope();
 
   @override
   // TODO(efortuna): Eventually closureRepresentationMap[node] should always be
@@ -237,24 +181,16 @@ class KernelScopeInfo extends ScopeInfo {
   /// this scope.
   Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
 
-  /// Used to map [freeVariables] to their corresponding locals.
-  final KernelToLocalsMap localsMap;
-
-  KernelScopeInfo(this.thisLocal, this.localsMap)
+  KernelScopeInfo(this.thisLocal)
       : localsUsedInTryOrSync = new Set<Local>(),
         boxedVariables = new Set<Local>();
 
   KernelScopeInfo.from(this.thisLocal, KernelScopeInfo info)
       : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
-        boxedVariables = info.boxedVariables,
-        localsMap = info.localsMap;
+        boxedVariables = info.boxedVariables;
 
-  KernelScopeInfo.withBoxedVariables(
-      this.boxedVariables,
-      this.localsUsedInTryOrSync,
-      this.freeVariables,
-      this.localsMap,
-      this.thisLocal);
+  KernelScopeInfo.withBoxedVariables(this.boxedVariables, this.thisLocal)
+      : localsUsedInTryOrSync = new Set<Local>();
 
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {
     boxedVariables.forEach((Local l) {
@@ -279,15 +215,8 @@ class KernelScopeInfo extends ScopeInfo {
 class KernelCapturedScope extends KernelScopeInfo implements CapturedScope {
   final Local context;
 
-  KernelCapturedScope(
-      Set<Local> boxedVariables,
-      this.context,
-      Set<Local> localsUsedInTryOrSync,
-      Set<ir.VariableDeclaration> freeVariables,
-      KernelToLocalsMap localsMap,
-      Local thisLocal)
-      : super.withBoxedVariables(boxedVariables, localsUsedInTryOrSync,
-            freeVariables, localsMap, thisLocal);
+  KernelCapturedScope(Set<Local> boxedVariables, this.context, Local thisLocal)
+      : super.withBoxedVariables(boxedVariables, thisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -296,16 +225,9 @@ class KernelCapturedLoopScope extends KernelCapturedScope
     implements CapturedLoopScope {
   final List<Local> boxedLoopVariables;
 
-  KernelCapturedLoopScope(
-      Set<Local> boxedVariables,
-      this.boxedLoopVariables,
-      Local context,
-      Set<Local> localsUsedInTryOrSync,
-      Set<ir.VariableDeclaration> freeVariables,
-      KernelToLocalsMap localsMap,
-      Local thisLocal)
-      : super(boxedVariables, context, localsUsedInTryOrSync, freeVariables,
-            localsMap, thisLocal);
+  KernelCapturedLoopScope(Set<Local> boxedVariables, this.boxedLoopVariables,
+      Local context, Local thisLocal)
+      : super(boxedVariables, context, thisLocal);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -313,8 +235,8 @@ class KernelCapturedLoopScope extends KernelCapturedScope
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class KernelClosureClass extends KernelScopeInfo
     implements ClosureRepresentationInfo, JClass {
-  final String name;
-  final JLibrary library;
+  // TODO(efortuna): Generate unique name for each closure class.
+  final String name = 'ClosureClass';
 
   /// Index into the classData, classList and classEnvironment lists where this
   /// entity is stored in [JsToFrontendMapImpl].
@@ -322,45 +244,8 @@ class KernelClosureClass extends KernelScopeInfo
 
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
-  KernelClosureClass.fromScopeInfo(
-      this.name, this.library, KernelScopeInfo info)
-      : super.from(info.thisLocal, info) {
-    // Make a corresponding field entity in this closure class for every single
-    // freeVariable in the KernelScopeInfo.freeVariable.
-    int i = 0;
-    for (ir.VariableDeclaration variable in info.freeVariables) {
-      // NOTE: This construction order may be slightly different than the
-      // old Element version. The old version did all the boxed items and then
-      // all the others.
-      Local capturedLocal = info.localsMap.getLocal(variable);
-      if (info.isBoxed(capturedLocal)) {
-        // TODO(efortuna): Coming soon.
-      } else {
-        localToFieldMap[capturedLocal] = new ClosureField(
-            _getClosureVariableName(capturedLocal.name, i),
-            this,
-            variable.isConst,
-            variable.isFinal || variable.isConst);
-        // TODO(efortuna): These probably need to get registered somewhere.
-      }
-      i++;
-    }
-  }
-
-  /// Generate a unique name for the [id]th closure field, with proposed name
-  /// [name].
-  ///
-  /// The result is used as the name of [ClosureFieldElement]s, and must
-  /// therefore be unique to avoid breaking an invariant in the element model
-  /// (classes cannot declare multiple fields with the same name).
-  ///
-  /// Also, the names should be distinct from real field names to prevent
-  /// clashes with selectors for those fields.
-  ///
-  /// These names are not used in generated code, just as element name.
-  String _getClosureVariableName(String name, int id) {
-    return "_captured_${name}_$id";
-  }
+  KernelClosureClass.fromScopeInfo(KernelScopeInfo info)
+      : super.from(info.thisLocal, info);
 
   // TODO(efortuna): Implement.
   Local get closureEntity => null;
@@ -370,36 +255,36 @@ class KernelClosureClass extends KernelScopeInfo
   // TODO(efortuna): Implement.
   FunctionEntity get callMethod => null;
 
-  List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
+  // TODO(efortuna): Implement.
+  List<Local> get createdFieldEntities => const <Local>[];
 
   // TODO(efortuna): Implement.
   FieldEntity get thisFieldEntity => null;
 
-  void forEachCapturedVariable(f(Local from, JField to)) {
-    localToFieldMap.forEach(f);
-  }
+  // TODO(efortuna): Implement.
+  void forEachCapturedVariable(f(Local from, FieldEntity to)) {}
 
   // TODO(efortuna): Implement.
   @override
-  void forEachBoxedVariable(f(Local local, JField field)) {}
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
 
   // TODO(efortuna): Implement.
-  void forEachFreeVariable(f(Local variable, JField field)) {}
+  void forEachFreeVariable(f(Local variable, FieldEntity field)) {}
 
   // TODO(efortuna): Implement.
   bool isVariableBoxed(Local variable) => false;
 
-  bool get isClosure => true;
+  // TODO(efortuna): Implement.
+  // Why is this closure not actually a closure? Well, to properly call
+  // ourselves a closure, we need to register the new closure class with the
+  // ClosedWorldRefiner, which currently only takes elements. The change to
+  // that (and the subsequent adjustment here) will follow soon.
+  bool get isClosure => false;
 
   bool get isAbstract => false;
 
-  String toString() => '${jsElementPrefix}class($name)';
-}
+  // TODO(efortuna): Talk to Johnni.
+  JLibrary get library => null;
 
-class ClosureField extends JField {
-  ClosureField(String name, KernelClosureClass containingClass, bool isConst,
-      bool isAssignable)
-      : super(-1, containingClass.library, containingClass,
-            new Name(name, containingClass.library),
-            isAssignable: isAssignable, isConst: isConst);
+  String toString() => '${jsElementPrefix}class($name)';
 }

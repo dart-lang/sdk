@@ -687,13 +687,6 @@ abstract class ElementCreatorMixin {
     _classData.add(closureData);
     closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
         closureData.supertype, const Link<InterfaceType>());
-
-    cls.forEachCapturedVariable((Local local, JField field) {
-      field.setClosureMemberIndex = _memberData.length;
-      // TODO(efortuna): Uncomment this line after Johnni's added in his CL
-      // about Class/MemberDefinition.
-      //_memberData.add(field);
-    });
     // TODO(efortuna): Does getMetadata get called in ClassData for this object?
   }
 
