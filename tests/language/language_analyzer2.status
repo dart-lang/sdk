@@ -130,7 +130,6 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #
-application_negative_test: CompileTimeError # Issue 14528
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695

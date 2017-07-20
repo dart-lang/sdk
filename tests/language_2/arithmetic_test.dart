@@ -58,35 +58,35 @@ class ArithmeticTest {
       Expect.equals(1 << i, a ~/ b);
     }
     a = 22;
-    b = 4.0;
+    var c = 4.0;
     // Smi & double.
-    Expect.equals(26.0, a + b);
-    Expect.equals(18.0, a - b);
-    Expect.equals(88.0, a * b);
-    Expect.equals(5, a ~/ b);
-    Expect.equals(5.5, a / b);
-    Expect.equals(2.0, a % b);
-    Expect.equals(2.0, a.remainder(b));
-    a = 22.0;
+    Expect.equals(26.0, a + c);
+    Expect.equals(18.0, a - c);
+    Expect.equals(88.0, a * c);
+    Expect.equals(5, a ~/ c);
+    Expect.equals(5.5, a / c);
+    Expect.equals(2.0, a % c);
+    Expect.equals(2.0, a.remainder(c));
+    var d = 22.0;
     b = 4;
     // Double & smi.
-    Expect.equals(26.0, a + b);
-    Expect.equals(18.0, a - b);
-    Expect.equals(88.0, a * b);
-    Expect.equals(5, a ~/ b);
-    Expect.equals(5.5, a / b);
-    Expect.equals(2.0, a % b);
-    Expect.equals(2.0, a.remainder(b));
-    a = 22.0;
-    b = 4.0;
+    Expect.equals(26.0, d + b);
+    Expect.equals(18.0, d - b);
+    Expect.equals(88.0, d * b);
+    Expect.equals(5, d ~/ b);
+    Expect.equals(5.5, d / b);
+    Expect.equals(2.0, d % b);
+    Expect.equals(2.0, d.remainder(b));
+    d = 22.0;
+    c = 4.0;
     // Double & double.
-    Expect.equals(26.0, a + b);
-    Expect.equals(18.0, a - b);
-    Expect.equals(88.0, a * b);
-    Expect.equals(5, a ~/ b);
-    Expect.equals(5.5, a / b);
-    Expect.equals(2.0, a % b);
-    Expect.equals(2.0, a.remainder(b));
+    Expect.equals(26.0, d + c);
+    Expect.equals(18.0, d - c);
+    Expect.equals(88.0, d * c);
+    Expect.equals(5, d ~/ c);
+    Expect.equals(5.5, d / c);
+    Expect.equals(2.0, d % c);
+    Expect.equals(2.0, d.remainder(c));
 
     // Special int operations.
     Expect.equals(2, (2).floor());

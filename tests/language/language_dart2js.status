@@ -34,11 +34,6 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-accessor_conflict_import2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
-accessor_conflict_import_test: RuntimeError # Issue 25626
-
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
 bad_typedef_test/00: Crash # Issue 28214
@@ -296,8 +291,6 @@ stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 regress_21795_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
-accessor_conflict_export2_test: Crash # Issue 25626
-accessor_conflict_export_test: Crash # Issue 25626
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 method_override5_test: RuntimeError # Issue 12809
@@ -503,10 +496,6 @@ generalized_void_syntax_test: Crash # Issue #30176
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
 abstract_beats_arguments2_test/01: RuntimeError # Issue 27394
-accessor_conflict_import2_test: Crash # Issue 27394
-accessor_conflict_import_prefixed2_test: Crash # Issue 27394
-accessor_conflict_import_prefixed_test: Crash # Issue 27394
-accessor_conflict_import_test: Crash # Issue 27394
 final_super_field_set_test/01: RuntimeError # Issue 27394
 function_type/function_type14_test: Crash # Issue 27394
 function_type/function_type15_test: Crash # Issue 27394

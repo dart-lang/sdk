@@ -10,7 +10,7 @@ main() {
 }
 
 class A {
-  foo(); // //# 00: static type warning
+  foo(); // //# 00: compile-time error
   static bar(); // //# 01: compile-time error
 }
 

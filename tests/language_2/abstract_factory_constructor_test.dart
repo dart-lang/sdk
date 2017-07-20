@@ -21,11 +21,11 @@ abstract class A1 {
 
 class A2 {
   // Intentionally abstract method.
-  method(); // //# 00: static type warning
+  method(); //# 00: compile-time error
   A2.make() {}
 }
 
 main() {
   new A1.make();
-  new A2.make(); //             //# 00: continued
+  new A2.make(); //# 00: continued
 }
