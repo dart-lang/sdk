@@ -40,7 +40,6 @@ import '../../ast.dart'
         PropertyGet,
         ReturnStatement,
         Statement,
-        StaticGet,
         StaticInvocation,
         ThisExpression,
         Transformer,
@@ -79,10 +78,6 @@ class ClosureConverter extends Transformer {
   /// Records place-holders for cloning contexts. See [visitForStatement].
   final Set<InvalidExpression> contextClonePlaceHolders =
       new Set<InvalidExpression>();
-
-  /// Maps the names of all instance methods that may be torn off (aka
-  /// implicitly closurized) to `${name.name}#get`.
-  final Map<Name, Name> tearOffGetterNames;
 
   final CloneVisitor cloner = new CloneWithoutBody();
 
@@ -136,8 +131,7 @@ class ClosureConverter extends Transformer {
       : this.capturedVariables = info.variables,
         this.capturedTypeVariables = info.typeVariables,
         this.thisAccess = info.thisAccess,
-        this.localNames = info.localNames,
-        this.tearOffGetterNames = info.tearOffGetterNames;
+        this.localNames = info.localNames;
 
   bool get isOuterMostContext {
     return currentFunction == null || currentMemberFunction == currentFunction;
@@ -370,42 +364,10 @@ class ClosureConverter extends Transformer {
         closedTopLevelFunction, accessContext, closureType);
   }
 
-  TreeNode visitField(Field node) {
-    currentMember = node;
-    context = new NoContext(this);
-    if (node.isInstanceMember) {
-      Name tearOffName = tearOffGetterNames[node.name];
-      if (tearOffName != null) {
-        // TODO(ahe): If we rewrite setters, we can rename the field to avoid
-        // an indirection in most cases.
-        addFieldForwarder(tearOffName, node);
-      }
-    }
-    node = super.visitField(node);
-    context = null;
-    currentMember = null;
-    return node;
-  }
-
   TreeNode visitProcedure(Procedure node) {
     assert(isEmptyContext);
 
     currentMember = node;
-
-    if (node.isInstanceMember) {
-      Name tearOffName = tearOffGetterNames[node.name];
-      if (tearOffName != null) {
-        if (node.isGetter) {
-          // We rename the getter to avoid an indirection in most cases.
-          Name oldName = node.name;
-          node.name = tearOffName;
-          node.canonicalName?.unbind();
-          addGetterForwarder(oldName, node);
-        } else if (node.kind == ProcedureKind.Method) {
-          addTearOffMethod(tearOffName, node);
-        }
-      }
-    }
 
     FunctionNode function = node.function;
     if (function.body != null) {
@@ -611,30 +573,6 @@ class ClosureConverter extends Transformer {
         : context.lookup(thisAccess[currentMemberFunction]);
   }
 
-  TreeNode visitStaticGet(StaticGet node) {
-    Member target = node.target;
-    if (target is Procedure && target.kind == ProcedureKind.Method) {
-      VariableDeclaration contextVariable = new VariableDeclaration(
-          "#contextParameter",
-          type: const VectorType());
-      Expression expression = getTearOffExpression(
-          null, node.target, contextVariable, new NullLiteral());
-      expression.transformChildren(this);
-      return expression;
-    }
-    return super.visitStaticGet(node);
-  }
-
-  TreeNode visitPropertyGet(PropertyGet node) {
-    Name tearOffName = tearOffGetterNames[node.name];
-    if (tearOffName != null) {
-      MethodInvocation replacement = new MethodInvocation(
-          node.receiver, tearOffName, new Arguments(<Expression>[]));
-      return super.visitMethodInvocation(replacement);
-    }
-    return super.visitPropertyGet(node);
-  }
-
   TreeNode visitCatch(Catch node) {
     VariableDeclaration exception = node.exception;
     VariableDeclaration stackTrace = node.stackTrace;
@@ -661,61 +599,6 @@ class ClosureConverter extends Transformer {
 
   Block ensureBlock(Statement statement) {
     return statement is Block ? statement : new Block(<Statement>[statement]);
-  }
-
-  /// Creates a closure that will invoke method [procedure] of [receiver] and
-  /// return an expression that instantiates that closure.
-  Expression getTearOffExpression(
-      VariableDeclaration receiver,
-      Procedure procedure,
-      VariableDeclaration contextVariable,
-      Expression accessContext) {
-    Map<TypeParameter, DartType> substitution = procedure.isInstanceMember
-        // Note: we do not attempt to avoid copying type variables that aren't
-        // used in the signature of [procedure]. It might be more economical to
-        // only copy type variables that are used. However, we assume that
-        // passing type arguments that match the enclosing class' type
-        // variables will be handled most efficiently.
-        ? copyTypeVariables(procedure.enclosingClass.typeParameters)
-        : const <TypeParameter, DartType>{};
-
-    // TODO(29181): remove variable `dynamicSubstitution` and replace its usages
-    // with `substitution`.
-
-    Map<TypeParameter, DartType> dynamicSubstitution =
-        <TypeParameter, DartType>{};
-    for (TypeParameter parameter in substitution.keys) {
-      dynamicSubstitution[parameter] = const DynamicType();
-    }
-    for (TypeParameter parameter in substitution.keys) {
-      if (!isObject(parameter.bound)) {
-        dynamicSubstitution[parameter] =
-            substitute(parameter.bound, dynamicSubstitution);
-      }
-    }
-
-    // Find the closure class for the function. If there isn't one, create it.
-    String closedTopLevelFunctionName =
-        createNameForClosedTopLevelFunction(procedure.function);
-    Procedure closedTopLevelFunction = null;
-    for (TreeNode node in newLibraryMembers) {
-      if (node is Procedure && node.name.name == closedTopLevelFunctionName) {
-        closedTopLevelFunction = node;
-      }
-    }
-    if (closedTopLevelFunction == null) {
-      closedTopLevelFunction = new Procedure(
-          new Name(closedTopLevelFunctionName),
-          ProcedureKind.Method,
-          forwardFunction(
-              procedure, receiver, contextVariable, dynamicSubstitution),
-          isStatic: true,
-          fileUri: currentFileUri);
-      newLibraryMembers.add(closedTopLevelFunction);
-    }
-
-    return new ClosureCreation(
-        closedTopLevelFunction, accessContext, procedure.function.functionType);
   }
 
   /// Creates a function that has the same signature as `procedure.function`
@@ -815,56 +698,5 @@ class ClosureConverter extends Transformer {
     assert(getter.isGetter);
     newClassMembers
         .add(copyWithBody(getter, forwardToThisProperty(getter))..name = name);
-  }
-
-  void addTearOffMethod(Name name, Procedure procedure) {
-    // [addTearOffMethod] generates a method along with a context that captures
-    // `this`. The work with contexts is typically done using the data gathered
-    // by a [ClosureInfo] instance. In absence of this information, we need to
-    // create some variables, like `#self` and `#context`, and manipulate
-    // contexts directly in some cases.
-    //
-    // Also, the tear-off method is generated during a visit to the AST node
-    // of the procedure being torn off, so we need to save and restore some
-    // auxiliary variables like `currentMember` and `currentMemberFunction`
-    // and use [saveContext], so that those variables have proper values when
-    // the procedure itself is being transformed.
-    Member oldCurrentMember = currentMember;
-    FunctionNode oldCurrentMemberFunction = currentMemberFunction;
-    try {
-      saveContext(() {
-        Block body = new Block(<Statement>[]);
-        FunctionNode tearOffMethodFunction = new FunctionNode(body);
-        setupContextForFunctionBody(tearOffMethodFunction);
-
-        // We need a variable that refers to `this` to put it into the context.
-        VariableDeclaration self = new VariableDeclaration("#self",
-            type: procedure.enclosingClass.rawType);
-        context.extend(self, new ThisExpression());
-
-        // The `#context` variable is used to access the context in the closed
-        // top-level function that represents the closure and is generated in
-        // [getTearOffExpression].
-        VariableDeclaration contextVariable = new VariableDeclaration(
-            "#contextParameter",
-            type: const VectorType());
-        Context parent = context;
-        context = context.toNestedContext(
-            new VariableAccessor(contextVariable, null, TreeNode.noOffset));
-
-        body.addStatement(new ReturnStatement(getTearOffExpression(
-            self, procedure, contextVariable, parent.expression)));
-
-        Procedure tearOffMethod = new Procedure(
-            name, ProcedureKind.Method, tearOffMethodFunction,
-            fileUri: currentFileUri);
-        newClassMembers.add(tearOffMethod);
-
-        resetContext();
-      });
-    } finally {
-      currentMember = oldCurrentMember;
-      currentMemberFunction = oldCurrentMemberFunction;
-    }
   }
 }
