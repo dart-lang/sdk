@@ -1109,7 +1109,8 @@ class StandardTestSuite extends TestSuite {
         var toPath = new Path('$compilationTempDir/$nameNoExt.js')
             .toNativePath();
         commands.add(configuration.compilerConfiguration.createCommand(
-            dartWrapperFilename, toPath));
+            dartWrapperFilename, toPath,
+            optionsFromFile["sharedOptions"] as List<String>));
         break;
 
       case Compiler.none:
@@ -1133,7 +1134,8 @@ class StandardTestSuite extends TestSuite {
 
         case Compiler.dartdevc:
           commands.add(configuration.compilerConfiguration.createCommand(
-              fromPath.toNativePath(), toPath));
+              fromPath.toNativePath(), toPath,
+              optionsFromFile["sharedOptions"] as List<String>));
           break;
 
         default:

@@ -9,7 +9,6 @@ apply3_test: Fail # mirrors not supported
 apply3_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 
-
 [ $compiler == dartdevc && $runtime != none ]
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
@@ -31,7 +30,7 @@ big_integer_huge_mul_vm_test: Pass, Slow # Slow
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-compare_to2_test: Fail    # Bug 4018
+compare_to2_test: Fail # Issue 4018
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 bool_from_environment2_test/01: MissingCompileTimeError

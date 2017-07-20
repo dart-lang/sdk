@@ -94,7 +94,8 @@ abstract class CompilerConfiguration {
   List<Uri> bootstrapDependencies() => const <Uri>[];
 
   /// Creates a [Command] to compile [inputFile] to [outputFile].
-  Command createCommand(String inputFile, String outputFile) {
+  Command createCommand(
+      String inputFile, String outputFile, List<String> sharedOptions) {
     // TODO(rnystrom): See if this method can be unified with
     // computeCompilationArtifact() and/or computeCompilerArguments() for the
     // other compilers.
@@ -365,7 +366,18 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
     return "$dir/bin/dartdevc$executableScriptSuffix";
   }
 
-  Command createCommand(String inputFile, String outputFile) {
+  List<String> computeCompilerArguments(
+      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+    var result = sharedOptions.toList();
+
+    // The file being compiled is the last argument.
+    result.add(args.last);
+
+    return result;
+  }
+
+  Command createCommand(
+      String inputFile, String outputFile, List<String> sharedOptions) {
     var moduleRoot =
         new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
@@ -382,6 +394,8 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
       outputFile,
       inputFile,
     ];
+
+    args.addAll(sharedOptions);
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
@@ -402,13 +416,19 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    // TODO(rnystrom): Are there other arguments here that we need to keep?
-    // What about arguments specified in the test itself?
+    // The list of arguments comes from a call to our own
+    // computeCompilerArguments(). It contains the shared options followed by
+    // the input file path.
+    // TODO(rnystrom): Jamming these into a list in order to pipe them from
+    // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
+    var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
     var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
 
-    return new CommandArtifact([createCommand(inputFile, outputFile)],
-        outputFile, "application/javascript");
+    return new CommandArtifact(
+        [createCommand(inputFile, outputFile, sharedOptions)],
+        outputFile,
+        "application/javascript");
   }
 }
 
