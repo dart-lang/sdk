@@ -40,7 +40,12 @@ bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
 bool_from_environment2_test/05: MissingCompileTimeError
 compare_to2_test: RuntimeError
+unicode_test: RuntimeError
 
 [ $compiler == none && $runtime == drt ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip
+
+[ $runtime == ff || $runtime == jsshell ]
+unicode_test: Fail
+

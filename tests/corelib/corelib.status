@@ -60,7 +60,6 @@ symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
 [ $runtime == ff || $runtime == jsshell ]
-unicode_test: Fail
 # Firefox takes advantage of the ECMAScript number parsing cop-out clause
 # (presumably added to allow Mozilla's existing behavior)
 # and only looks at the first 20 significant digits.
@@ -225,7 +224,6 @@ symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
-unicode_test: RuntimeError
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
