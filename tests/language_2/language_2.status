@@ -21,13 +21,21 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 
-[ $compiler == dartdevc || $compiler == dart2analyzer ]
+[ $strong && ($compiler == dartdevc || $compiler == dart2analyzer) ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
 accessor_conflict_export_test: CompileTimeError # Issue 25626
 accessor_conflict_import2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
+
+[ ! $strong && $compiler == dart2analyzer ]
+accessor_conflict_export2_test: StaticWarning # Issue 25626
+accessor_conflict_export_test: StaticWarning # Issue 25626
+accessor_conflict_import2_test: StaticWarning # Issue 25626
+accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25626
+accessor_conflict_import_prefixed_test: StaticWarning # Issue 25626
+accessor_conflict_import_test: StaticWarning # Issue 25626
 
 [ $compiler == dart2analyzer && $strong ]
 generic_methods_generic_function_result_test: CompileTimeError # Issue #30207
