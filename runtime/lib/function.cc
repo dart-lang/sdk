@@ -68,10 +68,11 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 2) {
   return Bool::False().raw();
 }
 
-DEFINE_NATIVE_ENTRY(Closure_computeHash, 1) {
+DEFINE_NATIVE_ENTRY(Closure_hashCode, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Smi::New(receiver.ComputeHash());
+  const Function& func = Function::Handle(zone, receiver.function());
+  return func.GetClosureHashCode();
 }
 
 DEFINE_NATIVE_ENTRY(Closure_clone, 1) {

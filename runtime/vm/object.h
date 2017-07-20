@@ -2410,7 +2410,7 @@ class Function : public Object {
 
   RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
-  intptr_t ComputeClosureHash() const;
+  RawSmi* GetClosureHashCode() const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -3080,6 +3080,9 @@ class ClosureData : public Object {
 
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
+
+  RawObject* hash() const { return raw_ptr()->hash_; }
+  void set_hash(intptr_t value) const;
 
   static RawClosureData* New();
 
@@ -5537,9 +5540,6 @@ class Instance : public Object {
 
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;
-
-  // Equivalent to invoking identityHashCode with this instance.
-  RawObject* IdentityHashCode() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
@@ -8356,9 +8356,6 @@ class Closure : public Instance {
   RawContext* context() const { return raw_ptr()->context_; }
   static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
 
-  RawSmi* hash() const { return raw_ptr()->hash_; }
-  static intptr_t hash_offset() { return OFFSET_OF(RawClosure, hash_); }
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClosure));
   }
@@ -8369,8 +8366,6 @@ class Closure : public Instance {
     // None of the fields of a closure are instances.
     return true;
   }
-
-  int64_t ComputeHash() const;
 
   static RawClosure* New(const TypeArguments& instantiator_type_arguments,
                          const TypeArguments& function_type_arguments,

@@ -919,7 +919,8 @@ class RawClosureData : public RawObject {
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
   }
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->closure_); }
+  RawObject* hash_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
 
   friend class Function;
 };
@@ -1798,18 +1799,16 @@ class RawClosure : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
   }
 
-  // No instance fields should be declared before the following fields whose
+  // No instance fields should be declared before the following 4 fields whose
   // offsets must be identical in Dart and C++.
 
-  // The following fields are also declared in the Dart source of class
-  // _Closure.
+  // These 4 fields are also declared in the Dart source of class _Closure.
   RawTypeArguments* instantiator_type_arguments_;
   RawTypeArguments* function_type_arguments_;
   RawFunction* function_;
   RawContext* context_;
-  RawSmi* hash_;
 
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->context_); }
 
   // Note that instantiator_type_arguments_ and function_type_arguments_ are
   // used to instantiate the signature of function_ when this closure is
