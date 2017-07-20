@@ -640,8 +640,8 @@ class G_error extends E implements D {
     ''');
   }
 
-  test_dynamicInvocation() async {
-    await checkFile('''
+  test_dynamicInvocation() {
+    return checkFile(r'''
 typedef dynamic A(dynamic x);
 class B {
   int call(int x) => x;
@@ -664,13 +664,13 @@ void main() {
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
+    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3.0);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
+    y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3.0);
     /*info:DYNAMIC_INVOKE*/f(3.0);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
-    /*info:DYNAMIC_INVOKE*/f.col(3);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
     A f = new B();
@@ -687,8 +687,8 @@ void main() {
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
     /*info:DYNAMIC_INVOKE*/g.x;
     A f = new B();
-    /*info:DYNAMIC_INVOKE*/f.col(42.0);
-    /*info:DYNAMIC_INVOKE*/f.foo(42.0);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
+    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
   }
 }
@@ -3376,8 +3376,8 @@ class Child extends helper.Base {
 ''');
   }
 
-  test_proxy() async {
-    await checkFile(r'''
+  test_proxy() {
+    return checkFile(r'''
 @proxy class C {}
 @proxy class D {
   var f;
@@ -3401,15 +3401,15 @@ m() {
   d();
 
   C c = new C();
-  /*info:DYNAMIC_INVOKE*/c.m();
-  /*info:DYNAMIC_INVOKE*/c.m;
-  /*info:DYNAMIC_INVOKE*/-c;
-  /*info:DYNAMIC_INVOKE*/c + 7;
-  /*info:DYNAMIC_INVOKE*/c[7];
+  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_METHOD*/m();
+  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_GETTER*/m;
+  /*info:DYNAMIC_INVOKE,error:UNDEFINED_OPERATOR*/-c;
+  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/+ 7;
+  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/[7];
   /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/c();
 
   F f = new F();
-  /*info:DYNAMIC_INVOKE*/f();
+  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/f();
 }
     ''');
   }
@@ -3895,7 +3895,7 @@ void f/*<T>*/(/*=T*/ object) {
 }
 void g/*<T extends num>*/(/*=T*/ object) {
   if (object is int) print(object.isEven);
-  if (object is String) print(/*info:DYNAMIC_INVOKE*/object.substring(1));
+  if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
 }
 class Clonable<T> {}
 class SubClonable<T> extends Clonable<T> {

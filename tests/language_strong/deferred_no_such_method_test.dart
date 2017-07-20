@@ -10,7 +10,7 @@ import "deferred_no_such_method_lib.dart" deferred as lib;
 void main() {
   asyncStart();
   lib.loadLibrary().then((_) {
-    Expect.equals(42, new lib.C().nonExisting());
+    Expect.equals(42, (new lib.C() as dynamic).nonExisting());
     asyncEnd();
   });
 }

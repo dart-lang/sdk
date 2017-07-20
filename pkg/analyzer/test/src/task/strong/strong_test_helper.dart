@@ -345,8 +345,6 @@ class AbstractStrongTest {
         var analysisResult = await _resolve(source);
 
         errors.addAll(analysisResult.errors.where((e) =>
-            // TODO(jmesserly): these are usually intentional dynamic calls.
-            e.errorCode.name != 'UNDEFINED_METHOD' &&
             // We don't care about any of these:
             e.errorCode != HintCode.UNUSED_ELEMENT &&
             e.errorCode != HintCode.UNUSED_FIELD &&
