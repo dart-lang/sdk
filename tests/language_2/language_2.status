@@ -40,8 +40,5 @@ accessor_conflict_import_test: StaticWarning # Issue 25626
 [ $compiler == dart2analyzer && $strong ]
 generic_methods_generic_function_result_test: CompileTimeError # Issue #30207
 
-[ $compiler == dart2analyzer && ! $strong ]
-generic_methods_generic_function_result_test: StaticWarning # Issue #30207
-
 [ $compiler == dart2js || $compiler == dartk || $compiler == dartdevc ]
 generic_methods_generic_function_result_test: CompileTimeError # Issue #30208

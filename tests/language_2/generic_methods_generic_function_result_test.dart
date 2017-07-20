@@ -10,13 +10,13 @@ import "package:expect/expect.dart";
 
 T foo<T extends num>(int i, T t) => i + t;
 
-List<T Function<T extends num>(S, T)> bar<S extends num>() {
+List<T Function<T extends num>(S, T)> bar<S extends int>() {
   return <T Function<T extends num>(S, T)>[foo, foo];
 }
 
 void main() {
   var list = bar<int>();
   print(list[0]
-      .runtimeType); // "(int, int) => int" when reifying generic functions.
+      .runtimeType); // "<T extends num>(int, T) => T" when reifying generic functions.
   Expect.equals(123, list[1]<int>(100, 23));
 }
