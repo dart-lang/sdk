@@ -360,7 +360,8 @@ class CloneVisitor extends TreeVisitor {
         initializer: cloneOptional(node.initializer),
         type: visitType(node.type),
         isFinal: node.isFinal,
-        isConst: node.isConst);
+        isConst: node.isConst,
+        isFieldFormal: node.isFieldFormal);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {

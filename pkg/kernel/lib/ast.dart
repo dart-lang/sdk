@@ -3716,30 +3716,40 @@ class VariableDeclaration extends Statement {
       {this.initializer,
       this.type: const DynamicType(),
       bool isFinal: false,
-      bool isConst: false}) {
+      bool isConst: false,
+      bool isFieldFormal: false}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
+      bool isFieldFormal: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagInScope = 1 << 2; // Temporary flag used by verifier.
+  static const int FlagFieldFormal = 1 << 2;
+  static const int FlagInScope = 1 << 3; // Temporary flag used by verifier.
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
+
+  /// Whether the variable is declared as a field formal parameter of
+  /// a constructor.
+  @informative
+  bool get isFieldFormal => flags & FlagFieldFormal != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -3747,6 +3757,11 @@ class VariableDeclaration extends Statement {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  @informative
+  void set isFieldFormal(bool value) {
+    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
