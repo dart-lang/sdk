@@ -8917,6 +8917,9 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   TypeParameterType get type {
+    if (_kernel != null) {
+      _type ??= new TypeParameterTypeImpl(this);
+    }
     if (_unlinkedTypeParam != null) {
       _type ??= new TypeParameterTypeImpl(this);
     }

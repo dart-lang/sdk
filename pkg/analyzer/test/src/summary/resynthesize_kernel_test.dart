@@ -26,6 +26,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -96,7 +97,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       }
     }
 
-    var resynthesizer = new _KernelResynthesizer(context, libraryMap);
+    var resynthesizer =
+        new _KernelResynthesizer(context, kernelResult.types, libraryMap);
     return resynthesizer.getLibrary(testUriStr);
   }
 
@@ -191,11 +193,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_type_parameters_f_bound_simple() async {
-    await super.test_class_type_parameters_f_bound_simple();
-  }
-
-  @failingTest
   test_closure_generic() async {
     await super.test_closure_generic();
   }
@@ -226,11 +223,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_named() async {
-    await super.test_const_invokeConstructor_generic_named();
-  }
-
-  @failingTest
   test_const_invokeConstructor_generic_named_imported() async {
     await super.test_const_invokeConstructor_generic_named_imported();
   }
@@ -242,16 +234,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_noTypeArguments() async {
-    await super.test_const_invokeConstructor_generic_noTypeArguments();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed() async {
-    await super.test_const_invokeConstructor_generic_unnamed();
-  }
-
-  @failingTest
   test_const_invokeConstructor_generic_unnamed_imported() async {
     await super.test_const_invokeConstructor_generic_unnamed_imported();
   }
@@ -260,11 +242,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
     await super
         .test_const_invokeConstructor_generic_unnamed_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_named() async {
-    await super.test_const_invokeConstructor_named();
   }
 
   @failingTest
@@ -305,11 +282,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_invokeConstructor_named_unresolved6() async {
     await super.test_const_invokeConstructor_named_unresolved6();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_unnamed() async {
-    await super.test_const_invokeConstructor_unnamed();
   }
 
   @failingTest
@@ -2092,6 +2064,23 @@ class _ExprBuilder {
       }
     }
 
+    if (expr is kernel.ConstructorInvocation) {
+      var element = _getElement(expr.targetReference);
+
+      var kernelType = expr.getStaticType(_context._resynthesizer._types);
+      var type = _context.getType(null, kernelType);
+      TypeName typeName = _buildType(type);
+
+      var constructorName = AstTestFactory.constructorName(
+          typeName, element.name.isNotEmpty ? element.name : null);
+      constructorName?.name?.staticElement = element;
+
+      var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
+      var arguments = _toArguments(expr.arguments);
+      return AstTestFactory.instanceCreationExpression(
+          keyword, constructorName, arguments);
+    }
+
     // TODO(scheglov): complete getExpression
     throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
   }
@@ -2166,6 +2155,25 @@ class _ExprBuilder {
     } else {
       return AstTestFactory.interpolationExpression(expr);
     }
+  }
+
+  /// Return [Expression]s for the given [kernelArguments].
+  List<Expression> _toArguments(kernel.Arguments kernelArguments) {
+    int numPositional = kernelArguments.positional.length;
+    int numNamed = kernelArguments.named.length;
+    var arguments = new List<Expression>(numPositional + numNamed);
+
+    int i = 0;
+    for (kernel.Expression k in kernelArguments.positional) {
+      arguments[i++] = build(k);
+    }
+
+    for (kernel.NamedExpression k in kernelArguments.named) {
+      var value = build(k.value);
+      arguments[i++] = AstTestFactory.namedExpression2(k.name, value);
+    }
+
+    return arguments;
   }
 
   /// Return the [TokenType] for the given operator [name].
@@ -2260,11 +2268,15 @@ class _KernelLibraryResynthesizerContextImpl
 
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
     if (kernelType is kernel.InterfaceType) {
       return _getInterfaceType(
           kernelType.className.canonicalName, kernelType.typeArguments);
     }
-    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
+    if (kernelType is kernel.TypeParameterType) {
+      kernel.TypeParameter kTypeParameter = kernelType.parameter;
+      return _getTypeParameter(context, kTypeParameter).type;
+    }
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
   }
@@ -2286,6 +2298,7 @@ class _KernelLibraryResynthesizerContextImpl
     bool isGetter = false;
     bool isSetter = false;
     bool isField = false;
+    bool isConstructor = false;
     bool isMethod = false;
     if (parentName.name == '@getters') {
       isGetter = true;
@@ -2295,6 +2308,9 @@ class _KernelLibraryResynthesizerContextImpl
       parentName = parentName.parent;
     } else if (parentName.name == '@fields') {
       isField = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@constructors') {
+      isConstructor = true;
       parentName = parentName.parent;
     } else if (parentName.name == '@methods') {
       isMethod = true;
@@ -2324,6 +2340,11 @@ class _KernelLibraryResynthesizerContextImpl
         return parentElement.getSetter(name.name) as ElementImpl;
       } else if (isField) {
         return parentElement.getField(name.name) as ElementImpl;
+      } else if (isConstructor) {
+        if (name.name.isEmpty) {
+          return parentElement.unnamedConstructor as ConstructorElementImpl;
+        }
+        return parentElement.getNamedConstructor(name.name) as ElementImpl;
       } else if (isMethod) {
         return parentElement.getMethod(name.name) as ElementImpl;
       }
@@ -2351,10 +2372,27 @@ class _KernelLibraryResynthesizerContextImpl
       return arguments;
     });
   }
+
+  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
+  TypeParameterElement _getTypeParameter(
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+    String name = kernelTypeParameter.name;
+    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
+      if (ctx is TypeParameterizedElementMixin) {
+        for (var typeParameter in ctx.typeParameters) {
+          if (typeParameter.name == name) {
+            return typeParameter;
+          }
+        }
+      }
+    }
+    throw new StateError('Not found $kernelTypeParameter in $context');
+  }
 }
 
 class _KernelResynthesizer {
   final AnalysisContext _analysisContext;
+  final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
@@ -2363,7 +2401,7 @@ class _KernelResynthesizer {
    */
   final Map<String, Source> _sources = <String, Source>{};
 
-  _KernelResynthesizer(this._analysisContext, this._kernelMap);
+  _KernelResynthesizer(this._analysisContext, this._types, this._kernelMap);
 
   LibraryElementImpl getLibrary(String uriStr) {
     return _libraryMap.putIfAbsent(uriStr, () {
