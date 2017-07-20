@@ -5117,7 +5117,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     }
     void* kernel_pgm = reinterpret_cast<void*>(source);
     result = LoadKernelProgram(T, resolved_url_str, kernel_pgm);
-    if (Dart_IsError(result)) {
+    if (::Dart_IsError(result)) {
       return result;
     }
     library ^= Library::LookupLibrary(T, resolved_url_str);
@@ -5470,7 +5470,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   // |source| as a kernel if the current isolate is the kernel isolate.
   if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
     result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
-    if (Dart_IsError(result)) {
+    if (::Dart_IsError(result)) {
       return result;
     }
     return Api::NewHandle(T, Library::LookupLibrary(T, url_str));
