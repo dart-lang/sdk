@@ -89,6 +89,10 @@ struct TestLibEntry {
 
 static MallocGrowableArray<TestLibEntry>* test_libs_ = NULL;
 
+const char* TestCase::url() {
+  return (FLAG_use_dart_frontend) ? RESOLVED_USER_TEST_URI : USER_TEST_URI;
+}
+
 void TestCase::AddTestLib(const char* url, const char* source) {
   if (test_libs_ == NULL) {
     test_libs_ = new MallocGrowableArray<TestLibEntry>();
@@ -155,15 +159,14 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
-static char* CompileTestScriptWithDFE(const char* url,
-                                      const char* source,
-                                      void** kernel_pgm) {
+char* TestCase::CompileTestScriptWithDFE(const char* url,
+                                         const char* source,
+                                         void** kernel_pgm) {
   Zone* zone = Thread::Current()->zone();
-  char* filename = OS::SCreate(zone, "file:///%s", url);
   // clang-format off
   Dart_SourceFile sourcefiles[] = {
     {
-      filename, source,
+      url, source,
     },
     {
       "file:///.packages", "untitled:/"
@@ -171,7 +174,7 @@ static char* CompileTestScriptWithDFE(const char* url,
   // clang-format on
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   Dart_KernelCompilationResult compilation_result =
-      Dart_CompileSourcesToKernel(filename, sourcefiles_count, sourcefiles);
+      Dart_CompileSourcesToKernel(url, sourcefiles_count, sourcefiles);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     return OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
@@ -204,9 +207,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Dart_NewApiError("accessing url characters failed");
     }
     void* kernel_pgm;
-    char* error = CompileTestScriptWithDFE(urlstr, script_source, &kernel_pgm);
+    char* error =
+        TestCase::CompileTestScriptWithDFE(urlstr, script_source, &kernel_pgm);
     if (error == NULL) {
-      return Dart_LoadKernel(kernel_pgm);
+      return Dart_LoadScript(url, Dart_Null(),
+                             reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
     } else {
       return Dart_NewApiError(error);
     }
@@ -321,12 +326,15 @@ static Dart_Handle LoadTestScriptWithDFE(const char* script,
                                          Dart_NativeEntryResolver resolver,
                                          const char* lib_url,
                                          bool finalize_classes) {
+  Dart_Handle url = NewString(lib_url);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
   void* kernel_pgm = NULL;
-  char* error = CompileTestScriptWithDFE(lib_url, script, &kernel_pgm);
+  char* error =
+      TestCase::CompileTestScriptWithDFE(lib_url, script, &kernel_pgm);
   if (error == NULL) {
-    Dart_Handle lib = Dart_LoadKernel(kernel_pgm);
+    Dart_Handle lib = Dart_LoadScript(
+        url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
     DART_CHECK_VALID(lib);
     result = Dart_SetNativeResolver(lib, resolver, NULL);
     DART_CHECK_VALID(result);
@@ -348,7 +356,10 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
     return LoadTestScriptWithVMParser(script, resolver, lib_url,
                                       finalize_classes);
   } else {
-    return LoadTestScriptWithDFE(script, resolver, lib_url, finalize_classes);
+    Zone* zone = Thread::Current()->zone();
+    char* resolved_lib_url = OS::SCreate(zone, "file:///%s", lib_url);
+    return LoadTestScriptWithDFE(script, resolver, resolved_lib_url,
+                                 finalize_classes);
   }
 }
 

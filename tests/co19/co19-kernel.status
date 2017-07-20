@@ -210,3 +210,4 @@ Language/Types/Static_Types/malformed_type_t04: RuntimeError
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t02: RuntimeError

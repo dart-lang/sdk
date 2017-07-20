@@ -275,6 +275,7 @@ class TestCaseBase {
 };
 
 #define USER_TEST_URI "test-lib"
+#define RESOLVED_USER_TEST_URI "file:///test-lib"
 #define CORELIB_TEST_URI "dart:test-lib"
 
 class TestCase : TestCaseBase {
@@ -283,6 +284,9 @@ class TestCase : TestCaseBase {
 
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
+  static char* CompileTestScriptWithDFE(const char* url,
+                                        const char* source,
+                                        void** kernel_pgm);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
@@ -290,7 +294,7 @@ class TestCase : TestCaseBase {
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
-  static const char* url() { return USER_TEST_URI; }
+  static const char* url();
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
                                                     const char* name = NULL) {
     return CreateIsolate(buffer, name);

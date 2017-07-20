@@ -24,6 +24,7 @@ namespace dart {
 DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
 DECLARE_FLAG(bool, support_externalizable_strings);
+DECLARE_FLAG(bool, use_dart_frontend);
 
 #ifndef PRODUCT
 
@@ -99,7 +100,7 @@ TEST_CASE(StackTraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("bar", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_SUBSTRING("test-lib", cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(10, column_number);
 
@@ -111,7 +112,7 @@ TEST_CASE(StackTraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_SUBSTRING("test-lib", cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(10, column_number);
 
@@ -123,7 +124,7 @@ TEST_CASE(StackTraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_SUBSTRING("test-lib", cstr);
   EXPECT_EQ(3, line_number);
   EXPECT_EQ(15, column_number);
 
@@ -172,7 +173,7 @@ TEST_CASE(DeepStackTraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_SUBSTRING("test-lib", cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(20, column_number);
 
@@ -187,7 +188,7 @@ TEST_CASE(DeepStackTraceInfo) {
     Dart_StringToCString(function_name, &cstr);
     EXPECT_STREQ("foo", cstr);
     Dart_StringToCString(script_url, &cstr);
-    EXPECT_STREQ("test-lib", cstr);
+    EXPECT_SUBSTRING("test-lib", cstr);
     EXPECT_EQ(1, line_number);
     EXPECT_EQ(40, column_number);
   }
@@ -201,7 +202,7 @@ TEST_CASE(DeepStackTraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("test-lib", cstr);
+  EXPECT_SUBSTRING("test-lib", cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(15, column_number);
 
@@ -3380,6 +3381,26 @@ VM_UNIT_TEST_CASE(CurrentIsolateData) {
   Dart_ShutdownIsolate();
 }
 
+static Dart_Handle LoadScript(const char* url_str, const char* source) {
+  Dart_Handle url = NewString(url_str);
+  Dart_Handle result;
+  Dart_Handle script;
+  if (!FLAG_use_dart_frontend) {
+    result = Dart_SetLibraryTagHandler(TestCase::library_handler);
+    EXPECT_VALID(result);
+    script = NewString(source);
+  } else {
+    void* kernel_pgm = NULL;
+    char* error =
+        TestCase::CompileTestScriptWithDFE(url_str, source, &kernel_pgm);
+    if (error != NULL) {
+      return Dart_NewApiError(error);
+    }
+    script = reinterpret_cast<Dart_Handle>(kernel_pgm);
+  }
+  return Dart_LoadScript(url, Dart_Null(), script, 0, 0);
+}
+
 VM_UNIT_TEST_CASE(IsolateSetCheckedMode) {
   const char* kScriptChars =
       "int bad1() {\n"
@@ -3411,12 +3432,9 @@ VM_UNIT_TEST_CASE(IsolateSetCheckedMode) {
   EXPECT(isolate != NULL);
 
   {
+    Dart_Handle result;
     Dart_EnterScope();
-    Dart_Handle url = NewString(TestCase::url());
-    Dart_Handle source = NewString(kScriptChars);
-    Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
-    EXPECT_VALID(result);
-    Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
     EXPECT_VALID(lib);
     result = Dart_FinalizeLoading(false);
     EXPECT_VALID(result);
@@ -5655,23 +5673,25 @@ TEST_CASE(LoadScript) {
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_Null(), Dart_Null(), 0, 0);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_LoadScript expects argument 'source' to be non-null.",
-               Dart_GetError(result));
+  if (!FLAG_use_dart_frontend) {
+    result = Dart_LoadScript(url, Dart_Null(), Dart_Null(), 0, 0);
+    EXPECT(Dart_IsError(result));
+    EXPECT_STREQ("Dart_LoadScript expects argument 'source' to be non-null.",
+                 Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_Null(), Dart_True(), 0, 0);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_LoadScript expects argument 'source' to be of type String.",
-      Dart_GetError(result));
+    result = Dart_LoadScript(url, Dart_Null(), Dart_True(), 0, 0);
+    EXPECT(Dart_IsError(result));
+    EXPECT_STREQ(
+        "Dart_LoadScript expects argument 'source' to be of type String.",
+        Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_Null(), error, 0, 0);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("incoming error", Dart_GetError(result));
+    result = Dart_LoadScript(url, Dart_Null(), error, 0, 0);
+    EXPECT(Dart_IsError(result));
+    EXPECT_STREQ("incoming error", Dart_GetError(result));
+  }
 
   // Load a script successfully.
-  result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+  result = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(result);
   Dart_FinalizeLoading(false);
 
@@ -5685,10 +5705,8 @@ TEST_CASE(LoadScript) {
   // Further calls to LoadScript are errors.
   result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_LoadScript: "
-      "A script has already been loaded from 'test-lib'.",
-      Dart_GetError(result));
+  EXPECT_SUBSTRING("Dart_LoadScript: A script has already been loaded from",
+                   Dart_GetError(result));
 }
 
 TEST_CASE(RootLibrary) {
@@ -5703,9 +5721,7 @@ TEST_CASE(RootLibrary) {
   EXPECT(Dart_IsNull(root_lib));
 
   // Load a script.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  EXPECT_VALID(Dart_LoadScript(url, Dart_Null(), source, 0, 0));
+  EXPECT_VALID(LoadScript(TestCase::url(), kScriptChars));
 
   root_lib = Dart_RootLibrary();
   Dart_Handle lib_name = Dart_LibraryName(root_lib);
@@ -5784,13 +5800,13 @@ static Dart_Handle import_library_handler(Dart_LibraryTag tag,
 
 TEST_CASE(LoadScript_CompileError) {
   const char* kScriptChars = ")";
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
   Dart_Handle result = Dart_SetLibraryTagHandler(import_library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+  result = LoadScript(TestCase::url(), kScriptChars);
   EXPECT(Dart_IsError(result));
-  EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
+  if (!FLAG_use_dart_frontend) {
+    EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
+  }
 }
 
 TEST_CASE(LookupLibrary) {
@@ -6726,11 +6742,7 @@ TEST_CASE(SetNativeResolver) {
   Dart_Handle result;
 
   // Load a test script.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  result = Dart_SetLibraryTagHandler(library_handler);
-  EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
@@ -7224,7 +7236,6 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         void* data,
                                         char** error) {
   const char* kScriptChars =
-      "import 'builtin';\n"
       "import 'dart:isolate';\n"
       "void main(shouldThrowException) {\n"
       "  var rp = new RawReceivePort();\n"
@@ -7246,13 +7257,9 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
     return isolate;
   }
   Dart_EnterScope();
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
-  EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
-  result = Dart_FinalizeLoading(false);
+  Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -7626,11 +7633,7 @@ TEST_CASE(NativeFunctionClosure) {
   Dart_Handle result;
 
   // Load a test script.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  result = Dart_SetLibraryTagHandler(library_handler);
-  EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver, NULL);
@@ -7770,11 +7773,7 @@ TEST_CASE(NativeStaticFunctionClosure) {
   Dart_Handle result;
 
   // Load a test script.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  result = Dart_SetLibraryTagHandler(library_handler);
-  EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver, NULL);

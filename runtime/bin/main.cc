@@ -838,8 +838,20 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
 
+  // Prepare builtin and other core libraries for use to resolve URIs.
+  // Set up various closures, e.g: printing, timers etc.
+  // Set up 'package root' for URI resolution.
+  result = DartUtils::PrepareForScriptLoading(false, trace_loading);
+  CHECK_RESULT(result);
+
   if (kernel_program != NULL) {
-    Dart_Handle result = Dart_LoadKernel(kernel_program);
+    Dart_Handle uri = Dart_NewStringFromCString(script_uri);
+    CHECK_RESULT(uri);
+    Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
+    CHECK_RESULT(resolved_script_uri);
+    result =
+        Dart_LoadScript(uri, resolved_script_uri,
+                        reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
     CHECK_RESULT(result);
   }
   if (set_native_resolvers) {
@@ -851,12 +863,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Dart_Handle result = Loader::ReloadNativeExtensions();
     CHECK_RESULT(result);
   }
-
-  // Prepare builtin and other core libraries for use to resolve URIs.
-  // Set up various closures, e.g: printing, timers etc.
-  // Set up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(false, trace_loading);
-  CHECK_RESULT(result);
 
   // Set up the load port provided by the service isolate so that we can
   // load scripts.

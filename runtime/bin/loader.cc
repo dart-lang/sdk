@@ -431,8 +431,9 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         // isolates. We currently do not have support for neither
         // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
         // frontend.
-        void* kernel_binary = Dart_ReadKernelBinary(payload, payload_length);
-        dart_result = Dart_LoadKernel(kernel_binary);
+        Dart_Handle kernel_binary = reinterpret_cast<Dart_Handle>(
+            Dart_ReadKernelBinary(payload, payload_length));
+        dart_result = Dart_LoadScript(uri, resolved_uri, kernel_binary, 0, 0);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }

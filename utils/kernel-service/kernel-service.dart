@@ -48,9 +48,13 @@ Future _processLoadRequest(request) async {
   final String inputFileUri = request[2];
   final Uri script = Uri.base.resolve(inputFileUri);
 
-  FileSystem fileSystem = request.length > 3
-      ? _buildFileSystem(request[3])
-      : PhysicalFileSystem.instance;
+  FileSystem fileSystem = PhysicalFileSystem.instance;
+  bool requireMain = true;
+
+  if (request.length > 3) {
+    fileSystem = _buildFileSystem(request[3]);
+    requireMain = false;
+  }
 
   Uri packagesUri = (Platform.packageConfig != null)
       ? Uri.parse(Platform.packageConfig)
@@ -90,7 +94,10 @@ Future _processLoadRequest(request) async {
 
   CompilationResult result;
   try {
-    Program program = await kernelForProgram(script, options);
+    Program program = requireMain
+        ? await kernelForProgram(script, options)
+        : await kernelForBuildUnit([script], options..chaseDependencies = true);
+
     if (errors.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
