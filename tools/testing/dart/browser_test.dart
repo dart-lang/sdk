@@ -4,7 +4,7 @@
 
 import 'utils.dart';
 
-String getHtmlContents(String title, String scriptType, String scriptPath) {
+String dart2jsHtml(String title, String scriptPath) {
   return """
 <!DOCTYPE html>
 <html>
@@ -24,7 +24,7 @@ String getHtmlContents(String title, String scriptType, String scriptPath) {
   <script type="text/javascript"
           src="/root_dart/tools/testing/dart/test_controller.js">
   </script>
-  <script type="$scriptType" src="$scriptPath"
+  <script type="text/javascript" src="$scriptPath"
           onerror="scriptTagOnErrorCallback(null)"
           defer>
   </script>
@@ -99,17 +99,5 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
 </script>
 </body>
 </html>
-""";
-}
-
-String dartTestWrapper(String libraryPathComponent) {
-  return """
-import '$libraryPathComponent' as test;
-
-main() {
-  print("dart-calling-main");
-  test.main();
-  print("dart-main-done");
-}
 """;
 }

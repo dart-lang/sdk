@@ -81,9 +81,6 @@ abstract class Browser {
       case Runtime.chrome:
         browser = new Chrome();
         break;
-      case Runtime.dartium:
-        browser = new Dartium(checkedMode);
-        break;
       case Runtime.safari:
         browser = new Safari();
         break;
@@ -110,8 +107,7 @@ abstract class Browser {
     'chrome',
     'ie9',
     'ie10',
-    'ie11',
-    'dartium'
+    'ie11'
   ];
 
   static bool requiresFocus(String browserName) {
@@ -584,26 +580,6 @@ class SafariMobileSimulator extends Safari {
   String toString() => "SafariMobileSimulator";
 }
 
-class Dartium extends Chrome {
-  final bool checkedMode;
-
-  Dartium(this.checkedMode);
-
-  Map<String, String> _getEnvironment() {
-    var environment = new Map<String, String>.from(Platform.environment);
-    // By setting this environment variable, dartium will forward "print()"
-    // calls in dart to the top-level javascript function "dartPrint()" if
-    // available.
-    environment['DART_FORWARDING_PRINT'] = '1';
-    if (checkedMode) {
-      environment['DART_FLAGS'] = '--checked';
-    }
-    return environment;
-  }
-
-  String toString() => "Dartium";
-}
-
 class IE extends Browser {
   Future<String> getVersion() {
     var args = [
@@ -669,9 +645,6 @@ final contentShellOnAndroidConfig = new AndroidBrowserConfig(
     'org.chromium.content_shell_apk',
     '.ContentShellActivity',
     'android.intent.action.VIEW');
-
-final dartiumOnAndroidConfig = new AndroidBrowserConfig('DartiumOnAndroid',
-    'com.google.android.apps.chrome', '.Main', 'android.intent.action.VIEW');
 
 class AndroidBrowser extends Browser {
   final bool checkedMode;

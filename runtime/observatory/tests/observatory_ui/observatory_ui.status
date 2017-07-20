@@ -5,11 +5,6 @@
 [ ! $browser || $runtime == drt || $fast_startup]
 *: SkipByDesign
 
-[ $runtime == dartium ]
-isolate/*: Skip
-allocation_profile: Skip
-heap_snapshot/element_test: RuntimeError # Issue 27925
-
 [ $runtime == ff || $runtime == safari ]
 allocation_profile: Skip
 cpu_profile_table: Skip

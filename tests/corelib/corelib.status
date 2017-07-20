@@ -5,7 +5,7 @@
 [ $strong ]
 *: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && $runtime == drt ]
 from_environment_const_type_test: Skip
 from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
@@ -55,7 +55,7 @@ int_modulo_arith_test/modPow: RuntimeError # No bigints.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 symbol_reserved_word_test/05: Crash # bug 20191
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != dartium && $runtime != drt ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 

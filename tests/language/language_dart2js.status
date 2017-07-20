@@ -295,7 +295,7 @@ generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 method_override5_test: RuntimeError # Issue 12809
 
-[ $compiler == dart2js && $runtime != drt && $runtime != dartium ]
+[ $compiler == dart2js && $runtime != drt ]
 issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $host_checked ]

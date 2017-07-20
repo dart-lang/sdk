@@ -75,7 +75,7 @@ dev_compiler/test/*: Skip
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && $runtime == drt ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign

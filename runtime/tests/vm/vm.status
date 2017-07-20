@@ -119,7 +119,7 @@ cc/Profiler_SourcePositionOptimized: Skip
 cc/Profiler_BinaryOperatorSourcePosition: Skip
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt)]
+[ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
 
 [ $compiler == dart2js ]

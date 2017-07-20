@@ -19,13 +19,13 @@ import 'browser_test.dart';
 import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
-import 'drt_updater.dart';
 import 'expectation.dart';
 import 'expectation_set.dart';
 import 'html_test.dart' as html_test;
 import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
+import 'runtime_updater.dart';
 import 'summary_report.dart';
 import 'test_configurations.dart';
 import 'test_runner.dart';
@@ -646,7 +646,10 @@ class StandardTestSuite extends TestSuite {
   Future forEachTest(
       Function onTest, Map<String, List<TestInformation>> testCache,
       [VoidFunction onDone]) async {
-    await updateDartium();
+    if (configuration.runtime == Runtime.drt && !configuration.listTests) {
+      await updateContentShell(configuration.drtPath);
+    }
+
     doTest = onTest;
     testExpectations = readExpectations();
 
@@ -663,24 +666,6 @@ class StandardTestSuite extends TestSuite {
     cachedTests = null;
     doTest = null;
     if (onDone != null) onDone();
-  }
-
-  /**
-   * If Content shell/Dartium is required, and not yet updated, waits for
-   * the update then completes. Otherwise completes immediately.
-   */
-  Future updateDartium() {
-    var completer = new Completer();
-    var updater = runtimeUpdater(configuration.runtime, configuration.drtPath,
-        configuration.dartiumPath);
-    if (updater == null || updater.updated) {
-      return new Future.value(null);
-    }
-
-    assert(updater.isActive);
-    updater.onUpdated.add(() => completer.complete(null));
-
-    return completer.future;
   }
 
   /**
@@ -980,17 +965,6 @@ class StandardTestSuite extends TestSuite {
         queryParameters: parameters);
   }
 
-  void _createWrapperFile(
-      String dartWrapperFilename, Path localDartLibraryFilename) {
-    File file = new File(dartWrapperFilename);
-    RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
-
-    var libraryPathComponent = _createUrlPathFromFile(localDartLibraryFilename);
-    var generatedSource = dartTestWrapper(libraryPathComponent);
-    dartWrapper.writeStringSync(generatedSource);
-    dartWrapper.closeSync();
-  }
-
   /**
    * The [StandardTestSuite] has support for tests that
    * compile a test from Dart to JavaScript, and then run the resulting
@@ -1030,70 +1004,36 @@ class StandardTestSuite extends TestSuite {
       Map<String, Set<Expectation>> expectations,
       List<String> vmOptions,
       String tempDir) {
-    // TODO(Issue 14651): If we're on dartium, we need to pass [packageRoot]
-    // on to the browser (it may be test specific).
-    var filePath = info.filePath;
-    var fileName = filePath.toNativePath();
-
+    var fileName = info.filePath.toNativePath();
     var optionsFromFile = info.optionsFromFile;
     var compilationTempDir = createCompilationOutputDirectory(info.filePath);
-    var dartWrapperFilename = '$tempDir/test.dart';
-    var compiledDartWrapperFilename = '$compilationTempDir/test.js';
-    var dir = filePath.directoryPath;
-    var nameNoExt = filePath.filenameWithoutExtension;
-    var customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
-    var customHtml = new File(customHtmlPath);
+    var jsWrapperFileName = '$compilationTempDir/test.js';
+    var nameNoExt = info.filePath.filenameWithoutExtension;
 
     // Use existing HTML document if available.
-    String htmlPath;
     String content;
+    var customHtml = new File(
+        info.filePath.directoryPath.append('$nameNoExt.html').toNativePath());
     if (customHtml.existsSync()) {
-      htmlPath = '$tempDir/test.html';
-      dartWrapperFilename = filePath.toNativePath();
-
-      var htmlContents = customHtml.readAsStringSync();
-      if (configuration.compiler == Compiler.none) {
-        var dartUrl = _createUrlPathFromFile(filePath);
-        var dartScript =
-            '<script type="application/dart" src="$dartUrl"></script>';
-        var jsUrl = '/packages/browser/dart.js';
-        var jsScript = '<script type="text/javascript" src="$jsUrl"></script>';
-        htmlContents =
-            htmlContents.replaceAll('%TEST_SCRIPTS%', '$dartScript\n$jsScript');
-      } else {
-        compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
-        htmlContents = htmlContents.replaceAll(
-            '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
-      }
-      new File(htmlPath).writeAsStringSync(htmlContents);
+      jsWrapperFileName = '$tempDir/$nameNoExt.js';
+      content = customHtml.readAsStringSync().replaceAll(
+          '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
     } else {
-      htmlPath = '$tempDir/test.html';
-      if (configuration.compiler != Compiler.dart2js &&
-          configuration.compiler != Compiler.dartdevc) {
-        // test.dart will import the dart test.
-        _createWrapperFile(dartWrapperFilename, filePath);
-      } else {
-        dartWrapperFilename = fileName;
-      }
-
-      // Create the HTML file for the test.
-      var scriptPath = dartWrapperFilename;
-      if (configuration.compiler != Compiler.none) {
-        scriptPath = compiledDartWrapperFilename;
-      }
-      scriptPath = _createUrlPathFromFile(new Path(scriptPath));
+      // Synthesize an HTML file for the test.
+      var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
 
       if (configuration.compiler != Compiler.dartdevc) {
-        content = getHtmlContents(fileName, scriptType, scriptPath);
+        content = dart2jsHtml(fileName, scriptPath);
       } else {
         var jsDir = new Path(compilationTempDir)
             .relativeTo(TestUtils.dartDir)
             .toString();
         content = dartdevcHtml(nameNoExt, jsDir, buildDir);
       }
-
-      new File(htmlPath).writeAsStringSync(content);
     }
+
+    var htmlPath = '$tempDir/test.html';
+    new File(htmlPath).writeAsStringSync(content);
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test. For running Dart in DRT, this will be noop commands.
@@ -1101,8 +1041,8 @@ class StandardTestSuite extends TestSuite {
 
     switch (configuration.compiler) {
       case Compiler.dart2js:
-        commands.add(_dart2jsCompileCommand(dartWrapperFilename,
-            compiledDartWrapperFilename, tempDir, optionsFromFile));
+        commands.add(_dart2jsCompileCommand(
+            fileName, jsWrapperFileName, tempDir, optionsFromFile));
         break;
 
       case Compiler.dartdevc:
@@ -1113,9 +1053,6 @@ class StandardTestSuite extends TestSuite {
             optionsFromFile["sharedOptions"] as List<String>));
         break;
 
-      case Compiler.none:
-        break;
-
       default:
         assert(false);
     }
@@ -1123,13 +1060,13 @@ class StandardTestSuite extends TestSuite {
     // Some tests require compiling multiple input scripts.
     for (var name in optionsFromFile['otherScripts'] as List<String>) {
       var namePath = new Path(name);
-      var fromPath = filePath.directoryPath.join(namePath);
+      var fromPath = info.filePath.directoryPath.join(namePath);
       var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
 
       switch (configuration.compiler) {
         case Compiler.dart2js:
-          commands.add(_dart2jsCompileCommand(fromPath.toNativePath(),
-              toPath, tempDir, optionsFromFile));
+          commands.add(_dart2jsCompileCommand(
+              fromPath.toNativePath(), toPath, tempDir, optionsFromFile));
           break;
 
         case Compiler.dartdevc:
@@ -1137,17 +1074,6 @@ class StandardTestSuite extends TestSuite {
               fromPath.toNativePath(), toPath,
               optionsFromFile["sharedOptions"] as List<String>));
           break;
-
-        default:
-          assert(configuration.compiler == Compiler.none);
-      }
-
-      if (configuration.compiler == Compiler.none) {
-        // For the tests that require multiple input scripts but are not
-        // compiled, move the input scripts over with the script so they can
-        // be accessed.
-        new File(fromPath.toNativePath())
-            .copySync('$tempDir/${namePath.filename}');
       }
     }
 
@@ -1193,15 +1119,6 @@ class StandardTestSuite extends TestSuite {
         contentShellOptions.add('--disable-gpu');
         // TODO(terry): Roll 50 need this in conjection with disable-gpu.
         contentShellOptions.add('--disable-gpu-early-init');
-      }
-
-      if (configuration.compiler == Compiler.none) {
-        dartFlags.add('--ignore-unrecognized-flags');
-        if (configuration.isChecked) {
-          dartFlags.add('--enable_asserts');
-          dartFlags.add("--enable_type_checks");
-        }
-        dartFlags.addAll(vmOptions);
       }
 
       commands.add(Command.contentShell(contentShellFilename, fullHtmlPath,
@@ -1327,22 +1244,6 @@ class StandardTestSuite extends TestSuite {
         alwaysCompile: !useSdk);
   }
 
-  String get scriptType {
-    switch (configuration.compiler) {
-      case Compiler.none:
-        return 'application/dart';
-      case Compiler.dart2js:
-      case Compiler.dart2analyzer:
-      case Compiler.dartdevc:
-        return 'text/javascript';
-      default:
-        print('Non-web runtime, so no scriptType for: '
-            '${configuration.compiler.name}');
-        exit(1);
-        return null;
-    }
-  }
-
   bool get hasRuntime => configuration.runtime != Runtime.none;
 
   String get contentShellFilename {
@@ -1406,8 +1307,8 @@ class StandardTestSuite extends TestSuite {
    * creating additional files in the test directories.
    *
    * Here is a list of options that are used by 'test.dart' today:
-   *   - Flags can be passed to the vm or dartium process that runs the test by
-   *   adding a comment to the test file:
+   *   - Flags can be passed to the vm process that runs the test by adding a
+   *   comment to the test file:
    *
    *     // VMOptions=--flag1 --flag2
    *
@@ -1651,9 +1552,7 @@ class StandardTestSuite extends TestSuite {
       Runtime.dartPrecompiled,
       Runtime.vm,
       Runtime.drt,
-      Runtime.dartium,
-      Runtime.contentShellOnAndroid,
-      Runtime.dartiumOnAndroid
+      Runtime.contentShellOnAndroid
     ];
 
     var needsVmOptions = compilers.contains(configuration.compiler) &&
@@ -1776,6 +1675,8 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   }
 }
 
+// TODO(rnystrom): Merge with DartcCompilationTestSuite since that class isn't
+// used for anything but this now.
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   static String libraryPath(Configuration configuration) =>
       configuration.useSdk ? '${configuration.buildDirectory}/dart-sdk' : 'sdk';

@@ -46,14 +46,6 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
     '--use-sdk',
     '--checked'
   ],
-  const <String>[
-    '-mrelease',
-    '-rdartium',
-    '-cnone',
-    '--use-sdk',
-    '--fast-startup'
-  ],
-  const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk'],
 ];
 
 void main(List<String> args) {
