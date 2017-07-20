@@ -1909,6 +1909,13 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl(String name, int offset) : super(name, offset);
 
   /**
+   * Initialize using the given kernel.
+   */
+  ConstFieldElementImpl.forKernel(
+      ElementImpl enclosingElement, kernel.Field kernel)
+      : super.forKernel(enclosingElement, kernel);
+
+  /**
    * Initialize a newly created field element to have the given [name].
    */
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -1919,13 +1926,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forSerialized(
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
-
-  /**
-   * Initialize using the given kernel.
-   */
-  ConstFieldElementImpl.forKernel(
-      ElementImpl enclosingElement, kernel.Field kernel)
-      : super.forKernel(enclosingElement, kernel);
 }
 
 /**
@@ -2551,6 +2551,13 @@ class DefaultFieldFormalParameterElementImpl
       : super(name, nameOffset);
 
   /**
+   * Initialize using the given kernel.
+   */
+  DefaultFieldFormalParameterElementImpl.forKernel(ElementImpl enclosingElement,
+      kernel.VariableDeclaration kernel, ParameterKind parameterKind)
+      : super.forKernel(enclosingElement, kernel, parameterKind);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
   DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
@@ -2575,6 +2582,13 @@ class DefaultParameterElementImpl extends ParameterElementImpl
    */
   DefaultParameterElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  DefaultParameterElementImpl.forKernel(ElementImpl enclosingElement,
+      kernel.VariableDeclaration kernel, ParameterKind parameterKind)
+      : super.forKernel(enclosingElement, kernel, parameterKind);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
@@ -4439,6 +4453,13 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
    */
   FieldFormalParameterElementImpl(String name, int nameOffset)
       : super(name, nameOffset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  FieldFormalParameterElementImpl.forKernel(ElementImpl enclosingElement,
+      kernel.VariableDeclaration kernel, ParameterKind parameterKind)
+      : super.forKernel(enclosingElement, kernel, parameterKind);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
@@ -7938,18 +7959,40 @@ class ParameterElementImpl extends VariableElementImpl
     if (function.positionalParameters.isNotEmpty ||
         function.namedParameters.isNotEmpty) {
       var parameters = <ParameterElement>[];
+
+      // Add positional required and optional parameters.
       for (int i = 0; i < function.positionalParameters.length; i++) {
-        parameters.add(new ParameterElementImpl.forKernel(
-            enclosingElement,
-            function.positionalParameters[i],
-            i < function.requiredParameterCount
-                ? ParameterKind.REQUIRED
-                : ParameterKind.POSITIONAL));
+        kernel.VariableDeclaration parameter = function.positionalParameters[i];
+        if (i < function.requiredParameterCount) {
+          if (parameter.isFieldFormal) {
+            parameters.add(new FieldFormalParameterElementImpl.forKernel(
+                enclosingElement, parameter, ParameterKind.REQUIRED));
+          } else {
+            parameters.add(new ParameterElementImpl.forKernel(
+                enclosingElement, parameter, ParameterKind.REQUIRED));
+          }
+        } else {
+          if (parameter.isFieldFormal) {
+            parameters.add(new DefaultFieldFormalParameterElementImpl.forKernel(
+                enclosingElement, parameter, ParameterKind.POSITIONAL));
+          } else {
+            parameters.add(new DefaultParameterElementImpl.forKernel(
+                enclosingElement, parameter, ParameterKind.POSITIONAL));
+          }
+        }
       }
+
+      // Add named parameters.
       for (var k in function.namedParameters) {
-        parameters.add(new ParameterElementImpl.forKernel(
-            enclosingElement, k, ParameterKind.NAMED));
+        if (k.isFieldFormal) {
+          parameters.add(new DefaultFieldFormalParameterElementImpl.forKernel(
+              enclosingElement, k, ParameterKind.NAMED));
+        } else {
+          parameters.add(new DefaultParameterElementImpl.forKernel(
+              enclosingElement, k, ParameterKind.NAMED));
+        }
       }
+
       return parameters;
     } else {
       return const <ParameterElement>[];

@@ -26,7 +26,6 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -145,78 +144,10 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_constructor_field_formal_dynamic_dynamic() async {
-    await super.test_class_constructor_field_formal_dynamic_dynamic();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_dynamic_typed() async {
-    await super.test_class_constructor_field_formal_dynamic_typed();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_dynamic_untyped() async {
-    await super.test_class_constructor_field_formal_dynamic_untyped();
-  }
-
-  @failingTest
   test_class_constructor_field_formal_multiple_matching_fields() async {
+    // Fasta does not generate the class.
+    // main() with a fatal error is generated instead.
     await super.test_class_constructor_field_formal_multiple_matching_fields();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_no_matching_field() async {
-    await super.test_class_constructor_field_formal_no_matching_field();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_typed_dynamic() async {
-    await super.test_class_constructor_field_formal_typed_dynamic();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_typed_typed() async {
-    await super.test_class_constructor_field_formal_typed_typed();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_typed_untyped() async {
-    await super.test_class_constructor_field_formal_typed_untyped();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_untyped_dynamic() async {
-    await super.test_class_constructor_field_formal_untyped_dynamic();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_untyped_typed() async {
-    await super.test_class_constructor_field_formal_untyped_typed();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_untyped_untyped() async {
-    await super.test_class_constructor_field_formal_untyped_untyped();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_named_noDefault() async {
-    await super.test_class_constructor_fieldFormal_named_noDefault();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_named_withDefault() async {
-    await super.test_class_constructor_fieldFormal_named_withDefault();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_optional_noDefault() async {
-    await super.test_class_constructor_fieldFormal_optional_noDefault();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_optional_withDefault() async {
-    await super.test_class_constructor_fieldFormal_optional_withDefault();
   }
 
   @failingTest
@@ -429,28 +360,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_length_staticMethod() async {
     await super.test_const_length_staticMethod();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
-    await super
-        .test_const_parameterDefaultValue_initializingFormal_functionTyped();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_named() async {
-    await super.test_const_parameterDefaultValue_initializingFormal_named();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_positional() async {
-    await super
-        .test_const_parameterDefaultValue_initializingFormal_positional();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_normal() async {
-    await super.test_const_parameterDefaultValue_normal();
   }
 
   @failingTest
@@ -907,11 +816,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_field_documented() async {
     await super.test_field_documented();
-  }
-
-  @failingTest
-  test_field_formal_param_inferred_type_implicit() async {
-    await super.test_field_formal_param_inferred_type_implicit();
   }
 
   @failingTest
@@ -1671,26 +1575,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_parameter_return_type_void() async {
     await super.test_parameter_return_type_void();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_constructor() async {
-    await super.test_parameterTypeNotInferred_constructor();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_initializingFormal() async {
-    await super.test_parameterTypeNotInferred_initializingFormal();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_staticMethod() async {
-    await super.test_parameterTypeNotInferred_staticMethod();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_topLevelFunction() async {
-    await super.test_parameterTypeNotInferred_topLevelFunction();
   }
 
   @failingTest

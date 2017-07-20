@@ -600,9 +600,7 @@ class _ElementWriter {
 
   void writeParameterElement(ParameterElement e) {
     String defaultValueSeparator;
-    Expression defaultValue = e is ConstVariableElement
-        ? (e as ConstVariableElement).constantInitializer
-        : null;
+    Expression defaultValue;
     String closeString;
     ParameterKind kind = e.parameterKind;
     if (kind == ParameterKind.REQUIRED) {
@@ -610,13 +608,22 @@ class _ElementWriter {
     } else if (kind == ParameterKind.POSITIONAL) {
       buffer.write('[');
       defaultValueSeparator = ' = ';
+      defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = ']';
     } else if (kind == ParameterKind.NAMED) {
       buffer.write('{');
       defaultValueSeparator = ': ';
+      defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = '}';
     } else {
       fail('Unknown parameter kind: $kind');
+    }
+
+    // Kernel desugars omitted default parameter values to 'null'.
+    // Analyzer does not set initializer at all.
+    // It is not an interesting distinction, so we skip NullLiteral(s).
+    if (defaultValue is NullLiteral) {
+      defaultValue = null;
     }
 
     writeMetadata(e, '', ' ');

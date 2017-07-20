@@ -9803,7 +9803,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x = null]);
+        a/*location: test.dart;a?*/ dynamic this.x]);
 }
 const dynamic a = null;
 ''');
@@ -9812,7 +9812,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x = null]);
+        a/*location: test.dart;a?*/ dynamic this.x]);
 }
 const dynamic a = null;
 ''');
@@ -9913,13 +9913,13 @@ dynamic f(@
       checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
+        a/*location: test.dart;a?*/ () → dynamic g]) {}
 ''');
     } else {
       checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
+        a/*location: test.dart;a?*/ () → dynamic g]) {}
 ''');
     }
   }
@@ -10155,13 +10155,13 @@ dynamic f(@
       checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ dynamic x = null]) {}
+        a/*location: test.dart;a?*/ dynamic x]) {}
 ''');
     } else {
       checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ dynamic x = null]) {}
+        a/*location: test.dart;a?*/ dynamic x]) {}
 ''');
     }
   }

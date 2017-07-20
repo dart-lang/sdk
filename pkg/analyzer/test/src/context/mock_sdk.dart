@@ -303,6 +303,15 @@ const Object proxy = const _Proxy();
 
 class _Override { const _Override(); }
 const Object override = const _Override();
+
+class _CompileTimeError {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+}
+
+class _ConstantExpressionError {
+  const _ConstantExpressionError();
+}
 ''');
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
