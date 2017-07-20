@@ -29,12 +29,30 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    node.argumentList?.accept(this);
+    // TODO(paulberry): store resolution of node.constructorName.
+    node.staticType = _getTypeFor(node.constructorName);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
     // TODO(paulberry): store resolution of node.methodName.
     // TODO(paulberry): store resolution of node.typeArguments.
     node.argumentList.accept(this);
-    node.staticType = _getTypeFor(node);
+    node.staticType = _getTypeFor(node.methodName);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.parent is VariableDeclarationList &&
+        node.parent.parent is TopLevelVariableDeclaration) {
+      // Don't visit the name; resolution for it will come from the outline.
+    } else {
+      node.name.accept(this);
+    }
+    node.initializer?.accept(this);
   }
 
   @override
@@ -55,17 +73,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
       }
     }
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent is VariableDeclarationList &&
-        node.parent.parent is TopLevelVariableDeclaration) {
-      // Don't visit the name; resolution for it will come from the outline.
-    } else {
-      node.name.accept(this);
-    }
-    node.initializer?.accept(this);
   }
 
   void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
