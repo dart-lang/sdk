@@ -146,9 +146,6 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 # The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
 
-[ $runtime == d8 ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
