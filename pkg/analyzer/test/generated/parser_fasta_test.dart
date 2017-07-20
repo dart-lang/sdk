@@ -291,7 +291,7 @@ class FastaParserTestCase extends Object
   analyzer.Parser get parser => _parserProxy;
 
   @override
-  bool get usingFasta => true;
+  bool get usingFastaParser => true;
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
