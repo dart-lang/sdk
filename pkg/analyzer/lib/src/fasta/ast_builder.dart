@@ -1734,6 +1734,12 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  AstNode finishFields() {
+    debugEvent("finishFields");
+    return pop();
+  }
+
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
     push(new _OperatorName(

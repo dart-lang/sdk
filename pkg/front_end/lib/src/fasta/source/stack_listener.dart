@@ -70,6 +70,12 @@ abstract class StackListener extends Listener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
+  dynamic finishFields() {
+    return unsupported("finishFields", -1, uri);
+  }
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
+  // and ast_builder.dart.
   List<Expression> finishMetadata() {
     return unsupported("finishMetadata", -1, uri);
   }

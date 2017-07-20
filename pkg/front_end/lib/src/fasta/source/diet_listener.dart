@@ -554,6 +554,15 @@ class DietListener extends StackListener {
     listener.finishFunction(metadataConstants, formals, asyncModifier, body);
   }
 
+  /// Invokes the listener's [finishFields] method.
+  ///
+  /// This is a separate method so that it may be overridden by a derived class
+  /// if more computation must be done before finishing the function.
+  void listenerFinishFields(StackListener listener, Token startToken,
+      Token metadata, bool isTopLevel) {
+    listener.finishFields();
+  }
+
   void parseFunctionBody(StackListener listener, Token startToken,
       Token metadata, MemberKind kind) {
     Token token = startToken;
@@ -584,8 +593,9 @@ class DietListener extends StackListener {
     }
   }
 
-  void parseFields(
-      StackListener listener, Token token, Token metadata, bool isTopLevel) {
+  void parseFields(StackListener listener, Token startToken, Token metadata,
+      bool isTopLevel) {
+    Token token = startToken;
     Parser parser = new Parser(listener);
     if (isTopLevel) {
       // There's a slight asymmetry between [parseTopLevelMember] and
@@ -595,6 +605,7 @@ class DietListener extends StackListener {
     } else {
       token = parser.parseMember(metadata ?? token);
     }
+    listenerFinishFields(listener, startToken, metadata, isTopLevel);
     listener.checkEmpty(token.charOffset);
   }
 

@@ -39,18 +39,33 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    if (node.variables.length != 1) {
-      // TODO(paulberry): handle this case
-      throw new UnimplementedError('Multiple variables in one declaration');
+    if (node.parent is TopLevelVariableDeclaration) {
+      node.variables.accept(this);
+    } else {
+      if (node.variables.length != 1) {
+        // TODO(paulberry): handle this case
+        throw new UnimplementedError('Multiple variables in one declaration');
+      }
+      if (node.metadata.isNotEmpty) {
+        // TODO(paulberry): handle this case
+        throw new UnimplementedError('Metadata on a variable declaration list');
+      }
+      node.variables.accept(this);
+      if (node.type != null) {
+        _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
+      }
     }
-    if (node.metadata.isNotEmpty) {
-      // TODO(paulberry): handle this case
-      throw new UnimplementedError('Metadata on a variable declaration list');
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.parent is VariableDeclarationList &&
+        node.parent.parent is TopLevelVariableDeclaration) {
+      // Don't visit the name; resolution for it will come from the outline.
+    } else {
+      node.name.accept(this);
     }
-    node.variables.accept(this);
-    if (node.type != null) {
-      _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
-    }
+    node.initializer?.accept(this);
   }
 
   void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
@@ -87,8 +102,8 @@ class ValidatingResolutionApplier extends ResolutionApplier {
     if (_debug) print('Getting type for $node');
     if (node.offset != _typeOffsets[_typeIndex]) {
       throw new StateError(
-          'Expected a type for offset ${node.offset}; got one for '
-          '${_typeOffsets[_typeIndex]}');
+          'Expected a type for analyzer offset ${node.offset}; got one for '
+          'kernel offset ${_typeOffsets[_typeIndex]}');
     }
     return super._getTypeFor(node);
   }

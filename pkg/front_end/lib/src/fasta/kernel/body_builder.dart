@@ -414,16 +414,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
-    doFields(count);
+    push(count);
   }
 
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    doFields(count);
+    push(count);
   }
 
-  void doFields(int count) {
+  @override
+  void finishFields() {
+    debugEvent("finishFields");
+    int count = pop();
     List<FieldBuilder> fields = <FieldBuilder>[];
     for (int i = 0; i < count; i++) {
       Expression initializer = pop();
@@ -470,7 +473,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endMember() {
     debugEvent("Member");
-    checkEmpty(-1);
   }
 
   @override

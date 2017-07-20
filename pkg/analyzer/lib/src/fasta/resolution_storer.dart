@@ -8,6 +8,9 @@ import 'package:kernel/ast.dart';
 /// Type inference listener that records inferred types and file offsets for
 /// later use by [ValidatingResolutionApplier].
 class InstrumentedResolutionStorer extends ResolutionStorer {
+  /// Indicates whether debug messages should be printed.
+  static const bool _debug = false;
+
   final List<int> _typeOffsets;
 
   InstrumentedResolutionStorer(List<DartType> types, this._typeOffsets)
@@ -15,6 +18,9 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 
   @override
   void _recordType(DartType type, int offset) {
+    if (_debug) {
+      print('Recording type $type for offset $offset');
+    }
     assert(_types.length == _typeOffsets.length);
     _typeOffsets.add(offset);
     super._recordType(type, offset);

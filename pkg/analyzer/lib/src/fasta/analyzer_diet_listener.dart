@@ -69,14 +69,13 @@ class AnalyzerDietListener extends DietListener {
       CoreTypes coreTypes, TypeInferenceEngine typeInferenceEngine)
       : super(library, hierarchy, coreTypes, typeInferenceEngine);
 
-  @override
-  void buildFunctionBody(
-      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
-    Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
-    Scope formalParameterScope =
-        builder.computeFormalParameterScope(typeParameterScope);
-    assert(typeParameterScope != null);
-    assert(formalParameterScope != null);
+  /// Calls the parser (via [parserCallback]) using a body builder initialized
+  /// to do type inference for the given [builder].
+  ///
+  /// When parsing methods, [formalParameterScope] should be set to the formal
+  /// parameter scope; otherwise it should be `null`.
+  void _withBodyBuilder(ModifierBuilder builder, Scope formalParameterScope,
+      void parserCallback()) {
     // Create a body builder to do type inference, and a listener to record the
     // types that are inferred.
     _kernelTypes = <kernel.DartType>[];
@@ -85,19 +84,46 @@ class AnalyzerDietListener extends DietListener {
         new InstrumentedResolutionStorer(_kernelTypes, _typeOffsets);
     _bodyBuilder = super.createListener(builder, memberScope,
         builder.isInstanceMember, formalParameterScope, resolutionStorer);
-    // Parse the function body normally; this will build the analyzer AST, run
+    // Run the parser callback; this will build the analyzer AST, run
     // the body builder to do type inference, and then copy the inferred types
     // over to the analyzer AST.
-    parseFunctionBody(
-        createListener(builder, typeParameterScope, builder.isInstanceMember,
-            formalParameterScope),
-        token,
-        metadata,
-        kind);
+    parserCallback();
     // The inferred types and the body builder are no longer needed.
     _bodyBuilder = null;
     _kernelTypes = null;
     _typeOffsets = null;
+  }
+
+  @override
+  void buildFields(int count, Token token, bool isTopLevel) {
+    List<String> names = popList(count);
+    Builder builder = lookupBuilder(token, null, names.first);
+    Token metadata = pop();
+    _withBodyBuilder(builder, null, () {
+      parseFields(
+          createListener(builder, memberScope, builder.isInstanceMember),
+          token,
+          metadata,
+          isTopLevel);
+    });
+  }
+
+  @override
+  void buildFunctionBody(
+      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
+    Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
+    Scope formalParameterScope =
+        builder.computeFormalParameterScope(typeParameterScope);
+    assert(typeParameterScope != null);
+    assert(formalParameterScope != null);
+    _withBodyBuilder(builder, formalParameterScope, () {
+      parseFunctionBody(
+          createListener(builder, typeParameterScope, builder.isInstanceMember,
+              formalParameterScope),
+          token,
+          metadata,
+          kind);
+    });
   }
 
   StackListener createListener(
@@ -152,6 +178,36 @@ class AnalyzerDietListener extends DietListener {
     resolutionApplier.checkDone();
 
     listener.finishFunction(metadataConstants, formals, asyncModifier, body);
+  }
+
+  @override
+  void listenerFinishFields(
+      StackListener listener, Token token, Token metadata, bool isTopLevel) {
+    // TODO(paulberry): this duplicates a lot of code from
+    // DietListener.parseFields.
+
+    // At this point the analyzer AST has been built, but it doesn't contain
+    // resolution data or inferred types.  Run the body builder and gather
+    // this information.
+    Parser parser = new Parser(_bodyBuilder);
+    if (isTopLevel) {
+      // There's a slight asymmetry between [parseTopLevelMember] and
+      // [parseMember] because the former doesn't call `parseMetadataStar`.
+      token = parser.parseMetadataStar(metadata ?? token);
+      token = parser.parseTopLevelMember(token);
+    } else {
+      token = parser.parseMember(metadata ?? token);
+    }
+    _bodyBuilder.finishFields();
+    _bodyBuilder.checkEmpty(token.charOffset);
+
+    // Now apply the resolution data and inferred types to the analyzer AST.
+    var translatedTypes = _translateTypes(_kernelTypes);
+    var resolutionApplier =
+        new ValidatingResolutionApplier(translatedTypes, _typeOffsets);
+    ast.AstNode fields = listener.finishFields();
+    fields.accept(resolutionApplier);
+    resolutionApplier.checkDone();
   }
 
   /// Translates the given kernel types into analyzer types.
