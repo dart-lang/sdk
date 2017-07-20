@@ -58,6 +58,7 @@ class AnalyzerOptions {
   static const String strong_mode = 'strong-mode';
 
   // Strong mode options, see AnalysisOptionsImpl for documentation.
+  static const String declarationCasts = 'declaration-casts';
   static const String implicitCasts = 'implicit-casts';
   static const String implicitDynamic = 'implicit-dynamic';
 
@@ -573,6 +574,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
+      if (feature == AnalyzerOptions.declarationCasts) {
+        options.declarationCasts = boolValue;
+      }
       if (feature == AnalyzerOptions.implicitCasts) {
         options.implicitCasts = boolValue;
       }

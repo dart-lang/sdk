@@ -272,6 +272,7 @@ class LibraryAnalyzer {
           _typeProvider,
           new StrongTypeSystemImpl(_typeProvider,
               implicitCasts: options.implicitCasts,
+              declarationCasts: options.declarationCasts,
               nonnullableTypes: options.nonnullableTypes),
           errorListener,
           options);

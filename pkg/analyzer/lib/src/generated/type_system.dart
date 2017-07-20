@@ -48,6 +48,13 @@ class StrongTypeSystemImpl extends TypeSystem {
   static bool _comparingTypeParameterBounds = false;
 
   /**
+   * True if declaration casts should be allowed, otherwise false.
+   *
+   * This affects the behavior of [isAssignableTo].
+   */
+  final bool declarationCasts;
+
+  /**
    * True if implicit casts should be allowed, otherwise false.
    *
    * This affects the behavior of [isAssignableTo].
@@ -62,7 +69,8 @@ class StrongTypeSystemImpl extends TypeSystem {
   final TypeProvider typeProvider;
 
   StrongTypeSystemImpl(this.typeProvider,
-      {this.implicitCasts: true,
+      {this.declarationCasts: true,
+      this.implicitCasts: true,
       this.nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES});
 
   @override
@@ -409,7 +417,8 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
+  bool isAssignableTo(DartType fromType, DartType toType,
+      {bool isDeclarationCast = false}) {
     // TODO(leafp): Document the rules in play here
 
     // An actual subtype
@@ -417,7 +426,11 @@ class StrongTypeSystemImpl extends TypeSystem {
       return true;
     }
 
-    if (!implicitCasts) {
+    if (isDeclarationCast) {
+      if (!declarationCasts) {
+        return false;
+      }
+    } else if (!implicitCasts) {
       return false;
     }
 
@@ -1222,7 +1235,8 @@ abstract class TypeSystem {
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
    * if leftType <==> rightType).
    */
-  bool isAssignableTo(DartType leftType, DartType rightType);
+  bool isAssignableTo(DartType leftType, DartType rightType,
+      {bool isDeclarationCast = false});
 
   /**
    * Return `true` if the [leftType] is more specific than the [rightType]
@@ -1476,6 +1490,7 @@ abstract class TypeSystem {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return options.strongMode
         ? new StrongTypeSystemImpl(context.typeProvider,
+            declarationCasts: options.declarationCasts,
             implicitCasts: options.implicitCasts,
             nonnullableTypes: options.nonnullableTypes)
         : new TypeSystemImpl(context.typeProvider);
@@ -1511,7 +1526,8 @@ class TypeSystemImpl extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType leftType, DartType rightType) {
+  bool isAssignableTo(DartType leftType, DartType rightType,
+      {bool isDeclarationCast = false}) {
     return leftType.isAssignableTo(rightType);
   }
 

@@ -197,10 +197,19 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void checkAssignment(Expression expr, DartType type) {
+    checkForCast(expr, type);
+  }
+
+  void checkDeclarationCast(Expression expr, DartType type) {
+    checkForCast(expr, type, isDeclarationCast: true);
+  }
+
+  void checkForCast(Expression expr, DartType type,
+      {bool isDeclarationCast = false}) {
     if (expr is ParenthesizedExpression) {
-      checkAssignment(expr.expression, type);
+      checkForCast(expr.expression, type);
     } else {
-      _checkImplicitCast(expr, type);
+      _checkImplicitCast(expr, type, isDeclarationCast: isDeclarationCast);
     }
   }
 
@@ -432,7 +441,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // Insert a cast from the sequence's element type to the loop variable's
         // if needed.
         _checkImplicitCast(loopVariable, _getDefiniteType(loopVariable),
-            from: elementType);
+            from: elementType, isDeclarationCast: true);
       }
     }
 
@@ -684,7 +693,7 @@ class CodeChecker extends RecursiveAstVisitor {
       var initializer = variable.initializer;
       if (initializer != null) {
         if (type != null) {
-          checkAssignment(initializer, type.type);
+          checkDeclarationCast(initializer, type.type);
         }
       }
     }
@@ -760,10 +769,12 @@ class CodeChecker extends RecursiveAstVisitor {
   /// If [expr] does not require an implicit cast because it is not related to
   /// [to] or is already a subtype of it, does nothing.
   void _checkImplicitCast(Expression expr, DartType to,
-      {DartType from, bool opAssign: false}) {
+      {DartType from, bool opAssign: false, bool isDeclarationCast: false}) {
     from ??= _getDefiniteType(expr);
 
-    if (_needsImplicitCast(expr, to, from: from) == true) {
+    if (_needsImplicitCast(expr, to,
+            from: from, isDeclarationCast: isDeclarationCast) ==
+        true) {
       _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
     }
   }
@@ -1062,7 +1073,8 @@ class CodeChecker extends RecursiveAstVisitor {
   /// types are statically incompatible.
   ///
   /// If [from] is omitted, uses the static type of [expr]
-  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
+  bool _needsImplicitCast(Expression expr, DartType to,
+      {DartType from, bool isDeclarationCast: false}) {
     from ??= _getDefiniteType(expr);
 
     if (!_checkNonNullAssignment(expr, to, from)) return false;
@@ -1074,7 +1086,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (rules.isSubtypeOf(from, to)) return false;
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to)) return true;
+    if (rules.isAssignableTo(from, to, isDeclarationCast: isDeclarationCast))
+      return true;
 
     // Special case for FutureOr to handle returned values from async functions.
     // In this case, we're more permissive than assignability.
