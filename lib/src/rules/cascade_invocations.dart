@@ -178,9 +178,9 @@ class _CascadableExpression {
           isCritical: true);
     }
     // setters
-    final VariableElement variable =
-        _getPrefixElementFromExpression(node.leftHandSide);
+    final variable = _getPrefixElementFromExpression(node.leftHandSide);
     final canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
+        variable is VariableElement &&
         !variable.isStatic;
     return new _CascadableExpression._internal(variable, [node.rightHandSide],
         canJoin: true, canReceive: canReceive, canBeCascaded: true);
