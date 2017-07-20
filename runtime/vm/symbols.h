@@ -390,6 +390,7 @@ class ObjectPointerVisitor;
   V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
   V(_SourceLocation, "_SourceLocation")                                        \
   V(hashCode, "get:hashCode")                                                  \
+  V(identityHashCode, "identityHashCode")                                      \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
   V(NotNamed, "<not named>")                                                   \

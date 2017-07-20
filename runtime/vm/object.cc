@@ -6889,25 +6889,13 @@ RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
                       *this, context);
 }
 
-RawSmi* Function::GetClosureHashCode() const {
+intptr_t Function::ComputeClosureHash() const {
   ASSERT(IsClosureFunction());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(!obj.IsNull());
-  if (ClosureData::Cast(obj).hash() != Object::null()) {
-    return Smi::RawCast(ClosureData::Cast(obj).hash());
-  }
-  // Hash not yet computed. Compute and cache it.
   const Class& cls = Class::Handle(Owner());
   intptr_t result = String::Handle(name()).Hash();
   result += String::Handle(Signature()).Hash();
   result += String::Handle(cls.Name()).Hash();
-  // Finalize hash value like for strings so that it fits into a smi.
-  result += result << 3;
-  result ^= result >> 11;
-  result += result << 15;
-  result &= ((static_cast<intptr_t>(1) << String::kHashBits) - 1);
-  ClosureData::Cast(obj).set_hash(result);
-  return Smi::New(result);
+  return result;
 }
 
 RawString* Function::BuildSignature(NameVisibility name_visibility) const {
@@ -7325,10 +7313,6 @@ void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   ASSERT(!closure.IsNull());
   ASSERT(raw_ptr()->closure_ == Instance::null());
   StorePointer(&raw_ptr()->closure_, closure.raw());
-}
-
-void ClosureData::set_hash(intptr_t value) const {
-  StorePointer(&raw_ptr()->hash_, static_cast<RawObject*>(Smi::New(value)));
 }
 
 void ClosureData::set_parent_function(const Function& value) const {
@@ -14880,6 +14864,10 @@ RawObject* Instance::HashCode() const {
   return DartLibraryCalls::HashCode(*this);
 }
 
+RawObject* Instance::IdentityHashCode() const {
+  return DartLibraryCalls::IdentityHashCode(*this);
+}
+
 bool Instance::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
@@ -21667,6 +21655,37 @@ const char* Closure::ToCString() const {
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
   return OS::SCreate(Thread::Current()->zone(), "Closure: %s%s%s", fun_sig,
                      from, fun_desc);
+}
+
+int64_t Closure::ComputeHash() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& func = Function::Handle(zone, function());
+  uint32_t result = 0;
+  if (func.IsImplicitInstanceClosureFunction()) {
+    // Implicit instance closures are not unqiue, so combine function's hash
+    // code with identityHashCode of cached receiver.
+    result = static_cast<uint32_t>(func.ComputeClosureHash());
+    const Context& context = Context::Handle(zone, this->context());
+    const Object& receiver = Object::Handle(zone, context.At(0));
+    const Object& receiverHash =
+        Object::Handle(zone, Instance::Cast(receiver).IdentityHashCode());
+    if (receiverHash.IsError()) {
+      Exceptions::PropagateError(Error::Cast(receiverHash));
+      UNREACHABLE();
+    }
+    result = CombineHashes(
+        result, Integer::Cast(receiverHash).AsTruncatedUint32Value());
+  } else {
+    // Explicit closures and implicit static closures are unique,
+    // so identityHashCode of closure object is good enough.
+    const Object& identityHash = Object::Handle(zone, this->IdentityHashCode());
+    if (identityHash.IsError()) {
+      Exceptions::PropagateError(Error::Cast(identityHash));
+      UNREACHABLE();
+    }
+    result = Integer::Cast(identityHash).AsTruncatedUint32Value();
+  }
+  return FinalizeHash(result, String::kHashBits);
 }
 
 RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,

@@ -357,7 +357,11 @@ class BecomeMapTraits {
     } else if (obj.IsField()) {
       return String::HashRawSymbol(Field::Cast(obj).name());
     } else if (obj.IsInstance()) {
-      return Smi::Handle(Smi::RawCast(Instance::Cast(obj).HashCode())).Value();
+      Object& hashObj = Object::Handle(Instance::Cast(obj).HashCode());
+      if (hashObj.IsError()) {
+        Exceptions::PropagateError(Error::Cast(hashObj));
+      }
+      return Smi::Cast(hashObj).Value();
     }
     return 0;
   }
