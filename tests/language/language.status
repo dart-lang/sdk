@@ -76,6 +76,8 @@ constructor6_test: Fail # Issue 6422
 
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
+bound_closure_equality_test: Skip # Issue 30211
+
 # Failures related to super call in ctor initializer list
 super_test: Fail, OK
 final_field_initialization_order_test: Fail, OK
@@ -579,5 +581,3 @@ async_star_no_cancel_test: Skip # Flutter Issue 9110
 async_star_cancel_while_paused_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
 await_for_cancel_test: Skip # Flutter Issue 9110
-
-
