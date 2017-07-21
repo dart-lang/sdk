@@ -147,7 +147,9 @@ class KernelLibraryBuilder
         className,
         typeVariables,
         applyMixins(supertype,
-            subclassName: className, typeVariables: typeVariables),
+            isSyntheticMixinImplementation: true,
+            subclassName: className,
+            typeVariables: typeVariables),
         interfaces,
         classScope,
         constructorScope,
@@ -219,6 +221,7 @@ class KernelLibraryBuilder
       KernelTypeBuilder supertype, KernelTypeBuilder mixin, String signature,
       {String documentationComment,
       List<MetadataBuilder> metadata,
+      bool isSyntheticMixinImplementation: false,
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers: abstractMask,
@@ -256,6 +259,8 @@ class KernelLibraryBuilder
           charOffset,
           null,
           mixin);
+      builder.cls.isSyntheticMixinImplementation =
+          isSyntheticMixinImplementation;
       addBuilder(name, builder, charOffset);
       if (!isNamed) {
         mixinApplicationClasses[name] = builder;
@@ -267,6 +272,7 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder applyMixins(KernelTypeBuilder type,
       {List<MetadataBuilder> metadata,
+      bool isSyntheticMixinImplementation: false,
       String name,
       String subclassName,
       List<TypeVariableBuilder> typeVariables,
@@ -409,6 +415,7 @@ class KernelLibraryBuilder
         checkArguments(supertype);
         checkArguments(mixin);
         supertype = applyMixin(supertype, mixin, signature,
+            isSyntheticMixinImplementation: true,
             typeVariables:
                 new List<TypeVariableBuilder>.from(variables.values));
       }
@@ -449,6 +456,7 @@ class KernelLibraryBuilder
       KernelNamedTypeBuilder t = applyMixin(supertype, mixin, signature,
           metadata: metadata,
           name: name,
+          isSyntheticMixinImplementation: isSyntheticMixinImplementation,
           typeVariables: typeVariables,
           modifiers: modifiers,
           interfaces: interfaces,

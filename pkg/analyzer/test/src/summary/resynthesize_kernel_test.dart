@@ -109,23 +109,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_alias() async {
-    await super.test_class_alias();
-  }
-
-  @failingTest
-  test_class_alias_abstract() async {
-    await super.test_class_alias_abstract();
-  }
-
-  @failingTest
   test_class_alias_documented() async {
     await super.test_class_alias_documented();
-  }
-
-  @failingTest
-  test_class_alias_with_forwarding_constructors() async {
-    await super.test_class_alias_with_forwarding_constructors();
   }
 
   @failingTest
@@ -138,11 +123,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_class_alias_with_forwarding_constructors_type_substitution_complex() async {
     await super
         .test_class_alias_with_forwarding_constructors_type_substitution_complex();
-  }
-
-  @failingTest
-  test_class_alias_with_mixin_members() async {
-    await super.test_class_alias_with_mixin_members();
   }
 
   @failingTest
@@ -165,11 +145,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_interfaces_unresolved() async {
     await super.test_class_interfaces_unresolved();
-  }
-
-  @failingTest
-  test_class_mixins() async {
-    await super.test_class_mixins();
   }
 
   @failingTest
@@ -1168,11 +1143,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_main_class_alias() async {
-    await super.test_main_class_alias();
-  }
-
-  @failingTest
   test_main_class_alias_via_export() async {
     await super.test_main_class_alias_via_export();
   }
@@ -1360,11 +1330,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_metadata_topLevelVariableDeclaration() async {
     await super.test_metadata_topLevelVariableDeclaration();
-  }
-
-  @failingTest
-  test_metadata_typeParameter_ofClassTypeAlias() async {
-    await super.test_metadata_typeParameter_ofClassTypeAlias();
   }
 
   @failingTest

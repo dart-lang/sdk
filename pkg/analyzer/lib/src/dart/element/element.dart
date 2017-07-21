@@ -31,6 +31,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:kernel/kernel.dart' as kernel;
+import 'package:kernel/type_algebra.dart' as kernel;
 
 /**
  * Assert that the given [object] is null, which in the places where this
@@ -417,6 +418,16 @@ class ClassElementImpl extends AbstractClassElementImpl
   final kernel.Class _kernel;
 
   /**
+   * The actual supertype extracted from desugared [_kernel].
+   */
+  kernel.Supertype _kernelSupertype;
+
+  /**
+   * The mixed-in types extracted from desugared [_kernel].
+   */
+  List<kernel.Supertype> _kernelMixins;
+
+  /**
    * The superclass of the class, or `null` for [Object].
    */
   InterfaceType _supertype;
@@ -791,6 +802,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isMixinApplication {
+    if (_kernel != null) {
+      return _kernel.mixedInType != null;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.isMixinApplication;
     }
@@ -881,12 +895,21 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get mixins {
-    if (_unlinkedClass != null && _mixins == null) {
-      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-      _mixins = _unlinkedClass.mixins
-          .map((EntityRef t) => context.resolveTypeRef(this, t))
-          .where(_isClassInterfaceType)
-          .toList(growable: false);
+    if (_mixins == null) {
+      if (_kernel != null) {
+        _initializeKernelMixins();
+        var context = enclosingUnit._kernelContext;
+        _mixins = _kernelMixins.map((k) {
+          return context.getInterfaceType(this, k);
+        }).toList(growable: false);
+      }
+      if (_unlinkedClass != null) {
+        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+        _mixins = _unlinkedClass.mixins
+            .map((EntityRef t) => context.resolveTypeRef(this, t))
+            .where(_isClassInterfaceType)
+            .toList(growable: false);
+      }
     }
     return _mixins ?? const <InterfaceType>[];
   }
@@ -920,9 +943,10 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get supertype {
     if (_supertype == null) {
       if (_kernel != null) {
-        if (_kernel.supertype != null) {
+        _initializeKernelMixins();
+        if (_kernelSupertype != null) {
           _supertype = enclosingUnit._kernelContext
-              .getInterfaceType(this, _kernel.supertype);
+              .getInterfaceType(this, _kernelSupertype);
           _supertype ??= context.typeProvider.objectType;
         } else {
           return null;
@@ -1225,6 +1249,30 @@ class ClassElementImpl extends AbstractClassElementImpl
       implicitConstructor.enclosingElement = this;
       return implicitConstructor;
     }).toList(growable: false);
+  }
+
+  /**
+   * Extract actual supertypes and mixed-in types from [_kernel].
+   */
+  void _initializeKernelMixins() {
+    if (_kernelSupertype == null) {
+      _kernelMixins = <kernel.Supertype>[];
+      kernel.Supertype supertype = _kernel.supertype;
+      if (supertype != null) {
+        if (_kernel.mixedInType != null) {
+          _kernelMixins.add(_kernel.mixedInType);
+        }
+        while (supertype.classNode.isSyntheticMixinImplementation) {
+          var superNode = supertype.classNode;
+          var substitute = kernel.Substitution.fromSupertype(supertype);
+          var thisMixin = substitute.substituteSupertype(superNode.mixedInType);
+          _kernelMixins.add(thisMixin);
+          supertype = substitute.substituteSupertype(superNode.supertype);
+        }
+        _kernelMixins = _kernelMixins.reversed.toList();
+      }
+      _kernelSupertype = supertype;
+    }
   }
 
   /**
@@ -1726,6 +1774,7 @@ class CompilationUnitElementImpl extends ElementImpl
   List<ClassElement> get types {
     if (_kernelContext != null) {
       _types ??= _kernelContext.library.classes
+          .where((k) => !k.isSyntheticMixinImplementation)
           .map((k) => new ClassElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
