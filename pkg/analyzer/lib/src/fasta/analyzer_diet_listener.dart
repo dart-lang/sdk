@@ -88,6 +88,7 @@ class AnalyzerDietListener extends DietListener {
     // the body builder to do type inference, and then copy the inferred types
     // over to the analyzer AST.
     parserCallback();
+    resolutionStorer.finished();
     // The inferred types and the body builder are no longer needed.
     _bodyBuilder = null;
     _kernelTypes = null;

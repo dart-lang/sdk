@@ -6,7 +6,6 @@
 # generating analyzer ASTs and connecting up type inference information.
 DeltaBlue: Crash
 accessors: Crash
-argument: Crash
 arithmetic: Crash
 bad_store: Crash
 call: Crash
@@ -22,17 +21,12 @@ external: Crash
 fallthrough: Crash
 fibonacci: Crash
 for_in_scope: Crash
-function_in_field: Crash
 function_type_is_check: Crash
 functions: Crash
 implicit_scope_test: Crash
 implicit_this: Crash
 inference/abstract_class_instantiation: Crash
 inference/assign_local: Crash
-inference/block_bodied_lambdas_async_all_returns_are_futures: Crash
-inference/block_bodied_lambdas_async_all_returns_are_values: Crash
-inference/block_bodied_lambdas_async_mix_of_values_and_futures: Crash
-inference/block_bodied_lambdas_async_star: Crash
 inference/block_bodied_lambdas_basic: Crash
 inference/block_bodied_lambdas_basic_void: Crash
 inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Crash
@@ -44,7 +38,6 @@ inference/block_bodied_lambdas_lub: Crash
 inference/block_bodied_lambdas_nested_lambdas: Crash
 inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
-inference/block_bodied_lambdas_sync_star: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/call_corner_cases: Crash
 inference/conditional_lub: Crash
@@ -212,6 +205,8 @@ inference/infer_local_function_return_type: Crash
 inference/infer_method_missing_params: Crash
 inference/infer_parameter_type_setter_from_field: Crash
 inference/infer_parameter_type_setter_from_setter: Fail
+inference/infer_prefix_expression: Crash
+inference/infer_prefix_expression_custom: Crash
 inference/infer_rethrow: Crash
 inference/infer_return_of_statement_lambda: Crash
 inference/infer_setter_cross_to_getter: Fail
@@ -251,6 +246,8 @@ inference/inferred_type_custom_binary_op: Crash
 inference/inferred_type_custom_binary_op_via_interface: Crash
 inference/inferred_type_custom_index_op: Crash
 inference/inferred_type_custom_index_op_via_interface: Crash
+inference/inferred_type_custom_unary_op: Crash
+inference/inferred_type_custom_unary_op_via_interface: Crash
 inference/inferred_type_extract_method_tear_off: Crash
 inference/inferred_type_extract_method_tear_off_via_interface: Crash
 inference/inferred_type_is_enum: Crash
@@ -304,7 +301,6 @@ inference/top_level_return_and_yield: Crash
 inference/try_catch: Crash
 inference/try_catch_finally: Crash
 inference/try_catch_promotion: Crash
-inference/try_finally: Crash
 inference/type_cast: Crash
 inference/type_promotion_ignores_local_functions: Crash
 inference/type_promotion_not_and_not: Crash
@@ -347,7 +343,6 @@ inference_new/property_get_toplevel: Crash
 inference_new/strongly_connected_component: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
-inference_new/void_return_type_subtypes_dynamic: Crash
 invocations: Crash
 micro: Crash
 named_parameters: Crash
@@ -363,7 +358,6 @@ rasta/breaking_bad: Crash
 rasta/cascades: Crash
 rasta/class_hierarchy: Crash
 rasta/class_member: Crash
-rasta/constant_get_and_invoke: Crash
 rasta/deferred_load: Crash
 rasta/duplicated_mixin: Crash
 rasta/for_loop: Crash
