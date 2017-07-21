@@ -246,6 +246,7 @@ class ObservatoryApplication {
           _vm.onConnect.then((_) {
             app.locationManager.go(Uris.vm());
           });
+          _vm.load();
         } else if (currentTargetConnected) {
           app.locationManager.go(Uris.vm());
         }
