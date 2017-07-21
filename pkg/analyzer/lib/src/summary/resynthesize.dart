@@ -1038,8 +1038,11 @@ class _LibraryResynthesizer {
     _UnitResynthesizer partResynthesizer =
         createUnitResynthesizer(unitNum, unitSource, partDecl);
     CompilationUnitElementImpl partUnit = partResynthesizer.unit;
+    partUnit.uriOffset = partDecl.uriOffset;
+    partUnit.uriEnd = partDecl.uriEnd;
     partUnit.source = unitSource;
     partUnit.librarySource = librarySource;
+    partUnit.uri = uri;
     return partResynthesizer;
   }
 

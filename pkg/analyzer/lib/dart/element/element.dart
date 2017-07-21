@@ -412,7 +412,7 @@ abstract class ClassMemberElement implements Element {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class CompilationUnitElement implements Element {
+abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /**
    * An empty list of compilation unit elements.
    */
@@ -1161,7 +1161,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ExportElement implements Element {
+abstract class ExportElement implements Element, UriReferencedElement {
   /**
    * An empty list of export elements.
    */
@@ -1349,7 +1349,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ImportElement implements Element {
+abstract class ImportElement implements Element, UriReferencedElement {
   /**
    * An empty list of import elements.
    */
@@ -1947,6 +1947,31 @@ abstract class TypeParameterizedElement implements Element {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class UndefinedElement implements Element {}
+
+/**
+ * An element included into a library using some URI.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class UriReferencedElement implements Element {
+  /**
+   * Return the URI that is used to include this element into the enclosing
+   * library, or `null` if this is the defining compilation unit of a library.
+   */
+  String get uri;
+
+  /**
+   * Return the offset of the character immediately following the last character
+   * of this node's URI, or `-1` for synthetic import.
+   */
+  int get uriEnd;
+
+  /**
+   * Return the offset of the URI in the file, or `-1` if this element is
+   * synthetic.
+   */
+  int get uriOffset;
+}
 
 /**
  * A variable. There are more specific subclasses for more specific kinds of

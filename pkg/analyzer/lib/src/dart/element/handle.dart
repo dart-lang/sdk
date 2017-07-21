@@ -222,6 +222,15 @@ class CompilationUnitElementHandle extends ElementHandle
   List<ClassElement> get types => actualElement.types;
 
   @override
+  String get uri => actualElement.uri;
+
+  @override
+  int get uriEnd => actualElement.uriEnd;
+
+  @override
+  int get uriOffset => actualElement.uriOffset;
+
+  @override
   CompilationUnit computeNode() => actualElement.computeNode();
 
   @override
@@ -532,6 +541,15 @@ class ExportElementHandle extends ElementHandle implements ExportElement {
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
+
+  @override
+  String get uri => actualElement.uri;
+
+  @override
+  int get uriEnd => actualElement.uriEnd;
+
+  @override
+  int get uriOffset => actualElement.uriOffset;
 }
 
 /**
@@ -710,6 +728,15 @@ class ImportElementHandle extends ElementHandle implements ImportElement {
 
   @override
   int get prefixOffset => actualElement.prefixOffset;
+
+  @override
+  String get uri => actualElement.uri;
+
+  @override
+  int get uriEnd => actualElement.uriEnd;
+
+  @override
+  int get uriOffset => actualElement.uriOffset;
 }
 
 /**
