@@ -1032,16 +1032,22 @@ typedef void Setter(Value receiver, Value value);
 class Class {
   static final Map<Reference, Class> _classes = <Reference, Class>{};
 
+  /// The immediate superclass, or `null` if this is the root class object.
   Class superclass;
-  List<Field> instanceFields = <Field>[];
-  // Implicit getters and setters for instance Fields.
-  Map<Name, Getter> getters = <Name, Getter>{};
-  Map<Name, Setter> setters = <Name, Setter>{};
-  // The initializers of static fields are evaluated the first time the field
-  // is accessed.
-  List<Procedure> methods = <Procedure>[];
 
-  int get instanceSize => instanceFields.length;
+  /// The class definitions from the `implements` clause.
+  final List<Supertype> interfaces = <Supertype>[];
+
+  /// Implicit getters for instance fields.
+  Map<Name, Getter> implicitGetters = <Name, Getter>{};
+
+  /// Implicit setters for non final instance fields.
+  Map<Name, Setter> implicitSetters = <Name, Setter>{};
+
+  /// Instance methods, explicit getters and setters.
+  Map<Name, Procedure> methods = <Name, Procedure>{};
+
+  int get instanceSize => implicitGetters.length;
 
   factory Class(Reference classRef) {
     return _classes.putIfAbsent(
@@ -1053,67 +1059,58 @@ class Class {
       superclass = new Class(currentClass.superclass.reference);
     }
 
-    _populateInstanceFields(currentClass);
-    // TODO: Populate methods.
+    _populateImplicitGettersAndSetters(currentClass);
+    _populateInstanceMethods(currentClass);
   }
 
   Getter lookupImplicitGetter(Name name) {
-    Getter getter = getters[name];
+    Getter getter = implicitGetters[name];
     if (getter != null) return getter;
     if (superclass != null) return superclass.lookupImplicitGetter(name);
     return (Value receiver) => notImplemented(obj: name);
   }
 
   Setter lookupImplicitSetter(Name name) {
-    Setter setter = setters[name];
+    Setter setter = implicitSetters[name];
     if (setter != null) return setter;
     if (superclass != null) return superclass.lookupImplicitSetter(name);
     return (Value receiver, Value value) => notImplemented(obj: name);
   }
 
-  Value getProperty(ObjectValue object, Member member) {
-    if (member is Field) {
-      int index = instanceFields.indexOf(member);
-      // TODO: throw NoSuchMethodError instead.
-      if (index < 0) return notImplemented(m: 'NoSuchMethod: ${member}');
-      return object.fields[index].value;
-    }
-    return notImplemented(obj: member);
-  }
-
-  Value setProperty(ObjectValue object, Member member, Value value) {
-    if (member is Field) {
-      int index = instanceFields.indexOf(member);
-      // TODO: throw NoSuchMethodError instead.
-      if (index < 0) return notImplemented(m: 'NoSuchMethod: ${member}');
-      object.fields[index] = new Location(value);
-      return Value.nullInstance;
-    }
-    return notImplemented(obj: member);
-  }
-
-  /// Populates instance variables and the corresponding implicit getters and
-  /// setters for the current class and its superclass recursively.
-  _populateInstanceFields(ast.Class class_) {
+  /// Populates implicit getters and setters for the current class and its
+  /// superclass recursively.
+  _populateImplicitGettersAndSetters(ast.Class class_) {
     if (class_.superclass != null) {
-      _populateInstanceFields(class_.superclass);
+      _populateImplicitGettersAndSetters(class_.superclass);
     }
 
     for (Field f in class_.fields) {
       if (f.isStatic) continue;
-      instanceFields.add(f);
       assert(f.hasImplicitGetter);
 
-      int currentFieldIndex = instanceFields.length - 1;
-
+      int currentFieldIndex = implicitGetters.length;
       // Shadowing an inherited getter with the same name.
-      getters[f.name] =
+      implicitGetters[f.name] =
           (Value receiver) => receiver.fields[currentFieldIndex].value;
       if (f.hasImplicitSetter) {
         // Shadowing an inherited setter with the same name.
-        setters[f.name] = (Value receiver, Value value) =>
+        implicitSetters[f.name] = (Value receiver, Value value) =>
             receiver.fields[currentFieldIndex] = new Location(value);
       }
+    }
+  }
+
+  /// Populates instance methods, getters and setters for the current class and
+  /// its super class recursively.
+  _populateInstanceMethods(ast.Class class_) {
+    if (class_.superclass != null) {
+      _populateInstanceMethods(class_.superclass);
+    }
+
+    for (Procedure p in class_.members) {
+      if (p.isStatic) continue;
+      // Shadowing an inherited method, getter or setter with the same name.
+      methods[p.name] = p;
     }
   }
 }
