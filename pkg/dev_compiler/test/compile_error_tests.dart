@@ -1,8 +1,11 @@
 import 'dart:collection';
 import 'package:path/path.dart' as path;
 
-/// The set of tests that are not yet strong mode safe.
-final notYetStrongTests = new HashSet<String>.from([
+/// The set of tests that are known to fail with compile errors.
+///
+/// This may be because the test hasn't been made strong mode clean yet, or
+/// because of bugs or missing features in strong mode or analyzer itself.
+final compileErrorTests = new HashSet<String>.from([
   'language/abstract_exact_selector_test_01_multi',
   'language/abstract_factory_constructor_test_00_multi',
   'language/abstract_getter_test_01_multi',
@@ -11,8 +14,13 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/abstract_runtime_error_test_03_multi',
   'language/abstract_syntax_test_00_multi',
   'language/abstract_syntax_test_01_multi',
+  'language/accessor_conflict_export2_test',
+  'language/accessor_conflict_export_test',
+  'language/accessor_conflict_import2_test',
+  'language/accessor_conflict_import_prefixed2_test',
+  'language/accessor_conflict_import_prefixed_test',
+  'language/accessor_conflict_import_test',
   'language/argument_definition_test_01_multi',
-  'language/arithmetic_test',
   'language/assign_static_type_test_01_multi',
   'language/assign_static_type_test_02_multi',
   'language/assign_static_type_test_03_multi',
@@ -788,6 +796,7 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/generic_field_mixin6_test_none_multi',
   'language/generic_list_checked_test',
   'language/generic_methods_closure_test',
+  'language/generic_methods_generic_function_result_test',
   'language/generic_methods_local_variable_declaration_test',
   'language/generic_methods_shadowing_test',
   'language/generic_methods_simple_is_expression_test',
@@ -1984,19 +1993,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/wrong_number_type_arguments_test_00_multi',
   'language/wrong_number_type_arguments_test_01_multi',
   'language/wrong_number_type_arguments_test_02_multi',
-  'corelib/big_integer_arith_vm_test_add_multi',
-  'corelib/big_integer_arith_vm_test_div_multi',
-  'corelib/big_integer_arith_vm_test_gcd_multi',
-  'corelib/big_integer_arith_vm_test_modInv_multi',
-  'corelib/big_integer_arith_vm_test_modPow_multi',
-  'corelib/big_integer_arith_vm_test_mod_multi',
-  'corelib/big_integer_arith_vm_test_mul_multi',
-  'corelib/big_integer_arith_vm_test_negate_multi',
-  'corelib/big_integer_arith_vm_test_none_multi',
-  'corelib/big_integer_arith_vm_test_overflow_multi',
-  'corelib/big_integer_arith_vm_test_shift_multi',
-  'corelib/big_integer_arith_vm_test_sub_multi',
-  'corelib/big_integer_arith_vm_test_trunDiv_multi',
   'corelib/bool_from_environment2_test_01_multi',
   'corelib/bool_from_environment2_test_02_multi',
   'corelib/bool_from_environment2_test_03_multi',
@@ -2073,8 +2069,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'corelib/symbol_test_02_multi',
   'corelib/symbol_test_03_multi',
   'corelib/symbol_test_none_multi',
-  'corelib/uri_path_test',
-  'corelib/uri_query_test',
   'lib/async/async_await_sync_completer_test',
   'lib/async/async_await_zones_test',
   'lib/async/catch_errors2_test',

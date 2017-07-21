@@ -223,9 +223,23 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'corelib': {
       'apply2_test': fail,
       'apply3_test': fail,
+      'big_integer_arith_vm_test_add_multi': fail,
+      'big_integer_arith_vm_test_div_multi': fail,
+      'big_integer_arith_vm_test_gcd_multi': fail,
+      'big_integer_arith_vm_test_modInv_multi': fail,
+      'big_integer_arith_vm_test_modPow_multi': fail,
+      'big_integer_arith_vm_test_mod_multi': fail,
+      'big_integer_arith_vm_test_mul_multi': fail,
+      'big_integer_arith_vm_test_negate_multi': fail,
+      'big_integer_arith_vm_test_none_multi': fail,
+      'big_integer_arith_vm_test_overflow_multi': fail,
+      'big_integer_arith_vm_test_shift_multi': fail,
+      'big_integer_arith_vm_test_sub_multi': fail,
+      'big_integer_arith_vm_test_trunDiv_multi': fail,
       'big_integer_parsed_arith_vm_test': fail,
       'big_integer_parsed_div_rem_vm_test': fail,
       'big_integer_parsed_mul_div_vm_test': fail,
+
       'bit_twiddling_bigint_test': fail,
       'collection_length_test': skip_timeout,
       'compare_to2_test': fail,
@@ -281,6 +295,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // TODO(rnystrom): Times out because it tests a huge number of
       // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
       'uri_parse_test': skip_timeout,
+      'uri_query_test': fail,
       // this is timing out on Chrome Canary only
       // pinning this skip in case it's a transient canary issue
       'uri_test': is.chrome('59') ? ['skip'] : ['slow'],
