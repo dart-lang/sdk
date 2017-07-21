@@ -88,6 +88,7 @@ iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 iterable_to_list_test/01: RuntimeError # Issue 26501
 
 big_integer_*: Skip # VM specific test.
+compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
 regexp/pcre_test: Pass, Slow # Issue 21593
@@ -167,11 +168,9 @@ regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
 int_parse_radix_test/*: Pass, Slow
-big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == precompiler ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == precompiler || $compiler == app_jit ]
@@ -182,9 +181,6 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-
-[ $hot_reload || $hot_reload_rollback ]
-big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394

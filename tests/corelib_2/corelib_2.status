@@ -16,7 +16,9 @@ apply3_test: RuntimeError # Issue 29921
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
 big_integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
-bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
+big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
+big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
+bit_twiddling_bigint_test: RuntimeError # Required bigint support.
 compare_to2_test: RuntimeError, OK # Requires bigint support.
 
 [ $runtime == flutter ]
@@ -25,6 +27,7 @@ bool_from_environment_test: Fail # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
+big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
@@ -49,3 +52,8 @@ bool_from_environment_test: Skip
 [ $runtime == ff || $runtime == jsshell ]
 unicode_test: Fail
 
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
+big_integer_parsed_mul_div_vm_test: Pass, Slow
+
+[ $compiler == precompiler ]
+big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify

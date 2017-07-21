@@ -53,8 +53,8 @@ symbol_reserved_word_test: Skip
 symbol_test: Skip
 
 [ $compiler == dartdevc ]
-big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
-big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
+bool_from_environment_test: RuntimeError # Issue 29921
+compare_to2_test: RuntimeError # Issue 29921
 const_list_literal_test: RuntimeError # Issue 29921
 const_list_remove_range_test: RuntimeError # Issue 29921
 const_list_set_range_test: RuntimeError # Issue 29921
