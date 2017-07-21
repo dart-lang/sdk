@@ -1394,14 +1394,11 @@ class CodeGenerator extends Object
     if (type.isObject) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
-      jsMethods.add(new JS.Method(
-          _propertyName('constructor'),
-          js.call(
-              r'''function() {
+      jsMethods.add(
+          new JS.Method(_propertyName('constructor'), js.call(r'''function() {
                   throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
                       ".new(...)` to create a Dart object");
-              }''',
-              [_runtimeModule, _runtimeModule])));
+              }''', [_runtimeModule, _runtimeModule])));
     }
     for (var m in node.members) {
       if (m is ConstructorDeclaration) {
@@ -1622,6 +1619,11 @@ class CodeGenerator extends Object
       }
     }
 
+    var typeParams = _emitTypeFormals(method.type.typeFormals);
+    if (typeParams.isNotEmpty) {
+      addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
+    }
+
     var fnBody =
         js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
       _runtimeModule,
@@ -1636,10 +1638,8 @@ class CodeGenerator extends Object
 
     var fn = _makeGenericFunction(new JS.Fun(
         fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: _emitTypeFormals(method.type.typeFormals)));
+        typeParams: typeParams));
 
-    // TODO(jmesserly): generic type arguments will get dropped.
-    // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
         _declareMemberName(method,
             useExtension: _extensionTypes.isNativeClass(type.element)),
@@ -2179,8 +2179,7 @@ class CodeGenerator extends Object
     // method. As a result, we can know the callable JS function was created
     // at the first constructor that was hit.
     if (!isCallable) return new JS.Fun(params, body);
-    return js.call(
-        r'''function callableClass(#) {
+    return js.call(r'''function callableClass(#) {
           if (typeof this !== "function") {
             function self(...args) {
               return self.call.apply(self, args);
@@ -2190,8 +2189,7 @@ class CodeGenerator extends Object
             return self;
           }
           #
-        }''',
-        [params, params, body]);
+        }''', [params, params, body]);
   }
 
   JS.Expression _constructorName(ConstructorElement ctor) {
@@ -5319,31 +5317,31 @@ class CodeGenerator extends Object
 
   @override
   visitListLiteral(ListLiteral node) {
-    var isConst = node.constKeyword != null;
-    JS.Expression emitList() {
-      JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
-      ParameterizedType type = node.staticType;
-      var elementType = type.typeArguments.single;
-      // TODO(jmesserly): analyzer will usually infer `List<Object>` because
-      // that is the least upper bound of the element types. So we rarely
-      // generate a plain `List<dynamic>` anymore.
-      if (!elementType.isDynamic || isConst) {
-        // dart.list helper internally depends on _interceptors.JSArray.
-        _declareBeforeUse(_jsArray);
-        if (isConst) {
-          var typeRep = _emitType(elementType);
-          list = _callHelper('constList(#, #)', [list, typeRep]);
-        } else {
-          // Call `new JSArray<E>.of(list)`
-          var jsArrayType = _jsArray.type.instantiate(type.typeArguments);
-          list = js.call('#.of(#)', [_emitType(jsArrayType), list]);
-        }
-      }
-      return list;
+    var elementType = (node.staticType as InterfaceType).typeArguments[0];
+    if (node.constKeyword == null) {
+      return _emitList(elementType, _visitList(node.elements));
     }
+    return _cacheConst(() {
+      // dart.constList helper internally depends on _interceptors.JSArray.
+      _declareBeforeUse(_jsArray);
+      return _callHelper('constList(#, #)', [
+        new JS.ArrayInitializer(_visitList(node.elements)),
+        _emitType(elementType)
+      ]);
+    });
+  }
 
-    if (isConst) return _cacheConst(emitList);
-    return emitList();
+  JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
+    var list = new JS.ArrayInitializer(items);
+
+    // TODO(jmesserly): analyzer will usually infer `List<Object>` because
+    // that is the least upper bound of the element types. So we rarely
+    // generate a plain `List<dynamic>` anymore.
+    if (itemType.isDynamic) return list;
+
+    // Call `new JSArray<E>.of(list)`
+    var arrayType = _jsArray.type.instantiate([itemType]);
+    return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
   @override

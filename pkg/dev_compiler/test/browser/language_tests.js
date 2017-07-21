@@ -88,7 +88,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
       'call_closurization_test': fail, // Functions do not expose a "call" method.
-      'call_with_no_such_method_test': fail, // Function.apply not really implemented.
       'canonical_const2_test': fail,
       'canonical_const_test': fail,
       'compile_time_constant10_test_none_multi': fail,
@@ -158,6 +157,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'instanceof4_test_none_multi': fail,
       'integer_division_by_zero_test': fail,
       'issue23244_test': fail,
+      'invocation_mirror_test': fail, // dcall does not correctly detect named arguments
+      'invocation_mirror2_test': fail, // JsInstanceMirror.delegate unimplemented
       'lazy_static3_test': fail,
       'least_upper_bound_expansive_test_none_multi': fail,
       'left_shift_test': fail,

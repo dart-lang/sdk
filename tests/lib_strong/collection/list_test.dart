@@ -31,13 +31,12 @@ class MyNoSuchMethodList<E> extends Object
   MyNoSuchMethodList(List<E> this._list);
 
   noSuchMethod(Invocation invocation) {
-    if (invocation.memberName == #length) {
-      if (invocation.isGetter) return _list.length;
-      if (invocation.isSetter) {
-        _list.length = invocation.positionalArguments.first;
-        return null;
-      }
-      return super.noSuchMethod(invocation);
+    if (invocation.memberName == #length && invocation.isGetter) {
+      return _list.length;
+    }
+    if (invocation.memberName == new Symbol("length=") && invocation.isSetter) {
+      _list.length = invocation.positionalArguments.first;
+      return null;
     }
     if (invocation.memberName == new Symbol("[]") &&
         invocation.positionalArguments.length == 1) {
@@ -60,13 +59,12 @@ class MyIndexableNoSuchMethod<E> {
   MyIndexableNoSuchMethod(List<E> this._list);
 
   noSuchMethod(Invocation invocation) {
-    if (invocation.memberName == #length) {
-      if (invocation.isGetter) return _list.length;
-      if (invocation.isSetter) {
-        _list.length = invocation.positionalArguments.first;
-        return null;
-      }
-      return super.noSuchMethod(invocation);
+    if (invocation.memberName == #length && invocation.isGetter) {
+      return _list.length;
+    }
+    if (invocation.memberName == new Symbol("length=") && invocation.isSetter) {
+      _list.length = invocation.positionalArguments.first;
+      return null;
     }
     if (invocation.memberName == new Symbol("prototype")) {
       return 42;

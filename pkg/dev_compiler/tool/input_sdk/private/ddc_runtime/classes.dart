@@ -20,9 +20,7 @@ part of dart._runtime;
 ///
 /// For each mixin, we only take its own properties, not anything from its
 /// superclass (prototype).
-mixin(base, @rest mixins) => JS(
-    '',
-    '''(() => {
+mixin(base, @rest mixins) => JS('', '''(() => {
   // Create an initializer for the mixin, so when derived constructor calls
   // super, we can correctly initialize base and mixins.
 
@@ -113,9 +111,7 @@ final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
 
 /// Wrap a generic class builder function with future flattening.
-flattenFutures(builder) => JS(
-    '',
-    '''(() => {
+flattenFutures(builder) => JS('', '''(() => {
   function flatten(T) {
     if (!T) return $builder($dynamic);
     let futureClass = $getGenericClass($Future);
@@ -133,9 +129,7 @@ flattenFutures(builder) => JS(
 })()''');
 
 /// Memoize a generic type constructor function.
-generic(typeConstructor, [setBaseClass]) => JS(
-    '',
-    '''(() => {
+generic(typeConstructor, [setBaseClass]) => JS('', '''(() => {
   let length = $typeConstructor.length;
   if (length < 1) {
     $throwInternalError('must have at least one generic type argument');
@@ -265,9 +259,7 @@ fieldType(type, metadata) =>
 /// Get the type of a constructor from a class using the stored signature
 /// If name is undefined, returns the type of the default constructor
 /// Returns undefined if the constructor is not found.
-classGetConstructorType(cls, name) => JS(
-    '',
-    '''(() => {
+classGetConstructorType(cls, name) => JS('', '''(() => {
   if(!$name) $name = 'new';
   if ($cls === void 0) return void 0;
   if ($cls == null) return void 0;
@@ -317,9 +309,7 @@ _setStaticSetterSignature(f, sigF) =>
     JS('', '$defineMemoizedGetter($f, $_staticSetterSig, $sigF)');
 
 // Set the lazily computed runtime type field on static methods
-_setStaticTypes(f, names) => JS(
-    '',
-    '''(() => {
+_setStaticTypes(f, names) => JS('', '''(() => {
   for (let name of $names) {
     // TODO(vsm): Need to generate static methods.
     if (!$f[name]) continue;
@@ -341,9 +331,7 @@ _setStaticTypes(f, names) => JS(
 ///   while still lazily computing the type descriptor object.
 ///  fields: A function returning an object mapping instance field
 ///    names to types.
-setSignature(f, signature) => JS(
-    '',
-    '''(() => {
+setSignature(f, signature) => JS('', '''(() => {
   // TODO(ochafik): Deconstruct these when supported by Chrome.
   let constructors =
     ('constructors' in signature) ? signature.constructors : () => ({});
@@ -377,9 +365,7 @@ setSignature(f, signature) => JS(
   $_setStaticTypes($f, names);
 })()''');
 
-bool _hasSigEntry(type, sigF, name) => JS(
-    'bool',
-    '''(() => {
+bool _hasSigEntry(type, sigF, name) => JS('bool', '''(() => {
   let sigObj = $type[$sigF];
   if (sigObj === void 0) return false;
   return $name in sigObj;
@@ -441,9 +427,7 @@ void _installPropertiesForObject(jsProto) {
 
 final _extensionMap = JS('', 'new Map()');
 
-_applyExtension(jsType, dartExtType) => JS(
-    '',
-    '''(() => {
+_applyExtension(jsType, dartExtType) => JS('', '''(() => {
   // TODO(vsm): Not all registered js types are real.
   if (!$jsType) return;
 
@@ -505,9 +489,7 @@ registerExtension(name, dartExtType) {
 // This benefit is roughly equivalent call performance either way, but the
 // cost is we need to call defineExtensionMembers any time a subclass
 // overrides one of these methods.
-defineExtensionMembers(type, methodNames) => JS(
-    '',
-    '''(() => {
+defineExtensionMembers(type, methodNames) => JS('', '''(() => {
   let proto = $type.prototype;
   for (let name of $methodNames) {
     let method = $getOwnPropertyDescriptor(proto, name);
@@ -546,10 +528,6 @@ setType(obj, type) {
   JS('', '#.__proto__ = #.prototype', obj, type);
   return obj;
 }
-
-/// Sets the element type of a list literal.
-list(obj, elementType) =>
-    setType(obj, JS('', '#(#)', getGenericClass(JSArray), elementType));
 
 /// Link the extension to the type it's extending as a base class.
 setBaseClass(derived, base) {
