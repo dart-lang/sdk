@@ -2473,7 +2473,6 @@ class Function : public Object {
       case RawFunction::kInvokeFieldDispatcher:
         return true;
       case RawFunction::kClosureFunction:
-      case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
@@ -2498,7 +2497,6 @@ class Function : public Object {
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
-      case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kMethodExtractor:
@@ -2775,9 +2773,7 @@ class Function : public Object {
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
-    RawFunction::Kind k = kind();
-    return (k == RawFunction::kClosureFunction) ||
-           (k == RawFunction::kImplicitClosureFunction);
+    return kind() == RawFunction::kClosureFunction;
   }
 
   // Returns true if this function represents a generated irregexp function.
@@ -2786,9 +2782,7 @@ class Function : public Object {
   }
 
   // Returns true if this function represents an implicit closure function.
-  bool IsImplicitClosureFunction() const {
-    return kind() == RawFunction::kImplicitClosureFunction;
-  }
+  bool IsImplicitClosureFunction() const;
 
   // Returns true if this function represents a converted closure function.
   bool IsConvertedClosureFunction() const {
@@ -2803,14 +2797,14 @@ class Function : public Object {
   // Returns true if this function represents an implicit static closure
   // function.
   bool IsImplicitStaticClosureFunction() const {
-    return IsImplicitClosureFunction() && is_static();
+    return is_static() && IsImplicitClosureFunction();
   }
   static bool IsImplicitStaticClosureFunction(RawFunction* func);
 
   // Returns true if this function represents an implicit instance closure
   // function.
   bool IsImplicitInstanceClosureFunction() const {
-    return IsImplicitClosureFunction() && !is_static();
+    return !is_static() && IsImplicitClosureFunction();
   }
 
   bool IsConstructorClosureFunction() const;
@@ -2882,23 +2876,10 @@ class Function : public Object {
                           TokenPosition token_pos,
                           Heap::Space space = Heap::kOld);
 
-  // Allocates a new Function object representing a closure function
-  // with given kind - kClosureFunction, kImplicitClosureFunction or
-  // kConvertedClosureFunction.
-  static RawFunction* NewClosureFunctionWithKind(RawFunction::Kind kind,
-                                                 const String& name,
-                                                 const Function& parent,
-                                                 TokenPosition token_pos);
-
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          TokenPosition token_pos);
-
-  // Allocates a new Function object representing an implicit closure function.
-  static RawFunction* NewImplicitClosureFunction(const String& name,
-                                                 const Function& parent,
-                                                 TokenPosition token_pos);
 
   // Allocates a new Function object representing a converted closure function.
   static RawFunction* NewConvertedClosureFunction(const String& name,

@@ -1089,10 +1089,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 #endif  // !PRODUCT
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
-    case RawFunction::kImplicitClosureFunction:
-      node_sequence = parser.ParseImplicitClosure(func);
-      break;
     case RawFunction::kClosureFunction:
+      if (func.IsImplicitClosureFunction()) {
+        node_sequence = parser.ParseImplicitClosure(func);
+        break;
+      }
       if (func.IsConstructorClosureFunction()) {
         node_sequence = parser.ParseConstructorClosure(func);
         break;

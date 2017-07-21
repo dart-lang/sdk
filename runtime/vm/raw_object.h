@@ -831,7 +831,6 @@ class RawFunction : public RawObject {
   enum Kind {
     kRegularFunction,
     kClosureFunction,
-    kImplicitClosureFunction,
     kConvertedClosureFunction,
     kSignatureFunction,  // represents a signature only without actual code.
     kGetterFunction,     // represents getter functions e.g: get foo() { .. }.

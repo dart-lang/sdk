@@ -399,8 +399,6 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         return 'regular';
       case M.FunctionKind.closure:
         return 'closure';
-      case M.FunctionKind.implicitClosure:
-        return 'implicit closure';
       case M.FunctionKind.getter:
         return 'getter';
       case M.FunctionKind.setter:
