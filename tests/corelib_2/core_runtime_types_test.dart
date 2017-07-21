@@ -203,12 +203,6 @@ class CoreRuntimeTypesTest {
     assertTypeError(() {
       s[null];
     });
-    assertTypeError(() {
-      s['hello'];
-    });
-    assertTypeError(() {
-      s[0] = 'x';
-    });
   }
 
   // TODO(jimhug): Fill out full set of string methods.
@@ -225,26 +219,13 @@ class CoreRuntimeTypesTest {
     assertEquals(s.contains('cd', 3), false);
     assertEquals(s.indexOf('cd', 2), 2);
     assertEquals(s.indexOf('cd', 3), -1);
-
-    assertTypeError(() {
-      s.startsWith(1);
-    });
-    assertTypeError(() {
-      s.endsWith(1);
-    });
   }
 
   static testListOperators() {
     var a = [1, 2, 3, 4];
     assertEquals(a[0], 1);
-    assertTypeError(() {
-      a['0'];
-    });
     a[0] = 42;
     assertEquals(a[0], 42);
-    assertTypeError(() {
-      a['0'] = 99;
-    });
     assertEquals(a.length, 4);
   }
 
