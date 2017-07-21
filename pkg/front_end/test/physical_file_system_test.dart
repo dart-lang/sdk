@@ -96,28 +96,6 @@ class FileTest extends _BaseTest {
     expect(file.hashCode, entityForPath(p.join(tempPath, 'file.txt')).hashCode);
   }
 
-  test_lastModified_doesNotExist() {
-    expect(file.lastModified(), _throwsFileSystemException);
-  }
-
-  test_lastModified_increasesOnEachChange() async {
-    new io.File(path).writeAsStringSync('contents1');
-    var mod1 = await file.lastModified();
-
-    // Pause to ensure the file-system time-stamps are different.
-    await new Future.delayed(new Duration(seconds: 1));
-    new io.File(path).writeAsStringSync('contents2');
-    var mod2 = await file.lastModified();
-    expect(mod2.isAfter(mod1), isTrue);
-
-    await new Future.delayed(new Duration(seconds: 1));
-    var path2 = p.join(tempPath, 'file2.txt');
-    new io.File(path2).writeAsStringSync('contents2');
-    var file2 = entityForPath(path2);
-    var mod3 = await file2.lastModified();
-    expect(mod3.isAfter(mod2), isTrue);
-  }
-
   test_readAsBytes_badUtf8() async {
     // A file containing invalid UTF-8 can still be read as raw bytes.
     List<int> bytes = [0xc0, 0x40]; // Invalid UTF-8

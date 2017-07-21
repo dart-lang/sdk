@@ -436,9 +436,6 @@ class _FileSystemViewEntry implements FileSystemEntity {
   Future<bool> exists() async => _shouldNotBeQueried();
 
   @override
-  Future<DateTime> lastModified() async => _shouldNotBeQueried();
-
-  @override
   Future<List<int>> readAsBytes() async {
     if (file == null) {
       throw new FileSystemException(uri, 'File $uri does not exist.');

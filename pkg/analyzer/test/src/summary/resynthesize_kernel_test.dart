@@ -2090,11 +2090,6 @@ class _FileSystemEntityAdaptor implements FileSystemEntity {
   }
 
   @override
-  Future<DateTime> lastModified() async {
-    return new DateTime.fromMicrosecondsSinceEpoch(file.modificationStamp);
-  }
-
-  @override
   Future<List<int>> readAsBytes() async {
     return file.readAsBytesSync();
   }

@@ -16,12 +16,6 @@ import 'file_system.dart';
 /// Not intended to be implemented or extended by clients.
 class MemoryFileSystem implements FileSystem {
   final Map<Uri, Uint8List> _files = {};
-  final Map<Uri, DateTime> _lastModified = {};
-
-  // Counter used to create mock last-modification timestamps. The memory
-  // file-system is mainly used for testing, so we use mock timestamps to avoid
-  // introducing non-determinism.
-  int _lastUpdate = 0;
 
   /// The "current directory" in the in-memory virtual file system.
   ///
@@ -70,15 +64,6 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   Future<bool> exists() async => _fileSystem._files[uri] != null;
 
   @override
-  Future<DateTime> lastModified() async {
-    var lastModified = _fileSystem._lastModified[uri];
-    if (lastModified == null) {
-      throw new FileSystemException(uri, 'File $uri does not exist.');
-    }
-    return lastModified;
-  }
-
-  @override
   Future<List<int>> readAsBytes() async {
     List<int> contents = _fileSystem._files[uri];
     if (contents == null) {
@@ -120,7 +105,5 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   void _update(Uri uri, Uint8List data) {
     _fileSystem._files[uri] = data;
-    _fileSystem._lastModified[uri] =
-        new DateTime.fromMicrosecondsSinceEpoch(++_fileSystem._lastUpdate);
   }
 }

@@ -58,23 +58,6 @@ class FileTest extends _BaseTestNative {
     expect(file.hashCode, entityForPath(join(tempPath, 'file.txt')).hashCode);
   }
 
-  test_lastModified_doesNotExist() async {
-    expect(file.lastModified(), _throwsFileSystemException);
-  }
-
-  test_lastModified_increasesOnEachChange() async {
-    file.writeAsStringSync('x');
-    var mod1 = await file.lastModified();
-    file.writeAsStringSync('y');
-    var mod2 = await file.lastModified();
-    expect(mod2.isAfter(mod1), isTrue);
-
-    var file2 = entityForPath(join(tempPath, 'file2.txt'));
-    file2.writeAsStringSync('z');
-    var mod3 = await file2.lastModified();
-    expect(mod3.isAfter(mod2), isTrue);
-  }
-
   test_path() {
     expect(file.uri, context.toUri(path));
   }
