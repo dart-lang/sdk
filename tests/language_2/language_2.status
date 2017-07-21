@@ -37,8 +37,11 @@ accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25626
 accessor_conflict_import_prefixed_test: StaticWarning # Issue 25626
 accessor_conflict_import_test: StaticWarning # Issue 25626
 
+[ $compiler == dart2analyzer && ! $strong ]
+generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
+
 [ $compiler == dart2analyzer && $strong ]
-generic_methods_generic_function_result_test: CompileTimeError # Issue #30207
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 
 [ $compiler == dart2js || $compiler == dartk || $compiler == dartdevc ]
-generic_methods_generic_function_result_test: CompileTimeError # Issue #30208
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
