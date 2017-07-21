@@ -283,12 +283,9 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
-    for (var import in library.dependencies) {
-      import.accept(this);
-    }
+    // TODO(scheglov): Do we want to print dependencies? dartbug.com/30224
     endLine();
     var inner = new Printer._inner(this, imports);
-    library.dependencies.forEach(inner.writeNode);
     library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);

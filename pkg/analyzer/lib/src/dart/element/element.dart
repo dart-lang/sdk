@@ -5502,6 +5502,11 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   final int _linkedDependency;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.LibraryDependency _kernel;
+
+  /**
    * The offset of the prefix of this import in the file that contains the this
    * import directive, or `-1` if this import is synthetic.
    */
@@ -5531,14 +5536,24 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   ImportElementImpl(int offset)
       : _unlinkedImport = null,
         _linkedDependency = null,
+        _kernel = null,
         super(null, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ImportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedImport = null,
+        _linkedDependency = null,
+        super.forSerialized(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
    */
   ImportElementImpl.forSerialized(this._unlinkedImport, this._linkedDependency,
       LibraryElementImpl enclosingLibrary)
-      : super.forSerialized(enclosingLibrary);
+      : _kernel = null,
+        super.forSerialized(enclosingLibrary);
 
   @override
   List<NamespaceCombinator> get combinators {
@@ -5566,6 +5581,14 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
 
   @override
   LibraryElement get importedLibrary {
+    if (_kernel != null) {
+      if (_importedLibrary == null) {
+        Uri importedUri = _kernel.targetLibrary.importUri;
+        String importedUriStr = importedUri.toString();
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _importedLibrary = library._kernelContext.getLibrary(importedUriStr);
+      }
+    }
     if (_linkedDependency != null) {
       if (_importedLibrary == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -5709,6 +5732,11 @@ abstract class KernelLibraryResynthesizerContext {
    * [type] does not correspond to an [InterfaceType].
    */
   InterfaceType getInterfaceType(ElementImpl context, kernel.Supertype type);
+
+  /**
+   * Return the [LibraryElement] for the given absolute [uriStr].
+   */
+  LibraryElement getLibrary(String uriStr);
 
   /**
    * Return the [DartType] for the given Kernel [type], or `null` if the [type]
@@ -6091,21 +6119,30 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ImportElement> get imports {
-    if (_unlinkedDefiningUnit != null && _imports == null) {
-      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
-      int length = unlinkedImports.length;
-      if (length != 0) {
-        List<ImportElement> imports = new List<ImportElement>();
-        LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
-        for (int i = 0; i < length; i++) {
-          int dependency = linkedLibrary.importDependencies[i];
-          ImportElementImpl importElement = new ImportElementImpl.forSerialized(
-              unlinkedImports[i], dependency, library);
-          imports.add(importElement);
+    if (_imports == null) {
+      if (_kernelContext != null) {
+        _imports = _kernelContext.library.dependencies
+            .where((k) => k.isImport)
+            .map((k) => new ImportElementImpl.forKernel(this, k))
+            .toList(growable: false);
+      }
+      if (_unlinkedDefiningUnit != null) {
+        List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+        int length = unlinkedImports.length;
+        if (length != 0) {
+          List<ImportElement> imports = new List<ImportElement>();
+          LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
+          for (int i = 0; i < length; i++) {
+            int dependency = linkedLibrary.importDependencies[i];
+            ImportElementImpl importElement =
+                new ImportElementImpl.forSerialized(
+                    unlinkedImports[i], dependency, library);
+            imports.add(importElement);
+          }
+          _imports = imports;
+        } else {
+          _imports = const <ImportElement>[];
         }
-        _imports = imports;
-      } else {
-        _imports = const <ImportElement>[];
       }
     }
     return _imports ?? ImportElement.EMPTY_LIST;

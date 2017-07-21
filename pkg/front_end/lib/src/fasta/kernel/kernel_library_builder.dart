@@ -4,6 +4,8 @@
 
 library fasta.kernel_library_builder;
 
+import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
+import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
@@ -704,6 +706,19 @@ class KernelLibraryBuilder
   @override
   Library build(LibraryBuilder coreLibrary) {
     super.build(coreLibrary);
+    for (Import import in imports) {
+      var importedBuilder = import.imported;
+      Library importedLibrary;
+      if (importedBuilder is DillLibraryBuilder) {
+        importedLibrary = importedBuilder.library;
+      } else if (importedBuilder is KernelLibraryBuilder) {
+        importedLibrary = importedBuilder.library;
+      }
+      if (importedLibrary != null) {
+        library.addDependency(
+            new LibraryDependency.import(importedLibrary, name: import.prefix));
+      }
+    }
     library.name = name;
     library.procedures.sort(compareProcedures);
     return library;
