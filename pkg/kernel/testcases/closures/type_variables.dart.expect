@@ -15,7 +15,7 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
     self::C<self::C::T, self::C::S> self = this;
   }
   method baz() → dynamic {
-    return MakeClosure<() → () → self::C<dynamic, dynamic>>(self::closure#C#baz#function, null);
+    return MakeClosure<() → dynamic>(self::closure#C#baz#function, null);
   }
   static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
     final () → dynamic local = MakeClosure<() → dynamic>(self::closure#C#function#local, null);
@@ -38,11 +38,11 @@ static method closure#C#foo#function(Vector #contextParameter, dynamic x) → dy
   self::C<dynamic, dynamic> self = #contextParameter[1];
   return z as dynamic;
 }
-static method closure#C#baz#function#function(Vector #contextParameter) → self::C<dynamic, dynamic> {
+static method closure#C#baz#function#function(Vector #contextParameter) → dynamic {
   return self::C::•<dynamic, dynamic>();
 }
-static method closure#C#baz#function(Vector #contextParameter) → () → self::C<dynamic, dynamic> {
-  return MakeClosure<() → self::C<dynamic, dynamic>>(self::closure#C#baz#function#function, #contextParameter);
+static method closure#C#baz#function(Vector #contextParameter) → dynamic {
+  return MakeClosure<() → dynamic>(self::closure#C#baz#function#function, #contextParameter);
 }
 static method closure#C#function#local(Vector #contextParameter) → dynamic {
   self::C<dynamic, dynamic> self = new self::C::internal<dynamic, dynamic>();

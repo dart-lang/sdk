@@ -236,6 +236,15 @@ class ClosureConverter extends Transformer {
     return type is InterfaceType && type.classNode.supertype == null;
   }
 
+  TreeNode visitField(Field node) {
+    currentMember = node;
+    context = new NoContext(this);
+    node = super.visitField(node);
+    context = null;
+    currentMember = null;
+    return node;
+  }
+
   Expression handleLocalFunction(FunctionNode function) {
     FunctionNode enclosingFunction = currentFunction;
     Map<TypeParameter, DartType> enclosingTypeSubstitution = typeSubstitution;
@@ -430,7 +439,7 @@ class ClosureConverter extends Transformer {
   TreeNode visitBlock(Block node) {
     return saveContext(() {
       BlockRewriter blockRewriter = rewriter = rewriter.forNestedBlock(node);
-      blockRewriter.transformStatements(node, this);
+      blockRewriter.transformStatements(this);
       return node;
     });
   }

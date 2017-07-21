@@ -135,10 +135,12 @@ LanguageError* Object::background_compilation_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
 Type* Object::dynamic_type_ = NULL;
 Type* Object::void_type_ = NULL;
+Type* Object::vector_type_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::vector_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -527,6 +529,7 @@ void Object::InitOnce(Isolate* isolate) {
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
   dynamic_type_ = Type::ReadOnlyHandle();
   void_type_ = Type::ReadOnlyHandle();
+  vector_type_ = Type::ReadOnlyHandle();
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -886,6 +889,14 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_cycle_free();
   void_class_ = cls.raw();
 
+  cls = Class::New<Instance>(kVectorCid);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  cls.set_is_cycle_free();
+  vector_class_ = cls.raw();
+
   cls = Class::New<Type>();
   cls.set_is_finalized();
   cls.set_is_type_finalized();
@@ -896,6 +907,9 @@ void Object::InitOnce(Isolate* isolate) {
 
   cls = void_class_;
   *void_type_ = Type::NewNonParameterizedType(cls);
+
+  cls = vector_class_;
+  *vector_type_ = Type::NewNonParameterizedType(cls);
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -5311,7 +5325,7 @@ void Function::set_unoptimized_code(const Code& value) const {
 }
 
 RawContextScope* Function::context_scope() const {
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).context_scope();
@@ -5320,7 +5334,7 @@ RawContextScope* Function::context_scope() const {
 }
 
 void Function::set_context_scope(const ContextScope& value) const {
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_context_scope(value);
@@ -5410,10 +5424,11 @@ RawField* Function::LookupImplicitGetterSetterField() const {
 }
 
 RawFunction* Function::parent_function() const {
-  if (IsClosureFunction() || IsSignatureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction() ||
+      IsSignatureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
-    if (IsClosureFunction()) {
+    if (IsClosureFunction() || IsConvertedClosureFunction()) {
       return ClosureData::Cast(obj).parent_function();
     } else {
       return SignatureData::Cast(obj).parent_function();
@@ -5425,7 +5440,7 @@ RawFunction* Function::parent_function() const {
 void Function::set_parent_function(const Function& value) const {
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     ClosureData::Cast(obj).set_parent_function(value);
   } else {
     ASSERT(IsSignatureFunction());
@@ -5480,13 +5495,31 @@ void Function::set_implicit_closure_function(const Function& value) const {
   }
 }
 
+RawFunction* Function::converted_closure_function() const {
+  if (IsClosureFunction() || IsSignatureFunction() || IsFactory()) {
+    return Function::null();
+  }
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsNull() || obj.IsFunction());
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  }
+  return Function::null();
+}
+
+void Function::set_converted_closure_function(const Function& value) const {
+  ASSERT(!IsClosureFunction() && !IsSignatureFunction() && !is_native());
+  ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
+  set_data(value);
+}
+
 RawType* Function::ExistingSignatureType() const {
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     return SignatureData::Cast(obj).signature_type();
   } else {
-    ASSERT(IsClosureFunction());
+    ASSERT(IsClosureFunction() || IsConvertedClosureFunction());
     return ClosureData::Cast(obj).signature_type();
   }
 }
@@ -5539,7 +5572,7 @@ void Function::SetSignatureType(const Type& value) const {
     SignatureData::Cast(obj).set_signature_type(value);
     ASSERT(!value.IsCanonical() || (value.signature() == this->raw()));
   } else {
-    ASSERT(IsClosureFunction());
+    ASSERT(IsClosureFunction() || IsConvertedClosureFunction());
     ClosureData::Cast(obj).set_signature_type(value);
   }
 }
@@ -6579,7 +6612,8 @@ RawFunction* Function::New(const String& name,
   result.set_allows_bounds_check_generalization(true);
   result.SetInstructionsSafe(
       Code::Handle(StubCode::LazyCompile_entry()->code()));
-  if (kind == RawFunction::kClosureFunction) {
+  if (kind == RawFunction::kClosureFunction ||
+      kind == RawFunction::kConvertedClosureFunction) {
     ASSERT(space == Heap::kOld);
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -6654,6 +6688,26 @@ RawFunction* Function::NewClosureFunction(const String& name,
   const Function& result = Function::Handle(
       Function::New(name, RawFunction::kClosureFunction,
                     /* is_static = */ parent.is_static(),
+                    /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
+                    /* is_native = */ false, parent_owner, token_pos));
+  result.set_parent_function(parent);
+  return result.raw();
+}
+
+RawFunction* Function::NewConvertedClosureFunction(const String& name,
+                                                   const Function& parent,
+                                                   TokenPosition token_pos) {
+  ASSERT(!parent.IsNull());
+  // Only static top-level functions are allowed to be converted right now.
+  ASSERT(parent.is_static());
+  // Use the owner defining the parent function and not the class containing it.
+  const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
+  ASSERT(!parent_owner.IsNull());
+  const Function& result = Function::Handle(
+      Function::New(name, RawFunction::kConvertedClosureFunction,
+                    /* is_static = */ true,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
@@ -6783,6 +6837,169 @@ void Function::DropUncompiledImplicitClosureFunction() const {
     const Function& func = Function::Handle(implicit_closure_function());
     if (!func.HasCode()) {
       set_implicit_closure_function(Function::Handle());
+    }
+  }
+}
+
+// Converted closure functions represent a pair of a top-level function and a
+// vector of captured variables.  When being invoked, converted closure
+// functions get the vector as the first argument, and the arguments supplied at
+// the invocation are passed as the remaining arguments to that function.
+//
+// Consider the following example in Kernel:
+//
+//   static method foo(core::int start) → core::Function {
+//     core::int i = 0;
+//     return () → dynamic => start.+(
+//       let final dynamic #t1 = i in
+//         let final dynamic #t2 = i = #t1.+(1) in
+//          #t1
+//     );
+//   }
+//
+// The method [foo] above produces a closure as a result.  The closure captures
+// two variables: function parameter [start] and local variable [i].  Here is
+// how this code would look like after closure conversion:
+//
+//   static method foo(core::int start) → core::Function {
+//     final Vector #context = MakeVector(3);
+//     #context[1] = start;
+//     #context[2] = 0;
+//     return MakeClosure<() → dynamic>(com::closure#foo#function, #context);
+//   }
+//   static method closure#foo#function(Vector #contextParameter) → dynamic {
+//     return (#contextParameter[1]).+(
+//       let final dynamic #t1 = #contextParameter[2] in
+//         let final dynamic #t2 = #contextParameter[2] = #t1.+(1) in
+//           #t1
+//     );
+//   }
+//
+// Converted closure functions are used in VM Closure instances that represent
+// the results of evaluation of [MakeClosure] primitive operations.
+//
+// Internally, converted closure functins are represented with the same Closure
+// class as implicit closure functions (that are used for dealing with
+// tear-offs).  The Closure class instances have two fields, one for the
+// function, and one for the captured context.  Implicit closure functions have
+// pre-defined shape of the context: it's a single variable that is used as
+// 'this'.  Converted closure functions use the context field to store the
+// vector of captured variables that will be supplied as the first argument
+// during invocation.
+//
+// The top-level functions used in converted closure functions are generated
+// during a front-end transformation in Kernel.  Those functions have some
+// common properties:
+//   * they expect the captured context to be passed as the first argument,
+//   * the first argument should be of [Vector] type (index-based storage),
+//   * they retrieve the captured variables from [Vector] explicitly, so they
+//   don't need the variables from the context to be put into their current
+//   scope.
+//
+// During closure-conversion pass in Kernel, the contexts are generated
+// explicitly and are represented as [Vector]s.  Then they are paired together
+// with the top-level functions to form a closure.  When the closure, created
+// this way, is invoked, it should receive the [Vector] as the first argument,
+// and take the rest of the arguments from the invocation.
+//
+// Converted cosure functions in VM follow same discipline as implicit closure
+// functions, because they are similar in many ways. For further deatils, please
+// refer to the following methods:
+//   -> Function::ConvertedClosureFunction
+//   -> StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction
+//   -> StreamingFlowGraphBuilder::BuildGraph (small change that calls
+//      BuildGraphOfConvertedClosureFunction)
+//   -> StreamingFlowGraphBuilder::BuildClosureCreation (converted closure
+//      functions are created here)
+//
+// Function::ConvertedClosureFunction method follows the logic of
+// Function::ImplicitClosureFunction method.
+//
+// TODO(29181): Adjust the method to correctly pass type parameters after they
+// are enabled in closure conversion.
+RawFunction* Function::ConvertedClosureFunction() const {
+  // Return the existing converted closure function if any.
+  if (converted_closure_function() != Function::null()) {
+    return converted_closure_function();
+  }
+  ASSERT(!IsSignatureFunction() && !IsClosureFunction());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  // Create closure function.
+  const String& closure_name = String::Handle(zone, name());
+  const Function& closure_function = Function::Handle(
+      zone, NewConvertedClosureFunction(closure_name, *this, token_pos()));
+
+  // Currently only static top-level functions are allowed to be converted.
+  ASSERT(is_static());
+  closure_function.set_context_scope(Object::empty_context_scope());
+
+  // Set closure function's type parameters.
+  closure_function.set_type_parameters(
+      TypeArguments::Handle(zone, type_parameters()));
+
+  // Set closure function's result type to this result type.
+  closure_function.set_result_type(AbstractType::Handle(zone, result_type()));
+
+  // Set closure function's end token to this end token.
+  closure_function.set_end_token_pos(end_token_pos());
+
+  // The closurized method stub just calls into the original method and should
+  // therefore be skipped by the debugger and in stack traces.
+  closure_function.set_is_debuggable(false);
+  closure_function.set_is_visible(false);
+
+  // Set closure function's formal parameters to this formal parameters,
+  // removing the first parameter over which the currying is done, and adding
+  // the closure class instance as the first parameter.  So, the overall number
+  // of fixed parameters doesn't change.
+  const int num_fixed_params = num_fixed_parameters();
+  const int num_opt_params = NumOptionalParameters();
+  const bool has_opt_pos_params = HasOptionalPositionalParameters();
+  const int num_params = num_fixed_params + num_opt_params;
+
+  closure_function.set_num_fixed_parameters(num_fixed_params);
+  closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
+  closure_function.set_parameter_types(
+      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+  closure_function.set_parameter_names(
+      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+
+  AbstractType& param_type = AbstractType::Handle(zone);
+  String& param_name = String::Handle(zone);
+
+  // Add implicit closure object as the first parameter.
+  param_type = Type::DynamicType();
+  closure_function.SetParameterTypeAt(0, param_type);
+  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
+
+  // All the parameters, but the first one, are the same for the top-level
+  // function being converted, and the method of the closure class that is being
+  // generated.
+  for (int i = 1; i < num_params; i++) {
+    param_type = ParameterTypeAt(i);
+    closure_function.SetParameterTypeAt(i, param_type);
+    param_name = ParameterNameAt(i);
+    closure_function.SetParameterNameAt(i, param_name);
+  }
+  closure_function.set_kernel_offset(kernel_offset());
+
+  const Type& signature_type =
+      Type::Handle(zone, closure_function.SignatureType());
+  if (!signature_type.IsFinalized()) {
+    ClassFinalizer::FinalizeType(Class::Handle(zone, Owner()), signature_type);
+  }
+
+  set_converted_closure_function(closure_function);
+
+  return closure_function.raw();
+}
+
+void Function::DropUncompiledConvertedClosureFunction() const {
+  if (converted_closure_function() != Function::null()) {
+    const Function& func = Function::Handle(converted_closure_function());
+    if (!func.HasCode()) {
+      set_converted_closure_function(Function::Handle());
     }
   }
 }
@@ -7265,6 +7482,7 @@ const char* Function::ToCString() const {
   switch (kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
+    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
       kind_str = "";
@@ -15118,6 +15336,46 @@ bool Instance::IsInstanceOf(
     Function& other_signature =
         Function::Handle(zone, Type::Cast(instantiated_other).signature());
     Function& sig_fun = Function::Handle(zone, Closure::Cast(*this).function());
+    if (sig_fun.IsConvertedClosureFunction()) {
+      const String& closure_name = String::Handle(zone, sig_fun.name());
+      const Function& new_sig_fun = Function::Handle(
+          zone,
+          Function::NewConvertedClosureFunction(
+              closure_name, Function::Handle(zone, sig_fun.parent_function()),
+              TokenPosition::kNoSource));
+
+      new_sig_fun.set_type_parameters(
+          TypeArguments::Handle(zone, sig_fun.type_parameters()));
+      new_sig_fun.set_result_type(
+          AbstractType::Handle(zone, sig_fun.result_type()));
+      new_sig_fun.set_end_token_pos(TokenPosition::kNoSource);
+
+      new_sig_fun.set_is_debuggable(false);
+      new_sig_fun.set_is_visible(false);
+
+      // The converted closed top-level function type should have its first
+      // required optional parameter, i.e. context, removed.
+      const int num_fixed_params = sig_fun.num_fixed_parameters() - 1;
+      const int num_opt_params = sig_fun.NumOptionalParameters();
+      const bool has_opt_pos_params = sig_fun.HasOptionalPositionalParameters();
+      const int num_params = num_fixed_params + num_opt_params;
+      new_sig_fun.set_num_fixed_parameters(num_fixed_params);
+      new_sig_fun.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
+      new_sig_fun.set_parameter_types(
+          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+      new_sig_fun.set_parameter_names(
+          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+      AbstractType& param_type = AbstractType::Handle(zone);
+      String& param_name = String::Handle(zone);
+      for (int i = 0; i < num_params; i++) {
+        param_type = sig_fun.ParameterTypeAt(i + 1);
+        new_sig_fun.SetParameterTypeAt(i, param_type);
+        param_name = sig_fun.ParameterNameAt(i + 1);
+        new_sig_fun.SetParameterNameAt(i, param_name);
+      }
+
+      sig_fun = new_sig_fun.raw();
+    }
     if (!sig_fun.HasInstantiatedSignature()) {
       const TypeArguments& instantiator_type_arguments = TypeArguments::Handle(
           zone, Closure::Cast(*this).instantiator_type_arguments());

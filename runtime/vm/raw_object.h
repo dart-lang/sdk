@@ -183,10 +183,12 @@ enum ClassId {
       kByteBufferCid,
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic and Void).
+  // are class indexes for pre-allocated instances (Null, dynamic, Void and
+  // Vector).
   kNullCid,
   kDynamicCid,
   kVoidCid,
+  kVectorCid,
 
   kNumPredefinedCids,
 };
@@ -829,6 +831,7 @@ class RawFunction : public RawObject {
   enum Kind {
     kRegularFunction,
     kClosureFunction,
+    kConvertedClosureFunction,
     kSignatureFunction,  // represents a signature only without actual code.
     kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
     kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.

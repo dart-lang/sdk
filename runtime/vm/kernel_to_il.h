@@ -505,7 +505,7 @@ class FlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateContext(int size);
+  Fragment AllocateContext(intptr_t size);
   Fragment AllocateObject(TokenPosition position,
                           const dart::Class& klass,
                           intptr_t argument_count);

@@ -4,19 +4,18 @@
 
 library test.kernel.closures.suite;
 
+import 'dart:io' show File;
+
 import 'dart:async' show Future;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, runMe;
+    show Chain, ChainContext, Result, Step, runMe, StdioProcess;
 
 import 'package:kernel/ast.dart' show Program, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
-
-import 'package:kernel/transformations/closure_conversion.dart'
-    as closure_conversion;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show
@@ -28,6 +27,12 @@ import 'package:front_end/src/fasta/testing/kernel_chain.dart'
         Compile,
         CompileContext;
 
+import 'package:kernel/transformations/closure_conversion.dart'
+    as closure_conversion;
+
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computePatchedSdk, computeDartVm;
+
 const String STRONG_MODE = " strong mode ";
 
 class ClosureConversionContext extends ChainContext implements CompileContext {
@@ -35,6 +40,8 @@ class ClosureConversionContext extends ChainContext implements CompileContext {
   Target get target => null;
 
   final List<Step> steps;
+
+  Program platform;
 
   ClosureConversionContext(this.strongMode, bool updateExpectations)
       : steps = <Step>[
@@ -49,6 +56,7 @@ class ClosureConversionContext extends ChainContext implements CompileContext {
           const WriteDill(),
           const ReadDill(),
           // TODO(29143): add `Run` step when Vectors are added to VM.
+          //const Run(),
         ];
 
   static Future<ClosureConversionContext> create(
@@ -82,6 +90,26 @@ class ClosureConversion
       return pass(program);
     } catch (e, s) {
       return crash(e, s);
+    }
+  }
+}
+
+class Run extends Step<Uri, int, ClosureConversionContext> {
+  const Run();
+
+  String get name => "run";
+
+  Future<Result<int>> run(Uri uri, ClosureConversionContext context) async {
+    final File generated = new File.fromUri(uri);
+    try {
+      Uri sdk = await computePatchedSdk();
+      Uri vm = computeDartVm(sdk);
+      final StdioProcess process = await StdioProcess
+          .run(vm.toFilePath(), [generated.path, "Hello, World!"]);
+      print(process.output);
+      return process.toResult();
+    } finally {
+      generated.parent.delete(recursive: true);
     }
   }
 }
