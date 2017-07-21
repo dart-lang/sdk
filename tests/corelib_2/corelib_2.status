@@ -2,11 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-#[ $strong && $compiler != dart2analyzer ]
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 core_runtime_types_static_test: MissingCompileTimeError
 
+[ !$strong && $compiler != dartdevc && $checked ]
+core_runtime_types_static_test: MissingCompileTimeError
+
+[ !$strong && !$checked ]
+core_runtime_types_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
