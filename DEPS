@@ -60,7 +60,7 @@ vars = {
   "cli_util_tag" : "@0.1.0",
   "collection_tag": "@1.13.0",
   "convert_tag": "@2.0.1",
-  "crypto_tag" : "@2.0.1",
+  "crypto_tag" : "@2.0.2",
   "csslib_tag" : "@0.13.3+1",
   "dart2js_info_tag" : "@0.5.4+2",
 
