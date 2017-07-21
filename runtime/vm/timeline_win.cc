@@ -19,7 +19,7 @@ TimelineEventPlatformRecorder::TimelineEventPlatformRecorder(intptr_t capacity)
 TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
 
 TimelineEventPlatformRecorder*
-TimelineEventPlatformRecorderCreatePlatformRecorder(intptr_t capacity) {
+TimelineEventPlatformRecorder::CreatePlatformRecorder(intptr_t capacity) {
   return new TimelineEventPlatformRecorder(capacity);
 }
 
