@@ -3007,6 +3007,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.regular;
     case 'ClosureFunction':
       return M.FunctionKind.closure;
+    case 'ImplicitClosureFunction':
+      return M.FunctionKind.implicitClosure;
     case 'GetterFunction':
       return M.FunctionKind.getter;
     case 'SetterFunction':

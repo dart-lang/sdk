@@ -131,6 +131,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
+    case RawFunction::kImplicitClosureFunction:
     case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
@@ -3422,6 +3423,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
 
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
+    case RawFunction::kImplicitClosureFunction:
     case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
