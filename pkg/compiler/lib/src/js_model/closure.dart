@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
+import '../common.dart';
 import '../common/tasks.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -65,7 +66,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       MemberEntity entity = _kToJElementMap.toBackendMember(kEntity);
       if (entity.isAbstract) return;
       if (entity.isField && !entity.isInstanceMember) {
-        ir.Field field = _elementMap.getMemberNode(entity);
+        MemberDefinition definition = _elementMap.getMemberDefinition(entity);
+        assert(definition.kind == MemberKind.regular,
+            failedAt(entity, "Unexpected member definition $definition"));
+        ir.Field field = definition.node;
         // Skip top-level/static fields without an initializer.
         if (field.initializer == null) return;
       }
@@ -85,7 +89,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       Map<ir.TreeNode, ScopeInfo> closuresToGenerate,
       ClosedWorldRefiner closedWorldRefiner) {
     if (_scopeMap.keys.contains(entity)) return;
-    ir.Node node = _elementMap.getMemberNode(entity);
+    MemberDefinition definition = _elementMap.getMemberDefinition(entity);
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+        break;
+      default:
+        failedAt(entity, "Unexpected member definition $definition");
+    }
+    ir.Node node = definition.node;
     if (_capturedScopesMap.keys.contains(node)) return;
     CapturedScopeBuilder translator = new CapturedScopeBuilder(
         _capturedScopesMap,
@@ -135,7 +147,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
     String name = _computeClosureName(node);
     KernelClosureClass closureClass = new KernelClosureClass.fromScopeInfo(
-        name, _elementMap.getLibrary(library), info);
+        name, _elementMap.getLibrary(library), info, node.location);
     if (node is ir.FunctionNode) {
       // We want the original declaration where that function is used to point
       // to the correct closure class.
@@ -209,9 +221,17 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
   // be non-null, and we should just test that with an assert.
   @override
-  CapturedScope getCapturedScope(MemberEntity entity) =>
-      _capturedScopesMap[_elementMap.getMemberNode(entity)] ??
-      const CapturedScope();
+  CapturedScope getCapturedScope(MemberEntity entity) {
+    MemberDefinition definition = _elementMap.getMemberDefinition(entity);
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        return _capturedScopesMap[definition.node] ?? const CapturedScope();
+      default:
+        throw failedAt(entity, "Unexpected member definition $definition");
+    }
+  }
 
   @override
   // TODO(efortuna): Eventually capturedScopesMap[node] should always
@@ -313,6 +333,8 @@ class KernelCapturedLoopScope extends KernelCapturedScope
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class KernelClosureClass extends KernelScopeInfo
     implements ClosureRepresentationInfo, JClass {
+  final ir.Location location;
+
   final String name;
   final JLibrary library;
 
@@ -323,7 +345,7 @@ class KernelClosureClass extends KernelScopeInfo
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
   KernelClosureClass.fromScopeInfo(
-      this.name, this.library, KernelScopeInfo info)
+      this.name, this.library, KernelScopeInfo info, this.location)
       : super.from(info.thisLocal, info) {
     // Make a corresponding field entity in this closure class for every single
     // freeVariable in the KernelScopeInfo.freeVariable.
@@ -402,4 +424,19 @@ class ClosureField extends JField {
       : super(-1, containingClass.library, containingClass,
             new Name(name, containingClass.library),
             isAssignable: isAssignable, isConst: isConst);
+}
+
+class ClosureClassDefinition implements ClassDefinition {
+  final ClassEntity cls;
+  final ir.Location location;
+
+  ClosureClassDefinition(this.cls, this.location);
+
+  ClassKind get kind => ClassKind.closure;
+
+  ir.Node get node =>
+      throw new UnsupportedError('ClosureClassDefinition.node for $cls');
+
+  String toString() =>
+      'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
 }

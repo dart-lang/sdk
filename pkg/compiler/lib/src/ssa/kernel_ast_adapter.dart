@@ -143,8 +143,26 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
     return target;
   }
 
+  MemberDefinition getMemberDefinition(MemberElement member) {
+    ir.Node node = getMemberNode(member);
+    if (member is ConstructorBodyElement) {
+      return new SpecialMemberDefinition(
+          member, node, MemberKind.constructorBody);
+    } else if (node is ir.Constructor) {
+      return new SpecialMemberDefinition(member, node, MemberKind.constructor);
+    } else if (node is ir.FunctionDeclaration ||
+        node is ir.FunctionExpression) {
+      return new SpecialMemberDefinition(member, node, MemberKind.closureCall);
+    }
+    return new RegularMemberDefinition(member, node);
+  }
+
   ir.Node getClassNode(ClassElement cls) {
     throw new UnsupportedError('KernelAstAdapter.getClassNode');
+  }
+
+  ClassDefinition getClassDefinition(ClassElement cls) {
+    throw new UnsupportedError('KernelAstAdapter.getClassDefinition');
   }
 
   @override

@@ -94,7 +94,6 @@ class KernelSsaBuilder implements SsaBuilder {
     KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
         work.element.enclosingClass,
-        _elementMap.getMemberNode(work.element),
         _compiler,
         _elementMap,
         new KernelToTypeInferenceMapImpl(closedWorld),
@@ -204,10 +203,8 @@ class KernelSorter implements Sorter {
     return utils.compareLibrariesUris(a.canonicalUri, b.canonicalUri);
   }
 
-  int _compareNodes(
-      Entity entity1, ir.TreeNode node1, Entity entity2, ir.TreeNode node2) {
-    ir.Location location1 = node1.location;
-    ir.Location location2 = node2.location;
+  int _compareLocations(Entity entity1, ir.Location location1, Entity entity2,
+      ir.Location location2) {
     int r = utils.compareSourceUris(
         Uri.parse(location1.file), Uri.parse(location2.file));
     if (r != 0) return r;
@@ -223,22 +220,26 @@ class KernelSorter implements Sorter {
   @override
   Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
     return members.toList()
-      ..sort((MemberEntity a, MemberEntity b) {
-        int r = _compareLibraries(a.library, b.library);
+      ..sort((MemberEntity member1, MemberEntity member2) {
+        int r = _compareLibraries(member1.library, member2.library);
         if (r != 0) return r;
-        return _compareNodes(
-            a, elementMap.getMemberNode(a), b, elementMap.getMemberNode(b));
+        MemberDefinition definition1 = elementMap.getMemberDefinition(member1);
+        MemberDefinition definition2 = elementMap.getMemberDefinition(member2);
+        return _compareLocations(
+            member1, definition1.location, member2, definition2.location);
       });
   }
 
   @override
   Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
     return classes.toList()
-      ..sort((ClassEntity a, ClassEntity b) {
-        int r = _compareLibraries(a.library, b.library);
+      ..sort((ClassEntity cls1, ClassEntity cls2) {
+        int r = _compareLibraries(cls1.library, cls2.library);
         if (r != 0) return r;
-        return _compareNodes(
-            a, elementMap.getClassNode(a), b, elementMap.getClassNode(b));
+        ClassDefinition definition1 = elementMap.getClassDefinition(cls1);
+        ClassDefinition definition2 = elementMap.getClassDefinition(cls2);
+        return _compareLocations(
+            cls1, definition1.location, cls2, definition2.location);
       });
   }
 

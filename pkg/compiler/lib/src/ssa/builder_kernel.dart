@@ -49,7 +49,6 @@ import 'type_builder.dart';
 
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
-  final ir.Node target;
   final MemberEntity targetElement;
 
   /// The root node of [targetElement]. This is used as the key into the
@@ -104,7 +103,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
   KernelSsaGraphBuilder(
       this.targetElement,
       ClassEntity contextClass,
-      this.target,
       this.compiler,
       this._elementMap,
       this._typeInferenceMap,
@@ -132,34 +130,46 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return reporter.withCurrentElement(localsMap.currentMember, () {
       // TODO(het): no reason to do this here...
       HInstruction.idCounter = 0;
-      if (target is ir.Procedure) {
-        _targetFunction = (target as ir.Procedure).function;
-        buildFunctionNode(_targetFunction);
-      } else if (target is ir.Field) {
-        if (handleConstantField(targetElement, registry, closedWorld)) {
-          // No code is generated for `targetElement`: All references inline the
-          // constant value.
-          return null;
-        } else if (targetElement.isStatic || targetElement.isTopLevel) {
-          backend.constants.registerLazyStatic(targetElement);
-        }
-        buildField(target);
-      } else if (target is ir.Constructor) {
-        _targetFunction = (target as ir.Constructor).function;
-        if (targetElement is ConstructorBodyEntity) {
-          buildConstructorBody(target);
-        } else {
-          buildConstructor(target);
-        }
-      } else if (target is ir.FunctionExpression) {
-        _targetFunction = (target as ir.FunctionExpression).function;
-        buildFunctionNode(_targetFunction);
-      } else if (target is ir.FunctionDeclaration) {
-        _targetFunction = (target as ir.FunctionDeclaration).function;
-        buildFunctionNode(_targetFunction);
-      } else {
-        throw 'No case implemented to handle target: '
-            '$target for $targetElement';
+      MemberDefinition definition =
+          _elementMap.getMemberDefinition(targetElement);
+
+      switch (definition.kind) {
+        case MemberKind.regular:
+        case MemberKind.closureCall:
+          ir.Node target = definition.node;
+          if (target is ir.Procedure) {
+            _targetFunction = target.function;
+            buildFunctionNode(_targetFunction);
+          } else if (target is ir.Field) {
+            if (handleConstantField(targetElement, registry, closedWorld)) {
+              // No code is generated for `targetElement`: All references inline
+              // the constant value.
+              return null;
+            } else if (targetElement.isStatic || targetElement.isTopLevel) {
+              backend.constants.registerLazyStatic(targetElement);
+            }
+            buildField(target);
+          } else if (target is ir.FunctionExpression) {
+            _targetFunction = target.function;
+            buildFunctionNode(_targetFunction);
+          } else if (target is ir.FunctionDeclaration) {
+            _targetFunction = target.function;
+            buildFunctionNode(_targetFunction);
+          } else {
+            throw 'No case implemented to handle target: '
+                '$target for $targetElement';
+          }
+          break;
+        case MemberKind.constructor:
+          ir.Constructor constructor = definition.node;
+          _targetFunction = constructor.function;
+          buildConstructor(constructor);
+          break;
+        case MemberKind.constructorBody:
+          ir.Constructor constructor = definition.node;
+          _targetFunction = constructor.function;
+          buildConstructorBody(constructor);
+          break;
       }
       assert(graph.isValid());
       if (_targetFunction != null) {
@@ -202,7 +212,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   ConstantValue getFieldInitialConstantValue(FieldEntity field) {
     assert(field == targetElement);
-    return _elementMap.getFieldConstantValue(target);
+    MemberDefinition definition = _elementMap.getMemberDefinition(field);
+    assert(definition.kind == MemberKind.regular,
+        failedAt(field, "Unexpected member definition: $definition"));
+    return _elementMap.getFieldConstantValue(definition.node);
   }
 
   void buildField(ir.Field field) {
