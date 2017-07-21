@@ -9,6 +9,27 @@ typed_locals_test: Fail
 no_such_method_test: Fail # Wrong Invocation.memberName.
 constant_javascript_semantics4_test: Fail, OK
 mirrors_used_closure_test: Fail # Issue 17939
+dummy_compiler_test: Slow, Pass
+recursive_import_test: Slow, Pass
+
+[ $compiler == dart2js && $browser ]
+dummy_compiler_test: Skip
+recursive_import_test: Skip
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+dummy_compiler_test: Skip # Issue 28649
+recursive_import_test: Skip # Issue 28649
+
+[ $hot_reload || $hot_reload_rollback ]
+recursive_import_test: Skip # Running dart2js under frequent reloads is slow.
+dummy_compiler_test: Skip # Running dart2js under frequent reloads is slow.
+
+[ $builder_tag == asan ]
+recursive_import_test: Skip # Issue 27441
+
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+dummy_compiler_test: Slow, Pass
+recursive_import_test: Slow, Pass
 
 [ $compiler == dart2js && $checked ]
 variable_type_test/03: Fail, OK
