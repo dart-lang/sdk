@@ -164,11 +164,11 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// Returns the list of [DartType]s corresponding to [types].
   List<DartType> getDartTypes(List<ir.DartType> types);
 
-  /// Returns the kernel IR node that defines the [member].
-  ir.Node getMemberNode(covariant MemberEntity member);
+  /// Returns the definition information for [member].
+  MemberDefinition getMemberDefinition(covariant MemberEntity member);
 
-  /// Returns the kernel IR node that defines the [cls].
-  ir.Class getClassNode(covariant ClassEntity cls);
+  /// Returns the definition information for [cls].
+  ClassDefinition getClassDefinition(covariant ClassEntity cls);
 
   /// Returns the [LibraryEntity] corresponding to the library [node].
   LibraryEntity getLibrary(ir.Library node);
@@ -196,6 +196,104 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   // TODO(johnniwinther): Avoid this method by deriving the uri directly from
   // the node.
   String getDeferredUri(ir.LibraryDependency node);
+}
+
+// TODO(johnniwinther,efortuna): Add more when needed.
+// TODO(johnniwinther): Should we split regular into method, field, etc.?
+enum MemberKind {
+  // A regular member defined by an [ir.Node].
+  regular,
+  // A constructor whose initializer is defined by an [ir.Constructor] node.
+  constructor,
+  // A constructor whose body is defined by an [ir.Constructor] node.
+  constructorBody,
+  // A closure class `call` method whose body is defined by an
+  // [ir.FunctionExpression].
+  closureCall,
+}
+
+/// Definition information for a [MemberEntity].
+abstract class MemberDefinition {
+  /// The defined member.
+  MemberEntity get member;
+
+  /// The kind of the defined member. This determines the semantics of [node].
+  MemberKind get kind;
+
+  /// The defining [ir.Node] for this member, if supported by its [kind].
+  ///
+  /// For a regular class this is the [ir.Class] node. For closure classes this
+  /// might be an [ir.FunctionExpression] node if needed.
+  ir.Node get node;
+
+  /// The canonical location of [member]. This is used for sorting the members
+  /// in the emitted code.
+  ir.Location get location;
+}
+
+enum ClassKind {
+  regular,
+  closure,
+}
+
+/// A member directly defined by its [ir.Member] node.
+class RegularMemberDefinition implements MemberDefinition {
+  final MemberEntity member;
+  final ir.Member node;
+
+  RegularMemberDefinition(this.member, this.node);
+
+  ir.Location get location => node.location;
+
+  MemberKind get kind => MemberKind.regular;
+
+  String toString() => 'RegularMemberDefinition(kind:$kind,member:$member,'
+      'node:$node,location:$location)';
+}
+
+/// The definition of a special kind of member
+class SpecialMemberDefinition implements MemberDefinition {
+  final MemberEntity member;
+  final ir.TreeNode node;
+  final MemberKind kind;
+
+  SpecialMemberDefinition(this.member, this.node, this.kind);
+
+  ir.Location get location => node.location;
+
+  String toString() => 'SpecialMemberDefinition(kind:$kind,member:$member,'
+      'node:$node,location:$location)';
+}
+
+/// Definition information for a [ClassEntity].
+abstract class ClassDefinition {
+  /// The defined class.
+  ClassEntity get cls;
+
+  /// The kind of the defined class. This determines the semantics of [node].
+  ClassKind get kind;
+
+  /// The defining [ir.Node] for this class, if supported by its [kind].
+  ir.Node get node;
+
+  /// The canonical location of [cls]. This is used for sorting the classes
+  /// in the emitted code.
+  ir.Location get location;
+}
+
+/// A class directly defined by its [ir.Class] node.
+class RegularClassDefinition implements ClassDefinition {
+  final ClassEntity cls;
+  final ir.Class node;
+
+  RegularClassDefinition(this.cls, this.node);
+
+  ir.Location get location => node.location;
+
+  ClassKind get kind => ClassKind.regular;
+
+  String toString() => 'RegularClassDefinition(kind:$kind,cls:$cls,'
+      'node:$node,location:$location)';
 }
 
 /// Kinds of foreign functions.

@@ -150,7 +150,10 @@ void computeIrMemberData(Compiler compiler, MemberEntity member,
     Map<Id, String> actualMap, Map<Id, Spannable> spannableMap) {
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  new IrComputer(actualMap, spannableMap).run(elementMap.getMemberNode(member));
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  assert(definition.kind == MemberKind.regular,
+      failedAt(member, "Unexpected member definition $definition"));
+  new IrComputer(actualMap, spannableMap).run(definition.node);
 }
 
 /// IR visitor for computing a descriptive mapping of the [Id]s in a member.

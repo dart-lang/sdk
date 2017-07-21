@@ -17,13 +17,13 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
       : super(types);
 
   @override
-  void _recordType(DartType type, int offset) {
+  int _recordType(DartType type, int offset) {
     if (_debug) {
       print('Recording type $type for offset $offset');
     }
     assert(_types.length == _typeOffsets.length);
     _typeOffsets.add(offset);
-    super._recordType(type, offset);
+    return super._recordType(type, offset);
   }
 }
 
@@ -32,7 +32,15 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 class ResolutionStorer extends TypeInferenceListener {
   final List<DartType> _types;
 
+  /// Indices into [_types] which need to be filled in later.
+  final _deferredTypeSlots = <int>[];
+
   ResolutionStorer(this._types);
+
+  /// Verifies that all deferred work has been completed.
+  void finished() {
+    assert(_deferredTypeSlots.isEmpty);
+  }
 
   @override
   bool genericExpressionEnter(
@@ -49,12 +57,75 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {
+    if (!isImplicitCall) {
+      // We are visiting a method invocation like: a.f(args).  We have visited a
+      // but we haven't visited the args yet.
+      //
+      // The analyzer AST will expect a type for f at this point.  (It can't
+      // wait until later, because for all it knows, a.f might be a property
+      // access, in which case the appropriate time for the type is now).  But
+      // the type isn't known yet (because it may depend on type inference based
+      // on arguments).
+      //
+      // So we add a `null` to our list of types; we'll update it with the
+      // actual type later.
+      _deferredTypeSlots.add(_recordType(null, expression.fileOffset));
+    }
+    super.methodInvocationBeforeArgs(expression, isImplicitCall);
+  }
+
+  @override
+  void methodInvocationExit(Expression expression, Arguments arguments,
+      bool isImplicitCall, DartType inferredType) {
+    if (!isImplicitCall) {
+      // TODO(paulberry): get the actual callee function type from the inference
+      // engine
+      var calleeType = const DynamicType();
+      _types[_deferredTypeSlots.removeLast()] = calleeType;
+    }
+    _recordType(inferredType, arguments.fileOffset);
+    super.genericExpressionExit("methodInvocation", expression, inferredType);
+  }
+
+  @override
+  bool staticInvocationEnter(
+      StaticInvocation expression, DartType typeContext) {
+    // We are visiting a static invocation like: f(args), and we haven't visited
+    // args yet.
+    //
+    // The analyzer AST will expect a type for f at this point.  (It can't wait
+    // until later, because for all it knows, f is a method on `this`, and
+    // methods need a type for f at this point--see comments in
+    // [methodInvocationBeforeArgs]).  But the type isn't known yet (because it
+    // may depend on type inference based on arguments).
+    //
+    // So we add a `null` to our list of types; we'll update it with the actual
+    // type later.
+    _deferredTypeSlots.add(_recordType(null, expression.fileOffset));
+    return super.staticInvocationEnter(expression, typeContext);
+  }
+
+  @override
+  void staticInvocationExit(
+      StaticInvocation expression, DartType inferredType) {
+    // TODO(paulberry): get the actual callee function type from the inference
+    // engine
+    var calleeType = const DynamicType();
+    _types[_deferredTypeSlots.removeLast()] = calleeType;
+    _recordType(inferredType, expression.arguments.fileOffset);
+    super.genericExpressionExit("staticInvocation", expression, inferredType);
+  }
+
+  @override
   void variableDeclarationEnter(VariableDeclaration statement) {
     _recordType(statement.type, statement.fileOffset);
     super.variableDeclarationEnter(statement);
   }
 
-  void _recordType(DartType type, int offset) {
+  int _recordType(DartType type, int offset) {
+    int slot = _types.length;
     _types.add(type);
+    return slot;
   }
 }

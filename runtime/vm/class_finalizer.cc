@@ -796,6 +796,19 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
           if (type_arg.IsMalformed()) {
             // Malformed type arguments are mapped to dynamic.
             type_arg = Type::DynamicType();
+          } else if (type_arg.IsFunctionType()) {
+            const Function& signature_function =
+                Function::Handle(zone, Type::Cast(type_arg).signature());
+            if (signature_function.IsGeneric()) {
+              const String& type_arg_name =
+                  String::Handle(zone, type_arg.UserVisibleName());
+              const String& type_name =
+                  String::Handle(zone, type.UserVisibleName());
+              ReportError(cls, type_arg.token_pos(),
+                          "generic function type '%s' not allowed as type "
+                          "argument of type '%s'",
+                          type_arg_name.ToCString(), type_name.ToCString());
+            }
           }
           full_arguments.SetTypeAt(offset + i, type_arg);
         }
@@ -1341,6 +1354,18 @@ void ClassFinalizer::ResolveSignature(const Class& cls,
       type_param ^= type_params.TypeAt(i);
       type = type_param.bound();
       ResolveType(cls, type);
+      if (type.IsFunctionType()) {
+        const Function& signature_function =
+            Function::Handle(Type::Cast(type).signature());
+        if (signature_function.IsGeneric()) {
+          const String& type_name = String::Handle(type.UserVisibleName());
+          const String& type_param_name = String::Handle(type_param.name());
+          ReportError(cls, type.token_pos(),
+                      "generic function type '%s' not allowed as bound of "
+                      "function type parameter '%s'",
+                      type_name.ToCString(), type_param_name.ToCString());
+        }
+      }
     }
   }
   // Resolve result type.
@@ -1459,6 +1484,18 @@ void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
     type_param ^= type_params.TypeAt(i);
     bound = type_param.bound();
     ResolveType(cls, bound);
+    if (bound.IsFunctionType()) {
+      const Function& signature_function =
+          Function::Handle(Type::Cast(bound).signature());
+      if (signature_function.IsGeneric()) {
+        const String& bound_name = String::Handle(bound.UserVisibleName());
+        const String& type_param_name = String::Handle(type_param.name());
+        ReportError(cls, bound.token_pos(),
+                    "generic function type '%s' not allowed as bound of "
+                    "class type parameter '%s'",
+                    bound_name.ToCString(), type_param_name.ToCString());
+      }
+    }
   }
 }
 

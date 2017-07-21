@@ -54,9 +54,12 @@ void computeKernelClosureData(Compiler compiler, MemberEntity member,
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
   ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  assert(definition.kind == MemberKind.regular,
+      failedAt(member, "Unexpected member definition $definition"));
   new ClosureIrChecker(actualMap, sourceSpanMap, elementMap, member,
           localsMap.getLocalsMap(member), closureDataLookup)
-      .run(elementMap.getMemberNode(member));
+      .run(definition.node);
 }
 
 /// Ast visitor for computing closure data.

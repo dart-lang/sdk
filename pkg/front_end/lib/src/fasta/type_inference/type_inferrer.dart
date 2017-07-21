@@ -847,6 +847,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = inferExpression(receiver, null, true);
+    listener.methodInvocationBeforeArgs(expression, isImplicitCall);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -882,7 +883,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         forceArgumentInference: forceArgumentInference);
-    listener.methodInvocationExit(expression, inferredType);
+    listener.methodInvocationExit(
+        expression, arguments, isImplicitCall, inferredType);
     return inferredType;
   }
 

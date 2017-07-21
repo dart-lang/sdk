@@ -5,6 +5,7 @@
 library dart._debugger;
 
 import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show JSArray;
 import 'dart:_runtime' as dart;
 import 'dart:core';
 import 'dart:collection';
@@ -36,8 +37,8 @@ var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 
 String _typeof(object) => JS('String', 'typeof #', object);
 
-List<String> getOwnPropertyNames(object) => JS('List<String>',
-    'dart.list(Object.getOwnPropertyNames(#), #)', object, String);
+List<String> getOwnPropertyNames(object) =>
+    new JSArray<String>.of(dart.getOwnPropertyNames(object));
 
 List getOwnPropertySymbols(object) =>
     JS('List', 'Object.getOwnPropertySymbols(#)', object);

@@ -133,7 +133,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('proper type constructor is called', () => {
       // This tests https://github.com/dart-lang/dev_compiler/issues/178
-      let l = dart.list([1, 2, 3], core.int);
+      let l = dart_sdk._interceptors.JSArray$(core.int).of([1, 2, 3]);
       let s = l[dartx.join]();
       assert.equal(s, '123');
     });

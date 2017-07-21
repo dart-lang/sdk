@@ -42,11 +42,6 @@ abstract class FileSystemEntity {
   /// Whether this file system entity exists.
   Future<bool> exists();
 
-  /// Extracts the last-modification time of the file system entity, if it
-  /// exists and it is a file, otherwise the future is completed with
-  /// [FileSystemException].
-  Future<DateTime> lastModified();
-
   /// Attempts to access this file system entity as a file and read its contents
   /// as raw bytes.
   ///

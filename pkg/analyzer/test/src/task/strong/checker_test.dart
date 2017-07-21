@@ -2196,11 +2196,96 @@ main() {
 ''');
   }
 
-  test_implicitCasts() async {
-    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
+  test_implicitCasts_assignment() async {
+    addFile(
+        'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
     await check();
-    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;');
-    await check(implicitCasts: false);
+    addFile(
+        'num n; int i; void main() { i = /*error:INVALID_ASSIGNMENT*/n;}//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile(
+        'num n; int i; void main() { i = /*info:DOWN_CAST_IMPLICIT*/n;}//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile(
+        'num n; int i; void main() { i = /*error:INVALID_ASSIGNMENT*/n;}//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_compoundAssignment() async {
+    addFile('''f(num n, int i) {
+               /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yy''');
+    await check();
+    addFile('''f(num n, int i) {
+               i += /*error:INVALID_ASSIGNMENT*/n;}//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''f(num n, int i) {
+               /*info:DOWN_CAST_IMPLICIT_ASSIGN*/i += n;}//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''f(num n, int i) {
+               i += /*error:INVALID_ASSIGNMENT*/n;}//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_constructorInitializer() async {
+    addFile(
+        'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yy');
+    await check();
+    addFile(
+        'class A { int i; A(num n) : i = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/n;}//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile(
+        'class A { int i; A(num n) : i = /*info:DOWN_CAST_IMPLICIT*/n;}//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile(
+        'class A { int i; A(num n) : i = /*error:FIELD_INITIALIZER_NOT_ASSIGNABLE*/n;}//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_defaultValue() async {
+    addFile('''const num n = 0;
+               f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yy''');
+    await check();
+    addFile('''const num n = 0;
+               f({int i = /*error:INVALID_ASSIGNMENT*/n}) => i;//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''const num n = 0;
+               f({int i = /*info:DOWN_CAST_IMPLICIT*/n}) => i;//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''const num n = 0;
+               f({int i = /*error:INVALID_ASSIGNMENT*/n}) => i;//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_fieldInitializer() async {
+    addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//yy');
+    await check();
+    addFile('class A { static num n; int i = /*info:ASSIGNMENT_CAST*/n;}//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile(
+        'class A { static num n; int i = /*error:INVALID_ASSIGNMENT*/n;}//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile(
+        'class A { static num n; int i = /*error:INVALID_ASSIGNMENT*/n;}//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_functionCall() async {
+    addFile('''num n;
+               f(int i) => i;
+               var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yy''');
+    await check();
+    addFile('''num n;
+               f(int i) => i;
+               var i = f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n);//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''num n;
+               f(int i) => i;
+               var i = f(/*info:DOWN_CAST_IMPLICIT*/n);//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''num n;
+             f(int i) => i;
+             var i = f(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n);//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
   }
 
   test_implicitCasts_genericMethods() async {
@@ -2208,6 +2293,17 @@ main() {
 var x = <String>[].map<String>((x) => "");
 ''');
     await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_initializer() async {
+    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//yy');
+    await check();
+    addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;//nn');
+    await check(implicitCasts: false, declarationCasts: false);
   }
 
   test_implicitCasts_numericOps() async {
@@ -2222,7 +2318,37 @@ void f() {
     await check(implicitCasts: false);
   }
 
+  test_implicitCasts_operator() async {
+    addFile('''num n;
+             int i;
+             var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yy''');
+    await check();
+    addFile('''num n;
+             int i;
+             var r = i & /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n;//ny''');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('''num n;
+             int i;
+             var r = i & /*info:DOWN_CAST_IMPLICIT*/n;//yn''');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('''num n;
+             int i;
+             var r = i & /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/n;//nn''');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
   test_implicitCasts_return() async {
+    addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yy');
+    await check();
+    addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//ny');
+    await check(implicitCasts: false, declarationCasts: true);
+    addFile('int f(num n) => /*info:DOWN_CAST_IMPLICIT*/n;//yn');
+    await check(implicitCasts: true, declarationCasts: false);
+    addFile('int f(num n) => /*error:RETURN_OF_INVALID_TYPE*/n;//nn');
+    await check(implicitCasts: false, declarationCasts: false);
+  }
+
+  test_implicitCasts_return_async() async {
     addFile(r'''
 import 'dart:async';
 
@@ -2476,6 +2602,63 @@ dynamic y0;
 dynamic y1 = (<dynamic>[])[0];
     ''');
     await check(implicitDynamic: false);
+  }
+
+  test_interfaceOverridesAreAllChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29766
+    return checkFile(r'''
+class B {
+  set x(int y) {}
+}
+class C {
+  set x(Object y) {}
+}
+class D implements B, C {
+  /*error:INVALID_METHOD_OVERRIDE*/int x;
+}
+    ''');
+  }
+
+  test_interfacesFromMixinsAreChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29782
+    return checkFile(r'''
+abstract class I {
+  set x(int v);
+}
+abstract class M implements I {}
+
+class C extends Object with M {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+
+abstract class M2 = Object with M;
+
+class C2 extends Object with M2 {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+    ''');
+  }
+
+  test_interfacesFromMixinsUsedTwiceAreChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29782
+    return checkFile(r'''
+abstract class I<E> {
+  set x(E v);
+}
+abstract class M<E> implements I<E> {}
+
+class C extends Object with M<int> {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+
+abstract class D extends Object with M<num> {}
+class E extends D with M<int> {
+  /*error:INVALID_METHOD_OVERRIDE*/int x;
+}
+class F extends D with M<int> {
+  num x;
+}
+    ''');
   }
 
   test_invalidOverrides_baseClassOverrideToChildInterface() async {
@@ -3324,21 +3507,24 @@ class D extends B implements A { }
     ''');
   }
 
-  test_overrideNarrowsType_noDuplicateError() async {
+  test_overrideNarrowsType_noDuplicateError() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    _addMetaLibrary();
-    await checkFile(r'''
-import 'meta.dart';
+    return checkFile(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
   /*error:INVALID_METHOD_OVERRIDE*/void test(B arg) { }
 }
 abstract class X implements A { }
-class C extends B with X { }
+
+class C extends B {}
+
+// We treat "with X" as asking for another check.
+// This feels inconsistent.
+class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B with X { }
 
 // We treat "implements A" as asking for another check.
-// This feels inconsistent to me.
-class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
+// This feels inconsistent.
+class E /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
     ''');
   }
 

@@ -93,19 +93,21 @@ class ClosureInfo extends RecursiveVisitor {
     /// captured, because it's seen as used outside of the function where it is
     /// declared.  In turn, it leads to unnecessary context creation and usage.
     ///
-    /// We also need to visit the parameters to the function node before the
-    /// initializer list. Since the default [visitChildren] method of
-    /// [Constructor] will visit initializers first, we manually visit the
-    /// parameters here.
-    ///
-    /// TODO(sjindel): Don't visit the parameters twice.
-    ///
+    /// Another consideration is the order of visiting children of the
+    /// constructor: [node.function] should be visited before
+    /// [node.initializers], because [node.function] contains declarations of
+    /// the parameters that may be used in the initializers.  If the nodes are
+    /// visited in another order, the encountered parameters in initializers
+    /// are treated as captured, because they are not yet associated with the
+    /// function.
     beginMember(node, node.function);
     saveCurrentFunction(() {
       currentFunction = currentMemberFunction;
-      visitList(node.function.positionalParameters, this);
-      visitList(node.function.namedParameters, this);
-      super.visitConstructor(node);
+
+      visitList(node.annotations, this);
+      node.name?.accept(this);
+      node.function?.accept(this);
+      visitList(node.initializers, this);
     });
     endMember();
   }

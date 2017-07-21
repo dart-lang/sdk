@@ -616,6 +616,21 @@ class Class extends NamedNode {
   String name;
   bool isAbstract;
 
+  /// Whether this class is a synthetic implementation created for each
+  /// mixed-in class. For example the following code:
+  /// class Z extends A with B, C, D {}
+  /// class A {}
+  /// class B {}
+  /// class C {}
+  /// class D {}
+  /// ...creates:
+  /// abstract class A&B extends A mixedIn B {}
+  /// abstract class A&B&C extends A&B mixedIn C {}
+  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends A&B&C&D {}
+  /// All X&Y classes are marked as synthetic.
+  bool isSyntheticMixinImplementation;
+
   /// The uri of the source file this class was loaded from.
   String fileUri;
 
@@ -646,6 +661,7 @@ class Class extends NamedNode {
   Class(
       {this.name,
       this.isAbstract: false,
+      this.isSyntheticMixinImplementation: false,
       this.supertype,
       this.mixedInType,
       List<TypeParameter> typeParameters,

@@ -822,6 +822,7 @@ static void SnapshotOnExitHook(int64_t exit_code) {
 
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        bool is_main_isolate,
+                                       bool kernel_file_specified,
                                        const char* script_uri,
                                        const char* package_root,
                                        const char* packages_config,
@@ -844,15 +845,20 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, trace_loading);
   CHECK_RESULT(result);
 
-  if (kernel_program != NULL) {
-    Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-    CHECK_RESULT(uri);
-    Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
-    CHECK_RESULT(resolved_script_uri);
-    result =
-        Dart_LoadScript(uri, resolved_script_uri,
-                        reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
-    CHECK_RESULT(result);
+  if (kernel_file_specified) {
+    ASSERT(kernel_program != NULL);
+    result = Dart_LoadKernel(kernel_program);
+  } else {
+    if (kernel_program != NULL) {
+      Dart_Handle uri = Dart_NewStringFromCString(script_uri);
+      CHECK_RESULT(uri);
+      Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
+      CHECK_RESULT(resolved_script_uri);
+      result =
+          Dart_LoadScript(uri, resolved_script_uri,
+                          reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+      CHECK_RESULT(result);
+    }
   }
   if (set_native_resolvers) {
     // Setup the native resolver as the snapshot does not carry it.
@@ -976,7 +982,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* main,
     return NULL;
   }
 
-  return IsolateSetupHelper(isolate, false, script_uri, package_root,
+  return IsolateSetupHelper(isolate, false, false, script_uri, package_root,
                             packages_config, isolate_snapshot_data,
                             isolate_run_app_snapshot, error, exit_code);
 }
@@ -1074,6 +1080,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   void* kernel_platform = NULL;
   void* kernel_program = NULL;
   AppSnapshot* app_snapshot = NULL;
+  bool kernel_file_specified = false;
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
@@ -1114,7 +1121,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   if (!isolate_run_app_snapshot) {
     kernel_platform = dfe.kernel_platform();
     kernel_program = dfe.ReadScript(script_uri);
-    if (kernel_program == NULL && dfe.UseDartFrontend()) {
+    if (kernel_program != NULL) {
+      // A kernel file was specified on the command line instead of a source
+      // file. Load that kernel file directly.
+      kernel_file_specified = true;
+    } else if (dfe.UseDartFrontend()) {
       kernel_program = dfe.CompileAndReadScript(script_uri, error, exit_code);
       if (kernel_program == NULL) {
         return NULL;
@@ -1142,9 +1153,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
 
   bool set_native_resolvers = (kernel_program || isolate_snapshot_data);
-  return IsolateSetupHelper(isolate, is_main_isolate, script_uri, package_root,
-                            packages_config, set_native_resolvers,
-                            isolate_run_app_snapshot, error, exit_code);
+  return IsolateSetupHelper(isolate, is_main_isolate, kernel_file_specified,
+                            script_uri, package_root, packages_config,
+                            set_native_resolvers, isolate_run_app_snapshot,
+                            error, exit_code);
 }
 
 #undef CHECK_RESULT

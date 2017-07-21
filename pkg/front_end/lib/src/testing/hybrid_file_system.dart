@@ -45,9 +45,6 @@ class HybridFileSystemEntity implements FileSystemEntity {
   Future<bool> exists() async => (await delegate).exists();
 
   @override
-  Future<DateTime> lastModified() async => (await delegate).lastModified();
-
-  @override
   Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
 
   @override

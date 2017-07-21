@@ -131,6 +131,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
 
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
+    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -675,6 +676,26 @@ void StreamingScopeBuilder::VisitExpression() {
       return;
     case kNullLiteral:
       return;
+    case kVectorCreation:
+      builder_->ReadUInt();  // read size.
+      return;
+    case kVectorGet:
+      VisitExpression();     // read expression.
+      builder_->ReadUInt();  // read index.
+      return;
+    case kVectorSet:
+      VisitExpression();     // read vector expression.
+      builder_->ReadUInt();  // read index.
+      VisitExpression();     // read value.
+      return;
+    case kVectorCopy:
+      VisitExpression();  // read vector expression.
+      return;
+    case kClosureCreation:
+      builder_->SkipCanonicalNameReference();  // read function reference.
+      VisitExpression();                       // read context vector.
+      VisitDartType();  // read function type of the closure.
+      return;
     default:
       UNREACHABLE();
   }
@@ -1011,6 +1032,7 @@ void StreamingScopeBuilder::VisitDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kVectorType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -1410,6 +1432,9 @@ void StreamingDartTypeTranslator::BuildTypeInternal() {
       break;
     case kVoidType:
       result_ = Object::void_type().raw();
+      break;
+    case kVectorType:
+      result_ = Object::vector_type().raw();
       break;
     case kBottomType:
       result_ = dart::Class::Handle(Z, I->object_store()->null_class())
@@ -2985,6 +3010,78 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                 flow_graph_builder_->next_block_id_ - 1);
 }
 
+// This method follows the logic of
+// StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction.  For
+// additional details on converted closure functions, please, see the comment on
+// the method Function::ConvertedClosureFunction.
+FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction(
+    const Function& function) {
+  const Function& target = Function::ZoneHandle(Z, function.parent_function());
+
+  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
+      *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
+  SetupDefaultParameterValues();
+
+  Fragment body(normal_entry);
+  body += flow_graph_builder_->CheckStackOverflowInPrologue();
+
+  // Load all the arguments.
+  ASSERT(target.is_static());
+
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kPositionalParameters);
+
+  // Positional.
+  const intptr_t positional_argument_count = ReadListLength();
+
+  // The first argument is the instance of the closure class.  For converted
+  // closures its context field contains the context vector that is used by the
+  // converted top-level function (target) explicitly and that should be passed
+  // to that function as the first parameter.
+  body += LoadLocal(LookupVariable(ReaderOffset()));  // 0th variable offset.
+  body += flow_graph_builder_->LoadField(Closure::context_offset());
+  body += PushArgument();
+  SkipVariableDeclaration();  // read 0th variable.
+
+  // The rest of the parameters are the same for the method of the Closure class
+  // being invoked and the top-level function (target).
+  for (intptr_t i = 1; i < positional_argument_count; i++) {
+    body += LoadLocal(LookupVariable(ReaderOffset()));  // ith variable offset.
+    body += PushArgument();
+    SkipVariableDeclaration();  // read ith variable.
+  }
+
+  // Named.
+  const intptr_t named_argument_count = ReadListLength();
+  Array& argument_names = Array::ZoneHandle(Z);
+  if (named_argument_count > 0) {
+    argument_names = Array::New(named_argument_count);
+    for (intptr_t i = 0; i < named_argument_count; i++) {
+      body +=
+          LoadLocal(LookupVariable(ReaderOffset()));  // ith variable offset.
+      body += PushArgument();
+      argument_names.SetAt(
+          i, H.DartSymbol(GetNameFromVariableDeclaration(ReaderOffset())));
+      SkipVariableDeclaration();  // read ith variable.
+    }
+  }
+
+  // Forward them to the target.
+  const intptr_t argument_count =
+      positional_argument_count + named_argument_count;
+  body += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names);
+
+  // Return the result.
+  body += Return(function_node_helper.end_position_);
+
+  return new (Z)
+      FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
+                flow_graph_builder_->next_block_id_ - 1);
+}
+
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     intptr_t constructor_class_parent_offset) {
   const Function& dart_function = parsed_function()->function();
@@ -3325,13 +3422,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
 
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
+    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction: {
       ReadUntilFunctionNode();  // read until function node.
-      return function.IsImplicitClosureFunction()
-                 ? BuildGraphOfImplicitClosureFunction(function)
-                 : BuildGraphOfFunction();
+      if (function.IsImplicitClosureFunction()) {
+        return BuildGraphOfImplicitClosureFunction(function);
+      } else if (function.IsConvertedClosureFunction()) {
+        return BuildGraphOfConvertedClosureFunction(function);
+      }
+      return BuildGraphOfFunction();
     }
     case RawFunction::kConstructor: {
       bool is_factory = function.IsFactory();
@@ -3460,6 +3561,16 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildBoolLiteral(false, position);
     case kNullLiteral:
       return BuildNullLiteral(position);
+    case kVectorCreation:
+      return BuildVectorCreation(position);
+    case kVectorGet:
+      return BuildVectorGet(position);
+    case kVectorSet:
+      return BuildVectorSet(position);
+    case kVectorCopy:
+      return BuildVectorCopy(position);
+    case kClosureCreation:
+      return BuildClosureCreation(position);
     default:
       UNREACHABLE();
   }
@@ -3626,6 +3737,7 @@ void StreamingFlowGraphBuilder::SkipDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kVectorType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -3873,6 +3985,26 @@ void StreamingFlowGraphBuilder::SkipExpression() {
     case kLet:
       SkipVariableDeclaration();  // read variable declaration.
       SkipExpression();           // read expression.
+      return;
+    case kVectorCreation:
+      ReadUInt();  // read value.
+      return;
+    case kVectorGet:
+      SkipExpression();  // read vector expression.
+      ReadUInt();        // read index.
+      return;
+    case kVectorSet:
+      SkipExpression();  // read vector expression.
+      ReadUInt();        // read index.
+      SkipExpression();  // read value.
+      return;
+    case kVectorCopy:
+      SkipExpression();  // read vector expression.
+      return;
+    case kClosureCreation:
+      SkipCanonicalNameReference();  // read top-level function reference.
+      SkipExpression();              // read context vector.
+      SkipDartType();                // read function type.
       return;
     case kBigIntLiteral:
       SkipStringReference();  // read string reference.
@@ -4219,6 +4351,10 @@ Value* StreamingFlowGraphBuilder::stack() {
   return flow_graph_builder_->stack_;
 }
 
+void StreamingFlowGraphBuilder::Push(Definition* definition) {
+  flow_graph_builder_->Push(definition);
+}
+
 Value* StreamingFlowGraphBuilder::Pop() {
   return flow_graph_builder_->Pop();
 }
@@ -4387,6 +4523,20 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
   return flow_graph_builder_->AllocateObject(position, klass, argument_count);
 }
 
+Fragment StreamingFlowGraphBuilder::AllocateObject(
+    const dart::Class& klass,
+    const Function& closure_function) {
+  return flow_graph_builder_->AllocateObject(klass, closure_function);
+}
+
+Fragment StreamingFlowGraphBuilder::AllocateContext(intptr_t size) {
+  return flow_graph_builder_->AllocateContext(size);
+}
+
+Fragment StreamingFlowGraphBuilder::LoadField(intptr_t offset) {
+  return flow_graph_builder_->LoadField(offset);
+}
+
 Fragment StreamingFlowGraphBuilder::InstanceCall(
     TokenPosition position,
     const dart::String& name,
@@ -4408,6 +4558,11 @@ Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
 Fragment StreamingFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                      const dart::Field& field) {
   return flow_graph_builder_->StoreStaticField(position, field);
+}
+
+Fragment StreamingFlowGraphBuilder::StoreInstanceField(TokenPosition position,
+                                                       intptr_t offset) {
+  return flow_graph_builder_->StoreInstanceField(position, offset);
 }
 
 Fragment StreamingFlowGraphBuilder::StringInterpolate(TokenPosition position) {
@@ -5663,6 +5818,90 @@ Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
+}
+
+Fragment StreamingFlowGraphBuilder::BuildVectorCreation(
+    TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+
+  intptr_t size = ReadUInt();  // read size.
+  return AllocateContext(size);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildVectorGet(TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+
+  Fragment instructions = BuildExpression();  // read expression.
+  intptr_t index = ReadUInt();                // read index.
+  instructions += LoadField(Context::variable_offset(index));
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildVectorSet(TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+
+  Fragment instructions = NullConstant();
+  LocalVariable* result = MakeTemporary();
+
+  instructions += BuildExpression();  // read vector expression.
+  intptr_t index = ReadUInt();        // read index.
+  instructions += BuildExpression();  // read value expression.
+  instructions += StoreLocal(TokenPosition::kNoSource, result);
+
+  instructions += StoreInstanceField(TokenPosition::kNoSource,
+                                     Context::variable_offset(index));
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildVectorCopy(TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+
+  Fragment instructions = BuildExpression();  // read vector expression.
+  Value* context_to_copy = Pop();
+  CloneContextInstr* clone_instruction =
+      new (Z) CloneContextInstr(TokenPosition::kNoSource, context_to_copy,
+                                Thread::Current()->GetNextDeoptId());
+  instructions <<= clone_instruction;
+  Push(clone_instruction);
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
+    TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+
+  NameIndex function_reference =
+      ReadCanonicalNameReference();  // read function reference.
+  Function& function = Function::ZoneHandle(
+      Z, H.LookupStaticMethodByKernelProcedure(function_reference));
+  function = function.ConvertedClosureFunction();
+  ASSERT(!function.IsNull());
+
+  const dart::Class& closure_class =
+      dart::Class::ZoneHandle(Z, I->object_store()->closure_class());
+  Fragment instructions = AllocateObject(closure_class, function);
+  LocalVariable* closure = MakeTemporary();
+
+  instructions += BuildExpression();  // read context vector.
+  LocalVariable* context = MakeTemporary();
+
+  instructions += LoadLocal(closure);
+  instructions += Constant(function);
+  instructions +=
+      StoreInstanceField(TokenPosition::kNoSource, Closure::function_offset());
+
+  instructions += LoadLocal(closure);
+  instructions += LoadLocal(context);
+  instructions +=
+      StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
+
+  instructions += Drop();
+
+  SkipDartType();  // skip function type of the closure.
+
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildInvalidStatement() {

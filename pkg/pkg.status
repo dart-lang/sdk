@@ -55,11 +55,6 @@ front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 29819
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
-[ $runtime == vm ]
-front_end/test/fasta/bootstrap_test: Skip # Issue 30212
-front_end/test/fasta/compile_test: Skip # Issue 30212
-front_end/test/fasta/strong_test: Skip # Issue 30212
-
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
 kernel/test/closures_test: Skip

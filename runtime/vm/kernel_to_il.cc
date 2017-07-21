@@ -844,7 +844,7 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
   return instructions;
 }
 
-Fragment FlowGraphBuilder::AllocateContext(int size) {
+Fragment FlowGraphBuilder::AllocateContext(intptr_t size) {
   AllocateContextInstr* allocate =
       new (Z) AllocateContextInstr(TokenPosition::kNoSource, size);
   Push(allocate);

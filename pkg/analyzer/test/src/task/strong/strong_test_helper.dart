@@ -270,7 +270,8 @@ class AbstractStrongTest {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
       bool implicitDynamic: true,
       List<String> nonnullableTypes:
           AnalysisOptionsImpl.NONNULLABLE_TYPES}) async {
@@ -283,6 +284,7 @@ class AbstractStrongTest {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.strongMode = true;
     analysisOptions.strongModeHints = true;
+    analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.nonnullableTypes = nonnullableTypes;

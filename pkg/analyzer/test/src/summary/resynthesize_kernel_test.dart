@@ -109,23 +109,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_alias() async {
-    await super.test_class_alias();
-  }
-
-  @failingTest
-  test_class_alias_abstract() async {
-    await super.test_class_alias_abstract();
-  }
-
-  @failingTest
   test_class_alias_documented() async {
     await super.test_class_alias_documented();
-  }
-
-  @failingTest
-  test_class_alias_with_forwarding_constructors() async {
-    await super.test_class_alias_with_forwarding_constructors();
   }
 
   @failingTest
@@ -138,11 +123,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_class_alias_with_forwarding_constructors_type_substitution_complex() async {
     await super
         .test_class_alias_with_forwarding_constructors_type_substitution_complex();
-  }
-
-  @failingTest
-  test_class_alias_with_mixin_members() async {
-    await super.test_class_alias_with_mixin_members();
   }
 
   @failingTest
@@ -165,11 +145,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_interfaces_unresolved() async {
     await super.test_class_interfaces_unresolved();
-  }
-
-  @failingTest
-  test_class_mixins() async {
-    await super.test_class_mixins();
   }
 
   @failingTest
@@ -223,30 +198,15 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_named_imported() async {
-    await super.test_const_invokeConstructor_generic_named_imported();
-  }
-
-  @failingTest
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
     await super
         .test_const_invokeConstructor_generic_named_imported_withPrefix();
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_unnamed_imported() async {
-    await super.test_const_invokeConstructor_generic_unnamed_imported();
-  }
-
-  @failingTest
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
     await super
         .test_const_invokeConstructor_generic_unnamed_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_named_imported() async {
-    await super.test_const_invokeConstructor_named_imported();
   }
 
   @failingTest
@@ -285,11 +245,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_unnamed_imported() async {
-    await super.test_const_invokeConstructor_unnamed_imported();
-  }
-
-  @failingTest
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
     await super.test_const_invokeConstructor_unnamed_imported_withPrefix();
   }
@@ -310,11 +265,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_length_ofClassConstField_imported() async {
-    await super.test_const_length_ofClassConstField_imported();
-  }
-
-  @failingTest
   test_const_length_ofClassConstField_imported_withPrefix() async {
     await super.test_const_length_ofClassConstField_imported_withPrefix();
   }
@@ -332,11 +282,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_length_staticMethod() async {
     await super.test_const_length_staticMethod();
-  }
-
-  @failingTest
-  test_const_reference_staticField_imported() async {
-    await super.test_const_reference_staticField_imported();
   }
 
   @failingTest
@@ -372,11 +317,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_reference_topLevelFunction_imported_withPrefix() async {
     await super.test_const_reference_topLevelFunction_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_topLevelVariable_imported() async {
-    await super.test_const_reference_topLevelVariable_imported();
   }
 
   @failingTest
@@ -437,11 +377,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_topLevel_this() async {
     await super.test_const_topLevel_this();
-  }
-
-  @failingTest
-  test_const_topLevel_typedList_imported() async {
-    await super.test_const_topLevel_typedList_imported();
   }
 
   @failingTest
@@ -806,16 +741,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_async() async {
-    await super.test_function_async();
-  }
-
-  @failingTest
-  test_function_asyncStar() async {
-    await super.test_function_asyncStar();
-  }
-
-  @failingTest
   test_function_documented() async {
     await super.test_function_documented();
   }
@@ -1016,18 +941,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_import_short_absolute() async {
-    await super.test_import_short_absolute();
-  }
-
-  @failingTest
   test_import_show() async {
     await super.test_import_show();
-  }
-
-  @failingTest
-  test_imports() async {
-    await super.test_imports();
   }
 
   @failingTest
@@ -1228,11 +1143,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_main_class_alias() async {
-    await super.test_main_class_alias();
-  }
-
-  @failingTest
   test_main_class_alias_via_export() async {
     await super.test_main_class_alias_via_export();
   }
@@ -1265,16 +1175,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_main_variable_via_export() async {
     await super.test_main_variable_via_export();
-  }
-
-  @failingTest
-  test_member_function_async() async {
-    await super.test_member_function_async();
-  }
-
-  @failingTest
-  test_member_function_asyncStar() async {
-    await super.test_member_function_asyncStar();
   }
 
   @failingTest
@@ -1433,11 +1333,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_typeParameter_ofClassTypeAlias() async {
-    await super.test_metadata_typeParameter_ofClassTypeAlias();
-  }
-
-  @failingTest
   test_metadata_typeParameter_ofFunction() async {
     await super.test_metadata_typeParameter_ofFunction();
   }
@@ -1465,26 +1360,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_method_type_parameter_with_function_typed_parameter() async {
     await super.test_method_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
-  test_nameConflict_exportedAndLocal() async {
-    await super.test_nameConflict_exportedAndLocal();
-  }
-
-  @failingTest
-  test_nameConflict_exportedAndLocal_exported() async {
-    await super.test_nameConflict_exportedAndLocal_exported();
-  }
-
-  @failingTest
-  test_nameConflict_exportedAndParted() async {
-    await super.test_nameConflict_exportedAndParted();
-  }
-
-  @failingTest
-  test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
-    await super.test_nameConflict_importWithRelativeUri_exportWithAbsolute();
   }
 
   @failingTest
@@ -1682,11 +1557,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_reference_to_import_part() async {
     await super.test_type_reference_to_import_part();
-  }
-
-  @failingTest
-  test_type_reference_to_import_part2() async {
-    await super.test_type_reference_to_import_part2();
   }
 
   @failingTest
@@ -1930,18 +1800,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_propagatedType_final_dep_inLib() async {
-    await super.test_variable_propagatedType_final_dep_inLib();
-  }
-
-  @failingTest
   test_variable_propagatedType_final_dep_inPart() async {
     await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @failingTest
-  test_variable_propagatedType_implicit_dep() async {
-    await super.test_variable_propagatedType_implicit_dep();
   }
 
   @failingTest
@@ -2230,11 +2090,6 @@ class _FileSystemEntityAdaptor implements FileSystemEntity {
   }
 
   @override
-  Future<DateTime> lastModified() async {
-    return new DateTime.fromMicrosecondsSinceEpoch(file.modificationStamp);
-  }
-
-  @override
   Future<List<int>> readAsBytes() async {
     return file.readAsBytesSync();
   }
@@ -2264,6 +2119,11 @@ class _KernelLibraryResynthesizerContextImpl
       ElementImpl context, kernel.Supertype kernelType) {
     return _getInterfaceType(
         kernelType.className.canonicalName, kernelType.typeArguments);
+  }
+
+  @override
+  LibraryElement getLibrary(String uriStr) {
+    return _resynthesizer.getLibrary(uriStr);
   }
 
   DartType getType(ElementImpl context, kernel.DartType kernelType) {

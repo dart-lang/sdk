@@ -7,8 +7,7 @@ part of dart._js_helper;
 // Helper method used by internal libraries.
 regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
 
-List<String> _stringList(List l) =>
-    l == null ? l : JS('', 'dart.list(#, #)', l, String);
+List<String> _stringList(List l) => l == null ? l : new JSArray<String>.of(l);
 
 /**
  * Returns a native version of the RegExp with the global flag set.

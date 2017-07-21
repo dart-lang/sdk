@@ -161,6 +161,7 @@ TEST_CASE(TimelineEventDurationPrintJSON) {
   event.DurationEnd();
 }
 
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
 TEST_CASE(TimelineEventPrintSystrace) {
   const intptr_t kBufferLength = 1024;
   char buffer[kBufferLength];
@@ -175,13 +176,15 @@ TEST_CASE(TimelineEventPrintSystrace) {
 
   // Test a Begin event.
   event.Begin("apple", 1, 2);
-  event.PrintSystrace(&buffer[0], kBufferLength);
+  TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
+                                               kBufferLength);
   EXPECT_SUBSTRING("|apple", buffer);
   EXPECT_SUBSTRING("B|", buffer);
 
   // Test an End event.
   event.End("apple", 2, 3);
-  event.PrintSystrace(&buffer[0], kBufferLength);
+  TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
+                                               kBufferLength);
   EXPECT_STREQ("E", buffer);
 
   // Test a Counter event. We only report the first counter value (in this case
@@ -193,16 +196,19 @@ TEST_CASE(TimelineEventPrintSystrace) {
   event.CopyArgument(0, "cats", "4");
   // Set the second counter value.
   event.CopyArgument(1, "dogs", "1");
-  event.PrintSystrace(&buffer[0], kBufferLength);
+  TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
+                                               kBufferLength);
   EXPECT_SUBSTRING("C|", buffer);
   EXPECT_SUBSTRING("|CTR|4", buffer);
 
   // Test a duration event. This event kind is not supported so we should
   // serialize it to an empty string.
   event.Duration("DUR", 0, 1, 2, 3);
-  event.PrintSystrace(&buffer[0], kBufferLength);
+  TimelineEventSystraceRecorder::PrintSystrace(&event, &buffer[0],
+                                               kBufferLength);
   EXPECT_STREQ("", buffer);
 }
+#endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
 
 TEST_CASE(TimelineEventArguments) {
   // Create a test stream.

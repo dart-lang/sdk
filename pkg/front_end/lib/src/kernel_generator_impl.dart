@@ -75,7 +75,10 @@ Future<CompilerResult> generateKernelInternal(
     }
 
     // All summaries are considered external and shouldn't include source-info.
-    dillTarget.loader.libraries.forEach((lib) => lib.isExternal = true);
+    dillTarget.loader.libraries.forEach((lib) {
+      lib.isExternal = true;
+      lib.dependencies.clear();
+    });
 
     // Linked dependencies are meant to be part of the program so they are not
     // marked external.

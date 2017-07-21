@@ -8,9 +8,6 @@
 
 # Skip tests that are not yet strong-mode clean.
 [ $strong ]
-big_integer_arith_vm_test: Skip
-core_runtime_types_test: Skip
-data_resource_test: Skip
 duration2_test: Skip
 error_stack_trace_test: Skip
 file_resource_test: Skip
@@ -53,12 +50,6 @@ symbol_reserved_word_test: Skip
 symbol_test: Skip
 
 [ $compiler == dartdevc ]
-big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
-big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
-const_list_literal_test: RuntimeError # Issue 29921
-const_list_remove_range_test: RuntimeError # Issue 29921
-const_list_set_range_test: RuntimeError # Issue 29921
-data_uri_test: RuntimeError # Issue 29921
 double_parse_test/01: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
 int_from_environment_test: RuntimeError # Issue 29921

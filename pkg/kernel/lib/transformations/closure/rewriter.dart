@@ -51,7 +51,7 @@ class BlockRewriter extends AstRewriter {
     return _currentBlock != block ? new BlockRewriter(block) : this;
   }
 
-  void transformStatements(Block block, ClosureConverter converter) {
+  void transformStatements(ClosureConverter converter) {
     while (_insertionIndex < _currentBlock.statements.length) {
       var original = _currentBlock.statements[_insertionIndex];
       var transformed = original.accept(converter);

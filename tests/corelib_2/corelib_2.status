@@ -2,6 +2,16 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# All static_tests have expected compile-time errors.
+[ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
+core_runtime_types_static_test: MissingCompileTimeError
+
+[ !$strong && $compiler != dartdevc && $checked ]
+core_runtime_types_static_test: MissingCompileTimeError
+
+[ !$strong && !$checked ]
+core_runtime_types_static_test: MissingCompileTimeError
+
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 
@@ -12,12 +22,23 @@ big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 [ $compiler == dartdevc && $runtime != none ]
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
+big_integer_arith_vm_test: RuntimeError # Issue 30170
+big_integer_parsed_arith_vm_test: RuntimeError # Issue 29921
+const_list_literal_test: RuntimeError # Issue 29921
+const_list_remove_range_test: RuntimeError # Issue 29921
+const_list_set_range_test: RuntimeError # Issue 29921
+compare_to2_test: RuntimeError # Issue 30170
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
 big_integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
-bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
+big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
+big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
+bit_twiddling_bigint_test: RuntimeError # Required bigint support.
 compare_to2_test: RuntimeError, OK # Requires bigint support.
+
+[ $compiler == dart2js && $runtime == drt && $csp && $minified ]
+core_runtime_types_test: Pass, Fail # Issue 27913
 
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
@@ -25,6 +46,7 @@ bool_from_environment_test: Fail # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
+big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
@@ -49,3 +71,8 @@ bool_from_environment_test: Skip
 [ $runtime == ff || $runtime == jsshell ]
 unicode_test: Fail
 
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
+big_integer_parsed_mul_div_vm_test: Pass, Slow
+
+[ $compiler == precompiler ]
+big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify

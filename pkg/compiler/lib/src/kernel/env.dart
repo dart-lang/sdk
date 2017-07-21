@@ -330,7 +330,10 @@ class ClassEnv {
 }
 
 class ClassData {
+  /// TODO(johnniwinther): Remove this from the [MemberData] interface. Use
+  /// `definition.node` instead.
   final ir.Class cls;
+  final ClassDefinition definition;
   bool isMixinApplication;
 
   InterfaceType thisType;
@@ -342,22 +345,27 @@ class ClassData {
 
   Iterable<ConstantValue> _metadata;
 
-  ClassData(this.cls);
+  ClassData(this.cls, this.definition);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(cls.annotations);
   }
 
   ClassData copy() {
-    return new ClassData(cls);
+    return new ClassData(cls, definition);
   }
 }
 
 class MemberData {
+  /// TODO(johnniwinther): Remove this from the [MemberData] interface. Use
+  /// `definition.node` instead.
   final ir.Member node;
+
+  final MemberDefinition definition;
+
   Iterable<ConstantValue> _metadata;
 
-  MemberData(this.node);
+  MemberData(this.node, this.definition);
 
   ResolutionImpact getWorldImpact(KernelToElementMapForImpact elementMap) {
     return buildKernelImpact(node, elementMap);
@@ -368,7 +376,7 @@ class MemberData {
   }
 
   MemberData copy() {
-    return new MemberData(node);
+    return new MemberData(node, definition);
   }
 }
 
@@ -376,7 +384,8 @@ class FunctionData extends MemberData {
   final ir.FunctionNode functionNode;
   FunctionType _type;
 
-  FunctionData(ir.Member node, this.functionNode) : super(node);
+  FunctionData(ir.Member node, this.functionNode, MemberDefinition definition)
+      : super(node, definition);
 
   FunctionType getFunctionType(KernelToElementMapBase elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
@@ -409,7 +418,7 @@ class FunctionData extends MemberData {
 
   @override
   FunctionData copy() {
-    return new FunctionData(node, functionNode);
+    return new FunctionData(node, functionNode, definition);
   }
 }
 
@@ -417,8 +426,9 @@ class ConstructorData extends FunctionData {
   ConstantConstructor _constantConstructor;
   ConstructorBodyEntity constructorBody;
 
-  ConstructorData(ir.Member node, ir.FunctionNode functionNode)
-      : super(node, functionNode);
+  ConstructorData(
+      ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
+      : super(node, functionNode, definition);
 
   ConstantConstructor getConstructorConstant(
       KernelToElementMapBase elementMap, ConstructorEntity constructor) {
@@ -438,14 +448,15 @@ class ConstructorData extends FunctionData {
 
   @override
   ConstructorData copy() {
-    return new ConstructorData(node, functionNode);
+    return new ConstructorData(node, functionNode, definition);
   }
 }
 
 class FieldData extends MemberData {
   ConstantExpression _constant;
 
-  FieldData(ir.Field node) : super(node);
+  FieldData(ir.Field node, MemberDefinition definition)
+      : super(node, definition);
 
   ir.Field get node => super.node;
 
@@ -466,6 +477,6 @@ class FieldData extends MemberData {
 
   @override
   FieldData copy() {
-    return new FieldData(node);
+    return new FieldData(node, definition);
   }
 }

@@ -31,6 +31,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:kernel/kernel.dart' as kernel;
+import 'package:kernel/type_algebra.dart' as kernel;
 
 /**
  * Assert that the given [object] is null, which in the places where this
@@ -417,6 +418,16 @@ class ClassElementImpl extends AbstractClassElementImpl
   final kernel.Class _kernel;
 
   /**
+   * The actual supertype extracted from desugared [_kernel].
+   */
+  kernel.Supertype _kernelSupertype;
+
+  /**
+   * The mixed-in types extracted from desugared [_kernel].
+   */
+  List<kernel.Supertype> _kernelMixins;
+
+  /**
    * The superclass of the class, or `null` for [Object].
    */
   InterfaceType _supertype;
@@ -791,6 +802,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isMixinApplication {
+    if (_kernel != null) {
+      return _kernel.mixedInType != null;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.isMixinApplication;
     }
@@ -881,12 +895,21 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get mixins {
-    if (_unlinkedClass != null && _mixins == null) {
-      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-      _mixins = _unlinkedClass.mixins
-          .map((EntityRef t) => context.resolveTypeRef(this, t))
-          .where(_isClassInterfaceType)
-          .toList(growable: false);
+    if (_mixins == null) {
+      if (_kernel != null) {
+        _initializeKernelMixins();
+        var context = enclosingUnit._kernelContext;
+        _mixins = _kernelMixins.map((k) {
+          return context.getInterfaceType(this, k);
+        }).toList(growable: false);
+      }
+      if (_unlinkedClass != null) {
+        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+        _mixins = _unlinkedClass.mixins
+            .map((EntityRef t) => context.resolveTypeRef(this, t))
+            .where(_isClassInterfaceType)
+            .toList(growable: false);
+      }
     }
     return _mixins ?? const <InterfaceType>[];
   }
@@ -920,9 +943,10 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get supertype {
     if (_supertype == null) {
       if (_kernel != null) {
-        if (_kernel.supertype != null) {
+        _initializeKernelMixins();
+        if (_kernelSupertype != null) {
           _supertype = enclosingUnit._kernelContext
-              .getInterfaceType(this, _kernel.supertype);
+              .getInterfaceType(this, _kernelSupertype);
           _supertype ??= context.typeProvider.objectType;
         } else {
           return null;
@@ -1225,6 +1249,30 @@ class ClassElementImpl extends AbstractClassElementImpl
       implicitConstructor.enclosingElement = this;
       return implicitConstructor;
     }).toList(growable: false);
+  }
+
+  /**
+   * Extract actual supertypes and mixed-in types from [_kernel].
+   */
+  void _initializeKernelMixins() {
+    if (_kernelSupertype == null) {
+      _kernelMixins = <kernel.Supertype>[];
+      kernel.Supertype supertype = _kernel.supertype;
+      if (supertype != null) {
+        if (_kernel.mixedInType != null) {
+          _kernelMixins.add(_kernel.mixedInType);
+        }
+        while (supertype.classNode.isSyntheticMixinImplementation) {
+          var superNode = supertype.classNode;
+          var substitute = kernel.Substitution.fromSupertype(supertype);
+          var thisMixin = substitute.substituteSupertype(superNode.mixedInType);
+          _kernelMixins.add(thisMixin);
+          supertype = substitute.substituteSupertype(superNode.supertype);
+        }
+        _kernelMixins = _kernelMixins.reversed.toList();
+      }
+      _kernelSupertype = supertype;
+    }
   }
 
   /**
@@ -1726,6 +1774,7 @@ class CompilationUnitElementImpl extends ElementImpl
   List<ClassElement> get types {
     if (_kernelContext != null) {
       _types ??= _kernelContext.library.classes
+          .where((k) => !k.isSyntheticMixinImplementation)
           .map((k) => new ClassElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
@@ -5502,6 +5551,11 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   final int _linkedDependency;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.LibraryDependency _kernel;
+
+  /**
    * The offset of the prefix of this import in the file that contains the this
    * import directive, or `-1` if this import is synthetic.
    */
@@ -5531,14 +5585,24 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   ImportElementImpl(int offset)
       : _unlinkedImport = null,
         _linkedDependency = null,
+        _kernel = null,
         super(null, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ImportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedImport = null,
+        _linkedDependency = null,
+        super.forSerialized(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
    */
   ImportElementImpl.forSerialized(this._unlinkedImport, this._linkedDependency,
       LibraryElementImpl enclosingLibrary)
-      : super.forSerialized(enclosingLibrary);
+      : _kernel = null,
+        super.forSerialized(enclosingLibrary);
 
   @override
   List<NamespaceCombinator> get combinators {
@@ -5566,6 +5630,14 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
 
   @override
   LibraryElement get importedLibrary {
+    if (_kernel != null) {
+      if (_importedLibrary == null) {
+        Uri importedUri = _kernel.targetLibrary.importUri;
+        String importedUriStr = importedUri.toString();
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _importedLibrary = library._kernelContext.getLibrary(importedUriStr);
+      }
+    }
     if (_linkedDependency != null) {
       if (_importedLibrary == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -5709,6 +5781,11 @@ abstract class KernelLibraryResynthesizerContext {
    * [type] does not correspond to an [InterfaceType].
    */
   InterfaceType getInterfaceType(ElementImpl context, kernel.Supertype type);
+
+  /**
+   * Return the [LibraryElement] for the given absolute [uriStr].
+   */
+  LibraryElement getLibrary(String uriStr);
 
   /**
    * Return the [DartType] for the given Kernel [type], or `null` if the [type]
@@ -6091,21 +6168,30 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ImportElement> get imports {
-    if (_unlinkedDefiningUnit != null && _imports == null) {
-      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
-      int length = unlinkedImports.length;
-      if (length != 0) {
-        List<ImportElement> imports = new List<ImportElement>();
-        LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
-        for (int i = 0; i < length; i++) {
-          int dependency = linkedLibrary.importDependencies[i];
-          ImportElementImpl importElement = new ImportElementImpl.forSerialized(
-              unlinkedImports[i], dependency, library);
-          imports.add(importElement);
+    if (_imports == null) {
+      if (_kernelContext != null) {
+        _imports = _kernelContext.library.dependencies
+            .where((k) => k.isImport)
+            .map((k) => new ImportElementImpl.forKernel(this, k))
+            .toList(growable: false);
+      }
+      if (_unlinkedDefiningUnit != null) {
+        List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+        int length = unlinkedImports.length;
+        if (length != 0) {
+          List<ImportElement> imports = new List<ImportElement>();
+          LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
+          for (int i = 0; i < length; i++) {
+            int dependency = linkedLibrary.importDependencies[i];
+            ImportElementImpl importElement =
+                new ImportElementImpl.forSerialized(
+                    unlinkedImports[i], dependency, library);
+            imports.add(importElement);
+          }
+          _imports = imports;
+        } else {
+          _imports = const <ImportElement>[];
         }
-        _imports = imports;
-      } else {
-        _imports = const <ImportElement>[];
       }
     }
     return _imports ?? ImportElement.EMPTY_LIST;

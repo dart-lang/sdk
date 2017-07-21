@@ -38,10 +38,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
+    node.methodName.staticType = _getTypeFor(node.methodName);
     // TODO(paulberry): store resolution of node.methodName.
     // TODO(paulberry): store resolution of node.typeArguments.
     node.argumentList.accept(this);
-    node.staticType = _getTypeFor(node.methodName);
+    node.staticType = _getTypeFor(node.argumentList);
   }
 
   @override
