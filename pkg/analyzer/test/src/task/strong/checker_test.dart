@@ -2604,6 +2604,63 @@ dynamic y1 = (<dynamic>[])[0];
     await check(implicitDynamic: false);
   }
 
+  test_interfaceOverridesAreAllChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29766
+    return checkFile(r'''
+class B {
+  set x(int y) {}
+}
+class C {
+  set x(Object y) {}
+}
+class D implements B, C {
+  /*error:INVALID_METHOD_OVERRIDE*/int x;
+}
+    ''');
+  }
+
+  test_interfacesFromMixinsAreChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29782
+    return checkFile(r'''
+abstract class I {
+  set x(int v);
+}
+abstract class M implements I {}
+
+class C extends Object with M {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+
+abstract class M2 = Object with M;
+
+class C2 extends Object with M2 {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+    ''');
+  }
+
+  test_interfacesFromMixinsUsedTwiceAreChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/29782
+    return checkFile(r'''
+abstract class I<E> {
+  set x(E v);
+}
+abstract class M<E> implements I<E> {}
+
+class C extends Object with M<int> {
+  /*error:INVALID_METHOD_OVERRIDE*/String x;
+}
+
+abstract class D extends Object with M<num> {}
+class E extends D with M<int> {
+  /*error:INVALID_METHOD_OVERRIDE*/int x;
+}
+class F extends D with M<int> {
+  num x;
+}
+    ''');
+  }
+
   test_invalidOverrides_baseClassOverrideToChildInterface() async {
     await checkFile('''
 class A {}
@@ -3450,21 +3507,24 @@ class D extends B implements A { }
     ''');
   }
 
-  test_overrideNarrowsType_noDuplicateError() async {
+  test_overrideNarrowsType_noDuplicateError() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    _addMetaLibrary();
-    await checkFile(r'''
-import 'meta.dart';
+    return checkFile(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
   /*error:INVALID_METHOD_OVERRIDE*/void test(B arg) { }
 }
 abstract class X implements A { }
-class C extends B with X { }
+
+class C extends B {}
+
+// We treat "with X" as asking for another check.
+// This feels inconsistent.
+class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B with X { }
 
 // We treat "implements A" as asking for another check.
-// This feels inconsistent to me.
-class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
+// This feels inconsistent.
+class E /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
     ''');
   }
 

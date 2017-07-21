@@ -1665,69 +1665,115 @@ class _OverrideChecker {
     return genericSupertypes;
   }
 
-  /// Checks that implementations correctly override all reachable interfaces.
+  /// Checks that members on this class correctly override all reachable
+  /// interfaces.
+  void _checkAllInterfaceOverrides(Declaration node, ClassElement element) {
+    var interfaces = _collectInterfacesToCheck(element.type);
+    var visitedClasses = new Set<InterfaceType>();
+
+    // Visit all members on `type` (including inherited) and report errors if
+    // all `interfaces` are not correctly overridden.
+    //
+    // Generally we only need to check the most derived concrete member, and
+    // we record members that have been seen already in `seen`. However we do
+    // report errors for every mixin member (unless it is overridden) by
+    // the class itself.
+    //
+    // TODO(jmesserly): what should mixins be doing? This behavior does not
+    // seem correct, but it is preserved for backwards compatibility.
+    void checkType(InterfaceType type, Set<String> seen, AstNode location) {
+      if (type == null || type.isObject || !visitedClasses.add(type)) return;
+
+      // Check `member` against all `interfaces`.
+      void checkOverride(ExecutableElement member, [AstNode loc]) {
+        if (!seen.add(member.name)) return;
+        for (var interface in interfaces) {
+          if (_checkMemberOverride(member, interface, loc ?? location) ==
+              false) {
+            // Only report one error per member for interfaces.
+            // TODO(jmesserly): this is for backwards compatibility. Remove it?
+            break;
+          }
+        }
+      }
+
+      // Check direct overrides on the class.
+      var isRootClass = identical(location, node);
+      if (isRootClass) {
+        _checkClassMembers(node, checkOverride);
+      } else {
+        _checkTypeMembers(type, checkOverride);
+      }
+
+      // Check mixin members against interfaces.
+      //
+      // We want to check each mixin application class separately, so we report
+      // errors for any invalid overrides, even if multiple mixins have a member
+      // of the same name.
+      for (int i = 0; i < type.mixins.length; i++) {
+        checkType(type.mixins[i], new Set.from(seen),
+            isRootClass ? _withClause(node).mixinTypes[i] : location);
+      }
+
+      // Check members on the superclass.
+      checkType(type.superclass, seen,
+          isRootClass ? _extendsErrorLocation(node) : location);
+    }
+
+    checkType(element.type, new Set(), node);
+  }
+
+  /// Gets the set of all interfaces on [type] that should be checked to see
+  /// if type's members are overriding them correctly.
+  ///
   /// In particular, we need to check these overrides for the definitions in
-  /// the class itself and each its superclasses. If a superclass is not
-  /// abstract, then we can skip its transitive interfaces. For example, in:
+  /// the class itself and each its superclasses (and mixins).
+  /// If a superclass (or mixin) is concrete, then we can skip its transitive
+  /// interfaces, but if it is abstract we must check them. For example, in:
   ///
   ///     B extends C implements G
   ///     A extends B with E, F implements H, I
   ///
-  /// we check:
+  /// we need to check the following interfaces:
   ///
   ///     C against G, H, and I
   ///     B against G, H, and I
   ///     E against H and I // no check against G because B is a concrete class
   ///     F against H and I
   ///     A against H and I
-  void _checkAllInterfaceOverrides(Declaration node, ClassElement element) {
-    var seen = new Set<String>();
-    // Helper function to collect all reachable interfaces.
-    find(InterfaceType interfaceType, Set result) {
-      if (interfaceType == null || interfaceType.isObject) return;
-      if (result.contains(interfaceType)) return;
-      result.add(interfaceType);
-      find(interfaceType.superclass, result);
-      interfaceType.mixins.forEach((i) => find(i, result));
-      interfaceType.interfaces.forEach((i) => find(i, result));
+  Set<InterfaceType> _collectInterfacesToCheck(InterfaceType type) {
+    var interfaces = new Set<InterfaceType>();
+    void collectInterfaces(InterfaceType t) {
+      if (t == null || t.isObject) return;
+      if (!interfaces.add(t)) return;
+      collectInterfaces(t.superclass);
+      t.mixins.forEach(collectInterfaces);
+      t.interfaces.forEach(collectInterfaces);
     }
 
     // Check all interfaces reachable from the `implements` clause in the
     // current class against definitions here and in superclasses.
-    var localInterfaces = new Set<InterfaceType>();
-    var type = element.type;
-    type.interfaces.forEach((i) => find(i, localInterfaces));
-    _checkInterfacesOverrides(type, localInterfaces, seen,
-        includeParents: true, classNode: node);
+    type.interfaces.forEach(collectInterfaces);
 
-    // Check also how we override locally the interfaces from parent classes if
-    // the parent class is abstract. Otherwise, these will be checked as
-    // overrides on the concrete superclass.
-    // We detect superclass circularities using the "tortoise and hare"
-    // algorithm.
-    var superInterfaces = new Set<InterfaceType>();
-    var parent = type.superclass;
-    var hare = type.superclass?.superclass;
-    // TODO(sigmund): we don't seem to be reporting the analyzer error that a
-    // non-abstract class is not implementing an interface. See
-    // https://github.com/dart-lang/dart-dev-compiler/issues/25
-    while (parent != null && parent.element.isAbstract) {
-      if (identical(parent, hare)) break;
-      parent.interfaces.forEach((i) => find(i, superInterfaces));
-      parent = parent.superclass;
-      hare = hare?.superclass?.superclass;
+    // Also collect interfaces from any abstract mixins or superclasses.
+    //
+    // For a concrete mixin/superclass, we'll check that we override the
+    // concrete members in _checkSuperOverrides and
+    // _checkMixinApplicationOverrides. But for abstract classes, we need to
+    // consider any abstract members it got from its interfaces.
+    for (var s in _getSuperclasses(type, (t) => t.element.isAbstract)) {
+      s.interfaces.forEach(collectInterfaces);
     }
-    _checkInterfacesOverrides(type, superInterfaces, seen,
-        includeParents: false, classNode: node);
+    return interfaces;
   }
 
-  /// Check that individual methods and fields in [node] correctly override
-  /// the declarations in [baseType].
+  /// Visits each member on the class [node] and calls [checkMember] with the
+  /// corresponding instance element and AST node (for error reporting).
   ///
-  /// The [errorLocation] node indicates where errors are reported, see
-  /// [_checkSingleOverride] for more details.
-  _checkIndividualOverridesFromClass(Declaration node, InterfaceType baseType,
-      Set<String> seen, bool isSubclass) {
+  /// See also [_checkTypeMembers], which is used when the class AST node is not
+  /// available.
+  void _checkClassMembers(Declaration node,
+      void checkMember(ExecutableElement member, ClassMember location)) {
     for (var member in _classMembers(node)) {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
@@ -1735,127 +1781,34 @@ class _OverrideChecker {
         }
         for (var variable in member.fields.variables) {
           var element = variable.element as PropertyInducingElement;
-          var name = element.name;
-          if (seen.contains(name)) {
-            continue;
-          }
-          var getter = element.getter;
-          var setter = element.setter;
-          bool found = _checkSingleOverride(
-              getter, baseType, variable.name, member, isSubclass);
-          if (!variable.isFinal &&
-              !variable.isConst &&
-              _checkSingleOverride(
-                  setter, baseType, variable.name, member, isSubclass)) {
-            found = true;
-          }
-          if (found) {
-            seen.add(name);
+          checkMember(element.getter, member);
+          if (!variable.isFinal && !variable.isConst) {
+            checkMember(element.setter, member);
           }
         }
       } else if (member is MethodDeclaration) {
         if (member.isStatic) {
           continue;
         }
-        var method = resolutionMap.elementDeclaredByMethodDeclaration(member);
-        if (seen.contains(method.name)) {
-          continue;
-        }
-        if (_checkSingleOverride(
-            method, baseType, member.name, member, isSubclass)) {
-          seen.add(method.name);
-        }
+        checkMember(member.element, member);
       } else {
         assert(member is ConstructorDeclaration);
       }
     }
   }
 
-  /// Check that individual methods and fields in [subType] correctly override
-  /// the declarations in [baseType].
+  /// Visits the [type] and calls [checkMember] for each instance member.
   ///
-  /// The [errorLocation] node indicates where errors are reported, see
-  /// [_checkSingleOverride] for more details.
-  ///
-  /// The set [seen] is used to avoid reporting overrides more than once. It
-  /// is used when invoking this function multiple times when checking several
-  /// types in a class hierarchy. Errors are reported only the first time an
-  /// invalid override involving a specific member is encountered.
-  void _checkIndividualOverridesFromType(
-      InterfaceType subType,
-      InterfaceType baseType,
-      AstNode errorLocation,
-      Set<String> seen,
-      bool isSubclass) {
+  /// See also [_checkClassMembers], which should be used when the class AST
+  /// node is available to allow for better error locations
+  void _checkTypeMembers(
+      InterfaceType type, void checkMember(ExecutableElement member)) {
     void checkHelper(ExecutableElement e) {
-      if (e.isStatic) return;
-      if (seen.contains(e.name)) return;
-      if (_checkSingleOverride(e, baseType, null, errorLocation, isSubclass)) {
-        seen.add(e.name);
-      }
+      if (!e.isStatic) checkMember(e);
     }
 
-    subType.methods.forEach(checkHelper);
-    subType.accessors.forEach(checkHelper);
-  }
-
-  /// Checks that [cls] and its super classes (including mixins) correctly
-  /// overrides each interface in [interfaces]. If [includeParents] is false,
-  /// then mixins are still checked, but the base type and it's transitive
-  /// supertypes are not.
-  ///
-  /// [cls] can be either a [ClassDeclaration] or a [InterfaceType]. For
-  /// [ClassDeclaration]s errors are reported on the member that contains the
-  /// invalid override, for [InterfaceType]s we use [errorLocation] instead.
-  void _checkInterfacesOverrides(
-      InterfaceType type, Iterable<InterfaceType> interfaces, Set<String> seen,
-      {Set<InterfaceType> visited,
-      bool includeParents: true,
-      AstNode errorLocation,
-      Declaration classNode}) {
-    if (visited == null) {
-      visited = new Set<InterfaceType>();
-    } else if (visited.contains(type)) {
-      // Malformed type.
-      return;
-    } else {
-      visited.add(type);
-    }
-
-    // Check direct overrides on [type]
-    for (var interfaceType in interfaces) {
-      if (classNode != null) {
-        _checkIndividualOverridesFromClass(
-            classNode, interfaceType, seen, false);
-      } else {
-        _checkIndividualOverridesFromType(
-            type, interfaceType, errorLocation, seen, false);
-      }
-    }
-
-    // Check overrides from its mixins
-    for (int i = 0; i < type.mixins.length; i++) {
-      var loc = errorLocation ?? _withClause(classNode).mixinTypes[i];
-      for (var interfaceType in interfaces) {
-        // We copy [seen] so we can report separately if more than one mixin or
-        // the base class have an invalid override.
-        _checkIndividualOverridesFromType(
-            type.mixins[i], interfaceType, loc, new Set.from(seen), false);
-      }
-    }
-
-    // Check overrides from its superclasses
-    if (includeParents) {
-      var parent = type.superclass;
-      if (parent.isObject) {
-        return;
-      }
-      var loc = errorLocation ?? _extendsErrorLocation(classNode);
-      // No need to copy [seen] here because we made copies above when reporting
-      // errors on mixins.
-      _checkInterfacesOverrides(parent, interfaces, seen,
-          visited: visited, includeParents: true, errorLocation: loc);
-    }
+    type.methods.forEach(checkHelper);
+    type.accessors.forEach(checkHelper);
   }
 
   /// Check overrides from mixin applications themselves. For example, in:
@@ -1867,29 +1820,29 @@ class _OverrideChecker {
   ///      B & E against B (equivalently how E overrides B)
   ///      B & E & F against B & E (equivalently how F overrides both B and E)
   void _checkMixinApplicationOverrides(Declaration node, ClassElement element) {
-    var type = element.type;
-    var parent = type.superclass;
-    var mixins = type.mixins;
+    var superclass = element.type.superclass;
+    var mixins = element.type.mixins;
 
     // Check overrides from applying mixins
     for (int i = 0; i < mixins.length; i++) {
-      var seen = new Set<String>();
       var current = mixins[i];
-      var errorLocation = _withClause(node).mixinTypes[i];
-      for (int j = i - 1; j >= 0; j--) {
-        _checkIndividualOverridesFromType(
-            current, mixins[j], errorLocation, seen, true);
-      }
-      _checkIndividualOverridesFromType(
-          current, parent, errorLocation, seen, true);
+      var location = _withClause(node).mixinTypes[i];
+      var superclasses = mixins.sublist(0, i).reversed.toList()
+        ..add(superclass);
+
+      _checkTypeMembers(current, (m) {
+        for (var s in superclasses) {
+          if (_checkConcreteMemberOverride(m, s, location)) break;
+        }
+      });
     }
   }
 
-  /// Checks that [element] correctly overrides its corresponding member in
-  /// [type]. Returns `true` if an override was found, that is, if [element] has
-  /// a corresponding member in [type] that it overrides.
+  /// Gets the member corresponding to [member] on [type], and returns `null`
+  /// if no member was found, or a boolean value to indicate whether the
+  /// override is valid.
   ///
-  /// The [errorLocation] is a node where the error is reported. For example, a
+  /// The [location] is a node where the error is reported. For example, a
   /// bad override of a method in a class with respect to its superclass is
   /// reported directly at the method declaration. However, invalid overrides
   /// from base classes to interfaces, mixins to the base they are applied to,
@@ -1909,38 +1862,21 @@ class _OverrideChecker {
   ///                              ^
   ///
   /// When checking for overrides from a type and it's super types, [node] is
-  /// the AST node that defines [element]. This is used to determine whether the
+  /// the AST node that defines [member]. This is used to determine whether the
   /// type of the element could be inferred from the types in the super classes.
-  bool _checkSingleOverride(ExecutableElement element, InterfaceType type,
-      AstNode node, AstNode errorLocation, bool isSubclass) {
-    assert(!element.isStatic);
+  bool _checkMemberOverride(
+      ExecutableElement member, InterfaceType type, AstNode location) {
+    assert(!member.isStatic);
 
-    FunctionType subType = _elementType(element);
-    FunctionType baseType = _getMemberType(type, element);
-    if (baseType == null) return false;
-
-    if (isSubclass && element is PropertyAccessorElement) {
-      // Disallow any overriding if the base class defines this member
-      // as a field.  We effectively treat fields as final / non-virtual,
-      // unless they are explicitly marked as @virtual
-      var field = _getMemberField(type, element);
-      if (field != null && !field.isVirtual) {
-        _checker._recordMessage(
-            errorLocation, StrongModeCode.INVALID_FIELD_OVERRIDE, [
-          element.enclosingElement.name,
-          element.name,
-          subType,
-          type,
-          baseType
-        ]);
-      }
-    }
+    FunctionType subType = _elementType(member);
+    FunctionType baseType = _getMemberType(type, member);
+    if (baseType == null) return null;
 
     if (!rules.isOverrideSubtypeOf(subType, baseType)) {
       ErrorCode errorCode;
-      var parent = errorLocation?.parent;
-      if (errorLocation is ExtendsClause ||
-          parent is ClassTypeAlias && parent.superclass == errorLocation) {
+      var parent = location?.parent;
+      if (location is ExtendsClause ||
+          parent is ClassTypeAlias && parent.superclass == location) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;
       } else if (parent is WithClause) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN;
@@ -1948,20 +1884,43 @@ class _OverrideChecker {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE;
       }
 
-      _checker._recordMessage(errorLocation, errorCode, [
-        element.enclosingElement.name,
-        element.name,
-        subType,
-        type,
-        baseType
-      ]);
+      _checker._recordMessage(location, errorCode,
+          [member.enclosingElement.name, member.name, subType, type, baseType]);
+      return false;
     }
+    return true;
+  }
 
-    // If we have any covariant parameters and we're comparing against a
-    // superclass, we check all superclasses instead of stopping the search.
-    bool hasCovariant = element.parameters.any((p) => p.isCovariant);
-    bool keepSearching = hasCovariant && isSubclass;
-    return !keepSearching;
+  /// Checks that a member override from a superclass (i.e. a concrete member)
+  /// is correct, reporting an error if needed, and returns `true` if we should
+  /// keep searching up the superclass chain.
+  bool _checkConcreteMemberOverride(
+      ExecutableElement member, InterfaceType type, AstNode location) {
+    _checkFieldOverride(member, type, location);
+    // Stop if a member was found, and we have no covariant parameters.
+    // If we have covariant parameters, we need to keep searching.
+    return _checkMemberOverride(member, type, location) != null &&
+        member.parameters.every((p) => !p.isCovariant);
+  }
+
+  void _checkFieldOverride(
+      Element member, InterfaceType type, AstNode location) {
+    if (member is PropertyAccessorElement) {
+      // Disallow overriding a non-virtual field.
+      var field = _getMemberField(type, member);
+      if (field != null && !field.isVirtual) {
+        FunctionType subType = _elementType(member);
+        FunctionType baseType = _getMemberType(type, member);
+        _checker._recordMessage(
+            location, StrongModeCode.INVALID_FIELD_OVERRIDE, [
+          member.enclosingElement.name,
+          member.name,
+          subType,
+          type,
+          baseType
+        ]);
+      }
+    }
   }
 
   /// Check overrides between a class and its superclasses and mixins. For
@@ -1987,16 +1946,38 @@ class _OverrideChecker {
   ///         m(B a) {} // invalid override
   ///     }
   void _checkSuperOverrides(Declaration node, ClassElement element) {
-    var seen = new Set<String>();
-    var current = element.type;
-    var visited = new Set<InterfaceType>();
-    do {
-      visited.add(current);
-      current.mixins.reversed.forEach(
-          (m) => _checkIndividualOverridesFromClass(node, m, seen, true));
-      _checkIndividualOverridesFromClass(node, current.superclass, seen, true);
-      current = current.superclass;
-    } while (!current.isObject && !visited.contains(current));
+    var superclasses = _getSuperclasses(element.type);
+    _checkClassMembers(node, (member, loc) {
+      for (var s in superclasses) {
+        if (_checkConcreteMemberOverride(member, s, loc)) break;
+      }
+    });
+  }
+
+  /// Collects all superclasses of [type], including any mixin application
+  /// classes.
+  ///
+  /// The search can be pruned by passing a [visitSuperclasses] function and
+  /// having it return `false` for types that should not be further explored.
+  Iterable<InterfaceType> _getSuperclasses(InterfaceType type,
+      [bool visitSuperclasses(InterfaceType t)]) {
+    var superclasses = new Set<InterfaceType>();
+    visit(InterfaceType t) {
+      if ((visitSuperclasses == null || visitSuperclasses(t)) &&
+          superclasses.add(t)) {
+        t.mixins.reversed.forEach(visit);
+        var s = t.superclass;
+        if (s != null && !s.isObject) visit(s);
+      }
+    }
+
+    type.mixins.reversed.forEach(visit);
+    var s = type.superclass;
+    if (s != null && !s.isObject) visit(s);
+
+    // Make sure we record Object last, and not when we visit our mixins.
+    if (!type.isObject) visit(rules.typeProvider.objectType);
+    return superclasses;
   }
 
   /// If node is a [ClassDeclaration] returns its members, otherwise if node is
