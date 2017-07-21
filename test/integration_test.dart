@@ -296,9 +296,9 @@ defineTests() {
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
-              "Specify exports in a separate section after all imports.",
+              'Specify exports in a separate section after all imports.',
               "export 'dummy.dart';  // LINT",
-              "Specify exports in a separate section after all imports.",
+              'Specify exports in a separate section after all imports.',
               "export 'dummy2.dart';  // LINT",
               '5 files analyzed, 2 issues found, in'
             ]));
@@ -316,29 +316,29 @@ defineTests() {
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'dart:convert'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'package:charcode/ascii.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'package:ansicolor/ansicolor.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'package:linter/src/formatter.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'dummy3.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'dummy2.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "import 'dummy1.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "export 'dart:convert'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "export 'package:charcode/ascii.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "export 'package:ansicolor/ansicolor.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "export 'package:linter/src/formatter.dart'; // LINT",
-              "Sort directive sections alphabetically.",
+              'Sort directive sections alphabetically.',
               "export 'dummy1.dart'; // LINT",
               '5 files analyzed, 12 issues found, in'
             ]));

@@ -322,7 +322,7 @@ class HtmlElement {}
   Source fromFileUri(Uri uri) {
     String filePath = uri.path;
     String libPath = '/lib';
-    if (!filePath.startsWith("$libPath/")) {
+    if (!filePath.startsWith('$libPath/')) {
       return null;
     }
     for (SdkLibrary library in LIBRARIES) {
@@ -336,7 +336,7 @@ class HtmlElement {}
           return null;
         }
       }
-      if (filePath.startsWith("$libraryPath/")) {
+      if (filePath.startsWith('$libraryPath/')) {
         String pathInLibrary = filePath.substring(libraryPath.length + 1);
         String path = '${library.shortName}/$pathInLibrary';
         try {
@@ -365,14 +365,14 @@ class HtmlElement {}
   @override
   Source mapDartUri(String dartUri) {
     const Map<String, String> uriToPath = const {
-      "dart:core": "/lib/core/core.dart",
-      "dart:html": "/lib/html/dartium/html_dartium.dart",
-      "dart:async": "/lib/async/async.dart",
-      "dart:async/stream.dart": "/lib/async/stream.dart",
-      "dart:collection": "/lib/collection/collection.dart",
-      "dart:convert": "/lib/convert/convert.dart",
-      "dart:io": "/lib/io/io.dart",
-      "dart:math": "/lib/math/math.dart"
+      'dart:core': '/lib/core/core.dart',
+      'dart:html': '/lib/html/dartium/html_dartium.dart',
+      'dart:async': '/lib/async/async.dart',
+      'dart:async/stream.dart': '/lib/async/stream.dart',
+      'dart:collection': '/lib/collection/collection.dart',
+      'dart:convert': '/lib/convert/convert.dart',
+      'dart:io': '/lib/io/io.dart',
+      'dart:math': '/lib/math/math.dart'
     };
 
     String path = uriToPath[dartUri];

@@ -50,7 +50,7 @@ linter:
 #    - prefer_final_locals
 #    - prefer_is_empty # not recognized
     - prefer_is_not_empty
-#    - prefer_single_quotes
+    - prefer_single_quotes
 #    - public_member_api_docs
 #    - recursive_getter # not recognized
     - slash_for_doc_comments

@@ -24,7 +24,7 @@ class CollectingSink extends MockIOSink {
   }
 
   @override
-  writeln([Object obj = ""]) {
+  writeln([Object obj = '']) {
     buffer.writeln(obj);
   }
 }

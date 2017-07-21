@@ -66,11 +66,11 @@ main() {
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = "meta";
+String _META_LIB_NAME = 'meta';
 
 /// The name of the top-level variable used to mark a Class as having optional
 /// type args.
-String _OPTIONAL_TYPE_ARGS_VAR_NAME = "optionalTypeArgs";
+String _OPTIONAL_TYPE_ARGS_VAR_NAME = 'optionalTypeArgs';
 
 bool _isOptionallyParameterized(ParameterizedType type) {
   List<ElementAnnotation> metadata = type.element?.metadata;

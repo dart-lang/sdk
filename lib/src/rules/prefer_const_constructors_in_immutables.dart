@@ -36,10 +36,10 @@ class A {
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = "meta";
+String _META_LIB_NAME = 'meta';
 
 /// The name of the top-level variable used to mark a immutable class.
-String _IMMUTABLE_VAR_NAME = "immutable";
+String _IMMUTABLE_VAR_NAME = 'immutable';
 
 bool _isImmutable(Element element) =>
     element is PropertyAccessorElement &&

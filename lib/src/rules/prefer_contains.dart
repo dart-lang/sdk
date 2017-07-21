@@ -123,7 +123,7 @@ class _Visitor extends SimpleAstVisitor {
 
     final DartObjectImpl rightValue =
         binaryExpression.rightOperand.accept(visitor);
-    if (rightValue?.type?.name == "int") {
+    if (rightValue?.type?.name == 'int') {
       // Constant is on right side of comparison operator
       _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
       return;
@@ -131,7 +131,7 @@ class _Visitor extends SimpleAstVisitor {
 
     final DartObjectImpl leftValue =
         binaryExpression.leftOperand.accept(visitor);
-    if (leftValue?.type?.name == "int") {
+    if (leftValue?.type?.name == 'int') {
       // Constants is on left side of comparison operator
       _checkConstant(binaryExpression, leftValue.toIntValue(),
           _invertedTokenType(operator.type));

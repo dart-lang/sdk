@@ -25,10 +25,10 @@ m({b, c, @required a}) ;
 ''';
 
 /// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = "meta";
+String _META_LIB_NAME = 'meta';
 
 /// The name of the top-level variable used to mark a required named parameter.
-String _REQUIRED_VAR_NAME = "required";
+String _REQUIRED_VAR_NAME = 'required';
 
 bool _isRequired(Element element) =>
     element is PropertyAccessorElement &&

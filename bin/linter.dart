@@ -31,7 +31,7 @@ isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
 
 void printUsage(ArgParser parser, IOSink out, [String error]) {
-  var message = "Lints Dart source files and pubspecs.";
+  var message = 'Lints Dart source files and pubspecs.';
   if (error != null) {
     message = error;
   }
@@ -51,11 +51,11 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
   parser
-    ..addFlag("help",
-        abbr: "h", negatable: false, help: "Show usage information.")
-    ..addFlag("stats",
-        abbr: "s", negatable: false, help: "Show lint statistics.")
-    ..addFlag("benchmark", negatable: false, help: "Show lint benchmarks.")
+    ..addFlag('help',
+        abbr: 'h', negatable: false, help: 'Show usage information.')
+    ..addFlag('stats',
+        abbr: 's', negatable: false, help: 'Show lint statistics.')
+    ..addFlag('benchmark', negatable: false, help: 'Show lint benchmarks.')
     ..addFlag('visit-transitive-closure',
         help: 'Visit the transitive closure of imported/exported libraries.')
     ..addFlag('quiet', abbr: 'q', help: "Don't show individual lint errors.")
@@ -86,21 +86,21 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     return;
   }
 
-  if (options["help"]) {
+  if (options['help']) {
     printUsage(parser, outSink);
     return;
   }
 
   if (options.rest.isEmpty) {
     printUsage(parser, errorSink,
-        "Please provide at least one file or directory to lint.");
+        'Please provide at least one file or directory to lint.');
     exitCode = unableToProcessExitCode;
     return;
   }
 
   var lintOptions = initialLintOptions;
 
-  var configFile = options["config"];
+  var configFile = options['config'];
   if (configFile != null) {
     var config = new LintConfig.parse(readFile(configFile));
     lintOptions.configure(config);
@@ -137,7 +137,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   var packageConfigFile = options['packages'];
 
   if (customPackageRoot != null && packageConfigFile != null) {
-    errorSink.write("Cannot specify both '--package-root' and '--packages.");
+    errorSink.write("Cannot specify both '--package-root' and '--packages'.");
     exitCode = unableToProcessExitCode;
     return;
   }
