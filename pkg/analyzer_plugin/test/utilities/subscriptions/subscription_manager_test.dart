@@ -15,14 +15,36 @@ void main() {
 class SubscriptionManagerTest {
   SubscriptionManager manager = new SubscriptionManager();
 
+  String fooPath = '/project/lib/foo.dart';
+  String barPath = '/project/lib/bar.dart';
+  String bazPath = '/project/lib/baz.dart';
+
+  test_hasSubscriptionForFile_differentSubscription() {
+    manager.setSubscriptions({
+      AnalysisService.NAVIGATION: [barPath]
+    });
+    expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
+        isFalse);
+  }
+
+  test_hasSubscriptionForFile_hasSubscription() {
+    manager.setSubscriptions({
+      AnalysisService.HIGHLIGHTS: [fooPath]
+    });
+    expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
+        isTrue);
+  }
+
+  test_hasSubscriptionForFile_noSubscription() {
+    expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
+        isFalse);
+  }
+
   test_servicesForFile() {
     expect(manager.servicesForFile('/project/lib/test.dart'), hasLength(0));
   }
 
   test_setSubscriptions() {
-    String fooPath = '/project/lib/foo.dart';
-    String barPath = '/project/lib/bar.dart';
-    String bazPath = '/project/lib/baz.dart';
     //
     // Set the initial set of subscriptions.
     //
