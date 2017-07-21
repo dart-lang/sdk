@@ -9,7 +9,9 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/growable_array.h"
 #include "vm/os.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
@@ -326,12 +328,9 @@ class TimelineEvent {
     state_ = OwnsLabelBit::update(owns_label, state_);
   }
 
-  // Returns the number of bytes written into |buffer|.
-  intptr_t PrintSystrace(char* buffer, intptr_t buffer_size);
+  TimelineEventArgument* arguments() const { return arguments_; }
 
-#if defined(HOST_OS_FUCHSIA)
-  void EmitFuchsiaEvent();
-#endif
+  intptr_t arguments_length() const { return arguments_length_; }
 
  private:
   void FreeArguments();
@@ -400,8 +399,7 @@ class TimelineEvent {
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
-  friend class TimelineEventSystraceRecorder;
-  friend class TimelineEventFuchsiaRecorder;
+  friend class TimelineEventPlatformRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -575,8 +573,7 @@ class TimelineEventBlock {
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
-  friend class TimelineEventSystraceRecorder;
-  friend class TimelineEventFuchsiaRecorder;
+  friend class TimelineEventPlatformRecorder;
   friend class TimelineTestHelper;
   friend class JSONStream;
 
@@ -728,41 +725,6 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
   TimelineEventBlock* GetNewBlockLocked();
 };
 
-// A recorder that writes events to Android Systrace. Events are also stored in
-// a buffer of fixed capacity. When the buffer is full, new events overwrite
-// old events.
-class TimelineEventSystraceRecorder : public TimelineEventFixedBufferRecorder {
- public:
-  explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
-  virtual ~TimelineEventSystraceRecorder();
-
-  const char* name() const { return "Systrace"; }
-
- protected:
-  TimelineEventBlock* GetNewBlockLocked();
-  void CompleteEvent(TimelineEvent* event);
-
-  int systrace_fd_;
-};
-
-#if defined(HOST_OS_FUCHSIA)
-// A recorder that sends events to Fuchsia's tracing app. Events are also stored
-// in a buffer of fixed capacity. When the buffer is full, new events overwrite
-// old events.
-// See: https://fuchsia.googlesource.com/tracing/+/HEAD/docs/usage_guide.md
-class TimelineEventFuchsiaRecorder : public TimelineEventFixedBufferRecorder {
- public:
-  explicit TimelineEventFuchsiaRecorder(intptr_t capacity = kDefaultCapacity);
-  virtual ~TimelineEventFuchsiaRecorder() {}
-
-  const char* name() const { return "Fuchsia"; }
-
- protected:
-  TimelineEventBlock* GetNewBlockLocked();
-  void CompleteEvent(TimelineEvent* event);
-};
-#endif  // defined(HOST_OS_FUCHSIA)
-
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
 // is full, new events are dropped.
 class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
@@ -846,6 +808,110 @@ class TimelineEventBlockIterator {
  private:
   TimelineEventBlock* current_;
   TimelineEventRecorder* recorder_;
+};
+
+// The TimelineEventPlatformRecorder records timeline events to a platform
+// specific destination. It's implementation is in the timeline_{linux,...}.cc
+// files.
+class TimelineEventPlatformRecorder : public TimelineEventFixedBufferRecorder {
+ public:
+  explicit TimelineEventPlatformRecorder(intptr_t capacity = kDefaultCapacity);
+  virtual ~TimelineEventPlatformRecorder();
+
+  static TimelineEventPlatformRecorder* CreatePlatformRecorder(
+      intptr_t capacity = kDefaultCapacity);
+
+  const char* name() const;
+
+ protected:
+  TimelineEventBlock* GetNewBlockLocked();
+  virtual void CompleteEvent(TimelineEvent* event);
+};
+
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+// A recorder that writes events to Android Systrace. Events are also stored in
+// a buffer of fixed capacity. When the buffer is full, new events overwrite
+// old events. This class is exposed in this header file only so that
+// PrintSystrace can be visible to timeline_test.cc.
+class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
+ public:
+  explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
+  virtual ~TimelineEventSystraceRecorder();
+
+  static intptr_t PrintSystrace(TimelineEvent* event,
+                                char* buffer,
+                                intptr_t buffer_size);
+
+ private:
+  virtual void CompleteEvent(TimelineEvent* event);
+
+  int systrace_fd_;
+};
+#endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+
+// These helper functions have platform specific implementations defined in
+// the timeline_{linux,...}.cc files. They are called from the runtime calls
+// that implement the dart:developer Timeline API.
+class DartTimelineEventHelpers : public AllStatic {
+ public:
+  static void ReportTaskEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t id,
+                              const char* phase,
+                              const char* category,
+                              const char* name,
+                              const char* args);
+
+  static void ReportCompleteEvent(Thread* thread,
+                                  Zone* zone,
+                                  TimelineEvent* event,
+                                  int64_t start,
+                                  int64_t start_cpu,
+                                  const char* category,
+                                  const char* name,
+                                  const char* args);
+
+  static void ReportInstantEvent(Thread* thread,
+                                 Zone* zone,
+                                 TimelineEvent* event,
+                                 int64_t start,
+                                 const char* category,
+                                 const char* name,
+                                 const char* args);
+};
+
+// These are common implementations of the DartTimelineEventHelpers that should
+// be used when there is nothing platform-specific needed.
+class DartCommonTimelineEventHelpers : public AllStatic {
+ public:
+  static void ReportTaskEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t id,
+                              const char* phase,
+                              const char* category,
+                              const char* name,
+                              const char* args);
+
+  static void ReportCompleteEvent(Thread* thread,
+                                  Zone* zone,
+                                  TimelineEvent* event,
+                                  int64_t start,
+                                  int64_t start_cpu,
+                                  const char* category,
+                                  const char* name,
+                                  const char* args);
+
+  static void ReportInstantEvent(Thread* thread,
+                                 Zone* zone,
+                                 TimelineEvent* event,
+                                 int64_t start,
+                                 const char* category,
+                                 const char* name,
+                                 const char* args);
 };
 
 }  // namespace dart

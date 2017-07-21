@@ -5,14 +5,11 @@
 #include "platform/globals.h"
 #ifndef PRODUCT
 
+#include "vm/timeline.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <cstdlib>
-
-#if defined(HOST_OS_FUCHSIA)
-#include "apps/tracing/lib/trace/cwriter.h"
-#include "apps/tracing/lib/trace/event.h"
-#endif
 
 #include "vm/atomic.h"
 #include "vm/isolate.h"
@@ -22,7 +19,6 @@
 #include "vm/object.h"
 #include "vm/service_event.h"
 #include "vm/thread.h"
-#include "vm/timeline.h"
 
 namespace dart {
 
@@ -116,11 +112,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
       if (FLAG_trace_timeline) {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
-#if defined(HOST_OS_FUCHSIA)
-      return new TimelineEventFuchsiaRecorder();
-#else
-      return new TimelineEventSystraceRecorder();
-#endif
+      return TimelineEventPlatformRecorder::CreatePlatformRecorder();
     }
   }
 
@@ -523,123 +515,6 @@ void TimelineEvent::StealArguments(intptr_t arguments_length,
                                    TimelineEventArgument* arguments) {
   arguments_length_ = arguments_length;
   arguments_ = arguments;
-}
-
-#if defined(HOST_OS_FUCHSIA)
-// TODO(zra): The functions below emit Dart's timeline events all as category
-// "dart". Instead, we could have finer-grained categories that make use of
-// the name of the timeline stream, e.g. "VM", "GC", etc.
-
-void TimelineEvent::EmitFuchsiaEvent() {
-  if (!ctrace_is_enabled()) {
-    return;
-  }
-  auto writer = ctrace_writer_acquire();
-
-  // XXX: use ctrace_register_category_string();
-  ctrace_stringref_t category;
-  ctrace_register_string(writer, "dart", &category);
-
-  ctrace_stringref_t name;
-  ctrace_register_string(writer, label_, &name);
-
-  ctrace_threadref_t thread;
-  ctrace_register_current_thread(writer, &thread);
-
-  ctrace_argspec_t args[2];
-  ctrace_arglist_t arglist = {0, args};
-
-  if (arguments_length_ >= 1) {
-    args[0].type = CTRACE_ARGUMENT_STRING;
-    args[0].name = arguments_[0].name;
-    args[0].u.s = arguments_[0].value;
-    arglist.n_args += 1;
-  }
-  if (arguments_length_ >= 2) {
-    args[1].type = CTRACE_ARGUMENT_STRING;
-    args[1].name = arguments_[1].name;
-    args[1].u.s = arguments_[1].value;
-    arglist.n_args += 1;
-  }
-
-  const uint64_t time_scale = mx_ticks_per_second() / kMicrosecondsPerSecond;
-  const uint64_t start_time = LowTime() * time_scale;
-  const uint64_t end_time = HighTime() * time_scale;
-
-  switch (event_type()) {
-    case kBegin:
-      ctrace_write_duration_begin_event_record(writer, start_time, &thread,
-                                               &category, &name, &arglist);
-      break;
-    case kEnd:
-      ctrace_write_duration_end_event_record(writer, end_time, &thread,
-                                             &category, &name, &arglist);
-      break;
-    case kInstant:
-      ctrace_write_instant_event_record(writer, start_time, &thread, &category,
-                                        &name, CTRACE_SCOPE_THREAD, &arglist);
-      break;
-    case kAsyncBegin:
-      ctrace_write_async_begin_event_record(
-          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
-      break;
-    case kAsyncEnd:
-      ctrace_write_async_end_event_record(writer, end_time, &thread, &category,
-                                          &name, AsyncId(), &arglist);
-      break;
-    case kAsyncInstant:
-      ctrace_write_async_instant_event_record(
-          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
-      break;
-    case kDuration:
-      ctrace_write_duration_event_record(writer, start_time, end_time, &thread,
-                                         &category, &name, &arglist);
-      break;
-    case kFlowBegin:
-      ctrace_write_flow_begin_event_record(
-          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
-      break;
-    case kFlowStep:
-      ctrace_write_flow_step_event_record(
-          writer, start_time, &thread, &category, &name, AsyncId(), &arglist);
-      break;
-    case kFlowEnd:
-      ctrace_write_flow_end_event_record(writer, start_time, &thread, &category,
-                                         &name, AsyncId(), &arglist);
-      break;
-    default:
-      // TODO(zra): Figure out what to do with kCounter and kMetadata.
-      break;
-  }
-  ctrace_writer_release(writer);
-}
-#endif
-
-intptr_t TimelineEvent::PrintSystrace(char* buffer, intptr_t buffer_size) {
-  ASSERT(buffer != NULL);
-  ASSERT(buffer_size > 0);
-  buffer[0] = '\0';
-  intptr_t length = 0;
-  int64_t pid = OS::ProcessId();
-  switch (event_type()) {
-    case kBegin: {
-      length = OS::SNPrint(buffer, buffer_size, "B|%" Pd64 "|%s", pid, label());
-    } break;
-    case kEnd: {
-      length = OS::SNPrint(buffer, buffer_size, "E");
-    } break;
-    case kCounter: {
-      if (arguments_length_ > 0) {
-        // We only report the first counter value.
-        length = OS::SNPrint(buffer, buffer_size, "C|%" Pd64 "|%s|%s", pid,
-                             label(), arguments_[0].value);
-      }
-    }
-    default:
-      // Ignore event types that we cannot serialize to the Systrace format.
-      break;
-  }
-  return length;
 }
 
 void TimelineEvent::Complete() {
@@ -1424,91 +1299,6 @@ void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
   ThreadBlockCompleteEvent(event);
 }
 
-TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
-    : TimelineEventFixedBufferRecorder(capacity), systrace_fd_(-1) {
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-  const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
-  systrace_fd_ = open(kSystracePath, O_WRONLY);
-  if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
-    OS::PrintErr("TimelineEventSystraceRecorder: Could not open `%s`\n",
-                 kSystracePath);
-  }
-#else
-  OS::PrintErr(
-      "Warning: The systrace timeline recorder is equivalent to the"
-      "ring recorder on this platform.");
-#endif
-}
-
-TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-  if (systrace_fd_ >= 0) {
-    close(systrace_fd_);
-  }
-#endif
-}
-
-TimelineEventBlock* TimelineEventSystraceRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
-  }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-void TimelineEventSystraceRecorder::CompleteEvent(TimelineEvent* event) {
-  if (event == NULL) {
-    return;
-  }
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
-  if (systrace_fd_ >= 0) {
-    // Serialize to the systrace format.
-    const intptr_t kBufferLength = 1024;
-    char buffer[kBufferLength];
-    const intptr_t event_length =
-        event->PrintSystrace(&buffer[0], kBufferLength);
-    if (event_length > 0) {
-      ssize_t __result;
-      // Repeatedly attempt the write while we are being interrupted.
-      do {
-        __result = write(systrace_fd_, buffer, event_length);
-      } while ((__result == -1L) && (errno == EINTR));
-    }
-  }
-#endif
-  ThreadBlockCompleteEvent(event);
-}
-
-#if defined(HOST_OS_FUCHSIA)
-TimelineEventFuchsiaRecorder::TimelineEventFuchsiaRecorder(intptr_t capacity)
-    : TimelineEventFixedBufferRecorder(capacity) {}
-
-
-TimelineEventBlock* TimelineEventFuchsiaRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
-  }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-void TimelineEventFuchsiaRecorder::CompleteEvent(TimelineEvent* event) {
-  if (event == NULL) {
-    return;
-  }
-  event->EmitFuchsiaEvent();
-  ThreadBlockCompleteEvent(event);
-}
-#endif  // defined(HOST_OS_FUCHSIA)
-
 TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   // TODO(johnmccutchan): This function should only hand out blocks
   // which have been marked as finished.
@@ -1820,6 +1610,112 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   TimelineEventBlock* r = current_;
   current_ = current_->next();
   return r;
+}
+
+void DartCommonTimelineEventHelpers::ReportTaskEvent(Thread* thread,
+                                                     Zone* zone,
+                                                     TimelineEvent* event,
+                                                     int64_t start,
+                                                     int64_t id,
+                                                     const char* phase,
+                                                     const char* category,
+                                                     const char* name,
+                                                     const char* args) {
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+  ASSERT(phase != NULL);
+  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
+  ASSERT(phase[1] == '\0');
+  char* json = OS::SCreate(
+      zone,
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+      ","
+      "\"ts\":%" Pd64 ",\"ph\":\"%s\",\"id\":%" Pd64 ", \"args\":%s}",
+      name, category, tid, pid, start, phase, id, args);
+  switch (phase[0]) {
+    case 'n':
+      event->AsyncInstant("", id, start);
+      break;
+    case 'b':
+      event->AsyncBegin("", id, start);
+      break;
+    case 'e':
+      event->AsyncEnd("", id, start);
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
+}
+
+void DartCommonTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
+                                                         Zone* zone,
+                                                         TimelineEvent* event,
+                                                         int64_t start,
+                                                         int64_t start_cpu,
+                                                         const char* category,
+                                                         const char* name,
+                                                         const char* args) {
+  const int64_t end = OS::GetCurrentMonotonicMicros();
+  const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
+  const int64_t duration = end - start;
+  const int64_t duration_cpu = end_cpu - start_cpu;
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+
+  char* json = NULL;
+  if ((start_cpu != -1) && (end_cpu != -1)) {
+    json = OS::SCreate(
+        zone,
+        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+        ","
+        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64
+        ","
+        "\"tdur\":%" Pd64 ",\"args\":%s}",
+        name, category, tid, pid, start, duration, duration_cpu, args);
+  } else {
+    json = OS::SCreate(
+        zone,
+        "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+        ","
+        "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
+        name, category, tid, pid, start, duration, args);
+  }
+  ASSERT(json != NULL);
+
+  event->Duration("", start, end, start_cpu, end_cpu);
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
+}
+
+void DartCommonTimelineEventHelpers::ReportInstantEvent(Thread* thread,
+                                                        Zone* zone,
+                                                        TimelineEvent* event,
+                                                        int64_t start,
+                                                        const char* category,
+                                                        const char* name,
+                                                        const char* args) {
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+
+  char* json = OS::SCreate(zone,
+                           "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64
+                           ",\"pid\":%" Pd64
+                           ","
+                           "\"ts\":%" Pd64 ",\"ph\":\"I\",\"args\":%s}",
+                           name, category, tid, pid, start, args);
+
+  event->Instant("", start);
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
 }
 
 }  // namespace dart
