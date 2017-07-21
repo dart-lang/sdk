@@ -55,9 +55,16 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.name != null) {
+      checkIdentifier(node.name);
+    }
+  }
+
+  @override
   visitFormalParameterList(FormalParameterList node) {
     node.parameters.forEach((FormalParameter p) {
-      if (p is! FieldFormalParameter) {
+      if (p is! FieldFormalParameter && p.identifier != null) {
         checkIdentifier(p.identifier, underscoresOk: true);
       }
     });
@@ -82,12 +89,5 @@ class Visitor extends SimpleAstVisitor {
         checkIdentifier(v.name);
       }
     });
-  }
-
-  @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.name != null) {
-      checkIdentifier(node.name);
-    }
   }
 }
