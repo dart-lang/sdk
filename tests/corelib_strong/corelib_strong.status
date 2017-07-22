@@ -52,7 +52,6 @@ symbol_test: Skip
 [ $compiler == dartdevc ]
 double_parse_test/01: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
-int_from_environment_test: RuntimeError # Issue 29921
 int_modulo_arith_test/bignum: RuntimeError # Issue 29921
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
 int_modulo_arith_test/none: RuntimeError # Issue 29921
@@ -111,8 +110,6 @@ regexp/stack-overflow_test: RuntimeError # Issue 29921
 regexp/unicode-handling_test: RuntimeError # Issue 29921
 regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
-string_from_environment2_test: RuntimeError # Issue 29921
-string_from_environment_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
 string_trimlr_test/01: RuntimeError # Issue 29921
 string_trimlr_test/none: RuntimeError # Issue 29921
