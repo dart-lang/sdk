@@ -30,7 +30,7 @@ main() {
 
   try {
     var y = 0;
-    print(new Symbol(y));
+    print(new Symbol(y)); //# 04: compile-time error
     throw 'Expected a NoSuchMethodError or a TypeError';
   } on NoSuchMethodError {
     print('Caught NoSuchMethodError');

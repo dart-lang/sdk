@@ -44,10 +44,6 @@ string_base_vm_test: Skip
 string_from_environment3_test: Skip
 string_from_list_test: Skip
 string_replace_test: Skip
-string_test: Skip
-symbol_operator_test: Skip
-symbol_reserved_word_test: Skip
-symbol_test: Skip
 
 [ $compiler == dartdevc ]
 double_parse_test/01: RuntimeError # Issue 29921
@@ -114,5 +110,3 @@ regress_r21715_test: RuntimeError # Issue 29921
 string_from_environment2_test: RuntimeError # Issue 29921
 string_from_environment_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
-string_trimlr_test/01: RuntimeError # Issue 29921
-string_trimlr_test/none: RuntimeError # Issue 29921

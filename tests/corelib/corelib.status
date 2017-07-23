@@ -15,37 +15,7 @@ string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
-[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-symbol_test/01: Fail, Pass # bug 11669
-
-# With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/05: CompileTimeError # bug 20191
-symbol_reserved_word_test/06: RuntimeError # bug 11669
-symbol_reserved_word_test/09: RuntimeError # bug 11669
-symbol_reserved_word_test/12: RuntimeError # bug 11669
-
-symbol_test/none: Fail # bug 11669
-symbol_operator_test/03: Fail # bug 11669
-string_case_test/01: Fail # Bug 18061
-
-[ $compiler == none && ($runtime == vm || $runtime == flutter)]
-string_trimlr_test/02: RuntimeError # Issue 29060
-
-[ $compiler == precompiler || $compiler == app_jit ]
-string_trimlr_test/02: RuntimeError # Issue 29060
-
-# #void should be a valid symbol.
-[ $compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dart2js ]
-symbol_reserved_word_test/02: CompileTimeError # bug 20191
-
-# With the exception of 'void', const Symbol() should not accept reserved
-# words.
-symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
-symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
-symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
-
 [ $compiler == dart2js ]
-symbol_reserved_word_test/03: RuntimeError # bug 19972, new Symbol('void') should be allowed.
 int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 int_parse_radix_test/02: Fail # No bigints.
 double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
@@ -53,11 +23,6 @@ integer_to_radix_string_test: RuntimeError # issue 22045
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
-symbol_reserved_word_test/05: Crash # bug 20191
-
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
-symbol_test/02: MissingCompileTimeError # bug 11669
-symbol_test/03: MissingCompileTimeError # bug 11669
 
 [ $runtime == ff || $runtime == jsshell ]
 # Firefox takes advantage of the ECMAScript number parsing cop-out clause
@@ -96,18 +61,9 @@ regress_r21715_test: RuntimeError # Requires bigint support.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $compiler == dart2js && $runtime == drt ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-string_split_test: RuntimeError # Issue 21431
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
-string_trimlr_test/01: Fail
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
@@ -179,14 +135,8 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
-symbol_reserved_word_test/03: Pass # Issue 27394
 map_test: Crash # Issue 27394
 regexp/pcre_test: RuntimeError # Issue 27394
-symbol_operator_test/03: RuntimeError # Issue 27394
-symbol_reserved_word_test/06: RuntimeError # Issue 27394
-symbol_reserved_word_test/09: RuntimeError # Issue 27394
-symbol_reserved_word_test/12: RuntimeError # Issue 27394
-symbol_test/none: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 regress/4562_test/01: Crash # Issue 27394
@@ -203,23 +153,9 @@ string_from_environment3_test/02: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
-symbol_test/01: Pass
-symbol_test/02: Pass
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -264,5 +200,4 @@ from_environment_const_type_test/11: MissingCompileTimeError # Flutter Issue 911
 from_environment_const_type_test/13: MissingCompileTimeError # Flutter Issue 9111
 from_environment_const_type_test/14: MissingCompileTimeError # Flutter Issue 9111
 from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
-string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111

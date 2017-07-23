@@ -43,6 +43,7 @@ core_runtime_types_test: Pass, Fail # Issue 27913
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
 bool_from_environment_test: Fail # Flutter Issue 9111
+string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
@@ -54,6 +55,16 @@ big_integer_huge_mul_vm_test: Pass, Slow # Slow
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 compare_to2_test: Fail # Issue 4018
 unicode_test: Fail # Issue 6706
+symbol_test/01: Fail, Pass # Issue 11669
+
+# With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/06: RuntimeError # Issue 11669
+symbol_reserved_word_test/09: RuntimeError # Issue 11669
+symbol_reserved_word_test/12: RuntimeError # Issue 11669
+
+symbol_test/none: Fail # Issue 11669
+symbol_operator_test/03: Fail # Issue 11669
+string_case_test/01: Fail # Bug 18061
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 bool_from_environment2_test/01: MissingCompileTimeError
@@ -62,6 +73,19 @@ bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
 bool_from_environment2_test/05: MissingCompileTimeError
 compare_to2_test: RuntimeError
+string_trimlr_test/02: RuntimeError
+symbol_operator_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/06: RuntimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/09: RuntimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_reserved_word_test/12: RuntimeError
+symbol_test/01: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+symbol_test/04: MissingCompileTimeError
+symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
 [ $compiler == none && $runtime == drt ]
@@ -76,3 +100,59 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == precompiler ]
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+
+[ $compiler == none && ($runtime == vm || $runtime == flutter)]
+string_trimlr_test/02: RuntimeError # Issue 29060
+
+[ $compiler == precompiler || $compiler == app_jit ]
+string_trimlr_test/02: RuntimeError # Issue 29060
+
+# void should be a valid symbol.
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dart2js ]
+symbol_reserved_word_test/02: CompileTimeError # Issue 20191
+
+# With the exception of 'void', const Symbol() should not accept reserved
+# words.
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
+
+[ $compiler == dart2js ]
+string_static_test: MissingCompileTimeError
+symbol_test/04: MissingCompileTimeError
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
+symbol_test/02: MissingCompileTimeError # Issue 11669
+symbol_test/03: MissingCompileTimeError # Issue 11669
+symbol_test/04: MissingCompileTimeError
+
+[ $runtime == safari || $runtime == safarimobilesim ]
+string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_split_test: RuntimeError # Issue 21431
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $compiler == dart2js && $runtime == drt ]
+string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+string_trimlr_test/01: Fail
+string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $compiler == dart2js && $dart2js_with_kernel ]
+symbol_reserved_word_test/03: Pass # Issue 27394
+symbol_operator_test/03: RuntimeError # Issue 27394
+symbol_reserved_word_test/06: RuntimeError # Issue 27394
+symbol_reserved_word_test/09: RuntimeError # Issue 27394
+symbol_reserved_word_test/12: RuntimeError # Issue 27394
+symbol_test/none: RuntimeError # Issue 27394
+
+[ $compiler == dart2js && $runtime == jsshell ]
+symbol_test/none: RuntimeError
+
+[ $compiler == none && $runtime == vm ]
+string_static_test: MissingCompileTimeError
+
+[ $compiler == dart2js && $runtime != none]
+symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.

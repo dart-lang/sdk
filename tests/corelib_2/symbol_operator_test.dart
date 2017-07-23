@@ -4,7 +4,7 @@
 
 // Test of Symbol class for operators..
 
-var $ = new Symbolize();
+dynamic $ = new Symbolize();
 
 main() {
   testSymbol(#+, $ + $, "+");
