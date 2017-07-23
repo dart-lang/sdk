@@ -79,6 +79,7 @@ compare_to2_test: RuntimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError

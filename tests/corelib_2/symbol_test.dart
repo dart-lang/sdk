@@ -7,7 +7,6 @@
 main() {
   var x;
   print(x = const Symbol('fisk'));
-
   try {
     print(const Symbol(0)); //# 01: compile-time error
   } on NoSuchMethodError {
@@ -31,13 +30,14 @@ main() {
   try {
     var y = 0;
     print(new Symbol(y)); //# 04: compile-time error
-    throw 'Expected a NoSuchMethodError or a TypeError';
+    throw 'Expected a NoSuchMethodError or a TypeError'; //# 04: ok
   } on NoSuchMethodError {
     print('Caught NoSuchMethodError');
   } on TypeError {
     print('Caught TypeError');
   }
 
+  print("here2");
   try {
     print(new Symbol('0'));
     throw 'Expected an ArgumentError';
