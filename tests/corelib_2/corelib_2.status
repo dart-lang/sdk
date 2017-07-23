@@ -5,12 +5,15 @@
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_static_test: MissingCompileTimeError
 
 [ !$strong && $compiler != dartdevc && $checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_static_test: MissingCompileTimeError
 
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
