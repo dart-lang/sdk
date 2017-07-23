@@ -15,6 +15,9 @@ string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+string_case_test/01: Fail # Bug 18061
+
 [ $compiler == dart2js ]
 int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 int_parse_radix_test/02: Fail # No bigints.
