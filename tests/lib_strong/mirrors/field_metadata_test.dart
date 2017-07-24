@@ -17,6 +17,11 @@ class Foo {
 
   @Bar('baz')
   final String y = 'hi';
+
+  @Bar('foo')
+  void set z(int val) {
+    x = val;
+  }
 }
 
 void main() {
@@ -27,6 +32,12 @@ void main() {
   f.x += 2;
   Expect.equals(f.x, 42);
   Expect.equals(f.y, 'hi');
+
+  Expect.throws(() {
+    f.z = 'hello';
+  });
+  f.z = 0;
+  Expect.equals(f.x, 0);
 
   var members = reflect(f).type.declarations;
   var x = members[#x] as VariableMirror;

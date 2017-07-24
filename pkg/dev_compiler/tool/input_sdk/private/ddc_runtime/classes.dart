@@ -237,6 +237,14 @@ getSetterType(type, name) {
     if (type != null) {
       // TODO(jmesserly): it would be nice not to encode setters with a full
       // function type.
+      if (JS('bool', '# instanceof Array', type)) {
+        // The type has metadata attached.  Pull out just the type.
+        // TODO(vsm): Come up with a more robust encoding for this or remove
+        // if we can deprecate mirrors.
+        // Essentially, we've got a FunctionType or a
+        // [FunctionType, metadata1, ..., metadataN].
+        type = JS('', '#[0]', type);
+      }
       return JS('', '#.args[0]', type);
     }
   }
