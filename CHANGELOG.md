@@ -1,3 +1,19 @@
+# 0.1.34
+
+## Features
+
+* `non_constant_identifier_names` extended to include named constructors
+* SDK constraint broadened to `2.0.0-dev.infinity`
+* improved `prefer_final_fields` performance
+
+## Fixes
+
+* fixes to `unnecessary_overrides` (`noSuchMethod` handling, return type narrowing, special casing of documented `super` calls)
+* fix to `non_constant_identifier_names` to handle identifiers with no name
+* fixes to `prefer_const_constructors` to support list literals
+* fixes to `recursive_getters`
+* fixes to `cascade_invocations`
+
 # 0.1.33
 
 ## Features
