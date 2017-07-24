@@ -155,7 +155,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Profiler::InitOnce();
   }
   SemiSpace::InitOnce();
-  NOT_IN_PRODUCT(Metric::InitOnce());
+  Metric::InitOnce();
   StoreBuffer::InitOnce();
   MarkingStack::InitOnce();
 
@@ -372,7 +372,7 @@ const char* Dart::Cleanup() {
     }
     bool result = Thread::EnterIsolate(vm_isolate_);
     ASSERT(result);
-    NOT_IN_PRODUCT(Metric::Cleanup());
+    Metric::Cleanup();
     Thread::ExitIsolate();
   }
 

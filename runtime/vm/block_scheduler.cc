@@ -63,7 +63,7 @@ void BlockScheduler::AssignEdgeWeights() const {
         Thread::kNoDeoptId, "BlockScheduler: ICData array cleared");
   }
   if (ic_data_array.IsNull()) {
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    ASSERT(Isolate::Current()->HasAttemptedReload());
     return;
   }
   Array& edge_counters = Array::Handle();

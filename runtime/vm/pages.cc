@@ -543,7 +543,6 @@ void PageSpace::AbandonBumpAllocation() {
 }
 
 void PageSpace::UpdateMaxCapacityLocked() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -553,11 +552,9 @@ void PageSpace::UpdateMaxCapacityLocked() {
   Isolate* isolate = heap_->isolate();
   isolate->GetHeapOldCapacityMaxMetric()->SetValue(
       static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 void PageSpace::UpdateMaxUsed() {
-#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -566,7 +563,6 @@ void PageSpace::UpdateMaxUsed() {
   ASSERT(heap_->isolate() != NULL);
   Isolate* isolate = heap_->isolate();
   isolate->GetHeapOldUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
-#endif  // !defined(PRODUCT)
 }
 
 bool PageSpace::Contains(uword addr) const {
@@ -868,12 +864,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     SpaceUsage usage_before = GetCurrentUsage();
 
     // Mark all reachable old-gen objects.
-#if defined(PRODUCT)
-    bool collect_code = FLAG_collect_code && ShouldCollectCode();
-#else
     bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
                         !isolate->HasAttemptedReload();
-#endif  // !defined(PRODUCT)
     GCMarker marker(heap_);
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();
@@ -1149,7 +1141,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   intptr_t capacity_increase_in_pages =
       capacity_increase_in_words / PageSpace::kPageSizeInWords;
   double multiplier = 1.0;
-#if !defined(PRODUCT)
   // To avoid waste, the first GC should be triggered before too long. After
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
   static const double kInitialTimeoutSeconds = 1.00;
@@ -1160,7 +1151,6 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }
   }
-#endif  // !defined(PRODUCT)
   bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
   if (FLAG_log_growth) {
     OS::PrintErr("%s: %" Pd " * %f %s %" Pd "\n",

@@ -18,7 +18,7 @@ TEST_CASE(OldGC) {
       "main() {\n"
       "  return [1, 2, 3];\n"
       "}\n";
-  NOT_IN_PRODUCT(FLAG_verbose_gc = true);
+  FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
 
@@ -50,14 +50,14 @@ TEST_CASE(OldGC_Unsync) {
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
 }
-#endif  // !defined(PRODUCT)
+#endif
 
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
       "main() {\n"
       "  return new List(8 * 1024 * 1024);\n"
       "}\n";
-  NOT_IN_PRODUCT(FLAG_verbose_gc = true);
+  FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -107,8 +107,6 @@ TEST_CASE(ClassHeapStats) {
       "  var x = new A();\n"
       "  return new A();\n"
       "}\n";
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
@@ -189,7 +187,6 @@ TEST_CASE(ClassHeapStats) {
   EXPECT_EQ(0, class_stats->pre_gc.old_count);
   EXPECT_EQ(0, class_stats->post_gc.old_count);
   EXPECT_EQ(0, class_stats->recent.old_count);
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 }
 
 TEST_CASE(ArrayHeapStats) {

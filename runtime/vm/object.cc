@@ -7787,14 +7787,9 @@ void Field::InitializeNew(const Field& result,
   // Use field guards if they are enabled and the isolate has never reloaded.
   // TODO(johnmccutchan): The reload case assumes the worst case (everything is
   // dynamic and possibly null). Attempt to relax this later.
-#if defined(PRODUCT)
-  const bool use_guarded_cid =
-      FLAG_precompiled_mode || isolate->use_field_guards();
-#else
   const bool use_guarded_cid =
       FLAG_precompiled_mode ||
       (isolate->use_field_guards() && !isolate->HasAttemptedReload());
-#endif  // !defined(PRODUCT)
   result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
@@ -11037,7 +11032,6 @@ void Library::AllocatePrivateKey() const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
-#if !defined(PRODUCT)
   if (FLAG_support_reload && isolate->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
@@ -11049,7 +11043,6 @@ void Library::AllocatePrivateKey() const {
       return;
     }
   }
-#endif  // !defined(PRODUCT)
 
   // Format of the private key is: "@<sequence number><6 digits of hash>
   const intptr_t hash_mask = 0x7FFFF;

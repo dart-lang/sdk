@@ -1612,7 +1612,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   const Class& owner = Class::Handle(parent.Owner());
   Function& target = Function::ZoneHandle(owner.LookupFunction(func_name));
   if (target.raw() != parent.raw()) {
-    NOT_IN_PRODUCT(ASSERT(Isolate::Current()->HasAttemptedReload()));
+    ASSERT(Isolate::Current()->HasAttemptedReload());
     if (target.IsNull() || (target.is_static() != parent.is_static()) ||
         (target.kind() != parent.kind())) {
       target = Function::null();
@@ -1628,7 +1628,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
       (parent.num_fixed_parameters() == target.num_fixed_parameters())) {
     call = new StaticCallNode(token_pos, target, func_args);
   } else if (!parent.is_static()) {
-    NOT_IN_PRODUCT(ASSERT(Isolate::Current()->HasAttemptedReload()));
+    ASSERT(Isolate::Current()->HasAttemptedReload());
     // If a subsequent reload reintroduces the target in the middle of the
     // Invocation object being constructed, we won't be able to successfully
     // deopt because the generated AST will change.
@@ -1651,7 +1651,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     }
     call = new StaticCallNode(token_pos, no_such_method, arguments);
   } else {
-    NOT_IN_PRODUCT(ASSERT(Isolate::Current()->HasAttemptedReload()));
+    ASSERT(Isolate::Current()->HasAttemptedReload());
     // If a subsequent reload reintroduces the target in the middle of the
     // arguments array being constructed, we won't be able to successfully
     // deopt because the generated AST will change.
