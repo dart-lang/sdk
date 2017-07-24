@@ -15,7 +15,7 @@ void main() {
   Expect.equals("\u{12345}*", new String.fromCharCodes([0x12345, 42]));
   Expect.equals("", new String.fromCharCodes(new List()));
   {
-    var a = new List();
+    var a = <int>[];
     a.add(65);
     a.add(66);
     Expect.equals("AB", new String.fromCharCodes(a));

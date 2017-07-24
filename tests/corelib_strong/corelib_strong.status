@@ -40,9 +40,6 @@ regexp/regexp_test: Skip
 regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
 splay_tree_test: Skip
-string_base_vm_test: Skip
-string_from_environment3_test: Skip
-string_from_list_test: Skip
 string_replace_test: Skip
 
 [ $compiler == dartdevc ]
@@ -107,6 +104,4 @@ regexp/stack-overflow_test: RuntimeError # Issue 29921
 regexp/unicode-handling_test: RuntimeError # Issue 29921
 regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
-string_from_environment2_test: RuntimeError # Issue 29921
-string_from_environment_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921

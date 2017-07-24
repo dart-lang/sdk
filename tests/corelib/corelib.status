@@ -11,9 +11,6 @@ from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
 int_from_environment3_test: Skip
 int_from_environment_test: Skip
-string_from_environment2_test: Skip
-string_from_environment3_test: Skip
-string_from_environment_test: Skip
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 string_case_test/01: Fail # Bug 18061
@@ -54,7 +51,6 @@ iterable_to_list_test/01: RuntimeError # Issue 26501
 
 big_integer_*: Skip # VM specific test.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
-string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
 regexp/pcre_test: Pass, Slow # Issue 21593
 regress_r21715_test: RuntimeError # Requires bigint support.
@@ -67,9 +63,6 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
-
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
-string_case_test/01: Fail, OK  # Bug in Firefox.
 
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
@@ -95,9 +88,6 @@ duration2_test: StaticWarning, OK # Test generates error on purpose.
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
-
-[ $system == windows && $arch == x64 ]
-stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
 [ $runtime != d8 && $runtime != vm && $runtime != dart_precompiled ]
 # The regexp tests are not verified to work on non d8/vm platforms yet.
@@ -182,8 +172,6 @@ from_environment_const_type_undefined_test/08: MissingCompileTimeError
 
 # Possible bugs
 format_exception_test: RuntimeError # Flutter Issue 9111
-string_from_environment_test: Fail # Flutter Issue 9111
-string_from_environment2_test: Fail # Flutter Issue 9111
 int_from_environment_test: Fail # Flutter Issue 9111
 int_from_environment2_test: Fail # Flutter Issue 9111
 from_environment_const_type_test/none: Fail # Flutter Issue 9111

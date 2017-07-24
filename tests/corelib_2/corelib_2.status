@@ -5,16 +5,19 @@
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ !$strong && $compiler != dartdevc && $checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
@@ -62,6 +65,8 @@ core_runtime_types_test: Pass, Fail # Issue 27913
 apply3_test: CompileTimeError # mirrors not supported
 bool_from_environment_test: Fail # Flutter Issue 9111
 string_trimlr_test/02: RuntimeError # Flutter Issue 9111
+string_from_environment_test: Fail # Flutter Issue 9111
+string_from_environment2_test: Fail # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow
@@ -106,10 +111,17 @@ symbol_test/03: MissingCompileTimeError
 symbol_test/04: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
+string_case_test/01: RuntimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_from_environment3_test/05: MissingCompileTimeError
 
 [ $compiler == none && $runtime == drt ]
 bool_from_environment2_test: Skip
 bool_from_environment_test: Skip
+string_case_test/01: Fail # Issue 18061
 
 [ $runtime == ff || $runtime == jsshell ]
 unicode_test: Fail
@@ -175,3 +187,20 @@ string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none]
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+
+[ ($compiler == none && $runtime == vm) || $compiler == dart2js ]
+string_base_vm_static_test: MissingCompileTimeError
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
+string_case_test/01: Fail, OK # Bug in Firefox.
+
+[ $compiler == none && $runtime == drt ]
+string_from_environment2_test: Skip
+string_from_environment3_test: Skip
+string_from_environment_test: Skip
+
+[ $system == windows && $arch == x64 ]
+stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
+
+[ $runtime == vm ]
+string_case_test/01: RuntimeError
