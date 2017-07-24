@@ -86,6 +86,7 @@ class LibraryAnalyzer {
           _context, _sourceFactory, _analysisOptions.strongMode, _store);
       _typeProvider = _resynthesizer.typeProvider;
       _context.typeProvider = _typeProvider;
+      _resynthesizer.finishCoreAsyncLibraries();
 
       _libraryElement = _resynthesizer.getLibraryElement(_library.uriStr);
 
@@ -271,6 +272,7 @@ class LibraryAnalyzer {
           _typeProvider,
           new StrongTypeSystemImpl(_typeProvider,
               implicitCasts: options.implicitCasts,
+              declarationCasts: options.declarationCasts,
               nonnullableTypes: options.nonnullableTypes),
           errorListener,
           options);

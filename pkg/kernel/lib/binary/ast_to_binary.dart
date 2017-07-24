@@ -363,14 +363,18 @@ class BinaryPrinter extends Visitor {
     writeList(annotations, writeAnnotation);
   }
 
-  int _encodeClassFlags(bool isAbstract, ClassLevel level) {
-    int abstactFlag = isAbstract ? 1 : 0;
-    int levelFlags = (level.index - 1) << 1;
-    return abstactFlag | levelFlags;
+  int _encodeClassFlags(
+      bool isAbstract, bool isSyntheticMixinImplementation, ClassLevel level) {
+    int abstractFlag = isAbstract ? 1 : 0;
+    int isSyntheticMixinImplementationFlag =
+        isSyntheticMixinImplementation ? 2 : 0;
+    int levelFlags = (level.index - 1) << 2;
+    return abstractFlag | isSyntheticMixinImplementationFlag | levelFlags;
   }
 
   visitClass(Class node) {
-    int flags = _encodeClassFlags(node.isAbstract, node.level);
+    int flags = _encodeClassFlags(
+        node.isAbstract, node.isSyntheticMixinImplementation, node.level);
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }

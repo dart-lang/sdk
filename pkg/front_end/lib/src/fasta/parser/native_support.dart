@@ -19,13 +19,13 @@ library fasta.parser.dart_vm_native;
 
 import '../../scanner/token.dart' show Token;
 
+import '../quote.dart' show unescapeString;
+
 import '../scanner/token_constants.dart' show STRING_TOKEN;
 
 import '../util/link.dart' show Link;
 
-import 'parser.dart' show optional;
-
-import '../quote.dart' show unescapeString;
+import 'util.dart' show optional;
 
 /// When parsing a library file, we may encounter a native clause
 /// instead of a function body. This method skips such a clause. The

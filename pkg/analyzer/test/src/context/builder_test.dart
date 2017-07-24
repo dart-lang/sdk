@@ -1014,6 +1014,7 @@ linter:
     expect(actual.preserveComments, expected.preserveComments);
     expect(actual.strongMode, expected.strongMode);
     expect(actual.strongModeHints, expected.strongModeHints);
+    expect(actual.declarationCasts, expected.declarationCasts);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.trackCacheDependencies, expected.trackCacheDependencies);

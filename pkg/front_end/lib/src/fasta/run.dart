@@ -30,8 +30,10 @@ const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 mainEntryPoint(List<String> arguments) async {
   Uri uri;
   for (int i = 0; i < iterations; i++) {
-    await CompilerCommandLine.withGlobalOptions("run", arguments,
-        (CompilerContext c) async {
+    await CompilerCommandLine.withGlobalOptions("run", arguments, false,
+        (CompilerContext c, List<String> restArguments) async {
+      var input = Uri.base.resolve(restArguments[0]);
+      c.options.inputs.add(input);
       if (i > 0) {
         print("\n");
       }
@@ -46,17 +48,17 @@ mainEntryPoint(List<String> arguments) async {
       }
       if (exitCode != 0) exit(exitCode);
       if (i + 1 == iterations) {
-        exit(await run(uri, c));
+        exit(await run(uri, c, restArguments));
       }
     });
   }
 }
 
-Future<int> run(Uri uri, CompilerContext c) async {
+Future<int> run(Uri uri, CompilerContext c, List<String> allArguments) async {
   Uri sdk = await computePatchedSdk();
   Uri dartVm = computeDartVm(sdk);
   List<String> arguments = <String>["${uri.toFilePath()}"]
-    ..addAll(c.options.arguments.skip(1));
+    ..addAll(allArguments.skip(1));
   if (c.options.verbose) {
     print("Running ${dartVm.toFilePath()} ${arguments.join(' ')}");
   }

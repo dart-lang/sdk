@@ -1344,13 +1344,6 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    // We currently rerun dartium tests, see issue 14074.
-    if (command is BrowserTestCommand &&
-        command.retry &&
-        command.browser == Runtime.dartium) {
-      return true;
-    }
-
     // As long as we use a legacy version of our custom content_shell (which
     // became quite flaky after chrome-50 roll) we'll re-run tests on it.
     // The plan is to use chrome's content_shell instead of our own.

@@ -8,7 +8,7 @@ static method main() → dynamic {
   for (core::int i in self::numbers) {
     final Vector #context = MakeVector(2);
     #context[1] = i;
-    closures.add(MakeClosure<() → core::int>(self::closure#main#function, #context));
+    closures.add(MakeClosure<() → dynamic>(self::closure#main#function, #context));
   }
   core::int sum = 0;
   for (core::Function f in closures) {
@@ -19,6 +19,6 @@ static method main() → dynamic {
     throw core::Exception::•("Unexpected sum = ${sum} != ${expectedSum}");
   }
 }
-static method closure#main#function(Vector #contextParameter) → core::int {
+static method closure#main#function(Vector #contextParameter) → dynamic {
   return #contextParameter[1];
 }

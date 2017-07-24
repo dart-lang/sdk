@@ -30,7 +30,7 @@ dynamic internalProblem(Message message, int charOffset, Uri uri) {
       .format(message.withLocation(uri, charOffset), Severity.internalProblem);
 }
 
-dynamic unimplemented(String what, [int charOffset = -1, Uri uri = null]) {
+dynamic unimplemented(String what, int charOffset, Uri uri) {
   return internalProblem(
       templateInternalProblemUnimplemented.withArguments(what),
       charOffset,

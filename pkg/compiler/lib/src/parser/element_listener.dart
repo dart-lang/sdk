@@ -35,8 +35,7 @@ import 'package:front_end/src/fasta/parser.dart'
     show Listener, ParserError, optional;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/scanner/token.dart'
-    show BeginToken, KeywordToken, TokenType;
+import 'package:front_end/src/scanner/token.dart' show KeywordToken, TokenType;
 import 'partial_elements.dart'
     show
         PartialClassElement,
@@ -486,7 +485,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     Expression expression = popNode();
     pushNode(new ParenthesizedExpression(expression, token));
   }

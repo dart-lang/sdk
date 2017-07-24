@@ -41,11 +41,12 @@ front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
+front_end/test/fasta/ast_builder_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
 
-front_end/test/fasta/analyze_test: Pass, Slow
+front_end/test/fasta/analyze_test: Fail, Slow # Issue 30244
 
 kernel/test/closures_test: Slow, Pass
 
@@ -68,8 +69,9 @@ dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
+dev_compiler/test/codegen_test: MissingCompileTimeError # Issue 30245
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && $runtime == drt ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign

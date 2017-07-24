@@ -1074,6 +1074,9 @@ class LibraryElementX extends ElementX
   final Map<LibraryDependency, LibraryElement> tagMapping =
       new Map<LibraryDependency, LibraryElement>();
 
+  final Map<String, MixinApplicationElementX> mixinApplicationCache =
+      <String, MixinApplicationElementX>{};
+
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElementX origin])
       : this.canonicalUri =
             ((canonicalUri == null) ? script.readableUri : canonicalUri),

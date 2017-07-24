@@ -949,7 +949,6 @@ LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # co19 issue 14
-LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/csstext-of-content-string_t01: Pass, RuntimeError # Please triage this failure
@@ -1954,7 +1953,6 @@ LayoutTests/fast/css/aspect-ratio-parsing-tests_t01: RuntimeError # Please triag
 LayoutTests/fast/css/auto-min-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please triage this failure
@@ -4237,7 +4235,6 @@ LayoutTests/fast/css/content/content-quotes-01_t01: Pass, RuntimeError # Fails o
 LayoutTests/fast/css/content/content-quotes-05_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/csstext-of-content-string_t01: RuntimeError # Please triage this failure

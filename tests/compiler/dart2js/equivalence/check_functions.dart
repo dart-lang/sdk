@@ -939,9 +939,10 @@ void checkEmitterPrograms(
       'typeToInterceptorMap',
       program1.typeToInterceptorMap,
       program2.typeToInterceptorMap,
-      areJsNodesEquivalent);
+      areJsNodesEquivalent,
+      js.nodeToString);
   check(program1, program2, 'metadata', program1.metadata, program2.metadata,
-      areJsNodesEquivalent);
+      areJsNodesEquivalent, js.nodeToString);
 }
 
 void checkEmitterFragments(
@@ -966,7 +967,7 @@ void checkEmitterFragments(
       fragment2.isMainFragment);
   if (fragment1 is MainFragment && fragment2 is MainFragment) {
     check(fragment1, fragment2, 'invokeMain', fragment1.invokeMain,
-        fragment2.invokeMain, areJsNodesEquivalent);
+        fragment2.invokeMain, areJsNodesEquivalent, js.nodeToString);
   } else if (fragment1 is DeferredFragment && fragment2 is DeferredFragment) {
     check(fragment1, fragment2, 'name', fragment1.name, fragment2.name);
   }
@@ -1035,7 +1036,7 @@ void checkEmitterClasses(Class class1, Class class2, TestStrategy strategy) {
 void checkEmitterMethods(
     Method method1, Method method2, TestStrategy strategy) {
   check(method1, method2, 'code', method1.code, method2.code,
-      areJsNodesEquivalent);
+      areJsNodesEquivalent, js.nodeToString);
   check(method1, method2, 'is ParameterStubMethod',
       method1 is ParameterStubMethod, method2 is ParameterStubMethod);
   if (method1 is ParameterStubMethod && method2 is ParameterStubMethod) {
@@ -1059,7 +1060,7 @@ void checkEmitterMethods(
     check(method1, method2, 'canBeReflected', method1.canBeReflected,
         method2.canBeReflected);
     check(method1, method2, 'functionType', method1.functionType,
-        method2.functionType, areJsNodesEquivalent);
+        method2.functionType, areJsNodesEquivalent, js.nodeToString);
     check(method1, method2, 'requiredParameterCount',
         method1.requiredParameterCount, method2.requiredParameterCount);
     if (method1.optionalParameterDefaultValues == null &&
@@ -1108,7 +1109,8 @@ void checkEmitterConstants(
 }
 
 void checkEmitterStaticFields(StaticField field1, StaticField field2) {
-  check(field1, field2, 'code', field1.code, field2.code, areJsNodesEquivalent);
+  check(field1, field2, 'code', field1.code, field2.code, areJsNodesEquivalent,
+      js.nodeToString);
   check(field1, field2, 'isFinal', field1.isFinal, field2.isFinal);
   check(field1, field2, 'isLazy', field1.isLazy, field2.isLazy);
   checkEmitterHolders(field1.holder, field2.holder);
@@ -1140,8 +1142,8 @@ class JsEquivalenceVisitor extends js.EquivalenceVisitor {
   @override
   bool failAt(js.Node node1, js.Node node2) {
     print('Node mismatch:');
-    print('  ${js.nodeToString(node1)}');
-    print('  ${js.nodeToString(node2)}');
+    print('  ${node1 != null ? js.nodeToString(node1) : '<null>'}');
+    print('  ${node2 != null ? js.nodeToString(node2) : '<null>'}');
     return false;
   }
 
@@ -1152,8 +1154,8 @@ class JsEquivalenceVisitor extends js.EquivalenceVisitor {
       print('  ${value1}');
       print('  ${value2}');
       print('at');
-      print('  ${js.nodeToString(node1)}');
-      print('  ${js.nodeToString(node2)}');
+      print('  ${node1 != null ? js.nodeToString(node1) : '<null>'}');
+      print('  ${node2 != null ? js.nodeToString(node2) : '<null>'}');
       return false;
     }
     return true;

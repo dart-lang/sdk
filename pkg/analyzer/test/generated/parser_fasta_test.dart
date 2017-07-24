@@ -13,9 +13,8 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/parser.dart' show IdentifierContext;
+import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';
@@ -292,7 +291,7 @@ class FastaParserTestCase extends Object
   analyzer.Parser get parser => _parserProxy;
 
   @override
-  bool get usingFasta => true;
+  bool get usingFastaParser => true;
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {

@@ -13,7 +13,6 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: SkipSlow
 cc/AllocGeneric_Overflow: SkipSlow
-cc/CodeImmutability: Crash
 cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
@@ -40,9 +39,12 @@ cc/VerifyExplicit_Crash: Crash
 # It can take some time for all the isolates to shutdown in a Debug build.
 dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
-# The following section refers to the dart vm tests which live under
-# runtime/tests/vm/dart.
+# CodeImmutability test ocassionally times out on Windows. Issue #30202.
+[ $system != windows ]
+cc/CodeImmutability: Crash
+
 [ $system == windows ]
+cc/CodeImmutability: Crash, Timeout
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
 cc/Service_Profile: Skip
@@ -117,7 +119,7 @@ cc/Profiler_SourcePositionOptimized: Skip
 cc/Profiler_BinaryOperatorSourcePosition: Skip
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt)]
+[ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
 
 [ $compiler == dart2js ]
@@ -249,75 +251,43 @@ dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler == dartk) && ($runtime == vm) ]
 cc/CanonicalizationInScriptSnapshots: Fail
-cc/ClassHierarchyAnalysis: Crash
 cc/Class_ComputeEndTokenPos: Crash
 cc/CurrentStackTraceInfo: Fail
-cc/CustomIsolates: Crash
-cc/DartGeneratedArrayLiteralMessages: Crash
-cc/DartGeneratedArrayLiteralMessagesWithBackref: Crash
-cc/DartGeneratedListMessages: Crash
-cc/DartGeneratedListMessagesWithBackref: Crash
-cc/DartGeneratedListMessagesWithTypedData: Crash
-cc/DartGeneratedMessages: Crash
 cc/Dart_LoadLibraryPatch_Error1: Fail
 cc/Dart_LoadLibraryPatch_Error2: Fail
 cc/Dart_LoadLibraryPatch_Error3: Fail
 cc/Dart_PropagateError: Fail
 cc/Debug_EvaluateExpr: Fail
-cc/Debug_EvaluateInActivationOfEvaluate: Fail
 cc/Debug_GetClosureInfo: Fail
 cc/Debug_InterruptIsolate: SkipSlow
 cc/Debug_IsolateID: Fail
-cc/Debug_ListSuperType: Fail
 cc/Debug_ScriptGetTokenInfo_Basic: Fail
 cc/Debug_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
-cc/Debugger_SetBreakpointInFunctionLiteralFieldInitializers: Crash
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/ErrorHandleBasics: Fail
-cc/EvalExpression: Crash
-cc/ExternalUint8ClampedArrayAccess: Fail
-cc/ExternalizeConstantStrings: Fail
 cc/FieldAccess: Crash
-cc/Float32x4List: Crash
-cc/FrameLookup: Fail
 cc/FullSnapshot1: Crash
 cc/FullSnapshot: Crash
 cc/FunctionSourceFingerprint: Crash
-cc/FunctionWithBreakpointNotInlined: Crash
-cc/GetField_CheckIsolate: Fail
 cc/GetFunctionNames: Crash
-cc/GetNativeArgumentCount: Fail
-cc/GetNativeArguments: Fail
-cc/GetStaticField_RunsInitializer: Fail
-cc/GetType: Fail
-cc/ImplicitNativeFieldAccess: Fail
+cc/ImplicitNativeFieldAccess: Crash
 cc/ImportLibrary2: Crash
 cc/ImportLibrary3: Crash
 cc/ImportLibrary4: Crash
 cc/ImportLibrary5: Crash
 cc/ImportLibraryWithPrefix: Crash
-cc/InjectNativeFieldsSuperClass: Fail
-cc/InstanceOf: Fail
-cc/InvokeClosure: Fail
+cc/InjectNativeFieldsSuperClass: Crash
 cc/InvokeNoSuchMethod: Fail
 cc/Invoke_CrossLibrary:  Crash
-cc/Invoke_FunnyArgs: Crash
-cc/Invoke_PrivateStatic: Fail
-cc/IsFuture: Fail
 cc/IsolateReload_BadClass: Fail
-cc/IsolateReload_ChangeInstanceFormat0: Fail
-cc/IsolateReload_ChangeInstanceFormat1: Fail
-cc/IsolateReload_ChangeInstanceFormat3: Fail
-cc/IsolateReload_ChangeInstanceFormat4: Fail
-cc/IsolateReload_ChangeInstanceFormat5: Fail
-cc/IsolateReload_ChangeInstanceFormat6: Fail
-cc/IsolateReload_ChangeInstanceFormat7: Crash
-cc/IsolateReload_ChangeInstanceFormat8: Fail
-cc/IsolateReload_ComplexInheritanceChange: Fail
-cc/IsolateReload_ConstantIdentical: Fail
-cc/IsolateReload_ConstructorChanged: Fail
+cc/IsolateReload_ClassFieldAdded: Crash
+cc/IsolateReload_ClassFieldAdded2: Crash
+cc/IsolateReload_ChangeInstanceFormat1: Skip
+cc/IsolateReload_ChangeInstanceFormat3: Skip
+cc/IsolateReload_ChangeInstanceFormat7: Skip
+cc/IsolateReload_ChangeInstanceFormat8: Skip
 cc/IsolateReload_DanglingGetter_Class: Fail
 cc/IsolateReload_DanglingGetter_Instance: Fail
 cc/IsolateReload_DanglingGetter_Library: Fail
@@ -325,40 +295,31 @@ cc/IsolateReload_DanglingSetter_Class: Fail
 cc/IsolateReload_DanglingSetter_Instance: Fail
 cc/IsolateReload_DanglingSetter_Library: Fail
 cc/IsolateReload_DirectSubclasses_Failure: Fail
-cc/IsolateReload_DirectSubclasses_Success: Fail
+cc/IsolateReload_DirectSubclasses_Success: Skip
 cc/IsolateReload_EnumDelete: Fail
-cc/IsolateReload_EnumEquality: Fail
-cc/IsolateReload_EnumIdentical: Fail
-cc/IsolateReload_EnumIdentityReload: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
-cc/IsolateReload_EnumToNotEnum: Fail
+cc/IsolateReload_EnumToNotEnum: Skip
 cc/IsolateReload_ExportedLibModified: Crash
-cc/IsolateReload_ImplicitConstructorChanged: Fail
 cc/IsolateReload_ImportedLibModified: Crash
 cc/IsolateReload_ImportedMixinFunction: Crash
-cc/IsolateReload_LibraryDebuggable: Fail
 cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryLookup: Fail
 cc/IsolateReload_LibraryShow: Crash
 cc/IsolateReload_LiveStack: Fail
 cc/IsolateReload_MainLibModified: Crash
-cc/IsolateReload_MixinChanged: Fail
 cc/IsolateReload_NoLibsModified: Crash
-cc/IsolateReload_NotEnumToEnum: Fail
+cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
 cc/IsolateReload_PrefixImportedLibModified: Crash
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Fail
-cc/IsolateReload_RunNewFieldInitializers: Fail
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Fail
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Fail
+cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
+cc/IsolateReload_RunNewFieldInitializers: Crash
+cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Crash
+cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Crash
 cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
-cc/IsolateReload_RunNewFieldInitializersThrows: Fail
-cc/IsolateReload_SavedClosure: Fail
-cc/IsolateReload_ShapeChangeRetainsHash: Fail
+cc/IsolateReload_RunNewFieldInitializersThrows: Crash
+cc/IsolateReload_ShapeChangeRetainsHash: Crash
 cc/IsolateReload_SmiFastPathStubs: Fail
-cc/IsolateReload_StaticTearOffRetainsHash: Fail
-cc/IsolateReload_StaticValuePreserved: Fail
 cc/IsolateReload_TearOff_AddArguments2: Fail
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_Class_Identity: Fail
@@ -369,20 +330,13 @@ cc/IsolateReload_TopLevelParseError: Fail
 cc/IsolateReload_TypeIdentity: Fail
 cc/IsolateReload_TypeIdentityGeneric: Fail
 cc/IsolateReload_TypeIdentityParameter: Fail
-cc/IsolateReload_TypedefAddParameter: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-cc/IsolateShutdownRunDartCode: Skip # Flaky
-cc/IsolateSpawn: Crash
-cc/JSON_JSONStream_DartString: Crash
-cc/LazyLoadDeoptimizes: Crash
+cc/LazyLoadDeoptimizes: Fail
 cc/LibraryGetClassNames: Crash
 cc/LibraryId: Crash
 cc/LibraryImportLibrary: Crash
 cc/LibraryName: Crash
 cc/LibraryUrl: Crash
-cc/LinkedHashMap: Crash
-cc/LinkedHashMap_iteration: Crash
-cc/ListAccess: Crash
 cc/LoadPatch: Crash
 cc/LoadPatchSignatureMismatch: Crash
 cc/LoadSource: Crash
@@ -390,17 +344,9 @@ cc/LoadLibrary: Crash
 cc/LoadLibrary_CompileError: Crash
 cc/LoadSource_LateLoad: Crash
 cc/LookupLibrary: Crash
-cc/MalformedStringToUTF8: Crash
-cc/MapAccess: Crash
 cc/NativeFieldAccess: Fail
-cc/NativePortPostInteger: Fail
-cc/NativePortReceiveInteger: Fail
-cc/NativePortReceiveNull: Fail
-cc/NegativeNativeFieldAccess: Fail
 cc/NegativeNativeFieldInIsolateMessage: Crash
-cc/New: Fail
-cc/NewNativePort: Fail
-cc/NumberValues: Fail
+cc/New: Crash
 cc/ParsePatchLibrary: Crash
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
@@ -409,12 +355,14 @@ cc/Parser_AllocateVariables_MiddleChain: Fail
 cc/Parser_AllocateVariables_NestedCapturedVar: Fail
 cc/Parser_AllocateVariables_TwoChains: Fail
 cc/Profiler_GetSourceReport: Fail
-cc/ScriptSnapshot1: Fail
+cc/Profiler_SourcePositionOptimized: Fail
+cc/Profiler_BasicSourcePositionOptimized: Skip
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
+cc/Profiler_GetSourceReport: Fail
+cc/Profiler_SourcePositionOptimized: Skip
 cc/ScriptSnapshot2: Crash
 cc/ScriptSnapshot: Crash
 cc/ScriptSnapshotsUpdateSubclasses: Crash # Issue 29850
-cc/SetField_CheckIsolate: Fail
-cc/SetField_FunnyValue: Fail
 cc/SourcePosition_Async: Crash
 cc/SourcePosition_BitwiseOperations: Crash
 cc/SourcePosition_ForLoop: Crash
@@ -442,19 +390,11 @@ cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Crash
 cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Fail
 cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
-cc/StackMapGC: Crash
-cc/StackOverflowStackTraceInfo: Crash
+cc/StackOverflowStackTraceInfo: Skip
 cc/StackTraceFormat: Fail
-cc/StackTraceInfo: Crash
-cc/StringFromExternalTypedData: Fail
-cc/TestNativeFieldsAccess: Fail
-cc/ThrowException: Fail
-cc/TypeGetNonParamtericTypes: Fail
-cc/TypeGetParameterizedTypes: Fail
-cc/UnhandledExceptions: Fail
+cc/TestNativeFieldsAccess: Crash
+cc/TypeGetParameterizedTypes: Crash
 cc/UseDartApi: Fail
-cc/ValidateNoSuchMethodStackFrameIteration: Fail
-cc/ValidateStackFrameIteration: Fail
 dart/data_uri_import_test/base64: CompileTimeError
 dart/data_uri_import_test/nocharset: CompileTimeError
 dart/data_uri_import_test/nomime: CompileTimeError
@@ -464,56 +404,24 @@ dart/data_uri_spawn_test: RuntimeError
 dart/redirection_type_shuffling_test/00: Crash
 dart/redirection_type_shuffling_test/none: Crash
 dart/spawn_shutdown_test: SkipSlow
+cc/InjectNativeFields1: Skip
+cc/InjectNativeFields3: Crash
+cc/InjectNativeFields4: Crash
+cc/IsolateShutdownRunDartCode: Skip # Flaky
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == release) ]
 cc/Debug_BreakpointStubPatching: Fail
-cc/Debug_InspectObject: Fail
-cc/Debug_InspectStackWithClosure_NotOptimized: Fail
-cc/Debug_InspectStackWithClosure_Optimized: Fail
-cc/Debug_InspectStack_NotOptimized: Fail
-cc/Debug_InspectStack_Optimized: Fail
-cc/DeepStackTraceInfo: Fail
-cc/HashCode: Fail
 cc/InjectNativeFields1: Fail
 cc/InjectNativeFields3: Fail
-cc/Invoke: Fail
-cc/LargeMap: Fail
-cc/Profiler_ArrayAllocation: Fail
-cc/Profiler_ClosureAllocation: Fail
-cc/Profiler_ContextAllocation: Fail
-cc/Profiler_IntrinsicAllocation: Fail
-cc/Profiler_StringAllocation: Fail
-cc/Profiler_StringInterpolation: Fail
-cc/Profiler_TypedArrayAllocation: Fail
 cc/Service_TokenStream: Fail
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == debug) ]
 cc/Debug_BreakpointStubPatching: Fail
-cc/Debug_InspectObject: Crash
-cc/Debug_InspectStackWithClosure_NotOptimized: Crash
-cc/Debug_InspectStackWithClosure_Optimized: Crash
-cc/Debug_InspectStack_NotOptimized: Crash
-cc/Debug_InspectStack_Optimized: Crash
-cc/DeepStackTraceInfo: Crash
-cc/HashCode: Crash
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
-cc/Invoke: Crash
-cc/LargeMap: Crash
-cc/Profiler_ArrayAllocation: Crash
-cc/Profiler_ClosureAllocation: Crash
-cc/Profiler_ContextAllocation: Crash
-cc/Profiler_IntrinsicAllocation: Crash
-cc/Profiler_StringAllocation: Crash
-cc/Profiler_StringInterpolation: Crash
-cc/Profiler_TypedArrayAllocation: Crash
 cc/Service_TokenStream: Crash
 
 [ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
-cc/DeepStackTraceInfo: Crash
-cc/Invoke_FunnyArgs: Fail
-cc/Invoke_PrivateStatic: Crash
-cc/IsolateReload_ComplexInheritanceChange: Crash
 cc/IsolateReload_DanglingGetter_Class: Crash
 cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_DanglingGetter_Library: Crash
@@ -521,11 +429,9 @@ cc/IsolateReload_DanglingSetter_Class: Crash
 cc/IsolateReload_DanglingSetter_Instance: Crash
 cc/IsolateReload_DanglingSetter_Library: Crash
 cc/IsolateReload_EnumDelete: Crash
-cc/IsolateReload_EnumIdentityReload: Crash
 cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Crash
 cc/IsolateReload_RunNewFieldInitializersThrows: Crash
-cc/IsolateReload_SavedClosure: Crash
 cc/IsolateReload_TearOff_AddArguments2: Crash
 cc/IsolateReload_TearOff_AddArguments: Crash
 cc/IsolateReload_TearOff_Class_Identity: Crash

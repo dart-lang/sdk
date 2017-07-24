@@ -16,7 +16,6 @@ class Co19TestSuite extends StandardTestSuite {
           "tests/co19/co19-analyzer2.status",
           "tests/co19/co19-runtime.status",
           "tests/co19/co19-dart2js.status",
-          "tests/co19/co19-dartium.status",
           "tests/co19/co19-kernel.status"
         ]);
 

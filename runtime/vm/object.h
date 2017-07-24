@@ -497,6 +497,10 @@ class Object {
     ASSERT(void_type_ != NULL);
     return *void_type_;
   }
+  static const Type& vector_type() {
+    ASSERT(vector_type_ != NULL);
+    return *vector_type_;
+  }
 
   static void set_vm_isolate_snapshot_object_table(const Array& table);
 
@@ -761,6 +765,7 @@ class Object {
   static RawClass* class_class_;             // Class of the Class vm object.
   static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
   static RawClass* void_class_;              // Class of the 'void' type.
+  static RawClass* vector_class_;            // Class of the 'vector' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
@@ -827,6 +832,7 @@ class Object {
   static Array* vm_isolate_snapshot_object_table_;
   static Type* dynamic_type_;
   static Type* void_type_;
+  static Type* vector_type_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -1673,6 +1679,9 @@ class TypeArguments : public Object {
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
 
+  // Set the scope of this type argument vector to the given function.
+  void SetScopeFunction(const Function& function) const;
+
   // Clone this type argument vector and clone all unfinalized type arguments.
   // Finalized type arguments are shared.
   RawTypeArguments* CloneUnfinalized() const;
@@ -2210,9 +2219,6 @@ class Function : public Object {
   RawType* SignatureType() const;
   RawType* ExistingSignatureType() const;
 
-  // Allocate and return a signature function equivalent to this function.
-  RawFunction* CanonicalSignatureFunction(TrailPtr trail) const;
-
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
 
@@ -2222,14 +2228,16 @@ class Function : public Object {
       const TypeArguments& function_type_arguments,
       Heap::Space space) const;
 
-  // Build a string of the form '(T, {B b, C c}) => R' representing the
-  // internal signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
+  // internal signature of the given function. In this example, T is a type
+  // parameter of this function and R is a type parameter of class C, the owner
+  // of the function. B and C are not type parameters.
   RawString* Signature() const { return BuildSignature(kInternalName); }
 
-  // Build a string of the form '(T, {B b, C c}) => R' representing the
-  // user visible signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
+  // user visible signature of the given function. In this example, T is a type
+  // parameter of this function and R is a type parameter of class C, the owner
+  // of the function. B and C are not type parameters.
   // Implicit parameters are hidden.
   RawString* UserVisibleSignature() const {
     return BuildSignature(kUserVisibleName);
@@ -2237,6 +2245,9 @@ class Function : public Object {
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
+  // Note that function type parameters declared by this function do not make
+  // its signature uninstantiated, only type parameters declared by parent
+  // generic functions or class type parameters.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
                                 intptr_t num_free_fun_type_params = kMaxInt32,
                                 TrailPtr trail = NULL) const;
@@ -2296,6 +2307,9 @@ class Function : public Object {
 
   // Return the number of type parameters declared in parent generic functions.
   intptr_t NumParentTypeParameters() const;
+
+  // Print the signature type of this function and of all of its parents.
+  void PrintSignatureTypes() const;
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -2391,10 +2405,24 @@ class Function : public Object {
     return implicit_closure_function() != null();
   }
 
-  // Return the closure function implicitly created for this function.
-  // If none exists yet, create one and remember it.
+  // Returns true iff a converted closure function has been created
+  // for this function.
+  bool HasConvertedClosureFunction() const {
+    return converted_closure_function() != null();
+  }
+
+  // Returns the closure function implicitly created for this function.  If none
+  // exists yet, create one and remember it.  Implicit closure functions are
+  // used in VM Closure instances that represent results of tear-off operations.
   RawFunction* ImplicitClosureFunction() const;
   void DropUncompiledImplicitClosureFunction() const;
+
+  // Returns the converted closure function created for this function.
+  // If none exists yet, create one and remember it.  See the comment on
+  // ConvertedClosureFunction definition in runtime/vm/object.cc for elaborate
+  // explanation.
+  RawFunction* ConvertedClosureFunction() const;
+  void DropUncompiledConvertedClosureFunction() const;
 
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.
@@ -2402,7 +2430,7 @@ class Function : public Object {
 
   RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
-  RawSmi* GetClosureHashCode() const;
+  intptr_t ComputeClosureHash() const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -2445,6 +2473,7 @@ class Function : public Object {
       case RawFunction::kInvokeFieldDispatcher:
         return true;
       case RawFunction::kClosureFunction:
+      case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
@@ -2469,6 +2498,7 @@ class Function : public Object {
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
+      case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kMethodExtractor:
@@ -2745,7 +2775,9 @@ class Function : public Object {
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
-    return kind() == RawFunction::kClosureFunction;
+    RawFunction::Kind k = kind();
+    return (k == RawFunction::kClosureFunction) ||
+           (k == RawFunction::kImplicitClosureFunction);
   }
 
   // Returns true if this function represents a generated irregexp function.
@@ -2754,7 +2786,14 @@ class Function : public Object {
   }
 
   // Returns true if this function represents an implicit closure function.
-  bool IsImplicitClosureFunction() const;
+  bool IsImplicitClosureFunction() const {
+    return kind() == RawFunction::kImplicitClosureFunction;
+  }
+
+  // Returns true if this function represents a converted closure function.
+  bool IsConvertedClosureFunction() const {
+    return kind() == RawFunction::kConvertedClosureFunction;
+  }
 
   // Returns true if this function represents a non implicit closure function.
   bool IsNonImplicitClosureFunction() const {
@@ -2764,14 +2803,14 @@ class Function : public Object {
   // Returns true if this function represents an implicit static closure
   // function.
   bool IsImplicitStaticClosureFunction() const {
-    return is_static() && IsImplicitClosureFunction();
+    return IsImplicitClosureFunction() && is_static();
   }
   static bool IsImplicitStaticClosureFunction(RawFunction* func);
 
   // Returns true if this function represents an implicit instance closure
   // function.
   bool IsImplicitInstanceClosureFunction() const {
-    return !is_static() && IsImplicitClosureFunction();
+    return IsImplicitClosureFunction() && !is_static();
   }
 
   bool IsConstructorClosureFunction() const;
@@ -2843,10 +2882,28 @@ class Function : public Object {
                           TokenPosition token_pos,
                           Heap::Space space = Heap::kOld);
 
+  // Allocates a new Function object representing a closure function
+  // with given kind - kClosureFunction, kImplicitClosureFunction or
+  // kConvertedClosureFunction.
+  static RawFunction* NewClosureFunctionWithKind(RawFunction::Kind kind,
+                                                 const String& name,
+                                                 const Function& parent,
+                                                 TokenPosition token_pos);
+
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          TokenPosition token_pos);
+
+  // Allocates a new Function object representing an implicit closure function.
+  static RawFunction* NewImplicitClosureFunction(const String& name,
+                                                 const Function& parent,
+                                                 TokenPosition token_pos);
+
+  // Allocates a new Function object representing a converted closure function.
+  static RawFunction* NewConvertedClosureFunction(const String& name,
+                                                  const Function& parent,
+                                                  TokenPosition token_pos);
 
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
@@ -3011,6 +3068,8 @@ class Function : public Object {
   void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
+  RawFunction* converted_closure_function() const;
+  void set_converted_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;
   void set_implicit_static_closure(const Instance& closure) const;
   RawScript* eval_script() const;
@@ -3049,6 +3108,7 @@ class Function : public Object {
   // Function.
   friend class RawFunction;
   friend class ClassFinalizer;  // To reset parent_function.
+  friend class Type;            // To adjust parent_function.
 };
 
 class ClosureData : public Object {
@@ -3071,9 +3131,6 @@ class ClosureData : public Object {
 
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
-
-  RawObject* hash() const { return raw_ptr()->hash_; }
-  void set_hash(intptr_t value) const;
 
   static RawClosureData* New();
 
@@ -3595,10 +3652,10 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  const uint8_t* kernel_data() { return raw_ptr()->kernel_data_; }
+  const uint8_t* kernel_data() const { return raw_ptr()->kernel_data_; }
   void set_kernel_data(const uint8_t* kernel_data) const;
 
-  intptr_t kernel_data_size() { return raw_ptr()->kernel_data_size_; }
+  intptr_t kernel_data_size() const { return raw_ptr()->kernel_data_size_; }
   void set_kernel_data_size(const intptr_t kernel_data_size) const;
 
   intptr_t kernel_script_index() { return raw_ptr()->kernel_script_index_; }
@@ -5532,6 +5589,9 @@ class Instance : public Object {
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;
 
+  // Equivalent to invoking identityHashCode with this instance.
+  RawObject* IdentityHashCode() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -5687,6 +5747,9 @@ class AbstractType : public Instance {
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+
+  // Set the scope of this type to the given function.
+  virtual void SetScopeFunction(const Function& function) const;
 
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
@@ -5902,6 +5965,7 @@ class Type : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+  virtual void SetScopeFunction(const Function& function) const;
   // If signature is not null, this type represents a function type. Note that
   // the signature fully represents the type and type arguments can be ignored.
   // However, in case of a generic typedef, they document how the typedef class
@@ -6051,6 +6115,7 @@ class TypeRef : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
+  virtual void SetScopeFunction(const Function& function) const;
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -6136,6 +6201,7 @@ class TypeParameter : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
+  virtual void SetScopeFunction(const Function& function) const {}
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -6237,6 +6303,7 @@ class BoundedType : public AbstractType {
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+  virtual void SetScopeFunction(const Function& function) const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -6359,6 +6426,7 @@ class Integer : public Number {
                                    Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
+  // Returns null if integer is out of range (in --limit-ints-to-64-bits mode).
   static RawInteger* NewCanonical(const String& str);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
@@ -6603,6 +6671,9 @@ class Bigint : public Integer {
 
   // Returns a canonical Bigint object allocated in the old gen space.
   static RawBigint* NewCanonical(const String& str);
+
+  // Returns true if Bigint can't be instantiated.
+  static bool IsDisabled() { return FLAG_limit_ints_to_64_bits; }
 
  private:
   void SetNeg(bool value) const;
@@ -8336,6 +8407,9 @@ class Closure : public Instance {
   RawContext* context() const { return raw_ptr()->context_; }
   static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
 
+  RawSmi* hash() const { return raw_ptr()->hash_; }
+  static intptr_t hash_offset() { return OFFSET_OF(RawClosure, hash_); }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClosure));
   }
@@ -8346,6 +8420,8 @@ class Closure : public Instance {
     // None of the fields of a closure are instances.
     return true;
   }
+
+  int64_t ComputeHash() const;
 
   static RawClosure* New(const TypeArguments& instantiator_type_arguments,
                          const TypeArguments& function_type_arguments,

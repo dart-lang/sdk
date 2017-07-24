@@ -3812,3 +3812,7 @@ class _UnreachableError extends AssertionError {
 void assertUnreachable() {
   throw new _UnreachableError();
 }
+
+// Hook to register new global object if necessary.
+// This is currently a no-op in dart2js.
+void registerGlobalObject(object) {}

@@ -6,8 +6,6 @@ library fasta.stack_listener;
 
 import 'package:kernel/ast.dart' show AsyncMarker, Expression;
 
-import '../../scanner/token.dart' show BeginToken;
-
 import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../fasta_codes.dart' show Message, templateInternalProblemStackNotEmpty;
@@ -68,6 +66,12 @@ abstract class StackListener extends Listener {
   void finishFunction(List annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
     return unsupported("finishFunction", -1, uri);
+  }
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
+  // and ast_builder.dart.
+  dynamic finishFields() {
+    return unsupported("finishFields", -1, uri);
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
@@ -212,7 +216,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 

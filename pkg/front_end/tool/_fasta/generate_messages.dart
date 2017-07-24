@@ -55,7 +55,7 @@ String compileTemplate(String name, String template, String tip,
     String analyzerCode, String dart2jsCode) {
   if (template == null) {
     print('Error: missing template for message: $name');
-    exit(1);
+    exitCode = 1;
     return '';
   }
   var parameters = new Set<String>();
@@ -88,11 +88,6 @@ String compileTemplate(String name, String template, String tip,
       case "#name3":
         parameters.add("String name3");
         arguments.add("'name3': name3");
-        break;
-
-      case "#number":
-        parameters.add("int number");
-        arguments.add("'number': number");
         break;
 
       case "#lexeme":

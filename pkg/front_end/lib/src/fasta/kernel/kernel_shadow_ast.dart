@@ -2291,6 +2291,7 @@ class KernelVariableDeclaration extends VariableDeclaration
       DartType type,
       bool isFinal: false,
       bool isConst: false,
+      bool isFieldFormal: false,
       bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
@@ -2298,7 +2299,8 @@ class KernelVariableDeclaration extends VariableDeclaration
             initializer: initializer,
             type: type ?? const DynamicType(),
             isFinal: isFinal,
-            isConst: isConst);
+            isConst: isConst,
+            isFieldFormal: isFieldFormal);
 
   KernelVariableDeclaration.forValue(
       Expression initializer, this._functionNestingLevel)

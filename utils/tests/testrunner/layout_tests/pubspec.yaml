@@ -1,5 +1,0 @@
-name: layout_tests
-dependencies:
-  html: any
-  unittest: any
-

@@ -764,7 +764,6 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->ptr()->parent_function_ = static_cast<RawFunction*>(d->ReadRef());
       data->ptr()->signature_type_ = static_cast<RawType*>(d->ReadRef());
       data->ptr()->closure_ = static_cast<RawInstance*>(d->ReadRef());
-      data->ptr()->hash_ = Object::null();
     }
   }
 };
@@ -1570,6 +1569,7 @@ class CodeSerializationCluster : public SerializationCluster {
       }
       if (kind == Snapshot::kFullAOT) {
         if (code->ptr()->instructions_ != code->ptr()->active_instructions_) {
+          // Disabled code is fatal in AOT since we cannot recompile.
           s->UnexpectedObject(code, "Disabled code");
         }
       }
@@ -1580,6 +1580,8 @@ class CodeSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
         if (code->ptr()->active_instructions_ != code->ptr()->instructions_) {
+          // For now, we write the FixCallersTarget or equivalent stub. This
+          // will cause a fixup if this code is called.
           instr = code->ptr()->active_instructions_;
           text_offset = s->GetTextOffset(instr, code);
         }
@@ -4629,12 +4631,18 @@ void Serializer::Trace(RawObject* object) {
 }
 
 void Serializer::UnexpectedObject(RawObject* raw_object, const char* message) {
+  // Exit the no safepoint scope so we can allocate while printing.
+  while (thread()->no_safepoint_scope_depth() > 0) {
+    thread()->DecrementNoSafepointScopeDepth();
+  }
   Object& object = Object::Handle(raw_object);
-  OS::PrintErr("Unexpected object (%s): %s\n", message, object.ToCString());
+  OS::PrintErr("Unexpected object (%s): 0x%" Px " %s\n", message,
+               reinterpret_cast<uword>(object.raw()), object.ToCString());
 #if defined(SNAPSHOT_BACKTRACE)
   while (!object.IsNull()) {
     object = ParentOf(object);
-    OS::PrintErr("referenced by %s\n", object.ToCString());
+    OS::PrintErr("referenced by 0x%" Px " %s\n",
+                 reinterpret_cast<uword>(object.raw()), object.ToCString());
   }
 #endif
   OS::Abort();

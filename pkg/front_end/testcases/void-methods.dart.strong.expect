@@ -8,9 +8,9 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
   set first(dynamic x) → void
-    return let final dynamic #t1 = this.{self::Foo::list} in let final dynamic #t2 = 0 in let final dynamic #t3 = x in let final dynamic #t4 = #t1.{core::List::[]=}(#t2, #t3) in #t3;
-  operator []=(dynamic x, dynamic y) → dynamic
-    return let final dynamic #t5 = this.{self::Foo::list} in let final dynamic #t6 = x in let final dynamic #t7 = y in let final dynamic #t8 = #t5.{core::List::[]=}(#t6, #t7) in #t7;
+    this.list.[]=(0, x);
+  operator []=(dynamic x, dynamic y) → void
+    this.list.[]=(x, y);
   method clear() → void
     return this.{self::Foo::list}.{core::List::clear}();
 }

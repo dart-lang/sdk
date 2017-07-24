@@ -4,10 +4,8 @@
 
 library dart2js.parser.node_listener;
 
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, MemberKind;
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
+import 'package:front_end/src/fasta/parser.dart'
+    show FormalParameterKind, IdentifierContext, MemberKind;
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/scanner/token.dart' show TokenType;
 
@@ -17,7 +15,7 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta show Assert;
+import 'package:front_end/src/fasta/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
@@ -232,7 +230,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -508,7 +506,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionDeclaration(Token endToken) {
+  void endLocalFunctionDeclaration(Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();

@@ -62,6 +62,7 @@ namespace dart {
 DECLARE_FLAG(bool, use_dart_frontend);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
+DECLARE_FLAG(bool, use_dart_frontend);
 #if defined(DART_NO_SNAPSHOT)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
@@ -269,6 +270,7 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
   obj = arguments->NativeArgAt(arg_index);
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
+    ASSERT(!Bigint::IsDisabled());
     const Bigint& bigint = Bigint::Cast(obj);
     if (bigint.FitsIntoUint64()) {
       *value = bigint.AsUint64Value();
@@ -422,6 +424,8 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate() != NULL);
   ASSERT(!FLAG_verify_handles || thread->IsValidLocalHandle(object) ||
+         thread->isolate()->api_state()->IsActivePersistentHandle(
+             reinterpret_cast<Dart_PersistentHandle>(object)) ||
          Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 && LocalHandle::raw_offset() == 0);
@@ -1310,13 +1314,22 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
 }
 
 DART_EXPORT bool Dart_ShouldPauseOnStart() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->should_pause_on_start();
+#endif
 }
 
 DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
+#if defined(PRODUCT)
+  if (should_pause) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
@@ -1324,53 +1337,84 @@ DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
     FATAL1("%s expects the current isolate to not be runnable yet.",
            CURRENT_FUNC);
   }
-  return isolate->message_handler()->set_should_pause_on_start(should_pause);
+  isolate->message_handler()->set_should_pause_on_start(should_pause);
+#endif
 }
 
 DART_EXPORT bool Dart_IsPausedOnStart() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->is_paused_on_start();
+#endif
 }
 
 DART_EXPORT void Dart_SetPausedOnStart(bool paused) {
+#if defined(PRODUCT)
+  if (paused) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   if (isolate->message_handler()->is_paused_on_start() != paused) {
     isolate->message_handler()->PausedOnStart(paused);
   }
+#endif
 }
 
 DART_EXPORT bool Dart_ShouldPauseOnExit() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->should_pause_on_exit();
+#endif
 }
 
 DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause) {
+#if defined(PRODUCT)
+  if (should_pause) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
-  return isolate->message_handler()->set_should_pause_on_exit(should_pause);
+  isolate->message_handler()->set_should_pause_on_exit(should_pause);
+#endif
 }
 
 DART_EXPORT bool Dart_IsPausedOnExit() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->is_paused_on_exit();
+#endif
 }
 
 DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
+#if defined(PRODUCT)
+  if (paused) {
+    FATAL1("%s(true) is not supported in a PRODUCT build", CURRENT_FUNC);
+  }
+#else
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
   if (isolate->message_handler()->is_paused_on_exit() != paused) {
     isolate->message_handler()->PausedOnExit(paused);
   }
+#endif
 }
 
 DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
@@ -1624,6 +1668,9 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
 }
 
 DART_EXPORT bool Dart_HandleServiceMessages() {
+#if defined(PRODUCT)
+  return true;
+#else
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
@@ -1635,13 +1682,18 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
       I->message_handler()->HandleOOBMessages();
   bool resume = I->GetAndClearResumeRequest();
   return (status != MessageHandler::kOK) || resume;
+#endif
 }
 
 DART_EXPORT bool Dart_HasServiceMessages() {
+#if defined(PRODUCT)
+  return false;
+#else
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
   NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->HasOOBMessages();
+#endif
 }
 
 DART_EXPORT bool Dart_HasLivePorts() {
@@ -2012,6 +2064,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
   if (int_obj.IsMint()) {
     *fits = !int_obj.IsNegative();
   } else {
+    ASSERT(!Bigint::IsDisabled());
     *fits = Bigint::Cast(int_obj).FitsIntoUint64();
   }
   return Api::Success();
@@ -2037,7 +2090,12 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
-  return Api::NewHandle(T, Integer::NewFromUint64(value));
+  RawInteger* integer = Integer::NewFromUint64(value);
+  if (integer == Integer::null()) {
+    return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,
+                         CURRENT_FUNC, value);
+  }
+  return Api::NewHandle(T, integer);
 }
 
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
@@ -2045,7 +2103,12 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
   const String& str_obj = String::Handle(Z, String::New(str));
-  return Api::NewHandle(T, Integer::New(str_obj));
+  RawInteger* integer = Integer::New(str_obj);
+  if (integer == Integer::null()) {
+    return Api::NewError("%s: Cannot create Dart integer from string %s",
+                         CURRENT_FUNC, str);
+  }
+  return Api::NewHandle(T, integer);
 }
 
 DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
@@ -2069,6 +2132,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     *value = int_obj.AsInt64Value();
     return Api::Success();
   } else {
+    ASSERT(!Bigint::IsDisabled());
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (bigint.FitsIntoInt64()) {
       *value = bigint.AsInt64Value();
@@ -2106,6 +2170,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
       return Api::Success();
     }
   } else {
+    ASSERT(!Bigint::IsDisabled());
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (bigint.FitsIntoUint64()) {
       *value = bigint.AsUint64Value();
@@ -4992,6 +5057,22 @@ static void CompileSource(Thread* thread,
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static Dart_Handle LoadKernelProgram(Thread* T,
+                                     const String& url,
+                                     void* kernel) {
+  // NOTE: Now the VM owns the [kernel_program] memory!  Currently we do not
+  // free it because (similar to the token stream) it will be used to repeatedly
+  // run the `kernel::FlowGraphBuilder()`.
+  kernel::KernelReader reader(reinterpret_cast<kernel::Program*>(kernel));
+  const Object& tmp = reader.ReadProgram();
+  if (tmp.IsError()) {
+    return Api::NewHandle(T, tmp.raw());
+  }
+  return Dart_Null();
+}
+#endif
+
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle resolved_url,
                                         Dart_Handle source,
@@ -5011,10 +5092,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   if (resolved_url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, resolved_url, String);
   }
-  const String& source_str = Api::UnwrapStringHandle(Z, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, source, String);
-  }
   Library& library = Library::Handle(Z, I->object_store()->root_library());
   if (!library.IsNull()) {
     const String& library_url = String::Handle(Z, library.url());
@@ -5032,6 +5109,32 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
+  Dart_Handle result;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
+    if ((source == Api::Null()) || (source == NULL)) {
+      RETURN_NULL_ERROR(source);
+    }
+    void* kernel_pgm = reinterpret_cast<void*>(source);
+    result = LoadKernelProgram(T, resolved_url_str, kernel_pgm);
+    if (::Dart_IsError(result)) {
+      return result;
+    }
+    library ^= Library::LookupLibrary(T, resolved_url_str);
+    if (library.IsNull()) {
+      return Api::NewError("%s: Unable to load script '%s' correctly.",
+                           CURRENT_FUNC, resolved_url_str.ToCString());
+    }
+    I->object_store()->set_root_library(library);
+    return Api::NewHandle(T, library.raw());
+  }
+#endif
+
+  const String& source_str = Api::UnwrapStringHandle(Z, source);
+  if (source_str.IsNull()) {
+    RETURN_TYPE_ERROR(Z, source, String);
+  }
+
   NoHeapGrowthControlScope no_growth_control;
 
   library = Library::New(url_str);
@@ -5043,7 +5146,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
       Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
                                     RawScript::kScriptTag));
   script.SetLocationOffset(line_offset, column_offset);
-  Dart_Handle result;
   CompileSource(T, library, script, &result);
   return result;
 }
@@ -5348,21 +5450,6 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
   return error_in;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static Dart_Handle LoadKernelProgram(Dart_Handle url, Thread* T, void* kernel) {
-  kernel::KernelReader reader(reinterpret_cast<kernel::Program*>(kernel));
-  const Object& tmp = reader.ReadProgram();
-  if (tmp.IsError()) {
-    return Api::NewHandle(T, tmp.raw());
-  }
-
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  Library& library =
-      Library::Handle(T->zone(), Library::LookupLibrary(T, url_str));
-  return Api::NewHandle(T, library.raw());
-}
-#endif
-
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle resolved_url,
                                          Dart_Handle source,
@@ -5372,19 +5459,23 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
 
+  const String& url_str = Api::UnwrapStringHandle(Z, url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(Z, url, String);
+  }
+  Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Kernel isolate is loaded from script in case of dart_bootstrap
   // even when FLAG_use_dart_frontend is true. Hence, do not interpret
   // |source| as a kernel if the current isolate is the kernel isolate.
   if (FLAG_use_dart_frontend && !KernelIsolate::IsKernelIsolate(I)) {
-    return LoadKernelProgram(url, T, reinterpret_cast<void*>(source));
+    result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
+    if (::Dart_IsError(result)) {
+      return result;
+    }
+    return Api::NewHandle(T, Library::LookupLibrary(T, url_str));
   }
 #endif
-
-  const String& url_str = Api::UnwrapStringHandle(Z, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
   if (::Dart_IsNull(resolved_url)) {
     resolved_url = url;
   }
@@ -5424,7 +5515,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
       Script::Handle(Z, Script::New(url_str, resolved_url_str, source_str,
                                     RawScript::kLibraryTag));
   script.SetLocationOffset(line_offset, column_offset);
-  Dart_Handle result;
   CompileSource(T, library, script, &result);
   // Propagate the error out right now.
   if (::Dart_IsError(result)) {
@@ -5619,14 +5709,14 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
 
   I->DoneFinalizing();
 
+#if !defined(PRODUCT)
   // Now that the newly loaded classes are finalized, notify the debugger
   // that new code has been loaded. If there are latent breakpoints in
   // the new code, the debugger convert them to unresolved source breakpoints.
   // The code that completes the futures (invoked below) may call into the
   // newly loaded code and trigger one of these breakpoints.
-  if (FLAG_support_debugger) {
-    I->debugger()->NotifyDoneLoading();
-  }
+  I->debugger()->NotifyDoneLoading();
+#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_mirrors) {

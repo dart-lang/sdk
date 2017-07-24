@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "./infer_consts_transitively_2.dart" as test;
+import "./infer_consts_transitively_2_b.dart" as inf;
+
+static const field dynamic a1 = test::m2;
+static const field dynamic a2 = inf::b1;
+static method main() → dynamic {}

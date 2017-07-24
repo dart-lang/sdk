@@ -21,10 +21,8 @@ abstract class RuntimeConfiguration {
   factory RuntimeConfiguration(Configuration configuration) {
     switch (configuration.runtime) {
       case Runtime.contentShellOnAndroid:
-      case Runtime.dartiumOnAndroid:
       case Runtime.chrome:
       case Runtime.chromeOnAndroid:
-      case Runtime.dartium:
       case Runtime.firefox:
       case Runtime.ie11:
       case Runtime.ie10:

@@ -25,7 +25,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:front_end/compilation_error.dart';
+import 'package:front_end/compilation_message.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
@@ -201,9 +201,12 @@ void _reportErrors(List errors, ErrorHandler onError) {
   }
 }
 
-class _DartkError implements CompilationError {
+class _DartkError implements CompilationMessage {
   String get tip => null;
   SourceSpan get span => null;
+  String get analyzerCode => null;
+  String get dart2jsCode => null;
+  Severity get severity => Severity.error;
   final String message;
   _DartkError(this.message);
 }

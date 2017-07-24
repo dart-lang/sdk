@@ -394,6 +394,80 @@ class PluginManagerTest {
     expect(manager.notificationManager, notificationManager);
   }
 
+  void test_pathsFor_withPackagesFile() {
+    path.Context context = resourceProvider.pathContext;
+    //
+    // Build the minimal directory structure for a plugin package that includes
+    // a .packages file.
+    //
+    String pluginDirPath = resourceProvider.convertPath('/plugin');
+    String pluginFilePath = context.join(pluginDirPath, 'bin', 'plugin.dart');
+    resourceProvider.newFile(pluginFilePath, '');
+    String packagesFilePath = context.join(pluginDirPath, '.packages');
+    resourceProvider.newFile(packagesFilePath, '');
+    //
+    // Test path computation.
+    //
+    List<String> paths = manager.pathsFor(pluginDirPath);
+    expect(paths, hasLength(2));
+    expect(paths[0], pluginFilePath);
+    expect(paths[1], packagesFilePath);
+  }
+
+  void test_pathsFor_withPubspec_inBazelWorkspace() {
+    path.Context context = resourceProvider.pathContext;
+    //
+    // Build a Bazel workspace containing four packages, including the plugin.
+    //
+    String rootPath = resourceProvider.convertPath('/workspaceRoot');
+    resourceProvider.newFile(context.join(rootPath, 'WORKSPACE'), '');
+    resourceProvider.newFolder(context.join(rootPath, 'bazel-bin'));
+    resourceProvider.newFolder(context.join(rootPath, 'bazel-genfiles'));
+
+    String newPackage(String packageName, [List<String> dependencies]) {
+      String packageRoot =
+          context.join(rootPath, 'third_party', 'dart', packageName);
+      resourceProvider.newFile(
+          context.join(packageRoot, 'lib', packageName + '.dart'), '');
+      StringBuffer buffer = new StringBuffer();
+      if (dependencies != null) {
+        buffer.writeln('dependencies:');
+        for (String dependency in dependencies) {
+          buffer.writeln('  $dependency: any');
+        }
+      }
+      resourceProvider.newFile(
+          context.join(packageRoot, 'pubspec.yaml'), buffer.toString());
+      return packageRoot;
+    }
+
+    String pluginDirPath = newPackage('plugin', ['b', 'c']);
+    newPackage('b', ['d']);
+    newPackage('c', ['d']);
+    newPackage('d');
+    String pluginFilePath = context.join(pluginDirPath, 'bin', 'plugin.dart');
+    resourceProvider.newFile(pluginFilePath, '');
+    //
+    // Test path computation.
+    //
+    List<String> paths = manager.pathsFor(pluginDirPath);
+    expect(paths, hasLength(2));
+    expect(paths[0], pluginFilePath);
+    File packagesFile = resourceProvider.getFile(paths[1]);
+    expect(packagesFile.exists, isTrue);
+    String content = packagesFile.readAsStringSync();
+    List<String> lines = content.split('\n');
+    expect(
+        lines,
+        unorderedEquals([
+          'plugin:file:///workspaceRoot/third_party/dart/plugin/lib',
+          'b:file:///workspaceRoot/third_party/dart/b/lib',
+          'c:file:///workspaceRoot/third_party/dart/c/lib',
+          'd:file:///workspaceRoot/third_party/dart/d/lib',
+          ''
+        ]));
+  }
+
   void test_pluginsForContextRoot_none() {
     ContextRoot contextRoot = new ContextRoot('/pkg1', []);
     expect(manager.pluginsForContextRoot(contextRoot), isEmpty);

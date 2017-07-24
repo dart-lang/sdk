@@ -7,17 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _WorkerNavigator can't be abstract.
-  String get appCodeName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(this);
-  String get appName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(this);
-  String get appVersion => _blink.BlinkWorkerNavigator.instance.appVersion_Getter_(this);
-  bool get dartEnabled => _blink.BlinkWorkerNavigator.instance.dartEnabled_Getter_(this);
-  String get platform => _blink.BlinkWorkerNavigator.instance.platform_Getter_(this);
-  String get product => _blink.BlinkWorkerNavigator.instance.product_Getter_(this);
-  String get userAgent => _blink.BlinkWorkerNavigator.instance.userAgent_Getter_(this);
-  int get hardwareConcurrency => _blink.BlinkWorkerNavigator.instance.hardwareConcurrency_Getter_(this);
-  bool get onLine => _blink.BlinkWorkerNavigator.instance.onLine_Getter_(this);
-$endif
 }
 

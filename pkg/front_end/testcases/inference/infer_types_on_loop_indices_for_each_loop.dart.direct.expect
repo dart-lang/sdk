@@ -1,0 +1,64 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int bar = 42;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Bar<T extends core::Iterable<core::String>> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(self::Bar::T t) → void {
+    for (dynamic i in t) {
+      core::int x = i;
+    }
+  }
+}
+class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S extends self::Baz::E> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(self::Baz::S t) → void {
+    for (dynamic i in t) {
+      core::int x = i;
+      self::Baz::T y = i;
+    }
+  }
+}
+static method test() → dynamic {
+  dynamic list = <self::Foo>[];
+  for (dynamic x in list) {
+    core::String y = x;
+  }
+  for (dynamic x in list) {
+    core::String y = x;
+  }
+  for (core::String x in list) {
+    core::String y = x;
+  }
+  dynamic z;
+  for (final dynamic #t1 in list) {
+    z = #t1;
+    core::String y = z;
+  }
+  core::Iterable<dynamic> iter = list;
+  for (self::Foo x in iter) {
+    dynamic y = x;
+  }
+  dynamic iter2 = list;
+  for (self::Foo x in iter2) {
+    dynamic y = x;
+  }
+  dynamic map = <core::String, self::Foo>{};
+  for (dynamic x in map) {
+    core::String y = x;
+  }
+  for (dynamic x in map.keys) {
+    core::String y = x;
+  }
+}
+static method main() → dynamic {}

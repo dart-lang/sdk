@@ -39,6 +39,9 @@ class CommandLineOptions {
   /// a constructor.
   final bool enableAssertInitializer;
 
+  /// Whether declaration casts are enabled (in strong mode)
+  final bool declarationCasts;
+
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -170,6 +173,9 @@ class CommandLineOptions {
         contextBuilderOptions = createContextBuilderOptions(args),
         dartSdkPath = args['dart-sdk'],
         dartSdkSummaryPath = args['dart-sdk-summary'],
+        declarationCasts = args.wasParsed(declarationCastsFlag)
+            ? args[declarationCastsFlag]
+            : args[implicitCastsFlag],
         disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
@@ -191,7 +197,7 @@ class CommandLineOptions {
         warningsAreFatal = args['fatal-warnings'],
         lintsAreFatal = args['fatal-lints'],
         strongMode = args['strong'],
-        implicitCasts = !args['no-implicit-casts'],
+        implicitCasts = args[implicitCastsFlag],
         implicitDynamic = !args['no-implicit-dynamic'],
         useAnalysisDriverMemoryByteStore =
             args['use-analysis-driver-memory-byte-store'],

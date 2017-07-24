@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field dynamic f = MakeClosure<() → core::String>(self::closure#C#f#function, null);
-  constructor •() → void
+  field dynamic f = MakeClosure<() → dynamic>(self::closure#C#f#function, null);
+  default constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return MakeClosure<(dynamic) → core::String>(self::closure#C#g#function, null);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#C#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -24,12 +24,12 @@ class C extends core::Object {
   }
 }
 class D<T extends core::Object> extends core::Object {
-  field dynamic f = MakeClosure<() → core::String>(self::closure#D#f#function, null);
-  constructor •() → void
+  field dynamic f = MakeClosure<() → dynamic>(self::closure#D#f#function, null);
+  default constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return MakeClosure<(dynamic) → core::String>(self::closure#D#g#function, null);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#D#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -45,12 +45,12 @@ class D<T extends core::Object> extends core::Object {
   }
 }
 class E<T extends core::Object> extends core::Object {
-  field dynamic f = MakeClosure<() → core::String>(self::closure#E#f#function, null);
-  constructor •() → void
+  field dynamic f = MakeClosure<() → dynamic>(self::closure#E#f#function, null);
+  default constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return MakeClosure<(dynamic) → core::String>(self::closure#E#g#function, null);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#E#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -95,21 +95,21 @@ static method main(dynamic arguments) → dynamic {
   self::test(new self::D::•<core::int>());
   self::test(new self::E::•<core::int>());
 }
-static method closure#C#g#function(Vector #contextParameter, dynamic x) → core::String {
+static method closure#C#g#function(Vector #contextParameter, dynamic x) → dynamic {
   return "g(${x})";
 }
-static method closure#C#f#function(Vector #contextParameter) → core::String {
+static method closure#C#f#function(Vector #contextParameter) → dynamic {
   return "f";
 }
-static method closure#D#g#function(Vector #contextParameter, dynamic x) → core::String {
+static method closure#D#g#function(Vector #contextParameter, dynamic x) → dynamic {
   return "g(${x})";
 }
-static method closure#D#f#function(Vector #contextParameter) → core::String {
+static method closure#D#f#function(Vector #contextParameter) → dynamic {
   return "f";
 }
-static method closure#E#g#function(Vector #contextParameter, dynamic x) → core::String {
+static method closure#E#g#function(Vector #contextParameter, dynamic x) → dynamic {
   return "g(${x})";
 }
-static method closure#E#f#function(Vector #contextParameter) → core::String {
+static method closure#E#f#function(Vector #contextParameter) → dynamic {
   return "f";
 }

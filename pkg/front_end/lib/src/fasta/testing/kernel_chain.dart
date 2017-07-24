@@ -25,6 +25,8 @@ import 'package:kernel/ast.dart' show Library, Program;
 
 import '../kernel/verifier.dart' show verifyProgram;
 
+import '../compiler_context.dart';
+
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -35,6 +37,9 @@ import 'package:testing/testing.dart'
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:front_end/front_end.dart';
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
 
 import 'patched_sdk_location.dart' show computePatchedSdk;
 
@@ -65,13 +70,17 @@ class Verify extends Step<Program, Program, ChainContext> {
   String get name => "verify";
 
   Future<Result<Program>> run(Program program, ChainContext context) async {
-    var errors = verifyProgram(program, isOutline: !fullCompile);
-    if (errors.isEmpty) {
-      return pass(program);
-    } else {
-      return new Result<Program>(
-          null, context.expectationSet["VerificationError"], errors, null);
-    }
+    var options =
+        new ProcessedOptions(new CompilerOptions()..throwOnErrors = false);
+    return await CompilerContext.runWithOptions(options, (_) async {
+      var errors = verifyProgram(program, isOutline: !fullCompile);
+      if (errors.isEmpty) {
+        return pass(program);
+      } else {
+        return new Result<Program>(
+            null, context.expectationSet["VerificationError"], errors, null);
+      }
+    });
   }
 }
 
@@ -187,7 +196,7 @@ class Compile extends Step<TestDescription, Program, CompileContext> {
   Future<Result<Program>> run(
       TestDescription description, CompileContext context) async {
     Result<Program> result;
-    reportError(CompilationError error) {
+    reportError(CompilationMessage error) {
       result ??= fail(null, error.message);
     }
 

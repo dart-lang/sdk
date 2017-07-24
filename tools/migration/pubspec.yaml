@@ -1,0 +1,5 @@
+name: migration
+#version: do-not-upload
+dependencies:
+  path:
+    path: ../../third_party/pkg/path

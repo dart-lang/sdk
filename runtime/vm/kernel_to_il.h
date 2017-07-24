@@ -262,6 +262,12 @@ class ActiveMemberScope {
 class TranslationHelper {
  public:
   explicit TranslationHelper(dart::Thread* thread);
+
+  TranslationHelper(dart::Thread* thread,
+                    dart::RawTypedData* string_offsets,
+                    dart::RawTypedData* string_data,
+                    dart::RawTypedData* canonical_names);
+
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -499,7 +505,7 @@ class FlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateContext(int size);
+  Fragment AllocateContext(intptr_t size);
   Fragment AllocateObject(TokenPosition position,
                           const dart::Class& klass,
                           intptr_t argument_count);

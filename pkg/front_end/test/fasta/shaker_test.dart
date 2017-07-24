@@ -20,7 +20,9 @@ import 'dart:convert' show JSON;
 import 'dart:io' show File;
 
 export 'package:testing/testing.dart' show Chain, runMe;
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/compiler_options.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
@@ -30,9 +32,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyProgram;
 import 'package:front_end/src/fasta/testing/kernel_chain.dart' show runDiff;
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
@@ -52,7 +51,7 @@ Future<TreeShakerContext> createContext(
 
 /// Context used to run the tree-shaking test suite.
 class TreeShakerContext extends ChainContext {
-  final UriTranslator uriTranslator;
+  final ProcessedOptions options;
   final Uri outlineUri;
   final List<Step> steps;
   final List<int> outlineBytes;
@@ -60,8 +59,8 @@ class TreeShakerContext extends ChainContext {
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
 
-  TreeShakerContext(this.outlineUri, this.uriTranslator, this.outlineBytes,
-      bool updateExpectations)
+  TreeShakerContext(
+      this.outlineUri, this.options, this.outlineBytes, bool updateExpectations)
       : steps = <Step>[
           const BuildProgram(),
           new CheckShaker(updateExpectations: updateExpectations),
@@ -80,12 +79,11 @@ class TreeShakerContext extends ChainContext {
     bool updateExpectations = environment["updateExpectations"] == "true";
     Uri sdk = await computePatchedSdk();
     Uri outlineUri = sdk.resolve('outline.dill');
-    Uri packages = Uri.base.resolve(".packages");
-    UriTranslator uriTranslator = await UriTranslatorImpl
-        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
+    var options = new CompilerOptions()
+      ..packagesFileUri = Uri.base.resolve(".packages");
     List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
-    return new TreeShakerContext(
-        outlineUri, uriTranslator, outlineBytes, updateExpectations);
+    return new TreeShakerContext(outlineUri, new ProcessedOptions(options),
+        outlineBytes, updateExpectations);
   }
 }
 
@@ -97,32 +95,34 @@ class BuildProgram
   String get name => "build program";
   Future<Result<_IntermediateData>> run(
       TestDescription description, TreeShakerContext context) async {
-    try {
-      var platformOutline = context.loadPlatformOutline();
-      platformOutline.unbindCanonicalNames();
-      var dillTarget = new DillTarget(
-          new Ticker(isVerbose: false),
-          context.uriTranslator,
-          new VmFastaTarget(new TargetFlags(strongMode: false)));
-      dillTarget.loader.appendLibraries(platformOutline);
-      var sourceTarget = new KernelTarget(PhysicalFileSystem.instance, false,
-          dillTarget, context.uriTranslator);
-      await dillTarget.buildOutlines();
+    return await CompilerContext.runWithOptions(context.options, (_) async {
+      try {
+        var platformOutline = context.loadPlatformOutline();
+        platformOutline.unbindCanonicalNames();
+        var uriTranslator = await context.options.getUriTranslator();
+        var dillTarget = new DillTarget(context.options.ticker, uriTranslator,
+            new VmFastaTarget(new TargetFlags(strongMode: false)));
+        dillTarget.loader.appendLibraries(platformOutline);
+        var sourceTarget = new KernelTarget(
+            context.options.fileSystem, false, dillTarget, uriTranslator);
+        await dillTarget.buildOutlines();
 
-      var inputUri = description.uri;
-      var libUri = inputUri.resolve('lib/lib.dart');
-      sourceTarget.read(libUri);
-      sourceTarget.read(inputUri);
-      var contents = new File.fromUri(inputUri).readAsStringSync();
-      var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
-      await sourceTarget.buildOutlines();
-      var program = await sourceTarget.buildProgram();
-      bool isIncluded(Uri uri) => !_isTreeShaken(uri);
-      trimProgram(program, isIncluded);
-      return pass(new _IntermediateData(inputUri, program, showCoreLibraries));
-    } on deprecated_InputError catch (e, s) {
-      return fail(null, e.error, s);
-    }
+        var inputUri = description.uri;
+        var libUri = inputUri.resolve('lib/lib.dart');
+        sourceTarget.read(libUri);
+        sourceTarget.read(inputUri);
+        var contents = new File.fromUri(inputUri).readAsStringSync();
+        var showCoreLibraries = contents.contains("@@SHOW_CORE_LIBRARIES@@");
+        await sourceTarget.buildOutlines();
+        var program = await sourceTarget.buildProgram();
+        bool isIncluded(Uri uri) => !_isTreeShaken(uri);
+        trimProgram(program, isIncluded);
+        return pass(
+            new _IntermediateData(inputUri, program, showCoreLibraries));
+      } on deprecated_InputError catch (e, s) {
+        return fail(null, e.error, s);
+      }
+    });
   }
 }
 

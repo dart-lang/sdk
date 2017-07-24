@@ -117,6 +117,7 @@ class StreamingScopeBuilder {
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
   void VisitTypeParameterType();
+  void VisitVectorType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
   void EnterScope(intptr_t kernel_offset);
@@ -372,6 +373,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildFieldInitializer(NameIndex canonical_name);
   Fragment BuildInitializers(intptr_t constructor_class_parent_offset);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
+  FlowGraph* BuildGraphOfConvertedClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(
       intptr_t constructor_class_parent_offset = -1);
 
@@ -442,6 +444,7 @@ class StreamingFlowGraphBuilder {
   BreakableBlock* breakable_block();
   GrowableArray<YieldContinuation>& yield_continuations();
   Value* stack();
+  void Push(Definition* definition);
   Value* Pop();
 
   Tag PeekArgumentsFirstPositionalTag();
@@ -497,8 +500,13 @@ class StreamingFlowGraphBuilder {
   Fragment AllocateObject(TokenPosition position,
                           const dart::Class& klass,
                           intptr_t argument_count);
+  Fragment AllocateObject(const dart::Class& klass,
+                          const Function& closure_function);
+  Fragment AllocateContext(intptr_t size);
+  Fragment LoadField(intptr_t offset);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
+  Fragment StoreInstanceField(TokenPosition position, intptr_t offset);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
@@ -586,6 +594,11 @@ class StreamingFlowGraphBuilder {
   Fragment BuildDoubleLiteral(TokenPosition* position);
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
+  Fragment BuildVectorCreation(TokenPosition* position);
+  Fragment BuildVectorGet(TokenPosition* position);
+  Fragment BuildVectorSet(TokenPosition* position);
+  Fragment BuildVectorCopy(TokenPosition* position);
+  Fragment BuildClosureCreation(TokenPosition* position);
 
   Fragment BuildInvalidStatement();
   Fragment BuildExpressionStatement();
@@ -853,16 +866,24 @@ class FieldHelper {
     kEnd
   };
 
-  explicit FieldHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
+  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
+      : builder_(builder),
+        next_read_(kStart),
+        has_function_literal_initializer_(false) {}
+
+  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset)
+      : builder_(builder),
+        next_read_(kStart),
+        has_function_literal_initializer_(false) {
+    builder_->SetOffset(offset);
   }
 
   void ReadUntilIncluding(Fields field) {
     ReadUntilExcluding(static_cast<Fields>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Fields field) {
+  void ReadUntilExcluding(Fields field,
+                          bool detect_function_literal_initializer = false) {
     if (field <= next_read_) return;
 
     // Ordered with fall-through.
@@ -909,8 +930,22 @@ class FieldHelper {
         builder_->SkipDartType();  // read type.
         if (++next_read_ == field) return;
       case kInitializer:
-        if (builder_->ReadTag() == kSomething)
+        if (builder_->ReadTag() == kSomething) {
+          if (detect_function_literal_initializer &&
+              builder_->PeekTag() == kFunctionExpression) {
+            has_function_literal_initializer_ = true;
+            intptr_t expr_offset = builder_->ReaderOffset();
+            Tag tag = builder_->ReadTag();
+            ASSERT(tag == kFunctionExpression);
+            tag = builder_->ReadTag();
+            ASSERT(tag == kFunctionNode);
+            function_literal_start_ = builder_->ReadPosition();
+            function_literal_end_ = builder_->ReadPosition();
+
+            builder_->SetOffset(expr_offset);
+          }
           builder_->SkipExpression();  // read initializer.
+        }
         if (++next_read_ == field) return;
       case kEnd:
         return;
@@ -929,6 +964,15 @@ class FieldHelper {
     return (flags_ & Field::kFlagStatic) == Field::kFlagStatic;
   }
 
+  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
+                                          TokenPosition* end) {
+    if (has_function_literal_initializer_) {
+      *start = function_literal_start_;
+      *end = function_literal_end_;
+    }
+    return has_function_literal_initializer_;
+  }
+
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
@@ -940,6 +984,10 @@ class FieldHelper {
  private:
   StreamingFlowGraphBuilder* builder_;
   intptr_t next_read_;
+
+  bool has_function_literal_initializer_;
+  TokenPosition function_literal_start_;
+  TokenPosition function_literal_end_;
 };
 
 // Helper class that reads a kernel Procedure from binary.

@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic x1 = <dynamic, dynamic>{1: "x", 2: "y"};
+static field dynamic x2 = <dynamic, dynamic>{1: "x", 2: "y", 3.0: core::RegExp::•(".")};
+static method test1() → dynamic {
+  self::x1.[]=(3, "z");
+  self::x1.[]=("hi", "w");
+  self::x1.[]=(4.0, "u");
+  self::x1.[]=(3, 42);
+  core::Map<core::num, core::String> y = self::x1;
+}
+static method test2() → dynamic {
+  self::x2.[]=(3, "z");
+  self::x2.[]=("hi", "w");
+  self::x2.[]=(4.0, "u");
+  self::x2.[]=(3, 42);
+  core::Pattern p = null;
+  self::x2.[]=(2, p);
+  core::Map<core::int, core::String> y = self::x2;
+}
+static method main() → dynamic {}

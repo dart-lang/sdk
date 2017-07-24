@@ -111,6 +111,11 @@ td.right {
   text-align: right;
 }
 
+table td {
+  max-width: 600px;
+  vertical-align: text-top;
+}
+
 td.pre {
   white-space: pre;
 }
@@ -177,7 +182,9 @@ class AstPage extends DiagnosticPageWithNav {
     }
     AnalysisResult result = await driver.getResult(path);
     if (result == null) {
-      p('An AST could not be produced for the file <code>${escape(path)}</code>.',
+      p(
+          'An AST could not be produced for the file <code>${escape(
+          path)}</code>.',
           raw: true);
       return;
     }
@@ -306,7 +313,8 @@ class CompletionPage extends DiagnosticPageWithNav {
 
     int fastCount =
         completions.where((c) => c.elapsedInMilliseconds <= 100).length;
-    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
+    p('${completions.length} results; ${printPercentage(
+        fastCount / completions.length)} within 100ms.');
 
     // draw a chart
     buf.writeln(
@@ -341,7 +349,8 @@ class CompletionPage extends DiagnosticPageWithNav {
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
     for (CompletionPerformance completion in completions) {
       buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
+          '<td class="pre right">${printMilliseconds(
+          completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCount}</td>'
           '<td>${escape(completion.source.shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
@@ -465,7 +474,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     implicitFiles.sort();
 
     String lenCounter(List list) {
-      return '<span class="counter" style="float: right;">${list.length}</span>';
+      return '<span class="counter" style="float: right;">${list
+          .length}</span>';
     }
 
     h3('Context files');
@@ -592,7 +602,9 @@ abstract class DiagnosticPage extends Page {
 
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
-        <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
+        <a href="/feedback" ${isCurrentPage('/feedback')
+        ? ' class="active"'
+        : ''}>Feedback</a>
         <a href="https://www.dartlang.org/tools/analyzer" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
@@ -685,6 +697,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new CompletionPage(this));
     pages.add(new CommunicationsPage(this));
     pages.add(new ContextsPage(this));
+    pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
     pages.add(new OverlaysPage(this));
@@ -746,7 +759,9 @@ class ElementModelPage extends DiagnosticPageWithNav {
     }
     AnalysisResult result = await driver.getResult(path);
     if (result == null) {
-      p('An element model could not be produced for the file <code>${escape(path)}</code>.',
+      p(
+          'An element model could not be produced for the file <code>${escape(
+          path)}</code>.',
           raw: true);
       return;
     }
@@ -774,6 +789,24 @@ class ExceptionPage extends DiagnosticPage {
 
   void generateContent(Map<String, String> params) {
     p(trace.toString(), style: 'white-space: pre');
+  }
+}
+
+class EnvironmentVariablesPage extends DiagnosticPageWithNav {
+  EnvironmentVariablesPage(DiagnosticsSite site)
+      : super(site, 'environment', 'Environment Variables',
+            description:
+                'System environment variables as seen from the analysis server.');
+
+  @override
+  void generateContent(Map<String, String> params) {
+    buf.writeln('<table>');
+    buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
+    for (String key in Platform.environment.keys.toList()..sort()) {
+      String value = Platform.environment[key];
+      buf.writeln('<tr><td>${escape(key)}</td><td>${escape(value)}</td></tr>');
+    }
+    buf.writeln('</table>');
   }
 }
 
@@ -833,9 +866,12 @@ class FeedbackPage extends DiagnosticPage {
 
     p('Other data to include:');
     ul([
-      "the IDE you are using and it's version${ideText.isEmpty ? '' : ' ($ideText)'}",
+      "the IDE you are using and it's version${ideText.isEmpty
+          ? ''
+          : ' ($ideText)'}",
       'the Dart SDK version (<code>${escape(_sdkVersion)}</code>)',
-      'your operating system (<code>${escape(Platform.operatingSystem)}</code>)',
+      'your operating system (<code>${escape(
+          Platform.operatingSystem)}</code>)',
     ], (line) => buf.writeln(line));
 
     p('Thanks!');
@@ -942,7 +978,8 @@ class OverlaysPage extends DiagnosticPageWithNav {
       blankslate('No overlays.');
     } else {
       String lenCounter(List list) {
-        return '<span class="counter" style="float: right;">${list.length}</span>';
+        return '<span class="counter" style="float: right;">${list
+            .length}</span>';
       }
 
       h3('Overlays ${lenCounter(paths)}', raw: true);
@@ -988,10 +1025,14 @@ class PluginsPage extends DiagnosticPageWithNav {
   }
 }
 
+// TODO(devoncarew): We're not currently tracking the time spent in specific
+// lints by default (analysisOptions / driverOptions enableTiming)
+final bool _showLints = false;
+
 class ProfilePage extends DiagnosticPageWithNav {
   ProfilePage(DiagnosticsSite site)
       : super(site, 'profile', 'Profiling Info',
-            description: 'Profiling performance tag data and lint timings.');
+            description: 'Profiling performance tag data.');
 
   @override
   void generateContent(Map<String, String> params) {
@@ -1062,27 +1103,29 @@ class ProfilePage extends DiagnosticPageWithNav {
     tags.forEach(writeRow);
     buf.write('</table>');
 
-    h3('Lint rule timings');
-    List<LintRule> rules = Registry.ruleRegistry.rules.toList();
-    int totalLintTime = rules.fold(0,
-        (sum, rule) => sum + lintRegistry.getTimer(rule).elapsedMilliseconds);
-    p('Total time spent in lints: ${printMilliseconds(totalLintTime)}');
+    if (_showLints) {
+      h3('Lint rule timings');
+      List<LintRule> rules = Registry.ruleRegistry.rules.toList();
+      int totalLintTime = rules.fold(0,
+          (sum, rule) => sum + lintRegistry.getTimer(rule).elapsedMilliseconds);
+      p('Total time spent in lints: ${printMilliseconds(totalLintTime)}');
 
-    rules.sort((first, second) {
-      int firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
-      int secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
-      if (firstTime == secondTime) {
-        return first.lintCode.name.compareTo(second.lintCode.name);
+      rules.sort((first, second) {
+        int firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
+        int secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
+        if (firstTime == secondTime) {
+          return first.lintCode.name.compareTo(second.lintCode.name);
+        }
+        return secondTime - firstTime;
+      });
+      buf.write('<table>');
+      _writeRow(['Lint code', 'Time (in ms)'], header: true);
+      for (var rule in rules) {
+        int time = lintRegistry.getTimer(rule).elapsedMilliseconds;
+        _writeRow([rule.lintCode.name, printMilliseconds(time)]);
       }
-      return secondTime - firstTime;
-    });
-    buf.write('<table>');
-    _writeRow(['Lint code', 'Time (in ms)'], header: true);
-    for (var rule in rules) {
-      int time = lintRegistry.getTimer(rule).elapsedMilliseconds;
-      _writeRow([rule.lintCode.name, printMilliseconds(time)]);
+      buf.write('</table>');
     }
-    buf.write('</table>');
   }
 }
 

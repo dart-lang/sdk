@@ -20,7 +20,10 @@ import '../fasta_codes.dart'
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
-        templateOperatorParameterMismatch;
+        templateOperatorMinusParameterMismatch,
+        templateOperatorParameterMismatch0,
+        templateOperatorParameterMismatch1,
+        templateOperatorParameterMismatch2;
 
 import '../modifier.dart' show abstractMask, externalMask, Modifier;
 
@@ -31,12 +34,11 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../parser/native_support.dart'
     show extractNativeMethodName, removeNativeClause, skipNativeClause;
 
-import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
+import '../parser.dart'
+    show FormalParameterKind, IdentifierContext, MemberKind, optional;
 
 import '../problems.dart' show unhandled, unimplemented;
 
@@ -389,10 +391,29 @@ class OutlineBuilder extends UnhandledListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        addCompileTimeError(
-            templateOperatorParameterMismatch.withArguments(
-                name, requiredArgumentCount),
-            charOffset);
+        var template;
+        switch (requiredArgumentCount) {
+          case 0:
+            template = templateOperatorParameterMismatch0;
+            break;
+
+          case 1:
+            if (Operator.subtract == nameOrOperator) {
+              template = templateOperatorMinusParameterMismatch;
+            } else {
+              template = templateOperatorParameterMismatch1;
+            }
+            break;
+
+          case 2:
+            template = templateOperatorParameterMismatch2;
+            break;
+
+          default:
+            unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
+                charOffset, uri);
+        }
+        addCompileTimeError(template.withArguments(name), charOffset);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
@@ -495,7 +516,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
@@ -522,9 +543,9 @@ class OutlineBuilder extends UnhandledListener {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterType kind = optional("{", beginToken)
-        ? FormalParameterType.NAMED
-        : FormalParameterType.POSITIONAL;
+    FormalParameterKind kind = optional("{", beginToken)
+        ? FormalParameterKind.optionalNamed
+        : FormalParameterKind.optionalPositional;
     // When recovering from an empty list of optional arguments, count may be
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be

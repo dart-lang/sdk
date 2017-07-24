@@ -6,7 +6,6 @@ part of web_audio;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DART2JS
   factory AudioContext() => JS('AudioContext',
       'new (window.AudioContext || window.webkitAudioContext)()');
 
@@ -33,9 +32,7 @@ $if DART2JS
           bufferSize);
     }
   }
-$endif
 
-$if DART2JS
   @JSName('decodeAudioData')
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
@@ -57,21 +54,4 @@ $if DART2JS
         });
     return completer.future;
   }
-$else
-  @DomName('AudioContext.decodeAudioData')
-  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
-      [AudioBufferCallback successCallback,
-      AudioBufferCallback errorCallback]) {
-    if (errorCallback != null) {
-      return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(
-          this, audioData, successCallback, errorCallback));
-    }
-    if (successCallback != null) {
-      return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
-          .decodeAudioData_Callback_2_(this, audioData, successCallback));
-    }
-    return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
-        .decodeAudioData_Callback_1_(this, audioData));
-  }
-$endif
 }

@@ -847,14 +847,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         ? ErrorVerifier.getStaticType(lhs)
         : leftVariableElement.type;
     DartType staticRightType = ErrorVerifier.getStaticType(rhs);
-    if (!_typeSystem.isAssignableTo(staticRightType, leftType)) {
+    if (!_typeSystem.isAssignableTo(staticRightType, leftType,
+        isDeclarationCast: true)) {
       // The warning was generated on this rhs
       return false;
     }
     // Test for, and then generate the hint
     DartType bestRightType = rhs.bestType;
     if (leftType != null && bestRightType != null) {
-      if (!_typeSystem.isAssignableTo(bestRightType, leftType)) {
+      if (!_typeSystem.isAssignableTo(bestRightType, leftType,
+          isDeclarationCast: true)) {
         _errorReporter.reportTypeErrorForNode(
             HintCode.INVALID_ASSIGNMENT, rhs, [bestRightType, leftType]);
         return true;

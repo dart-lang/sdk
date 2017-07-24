@@ -29,27 +29,56 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    node.argumentList?.accept(this);
+    // TODO(paulberry): store resolution of node.constructorName.
+    node.staticType = _getTypeFor(node.constructorName);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
+    node.methodName.staticType = _getTypeFor(node.methodName);
     // TODO(paulberry): store resolution of node.methodName.
     // TODO(paulberry): store resolution of node.typeArguments.
     node.argumentList.accept(this);
-    node.staticType = _getTypeFor(node);
+    node.staticType = _getTypeFor(node.argumentList);
+  }
+
+  @override
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
+    node.visitChildren(this);
+    node.staticType = node.expression.staticType;
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.parent is VariableDeclarationList &&
+        node.parent.parent is TopLevelVariableDeclaration) {
+      // Don't visit the name; resolution for it will come from the outline.
+    } else {
+      node.name.accept(this);
+    }
+    node.initializer?.accept(this);
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    if (node.variables.length != 1) {
-      // TODO(paulberry): handle this case
-      throw new UnimplementedError('Multiple variables in one declaration');
-    }
-    if (node.metadata.isNotEmpty) {
-      // TODO(paulberry): handle this case
-      throw new UnimplementedError('Metadata on a variable declaration list');
-    }
-    node.variables.accept(this);
-    if (node.type != null) {
-      _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
+    if (node.parent is TopLevelVariableDeclaration) {
+      node.variables.accept(this);
+    } else {
+      if (node.variables.length != 1) {
+        // TODO(paulberry): handle this case
+        throw new UnimplementedError('Multiple variables in one declaration');
+      }
+      if (node.metadata.isNotEmpty) {
+        // TODO(paulberry): handle this case
+        throw new UnimplementedError('Metadata on a variable declaration list');
+      }
+      node.variables.accept(this);
+      if (node.type != null) {
+        _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
+      }
     }
   }
 
@@ -87,8 +116,8 @@ class ValidatingResolutionApplier extends ResolutionApplier {
     if (_debug) print('Getting type for $node');
     if (node.offset != _typeOffsets[_typeIndex]) {
       throw new StateError(
-          'Expected a type for offset ${node.offset}; got one for '
-          '${_typeOffsets[_typeIndex]}');
+          'Expected a type for analyzer offset ${node.offset}; got one for '
+          'kernel offset ${_typeOffsets[_typeIndex]}');
     }
     return super._getTypeFor(node);
   }

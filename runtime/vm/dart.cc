@@ -605,21 +605,27 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   bool is_kernel_isolate = false;
+  USE(is_kernel_isolate);
+
 #ifndef DART_PRECOMPILED_RUNTIME
   KernelIsolate::InitCallback(I);
   is_kernel_isolate = KernelIsolate::IsKernelIsolate(I);
 #endif
+
   ServiceIsolate::MaybeMakeServiceIsolate(I);
+#if !defined(PRODUCT)
   if (!ServiceIsolate::IsServiceIsolate(I) && !is_kernel_isolate) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
   }
+#endif  // !defined(PRODUCT)
 
   ServiceIsolate::SendIsolateStartupMessage();
-  if (FLAG_support_debugger) {
-    I->debugger()->NotifyIsolateCreated();
-  }
+#if !defined(PRODUCT)
+  I->debugger()->NotifyIsolateCreated();
+#endif
+
   // Create tag table.
   I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
   // Set up default UserTag.
@@ -646,10 +652,6 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
 #endif
 
   if (Snapshot::IncludesCode(kind)) {
-    if (FLAG_support_debugger) {
-      buffer.AddString(" support-debugger");
-    }
-
 // Checked mode affects deopt ids.
 #define ADD_FLAG(name, isolate_flag, flag)                                     \
   do {                                                                         \

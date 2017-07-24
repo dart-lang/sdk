@@ -523,7 +523,13 @@ void Precompiler::DoCompileAll(
 static void CompileStaticInitializerIgnoreErrors(const Field& field) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Precompiler::CompileStaticInitializer(field, /* compute_type = */ true);
+    const Function& initializer =
+        Function::Handle(Precompiler::CompileStaticInitializer(
+            field, /* compute_type = */ true));
+    // This function may have become a canonical signature function. Clear
+    // its code while we have a chance.
+    initializer.ClearCode();
+    initializer.ClearICDataArray();
   } else {
     // Ignore compile-time errors here. If the field is actually used,
     // the error will be reported later during Iterate().
@@ -630,6 +636,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
     {"dart:core", "::", "_completeDeferredLoads"},
+    {"dart:core", "::", "identityHashCode"},
     {"dart:core", "AbstractClassInstantiationError",
      "AbstractClassInstantiationError._create"},
     {"dart:core", "ArgumentError", "ArgumentError."},

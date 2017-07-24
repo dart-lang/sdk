@@ -17,6 +17,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_shutdown);
+DECLARE_FLAG(bool, use_dart_frontend);
 
 static void native_echo(Dart_NativeArguments args);
 static void CustomIsolateImpl_start(Dart_NativeArguments args);
@@ -308,7 +309,7 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
   FLAG_trace_shutdown = true;
   FLAG_verify_handles = true;
 #ifdef DEBUG
-  FLAG_verify_on_transition = true;
+  FLAG_verify_on_transition = FLAG_use_dart_frontend ? false : true;
 #endif
   event_queue = new EventQueue();
 

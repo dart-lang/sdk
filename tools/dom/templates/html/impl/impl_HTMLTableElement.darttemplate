@@ -25,7 +25,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   TableSectionElement createTHead() => _createTHead();
   TableRowElement insertRow(int index) => _insertRow(index);
 
-$if DART2JS
   TableSectionElement _createTBody() {
     if (JS('bool', '!!#.createTBody', this)) {
       return this._nativeCreateTBody();
@@ -53,6 +52,5 @@ $if DART2JS
 
     return fragment;
   }
-$endif
 
 $!MEMBERS}

@@ -294,8 +294,6 @@ library libC;
       expect(importElement.importedLibrary, libraryElementB);
       expect(importElement.prefix, isNull);
       expect(importElement.nameOffset, 14);
-      expect(importElement.uriOffset, 21);
-      expect(importElement.uriEnd, 32);
     }
     {
       ExportDirective exportNode = libraryUnitA.directives[2];
@@ -303,8 +301,6 @@ library libC;
       expect(exportElement, isNotNull);
       expect(exportElement.exportedLibrary, libraryElementC);
       expect(exportElement.nameOffset, 34);
-      expect(exportElement.uriOffset, 41);
-      expect(exportElement.uriEnd, 52);
     }
     // validate LibraryElement
     expect(libraryElementA.hasExtUri, isFalse);
@@ -372,7 +368,6 @@ export 'foo.dart'
     // Validate the export element.
     ExportElement export = testLibrary.exports[0];
     expect(export.exportedLibrary.source, foo_io);
-    expect(export.uri, 'foo_io.dart');
   }
 
   test_perform_configurations_import() {
@@ -393,7 +388,6 @@ import 'foo.dart'
     // Validate the import element.
     ImportElement import = testLibrary.imports[0];
     expect(import.importedLibrary.source, foo_io);
-    expect(import.uri, 'foo_io.dart');
   }
 
   test_perform_dartCoreContext() {
@@ -808,7 +802,10 @@ part of 'lib.dart';
     // CompilationUnitElement(s)
     CompilationUnitElement firstPart;
     CompilationUnitElement secondPart;
-    if (resolutionMap.elementDeclaredByCompilationUnit(partUnits[0]).uri ==
+    if (resolutionMap
+            .elementDeclaredByCompilationUnit(partUnits[0])
+            .source
+            .shortName ==
         'part1.dart') {
       firstPart = partUnits[0].element;
       secondPart = partUnits[1].element;
@@ -816,15 +813,11 @@ part of 'lib.dart';
       firstPart = partUnits[1].element;
       secondPart = partUnits[0].element;
     }
-    expect(firstPart.uri, 'part1.dart');
-    expect(firstPart.uriOffset, 18);
-    expect(firstPart.uriEnd, 30);
+    expect(firstPart.source.shortName, 'part1.dart');
     expect(
         (libraryUnit.directives[1] as PartDirective).element, same(firstPart));
 
-    expect(secondPart.uri, 'part2.dart');
-    expect(secondPart.uriOffset, 37);
-    expect(secondPart.uriEnd, 49);
+    expect(secondPart.source.shortName, 'part2.dart');
     expect(
         (libraryUnit.directives[2] as PartDirective).element, same(secondPart));
   }

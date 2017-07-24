@@ -152,6 +152,13 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     });
     entryPoint = dir.uri.resolve(entryPoint.path);
   }
+  return entryPoint;
+}
+
+Future generateDill(Uri entryPoint, Map<String, String> memorySourceFiles,
+    {bool printSteps: false}) async {
+  entryPoint =
+      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
   if (printSteps) {
     print('---- generate dill -----------------------------------------------');
   }
@@ -174,7 +181,7 @@ Future<Compiler> compileWithDill(
     CompilerOutput compilerOutput,
     void beforeRun(Compiler compiler)}) async {
   Uri dillFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
+      await generateDill(entryPoint, memorySourceFiles, printSteps: printSteps);
 
   if (printSteps) {
     print('---- compile from dill $dillFile ---------------------------------');

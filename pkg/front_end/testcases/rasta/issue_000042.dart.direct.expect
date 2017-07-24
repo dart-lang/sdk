@@ -3,21 +3,26 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  invalid-statement;
+  for (final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: Expected lvalue, but got [x, y]\n  for (var x, y in []) {}\n       ^")) in <dynamic>[]) {
+  }
+  #L1:
   {
     invalid-statement;
   }
+  #L2:
   if(true) {
     invalid-statement;
   }
-  #L1:
+  #L3:
   switch(1) {
-    #L2:
+    #L4:
     case 1:
       invalid-statement;
     #L3:
     case 2:
-      break #L1;
+      {
+        break #L3;
+      }
   }
   try {
   }

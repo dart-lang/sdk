@@ -1,0 +1,6 @@
+library test;
+import self as self;
+
+typedef F = () → void;
+static final field dynamic x = () → void;
+static method main() → dynamic {}

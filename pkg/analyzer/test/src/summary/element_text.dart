@@ -262,14 +262,22 @@ class _ElementWriter {
   void writeExportElement(ExportElement e) {
     writeMetadata(e, '', '\n');
     buffer.write('export ');
-    writeUri(e, e.exportedLibrary?.source);
+    writeUri(e.exportedLibrary?.source);
 
     e.combinators.forEach(writeNamespaceCombinator);
 
     buffer.writeln(';');
   }
 
-  void writeExpression(AstNode e) {
+  void writeExpression(AstNode e, [Expression enclosing]) {
+    bool needsParenthesis = e is Expression &&
+        enclosing != null &&
+        e.precedence < enclosing.precedence;
+
+    if (needsParenthesis) {
+      buffer.write('(');
+    }
+
     if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);
@@ -290,11 +298,11 @@ class _ElementWriter {
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
-      writeExpression(e.leftOperand);
+      writeExpression(e.leftOperand, e);
       buffer.write(' ');
       buffer.write(e.operator.lexeme);
       buffer.write(' ');
-      writeExpression(e.rightOperand);
+      writeExpression(e.rightOperand, e);
     } else if (e is BooleanLiteral) {
       buffer.write(e.value);
     } else if (e is ConditionalExpression) {
@@ -360,13 +368,13 @@ class _ElementWriter {
       buffer.write('null');
     } else if (e is PrefixExpression) {
       buffer.write(e.operator.lexeme);
-      writeExpression(e.operand);
+      writeExpression(e.operand, e);
     } else if (e is PrefixedIdentifier) {
       writeExpression(e.prefix);
       buffer.write('.');
       writeExpression(e.identifier);
     } else if (e is PropertyAccess) {
-      writeExpression(e.target);
+      writeExpression(e.target, e);
       buffer.write('.');
       writeExpression(e.propertyName);
     } else if (e is RedirectingConstructorInvocation) {
@@ -421,9 +429,16 @@ class _ElementWriter {
     } else {
       fail('Unsupported expression type: ${e.runtimeType}');
     }
+
+    if (needsParenthesis) {
+      buffer.write(')');
+    }
   }
 
   void writeFunctionElement(FunctionElement e) {
+    writeDocumentation(e);
+    writeMetadata(e, '', '\n');
+
     writeIf(e.isExternal, 'external ');
 
     writeType2(e.returnType);
@@ -476,7 +491,7 @@ class _ElementWriter {
     if (!e.isSynthetic) {
       writeMetadata(e, '', '\n');
       buffer.write('import ');
-      writeUri(e, e.importedLibrary?.source);
+      writeUri(e.importedLibrary?.source);
 
       writeIf(e.isDeferred, ' deferred');
 
@@ -585,8 +600,7 @@ class _ElementWriter {
 
   void writeParameterElement(ParameterElement e) {
     String defaultValueSeparator;
-    Expression defaultValue =
-        e is DefaultParameterElementImpl ? e.constantInitializer : null;
+    Expression defaultValue;
     String closeString;
     ParameterKind kind = e.parameterKind;
     if (kind == ParameterKind.REQUIRED) {
@@ -594,13 +608,22 @@ class _ElementWriter {
     } else if (kind == ParameterKind.POSITIONAL) {
       buffer.write('[');
       defaultValueSeparator = ' = ';
+      defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = ']';
     } else if (kind == ParameterKind.NAMED) {
       buffer.write('{');
       defaultValueSeparator = ': ';
+      defaultValue = (e as ConstVariableElement).constantInitializer;
       closeString = '}';
     } else {
       fail('Unknown parameter kind: $kind');
+    }
+
+    // Kernel desugars omitted default parameter values to 'null'.
+    // Analyzer does not set initializer at all.
+    // It is not an interesting distinction, so we skip NullLiteral(s).
+    if (defaultValue is NullLiteral) {
+      defaultValue = null;
     }
 
     writeMetadata(e, '', ' ');
@@ -634,13 +657,30 @@ class _ElementWriter {
   void writePartElement(CompilationUnitElement e) {
     writeMetadata(e, '', '\n');
     buffer.write('part ');
-    writeUri(e, e.source);
+    writeUri(e.source);
     buffer.writeln(';');
   }
 
   void writePropertyAccessorElement(PropertyAccessorElement e) {
     if (e.isSynthetic && !withSyntheticAccessors) {
       return;
+    }
+
+    if (!e.isSynthetic) {
+      PropertyInducingElement variable = e.variable;
+      expect(variable, isNotNull);
+      expect(variable.isSynthetic, isTrue);
+      if (e.isGetter) {
+        expect(variable.getter, same(e));
+        if (variable.setter != null) {
+          expect(variable.setter.variable, same(variable));
+        }
+      } else {
+        expect(variable.setter, same(e));
+        if (variable.getter != null) {
+          expect(variable.getter.variable, same(variable));
+        }
+      }
     }
 
     if (e.enclosingElement is ClassElement) {
@@ -786,14 +826,16 @@ class _ElementWriter {
     e.functions.forEach(writeFunctionElement);
   }
 
-  void writeUri(UriReferencedElement e, Source source) {
-    String uri = e.uri ?? source.uri.toString();
-    buffer.write('\'$uri\'');
-    if (withOffsets) {
-      buffer.write('(');
-      buffer.write('${e.uriOffset}, ');
-      buffer.write('${e.uriEnd})');
-      buffer.write(')');
+  void writeUri(Source source) {
+    if (source != null) {
+      Uri uri = source.uri;
+      String uriStr = uri.toString();
+      if (uri.isScheme('file')) {
+        uriStr = uri.pathSegments.last;
+      }
+      buffer.write('\'$uriStr\'');
+    } else {
+      buffer.write('\'<unresolved>\'');
     }
   }
 

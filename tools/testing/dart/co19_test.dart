@@ -48,12 +48,12 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
   ],
   const <String>[
     '-mrelease',
-    '-rdartium',
-    '-cnone',
+    '-rd8,jsshell',
+    '-cdart2js',
     '--use-sdk',
+    '--checked',
     '--fast-startup'
   ],
-  const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk'],
 ];
 
 void main(List<String> args) {

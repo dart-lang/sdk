@@ -40,6 +40,16 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, Source> _sources = <String, Source>{};
 
   /**
+   * The `dart:core` library for the context.
+   */
+  LibraryElementImpl _coreLibrary;
+
+  /**
+   * The `dart:async` library for the context.
+   */
+  LibraryElementImpl _asyncLibrary;
+
+  /**
    * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
   TypeProvider _typeProvider;
@@ -88,6 +98,16 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
   TypeProvider get typeProvider => _typeProvider;
+
+  /**
+   * The client installed this resynthesizer into the context, and set its
+   * type provider, so it is not safe to access type provider to create
+   * additional types.
+   */
+  void finishCoreAsyncLibraries() {
+    _coreLibrary.createLoadLibraryFunction(_typeProvider);
+    _asyncLibrary.createLoadLibraryFunction(_typeProvider);
+  }
 
   @override
   Element getElement(ElementLocation location) {
@@ -261,13 +281,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   bool hasLibrarySummary(String uri);
 
   void _buildTypeProvider() {
-    var coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
-    var asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
+    _coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
+    _asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
     SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
-    summaryTypeProvider.initializeCore(coreLibrary);
-    summaryTypeProvider.initializeAsync(asyncLibrary);
-    coreLibrary.createLoadLibraryFunction(summaryTypeProvider);
-    asyncLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    summaryTypeProvider.initializeCore(_coreLibrary);
+    summaryTypeProvider.initializeAsync(_asyncLibrary);
     _typeProvider = summaryTypeProvider;
   }
 

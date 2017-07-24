@@ -1055,12 +1055,13 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
   const Function& function = owner()->function();
-  if (FLAG_support_debugger && node->token_pos().IsDebugPause() &&
-      !function.is_native()) {
+#if !defined(PRODUCT)
+  if (node->token_pos().IsDebugPause() && !function.is_native()) {
     AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
                                                RawPcDescriptors::kRuntimeCall,
                                                owner()->GetNextDeoptId()));
   }
+#endif
 
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
 
@@ -2037,11 +2038,13 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 }
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
-  if (FLAG_support_debugger && owner()->function().is_debuggable()) {
+#if !defined(PRODUCT)
+  if (owner()->function().is_debuggable()) {
     AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
                                                RawPcDescriptors::kRuntimeCall,
                                                owner()->GetNextDeoptId()));
   }
+#endif
 
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
 
@@ -3327,25 +3330,25 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 // <Expression> ::= StoreLocal { local: LocalVariable
 //                               value: <Expression> }
 void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
+#if !defined(PRODUCT)
   // If the right hand side is an expression that does not contain
   // a safe point for the debugger to stop, add an explicit stub
   // call. Exception: don't do this when assigning to or from internal
   // variables, or for generated code that has no source position.
-  if (FLAG_support_debugger) {
-    AstNode* rhs = node->value();
-    if (rhs->IsAssignableNode()) {
-      rhs = rhs->AsAssignableNode()->expr();
-    }
-    if ((rhs->IsLiteralNode() || rhs->IsLoadStaticFieldNode() ||
-         (rhs->IsLoadLocalNode() &&
-          !rhs->AsLoadLocalNode()->local().IsInternal()) ||
-         rhs->IsClosureNode()) &&
-        !node->local().IsInternal() && node->token_pos().IsDebugPause()) {
-      AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
-                                                 RawPcDescriptors::kRuntimeCall,
-                                                 owner()->GetNextDeoptId()));
-    }
+  AstNode* rhs = node->value();
+  if (rhs->IsAssignableNode()) {
+    rhs = rhs->AsAssignableNode()->expr();
   }
+  if ((rhs->IsLiteralNode() || rhs->IsLoadStaticFieldNode() ||
+       (rhs->IsLoadLocalNode() &&
+        !rhs->AsLoadLocalNode()->local().IsInternal()) ||
+       rhs->IsClosureNode()) &&
+      !node->local().IsInternal() && node->token_pos().IsDebugPause()) {
+    AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                               RawPcDescriptors::kRuntimeCall,
+                                               owner()->GetNextDeoptId()));
+  }
+#endif
 
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
@@ -3430,22 +3433,22 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     StoreStaticFieldNode* node,
     bool result_is_needed,
     TokenPosition token_pos) {
-  if (FLAG_support_debugger) {
-    // If the right hand side is an expression that does not contain
-    // a safe point for the debugger to stop, add an explicit stub
-    // call.
-    AstNode* rhs = node->value();
-    if (rhs->IsAssignableNode()) {
-      rhs = rhs->AsAssignableNode()->expr();
-    }
-    if ((rhs->IsLiteralNode() || rhs->IsLoadLocalNode() ||
-         rhs->IsLoadStaticFieldNode() || rhs->IsClosureNode()) &&
-        node->token_pos().IsDebugPause()) {
-      AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
-                                                 RawPcDescriptors::kRuntimeCall,
-                                                 owner()->GetNextDeoptId()));
-    }
+#if !defined(PRODUCT)
+  // If the right hand side is an expression that does not contain
+  // a safe point for the debugger to stop, add an explicit stub
+  // call.
+  AstNode* rhs = node->value();
+  if (rhs->IsAssignableNode()) {
+    rhs = rhs->AsAssignableNode()->expr();
   }
+  if ((rhs->IsLiteralNode() || rhs->IsLoadLocalNode() ||
+       rhs->IsLoadStaticFieldNode() || rhs->IsClosureNode()) &&
+      node->token_pos().IsDebugPause()) {
+    AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                               RawPcDescriptors::kRuntimeCall,
+                                               owner()->GetNextDeoptId()));
+  }
+#endif
 
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
@@ -3846,8 +3849,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     Do(call_async_set_thread_stack_trace);
   }
 
-  if (FLAG_support_debugger && is_top_level_sequence &&
-      function.is_debuggable()) {
+#if !defined(PRODUCT)
+  if (is_top_level_sequence && function.is_debuggable()) {
     // Place a debug check at method entry to ensure breaking on a method always
     // happens, even if there are no assignments/calls/runtimecalls in the first
     // basic block. Place this check at the last parameter to ensure parameters
@@ -3867,6 +3870,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     AddInstruction(new (Z) DebugStepCheckInstr(
         check_pos, RawPcDescriptors::kRuntimeCall, owner()->GetNextDeoptId()));
   }
+#endif
 
   // This check may be deleted if the generated code is leaf.
   // Native functions don't need a stack check at entry.
@@ -4266,16 +4270,16 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
 }
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
-  if (FLAG_support_debugger) {
-    if (node->exception()->IsLiteralNode() ||
-        node->exception()->IsLoadLocalNode() ||
-        node->exception()->IsLoadStaticFieldNode() ||
-        node->exception()->IsClosureNode()) {
-      AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
-                                                 RawPcDescriptors::kRuntimeCall,
-                                                 owner()->GetNextDeoptId()));
-    }
+#if !defined(PRODUCT)
+  if (node->exception()->IsLiteralNode() ||
+      node->exception()->IsLoadLocalNode() ||
+      node->exception()->IsLoadStaticFieldNode() ||
+      node->exception()->IsClosureNode()) {
+    AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                               RawPcDescriptors::kRuntimeCall,
+                                               owner()->GetNextDeoptId()));
   }
+#endif
   ValueGraphVisitor for_exception(owner());
   node->exception()->Visit(&for_exception);
   Append(for_exception);

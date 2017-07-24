@@ -6,11 +6,12 @@ library fasta.compiler_context;
 
 import 'dart:async' show Zone, runZoned;
 
+import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/ast.dart' show Source;
-
-import 'compiler_command_line.dart' show CompilerCommandLine;
+import 'command_line_reporting.dart' as command_line_reporting;
 
 import 'colors.dart' show computeEnableColors;
 
@@ -20,15 +21,27 @@ import 'severity.dart' show Severity;
 
 final Object compilerContextKey = new Object();
 
-final CompilerContext rootContext =
-    new CompilerContext(CompilerCommandLine.forRootContext());
-
+/// Shared context used throughout the compiler.
+///
+/// The compiler works with a single instance of this class. To avoid
+/// passing it around as an argument everywhere, it is stored as a zone-value.
+///
+/// For convenience the static getter [CompilerContext.current] retrieves the
+/// context stored in the current zone.
 class CompilerContext {
-  final FileSystem fileSystem = PhysicalFileSystem.instance;
+  // TODO(sigmund): Move here any method in ProcessedOptions that doesn't seem
+  // appropriate as an "option", or consider merging ProcessedOptions entirely
+  // within this class, and depend only on the raw options here.
+  final ProcessedOptions options;
 
-  final CompilerCommandLine options;
-
+  /// Sources seen by the compiler.
+  ///
+  /// This is populated as the compiler reads files, and it is used for error
+  /// reporting and to generate source location information in the compiled
+  /// programs.
   final Map<String, Source> uriToSource = <String, Source>{};
+
+  FileSystem get fileSystem => options.fileSystem;
 
   bool enableColorsCached = null;
 
@@ -50,24 +63,42 @@ class CompilerContext {
 
   /// Format [message] as a text string that can be included in generated code.
   String format(LocatedMessage message, Severity severity) {
-    return options.format(message, severity);
+    return command_line_reporting.format(message, severity);
   }
 
   /// Format [message] as a text string that can be included in generated code.
   String formatWithoutLocation(Message message, Severity severity) {
-    return options.formatWithoutLocation(message, severity);
+    return command_line_reporting.formatWithoutLocation(message, severity);
   }
 
   static CompilerContext get current {
-    return Zone.current[compilerContextKey] ?? rootContext;
+    var context = Zone.current[compilerContextKey];
+    if (context == null) {
+      // Note: we throw directly and don't use internalProblem, because
+      // internalProblem depends on having a compiler context available.
+      var message = messageInternalProblemMissingContext.message;
+      var tip = messageInternalProblemMissingContext.tip;
+      throw "Internal problem: $message\nTip: $tip";
+    }
+    return context;
   }
 
-  /// Perform [action] in a [Zone] where [cl] will be available as
+  /// Perform [action] in a [Zone] where [this] will be available as
   /// `CompilerContext.current.options`.
-  static dynamic withGlobalOptions(
-      CompilerCommandLine cl, dynamic action(CompilerContext c)) {
-    CompilerContext c = new CompilerContext(cl);
-    return runZoned(() => action(c), zoneValues: {compilerContextKey: c});
+  T runInContext<T>(T action(CompilerContext c)) {
+    return runZoned(() => action(this), zoneValues: {compilerContextKey: this});
+  }
+
+  /// Perform [action] in a [Zone] where [options] will be available as
+  /// `CompilerContext.current.options`.
+  static T runWithOptions<T>(
+      ProcessedOptions options, T action(CompilerContext c)) {
+    return new CompilerContext(options).runInContext(action);
+  }
+
+  static T runWithDefaultOptions<T>(T action(CompilerContext c)) {
+    var options = new ProcessedOptions(new CompilerOptions());
+    return new CompilerContext(options).runInContext(action);
   }
 
   static bool get enableColors {

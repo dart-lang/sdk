@@ -9,6 +9,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/kernel_binary.h"
 #include "vm/kernel_binary_flowgraph.h"
+#include "vm/kernel_to_il.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -879,6 +880,29 @@ RawFunction::Kind KernelReader::GetFunctionType(
     ASSERT(0 <= kind && kind <= Procedure::kFactory);
     return static_cast<RawFunction::Kind>(lookuptable[kind]);
   }
+}
+
+bool KernelReader::FieldHasFunctionLiteralInitializer(const dart::Field& field,
+                                                      TokenPosition* start,
+                                                      TokenPosition* end) {
+  dart::Zone* zone = Thread::Current()->zone();
+  const Script& script = Script::Handle(zone, field.Script());
+
+  TranslationHelper translation_helper(
+      Thread::Current(), script.kernel_string_offsets(),
+      script.kernel_string_data(), script.kernel_canonical_names());
+
+  kernel::StreamingFlowGraphBuilder* builder =
+      new kernel::StreamingFlowGraphBuilder(&translation_helper, zone,
+                                            script.kernel_data(),
+                                            script.kernel_data_size());
+
+  kernel::FieldHelper field_helper(builder, field.kernel_offset());
+  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
+  bool result = field_helper.FieldHasFunctionLiteralInitializer(start, end);
+
+  delete builder;
+  return result;
 }
 
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone,

@@ -76,6 +76,20 @@ TranslationHelper::TranslationHelper(Thread* thread)
       string_data_(TypedData::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)) {}
 
+TranslationHelper::TranslationHelper(Thread* thread,
+                                     dart::RawTypedData* string_offsets,
+                                     dart::RawTypedData* string_data,
+                                     dart::RawTypedData* canonical_names)
+    : thread_(thread),
+      zone_(thread->zone()),
+      isolate_(thread->isolate()),
+      allocation_space_(Heap::kNew),
+      string_offsets_(TypedData::Handle(Z, string_offsets)),
+      string_data_(TypedData::Handle(Z, string_data)),
+      canonical_names_(TypedData::Handle(Z, canonical_names)) {
+  ASSERT(thread->IsMutatorThread());
+}
+
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
   string_offsets_ = string_offsets.raw();
@@ -830,7 +844,7 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
   return instructions;
 }
 
-Fragment FlowGraphBuilder::AllocateContext(int size) {
+Fragment FlowGraphBuilder::AllocateContext(intptr_t size) {
   AllocateContextInstr* allocate =
       new (Z) AllocateContextInstr(TokenPosition::kNoSource, size);
   Push(allocate);
@@ -1850,15 +1864,19 @@ Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
 
 bool FlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
                                            TokenPosition position) {
-  return FLAG_support_debugger && position.IsDebugPause() &&
-         !function.is_native() && function.is_debuggable();
+  return position.IsDebugPause() && !function.is_native() &&
+         function.is_debuggable();
 }
 
 bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
                                            TokenPosition position) {
-  if (!FLAG_support_debugger || !position.IsDebugPause()) return false;
+  if (!position.IsDebugPause()) {
+    return false;
+  }
   Definition* definition = value->definition();
-  if (definition->IsConstant() || definition->IsLoadStaticField()) return true;
+  if (definition->IsConstant() || definition->IsLoadStaticField()) {
+    return true;
+  }
   if (definition->IsAllocateObject()) {
     return !definition->AsAllocateObject()->closure_function().IsNull();
   }

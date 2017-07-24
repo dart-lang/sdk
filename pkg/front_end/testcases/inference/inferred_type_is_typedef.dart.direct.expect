@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F = () → void;
+static final field dynamic x = <core::String, () → void>{};
+static method main() → dynamic {
+  self::x;
+}

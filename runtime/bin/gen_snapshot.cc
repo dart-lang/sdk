@@ -1749,8 +1749,12 @@ int main(int argc, char** argv) {
         ParseEntryPointsManifestIfPresent();
 
     if (kernel_program != NULL) {
-      Dart_Handle library = Dart_LoadKernel(kernel_program);
-      if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
+      Dart_Handle resolved_uri = ResolveUriInWorkingDirectory(app_script_name);
+      CHECK_RESULT(resolved_uri);
+      Dart_Handle library =
+          Dart_LoadScript(resolved_uri, Dart_Null(),
+                          reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+      CHECK_RESULT(library);
     } else {
       // Set up the library tag handler in such a manner that it will use the
       // URL mapping specified on the command line to load the libraries.

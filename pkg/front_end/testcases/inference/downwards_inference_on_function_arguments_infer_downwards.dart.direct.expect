@@ -1,0 +1,31 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f0(core::List<core::int> a) → void {}
+static method f1({core::List<core::int> a = null}) → void {}
+static method f2(core::Iterable<core::int> a) → void {}
+static method f3(core::Iterable<core::Iterable<core::int>> a) → void {}
+static method f4({core::Iterable<core::Iterable<core::int>> a = null}) → void {}
+static method main() → void {
+  self::f0(<dynamic>[]);
+  self::f0(<dynamic>[3]);
+  self::f0(<dynamic>["hello"]);
+  self::f0(<dynamic>["hello", 3]);
+  self::f1(a: <dynamic>[]);
+  self::f1(a: <dynamic>[3]);
+  self::f1(a: <dynamic>["hello"]);
+  self::f1(a: <dynamic>["hello", 3]);
+  self::f2(<dynamic>[]);
+  self::f2(<dynamic>[3]);
+  self::f2(<dynamic>["hello"]);
+  self::f2(<dynamic>["hello", 3]);
+  self::f3(<dynamic>[]);
+  self::f3(<dynamic>[<dynamic>[3]]);
+  self::f3(<dynamic>[<dynamic>["hello"]]);
+  self::f3(<dynamic>[<dynamic>["hello"], <dynamic>[3]]);
+  self::f4(a: <dynamic>[]);
+  self::f4(a: <dynamic>[<dynamic>[3]]);
+  self::f4(a: <dynamic>[<dynamic>["hello"]]);
+  self::f4(a: <dynamic>[<dynamic>["hello"], <dynamic>[3]]);
+}

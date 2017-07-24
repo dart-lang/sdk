@@ -40,7 +40,6 @@ class RastaSsaBuilder extends SsaAstBuilderBase {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           element,
           element.contextClass,
-          astAdapter.getMemberNode(element),
           backend.compiler,
           astAdapter,
           typeInferenceMap,

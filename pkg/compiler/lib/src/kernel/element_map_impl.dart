@@ -601,14 +601,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return sourceSpan;
   }
 
-  ir.Member _getMemberNode(covariant IndexedMember member) {
+  MemberDefinition _getMemberDefinition(covariant IndexedMember member) {
     assert(checkFamily(member));
-    return _memberData[member.memberIndex].node;
+    return _memberData[member.memberIndex].definition;
   }
 
-  ir.Class _getClassNode(covariant IndexedClass cls) {
+  ClassDefinition _getClassDefinition(covariant IndexedClass cls) {
     assert(checkFamily(cls));
-    return _classEnvs[cls.classIndex].cls;
+    return _classData[cls.classIndex].definition;
   }
 }
 
@@ -668,6 +668,8 @@ abstract class ElementCreatorMixin {
     });
   }
 
+  // TODO(johnniwinther,efortuna): Create the class index and data together with
+  // the [KernelClosureClass].
   void addClosureClass(KernelClosureClass cls, InterfaceType supertype) {
     cls.classIndex = _classEnvs.length;
     _classEnvs.add(new ClassEnv.closureClass());
@@ -675,7 +677,8 @@ abstract class ElementCreatorMixin {
 
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
-    var closureData = new ClassData(null);
+    var closureData =
+        new ClassData(null, new ClosureClassDefinition(cls, cls.location));
     closureData
       ..isMixinApplication = false
       ..thisType =
@@ -687,6 +690,13 @@ abstract class ElementCreatorMixin {
     _classData.add(closureData);
     closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
         closureData.supertype, const Link<InterfaceType>());
+
+    cls.forEachCapturedVariable((Local local, JField field) {
+      field.setClosureMemberIndex = _memberData.length;
+      // TODO(efortuna): Uncomment this line after Johnni's added in his CL
+      // about Class/MemberDefinition.
+      //_memberData.add(field);
+    });
     // TODO(efortuna): Does getMetadata get called in ClassData for this object?
   }
 
@@ -697,9 +707,10 @@ abstract class ElementCreatorMixin {
         classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
       }
       _classEnvs.add(classEnv);
-      _classData.add(new ClassData(node));
       ClassEntity cls = createClass(library, _classList.length, node.name,
           isAbstract: node.isAbstract);
+      _classData
+          .add(new ClassData(node, new RegularClassDefinition(cls, node)));
       _classList.add(cls);
       return cls;
     });
@@ -751,11 +762,14 @@ abstract class ElementCreatorMixin {
       bool isExternal = node.isExternal;
 
       ir.FunctionNode functionNode;
+      MemberDefinition definition;
       if (node is ir.Constructor) {
         functionNode = node.function;
         constructor = createGenerativeConstructor(memberIndex, enclosingClass,
             name, _getParameterStructure(functionNode),
             isExternal: isExternal, isConst: node.isConst);
+        definition = new SpecialMemberDefinition(
+            constructor, node, MemberKind.constructor);
       } else if (node is ir.Procedure) {
         functionNode = node.function;
         bool isFromEnvironment = isExternal &&
@@ -766,12 +780,13 @@ abstract class ElementCreatorMixin {
             isExternal: isExternal,
             isConst: node.isConst,
             isFromEnvironmentConstructor: isFromEnvironment);
+        definition = new RegularMemberDefinition(constructor, node);
       } else {
         // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
         throw failedAt(
             NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
       }
-      _memberData.add(new ConstructorData(node, functionNode));
+      _memberData.add(new ConstructorData(node, functionNode, definition));
       _memberList.add(constructor);
       return constructor;
     });
@@ -838,7 +853,8 @@ abstract class ElementCreatorMixin {
               isAbstract: isAbstract);
           break;
       }
-      _memberData.add(new FunctionData(node, node.function));
+      _memberData.add(new FunctionData(
+          node, node.function, new RegularMemberDefinition(function, node)));
       _memberList.add(function);
       return function;
     });
@@ -857,12 +873,13 @@ abstract class ElementCreatorMixin {
       }
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
-      _memberData.add(new FieldData(node));
       FieldEntity field = createField(
           memberIndex, library, enclosingClass, name,
           isStatic: isStatic,
           isAssignable: node.isMutable,
           isConst: node.isConst);
+      _memberData
+          .add(new FieldData(node, new RegularMemberDefinition(field, node)));
       _memberList.add(field);
       return field;
     });
@@ -1949,7 +1966,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       data.constructorBody =
           createConstructorBody(_memberList.length, constructor);
       _memberList.add(data.constructorBody);
-      _memberData.add(new FunctionData(node, node.function));
+      _memberData.add(new FunctionData(
+          node,
+          node.function,
+          new SpecialMemberDefinition(
+              data.constructorBody, node, MemberKind.constructorBody)));
     }
     return data.constructorBody;
   }
@@ -1958,13 +1979,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
       int memberIndex, ConstructorEntity constructor);
 
   @override
-  ir.Member getMemberNode(MemberEntity member) {
-    return _getMemberNode(member);
+  MemberDefinition getMemberDefinition(MemberEntity member) {
+    return _getMemberDefinition(member);
   }
 
   @override
-  ir.Class getClassNode(ClassEntity cls) {
-    return _getClassNode(cls);
+  ClassDefinition getClassDefinition(ClassEntity cls) {
+    return _getClassDefinition(cls);
   }
 
   @override

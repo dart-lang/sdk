@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static method main() → dynamic {
+  throw "pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2.dart:10:16: Error: Expected ';' before this.\n    (f)<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/ /*@returnType=int*/ () {\n               ^";
+}

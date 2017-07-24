@@ -85,7 +85,6 @@ static void PrecompilationModeHandler(bool value) {
     // Set flags affecting runtime accordingly for dart_bootstrap.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_collect_code = false;
-    FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
     FLAG_load_deferred_eagerly = true;

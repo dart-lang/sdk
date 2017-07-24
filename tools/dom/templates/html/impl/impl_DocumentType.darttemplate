@@ -7,10 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override this methods for Dartium _DocumentType can't be abstract.
-  Element get nextElementSibling => _blink.BlinkDocumentType.instance.nextElementSibling_Getter_(this);
-  Element get previousElementSibling => _blink.BlinkDocumentType.instance.previousElementSibling_Getter_(this);
-$endif
 }
 

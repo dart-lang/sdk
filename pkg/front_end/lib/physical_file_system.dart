@@ -52,15 +52,6 @@ class _PhysicalFileSystemEntity implements FileSystemEntity {
   }
 
   @override
-  Future<DateTime> lastModified() async {
-    try {
-      return await new io.File.fromUri(uri).lastModified();
-    } on io.FileSystemException catch (exception) {
-      throw _toFileSystemException(exception);
-    }
-  }
-
-  @override
   Future<List<int>> readAsBytes() async {
     try {
       return await new io.File.fromUri(uri).readAsBytes();

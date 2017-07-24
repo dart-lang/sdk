@@ -135,10 +135,12 @@ LanguageError* Object::background_compilation_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
 Type* Object::dynamic_type_ = NULL;
 Type* Object::void_type_ = NULL;
+Type* Object::vector_type_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::vector_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -527,6 +529,7 @@ void Object::InitOnce(Isolate* isolate) {
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
   dynamic_type_ = Type::ReadOnlyHandle();
   void_type_ = Type::ReadOnlyHandle();
+  vector_type_ = Type::ReadOnlyHandle();
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -886,6 +889,14 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_cycle_free();
   void_class_ = cls.raw();
 
+  cls = Class::New<Instance>(kVectorCid);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_type_finalized();
+  cls.set_is_cycle_free();
+  vector_class_ = cls.raw();
+
   cls = Class::New<Type>();
   cls.set_is_finalized();
   cls.set_is_type_finalized();
@@ -896,6 +907,9 @@ void Object::InitOnce(Isolate* isolate) {
 
   cls = void_class_;
   *void_type_ = Type::NewNonParameterizedType(cls);
+
+  cls = vector_class_;
+  *vector_type_ = Type::NewNonParameterizedType(cls);
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -4583,6 +4597,18 @@ bool TypeArguments::IsRecursive() const {
   return false;
 }
 
+void TypeArguments::SetScopeFunction(const Function& function) const {
+  if (IsNull()) return;
+  const intptr_t num_types = Length();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    if (!type.IsNull()) {
+      type.SetScopeFunction(function);
+    }
+  }
+}
+
 bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
                                    intptr_t from_index,
                                    intptr_t len) const {
@@ -5173,11 +5199,12 @@ intptr_t Function::Hash() const {
 }
 
 bool Function::HasBreakpoint() const {
-  if (!FLAG_support_debugger) {
-    return false;
-  }
+#if defined(PRODUCT)
+  return false;
+#else
   Thread* thread = Thread::Current();
   return thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+#endif
 }
 
 void Function::InstallOptimizedCode(const Code& code) const {
@@ -5298,7 +5325,7 @@ void Function::set_unoptimized_code(const Code& value) const {
 }
 
 RawContextScope* Function::context_scope() const {
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).context_scope();
@@ -5307,7 +5334,7 @@ RawContextScope* Function::context_scope() const {
 }
 
 void Function::set_context_scope(const ContextScope& value) const {
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_context_scope(value);
@@ -5397,10 +5424,11 @@ RawField* Function::LookupImplicitGetterSetterField() const {
 }
 
 RawFunction* Function::parent_function() const {
-  if (IsClosureFunction() || IsSignatureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction() ||
+      IsSignatureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
-    if (IsClosureFunction()) {
+    if (IsClosureFunction() || IsConvertedClosureFunction()) {
       return ClosureData::Cast(obj).parent_function();
     } else {
       return SignatureData::Cast(obj).parent_function();
@@ -5412,7 +5440,7 @@ RawFunction* Function::parent_function() const {
 void Function::set_parent_function(const Function& value) const {
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
-  if (IsClosureFunction()) {
+  if (IsClosureFunction() || IsConvertedClosureFunction()) {
     ClosureData::Cast(obj).set_parent_function(value);
   } else {
     ASSERT(IsSignatureFunction());
@@ -5467,52 +5495,33 @@ void Function::set_implicit_closure_function(const Function& value) const {
   }
 }
 
+RawFunction* Function::converted_closure_function() const {
+  if (IsClosureFunction() || IsSignatureFunction() || IsFactory()) {
+    return Function::null();
+  }
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsNull() || obj.IsFunction());
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  }
+  return Function::null();
+}
+
+void Function::set_converted_closure_function(const Function& value) const {
+  ASSERT(!IsClosureFunction() && !IsSignatureFunction() && !is_native());
+  ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
+  set_data(value);
+}
+
 RawType* Function::ExistingSignatureType() const {
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
     return SignatureData::Cast(obj).signature_type();
   } else {
-    ASSERT(IsClosureFunction());
+    ASSERT(IsClosureFunction() || IsConvertedClosureFunction());
     return ClosureData::Cast(obj).signature_type();
   }
-}
-
-RawFunction* Function::CanonicalSignatureFunction(TrailPtr trail) const {
-  ASSERT(!IsSignatureFunction());
-  Zone* zone = Thread::Current()->zone();
-  Function& parent = Function::Handle(zone, parent_function());
-  if (!parent.IsNull() && !parent.IsSignatureFunction()) {
-    // Make sure the parent function is also a signature function.
-    parent = parent.CanonicalSignatureFunction(trail);
-  }
-  const Class& owner = Class::Handle(zone, Owner());
-  const Function& sig_fun = Function::Handle(
-      zone,
-      Function::NewSignatureFunction(owner, parent, TokenPosition::kNoSource));
-  // In case of a generic function, the function type parameters in the
-  // signature will still refer to the original function. This should not
-  // be a problem, since once finalized the indices will be identical.
-  sig_fun.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
-  ASSERT(HasGenericParent() == sig_fun.HasGenericParent());
-  ASSERT(IsGeneric() == sig_fun.IsGeneric());
-  AbstractType& type = AbstractType::Handle(zone);
-  type = result_type();
-  type = type.Canonicalize(trail);
-  sig_fun.set_result_type(type);
-  const intptr_t num_params = NumParameters();
-  sig_fun.set_num_fixed_parameters(num_fixed_parameters());
-  sig_fun.SetNumOptionalParameters(NumOptionalParameters(),
-                                   HasOptionalPositionalParameters());
-  sig_fun.set_parameter_types(
-      Array::Handle(Array::New(num_params, Heap::kOld)));
-  for (intptr_t i = 0; i < num_params; i++) {
-    type = ParameterTypeAt(i);
-    type = type.Canonicalize(trail);
-    sig_fun.SetParameterTypeAt(i, type);
-  }
-  sig_fun.set_parameter_names(Array::Handle(zone, parameter_names()));
-  return sig_fun.raw();
 }
 
 RawType* Function::SignatureType() const {
@@ -5563,7 +5572,7 @@ void Function::SetSignatureType(const Type& value) const {
     SignatureData::Cast(obj).set_signature_type(value);
     ASSERT(!value.IsCanonical() || (value.signature() == this->raw()));
   } else {
-    ASSERT(IsClosureFunction());
+    ASSERT(IsClosureFunction() || IsConvertedClosureFunction());
     ClosureData::Cast(obj).set_signature_type(value);
   }
 }
@@ -5591,6 +5600,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kClosureFunction:
       return "ClosureFunction";
+      break;
+    case RawFunction::kImplicitClosureFunction:
+      return "ImplicitClosureFunction";
       break;
     case RawFunction::kSignatureFunction:
       return "SignatureFunction";
@@ -5768,13 +5780,6 @@ void Function::set_native_name(const String& value) const {
 void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->result_type_, value.raw());
-  if (value.IsFunctionType()) {
-    // The function result type may refer to this function's type parameters.
-    // Change its parent function.
-    const Function& result_signature_function =
-        Function::Handle(Type::Cast(value).signature());
-    result_signature_function.set_parent_function(*this);
-  }
 }
 
 RawAbstractType* Function::ParameterTypeAt(intptr_t index) const {
@@ -5835,9 +5840,22 @@ intptr_t Function::NumParentTypeParameters() const {
   intptr_t num_parent_type_params = 0;
   while (!parent.IsNull()) {
     num_parent_type_params += parent.NumTypeParameters(thread);
+    if (parent.IsImplicitClosureFunction()) break;
     parent ^= parent.parent_function();
   }
   return num_parent_type_params;
+}
+
+void Function::PrintSignatureTypes() const {
+  Function& sig_fun = Function::Handle(raw());
+  Type& sig_type = Type::Handle();
+  while (!sig_fun.IsNull()) {
+    sig_type = sig_fun.SignatureType();
+    THR_Print("%s%s\n",
+              sig_fun.IsImplicitClosureFunction() ? "implicit closure: " : "",
+              sig_type.ToCString());
+    sig_fun ^= sig_fun.parent_function();
+  }
 }
 
 RawTypeParameter* Function::LookupTypeParameter(
@@ -5958,10 +5976,13 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::CanBeInlined() const {
+#if defined(PRODUCT)
+  return is_inlinable() && !is_external() && !is_generated_body();
+#else
   Thread* thread = Thread::Current();
   return is_inlinable() && !is_external() && !is_generated_body() &&
-         (!FLAG_support_debugger ||
-          !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone()));
+         !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+#endif
 }
 
 intptr_t Function::NumParameters() const {
@@ -5969,20 +5990,23 @@ intptr_t Function::NumParameters() const {
 }
 
 intptr_t Function::NumImplicitParameters() const {
-  if (kind() == RawFunction::kConstructor) {
+  const RawFunction::Kind k = kind();
+  if (k == RawFunction::kConstructor) {
     // Type arguments for factory; instance for generative constructor.
     return 1;
   }
-  if ((kind() == RawFunction::kClosureFunction) ||
-      (kind() == RawFunction::kSignatureFunction)) {
+  if ((k == RawFunction::kClosureFunction) ||
+      (k == RawFunction::kImplicitClosureFunction) ||
+      (k == RawFunction::kSignatureFunction)) {
     return 1;  // Closure object.
   }
   if (!is_static()) {
     // Closure functions defined inside instance (i.e. non-static) functions are
     // marked as non-static, but they do not have a receiver.
     // Closures are handled above.
-    ASSERT((kind() != RawFunction::kClosureFunction) &&
-           (kind() != RawFunction::kSignatureFunction));
+    ASSERT((k != RawFunction::kClosureFunction) &&
+           (k != RawFunction::kImplicitClosureFunction) &&
+           (k != RawFunction::kSignatureFunction));
     return 1;  // Receiver.
   }
   return 0;  // No implicit parameters.
@@ -6293,6 +6317,8 @@ RawFunction* Function::InstantiateSignatureFrom(
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
+  // Note that parent pointers in newly instantiated signatures still points to
+  // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
   ASSERT(!HasInstantiatedSignature());
   Function& sig = Function::Handle(
@@ -6510,26 +6536,12 @@ bool Function::IsImplicitConstructor() const {
   return IsGenerativeConstructor() && (token_pos() == end_token_pos());
 }
 
-bool Function::IsImplicitClosureFunction() const {
-  if (!IsClosureFunction()) {
-    return false;
-  }
-  const Function& parent = Function::Handle(parent_function());
-  return (parent.implicit_closure_function() == raw());
-}
-
 bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
   NoSafepointScope no_safepoint;
   uint32_t kind_tag = func->ptr()->kind_tag_;
-  if (KindBits::decode(kind_tag) != RawFunction::kClosureFunction) {
-    return false;
-  }
-  if (!StaticBit::decode(kind_tag)) {
-    return false;
-  }
-  RawClosureData* data = reinterpret_cast<RawClosureData*>(func->ptr()->data_);
-  RawFunction* parent_function = data->ptr()->parent_function_;
-  return (parent_function->ptr()->data_ == reinterpret_cast<RawObject*>(func));
+  return (KindBits::decode(kind_tag) ==
+          RawFunction::kImplicitClosureFunction) &&
+         StaticBit::decode(kind_tag);
 }
 
 bool Function::IsConstructorClosureFunction() const {
@@ -6592,7 +6604,9 @@ RawFunction* Function::New(const String& name,
   result.set_allows_bounds_check_generalization(true);
   result.SetInstructionsSafe(
       Code::Handle(StubCode::LazyCompile_entry()->code()));
-  if (kind == RawFunction::kClosureFunction) {
+  if (kind == RawFunction::kClosureFunction ||
+      kind == RawFunction::kImplicitClosureFunction ||
+      kind == RawFunction::kConvertedClosureFunction) {
     ASSERT(space == Heap::kOld);
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -6657,15 +6671,22 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   return clone.raw();
 }
 
-RawFunction* Function::NewClosureFunction(const String& name,
-                                          const Function& parent,
-                                          TokenPosition token_pos) {
+RawFunction* Function::NewClosureFunctionWithKind(RawFunction::Kind kind,
+                                                  const String& name,
+                                                  const Function& parent,
+                                                  TokenPosition token_pos) {
+  ASSERT((kind == RawFunction::kClosureFunction) ||
+         (kind == RawFunction::kImplicitClosureFunction) ||
+         (kind == RawFunction::kConvertedClosureFunction));
   ASSERT(!parent.IsNull());
+  // Only static top-level functions are allowed to be converted right now.
+  ASSERT((kind != RawFunction::kConvertedClosureFunction) ||
+         parent.is_static());
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
   ASSERT(!parent_owner.IsNull());
   const Function& result = Function::Handle(
-      Function::New(name, RawFunction::kClosureFunction,
+      Function::New(name, kind,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
                     /* is_abstract = */ false,
@@ -6673,6 +6694,27 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_native = */ false, parent_owner, token_pos));
   result.set_parent_function(parent);
   return result.raw();
+}
+
+RawFunction* Function::NewClosureFunction(const String& name,
+                                          const Function& parent,
+                                          TokenPosition token_pos) {
+  return NewClosureFunctionWithKind(RawFunction::kClosureFunction, name, parent,
+                                    token_pos);
+}
+
+RawFunction* Function::NewImplicitClosureFunction(const String& name,
+                                                  const Function& parent,
+                                                  TokenPosition token_pos) {
+  return NewClosureFunctionWithKind(RawFunction::kImplicitClosureFunction, name,
+                                    parent, token_pos);
+}
+
+RawFunction* Function::NewConvertedClosureFunction(const String& name,
+                                                   const Function& parent,
+                                                   TokenPosition token_pos) {
+  return NewClosureFunctionWithKind(RawFunction::kConvertedClosureFunction,
+                                    name, parent, token_pos);
 }
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
@@ -6726,7 +6768,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Create closure function.
   const String& closure_name = String::Handle(zone, name());
   const Function& closure_function = Function::Handle(
-      zone, NewClosureFunction(closure_name, *this, token_pos()));
+      zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
   if (is_static()) {
@@ -6796,6 +6838,169 @@ void Function::DropUncompiledImplicitClosureFunction() const {
     const Function& func = Function::Handle(implicit_closure_function());
     if (!func.HasCode()) {
       set_implicit_closure_function(Function::Handle());
+    }
+  }
+}
+
+// Converted closure functions represent a pair of a top-level function and a
+// vector of captured variables.  When being invoked, converted closure
+// functions get the vector as the first argument, and the arguments supplied at
+// the invocation are passed as the remaining arguments to that function.
+//
+// Consider the following example in Kernel:
+//
+//   static method foo(core::int start) → core::Function {
+//     core::int i = 0;
+//     return () → dynamic => start.+(
+//       let final dynamic #t1 = i in
+//         let final dynamic #t2 = i = #t1.+(1) in
+//          #t1
+//     );
+//   }
+//
+// The method [foo] above produces a closure as a result.  The closure captures
+// two variables: function parameter [start] and local variable [i].  Here is
+// how this code would look like after closure conversion:
+//
+//   static method foo(core::int start) → core::Function {
+//     final Vector #context = MakeVector(3);
+//     #context[1] = start;
+//     #context[2] = 0;
+//     return MakeClosure<() → dynamic>(com::closure#foo#function, #context);
+//   }
+//   static method closure#foo#function(Vector #contextParameter) → dynamic {
+//     return (#contextParameter[1]).+(
+//       let final dynamic #t1 = #contextParameter[2] in
+//         let final dynamic #t2 = #contextParameter[2] = #t1.+(1) in
+//           #t1
+//     );
+//   }
+//
+// Converted closure functions are used in VM Closure instances that represent
+// the results of evaluation of [MakeClosure] primitive operations.
+//
+// Internally, converted closure functins are represented with the same Closure
+// class as implicit closure functions (that are used for dealing with
+// tear-offs).  The Closure class instances have two fields, one for the
+// function, and one for the captured context.  Implicit closure functions have
+// pre-defined shape of the context: it's a single variable that is used as
+// 'this'.  Converted closure functions use the context field to store the
+// vector of captured variables that will be supplied as the first argument
+// during invocation.
+//
+// The top-level functions used in converted closure functions are generated
+// during a front-end transformation in Kernel.  Those functions have some
+// common properties:
+//   * they expect the captured context to be passed as the first argument,
+//   * the first argument should be of [Vector] type (index-based storage),
+//   * they retrieve the captured variables from [Vector] explicitly, so they
+//   don't need the variables from the context to be put into their current
+//   scope.
+//
+// During closure-conversion pass in Kernel, the contexts are generated
+// explicitly and are represented as [Vector]s.  Then they are paired together
+// with the top-level functions to form a closure.  When the closure, created
+// this way, is invoked, it should receive the [Vector] as the first argument,
+// and take the rest of the arguments from the invocation.
+//
+// Converted cosure functions in VM follow same discipline as implicit closure
+// functions, because they are similar in many ways. For further deatils, please
+// refer to the following methods:
+//   -> Function::ConvertedClosureFunction
+//   -> StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction
+//   -> StreamingFlowGraphBuilder::BuildGraph (small change that calls
+//      BuildGraphOfConvertedClosureFunction)
+//   -> StreamingFlowGraphBuilder::BuildClosureCreation (converted closure
+//      functions are created here)
+//
+// Function::ConvertedClosureFunction method follows the logic of
+// Function::ImplicitClosureFunction method.
+//
+// TODO(29181): Adjust the method to correctly pass type parameters after they
+// are enabled in closure conversion.
+RawFunction* Function::ConvertedClosureFunction() const {
+  // Return the existing converted closure function if any.
+  if (converted_closure_function() != Function::null()) {
+    return converted_closure_function();
+  }
+  ASSERT(!IsSignatureFunction() && !IsClosureFunction());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  // Create closure function.
+  const String& closure_name = String::Handle(zone, name());
+  const Function& closure_function = Function::Handle(
+      zone, NewConvertedClosureFunction(closure_name, *this, token_pos()));
+
+  // Currently only static top-level functions are allowed to be converted.
+  ASSERT(is_static());
+  closure_function.set_context_scope(Object::empty_context_scope());
+
+  // Set closure function's type parameters.
+  closure_function.set_type_parameters(
+      TypeArguments::Handle(zone, type_parameters()));
+
+  // Set closure function's result type to this result type.
+  closure_function.set_result_type(AbstractType::Handle(zone, result_type()));
+
+  // Set closure function's end token to this end token.
+  closure_function.set_end_token_pos(end_token_pos());
+
+  // The closurized method stub just calls into the original method and should
+  // therefore be skipped by the debugger and in stack traces.
+  closure_function.set_is_debuggable(false);
+  closure_function.set_is_visible(false);
+
+  // Set closure function's formal parameters to this formal parameters,
+  // removing the first parameter over which the currying is done, and adding
+  // the closure class instance as the first parameter.  So, the overall number
+  // of fixed parameters doesn't change.
+  const int num_fixed_params = num_fixed_parameters();
+  const int num_opt_params = NumOptionalParameters();
+  const bool has_opt_pos_params = HasOptionalPositionalParameters();
+  const int num_params = num_fixed_params + num_opt_params;
+
+  closure_function.set_num_fixed_parameters(num_fixed_params);
+  closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
+  closure_function.set_parameter_types(
+      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+  closure_function.set_parameter_names(
+      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+
+  AbstractType& param_type = AbstractType::Handle(zone);
+  String& param_name = String::Handle(zone);
+
+  // Add implicit closure object as the first parameter.
+  param_type = Type::DynamicType();
+  closure_function.SetParameterTypeAt(0, param_type);
+  closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
+
+  // All the parameters, but the first one, are the same for the top-level
+  // function being converted, and the method of the closure class that is being
+  // generated.
+  for (int i = 1; i < num_params; i++) {
+    param_type = ParameterTypeAt(i);
+    closure_function.SetParameterTypeAt(i, param_type);
+    param_name = ParameterNameAt(i);
+    closure_function.SetParameterNameAt(i, param_name);
+  }
+  closure_function.set_kernel_offset(kernel_offset());
+
+  const Type& signature_type =
+      Type::Handle(zone, closure_function.SignatureType());
+  if (!signature_type.IsFinalized()) {
+    ClassFinalizer::FinalizeType(Class::Handle(zone, Owner()), signature_type);
+  }
+
+  set_converted_closure_function(closure_function);
+
+  return closure_function.raw();
+}
+
+void Function::DropUncompiledConvertedClosureFunction() const {
+  if (converted_closure_function() != Function::null()) {
+    const Function& func = Function::Handle(converted_closure_function());
+    if (!func.HasCode()) {
+      set_converted_closure_function(Function::Handle());
     }
   }
 }
@@ -6902,25 +7107,13 @@ RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
                       *this, context);
 }
 
-RawSmi* Function::GetClosureHashCode() const {
+intptr_t Function::ComputeClosureHash() const {
   ASSERT(IsClosureFunction());
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(!obj.IsNull());
-  if (ClosureData::Cast(obj).hash() != Object::null()) {
-    return Smi::RawCast(ClosureData::Cast(obj).hash());
-  }
-  // Hash not yet computed. Compute and cache it.
   const Class& cls = Class::Handle(Owner());
   intptr_t result = String::Handle(name()).Hash();
   result += String::Handle(Signature()).Hash();
   result += String::Handle(cls.Name()).Hash();
-  // Finalize hash value like for strings so that it fits into a smi.
-  result += result << 3;
-  result ^= result >> 11;
-  result += result << 15;
-  result &= ((static_cast<intptr_t>(1) << String::kHashBits) - 1);
-  ClosureData::Cast(obj).set_hash(result);
-  return Smi::New(result);
+  return result;
 }
 
 RawString* Function::BuildSignature(NameVisibility name_visibility) const {
@@ -6967,12 +7160,22 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
                                         intptr_t num_free_fun_type_params,
                                         TrailPtr trail) const {
   if (genericity != kCurrentClass) {
-    // We only consider the function type parameters declared by the parents of
-    // this signature function.
-    const int num_parent_type_params = NumParentTypeParameters();
-    if (num_parent_type_params < num_free_fun_type_params) {
-      num_free_fun_type_params = num_parent_type_params;
+    // A generic typedef may declare a non-generic function type and get
+    // instantiated with unrelated function type parameters. In that case, its
+    // signature is still uninstantiated, because these type parameters are
+    // free (they are not declared by the typedef).
+    // For that reason, we only adjust num_free_fun_type_params if this
+    // signature is generic or has a generic parent.
+    if (IsGeneric() || HasGenericParent()) {
+      // We only consider the function type parameters declared by the parents
+      // of this signature function as free.
+      const int num_parent_type_params = NumParentTypeParameters();
+      if (num_parent_type_params < num_free_fun_type_params) {
+        num_free_fun_type_params = num_parent_type_params;
+      }
     }
+    // TODO(regis): Should we check the owners of the function type parameters
+    // in addition to their indexes to decide if they are free or not?
   }
   AbstractType& type = AbstractType::Handle(result_type());
   if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
@@ -7280,6 +7483,8 @@ const char* Function::ToCString() const {
   switch (kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
+    case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
       kind_str = "";
@@ -7328,10 +7533,6 @@ void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   ASSERT(!closure.IsNull());
   ASSERT(raw_ptr()->closure_ == Instance::null());
   StorePointer(&raw_ptr()->closure_, closure.raw());
-}
-
-void ClosureData::set_hash(intptr_t value) const {
-  StorePointer(&raw_ptr()->hash_, static_cast<RawObject*>(Smi::New(value)));
 }
 
 void ClosureData::set_parent_function(const Function& value) const {
@@ -8117,6 +8318,10 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
     const Integer& value = Integer::Handle(Integer::NewCanonical(literal));
+    if (value.IsNull()) {
+      // Integer is out of range.
+      return LiteralToken::null();
+    }
     ASSERT(value.IsSmi() || value.IsOld());
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
@@ -8498,6 +8703,18 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
       fresh_index_smi_ = Smi::New(fresh_index);
       const LiteralToken& lit = LiteralToken::Handle(
           LiteralToken::New(descriptor.kind, *descriptor.literal));
+      if (lit.IsNull()) {
+        // Convert token to an error.
+        ASSERT(descriptor.kind == Token::kINTEGER);
+        ASSERT(FLAG_limit_ints_to_64_bits);
+        Scanner::TokenDescriptor errorDesc = descriptor;
+        errorDesc.kind = Token::kERROR;
+        errorDesc.literal = &String::Handle(Symbols::NewFormatted(
+            Thread::Current(), "integer literal %s is out of range",
+            descriptor.literal->ToCString()));
+        AddLiteralToken(errorDesc);
+        return;
+      }
       index = Smi::Value(
           Smi::RawCast(tokens_->InsertOrGetValue(lit, fresh_index_smi_)));
       token_objects_.Add(lit);
@@ -13572,10 +13789,11 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 bool Code::HasBreakpoint() const {
-  if (!FLAG_support_debugger) {
-    return false;
-  }
+#if defined(PRODUCT)
+  return false;
+#else
   return Isolate::Current()->debugger()->HasBreakpoint(*this);
+#endif
 }
 
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
@@ -14866,6 +15084,10 @@ RawObject* Instance::HashCode() const {
   return DartLibraryCalls::HashCode(*this);
 }
 
+RawObject* Instance::IdentityHashCode() const {
+  return DartLibraryCalls::IdentityHashCode(*this);
+}
+
 bool Instance::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
@@ -15116,6 +15338,46 @@ bool Instance::IsInstanceOf(
     Function& other_signature =
         Function::Handle(zone, Type::Cast(instantiated_other).signature());
     Function& sig_fun = Function::Handle(zone, Closure::Cast(*this).function());
+    if (sig_fun.IsConvertedClosureFunction()) {
+      const String& closure_name = String::Handle(zone, sig_fun.name());
+      const Function& new_sig_fun = Function::Handle(
+          zone,
+          Function::NewConvertedClosureFunction(
+              closure_name, Function::Handle(zone, sig_fun.parent_function()),
+              TokenPosition::kNoSource));
+
+      new_sig_fun.set_type_parameters(
+          TypeArguments::Handle(zone, sig_fun.type_parameters()));
+      new_sig_fun.set_result_type(
+          AbstractType::Handle(zone, sig_fun.result_type()));
+      new_sig_fun.set_end_token_pos(TokenPosition::kNoSource);
+
+      new_sig_fun.set_is_debuggable(false);
+      new_sig_fun.set_is_visible(false);
+
+      // The converted closed top-level function type should have its first
+      // required optional parameter, i.e. context, removed.
+      const int num_fixed_params = sig_fun.num_fixed_parameters() - 1;
+      const int num_opt_params = sig_fun.NumOptionalParameters();
+      const bool has_opt_pos_params = sig_fun.HasOptionalPositionalParameters();
+      const int num_params = num_fixed_params + num_opt_params;
+      new_sig_fun.set_num_fixed_parameters(num_fixed_params);
+      new_sig_fun.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
+      new_sig_fun.set_parameter_types(
+          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+      new_sig_fun.set_parameter_names(
+          Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+      AbstractType& param_type = AbstractType::Handle(zone);
+      String& param_name = String::Handle(zone);
+      for (int i = 0; i < num_params; i++) {
+        param_type = sig_fun.ParameterTypeAt(i + 1);
+        new_sig_fun.SetParameterTypeAt(i, param_type);
+        param_name = sig_fun.ParameterNameAt(i + 1);
+        new_sig_fun.SetParameterNameAt(i, param_name);
+      }
+
+      sig_fun = new_sig_fun.raw();
+    }
     if (!sig_fun.HasInstantiatedSignature()) {
       const TypeArguments& instantiator_type_arguments = TypeArguments::Handle(
           zone, Closure::Cast(*this).instantiator_type_arguments());
@@ -15502,6 +15764,11 @@ bool AbstractType::IsRecursive() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
+}
+
+void AbstractType::SetScopeFunction(const Function& function) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
 }
 
 RawAbstractType* AbstractType::InstantiateFrom(
@@ -15905,7 +16172,6 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       if (type_param.Equals(other_type_param)) {
         return true;
       }
-      // TODO(regis): Should we update TypeParameter::IsEquivalent() instead?
       if (type_param.IsFunctionTypeParameter() &&
           other_type_param.IsFunctionTypeParameter() &&
           type_param.IsFinalized() && other_type_param.IsFinalized()) {
@@ -16488,6 +16754,16 @@ bool Type::IsRecursive() const {
   return TypeArguments::Handle(arguments()).IsRecursive();
 }
 
+void Type::SetScopeFunction(const Function& function) const {
+  TypeArguments::Handle(arguments()).SetScopeFunction(function);
+  if (IsFunctionType()) {
+    const Function& sig_fun = Function::Handle(signature());
+    sig_fun.set_parent_function(function);
+    // No need to traverse result type and parameter types (and bounds, in case
+    // sig_fun is generic), since they have sig_fun as scope function.
+  }
+}
+
 RawAbstractType* Type::CloneUnfinalized() const {
   ASSERT(IsResolved());
   if (IsFinalized()) {
@@ -16726,19 +17002,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     set_arguments(type_args);
     ASSERT(type_args.IsNull() || type_args.IsOld());
 
-    // In case of a function type, replace the actual function by a signature
-    // function.
-    if (IsFunctionType()) {
-      Function& sig_fun = Function::Handle(zone, signature());
-      if (!sig_fun.IsSignatureFunction()) {
-        sig_fun = sig_fun.CanonicalSignatureFunction(trail);
-        set_signature(sig_fun);
-        // Note that the signature type of the signature function may be
-        // different than the type being canonicalized.
-        // Consider F<int> being canonicalized, with F being a typedef and F<T>
-        // being its signature type.
-      }
-    }
+    // In case of a function type, the signature has already been canonicalized
+    // when finalizing the type and passing kCanonicalize as finalization.
+    // Therefore, we do not canonicalize the signature here, which would have no
+    // effect on selecting the canonical type anyway, because the function
+    // object is not replaced when canonicalizing the signature.
 
     // Check to see if the type got added to canonical list as part of the
     // type arguments canonicalization.
@@ -16970,6 +17238,12 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
   return !ref_type.IsNull() && ref_type.IsEquivalent(other, trail);
+}
+
+void TypeRef::SetScopeFunction(const Function& function) const {
+  // TypeRefs are created during finalization, when scope functions have
+  // already been adjusted.
+  UNREACHABLE();
 }
 
 RawTypeRef* TypeRef::InstantiateFrom(
@@ -17495,6 +17769,11 @@ bool BoundedType::IsRecursive() const {
   return AbstractType::Handle(type()).IsRecursive();
 }
 
+void BoundedType::SetScopeFunction(const Function& function) const {
+  AbstractType::Handle(type()).SetScopeFunction(function);
+  AbstractType::Handle(bound()).SetScopeFunction(function);
+}
+
 void BoundedType::set_type(const AbstractType& value) const {
   ASSERT(value.IsFinalized() || value.IsBeingFinalized() ||
          value.IsTypeParameter());
@@ -17827,15 +18106,15 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
+    if (FLAG_limit_ints_to_64_bits) {
+      // Out of range.
+      return Integer::null();
+    }
     const Bigint& big =
         Bigint::Handle(Bigint::NewFromCString(str.ToCString(), space));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    if (!FLAG_limit_ints_to_64_bits) {
-      return big.raw();
-    }
-    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
-    value = big.AsTruncatedInt64Value();
+    return big.raw();
   }
   return Integer::New(value, space);
 }
@@ -17845,14 +18124,14 @@ RawInteger* Integer::NewCanonical(const String& str) {
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
+    if (FLAG_limit_ints_to_64_bits) {
+      // Out of range.
+      return Integer::null();
+    }
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
     ASSERT(!big.FitsIntoSmi());
     ASSERT(!big.FitsIntoInt64());
-    if (!FLAG_limit_ints_to_64_bits) {
-      return big.raw();
-    }
-    // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
-    value = big.AsTruncatedInt64Value();
+    return big.raw();
   }
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
@@ -17871,8 +18150,8 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
     if (FLAG_limit_ints_to_64_bits) {
-      // TODO(alexmarkov): Throw error in FLAG_limit_ints_to_64_bits mode.
-      return Integer::New(static_cast<int64_t>(value), space);
+      // Out of range.
+      return Integer::null();
     } else {
       return Bigint::NewFromUint64(value, space);
     }
@@ -18073,7 +18352,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  ASSERT(!FLAG_limit_ints_to_64_bits);
+  ASSERT(!Bigint::IsDisabled());
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -18117,7 +18396,7 @@ RawInteger* Integer::BitOp(Token::Kind kind,
         UNIMPLEMENTED();
     }
   }
-  ASSERT(!FLAG_limit_ints_to_64_bits);
+  ASSERT(!Bigint::IsDisabled());
   return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
@@ -18530,7 +18809,7 @@ bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
 }
 
 RawBigint* Bigint::New(Heap::Space space) {
-  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
+  ASSERT(!Bigint::IsDisabled());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -18553,7 +18832,7 @@ RawBigint* Bigint::New(bool neg,
                        intptr_t used,
                        const TypedData& digits,
                        Heap::Space space) {
-  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
+  ASSERT(!Bigint::IsDisabled());
   ASSERT((used == 0) ||
          (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
   Thread* thread = Thread::Current();
@@ -18590,9 +18869,7 @@ RawBigint* Bigint::New(bool neg,
 }
 
 RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
-  // Currently only used to convert Smi or Mint to hex String, therefore do
-  // not throw RangeError if --limit-ints-to-64-bits.
-  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
+  ASSERT(!Bigint::IsDisabled());
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   bool neg;
   uint64_t abs_value;
@@ -18609,9 +18886,7 @@ RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
 }
 
 RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
-  // TODO(alexmarkov): Revise this assertion if this factory method is used
-  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
-  ASSERT(!FLAG_limit_ints_to_64_bits);
+  ASSERT(!Bigint::IsDisabled());
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   SetDigitAt(digits, 0, static_cast<uint32_t>(value));
   SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
@@ -18621,9 +18896,7 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
                                        intptr_t shift,
                                        Heap::Space space) {
-  // TODO(alexmarkov): Revise this assertion if this factory method is used
-  // to explicitly allocate Bigint objects in --limit-ints-to-64-bits mode.
-  ASSERT(!FLAG_limit_ints_to_64_bits);
+  ASSERT(!Bigint::IsDisabled());
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const intptr_t digit_shift = shift / kBitsPerDigit;
@@ -18654,8 +18927,7 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
 }
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
-  // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
-  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
+  ASSERT(!Bigint::IsDisabled());
   ASSERT(str != NULL);
   bool neg = false;
   TypedData& digits = TypedData::Handle();
@@ -18676,8 +18948,7 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 }
 
 RawBigint* Bigint::NewCanonical(const String& str) {
-  // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
-  // TODO(alexmarkov): Throw error or assert in --limit-ints-to-64-bits mode.
+  ASSERT(!Bigint::IsDisabled());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -21644,6 +21915,37 @@ const char* Closure::ToCString() const {
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
   return OS::SCreate(Thread::Current()->zone(), "Closure: %s%s%s", fun_sig,
                      from, fun_desc);
+}
+
+int64_t Closure::ComputeHash() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& func = Function::Handle(zone, function());
+  uint32_t result = 0;
+  if (func.IsImplicitInstanceClosureFunction()) {
+    // Implicit instance closures are not unqiue, so combine function's hash
+    // code with identityHashCode of cached receiver.
+    result = static_cast<uint32_t>(func.ComputeClosureHash());
+    const Context& context = Context::Handle(zone, this->context());
+    const Object& receiver = Object::Handle(zone, context.At(0));
+    const Object& receiverHash =
+        Object::Handle(zone, Instance::Cast(receiver).IdentityHashCode());
+    if (receiverHash.IsError()) {
+      Exceptions::PropagateError(Error::Cast(receiverHash));
+      UNREACHABLE();
+    }
+    result = CombineHashes(
+        result, Integer::Cast(receiverHash).AsTruncatedUint32Value());
+  } else {
+    // Explicit closures and implicit static closures are unique,
+    // so identityHashCode of closure object is good enough.
+    const Object& identityHash = Object::Handle(zone, this->IdentityHashCode());
+    if (identityHash.IsError()) {
+      Exceptions::PropagateError(Error::Cast(identityHash));
+      UNREACHABLE();
+    }
+    result = Integer::Cast(identityHash).AsTruncatedUint32Value();
+  }
+  return FinalizeHash(result, String::kHashBits);
 }
 
 RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,

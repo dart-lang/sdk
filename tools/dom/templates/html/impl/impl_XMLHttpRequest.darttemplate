@@ -253,12 +253,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Checks to see if the Progress event is supported on the current platform.
    */
   static bool get supportsProgressEvent {
-$if DART2JS
     var xhr = new HttpRequest();
     return JS('bool', '("onprogress" in #)', xhr);
-$else
-    return true;
-$endif
   }
 
   /**
@@ -269,24 +265,16 @@ $endif
    * if the destination server does not support CORS requests.
    */
   static bool get supportsCrossOrigin {
-$if DART2JS
     var xhr = new HttpRequest();
     return JS('bool', '("withCredentials" in #)', xhr);
-$else
-    return true;
-$endif
   }
 
   /**
    * Checks to see if the LoadEnd event is supported on the current platform.
    */
   static bool get supportsLoadEndEvent {
-$if DART2JS
     var xhr = new HttpRequest();
     return JS('bool', '("onloadend" in #)', xhr);
-$else
-    return true;
-$endif
   }
 
   /**
@@ -294,12 +282,8 @@ $endif
    * platform.
    */
   static bool get supportsOverrideMimeType {
-$if DART2JS
     var xhr = new HttpRequest();
     return JS('bool', '("overrideMimeType" in #)', xhr);
-$else
-    return true;
-$endif
   }
 
   /**
@@ -316,7 +300,6 @@ $endif
         return xhr.responseText;
       });
     }
-$if DART2JS
     var completer = new Completer<String>();
     if (method == null) {
       method = 'GET';
@@ -345,7 +328,6 @@ $if DART2JS
     }
 
     return completer.future;
-$endif
   }
 
   /**
@@ -401,17 +383,7 @@ $endif
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable()
-$if JSINTEROP
-  void open(String method, String url, {bool async, String user, String password}) {
-    if (async == null && user == null && password == null) {
-      _blink.BlinkXMLHttpRequest.instance.open_Callback_2_(this, method, url);
-    } else {
-      _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(this, method, url, async, user, password);
-    }
-  }
-$else
   void open(String method, String url, {bool async, String user, String password}) native;
-$endif
 
 $!MEMBERS
 }

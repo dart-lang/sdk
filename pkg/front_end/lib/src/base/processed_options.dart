@@ -4,15 +4,16 @@
 
 import 'dart:async';
 
-import 'package:front_end/compilation_error.dart';
+import 'package:front_end/compilation_message.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/problems.dart' show unimplemented;
+import 'package:front_end/src/fasta/severity.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/fasta/problems.dart' show unimplemented;
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart'
@@ -24,6 +25,8 @@ import 'package:package_config/src/packages_impl.dart'
     show NonFilePackagesDirectoryPackages, MapPackages;
 import 'package:package_config/packages_file.dart' as package_config;
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
 
 /// All options needed for the front end implementation.
 ///
@@ -88,6 +91,14 @@ class ProcessedOptions {
 
   bool get setExitCodeOnProblem => _raw.setExitCodeOnProblem;
 
+  bool get embedSourceText => _raw.embedSourceText;
+
+  bool get throwOnErrors => _raw.throwOnErrors;
+
+  bool get throwOnWarnings => _raw.throwOnWarnings;
+
+  bool get throwOnNits => _raw.throwOnNits;
+
   /// Like [CompilerOptions.chaseDependencies] but with the appropriate default
   /// value filled in.
   bool get chaseDependencies => _raw.chaseDependencies ?? !_modularApi;
@@ -100,10 +111,15 @@ class ProcessedOptions {
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 
+  /// The Uri where output is generated, may be null.
+  final Uri output;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions(CompilerOptions rawOptions,
-      [this._modularApi = false, this.inputs = const []])
+      [this._modularApi = false, this.inputs = const [], this.output])
       : this._raw = rawOptions,
+        // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
+        // collecting time since the start of the VM.
         ticker = new Ticker(isVerbose: rawOptions.verbose);
 
   /// The logger to report compilation progress.
@@ -116,18 +132,34 @@ class ProcessedOptions {
     return _raw.byteStore;
   }
 
-  void reportMessage(LocatedMessage message) {
-    _raw.onError(new _CompilationMessage(message));
+  bool get _reportMessages => _raw.reportMessages ?? (_raw.onError == null);
+
+  void report(LocatedMessage message, Severity severity) {
+    if (_raw.onError != null) {
+      _raw.onError(new _CompilationMessage(message, severity));
+    }
+
+    if (_reportMessages) command_line_reporting.report(message, severity);
   }
 
-  void reportMessageWithoutLocation(Message message) =>
-      reportMessage(message.withLocation(null, -1));
+  void reportWithoutLocation(Message message, Severity severity) {
+    if (_raw.onError != null) {
+      _raw.onError(
+          new _CompilationMessage(message.withLocation(null, -1), severity));
+    }
+
+    if (_reportMessages) {
+      command_line_reporting.reportWithoutLocation(message, severity);
+    }
+  }
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
   Future<bool> validateOptions() async {
+    if (verbose) print(debugString());
+
     if (inputs.isEmpty) {
-      reportMessageWithoutLocation(messageMissingInput);
+      reportWithoutLocation(messageMissingInput, Severity.error);
       return false;
     }
 
@@ -140,30 +172,30 @@ class ProcessedOptions {
       if (source.scheme != 'dart' &&
           source.scheme != 'packages' &&
           !await fileSystem.entityForUri(source).exists()) {
-        reportMessageWithoutLocation(
-            templateInputFileNotFound.withArguments('$source'));
+        reportWithoutLocation(
+            templateInputFileNotFound.withArguments(source), Severity.error);
         return false;
       }
     }
 
     if (_raw.sdkRoot != null &&
         !await fileSystem.entityForUri(sdkRoot).exists()) {
-      reportMessageWithoutLocation(
-          templateSdkRootNotFound.withArguments('$sdkRoot'));
+      reportWithoutLocation(
+          templateSdkRootNotFound.withArguments(sdkRoot), Severity.error);
       return false;
     }
 
     var summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
-      reportMessageWithoutLocation(
-          templateSdkSummaryNotFound.withArguments('$summary'));
+      reportWithoutLocation(
+          templateSdkSummaryNotFound.withArguments(summary), Severity.error);
       return false;
     }
 
     if (compileSdk && summary != null) {
-      reportMessageWithoutLocation(
-          templateInternalProblemUnsupported.withArguments(
-              "The compileSdk and sdkSummary options are mutually exclusive"));
+      reportWithoutLocation(
+          messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
+          Severity.internalProblem);
       return false;
     }
     return true;
@@ -263,21 +295,31 @@ class ProcessedOptions {
   /// This is an asynchronous getter since file system operations may be
   /// required to locate/read the packages file.
   Future<Packages> _getPackages() async {
-    if (_packages == null) {
-      if (_raw.packagesFileUri == null) {
-        if (inputs.length > 1) {
-          // TODO(sigmund): consider not reporting an error if we would infer
-          // the same .packages file from all of the inputs.
-          reportMessageWithoutLocation(messageCantInferPackagesFromManyInputs);
-          _packages = Packages.noPackages;
-        } else {
-          _packages = await _findPackages(inputs.first);
-        }
-      } else {
-        _packages = await createPackagesFromFile(_raw.packagesFileUri);
-      }
+    if (_packages != null) return _packages;
+    if (_raw.packagesFileUri != null) {
+      return _packages = await createPackagesFromFile(_raw.packagesFileUri);
     }
-    return _packages;
+
+    if (inputs.length > 1) {
+      // TODO(sigmund): consider not reporting an error if we would infer
+      // the same .packages file from all of the inputs.
+      reportWithoutLocation(
+          messageCantInferPackagesFromManyInputs, Severity.error);
+      return _packages = Packages.noPackages;
+    }
+
+    var input = inputs.first;
+
+    // When compiling the SDK the input files are normaly `dart:` URIs.
+    if (input.scheme == 'dart') return _packages = Packages.noPackages;
+
+    if (input.scheme == 'packages') {
+      report(messageCantInferPackagesFromPackageUri.withLocation(input, -1),
+          Severity.error);
+      return _packages = Packages.noPackages;
+    }
+
+    return _packages = await _findPackages(inputs.first);
   }
 
   /// Create a [Packages] given the Uri to a `.packages` file.
@@ -287,9 +329,11 @@ class ProcessedOptions {
       Map<String, Uri> map = package_config.parse(contents, file);
       return new MapPackages(map);
     } catch (e) {
-      reportMessage(templateCannotReadPackagesFile
-          .withArguments("$e")
-          .withLocation(file, -1));
+      report(
+          templateCannotReadPackagesFile
+              .withArguments("$e")
+              .withLocation(file, -1),
+          Severity.error);
       return Packages.noPackages;
     }
   }
@@ -318,8 +362,10 @@ class ProcessedOptions {
   Future<Packages> _findPackages(Uri scriptUri) async {
     var dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
-      reportMessageWithoutLocation(templateInternalProblemUnsupported
-          .withArguments("Expected input Uri to be absolute: $scriptUri."));
+      reportWithoutLocation(
+          templateInternalProblemUnsupported
+              .withArguments("Expected input Uri to be absolute: $scriptUri."),
+          Severity.internalProblem);
       return Packages.noPackages;
     }
 
@@ -360,7 +406,7 @@ class ProcessedOptions {
     if (_raw.sdkRoot == null) {
       // TODO(paulberry): implement the algorithm for finding the SDK
       // automagically.
-      return unimplemented('infer the default sdk location');
+      return unimplemented('infer the default sdk location', -1, null);
     }
     var root = _raw.sdkRoot;
     if (!root.path.endsWith('/')) {
@@ -413,6 +459,56 @@ class ProcessedOptions {
     }
     return result;
   }
+
+  String debugString() {
+    var sb = new StringBuffer();
+    writeList(String name, List elements) {
+      if (elements.isEmpty) {
+        sb.writeln('$name: <empty>');
+        return;
+      }
+      sb.writeln('$name:');
+      elements.forEach((s) {
+        sb.writeln('  - $s');
+      });
+    }
+
+    sb.writeln('Inputs: ${inputs}');
+    sb.writeln('Output: ${output}');
+
+    sb.writeln('Was error handler provided: '
+        '${_raw.onError == null ? "no" : "yes"}');
+
+    sb.writeln('FileSystem: ${_fileSystem.runtimeType} '
+        '(provided: ${_raw.fileSystem.runtimeType})');
+
+    writeList('Input Summaries', _raw.inputSummaries);
+    writeList('Linked Dependencies', _raw.linkedDependencies);
+    writeList('Multiroots', _raw.multiRoots);
+
+    sb.writeln('Modular: ${_modularApi}');
+    sb.writeln('Hermetic: ${!chaseDependencies}'
+        ' (provided: ${!_raw.chaseDependencies})');
+    sb.writeln('Packages uri: ${_raw.packagesFileUri}');
+    sb.writeln('Packages: ${_packages}');
+
+    sb.writeln('Compile SDK: ${compileSdk}');
+    sb.writeln('SDK root: ${_sdkRoot} (provided: ${_raw.sdkRoot})');
+    sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
+
+    sb.writeln('Strong: ${strongMode}');
+    sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
+
+    sb.writeln('throwOnErrorsAreFatal: ${throwOnErrors}');
+    sb.writeln('throwOnWarningsAreFatal: ${throwOnWarnings}');
+    sb.writeln('throwOnNits: ${throwOnNits}');
+    sb.writeln('exit on problem: ${setExitCodeOnProblem}');
+    sb.writeln('Embed sources: ${embedSourceText}');
+    sb.writeln('debugDump: ${debugDump}');
+    sb.writeln('verbose: ${verbose}');
+    sb.writeln('verify: ${verify}');
+    return '$sb';
+  }
 }
 
 /// A [FileSystem] that only allows access to files that have been explicitly
@@ -441,19 +537,24 @@ class HermeticAccessException extends FileSystemException {
   String toString() => message;
 }
 
-/// Wraps a [LocatedMessage] to implement the public [CompilationError] API.
-class _CompilationMessage implements CompilationError {
-  final LocatedMessage original;
+/// Wraps a [LocatedMessage] to implement the public [CompilationMessage] API.
+class _CompilationMessage implements CompilationMessage {
+  final LocatedMessage _original;
+  final Severity severity;
 
-  String get message => original.message;
+  String get message => _original.message;
 
-  String get tip => original.tip;
+  String get tip => _original.tip;
+
+  String get analyzerCode => _original.code.analyzerCode;
+
+  String get dart2jsCode => _original.code.dart2jsCode;
 
   SourceSpan get span =>
-      new SourceLocation(original.charOffset, sourceUrl: original.uri)
+      new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
           .pointSpan();
 
-  _CompilationMessage(this.original);
+  _CompilationMessage(this._original, this.severity);
 
   String toString() => message;
 }

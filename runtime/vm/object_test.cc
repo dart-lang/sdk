@@ -337,13 +337,16 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT_EQ(-1, c.CompareWith(mint1));
   EXPECT_EQ(1, c.CompareWith(mint2));
 
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
-  Bigint& big2 =
-      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-  EXPECT_EQ(-1, a.CompareWith(big1));
-  EXPECT_EQ(1, a.CompareWith(big2));
-  EXPECT_EQ(-1, c.CompareWith(big1));
-  EXPECT_EQ(1, c.CompareWith(big2));
+  if (!Bigint::IsDisabled()) {
+    Bigint& big1 =
+        Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
+    Bigint& big2 =
+        Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
+    EXPECT_EQ(-1, a.CompareWith(big1));
+    EXPECT_EQ(1, a.CompareWith(big2));
+    EXPECT_EQ(-1, c.CompareWith(big1));
+    EXPECT_EQ(1, c.CompareWith(big2));
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(StringCompareTo) {
@@ -492,13 +495,16 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
-  Bigint& big2 =
-      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-  EXPECT_EQ(-1, a.CompareWith(big1));
-  EXPECT_EQ(1, a.CompareWith(big2));
-  EXPECT_EQ(-1, c.CompareWith(big1));
-  EXPECT_EQ(1, c.CompareWith(big2));
+  if (!Bigint::IsDisabled()) {
+    Bigint& big1 =
+        Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
+    Bigint& big2 =
+        Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
+    EXPECT_EQ(-1, a.CompareWith(big1));
+    EXPECT_EQ(1, a.CompareWith(big2));
+    EXPECT_EQ(-1, c.CompareWith(big1));
+    EXPECT_EQ(1, c.CompareWith(big2));
+  }
 
   int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 64);
   const String& mint_string = String::Handle(String::New("0x7FFFFFFF00000064"));
@@ -596,6 +602,10 @@ ISOLATE_UNIT_TEST_CASE(Double) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Bigint) {
+  if (Bigint::IsDisabled()) {
+    return;
+  }
+
   Bigint& b = Bigint::Handle();
   EXPECT(b.IsNull());
   const char* cstr = "18446744073709551615000";
@@ -643,10 +653,10 @@ ISOLATE_UNIT_TEST_CASE(Integer) {
   EXPECT(i.IsSmi());
   i = Integer::NewCanonical(
       String::Handle(String::New("12345678901234567890")));
-  EXPECT(i.IsBigint());
+  EXPECT(FLAG_limit_ints_to_64_bits ? i.IsNull() : i.IsBigint());
   i = Integer::NewCanonical(
       String::Handle(String::New("-12345678901234567890111222")));
-  EXPECT(i.IsBigint());
+  EXPECT(FLAG_limit_ints_to_64_bits ? i.IsNull() : i.IsBigint());
 }
 
 ISOLATE_UNIT_TEST_CASE(String) {
@@ -3965,10 +3975,9 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_EQ(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
 }
 
+#ifndef PRODUCT
+
 TEST_CASE(FunctionWithBreakpointNotInlined) {
-  if (!FLAG_support_debugger) {
-    return;
-  }
   const char* kScriptChars =
       "class A {\n"
       "  a() {\n"
@@ -4032,8 +4041,6 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
-
-#ifndef PRODUCT
 
 class ObjectAccumulator : public ObjectVisitor {
  public:
@@ -4164,7 +4171,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         buffer);
   }
   // Bigint reference
-  {
+  if (!Bigint::IsDisabled()) {
     JSONStream js;
     const String& bigint_str =
         String::Handle(String::New("44444444444444444444444444444444"));

@@ -616,6 +616,21 @@ class Class extends NamedNode {
   String name;
   bool isAbstract;
 
+  /// Whether this class is a synthetic implementation created for each
+  /// mixed-in class. For example the following code:
+  /// class Z extends A with B, C, D {}
+  /// class A {}
+  /// class B {}
+  /// class C {}
+  /// class D {}
+  /// ...creates:
+  /// abstract class A&B extends A mixedIn B {}
+  /// abstract class A&B&C extends A&B mixedIn C {}
+  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends A&B&C&D {}
+  /// All X&Y classes are marked as synthetic.
+  bool isSyntheticMixinImplementation;
+
   /// The uri of the source file this class was loaded from.
   String fileUri;
 
@@ -646,6 +661,7 @@ class Class extends NamedNode {
   Class(
       {this.name,
       this.isAbstract: false,
+      this.isSyntheticMixinImplementation: false,
       this.supertype,
       this.mixedInType,
       List<TypeParameter> typeParameters,
@@ -3716,30 +3732,40 @@ class VariableDeclaration extends Statement {
       {this.initializer,
       this.type: const DynamicType(),
       bool isFinal: false,
-      bool isConst: false}) {
+      bool isConst: false,
+      bool isFieldFormal: false}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
+      bool isFieldFormal: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagInScope = 1 << 2; // Temporary flag used by verifier.
+  static const int FlagFieldFormal = 1 << 2;
+  static const int FlagInScope = 1 << 3; // Temporary flag used by verifier.
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
+
+  /// Whether the variable is declared as a field formal parameter of
+  /// a constructor.
+  @informative
+  bool get isFieldFormal => flags & FlagFieldFormal != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -3747,6 +3773,11 @@ class VariableDeclaration extends Statement {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  @informative
+  void set isFieldFormal(bool value) {
+    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);

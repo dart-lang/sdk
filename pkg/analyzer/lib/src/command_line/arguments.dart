@@ -17,6 +17,7 @@ import 'package:path/path.dart';
 const String analysisOptionsFileOption = 'options';
 const String bazelAnalysisOptionsPath =
     'package:dart.analysis_options/default.yaml';
+const String declarationCastsFlag = 'declaration-casts';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
@@ -24,8 +25,8 @@ const String enableSuperMixinFlag = 'supermixin';
 const String flutterAnalysisOptionsPath =
     'package:flutter/analysis_options_user.yaml';
 const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
+const String implicitCastsFlag = 'implicit-casts';
 const String lintsFlag = 'lints';
-const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
 const String packageDefaultAnalysisOptions = 'package-default-analysis-options';
 const String packageRootOption = 'package-root';
@@ -54,9 +55,16 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     options.enableSuperMixins = args[enableSuperMixinFlag];
     verbose('$enableSuperMixinFlag = ${options.enableSuperMixins}');
   }
-  if (args.wasParsed(noImplicitCastsFlag)) {
-    options.implicitCasts = !args[noImplicitCastsFlag];
-    verbose('$noImplicitCastsFlag = ${options.implicitCasts}');
+  if (args.wasParsed(implicitCastsFlag)) {
+    options.implicitCasts = args[implicitCastsFlag];
+    verbose('$implicitCastsFlag = ${options.implicitCasts}');
+  }
+  if (args.wasParsed(declarationCastsFlag)) {
+    options.declarationCasts = args[declarationCastsFlag];
+    verbose('$declarationCastsFlag = ${options.declarationCasts}');
+  } else if (args.wasParsed(implicitCastsFlag)) {
+    options.declarationCasts = args[implicitCastsFlag];
+    verbose('$declarationCastsFlag = ${options.declarationCasts}');
   }
   if (args.wasParsed(noImplicitDynamicFlag)) {
     options.implicitDynamic = !args[noImplicitDynamicFlag];
@@ -174,8 +182,12 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
   parser.addFlag(strongModeFlag,
       help: 'Enable strong static checks (https://goo.gl/DqcBsw).',
       defaultsTo: ddc);
-  parser.addFlag(noImplicitCastsFlag,
-      negatable: false,
+  parser.addFlag(declarationCastsFlag,
+      negatable: true,
+      help:
+          'Disable declaration casts in strong mode (https://goo.gl/cTLz40).');
+  parser.addFlag(implicitCastsFlag,
+      negatable: true,
       help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).');
   parser.addFlag(noImplicitDynamicFlag,
       negatable: false,

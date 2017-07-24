@@ -54,7 +54,7 @@ import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
     JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
-    makeLeafDispatchRecord;
+    makeLeafDispatchRecord, registerGlobalObject;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, JSUInt31,
     findInterceptorConstructorForType,

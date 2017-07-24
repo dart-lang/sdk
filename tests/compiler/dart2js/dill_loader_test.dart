@@ -52,8 +52,8 @@ main() {
       ..packagesFileUri = Platform.script.resolve('../../../.packages')
       ..compileSdk = true
       ..linkedDependencies = [platform]
-      ..verify = true
-      ..onError = errorHandler;
+      ..setExitCodeOnProblem = true
+      ..verify = true;
 
     List<int> kernelBinary =
         serializeProgram(await kernelForProgram(uri, options));
@@ -78,9 +78,4 @@ main() {
     var member = environment.lookupClassMember(clss, 'testMain');
     Expect.isNotNull(member);
   });
-}
-
-void errorHandler(CompilationError e) {
-  exitCode = 1;
-  print(e.message);
 }

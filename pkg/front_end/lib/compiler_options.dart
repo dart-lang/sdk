@@ -8,15 +8,12 @@ import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
-import 'compilation_error.dart';
+import 'compilation_message.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
 
-/// Default error handler used by [CompilerOptions.onError].
-void defaultErrorHandler(CompilationError error) => throw error;
-
 /// Callback used to report errors encountered during compilation.
-typedef void ErrorHandler(CompilationError error);
+typedef void ErrorHandler(CompilationMessage error);
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -43,9 +40,21 @@ class CompilerOptions {
 
   /// Callback to which compilation errors should be delivered.
   ///
-  /// By default, the first error will be reported by throwing an exception of
-  /// type [CompilationError].
-  ErrorHandler onError = defaultErrorHandler;
+  /// By default, when no callback is provided, the compiler will report
+  /// messages on the console and will throw when fatal errors are discovered.
+  ErrorHandler onError;
+
+  /// Whether messages should be reported using the compiler's internal
+  /// reporting mechanism.
+  ///
+  /// If no [onError] handler is provided, the default is true. If an [onError]
+  /// handler is provided, the default is false. Setting this to true will
+  /// ensure that error messages are printed in the console and that fatal
+  /// errors cause an exception.
+  // TODO(sigmund): add also an API for formatting errors and provide a default
+  // formatter. This way user can configure error style in the console and in
+  // generated code that contains error messages.
+  bool reportMessages;
 
   /// URI of the ".packages" file (typically a "file:" URI).
   ///
@@ -197,4 +206,30 @@ class CompilerOptions {
   /// Whether to set the exit code to non-zero if any problem (including
   /// warning, etc.) is encountered during compilation.
   bool setExitCodeOnProblem = false;
+
+  /// Whether to embed the input sources in generated kernel programs.
+  ///
+  /// The kernel `Program` API includes a `uriToSource` map field that is used
+  /// to embed the entire contents of the source files. This part of the kernel
+  /// API is in flux and it is not necessary for some tools. Today it is used
+  /// for translating error locations and stack traces in the VM.
+  // TODO(sigmund): change the default.
+  bool embedSourceText = true;
+
+  /// Whether the compiler should throw as soon as it encounters a
+  /// compilation error.
+  // TODO(sigmund): change the default (issue #30194).
+  bool throwOnErrors = true;
+
+  /// Whether the compiler should throw as soon as it encounters a
+  /// compilation warning.
+  ///
+  /// Typically used by developers to debug internals of the compiler.
+  bool throwOnWarnings = false;
+
+  /// Whether the compiler should throw as soon as it encounters a
+  /// compilation nit.
+  ///
+  /// Typically used by developers to debug internals of the compiler.
+  bool throwOnNits = false;
 }

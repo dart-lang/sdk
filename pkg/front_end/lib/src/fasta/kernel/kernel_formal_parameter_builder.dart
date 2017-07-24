@@ -40,7 +40,10 @@ class KernelFormalParameterBuilder
   KernelVariableDeclaration build(SourceLibraryBuilder library) {
     if (declaration == null) {
       declaration = new KernelVariableDeclaration(name, 0,
-          type: type?.build(library), isFinal: isFinal, isConst: isConst)
+          type: type?.build(library),
+          isFinal: isFinal,
+          isConst: isConst,
+          isFieldFormal: hasThis)
         ..fileOffset = charOffset;
       if (type == null && hasThis) {
         library.loader.typeInferenceEngine

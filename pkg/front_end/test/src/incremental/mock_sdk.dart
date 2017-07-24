@@ -233,6 +233,7 @@ abstract class Completer<T> {
 
 class _StreamIterator<T> implements StreamIterator<T> {}
 class _AsyncStarStreamController {}
+Object _asyncStackTraceHelper(Function async_op) { }
 Function _asyncThenWrapperHelper(continuation) {}
 Function _asyncErrorWrapperHelper(continuation) {}
 Future _awaitHelper(

@@ -1361,6 +1361,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   Uint32List _signature;
 
+  /**
+   * A flag indicating whether declaration casts are allowed in [strongMode]
+   * (they are always allowed in Dart 1.0 mode).
+   *
+   * This option is experimental and subject to change.
+   */
+  bool declarationCasts = true;
+
   @override
   @deprecated
   int cacheSize = 64;
@@ -1491,6 +1499,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
+      declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       nonnullableTypes = options.nonnullableTypes;
@@ -1607,6 +1616,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = new ApiSignature();
 
       // Append boolean flags.
+      buffer.addBool(declarationCasts);
       buffer.addBool(enableAssertInitializer);
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableStrictCallChecks);
@@ -1638,6 +1648,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void resetToDefaults() {
+    declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
     enableAssertInitializer = false;

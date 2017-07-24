@@ -8,7 +8,7 @@
 library front_end.front_end;
 
 export 'compiler_options.dart';
-export 'compilation_error.dart';
+export 'compilation_message.dart';
 export 'kernel_generator.dart';
 export 'summary_generator.dart';
 export 'file_system.dart';

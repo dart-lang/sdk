@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:kernel/kernel.dart' show Program, CanonicalName;
 
 import 'base/processed_options.dart';
-import 'fasta/compiler_command_line.dart' show CompilerCommandLine;
+import 'fasta/severity.dart' show Severity;
 import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
 import 'fasta/dill/dill_target.dart' show DillTarget;
@@ -27,34 +27,19 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
     bool buildProgram: true,
     bool trimDependencies: false}) async {
-  // TODO(sigmund): Replace CompilerCommandLine and instead simply use a
-  // CompilerContext that directly uses the ProcessedOptions through the
-  // system.
-  String programName = "";
-  List<String> arguments = <String>[programName, "--target=none"];
-  if (options.strongMode) {
-    arguments.add("--strong-mode");
-  }
-  if (options.verbose) {
-    arguments.add("--verbose");
-  }
-  if (options.setExitCodeOnProblem) {
-    arguments.add("--set-exit-code-on-problem");
-  }
-  return await CompilerCommandLine.withGlobalOptions(programName, arguments,
-      (CompilerContext context) async {
-    context.options.options["--target"] = options.target;
-    return await generateKernelInternal(options,
+  return await CompilerContext.runWithOptions(options, (_) async {
+    return await generateKernelInternal(
         buildSummary: buildSummary,
         buildProgram: buildProgram,
         trimDependencies: trimDependencies);
   });
 }
 
-Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
+Future<CompilerResult> generateKernelInternal(
     {bool buildSummary: false,
     bool buildProgram: true,
     bool trimDependencies: false}) async {
+  var options = CompilerContext.current.options;
   var fs = options.fileSystem;
   if (!await options.validateOptions()) return null;
   options.ticker.logMs("Validated arguments");
@@ -90,7 +75,10 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
     }
 
     // All summaries are considered external and shouldn't include source-info.
-    dillTarget.loader.libraries.forEach((lib) => lib.isExternal = true);
+    dillTarget.loader.libraries.forEach((lib) {
+      lib.isExternal = true;
+      lib.dependencies.clear();
+    });
 
     // Linked dependencies are meant to be part of the program so they are not
     // marked external.
@@ -120,7 +108,9 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         trimProgram(summaryProgram, (uri) => !excluded.contains(uri));
       }
       if (options.verify) {
-        verifyProgram(summaryProgram).forEach(options.reportMessage);
+        for (var error in verifyProgram(summaryProgram)) {
+          options.report(error, Severity.error);
+        }
       }
       if (options.debugDump) {
         printProgramText(summaryProgram,
@@ -147,8 +137,10 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
     }
 
     if (kernelTarget.errors.isNotEmpty) {
-      // TODO(ahe): The errors have already been reported via CompilerContext.
-      kernelTarget.errors.forEach(options.reportMessage);
+      // TODO(sigmund): remove duplicate error reporting. Currently
+      // kernelTarget.errors contains recoverable and unrecoverable errors. We
+      // are reporting unrecoverable errors twice.
+      kernelTarget.errors.forEach((e) => options.report(e, Severity.error));
       return null;
     }
 
@@ -157,7 +149,8 @@ Future<CompilerResult> generateKernelInternal(ProcessedOptions options,
         program: program,
         deps: kernelTarget.loader.getDependencies());
   } on deprecated_InputError catch (e) {
-    options.reportMessage(deprecated_InputError.toMessage(e));
+    options.report(
+        deprecated_InputError.toMessage(e), Severity.internalProblem);
     return null;
   } catch (e, t) {
     return reportCrash(e, t);

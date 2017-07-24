@@ -209,7 +209,17 @@ const Code<Null> codeCantInferPackagesFromManyInputs =
 const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
     "CantInferPackagesFromManyInputs",
     message:
-        r"""Cannot infer a .packages file when compiling multiple inputs.""",
+        r"""Can't infer a .packages file when compiling multiple inputs.""",
+    tip: r"""Try specifying the file explicitly with the --packages option.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCantInferPackagesFromPackageUri =
+    messageCantInferPackagesFromPackageUri;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
+    "CantInferPackagesFromPackageUri",
+    message: r"""Can't infer a .packages file from an input 'package:*' URI.""",
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1315,23 +1325,23 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateInputFileNotFound =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""Input file not found: #string.""",
+const Template<Message Function(Uri uri_)> templateInputFileNotFound =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""Input file not found: #uri.""",
         withArguments: _withArgumentsInputFileNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeInputFileNotFound =
-    const Code<Message Function(String string)>(
+const Code<Message Function(Uri uri_)> codeInputFileNotFound =
+    const Code<Message Function(Uri uri_)>(
   "InputFileNotFound",
   templateInputFileNotFound,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInputFileNotFound(String string) {
+Message _withArgumentsInputFileNotFound(Uri uri_) {
+  String uri = relativizeUri(uri_);
   return new Message(codeInputFileNotFound,
-      message: """Input file not found: $string.""",
-      arguments: {'string': string});
+      message: """Input file not found: $uri.""", arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1384,6 +1394,17 @@ const Code<Null> codeInternalProblemExtendingUnmodifiableScope =
 const MessageCode messageInternalProblemExtendingUnmodifiableScope =
     const MessageCode("InternalProblemExtendingUnmodifiableScope",
         message: r"""Can't extend an unmodifiable scope.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemMissingContext =
+    messageInternalProblemMissingContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemMissingContext = const MessageCode(
+    "InternalProblemMissingContext",
+    message: r"""Compiler cannot run without a compiler context.""",
+    tip:
+        r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
@@ -1456,6 +1477,16 @@ Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
       message: """Can't access private constructor '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
+    messageInternalProblemProvidedBothCompileSdkAndSdkSummary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemProvidedBothCompileSdkAndSdkSummary =
+    const MessageCode("InternalProblemProvidedBothCompileSdkAndSdkSummary",
+        message:
+            r"""The compileSdk and sdkSummary options are mutually exclusive""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
@@ -1962,26 +1993,95 @@ const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
     tip: r"""Did you forget to add a 'finally' block?""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int number)>
-    templateOperatorParameterMismatch =
-    const Template<Message Function(String name, int number)>(
-        messageTemplate:
-            r"""Operator '#name' must have exactly #number parameters.""",
-        withArguments: _withArgumentsOperatorParameterMismatch);
+const Template<
+    Message Function(
+        String
+            name)> templateOperatorMinusParameterMismatch = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""Operator '#name' should have zero or one parameter.""",
+    tipTemplate:
+        r"""With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
+    withArguments: _withArgumentsOperatorMinusParameterMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int number)>
-    codeOperatorParameterMismatch =
-    const Code<Message Function(String name, int number)>(
-  "OperatorParameterMismatch",
-  templateOperatorParameterMismatch,
+const Code<Message Function(String name)> codeOperatorMinusParameterMismatch =
+    const Code<Message Function(String name)>(
+  "OperatorMinusParameterMismatch",
+  templateOperatorMinusParameterMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch(String name, int number) {
-  return new Message(codeOperatorParameterMismatch,
-      message: """Operator '$name' must have exactly $number parameters.""",
-      arguments: {'name': name, 'number': number});
+Message _withArgumentsOperatorMinusParameterMismatch(String name) {
+  return new Message(codeOperatorMinusParameterMismatch,
+      message: """Operator '$name' should have zero or one parameter.""",
+      tip:
+          """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateOperatorParameterMismatch0 =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Operator '#name' shouldn't have any parameters.""",
+        withArguments: _withArgumentsOperatorParameterMismatch0);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOperatorParameterMismatch0 =
+    const Code<Message Function(String name)>(
+  "OperatorParameterMismatch0",
+  templateOperatorParameterMismatch0,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOperatorParameterMismatch0(String name) {
+  return new Message(codeOperatorParameterMismatch0,
+      message: """Operator '$name' shouldn't have any parameters.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateOperatorParameterMismatch1 =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Operator '#name' should have exactly one parameter.""",
+        withArguments: _withArgumentsOperatorParameterMismatch1);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOperatorParameterMismatch1 =
+    const Code<Message Function(String name)>(
+  "OperatorParameterMismatch1",
+  templateOperatorParameterMismatch1,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOperatorParameterMismatch1(String name) {
+  return new Message(codeOperatorParameterMismatch1,
+      message: """Operator '$name' should have exactly one parameter.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateOperatorParameterMismatch2 =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Operator '#name' should have exactly two parameters.""",
+        withArguments: _withArgumentsOperatorParameterMismatch2);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOperatorParameterMismatch2 =
+    const Code<Message Function(String name)>(
+  "OperatorParameterMismatch2",
+  templateOperatorParameterMismatch2,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOperatorParameterMismatch2(String name) {
+  return new Message(codeOperatorParameterMismatch2,
+      message: """Operator '$name' should have exactly two parameters.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2369,43 +2469,44 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
     message: r"""A function expression can't have a return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateSdkRootNotFound =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""SDK root directory not found: #string.""",
+const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""SDK root directory not found: #uri.""",
         withArguments: _withArgumentsSdkRootNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeSdkRootNotFound =
-    const Code<Message Function(String string)>(
+const Code<Message Function(Uri uri_)> codeSdkRootNotFound =
+    const Code<Message Function(Uri uri_)>(
   "SdkRootNotFound",
   templateSdkRootNotFound,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkRootNotFound(String string) {
+Message _withArgumentsSdkRootNotFound(Uri uri_) {
+  String uri = relativizeUri(uri_);
   return new Message(codeSdkRootNotFound,
-      message: """SDK root directory not found: $string.""",
-      arguments: {'string': string});
+      message: """SDK root directory not found: $uri.""",
+      arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)> templateSdkSummaryNotFound =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""SDK summary not found: #string.""",
+const Template<Message Function(Uri uri_)> templateSdkSummaryNotFound =
+    const Template<Message Function(Uri uri_)>(
+        messageTemplate: r"""SDK summary not found: #uri.""",
         withArguments: _withArgumentsSdkSummaryNotFound);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeSdkSummaryNotFound =
-    const Code<Message Function(String string)>(
+const Code<Message Function(Uri uri_)> codeSdkSummaryNotFound =
+    const Code<Message Function(Uri uri_)>(
   "SdkSummaryNotFound",
   templateSdkSummaryNotFound,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkSummaryNotFound(String string) {
+Message _withArgumentsSdkSummaryNotFound(Uri uri_) {
+  String uri = relativizeUri(uri_);
   return new Message(codeSdkSummaryNotFound,
-      message: """SDK summary not found: $string.""",
-      arguments: {'string': string});
+      message: """SDK summary not found: $uri.""", arguments: {'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

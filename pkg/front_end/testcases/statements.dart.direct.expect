@@ -21,8 +21,9 @@ static method main() → dynamic {
     core::print("Hello from do-while!");
   }
   while (false)
-  do
+  do {
     dynamic x = core::print("Hello from do-while!");
+  }
   while (false)
   for (core::String s in <dynamic>["Hello from for-in!"]) {
     core::print(s);
@@ -43,11 +44,11 @@ static method main() → dynamic {
     try {
       throw "Hello from rethrow!";
     }
-    on dynamic catch(dynamic e) {
+    on dynamic catch(final dynamic e) {
       rethrow;
     }
   }
-  on dynamic catch(dynamic e) {
+  on dynamic catch(final dynamic e) {
     core::print(e);
   }
   self::foo();
@@ -62,7 +63,7 @@ static method main() → dynamic {
   try {
     assert(false, "Hello from assert!");
   }
-  on dynamic catch(dynamic e) {
+  on dynamic catch(final dynamic e) {
     core::print(e);
   }
   #L1:

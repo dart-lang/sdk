@@ -261,7 +261,10 @@ class TypeInferenceListener
   bool methodInvocationEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("methodInvocation", expression, typeContext);
 
-  void methodInvocationExit(Expression expression, DartType inferredType) =>
+  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {}
+
+  void methodInvocationExit(Expression expression, Arguments arguments,
+          bool isImplicitCall, DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
   bool notEnter(Not expression, DartType typeContext) =>

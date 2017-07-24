@@ -58,14 +58,26 @@ vars = {
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.0",
-  "code_transformers_tag": "@v0.5.1",
-  "collection_tag": "@1.13.0",
+  "collection_tag": "@1.14.3",
   "convert_tag": "@2.0.1",
-  "crypto_tag" : "@2.0.1",
+  "crypto_tag" : "@2.0.2",
   "csslib_tag" : "@0.13.3+1",
   "dart2js_info_tag" : "@0.5.4+2",
-  "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@1.0.7",
+
+  # Note: updates to dart_style have to be coordinated carefully with
+  # the infrastructure-team so that the internal formatter in
+  # `sdk/tools/sdks/*/dart-sdk/bin/dartfmt` matches the version here.
+  #
+  # Please follow this process to make updates:
+  #   * file an issue with area-infrastructure requesting a roll for this
+  #     package (please also indicate what version to roll).
+  #   * let the infrastructure team submit the change on your behalf,
+  #     so they can build a new dev release and roll the submitted sdks a few
+  #     minutes later.
+  #
+  # For more details, see https://github.com/dart-lang/sdk/issues/30164
+  "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
+
   "dartdoc_tag" : "@v0.13.0+1",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@1.0.0",
@@ -73,26 +85,23 @@ vars = {
   "html_tag" : "@0.13.1",
   "http_multi_server_tag" : "@2.0.3",
   "http_parser_tag" : "@3.1.1",
-  "http_tag" : "@0.11.3+13",
+  "http_tag" : "@0.11.3+14",
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
-  "initialize_tag": "@v0.6.2+5",
   "intl_tag": "@0.14.0",
   "isolate_tag": "@1.0.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.4",
-  "linter_tag": "@0.1.31",
+  "linter_tag": "@0.1.33",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.3",
   "matcher_tag": "@0.12.0+2",
-  "metatest_tag": "@0.2.2+3",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
+  "mockito_tag": "@2.0.2",
   "mustache4dart_tag" : "@v1.1.0",
   "oauth2_tag": "@1.0.2",
-  "observable_tag": "@0.17.0",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
-  "observe_tag": "@0.15.0",
-  "package_config_tag": "@1.0.0",
+  "package_config_tag": "@1.0.1",
   "package_resolver_tag": "@1.0.2+1",
   "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
@@ -109,7 +118,6 @@ vars = {
   "shelf_packages_handler_tag": "@1.0.0",
   "shelf_tag": "@0.6.7+2",
   "shelf_web_socket_tag": "@0.2.1",
-  "smoke_tag" : "@v0.3.6+2",
   "source_map_stack_trace_tag": "@1.1.4",
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.4",
@@ -125,7 +133,6 @@ vars = {
   "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+3",
   "watcher_tag": "@0.9.7+3",
-  "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.4",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "yaml_tag": "@2.1.12",
@@ -203,12 +210,6 @@ deps = {
       (Var("github_mirror") % "crypto") + Var("crypto_tag"),
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
-  Var("dart_root") + "/third_party/pkg/code_transformers":
-      (Var("github_mirror") % "code_transformers") +
-      Var("code_transformers_tag"),
-  Var("dart_root") + "/third_party/dart-services":
-      (Var("github_mirror") % "dart-services") +
-      Var("dart_services_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
@@ -233,8 +234,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") +
       Var("http_throttle_tag"),
-  Var("dart_root") + "/third_party/pkg/initialize":
-      (Var("github_mirror") % "initialize") + Var("initialize_tag"),
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_tag"),
   Var("dart_root") + "/third_party/pkg/isolate":
@@ -249,20 +248,16 @@ deps = {
       (Var("github_mirror") % "markdown") + Var("markdown_tag"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
-  Var("dart_root") + "/third_party/pkg/metatest":
-      (Var("github_mirror") % "metatest") + Var("metatest_tag"),
   Var("dart_root") + "/third_party/pkg/mime":
       (Var("github_mirror") % "mime") + Var("mime_rev"),
+  Var("dart_root") + "/third_party/pkg/mockito":
+      "https://github.com/dart-lang/mockito.git" + Var("mockito_tag"),
   Var("dart_root") + "/third_party/pkg/mustache4dart":
       Var("chromium_git")
       + "/external/github.com/valotas/mustache4dart.git"
       + Var("mustache4dart_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_tag"),
-  Var("dart_root") + "/third_party/pkg/observable":
-      (Var("github_mirror") % "observable") + Var("observable_tag"),
-  Var("dart_root") + "/third_party/pkg/observe":
-      (Var("github_mirror") % "observe") + Var("observe_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
       (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
@@ -301,8 +296,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_tag"),
-  Var("dart_root") + "/third_party/pkg/smoke":
-      (Var("github_mirror") % "smoke") + Var("smoke_tag"),
   Var("dart_root") + "/third_party/pkg/source_maps":
       (Var("github_mirror") % "source_maps") + Var("source_maps_tag"),
   Var("dart_root") + "/third_party/pkg/source_span":
@@ -336,9 +329,6 @@ deps = {
       (Var("github_mirror") % "utf") + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
       (Var("github_mirror") % "watcher") + Var("watcher_tag"),
-  Var("dart_root") + "/third_party/pkg/web_components":
-      (Var("github_mirror") % "web-components") +
-      Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       (Var("github_mirror") % "web_socket_channel") +
       Var("web_socket_channel_tag"),

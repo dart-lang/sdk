@@ -73,8 +73,6 @@ class GCSNamer(object):
   Under every base path, the following structure is used:
     - /VERSION
     - /api-docs/dartdocs-gen-api.zip
-    - /dartium/{chromedriver,content_shell,dartium}
-         -{linux,macos,windows}-{ia32,x64}-release.zip
     - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
     - /editor/darteditor-{linux,macos,windows}-{ia32,x64}.zip
     - /editor/darteditor-installer-macos-{ia32,x64}.dmg
@@ -122,25 +120,11 @@ class GCSNamer(object):
                      arch,
                      self.unstripped_filename(system)])
 
-  def dartium_variant_zipfilepath(self, revision, name, system, arch, mode):
-    return '/'.join([self.dartium_directory(revision),
-      self.dartium_variant_zipfilename(name, system, arch, mode)])
-
   def apidocs_zipfilepath(self, revision):
     return '/'.join([self.apidocs_directory(revision),
       self.dartdocs_zipfilename()])
 
-  def dartium_android_apk_filepath(self, revision, name, arch, mode):
-    return '/'.join([self.dartium_android_directory(revision),
-      self.dartium_android_apk_filename(name, arch, mode)])
-
   # Functions for querying gs:// directories
-
-  def dartium_directory(self, revision):
-    return self._variant_directory('dartium', revision)
-
-  def dartium_android_directory(self, revision):
-    return self._variant_directory('dartium_android', revision)
 
   def sdk_directory(self, revision):
     return self._variant_directory('sdk', revision)
@@ -169,9 +153,6 @@ class GCSNamer(object):
 
   # Functions for quering filenames
 
-  def dartium_android_apk_filename(self, name, arch, mode):
-    return '%s-%s-%s.apk' % (name, arch, mode)
-
   def dartdocs_zipfilename(self):
     return 'dartdocs-gen-api.zip'
 
@@ -194,12 +175,6 @@ class GCSNamer(object):
 
   def unstripped_filename(self, system):
     return 'dart.exe' if system.startswith('win') else 'dart'
-
-  def dartium_variant_zipfilename(self, name, system, arch, mode):
-    assert name in ['chromedriver', 'dartium', 'content_shell']
-    assert mode in Mode.ALL_MODES
-    return '%s-%s-%s-%s.zip' % (
-        name, SYSTEM_RENAMES[system], ARCH_RENAMES[arch], mode)
 
 class GCSNamerApiDocs(object):
   def __init__(self, channel=Channel.BLEEDING_EDGE):

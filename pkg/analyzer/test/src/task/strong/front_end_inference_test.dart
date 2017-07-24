@@ -133,33 +133,35 @@ class _ElementNamer {
 }
 
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
-  Future<String> runTest(String path, String code) async {
-    Uri uri = provider.pathContext.toUri(path);
+  Future<String> runTest(String path, String code) {
+    return fasta.CompilerContext.runWithDefaultOptions((_) async {
+      Uri uri = provider.pathContext.toUri(path);
 
-    List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
-    fasta.CompilerContext.current.uriToSource[relativizeUri(uri).toString()] =
-        new fasta.Source(lineStarts, UTF8.encode(code));
+      List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
+      fasta.CompilerContext.current.uriToSource[relativizeUri(uri).toString()] =
+          new fasta.Source(lineStarts, UTF8.encode(code));
 
-    var validation = new fasta.ValidatingInstrumentation();
-    await validation.loadExpectations(uri);
+      var validation = new fasta.ValidatingInstrumentation();
+      await validation.loadExpectations(uri);
 
-    _addFileAndImports(path, code);
+      _addFileAndImports(path, code);
 
-    AnalysisResult result = await driver.getResult(path);
-    result.unit.accept(new _InstrumentationVisitor(validation, uri));
+      AnalysisResult result = await driver.getResult(path);
+      result.unit.accept(new _InstrumentationVisitor(validation, uri));
 
-    validation.finish();
+      validation.finish();
 
-    if (validation.hasProblems) {
-      if (fixProblems) {
-        validation.fixSource(uri, true);
-        return null;
+      if (validation.hasProblems) {
+        if (fixProblems) {
+          validation.fixSource(uri, true);
+          return null;
+        } else {
+          return validation.problemsAsString;
+        }
       } else {
-        return validation.problemsAsString;
+        return null;
       }
-    } else {
-      return null;
-    }
+    });
   }
 
   void _addFileAndImports(String path, String code) {
@@ -386,13 +388,17 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
-    if (node.element is LocalElement &&
-        node.element.enclosingElement is! CompilationUnitElement) {
+
+    bool isSetter = node.element.kind == ElementKind.SETTER;
+    bool isLocalFunction = node.element is LocalElement &&
+        node.element.enclosingElement is! CompilationUnitElement;
+
+    if (isSetter || isLocalFunction) {
       if (node.returnType == null) {
         _instrumentation.record(
             uri,
             node.name.offset,
-            'returnType',
+            isSetter ? 'topType' : 'returnType',
             new _InstrumentationValueForType(
                 node.element.returnType, elementNamer));
       }
@@ -493,10 +499,10 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
+    if (node.returnType == null) {
+      _recordTopType(node.name.offset, node.element.returnType);
+    }
     if (node.element.enclosingElement is ClassElement && !node.isStatic) {
-      if (node.returnType == null) {
-        _recordTopType(node.name.offset, node.element.returnType);
-      }
       if (node.parameters != null) {
         for (var parameter in node.parameters.parameters) {
           // Note: it's tempting to check `parameter.type == null`, but that

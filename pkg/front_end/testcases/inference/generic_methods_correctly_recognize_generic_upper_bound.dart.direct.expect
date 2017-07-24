@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Pattern> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method method<U extends self::Foo::T>(self::Foo::method::U u) → self::Foo::method::U
+    return u;
+}
+static method main() → dynamic {
+  new self::Foo::•<core::String>().method(42);
+}

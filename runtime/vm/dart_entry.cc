@@ -509,6 +509,24 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
   return result.raw();
 }
 
+// On success, returns a RawInstance.  On failure, a RawError.
+RawObject* DartLibraryCalls::IdentityHashCode(const Instance& object) {
+  const int kNumArguments = 1;
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Library& libcore = Library::Handle(zone, Library::CoreLibrary());
+  ASSERT(!libcore.IsNull());
+  const Function& function = Function::Handle(
+      zone, libcore.LookupFunctionAllowPrivate(Symbols::identityHashCode()));
+  ASSERT(!function.IsNull());
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
+  args.SetAt(0, object);
+  const Object& result =
+      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
+  ASSERT(result.IsInstance() || result.IsError());
+  return result.raw();
+}
+
 RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -561,12 +579,14 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, handler);
   args.SetAt(1, message);
-  if (FLAG_support_debugger && isolate->debugger()->IsStepping()) {
+#if !defined(PRODUCT)
+  if (isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.
     isolate->debugger()->SetResumeAction(Debugger::kStepInto);
   }
+#endif
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsNull() || result.IsError());

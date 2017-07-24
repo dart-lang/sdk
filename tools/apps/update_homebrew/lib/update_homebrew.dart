@@ -11,7 +11,10 @@ const GITHUB_REPO = 'dart-lang/homebrew-dart';
 
 const CHANNELS = const ['dev', 'stable'];
 
-const FILES = const [x64File, ia32File, dartiumFile, contentShellFile];
+const FILES = const {
+  'dev': const [x64File, ia32File],
+  'stable': const [x64File, ia32File, dartiumFile, contentShellFile]
+};
 
 const urlBase = 'https://storage.googleapis.com/dart-archive/channels';
 const x64File = 'sdk/dartsdk-macos-x64-release.zip';
@@ -79,7 +82,7 @@ Future<Map> getHashes(Map revisions) async {
   var hashes = <String, Map>{};
   for (var channel in CHANNELS) {
     hashes[channel] = {};
-    for (var file in FILES) {
+    for (var file in FILES[channel]) {
       var hash = await getHash256(channel, revisions[channel], file);
       hashes[channel][file] = hash;
     }
@@ -131,22 +134,10 @@ class Dart < Formula
       url "$urlBase/dev/release/${revisions['dev']}/$ia32File"
       sha256 "${hashes['dev'][ia32File]}"
     end
-
-    resource "content_shell" do
-      version "$devVersion"
-      url "$urlBase/dev/release/${revisions['dev']}/$contentShellFile"
-      sha256 "${hashes['dev'][contentShellFile]}"
-    end
-
-    resource "dartium" do
-      version "$devVersion"
-      url "$urlBase/dev/release/${revisions['dev']}/$dartiumFile"
-      sha256 "${hashes['dev'][dartiumFile]}"
-    end
   end
 
   option "with-content-shell", "Download and install content_shell -- headless Dartium for testing"
-  option "with-dartium", "Download and install Dartium -- Chromium with Dar"
+  option "with-dartium", "Download and install Dartium -- Chromium with Dart"
 
   resource "content_shell" do
     version "$stableVersion"

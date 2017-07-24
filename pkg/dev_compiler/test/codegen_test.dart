@@ -34,9 +34,9 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart' show expect, isFalse, isTrue, test;
 
 import '../tool/build_sdk.dart' as build_sdk;
-import 'testing.dart' show repoDirectory, testDirectory;
+import 'compile_error_tests.dart';
 import 'multitest.dart' show extractTestsFromMultitest, isMultiTest;
-import 'not_yet_strong_tests.dart';
+import 'testing.dart' show repoDirectory, testDirectory;
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
@@ -85,7 +85,6 @@ main(List<String> arguments) {
   var testDirs = [
     'language',
     'corelib',
-    path.join('corelib', 'regexp'),
     path.join('lib', 'async'),
     path.join('lib', 'collection'),
     path.join('lib', 'convert'),
@@ -165,10 +164,18 @@ main(List<String> arguments) {
         stackTrace = st;
       }
 
-      bool expectedCompileTimeError = contents.contains(': compile-time error');
-      bool notStrong = notYetStrongTests.contains(name);
-      bool crashing = _crashingTests.contains(name);
-      bool inconsistent = _inconsistentTests.contains(name);
+      // This covers tests where the intent of the test is to validate that
+      // some static error is produced.
+      var intentionalCompileError =
+          contents.contains(': compile-time error') ||
+              contents.contains('/*@compile-error=');
+
+      // This covers tests that should not produce a static error but that
+      // currently do due to issues in our implementation.
+      var knownCompileError = compileErrorTests.contains(name);
+
+      var crashing = _crashingTests.contains(name);
+      var inconsistent = _inconsistentTests.contains(name);
 
       if (module == null) {
         expect(crashing, isTrue,
@@ -184,23 +191,22 @@ main(List<String> arguments) {
           moduleFormat,
           module);
 
+      expect(crashing, isFalse, reason: "test $name no longer crashes.");
+
       if (inconsistent) {
         // An inconsistent test will only compile on some platforms (see
-        // comment below).  It should not crash however.
-        expect(crashing, isFalse, reason: "test $name no longer crashes.");
+        // comment below). It should not crash however.
       } else if (module.isValid) {
-        expect(crashing, isFalse, reason: "test $name no longer crashes.");
         // TODO(vsm): We don't seem to trip on non-strong errors?
         // expect(expectedCompileTimeError, isFalse,
         //    reason: "test $name expected compilation errors, but compiled.");
-        expect(notStrong, isFalse,
-            reason: "test $name expected strong mode errors, but compiled.");
+        expect(knownCompileError, isFalse,
+            reason: "test $name expected static errors, but compiled.");
       } else {
-        expect(crashing, isFalse, reason: "test $name no longer crashes.");
-        var reason = expectedCompileTimeError
-            ? "expected"
-            : inconsistent ? "platform consistency" : "untriaged strong mode";
-        expect(expectedCompileTimeError || inconsistent || notStrong, isTrue,
+        var reason = intentionalCompileError
+            ? "intended"
+            : "unexpected";
+        expect(intentionalCompileError || knownCompileError, isTrue,
             reason: "test $name failed to compile due to $reason errors:"
                 "\n\n${module.errors.join('\n')}.");
       }
@@ -277,45 +283,52 @@ List<String> _setUpTests(List<String> testDirs) {
   var testFiles = <String>[];
 
   for (var testDir in testDirs) {
-    // Look for the tests in the "_strong" directories in the SDK's main
-    // "tests" directory.
+    // TODO(rnystrom): Simplify this when the Dart 2.0 test migration is
+    // complete (#30183).
+    // Look for the tests in the "_strong" and "_2" directories in the SDK's
+    // main "tests" directory.
     var dirParts = path.split(testDir);
-    var sdkTestDir =
-        path.join(dirParts[0] + "_strong", path.joinAll(dirParts.skip(1)));
-    var inputPath =
-        path.join(testDirectory, '..', '..', '..', 'tests', sdkTestDir);
 
-    for (var file in _listFiles(inputPath, recursive: true)) {
-      var relativePath = path.relative(file, from: inputPath);
-      var outputPath = path.join(codegenTestDir, testDir, relativePath);
+    for (var suffix in const ["_2", "_strong"]) {
+      var sdkTestDir =
+          path.join(dirParts[0] + suffix, path.joinAll(dirParts.skip(1)));
+      var inputPath =
+          path.join(testDirectory, '..', '..', '..', 'tests', sdkTestDir);
 
-      _ensureDirectory(path.dirname(outputPath));
+      if (!new Directory(inputPath).existsSync()) continue;
 
-      // Copy it over. We do this even for multitests because import_self_test
-      // is a multitest, yet imports its own unexpanded form (!).
-      new File(file).copySync(outputPath);
+      for (var file in _listFiles(inputPath, recursive: true)) {
+        var relativePath = path.relative(file, from: inputPath);
+        var outputPath = path.join(codegenTestDir, testDir, relativePath);
 
-      if (file.endsWith("_test.dart")) {
-        var contents = new File(file).readAsStringSync();
+        _ensureDirectory(path.dirname(outputPath));
 
-        if (isMultiTest(contents)) {
-          // It's a multitest, so expand it and add all of the variants.
-          var tests = <String, String>{};
-          var outcomes = <String, Set<String>>{};
-          extractTestsFromMultitest(file, contents, tests, outcomes);
+        // Copy it over. We do this even for multitests because import_self_test
+        // is a multitest, yet imports its own unexpanded form (!).
+        new File(file).copySync(outputPath);
 
-          var fileName = path.basenameWithoutExtension(file);
-          var outputDir = path.dirname(outputPath);
-          tests.forEach((name, contents) {
-            var multiFile =
-                path.join(outputDir, '${fileName}_${name}_multi.dart');
-            testFiles.add(multiFile);
+        if (file.endsWith("_test.dart")) {
+          var contents = new File(file).readAsStringSync();
 
-            new File(multiFile).writeAsStringSync(contents);
-          });
-        } else {
-          // It's a single test suite.
-          testFiles.add(outputPath);
+          if (isMultiTest(contents)) {
+            // It's a multitest, so expand it and add all of the variants.
+            var tests = <String, String>{};
+            var outcomes = <String, Set<String>>{};
+            extractTestsFromMultitest(file, contents, tests, outcomes);
+
+            var fileName = path.basenameWithoutExtension(file);
+            var outputDir = path.dirname(outputPath);
+            tests.forEach((name, contents) {
+              var multiFile =
+                  path.join(outputDir, '${fileName}_${name}_multi.dart');
+              testFiles.add(multiFile);
+
+              new File(multiFile).writeAsStringSync(contents);
+            });
+          } else {
+            // It's a single test suite.
+            testFiles.add(outputPath);
+          }
         }
       }
     }

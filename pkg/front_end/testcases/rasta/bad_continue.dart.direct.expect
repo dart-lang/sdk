@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/bad_continue.dart:6:12: Error: Can't find label 'here'.\n  continue here;\n           ^"));
+  #L1:
+  break #L1;
+}

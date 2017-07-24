@@ -274,6 +274,16 @@ static field (core::String) → core::int f;
 ''');
   }
 
+  test_compile_typeEnvironment() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    Uri aUri = writeFile(aPath, 'class A {}');
+
+    KernelResult result = await driver.getKernel(aUri);
+    expect(result.types.coreTypes.intClass, isNotNull);
+    expect(result.types.hierarchy, isNotNull);
+  }
+
   test_limited_ast_to_binary() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';

@@ -20,10 +20,6 @@ $!MEMBERS
    *
    * * [createContextualFragment]
    */
-$if DART2JS
   static bool get supportsCreateContextualFragment =>
       JS('bool', '("createContextualFragment" in window.Range.prototype)');
-$else
-  static bool get supportsCreateContextualFragment => true;
-$endif
 }

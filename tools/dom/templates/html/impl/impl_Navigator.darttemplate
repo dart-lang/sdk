@@ -6,11 +6,9 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-$if DART2JS
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
-$endif
 
   /**
    * Gets a stream (video and or audio) from the local computer.
@@ -56,7 +54,6 @@ $endif
       'audio': audio,
       'video': video
     };
-$if DART2JS
     _ensureGetUserMedia();
     this._getUserMedia(convertDartToNative_SerializedScriptValue(options),
       (stream) {
@@ -65,19 +62,9 @@ $if DART2JS
       (error) {
         completer.completeError(error);
       });
-$else
-    this._getUserMedia(options,
-      (stream) {
-        completer.complete(stream);
-      },
-      (error) {
-        completer.completeError(error);
-      });
-$endif
     return completer.future;
   }
 
-$if DART2JS
   _ensureGetUserMedia() {
     if (JS('bool', '!(#.getUserMedia)', this)) {
       JS('void', '#.getUserMedia = '
@@ -89,7 +76,6 @@ $if DART2JS
   @JSName('getUserMedia')
   void _getUserMedia(options, _NavigatorUserMediaSuccessCallback success,
       _NavigatorUserMediaErrorCallback error) native;
-$endif
 
 $!MEMBERS
 }

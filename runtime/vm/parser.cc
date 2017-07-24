@@ -1089,11 +1089,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 #endif  // !PRODUCT
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
+    case RawFunction::kImplicitClosureFunction:
+      node_sequence = parser.ParseImplicitClosure(func);
+      break;
     case RawFunction::kClosureFunction:
-      if (func.IsImplicitClosureFunction()) {
-        node_sequence = parser.ParseImplicitClosure(func);
-        break;
-      }
       if (func.IsConstructorClosureFunction()) {
         node_sequence = parser.ParseConstructorClosure(func);
         break;
@@ -2202,6 +2201,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                                &func_params);
 
       signature_function.set_result_type(result_type);
+      // The result type may refer to the signature function's type parameters,
+      // but was not parsed in the scope of the signature function. Adjust.
+      result_type.SetScopeFunction(signature_function);
       AddFormalParamsToFunction(&func_params, signature_function);
 
       ASSERT(innermost_function().raw() == signature_function.raw());
@@ -3581,7 +3583,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     if (func.parameter_types() == Object::empty_array().raw()) {
       AddFormalParamsToFunction(&params, func);
     }
-    ResolveSignature(func);
+    ResolveSignatureTypeParameters(func);
     if (!is_top_level_) {
       ClassFinalizer::FinalizeSignature(Class::Handle(Z, func.origin()), func);
     }
@@ -4173,7 +4175,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   func.set_name(*method->name);
   func.set_is_abstract(method->has_abstract);
   func.set_is_native(method->has_native);
-  func.set_result_type(*method->type);  // May set parent_function in type.
+  func.set_result_type(*method->type);
+  // The result type may refer to func's type parameters,
+  // but was not parsed in the scope of func. Adjust.
+  method->type->SetScopeFunction(func);
+
   func.set_end_token_pos(method_end_pos);
   func.set_is_redirecting(is_redirecting);
   func.set_modifier(async_modifier);
@@ -4206,7 +4212,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   AddFormalParamsToFunction(&method->params, func);
   ASSERT(innermost_function().raw() == func.raw());
   innermost_function_ = Function::null();
-  ResolveSignature(func);
+  ResolveSignatureTypeParameters(func);
   members->AddFunction(func);
 }
 
@@ -4345,7 +4351,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       getter.set_result_type(*field->type);
       getter.set_is_debuggable(false);
       AddFormalParamsToFunction(&params, getter);
-      ResolveSignature(getter);
+      ResolveSignatureTypeParameters(getter);
       members->AddFunction(getter);
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
@@ -4367,7 +4373,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
           setter.set_is_reflectable(false);
         }
         AddFormalParamsToFunction(&params, setter);
-        ResolveSignature(setter);
+        ResolveSignatureTypeParameters(setter);
         members->AddFunction(setter);
       }
     }
@@ -4625,7 +4631,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     }
     if (!member.type->IsResolved()) {
       AbstractType& type = AbstractType::ZoneHandle(Z, member.type->raw());
-      ResolveType(&type);
+      ResolveTypeParameters(&type);
       member.type = &type;
     }
     ParseFieldDefinition(members, &member);
@@ -4977,7 +4983,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ParamList params;
   params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&params, getter);
-  ResolveSignature(getter);
+  ResolveSignatureTypeParameters(getter);
   enum_members.AddFunction(getter);
 
   ASSERT(IsIdentifier());
@@ -5105,7 +5111,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ParamList name_params;
   name_params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&name_params, name_getter);
-  ResolveSignature(name_getter);
+  ResolveSignatureTypeParameters(name_getter);
   enum_members.AddFunction(name_getter);
 
   // Clone the toString() function from the helper class.
@@ -5155,7 +5161,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
 
   AddFormalParamsToFunction(&params, ctor);
   ctor.set_result_type(Object::dynamic_type());
-  ResolveSignature(ctor);
+  ResolveSignatureTypeParameters(ctor);
   // The body of the constructor cannot modify the type of the constructed
   // instance, which is passed in as the receiver.
   ctor.set_result_type(*receiver_type);
@@ -5401,6 +5407,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       result_type = Type::DynamicType();
     }
     signature_function.set_result_type(result_type);
+    // The result type may refer to the signature function's type parameters,
+    // but was not parsed in the scope of the signature function. Adjust.
+    result_type.SetScopeFunction(signature_function);
     AddFormalParamsToFunction(&params, signature_function);
     ASSERT(innermost_function().raw() == signature_function.raw());
     innermost_function_ = Function::null();
@@ -5415,7 +5424,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   AbstractType& function_type =
       Type::Handle(Z, signature_function.SignatureType());
   ASSERT(current_class().raw() == function_type_alias.raw());
-  ResolveType(&function_type);
+  ResolveTypeParameters(&function_type);
   // Resolving does not replace type or signature.
   ASSERT(function_type_alias.signature_function() ==
          Type::Cast(function_type).signature());
@@ -5620,7 +5629,7 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
       type_parameter_bound = type_parameter.bound();
-      ResolveType(&type_parameter_bound);
+      ResolveTypeParameters(&type_parameter_bound);
       type_parameter.set_bound(type_parameter_bound);
     }
   }
@@ -5930,6 +5939,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ReportError("function block expected");
   }
   func.set_result_type(result_type);
+  // The result type may refer to func's type parameters,
+  // but was not parsed in the scope of func. Adjust.
+  result_type.SetScopeFunction(func);
   func.set_end_token_pos(function_end_pos);
   func.set_modifier(func_modifier);
   if (library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
@@ -5941,7 +5953,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   AddFormalParamsToFunction(&params, func);
   ASSERT(innermost_function().raw() == func.raw());
   innermost_function_ = Function::null();
-  ResolveSignature(func);
+  ResolveSignatureTypeParameters(func);
   top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, func_name);
@@ -6086,6 +6098,9 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                        /* is_abstract = */ false, is_external, is_native, owner,
                        decl_begin_pos));
   func.set_result_type(result_type);
+  // The result type may refer to func's type parameters,
+  // but was not parsed in the scope of func. Adjust.
+  result_type.SetScopeFunction(func);
   func.set_end_token_pos(accessor_end_pos);
   func.set_modifier(func_modifier);
   if (is_native) {
@@ -6096,7 +6111,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
-  ResolveSignature(func);
+  ResolveSignatureTypeParameters(func);
   top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, accessor_name);
@@ -6930,7 +6945,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, body);
-    ResolveSignature(body);
+    ResolveSignatureTypeParameters(body);
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, body.SignatureType());
     signature_type ^= CanonicalizeType(signature_type);
@@ -7056,7 +7071,7 @@ RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
-    ResolveSignature(closure);
+    ResolveSignatureTypeParameters(closure);
 
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, closure.SignatureType());
@@ -7190,7 +7205,7 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(TokenPosition async_func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
-    ResolveSignature(closure);
+    ResolveSignatureTypeParameters(closure);
 
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, closure.SignatureType());
@@ -7288,7 +7303,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
 
   if (FLAG_causal_async_stacks) {
     // Add to AST:
-    //   :async_stack_trace = _asyncStackTraceHelper();
+    //   :async_stack_trace = _asyncStackTraceHelper(:async_op);
     const Function& async_stack_trace_helper = Function::ZoneHandle(
         Z,
         async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
@@ -7621,7 +7636,7 @@ void Parser::FinalizeFormalParameterTypes(const ParamList* params) {
   for (int i = 0; i < num_parameters; i++) {
     ParamDesc& param_desc = (*params->parameters)[i];
     type = param_desc.type->raw();
-    ResolveType(&type);
+    ResolveTypeParameters(&type);
     type = CanonicalizeType(type);
     if (type.raw() != param_desc.type->raw()) {
       param_desc.type = &AbstractType::ZoneHandle(Z, type.raw());
@@ -7989,6 +8004,9 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(), function_pos);
     function.set_result_type(result_type);
+    // The result type may refer to the function's type parameters,
+    // but was not parsed in the scope of the function. Adjust.
+    result_type.SetScopeFunction(function);
     if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
       library_.AddFunctionMetadata(function, metadata_pos);
     }
@@ -8054,8 +8072,9 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // variables of this function's scope that are referenced by the local
     // function (and its inner nested functions) will be marked as captured.
 
-    ResolveType(&result_type);  // Parameter types are resolved in ParseFunc.
-    function.set_result_type(result_type);
+    ResolveTypeParameters(&result_type);
+    function.set_result_type(result_type);  // Update type without scope change.
+    // Type parameters appearing in parameter types are resolved in ParseFunc.
     statements = Parser::ParseFunc(function, !is_literal);
     INC_STAT(thread(), num_functions_parsed, 1);
 
@@ -9176,21 +9195,21 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       stream_expr_pos, new (Z) LoadLocalNode(stream_expr_pos, iterator_var),
       Symbols::MoveNext(), no_args);
   OpenBlock();
-  if (FLAG_support_debugger) {
-    // Call '_asyncStarMoveNextHelper' so that the debugger can intercept and
-    // handle single stepping into a async* generator.
-    const Function& async_star_move_next_helper = Function::ZoneHandle(
-        Z, isolate()->object_store()->async_star_move_next_helper());
-    ASSERT(!async_star_move_next_helper.IsNull());
-    ArgumentListNode* async_star_move_next_helper_args =
-        new (Z) ArgumentListNode(stream_expr_pos);
-    async_star_move_next_helper_args->Add(
-        new (Z) LoadLocalNode(stream_expr_pos, stream_var));
-    StaticCallNode* async_star_move_next_helper_call =
-        new (Z) StaticCallNode(stream_expr_pos, async_star_move_next_helper,
-                               async_star_move_next_helper_args);
-    current_block_->statements->Add(async_star_move_next_helper_call);
-  }
+#if !defined(PRODUCT)
+  // Call '_asyncStarMoveNextHelper' so that the debugger can intercept and
+  // handle single stepping into a async* generator.
+  const Function& async_star_move_next_helper = Function::ZoneHandle(
+      Z, isolate()->object_store()->async_star_move_next_helper());
+  ASSERT(!async_star_move_next_helper.IsNull());
+  ArgumentListNode* async_star_move_next_helper_args =
+      new (Z) ArgumentListNode(stream_expr_pos);
+  async_star_move_next_helper_args->Add(
+      new (Z) LoadLocalNode(stream_expr_pos, stream_var));
+  StaticCallNode* async_star_move_next_helper_call =
+      new (Z) StaticCallNode(stream_expr_pos, async_star_move_next_helper,
+                             async_star_move_next_helper_args);
+  current_block_->statements->Add(async_star_move_next_helper_call);
+#endif
   AstNode* await_moveNext = new (Z) AwaitNode(
       stream_expr_pos, iterator_moveNext, saved_try_ctx, async_saved_try_ctx,
       outer_saved_try_ctx, outer_async_saved_try_ctx, current_block_->scope);
@@ -12278,7 +12297,7 @@ AstNode* Parser::ParsePostfixExpr() {
 // Resolve the type parameters that may appear in the given signature from the
 // signature function and current class.
 // Unresolved type classes get resolved later by the class finalizer.
-void Parser::ResolveSignature(const Function& signature) {
+void Parser::ResolveSignatureTypeParameters(const Function& signature) {
   const Function& saved_innermost_function =
       Function::Handle(Z, innermost_function().raw());
   innermost_function_ = signature.raw();
@@ -12292,19 +12311,19 @@ void Parser::ResolveSignature(const Function& signature) {
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type = type_param.bound();
-      ResolveType(&type);
+      ResolveTypeParameters(&type);
       type_param.set_bound(type);
     }
   }
   // Resolve result type.
   type = signature.result_type();
-  ResolveType(&type);
-  signature.set_result_type(type);
+  ResolveTypeParameters(&type);
+  signature.set_result_type(type);  // Update type without scope change.
   // Resolve formal parameter types.
   const intptr_t num_parameters = signature.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = signature.ParameterTypeAt(i);
-    ResolveType(&type);
+    ResolveTypeParameters(&type);
     signature.SetParameterTypeAt(i, type);
   }
   innermost_function_ = saved_innermost_function.raw();
@@ -12313,7 +12332,7 @@ void Parser::ResolveSignature(const Function& signature) {
 // Resolve the type parameters that may appear in the given type and in its type
 // arguments from the current function and current class.
 // Unresolved type classes get resolved later by the class finalizer.
-void Parser::ResolveType(AbstractType* type) {
+void Parser::ResolveTypeParameters(AbstractType* type) {
   ASSERT(type != NULL);
   if (type->IsResolved()) {
     // Some types are resolved by definition, such as a TypeParameter.
@@ -12392,7 +12411,7 @@ void Parser::ResolveType(AbstractType* type) {
       AbstractType& type_argument = AbstractType::Handle(Z);
       for (intptr_t i = 0; i < num_arguments; i++) {
         type_argument = arguments.TypeAt(i);
-        ResolveType(&type_argument);
+        ResolveTypeParameters(&type_argument);
         arguments.SetTypeAt(i, type_argument);
       }
     }
@@ -12402,9 +12421,9 @@ void Parser::ResolveType(AbstractType* type) {
         Function::Handle(Z, Type::Cast(*type).signature());
     Type& signature_type = Type::Handle(Z, signature.SignatureType());
     if (signature_type.raw() != type->raw()) {
-      ResolveType(&signature_type);
+      ResolveTypeParameters(&signature_type);
     } else {
-      ResolveSignature(signature);
+      ResolveSignatureTypeParameters(signature);
     }
   }
 }
@@ -13047,7 +13066,7 @@ RawAbstractType* Parser::ParseTypeOrFunctionType(
     return Type::DynamicType();
   }
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
-    ResolveType(&type);
+    ResolveTypeParameters(&type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
       type ^= CanonicalizeType(type);
     }
@@ -13085,6 +13104,9 @@ RawType* Parser::ParseFunctionType(
                                           TokenPosition::kNoSource));
     innermost_function_ = signature_function.raw();
     signature_function.set_result_type(type);
+    // The result type may refer to the signature function's type parameters,
+    // but was not parsed in the scope of the signature function. Adjust.
+    type.SetScopeFunction(signature_function);
     // Parse optional type parameters.
     if (CurrentToken() == Token::kLT) {
       if (!FLAG_generic_method_syntax) {
@@ -13123,7 +13145,7 @@ RawType* Parser::ParseFunctionType(
     return Type::DynamicType();
   }
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
-    ResolveType(&type);
+    ResolveTypeParameters(&type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
       type ^= CanonicalizeType(type);
     }
@@ -13239,7 +13261,7 @@ RawAbstractType* Parser::ParseType(
   AbstractType& type = AbstractType::Handle(
       Z, Type::New(type_class, type_arguments, ident_pos, Heap::kOld));
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
-    ResolveType(&type);
+    ResolveTypeParameters(&type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
       type ^= CanonicalizeType(type);
     }
@@ -13786,7 +13808,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   // TODO(regis): Verify that the closure cannot be generic.
   closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
-  ResolveSignature(closure);
+  ResolveSignatureTypeParameters(closure);
 
   // Finalize function type.
   Type& signature_type = Type::Handle(Z, closure.SignatureType());

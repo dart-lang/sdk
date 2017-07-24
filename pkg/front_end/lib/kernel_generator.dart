@@ -13,6 +13,8 @@ import 'package:kernel/kernel.dart' show Program;
 import 'compiler_options.dart';
 import 'src/base/processed_options.dart';
 import 'src/fasta/fasta_codes.dart';
+import 'src/fasta/compiler_context.dart';
+import 'src/fasta/severity.dart';
 import 'src/kernel_generator_impl.dart';
 
 /// Generates a kernel representation of the program whose main library is in
@@ -37,15 +39,17 @@ import 'src/kernel_generator_impl.dart';
 // TODO(sigmund): rename to kernelForScript?
 Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   var pOptions = new ProcessedOptions(options, false, [source]);
-  var program = (await generateKernel(pOptions))?.program;
-  if (program == null) return null;
+  return await CompilerContext.runWithOptions(pOptions, (context) async {
+    var program = (await generateKernelInternal())?.program;
+    if (program == null) return null;
 
-  if (program.mainMethod == null) {
-    pOptions.reportMessage(messageMissingMain.withLocation(source, -1));
-    return null;
-  }
-
-  return program;
+    if (program.mainMethod == null) {
+      context.options
+          .report(messageMissingMain.withLocation(source, -1), Severity.error);
+      return null;
+    }
+    return program;
+  });
 }
 
 /// Generates a kernel representation for a build unit containing [sources].

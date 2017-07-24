@@ -80,7 +80,7 @@ class SourceLoader<L> extends Loader<L> {
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
-  final bool excludeSource = CompilerContext.current.options.excludeSource;
+  final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;

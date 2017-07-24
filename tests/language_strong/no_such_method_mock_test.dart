@@ -36,9 +36,9 @@ class MockCat3 extends MockCat2 implements Cat {
 }
 
 class MockWithGenerics {
-  /*=T*/ doStuff/*<T>*/(/*=T*/ t);
+  List<Type> doStuff<T>(T t);
 
-  noSuchMethod(i) => i.positionalArguments[0] + 100;
+  noSuchMethod(i) => (i as dynamic).typeArguments;
 }
 
 class MockWithGetterSetter {
@@ -81,10 +81,9 @@ void main() {
   Expect.equals(mock3.scratch("chair", ""), "chair,");
 
   var g = new MockWithGenerics();
-  Expect.equals(g.doStuff(42), 142);
-  Expect.throws(() {
-    g.doStuff('hi');
-  });
+  Expect.listEquals(g.doStuff(42), [int]);
+  Expect.listEquals(g.doStuff<num>(42), [num]);
+  Expect.listEquals(g.doStuff('hi'), [String]);
 
   var s = new MockWithGetterSetter();
   s.getter;

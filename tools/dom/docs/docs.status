@@ -3,5 +3,5 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # docs.dart is a tool that only runs on the VM
-[ $compiler == dart2js || $runtime == drt || $runtime == dartium ]
+[ $compiler == dart2js || $runtime == drt ]
 *: Skip

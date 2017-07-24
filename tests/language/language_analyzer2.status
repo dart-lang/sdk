@@ -130,7 +130,6 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #
-application_negative_test: CompileTimeError # Issue 14528
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
@@ -449,6 +448,8 @@ initializing_formal_type_test: StaticWarning # Issue 26658
 regress_27572_test: StaticWarning # Warning about undefined method expected.
 
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
+
+generalized_void_syntax_test: CompileTimeError # Issue #30177.
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649

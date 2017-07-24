@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "./infer_from_variables_in_non_cycle_imports_with_flag_a.dart" as inf;
+
+static field dynamic y = inf::x;
+static method test1() → dynamic {
+  inf::x = "hi";
+  self::y = "hi";
+}
+static method main() → dynamic {}

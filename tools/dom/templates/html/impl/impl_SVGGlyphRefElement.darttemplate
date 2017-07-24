@@ -7,9 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _SVGGlyphRefElement can't be abstract.
-  AnimatedString get href => _blink.BlinkSVGGlyphRefElement.instance.href_Getter_(this);
-$endif
 }
 

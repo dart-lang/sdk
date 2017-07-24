@@ -65,7 +65,12 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   /**
    * Flag indicating whether the fasta parser is being used.
    */
-  bool get usingFasta;
+  bool get usingFastaParser;
+
+  /**
+   * Flag indicating whether the fasta scanner is being used.
+   */
+  bool get usingFastaScanner;
 
   /**
    * Assert that the number and codes of errors occurred during parsing is the
@@ -8134,7 +8139,7 @@ class ParserTestCase extends EngineTestCase
   Parser parser;
 
   @override
-  bool get usingFasta => Parser.useFasta;
+  bool get usingFastaParser => Parser.useFasta;
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
@@ -8589,6 +8594,8 @@ class ParserTestCase extends EngineTestCase
  * Intended to be mixed in to parser test case classes.
  */
 class ParserTestHelpers {
+  bool get usingFastaScanner => fe.Scanner.useFasta;
+
   void expectCommentText(Comment comment, String expectedText) {
     expect(comment.beginToken, same(comment.endToken));
     expect(comment.beginToken.lexeme, expectedText);
@@ -13666,7 +13673,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     var errorCodes = <ErrorCode>[];
-    if (usingFasta) {
+    if (usingFastaParser) {
       // built-in "abstract" cannot be used as a type
       errorCodes.add(ParserErrorCode.EXPECTED_TYPE_NAME);
     }

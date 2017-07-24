@@ -344,10 +344,12 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
 
+#if !defined(PRODUCT)
       // If we are already paused, don't pause again.
-      if (FLAG_support_debugger && (I->debugger()->PauseEvent() == NULL)) {
+      if (I->debugger()->PauseEvent() == NULL) {
         return I->debugger()->PauseInterrupted();
       }
+#endif
       break;
     }
 
@@ -662,6 +664,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       } else {
         T->set_sticky_error(result);
       }
+#if !defined(PRODUCT)
       // Notify the debugger about specific unhandled exceptions which are
       // withheld when being thrown. Do this after setting the sticky error
       // so the isolate has an error set when paused with the unhandled
@@ -672,11 +675,10 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         if ((exception == I->object_store()->out_of_memory()) ||
             (exception == I->object_store()->stack_overflow())) {
           // We didn't notify the debugger when the stack was full. Do it now.
-          if (FLAG_support_debugger) {
-            I->debugger()->PauseException(Instance::Handle(exception));
-          }
+          I->debugger()->PauseException(Instance::Handle(exception));
         }
       }
+#endif  // !defined(PRODUCT)
       return kError;
     }
   }
@@ -755,9 +757,11 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       environment_callback_(NULL),
       library_tag_handler_(NULL),
       api_state_(NULL),
+#if !defined(PRODUCT)
       debugger_(NULL),
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
+#endif
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
@@ -825,9 +829,7 @@ Isolate::~Isolate() {
   delete object_store_;
   delete api_state_;
 #ifndef PRODUCT
-  if (FLAG_support_debugger) {
-    delete debugger_;
-  }
+  delete debugger_;
 #endif  // !PRODUCT
 #if defined(USING_SIMULATOR)
   delete simulator_;
@@ -920,10 +922,10 @@ Isolate* Isolate::Init(const char* name_prefix,
   result->set_terminate_capability(result->random()->NextUInt64());
 
   result->BuildName(name_prefix);
-  if (FLAG_support_debugger) {
-    result->debugger_ = new Debugger();
-    result->debugger_->Initialize(result);
-  }
+#if !defined(PRODUCT)
+  result->debugger_ = new Debugger();
+  result->debugger_->Initialize(result);
+#endif
   if (FLAG_trace_isolates) {
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {
       OS::Print(
@@ -981,13 +983,15 @@ int64_t Isolate::UptimeMicros() const {
 }
 
 bool Isolate::IsPaused() const {
+#if defined(PRODUCT)
+  return false;
+#else
   return (debugger_ != NULL) && (debugger_->PauseEvent() != NULL);
+#endif
 }
 
 RawError* Isolate::PausePostRequest() {
-  if (!FLAG_support_debugger) {
-    return Error::null();
-  }
+#if !defined(PRODUCT)
   if (debugger_ == NULL) {
     return Error::null();
   }
@@ -1001,6 +1005,7 @@ RawError* Isolate::PausePostRequest() {
       UNREACHABLE();
     }
   }
+#endif
   return Error::null();
 }
 
@@ -1092,12 +1097,10 @@ bool Isolate::MakeRunnable() {
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
-  if (FLAG_support_debugger) {
-    if (!ServiceIsolate::IsServiceIsolate(this)) {
-      debugger()->OnIsolateRunnable();
-      if (FLAG_pause_isolates_on_unhandled_exceptions) {
-        debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
-      }
+  if (!ServiceIsolate::IsServiceIsolate(this)) {
+    debugger()->OnIsolateRunnable();
+    if (FLAG_pause_isolates_on_unhandled_exceptions) {
+      debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
   }
 #endif  // !PRODUCT
@@ -1384,9 +1387,11 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     // way to debug. Set the breakpoint on the static function instead
     // of its implicit closure function because that latter is merely
     // a dispatcher that is marked as undebuggable.
-    if (FLAG_support_debugger && FLAG_break_at_isolate_spawn) {
+#if !defined(PRODUCT)
+    if (FLAG_break_at_isolate_spawn) {
       isolate->debugger()->OneTimeBreakAtEntry(func);
     }
+#endif
 
     func = func.ImplicitClosureFunction();
 
@@ -1563,10 +1568,10 @@ void Isolate::LowLevelShutdown() {
     }
   }
 
+#if !defined(PRODUCT)
   // Clean up debugger resources.
-  if (FLAG_support_debugger) {
-    debugger()->Shutdown();
-  }
+  debugger()->Shutdown();
+#endif
 
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
@@ -1783,12 +1788,10 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // when at safepoint or the field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
 
-  // Visit objects in the debugger.
-  if (FLAG_support_debugger) {
-    debugger()->VisitObjectPointers(visitor);
-  }
-
 #if !defined(PRODUCT)
+  // Visit objects in the debugger.
+  debugger()->VisitObjectPointers(visitor);
+
   // Visit objects that are being used for isolate reload.
   if (reload_context() != NULL) {
     reload_context()->VisitObjectPointers(visitor);
@@ -2276,7 +2279,6 @@ RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
   }
   return Instance::null();
 }
-#endif  // !PRODUCT
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
@@ -2332,6 +2334,7 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
 }
+#endif  // !PRODUCT
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == NULL) {

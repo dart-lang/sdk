@@ -6,6 +6,10 @@ library analyzer.test.src.summary.resynthesize_kernel_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -13,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -21,6 +26,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,6 +43,9 @@ main() {
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   final resourceProvider = new MemoryResourceProvider(context: pathos.posix);
+
+  @override
+  bool get isSharedFrontEnd => true;
 
   @override
   bool get isStrongMode => true;
@@ -88,7 +97,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       }
     }
 
-    var resynthesizer = new _KernelResynthesizer(context, libraryMap);
+    var resynthesizer =
+        new _KernelResynthesizer(context, kernelResult.types, libraryMap);
     return resynthesizer.getLibrary(testUriStr);
   }
 
@@ -99,23 +109,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_alias() async {
-    await super.test_class_alias();
-  }
-
-  @failingTest
-  test_class_alias_abstract() async {
-    await super.test_class_alias_abstract();
-  }
-
-  @failingTest
   test_class_alias_documented() async {
     await super.test_class_alias_documented();
-  }
-
-  @failingTest
-  test_class_alias_with_forwarding_constructors() async {
-    await super.test_class_alias_with_forwarding_constructors();
   }
 
   @failingTest
@@ -131,88 +126,10 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_alias_with_mixin_members() async {
-    await super.test_class_alias_with_mixin_members();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_dynamic_dynamic() async {
-    await super.test_class_constructor_field_formal_dynamic_dynamic();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_dynamic_typed() async {
-    await super.test_class_constructor_field_formal_dynamic_typed();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_dynamic_untyped() async {
-    await super.test_class_constructor_field_formal_dynamic_untyped();
-  }
-
-  @failingTest
   test_class_constructor_field_formal_multiple_matching_fields() async {
+    // Fasta does not generate the class.
+    // main() with a fatal error is generated instead.
     await super.test_class_constructor_field_formal_multiple_matching_fields();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_no_matching_field() async {
-    await super.test_class_constructor_field_formal_no_matching_field();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_typed_dynamic() async {
-    await super.test_class_constructor_field_formal_typed_dynamic();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_typed_typed() async {
-    await super.test_class_constructor_field_formal_typed_typed();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_typed_untyped() async {
-    await super.test_class_constructor_field_formal_typed_untyped();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_untyped_dynamic() async {
-    await super.test_class_constructor_field_formal_untyped_dynamic();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_untyped_typed() async {
-    await super.test_class_constructor_field_formal_untyped_typed();
-  }
-
-  @failingTest
-  test_class_constructor_field_formal_untyped_untyped() async {
-    await super.test_class_constructor_field_formal_untyped_untyped();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_named_noDefault() async {
-    await super.test_class_constructor_fieldFormal_named_noDefault();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_named_withDefault() async {
-    await super.test_class_constructor_fieldFormal_named_withDefault();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_optional_noDefault() async {
-    await super.test_class_constructor_fieldFormal_optional_noDefault();
-  }
-
-  @failingTest
-  test_class_constructor_fieldFormal_optional_withDefault() async {
-    await super.test_class_constructor_fieldFormal_optional_withDefault();
-  }
-
-  @failingTest
-  test_class_constructor_params() async {
-    await super.test_class_constructor_params();
   }
 
   @failingTest
@@ -226,133 +143,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_field_const() async {
-    await super.test_class_field_const();
-  }
-
-  @failingTest
-  test_class_field_implicit_type() async {
-    await super.test_class_field_implicit_type();
-  }
-
-  @failingTest
-  test_class_field_static() async {
-    await super.test_class_field_static();
-  }
-
-  @failingTest
-  test_class_fields() async {
-    await super.test_class_fields();
-  }
-
-  @failingTest
-  test_class_getter_abstract() async {
-    await super.test_class_getter_abstract();
-  }
-
-  @failingTest
-  test_class_getter_external() async {
-    await super.test_class_getter_external();
-  }
-
-  @failingTest
-  test_class_getter_implicit_return_type() async {
-    await super.test_class_getter_implicit_return_type();
-  }
-
-  @failingTest
-  test_class_getter_static() async {
-    await super.test_class_getter_static();
-  }
-
-  @failingTest
-  test_class_getters() async {
-    await super.test_class_getters();
-  }
-
-  @failingTest
-  test_class_implicitField_getterFirst() async {
-    await super.test_class_implicitField_getterFirst();
-  }
-
-  @failingTest
-  test_class_implicitField_setterFirst() async {
-    await super.test_class_implicitField_setterFirst();
-  }
-
-  @failingTest
   test_class_interfaces_unresolved() async {
     await super.test_class_interfaces_unresolved();
   }
 
   @failingTest
-  test_class_method_abstract() async {
-    await super.test_class_method_abstract();
-  }
-
-  @failingTest
-  test_class_method_external() async {
-    await super.test_class_method_external();
-  }
-
-  @failingTest
-  test_class_method_params() async {
-    await super.test_class_method_params();
-  }
-
-  @failingTest
-  test_class_method_static() async {
-    await super.test_class_method_static();
-  }
-
-  @failingTest
-  test_class_methods() async {
-    await super.test_class_methods();
-  }
-
-  @failingTest
-  test_class_mixins() async {
-    await super.test_class_mixins();
-  }
-
-  @failingTest
   test_class_mixins_unresolved() async {
     await super.test_class_mixins_unresolved();
-  }
-
-  @failingTest
-  test_class_setter_abstract() async {
-    await super.test_class_setter_abstract();
-  }
-
-  @failingTest
-  test_class_setter_external() async {
-    await super.test_class_setter_external();
-  }
-
-  @failingTest
-  test_class_setter_implicit_param_type() async {
-    await super.test_class_setter_implicit_param_type();
-  }
-
-  @failingTest
-  test_class_setter_implicit_return_type() async {
-    await super.test_class_setter_implicit_return_type();
-  }
-
-  @failingTest
-  test_class_setter_invalid_no_parameter() async {
-    await super.test_class_setter_invalid_no_parameter();
-  }
-
-  @failingTest
-  test_class_setter_static() async {
-    await super.test_class_setter_static();
-  }
-
-  @failingTest
-  test_class_setters() async {
-    await super.test_class_setters();
   }
 
   @failingTest
@@ -368,16 +165,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_class_type_parameters_f_bound_complex() async {
     await super.test_class_type_parameters_f_bound_complex();
-  }
-
-  @failingTest
-  test_class_type_parameters_f_bound_simple() async {
-    await super.test_class_type_parameters_f_bound_simple();
-  }
-
-  @failingTest
-  test_closure_executable_with_return_type_from_closure() async {
-    await super.test_closure_executable_with_return_type_from_closure();
   }
 
   @failingTest
@@ -411,50 +198,15 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_named() async {
-    await super.test_const_invokeConstructor_generic_named();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_generic_named_imported() async {
-    await super.test_const_invokeConstructor_generic_named_imported();
-  }
-
-  @failingTest
   test_const_invokeConstructor_generic_named_imported_withPrefix() async {
     await super
         .test_const_invokeConstructor_generic_named_imported_withPrefix();
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_noTypeArguments() async {
-    await super.test_const_invokeConstructor_generic_noTypeArguments();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed() async {
-    await super.test_const_invokeConstructor_generic_unnamed();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed_imported() async {
-    await super.test_const_invokeConstructor_generic_unnamed_imported();
-  }
-
-  @failingTest
   test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
     await super
         .test_const_invokeConstructor_generic_unnamed_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_named() async {
-    await super.test_const_invokeConstructor_named();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_named_imported() async {
-    await super.test_const_invokeConstructor_named_imported();
   }
 
   @failingTest
@@ -493,16 +245,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_unnamed() async {
-    await super.test_const_invokeConstructor_unnamed();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_unnamed_imported() async {
-    await super.test_const_invokeConstructor_unnamed_imported();
-  }
-
-  @failingTest
   test_const_invokeConstructor_unnamed_imported_withPrefix() async {
     await super.test_const_invokeConstructor_unnamed_imported_withPrefix();
   }
@@ -523,28 +265,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_length_ofClassConstField() async {
-    await super.test_const_length_ofClassConstField();
-  }
-
-  @failingTest
-  test_const_length_ofClassConstField_imported() async {
-    await super.test_const_length_ofClassConstField_imported();
-  }
-
-  @failingTest
   test_const_length_ofClassConstField_imported_withPrefix() async {
     await super.test_const_length_ofClassConstField_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_length_ofStringLiteral() async {
-    await super.test_const_length_ofStringLiteral();
-  }
-
-  @failingTest
-  test_const_length_ofTopLevelVariable() async {
-    await super.test_const_length_ofTopLevelVariable();
   }
 
   @failingTest
@@ -560,38 +282,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_length_staticMethod() async {
     await super.test_const_length_staticMethod();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
-    await super
-        .test_const_parameterDefaultValue_initializingFormal_functionTyped();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_named() async {
-    await super.test_const_parameterDefaultValue_initializingFormal_named();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_positional() async {
-    await super
-        .test_const_parameterDefaultValue_initializingFormal_positional();
-  }
-
-  @failingTest
-  test_const_parameterDefaultValue_normal() async {
-    await super.test_const_parameterDefaultValue_normal();
-  }
-
-  @failingTest
-  test_const_reference_staticField() async {
-    await super.test_const_reference_staticField();
-  }
-
-  @failingTest
-  test_const_reference_staticField_imported() async {
-    await super.test_const_reference_staticField_imported();
   }
 
   @failingTest
@@ -627,16 +317,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_reference_topLevelFunction_imported_withPrefix() async {
     await super.test_const_reference_topLevelFunction_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_topLevelVariable() async {
-    await super.test_const_reference_topLevelVariable();
-  }
-
-  @failingTest
-  test_const_reference_topLevelVariable_imported() async {
-    await super.test_const_reference_topLevelVariable_imported();
   }
 
   @failingTest
@@ -685,33 +365,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_topLevel_binary() async {
-    await super.test_const_topLevel_binary();
-  }
-
-  @failingTest
-  test_const_topLevel_conditional() async {
-    await super.test_const_topLevel_conditional();
-  }
-
-  @failingTest
-  test_const_topLevel_identical() async {
-    await super.test_const_topLevel_identical();
-  }
-
-  @failingTest
   test_const_topLevel_ifNull() async {
     await super.test_const_topLevel_ifNull();
-  }
-
-  @failingTest
-  test_const_topLevel_literal() async {
-    await super.test_const_topLevel_literal();
-  }
-
-  @failingTest
-  test_const_topLevel_prefix() async {
-    await super.test_const_topLevel_prefix();
   }
 
   @failingTest
@@ -725,33 +380,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_topLevel_typedList() async {
-    await super.test_const_topLevel_typedList();
-  }
-
-  @failingTest
-  test_const_topLevel_typedList_imported() async {
-    await super.test_const_topLevel_typedList_imported();
-  }
-
-  @failingTest
   test_const_topLevel_typedList_importedWithPrefix() async {
     await super.test_const_topLevel_typedList_importedWithPrefix();
-  }
-
-  @failingTest
-  test_const_topLevel_typedMap() async {
-    await super.test_const_topLevel_typedMap();
-  }
-
-  @failingTest
-  test_const_topLevel_untypedList() async {
-    await super.test_const_topLevel_untypedList();
-  }
-
-  @failingTest
-  test_const_topLevel_untypedMap() async {
-    await super.test_const_topLevel_untypedMap();
   }
 
   @failingTest
@@ -762,11 +392,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constExpr_pushReference_enum_method() async {
     await super.test_constExpr_pushReference_enum_method();
-  }
-
-  @failingTest
-  test_constExpr_pushReference_field_simpleIdentifier() async {
-    await super.test_constExpr_pushReference_field_simpleIdentifier();
   }
 
   @failingTest
@@ -865,6 +490,17 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_constructor_redirected_factory_named_unresolved_class() async {
+    await super.test_constructor_redirected_factory_named_unresolved_class();
+  }
+
+  @failingTest
+  test_constructor_redirected_factory_named_unresolved_constructor() async {
+    await super
+        .test_constructor_redirected_factory_named_unresolved_constructor();
+  }
+
+  @failingTest
   test_constructor_redirected_factory_unnamed() async {
     await super.test_constructor_redirected_factory_unnamed();
   }
@@ -895,6 +531,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_constructor_redirected_factory_unnamed_unresolved() async {
+    await super.test_constructor_redirected_factory_unnamed_unresolved();
+  }
+
+  @failingTest
   test_constructor_redirected_thisInvocation_named() async {
     await super.test_constructor_redirected_thisInvocation_named();
   }
@@ -917,11 +558,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constructor_withCycles_const() async {
     await super.test_constructor_withCycles_const();
-  }
-
-  @failingTest
-  test_constructor_withCycles_nonConst() async {
-    await super.test_constructor_withCycles_nonConst();
   }
 
   @failingTest
@@ -1090,36 +726,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_field_formal_param_inferred_type_implicit() async {
-    await super.test_field_formal_param_inferred_type_implicit();
-  }
-
-  @failingTest
-  test_field_inferred_type_nonStatic_explicit_initialized() async {
-    await super.test_field_inferred_type_nonStatic_explicit_initialized();
-  }
-
-  @failingTest
-  test_field_inferred_type_nonStatic_implicit_initialized() async {
-    await super.test_field_inferred_type_nonStatic_implicit_initialized();
-  }
-
-  @failingTest
-  test_field_inferred_type_nonStatic_implicit_uninitialized() async {
-    await super.test_field_inferred_type_nonStatic_implicit_uninitialized();
-  }
-
-  @failingTest
-  test_field_inferred_type_static_implicit_initialized() async {
-    await super.test_field_inferred_type_static_implicit_initialized();
-  }
-
-  @failingTest
-  test_field_propagatedType_const_noDep() async {
-    await super.test_field_propagatedType_const_noDep();
-  }
-
-  @failingTest
   test_field_propagatedType_final_dep_inLib() async {
     await super.test_field_propagatedType_final_dep_inLib();
   }
@@ -1135,38 +741,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_field_propagatedType_final_noDep_static() async {
-    await super.test_field_propagatedType_final_noDep_static();
-  }
-
-  @failingTest
-  test_field_static_final_untyped() async {
-    await super.test_field_static_final_untyped();
-  }
-
-  @failingTest
-  test_field_untyped() async {
-    await super.test_field_untyped();
-  }
-
-  @failingTest
-  test_function_async() async {
-    await super.test_function_async();
-  }
-
-  @failingTest
-  test_function_asyncStar() async {
-    await super.test_function_asyncStar();
-  }
-
-  @failingTest
   test_function_documented() async {
     await super.test_function_documented();
-  }
-
-  @failingTest
-  test_function_entry_point() async {
-    await super.test_function_entry_point();
   }
 
   @failingTest
@@ -1185,31 +761,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_external() async {
-    await super.test_function_external();
-  }
-
-  @failingTest
-  test_function_parameter_final() async {
-    await super.test_function_parameter_final();
-  }
-
-  @failingTest
-  test_function_parameter_kind_named() async {
-    await super.test_function_parameter_kind_named();
-  }
-
-  @failingTest
-  test_function_parameter_kind_positional() async {
-    await super.test_function_parameter_kind_positional();
-  }
-
-  @failingTest
-  test_function_parameter_kind_required() async {
-    await super.test_function_parameter_kind_required();
-  }
-
-  @failingTest
   test_function_parameter_parameters() async {
     await super.test_function_parameter_parameters();
   }
@@ -1225,31 +776,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_parameter_type() async {
-    await super.test_function_parameter_type();
-  }
-
-  @failingTest
-  test_function_parameters() async {
-    await super.test_function_parameters();
-  }
-
-  @failingTest
-  test_function_return_type() async {
-    await super.test_function_return_type();
-  }
-
-  @failingTest
-  test_function_return_type_implicit() async {
-    await super.test_function_return_type_implicit();
-  }
-
-  @failingTest
-  test_function_return_type_void() async {
-    await super.test_function_return_type_void();
-  }
-
-  @failingTest
   test_function_type_parameter() async {
     await super.test_function_type_parameter();
   }
@@ -1257,16 +783,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_function_type_parameter_with_function_typed_parameter() async {
     await super.test_function_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
-  test_function_typed_parameter_implicit() async {
-    await super.test_function_typed_parameter_implicit();
-  }
-
-  @failingTest
-  test_functions() async {
-    await super.test_functions();
   }
 
   @failingTest
@@ -1370,11 +886,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_getter_inferred_type_nonStatic_implicit_return() async {
-    await super.test_getter_inferred_type_nonStatic_implicit_return();
-  }
-
-  @failingTest
   test_getters() async {
     await super.test_getters();
   }
@@ -1430,18 +941,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_import_short_absolute() async {
-    await super.test_import_short_absolute();
-  }
-
-  @failingTest
   test_import_show() async {
     await super.test_import_show();
-  }
-
-  @failingTest
-  test_imports() async {
-    await super.test_imports();
   }
 
   @failingTest
@@ -1450,24 +951,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_function_type_in_generic_class_constructor() async {
-    await super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @failingTest
-  test_inferred_function_type_in_generic_class_getter() async {
-    await super.test_inferred_function_type_in_generic_class_getter();
-  }
-
-  @failingTest
   test_inferred_function_type_in_generic_class_in_generic_method() async {
     await super
         .test_inferred_function_type_in_generic_class_in_generic_method();
-  }
-
-  @failingTest
-  test_inferred_function_type_in_generic_class_setter() async {
-    await super.test_inferred_function_type_in_generic_class_setter();
   }
 
   @failingTest
@@ -1532,11 +1018,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inheritance_errors() async {
-    await super.test_inheritance_errors();
-  }
-
-  @failingTest
   test_initializer_executable_with_return_type_from_closure() async {
     await super.test_initializer_executable_with_return_type_from_closure();
   }
@@ -1569,12 +1050,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_initializer_executable_with_return_type_from_closure_field() async {
     await super
         .test_initializer_executable_with_return_type_from_closure_field();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_local() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_local();
   }
 
   @failingTest
@@ -1663,33 +1138,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_localFunctions() async {
-    await super.test_localFunctions();
-  }
-
-  @failingTest
-  test_localFunctions_inMethod() async {
-    await super.test_localFunctions_inMethod();
-  }
-
-  @failingTest
   test_localFunctions_inTopLevelGetter() async {
     await super.test_localFunctions_inTopLevelGetter();
-  }
-
-  @failingTest
-  test_localLabels_inMethod() async {
-    await super.test_localLabels_inMethod();
-  }
-
-  @failingTest
-  test_localLabels_inTopLevelFunction() async {
-    await super.test_localLabels_inTopLevelFunction();
-  }
-
-  @failingTest
-  test_main_class_alias() async {
-    await super.test_main_class_alias();
   }
 
   @failingTest
@@ -1723,23 +1173,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_main_variable() async {
-    await super.test_main_variable();
-  }
-
-  @failingTest
   test_main_variable_via_export() async {
     await super.test_main_variable_via_export();
-  }
-
-  @failingTest
-  test_member_function_async() async {
-    await super.test_member_function_async();
-  }
-
-  @failingTest
-  test_member_function_asyncStar() async {
-    await super.test_member_function_asyncStar();
   }
 
   @failingTest
@@ -1898,16 +1333,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_typeParameter_ofClass() async {
-    await super.test_metadata_typeParameter_ofClass();
-  }
-
-  @failingTest
-  test_metadata_typeParameter_ofClassTypeAlias() async {
-    await super.test_metadata_typeParameter_ofClassTypeAlias();
-  }
-
-  @failingTest
   test_metadata_typeParameter_ofFunction() async {
     await super.test_metadata_typeParameter_ofFunction();
   }
@@ -1923,16 +1348,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_method_inferred_type_nonStatic_implicit_param() async {
-    await super.test_method_inferred_type_nonStatic_implicit_param();
-  }
-
-  @failingTest
-  test_method_inferred_type_nonStatic_implicit_return() async {
-    await super.test_method_inferred_type_nonStatic_implicit_return();
-  }
-
-  @failingTest
   test_method_type_parameter() async {
     await super.test_method_type_parameter();
   }
@@ -1945,26 +1360,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_method_type_parameter_with_function_typed_parameter() async {
     await super.test_method_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
-  test_nameConflict_exportedAndLocal() async {
-    await super.test_nameConflict_exportedAndLocal();
-  }
-
-  @failingTest
-  test_nameConflict_exportedAndLocal_exported() async {
-    await super.test_nameConflict_exportedAndLocal_exported();
-  }
-
-  @failingTest
-  test_nameConflict_exportedAndParted() async {
-    await super.test_nameConflict_exportedAndParted();
-  }
-
-  @failingTest
-  test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
-    await super.test_nameConflict_importWithRelativeUri_exportWithAbsolute();
   }
 
   @failingTest
@@ -1987,41 +1382,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_nested_generic_functions_with_local_variables() async {
     await super.test_nested_generic_functions_with_local_variables();
-  }
-
-  @failingTest
-  test_operator() async {
-    await super.test_operator();
-  }
-
-  @failingTest
-  test_operator_equal() async {
-    await super.test_operator_equal();
-  }
-
-  @failingTest
-  test_operator_external() async {
-    await super.test_operator_external();
-  }
-
-  @failingTest
-  test_operator_greater_equal() async {
-    await super.test_operator_greater_equal();
-  }
-
-  @failingTest
-  test_operator_index() async {
-    await super.test_operator_index();
-  }
-
-  @failingTest
-  test_operator_index_set() async {
-    await super.test_operator_index_set();
-  }
-
-  @failingTest
-  test_operator_less_equal() async {
-    await super.test_operator_less_equal();
   }
 
   @failingTest
@@ -2065,26 +1425,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_parameterTypeNotInferred_constructor() async {
-    await super.test_parameterTypeNotInferred_constructor();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_initializingFormal() async {
-    await super.test_parameterTypeNotInferred_initializingFormal();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_staticMethod() async {
-    await super.test_parameterTypeNotInferred_staticMethod();
-  }
-
-  @failingTest
-  test_parameterTypeNotInferred_topLevelFunction() async {
-    await super.test_parameterTypeNotInferred_topLevelFunction();
-  }
-
-  @failingTest
   test_parts() async {
     await super.test_parts();
   }
@@ -2100,11 +1440,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_propagated_type_refers_to_closure() async {
-    await super.test_propagated_type_refers_to_closure();
-  }
-
-  @failingTest
   test_setter_covariant() async {
     await super.test_setter_covariant();
   }
@@ -2117,16 +1452,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_setter_external() async {
     await super.test_setter_external();
-  }
-
-  @failingTest
-  test_setter_inferred_type_nonStatic_implicit_param() async {
-    await super.test_setter_inferred_type_nonStatic_implicit_param();
-  }
-
-  @failingTest
-  test_setter_inferred_type_static_implicit_return() async {
-    await super.test_setter_inferred_type_static_implicit_return();
   }
 
   @failingTest
@@ -2157,31 +1482,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_syntheticFunctionType_withArguments() async {
     await super.test_syntheticFunctionType_withArguments();
-  }
-
-  @failingTest
-  test_type_arguments_explicit_dynamic_dynamic() async {
-    await super.test_type_arguments_explicit_dynamic_dynamic();
-  }
-
-  @failingTest
-  test_type_arguments_explicit_dynamic_int() async {
-    await super.test_type_arguments_explicit_dynamic_int();
-  }
-
-  @failingTest
-  test_type_arguments_explicit_String_dynamic() async {
-    await super.test_type_arguments_explicit_String_dynamic();
-  }
-
-  @failingTest
-  test_type_arguments_implicit() async {
-    await super.test_type_arguments_implicit();
-  }
-
-  @failingTest
-  test_type_dynamic() async {
-    await super.test_type_dynamic();
   }
 
   @failingTest
@@ -2225,11 +1525,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_type_reference_to_class_with_type_arguments_implicit() async {
-    await super.test_type_reference_to_class_with_type_arguments_implicit();
-  }
-
-  @failingTest
   test_type_reference_to_enum() async {
     await super.test_type_reference_to_enum();
   }
@@ -2262,11 +1557,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_reference_to_import_part() async {
     await super.test_type_reference_to_import_part();
-  }
-
-  @failingTest
-  test_type_reference_to_import_part2() async {
-    await super.test_type_reference_to_import_part2();
   }
 
   @failingTest
@@ -2400,11 +1690,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_typedefs() async {
-    await super.test_typedefs();
-  }
-
-  @failingTest
   test_unresolved_annotation_instanceCreation_argument_super() async {
     await super.test_unresolved_annotation_instanceCreation_argument_super();
   }
@@ -2495,11 +1780,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_const() async {
-    await super.test_variable_const();
-  }
-
-  @failingTest
   test_variable_documented() async {
     await super.test_variable_documented();
   }
@@ -2520,33 +1800,264 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_variable_implicit_type() async {
-    await super.test_variable_implicit_type();
-  }
-
-  @failingTest
-  test_variable_propagatedType_const_noDep() async {
-    await super.test_variable_propagatedType_const_noDep();
-  }
-
-  @failingTest
-  test_variable_propagatedType_final_dep_inLib() async {
-    await super.test_variable_propagatedType_final_dep_inLib();
-  }
-
-  @failingTest
   test_variable_propagatedType_final_dep_inPart() async {
     await super.test_variable_propagatedType_final_dep_inPart();
   }
 
   @failingTest
-  test_variable_propagatedType_implicit_dep() async {
-    await super.test_variable_propagatedType_implicit_dep();
-  }
-
-  @failingTest
   test_variable_setterInPart_getterInPart() async {
     await super.test_variable_setterInPart_getterInPart();
+  }
+}
+
+/**
+ * Builder of [Expression]s from [kernel.Expression]s.
+ */
+class _ExprBuilder {
+  final _KernelLibraryResynthesizerContextImpl _context;
+
+  _ExprBuilder(this._context);
+
+  Expression build(kernel.Expression expr) {
+    if (expr is kernel.NullLiteral) {
+      return AstTestFactory.nullLiteral();
+    }
+    if (expr is kernel.BoolLiteral) {
+      return AstTestFactory.booleanLiteral(expr.value);
+    }
+    if (expr is kernel.IntLiteral) {
+      return AstTestFactory.integer(expr.value);
+    }
+    if (expr is kernel.DoubleLiteral) {
+      return AstTestFactory.doubleLiteral(expr.value);
+    }
+    if (expr is kernel.StringLiteral) {
+      return AstTestFactory.string2(expr.value);
+    }
+    if (expr is kernel.StringConcatenation) {
+      List<InterpolationElement> elements = expr.expressions
+          .map(build)
+          .map(_newInterpolationElement)
+          .toList(growable: false);
+      return AstTestFactory.string(elements);
+    }
+    if (expr is kernel.SymbolLiteral) {
+      List<String> components = expr.value.split('.').toList();
+      return AstTestFactory.symbolLiteral(components);
+    }
+
+    if (expr is kernel.ListLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
+      var elements = expr.expressions.map(build).toList();
+      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
+    }
+
+    if (expr is kernel.MapLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments =
+          _buildTypeArgumentList([expr.keyType, expr.valueType]);
+
+      int numberOfEntries = expr.entries.length;
+      var entries = new List<MapLiteralEntry>(numberOfEntries);
+      for (int i = 0; i < numberOfEntries; i++) {
+        var entry = expr.entries[i];
+        Expression key = build(entry.key);
+        Expression value = build(entry.value);
+        entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
+      }
+
+      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+    }
+
+    if (expr is kernel.StaticGet) {
+      return _buildIdentifier(expr.targetReference, isGet: true);
+    }
+
+    if (expr is kernel.PropertyGet) {
+      Expression target = build(expr.receiver);
+      kernel.Reference reference = expr.interfaceTargetReference;
+      SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
+      return AstTestFactory.propertyAccess(target, identifier);
+    }
+
+    if (expr is kernel.ConditionalExpression) {
+      var condition = build(expr.condition);
+      var then = build(expr.then);
+      var otherwise = build(expr.otherwise);
+      return AstTestFactory.conditionalExpression(condition, then, otherwise);
+    }
+
+    if (expr is kernel.Not) {
+      kernel.Expression kernelOperand = expr.operand;
+      var operand = build(kernelOperand);
+      return AstTestFactory.prefixExpression(TokenType.BANG, operand);
+    }
+
+    if (expr is kernel.LogicalExpression) {
+      var operator = _toBinaryOperatorTokenType(expr.operator);
+      var left = build(expr.left);
+      var right = build(expr.right);
+      return AstTestFactory.binaryExpression(left, operator, right);
+    }
+
+    if (expr is kernel.MethodInvocation) {
+      kernel.Member member = expr.interfaceTarget;
+      if (member is kernel.Procedure) {
+        if (member.kind == kernel.ProcedureKind.Operator) {
+          var left = build(expr.receiver);
+          String operatorName = expr.name.name;
+          List<kernel.Expression> args = expr.arguments.positional;
+          if (args.isEmpty) {
+            if (operatorName == 'unary-') {
+              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
+            }
+            if (operatorName == '~') {
+              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
+            }
+          } else if (args.length == 1) {
+            var operator = _toBinaryOperatorTokenType(operatorName);
+            var right = build(args.single);
+            return AstTestFactory.binaryExpression(left, operator, right);
+          }
+        }
+      }
+    }
+
+    if (expr is kernel.ConstructorInvocation) {
+      var element = _getElement(expr.targetReference);
+
+      var kernelType = expr.getStaticType(_context._resynthesizer._types);
+      var type = _context.getType(null, kernelType);
+      TypeName typeName = _buildType(type);
+
+      var constructorName = AstTestFactory.constructorName(
+          typeName, element.name.isNotEmpty ? element.name : null);
+      constructorName?.name?.staticElement = element;
+
+      var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
+      var arguments = _toArguments(expr.arguments);
+      return AstTestFactory.instanceCreationExpression(
+          keyword, constructorName, arguments);
+    }
+
+    // TODO(scheglov): complete getExpression
+    throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
+  }
+
+  Expression _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
+    Element element = _getElement(reference);
+    if (isGet && element is PropertyInducingElement) {
+      element = (element as PropertyInducingElement).getter;
+    }
+    SimpleIdentifier property = AstTestFactory.identifier3(element.displayName)
+      ..staticElement = element;
+    Element enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement) {
+      SimpleIdentifier classRef = AstTestFactory
+          .identifier3(enclosingElement.name)
+            ..staticElement = enclosingElement;
+      return AstTestFactory.propertyAccess(classRef, property);
+    } else {
+      return property;
+    }
+  }
+
+  SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
+    String name = reference.canonicalName.name;
+    SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+    Element element = _getElement(reference);
+    identifier.staticElement = element;
+    return identifier;
+  }
+
+  TypeAnnotation _buildType(DartType type) {
+    if (type is InterfaceType) {
+      var name = AstTestFactory.identifier3(type.element.name)
+        ..staticElement = type.element
+        ..staticType = type;
+      List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
+      return AstTestFactory.typeName3(name, arguments)..type = type;
+    }
+    if (type is DynamicTypeImpl) {
+      var name = AstTestFactory.identifier3('dynamic')
+        ..staticElement = type.element
+        ..staticType = type;
+      return AstTestFactory.typeName3(name)..type = type;
+    }
+    // TODO(scheglov) Implement for other types.
+    throw new UnimplementedError('type: $type');
+  }
+
+  TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {
+    int length = kernels.length;
+    var types = new List<TypeAnnotation>(length);
+    for (int i = 0; i < length; i++) {
+      DartType type = _context.getType(null, kernels[i]);
+      TypeAnnotation typeAnnotation = _buildType(type);
+      types[i] = typeAnnotation;
+    }
+    return AstTestFactory.typeArgumentList(types);
+  }
+
+  List<TypeAnnotation> _buildTypeArguments(List<DartType> types) {
+    if (types.every((t) => t.isDynamic)) return null;
+    return types.map(_buildType).toList();
+  }
+
+  ElementImpl _getElement(kernel.Reference reference) {
+    return _context._getElement(reference?.canonicalName);
+  }
+
+  InterpolationElement _newInterpolationElement(Expression expr) {
+    if (expr is SimpleStringLiteral) {
+      return astFactory.interpolationString(expr.literal, expr.value);
+    } else {
+      return AstTestFactory.interpolationExpression(expr);
+    }
+  }
+
+  /// Return [Expression]s for the given [kernelArguments].
+  List<Expression> _toArguments(kernel.Arguments kernelArguments) {
+    int numPositional = kernelArguments.positional.length;
+    int numNamed = kernelArguments.named.length;
+    var arguments = new List<Expression>(numPositional + numNamed);
+
+    int i = 0;
+    for (kernel.Expression k in kernelArguments.positional) {
+      arguments[i++] = build(k);
+    }
+
+    for (kernel.NamedExpression k in kernelArguments.named) {
+      var value = build(k.value);
+      arguments[i++] = AstTestFactory.namedExpression2(k.name, value);
+    }
+
+    return arguments;
+  }
+
+  /// Return the [TokenType] for the given operator [name].
+  TokenType _toBinaryOperatorTokenType(String name) {
+    if (name == '==') return TokenType.EQ_EQ;
+    if (name == '&&') return TokenType.AMPERSAND_AMPERSAND;
+    if (name == '||') return TokenType.BAR_BAR;
+    if (name == '^') return TokenType.CARET;
+    if (name == '&') return TokenType.AMPERSAND;
+    if (name == '|') return TokenType.BAR;
+    if (name == '>>') return TokenType.GT_GT;
+    if (name == '<<') return TokenType.LT_LT;
+    if (name == '+') return TokenType.PLUS;
+    if (name == '-') return TokenType.MINUS;
+    if (name == '*') return TokenType.STAR;
+    if (name == '/') return TokenType.SLASH;
+    if (name == '~/') return TokenType.TILDE_SLASH;
+    if (name == '%') return TokenType.PERCENT;
+    if (name == '>') return TokenType.GT;
+    if (name == '<') return TokenType.LT;
+    if (name == '>=') return TokenType.GT_EQ;
+    if (name == '<=') return TokenType.LT_EQ;
+    if (name == 'unary-') return TokenType.MINUS;
+    throw new ArgumentError(name);
   }
 }
 
@@ -2564,7 +2075,6 @@ class _FileSystemAdaptor implements FileSystem {
       throw new ArgumentError(
           'Only file:// URIs are supported, but $uri is given.');
     }
-    // TODO: implement entityForUri
   }
 }
 
@@ -2577,11 +2087,6 @@ class _FileSystemEntityAdaptor implements FileSystemEntity {
   @override
   Future<bool> exists() async {
     return file.exists;
-  }
-
-  @override
-  Future<DateTime> lastModified() async {
-    return new DateTime.fromMicrosecondsSinceEpoch(file.modificationStamp);
   }
 
   @override
@@ -2605,19 +2110,108 @@ class _KernelLibraryResynthesizerContextImpl
   _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
 
   @override
+  Expression getExpression(kernel.Expression expression) {
+    return new _ExprBuilder(this).build(expression);
+  }
+
+  @override
   InterfaceType getInterfaceType(
       ElementImpl context, kernel.Supertype kernelType) {
     return _getInterfaceType(
         kernelType.className.canonicalName, kernelType.typeArguments);
   }
 
+  @override
+  LibraryElement getLibrary(String uriStr) {
+    return _resynthesizer.getLibrary(uriStr);
+  }
+
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
+    if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
     if (kernelType is kernel.InterfaceType) {
       return _getInterfaceType(
           kernelType.className.canonicalName, kernelType.typeArguments);
     }
+    if (kernelType is kernel.TypeParameterType) {
+      kernel.TypeParameter kTypeParameter = kernelType.parameter;
+      return _getTypeParameter(context, kTypeParameter).type;
+    }
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
+  }
+
+  /**
+   * Return the [ElementImpl] that corresponds to the given [name], or `null`
+   * if the corresponding element cannot be found.
+   */
+  ElementImpl _getElement(kernel.CanonicalName name) {
+    if (name == null) return null;
+    kernel.CanonicalName parentName = name.parent;
+
+    // If the parent is the root, then this name is a library.
+    if (parentName.isRoot) {
+      return _resynthesizer.getLibrary(name.name);
+    }
+
+    // Skip qualifiers.
+    bool isGetter = false;
+    bool isSetter = false;
+    bool isField = false;
+    bool isConstructor = false;
+    bool isMethod = false;
+    if (parentName.name == '@getters') {
+      isGetter = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@setters') {
+      isSetter = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@fields') {
+      isField = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@constructors') {
+      isConstructor = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@methods') {
+      isMethod = true;
+      parentName = parentName.parent;
+    }
+
+    ElementImpl parentElement = _getElement(parentName);
+    if (parentElement == null) return null;
+
+    // Search in units of the library.
+    if (parentElement is LibraryElementImpl) {
+      for (CompilationUnitElement unit in parentElement.units) {
+        CompilationUnitElementImpl unitImpl = unit;
+        ElementImpl child = unitImpl.getChild(name.name);
+        if (child != null) {
+          return child;
+        }
+      }
+      return null;
+    }
+
+    // Search in the class.
+    if (parentElement is ClassElementImpl) {
+      if (isGetter) {
+        return parentElement.getGetter(name.name) as ElementImpl;
+      } else if (isSetter) {
+        return parentElement.getSetter(name.name) as ElementImpl;
+      } else if (isField) {
+        return parentElement.getField(name.name) as ElementImpl;
+      } else if (isConstructor) {
+        if (name.name.isEmpty) {
+          return parentElement.unnamedConstructor as ConstructorElementImpl;
+        }
+        return parentElement.getNamedConstructor(name.name) as ElementImpl;
+      } else if (isMethod) {
+        return parentElement.getMethod(name.name) as ElementImpl;
+      }
+      return null;
+    }
+
+    throw new UnimplementedError('Should not be reached.');
   }
 
   InterfaceType _getInterfaceType(
@@ -2638,22 +2232,60 @@ class _KernelLibraryResynthesizerContextImpl
       return arguments;
     });
   }
+
+  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
+  TypeParameterElement _getTypeParameter(
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+    String name = kernelTypeParameter.name;
+    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
+      if (ctx is TypeParameterizedElementMixin) {
+        for (var typeParameter in ctx.typeParameters) {
+          if (typeParameter.name == name) {
+            return typeParameter;
+          }
+        }
+      }
+    }
+    throw new StateError('Not found $kernelTypeParameter in $context');
+  }
 }
 
 class _KernelResynthesizer {
   final AnalysisContext _analysisContext;
+  final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
-  _KernelResynthesizer(this._analysisContext, this._kernelMap);
+  /**
+   * Cache of [Source] objects that have already been converted from URIs.
+   */
+  final Map<String, Source> _sources = <String, Source>{};
+
+  _KernelResynthesizer(this._analysisContext, this._types, this._kernelMap);
 
   LibraryElementImpl getLibrary(String uriStr) {
     return _libraryMap.putIfAbsent(uriStr, () {
       var kernel = _kernelMap[uriStr];
       if (kernel == null) return null;
+
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
-      return new LibraryElementImpl.forKernel(_analysisContext, libraryContext);
+      Source librarySource = _getSource(uriStr);
+      LibraryElementImpl libraryElement =
+          new LibraryElementImpl.forKernel(_analysisContext, libraryContext);
+      CompilationUnitElementImpl definingUnit =
+          libraryElement.definingCompilationUnit;
+      definingUnit.source = librarySource;
+      definingUnit.librarySource = librarySource;
+      return libraryElement;
     });
+  }
+
+  /**
+   * Get the [Source] object for the given [uri].
+   */
+  Source _getSource(String uri) {
+    return _sources.putIfAbsent(
+        uri, () => _analysisContext.sourceFactory.forUri(uri));
   }
 }

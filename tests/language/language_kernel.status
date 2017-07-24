@@ -185,8 +185,8 @@ constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer r
 
 malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
 
-export_double_same_main_test: CompileTimeError # Fasta bug: Main is exported.
-export_main_test: CompileTimeError # Fasta bug: Main is exported.
+export_double_same_main_test: CompileTimeError # Issue 29989
+export_main_test: CompileTimeError # Issue 29989
 
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 
@@ -200,14 +200,7 @@ const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 
-assignable_expression_test/50: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-missing_const_constructor_test/02: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-missing_const_constructor_test/03: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-missing_const_constructor_test/05: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-missing_const_constructor_test/06: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-syntax_test/64: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-syntax_test/65: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
-try_catch_syntax_test/16: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+generalized_void_syntax_test: CompileTimeError # Issue #30176.
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]

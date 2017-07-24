@@ -77,7 +77,9 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   }
   void* kernel_program = Dart_ReadKernelBinary(kernel_ir, kernel_ir_size);
   ASSERT(kernel_program != NULL);
-  Dart_Handle result = Dart_LoadKernel(kernel_program);
+  Dart_Handle url = Dart_NewStringFromCString(url_string);
+  Dart_Handle result = Dart_LoadScript(
+      url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
   if (Dart_IsError(result)) {
     return result;
   }

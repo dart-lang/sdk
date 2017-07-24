@@ -270,7 +270,8 @@ class AbstractStrongTest {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
       bool implicitDynamic: true,
       List<String> nonnullableTypes:
           AnalysisOptionsImpl.NONNULLABLE_TYPES}) async {
@@ -283,6 +284,7 @@ class AbstractStrongTest {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.strongMode = true;
     analysisOptions.strongModeHints = true;
+    analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.nonnullableTypes = nonnullableTypes;
@@ -345,8 +347,6 @@ class AbstractStrongTest {
         var analysisResult = await _resolve(source);
 
         errors.addAll(analysisResult.errors.where((e) =>
-            // TODO(jmesserly): these are usually intentional dynamic calls.
-            e.errorCode.name != 'UNDEFINED_METHOD' &&
             // We don't care about any of these:
             e.errorCode != HintCode.UNUSED_ELEMENT &&
             e.errorCode != HintCode.UNUSED_FIELD &&

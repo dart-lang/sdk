@@ -36,103 +36,87 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
-
 const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
-
-Future<CompilationResult> _parseScriptInFileSystem(
-    Uri script, FileSystem fileSystem,
-    {bool verbose: false, bool strongMode: false}) async {
-  final Uri packagesUri = (Platform.packageConfig != null)
-      ? Uri.parse(Platform.packageConfig)
-      : null;
-
-  final Uri patchedSdk = Uri.base
-      .resolveUri(new Uri.file(Platform.resolvedExecutable))
-      .resolveUri(new Uri.directory("patched_sdk"));
-
-  if (verbose) {
-    print("""DFE: Requesting compilation {
-  scriptUri: ${script}
-  packagesUri: ${packagesUri}
-  patchedSdk: ${patchedSdk}
-}""");
-  }
-
-  try {
-    var errors = <String>[];
-    var options = new CompilerOptions()
-      ..strongMode = strongMode
-      ..fileSystem = fileSystem
-      ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
-      ..packagesFileUri = packagesUri
-      // TODO(sigmund): use outline.dill when the mixin transformer is modular.
-      ..sdkSummary = patchedSdk.resolve('platform.dill')
-      ..verbose = verbose
-      ..onError = (CompilationError e) => errors.add(e.message);
-
-    Program program = await kernelForProgram(script, options);
-    if (errors.isNotEmpty) return new CompilationResult.errors(errors);
-
-    // We serialize the program excluding platform.dill because the VM has these
-    // sources built-in. Everything loaded as a summary in [kernelForProgram] is
-    // marked `external`, so we can use that bit to decide what to excluce.
-    // TODO(sigmund): remove the following line (Issue #30111)
-    program.libraries.forEach((e) => e.isExternal = false);
-    return new CompilationResult.ok(
-        serializeProgram(program, filter: (lib) => !lib.isExternal));
-  } catch (err, stack) {
-    return new CompilationResult.crash(err, stack);
-  }
-}
-
-Future<CompilationResult> _processLoadRequestImpl(
-    String inputFilePathOrUri, FileSystem fileSystem) {
-  Uri scriptUri = Uri.parse(inputFilePathOrUri);
-
-  // Because we serve both Loader and bootstrapping requests we need to
-  // duplicate the logic from _resolveScriptUri(...) here and attempt to
-  // resolve schemaless uris using current working directory.
-  if (!scriptUri.hasScheme) {
-    // Script does not have a scheme, assume that it is a path,
-    // resolve it against the working directory.
-    scriptUri = Uri.base.resolveUri(new Uri.file(inputFilePathOrUri));
-  }
-
-  if (!scriptUri.isScheme('file')) {
-    // TODO(vegorov): Reuse loader code to support other schemes.
-    return new Future<CompilationResult>.value(new CompilationResult.errors(
-        ["Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"]));
-  }
-  return _parseScriptInFileSystem(scriptUri, fileSystem,
-      verbose: verbose, strongMode: strongMode);
-}
 
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
 // kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
 Future _processLoadRequest(request) async {
-  if (verbose) {
-    print("DFE: request: $request");
-    print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
-    print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
-  }
+  if (verbose) print("DFE: request: $request");
 
   int tag = request[0];
   final SendPort port = request[1];
-  final String inputFileUrl = request[2];
-  FileSystem fileSystem = request.length > 3
-      ? _buildFileSystem(request[3])
-      : PhysicalFileSystem.instance;
+  final String inputFileUri = request[2];
+  final Uri script = Uri.base.resolve(inputFileUri);
+
+  FileSystem fileSystem = PhysicalFileSystem.instance;
+  bool requireMain = true;
+
+  if (request.length > 3) {
+    fileSystem = _buildFileSystem(request[3]);
+    requireMain = false;
+  }
+
+  Uri packagesUri = (Platform.packageConfig != null)
+      ? Uri.parse(Platform.packageConfig)
+      : null;
+
+  Uri sdkSummary = Uri.base
+      .resolveUri(new Uri.file(Platform.resolvedExecutable))
+      .resolveUri(new Uri.directory("patched_sdk"))
+      // TODO(sigmund): use outline.dill when the mixin transformer is modular.
+      .resolve('platform.dill');
+
+  if (verbose) {
+    print("DFE: scriptUri: ${script}");
+    print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
+    print("DFE: packagesUri: ${packagesUri}");
+    print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
+    print("DFE: sdkSummary: ${sdkSummary}");
+  }
+
+  var errors = <String>[];
+  var options = new CompilerOptions()
+    ..strongMode = strongMode
+    ..fileSystem = fileSystem
+    ..target = new VmFastaTarget(new TargetFlags(strongMode: strongMode))
+    ..packagesFileUri = packagesUri
+    ..sdkSummary = sdkSummary
+    ..verbose = verbose
+    ..throwOnErrors = false
+    ..reportMessages = true
+    ..onError = (CompilationMessage e) {
+      if (e.severity == Severity.error) {
+        // TODO(sigmund): support emitting code with errors as long as they are
+        // handled in the generated code (issue #30194).
+        errors.add(e.message);
+      }
+    };
 
   CompilationResult result;
   try {
-    result = await _processLoadRequestImpl(inputFileUrl, fileSystem);
+    Program program = requireMain
+        ? await kernelForProgram(script, options)
+        : await kernelForBuildUnit([script], options..chaseDependencies = true);
+
+    if (errors.isNotEmpty) {
+      // TODO(sigmund): the compiler prints errors to the console, so we
+      // shouldn't print those messages again here.
+      result = new CompilationResult.errors(errors);
+    } else {
+      // We serialize the program excluding platform.dill because the VM has
+      // these sources built-in. Everything loaded as a summary in
+      // [kernelForProgram] is marked `external`, so we can use that bit to
+      // decide what to excluce.
+      // TODO(sigmund): remove the following line (Issue #30111)
+      program.libraries.forEach((e) => e.isExternal = false);
+      result = new CompilationResult.ok(
+          serializeProgram(program, filter: (lib) => !lib.isExternal));
+    }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
   }
 
-  if (verbose) {
-    print("DFE:> ${result}");
-  }
+  if (verbose) print("DFE:> ${result}");
 
   // Check whether this is a Loader request or a bootstrapping request from
   // KernelIsolate::CompileToKernel.
@@ -144,7 +128,7 @@ Future _processLoadRequest(request) async {
     if (result.status != Status.ok) {
       tag = -tag;
     }
-    port.send([tag, inputFileUrl, inputFileUrl, null, result.payload]);
+    port.send([tag, inputFileUri, inputFileUri, null, result.payload]);
   }
 }
 

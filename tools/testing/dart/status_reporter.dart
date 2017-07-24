@@ -26,12 +26,6 @@ final _combinations = {
       'compiler': 'dart2js'
     },
     {
-      'runtimes': ['dartium'],
-      'modes': ['release', 'debug'],
-      'archs': ['ia32'],
-      'compiler': 'none'
-    },
-    {
       'runtimes': ['flutter_engine'],
       'modes': ['debug', 'release'],
       'archs': ['x64'],
@@ -51,12 +45,6 @@ final _combinations = {
       'archs': ['ia32'],
       'compiler': 'dart2js'
     },
-    {
-      'runtimes': ['dartium'],
-      'modes': ['release', 'debug'],
-      'archs': ['ia32'],
-      'compiler': 'none'
-    },
   ],
   'macos': [
     {
@@ -70,12 +58,6 @@ final _combinations = {
       'modes': ['release'],
       'archs': ['ia32'],
       'compiler': 'dart2js'
-    },
-    {
-      'runtimes': ['dartium'],
-      'modes': ['release', 'debug'],
-      'archs': ['ia32'],
-      'compiler': 'none'
     },
   ]
 };

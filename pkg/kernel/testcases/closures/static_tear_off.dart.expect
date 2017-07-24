@@ -49,16 +49,8 @@ static method test_1(core::Function f, core::bool hasDefault) → dynamic {
   }
 }
 static method main(dynamic arguments) → dynamic {
-  self::test_1_1(MakeClosure<(dynamic, [dynamic]) → dynamic>(self::closure#f_1_1_no_default, null), false);
-  self::test_1_1(MakeClosure<(dynamic, [dynamic]) → dynamic>(self::closure#f_1_1_default, null), true);
-  self::test_1_b(MakeClosure<(dynamic, {b: dynamic}) → dynamic>(self::closure#f_1_b_no_default, null), false);
-  self::test_1_b(MakeClosure<(dynamic, {b: dynamic}) → dynamic>(self::closure#f_1_b_default, null), true);
+  self::test_1_1(self::f_1_1_no_default, false);
+  self::test_1_1(self::f_1_1_default, true);
+  self::test_1_b(self::f_1_b_no_default, false);
+  self::test_1_b(self::f_1_b_default, true);
 }
-static method closure#f_1_1_no_default(Vector #contextParameter, dynamic a, [dynamic b = null]) → dynamic
-  return self::f_1_1_no_default(a, b);
-static method closure#f_1_1_default(Vector #contextParameter, dynamic a, [dynamic b = 2]) → dynamic
-  return self::f_1_1_default(a, b);
-static method closure#f_1_b_no_default(Vector #contextParameter, dynamic a, {dynamic b = null}) → dynamic
-  return self::f_1_b_no_default(a, b: b);
-static method closure#f_1_b_default(Vector #contextParameter, dynamic a, {dynamic b = 2}) → dynamic
-  return self::f_1_b_default(a, b: b);

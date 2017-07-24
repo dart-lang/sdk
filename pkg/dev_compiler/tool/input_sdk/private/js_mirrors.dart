@@ -19,8 +19,7 @@ String getName(Symbol symbol) {
 Symbol getSymbol(name, library) =>
     throw new UnimplementedError("MirrorSystem.getSymbol unimplemented");
 
-final currentJsMirrorSystem = throw new UnimplementedError(
-    "MirrorSystem.currentJsMirrorSystem unimplemented");
+final currentJsMirrorSystem = new JsMirrorSystem();
 
 final _typeMirror = JS('', 'Symbol("_typeMirror")');
 
@@ -223,6 +222,14 @@ dynamic _toJsMap(Map<Symbol, dynamic> map) {
     JS('', '#[#] = #', obj, getName(key), value);
   });
   return obj;
+}
+
+class JsMirrorSystem implements MirrorSystem {
+  get libraries => const {};
+
+  noSuchMethod(Invocation i) {
+    _unimplemented(this.runtimeType, i);
+  }
 }
 
 class JsMirror implements Mirror {

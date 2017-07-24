@@ -27,13 +27,13 @@ class TestListener extends self::Listener {
   default constructor •() → void
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x = null, core::int y = null]) → void {}
+  method event(core::String input, [core::int x, core::int y]) → void {}
 }
 class ExtendedListener extends self::Listener {
   default constructor •() → void
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x = null, core::int y = null, dynamic z = null]) → void {}
+  method event(core::String input, [core::int x, core::int y, dynamic z]) → void {}
 }
 class InvalidListener extends core::Object {
   default constructor •() → void

@@ -1,0 +1,47 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method foo([core::Map<core::int, core::String> m1 = const <dynamic, dynamic>{1: "hello"}, core::Map<core::int, core::String> m2 = const <dynamic, dynamic>{"hello": "world"}]) → void {}
+static method main() → void {
+  {
+    core::Map<core::int, core::String> l0 = <dynamic, dynamic>{};
+    core::Map<core::int, core::String> l1 = <dynamic, dynamic>{3: "hello"};
+    core::Map<core::int, core::String> l2 = <dynamic, dynamic>{"hello": "hello"};
+    core::Map<core::int, core::String> l3 = <dynamic, dynamic>{3: 3};
+    core::Map<core::int, core::String> l4 = <dynamic, dynamic>{3: "hello", "hello": 3};
+  }
+  {
+    core::Map<dynamic, dynamic> l0 = <dynamic, dynamic>{};
+    core::Map<dynamic, dynamic> l1 = <dynamic, dynamic>{3: "hello"};
+    core::Map<dynamic, dynamic> l2 = <dynamic, dynamic>{"hello": "hello"};
+    core::Map<dynamic, dynamic> l3 = <dynamic, dynamic>{3: 3};
+    core::Map<dynamic, dynamic> l4 = <dynamic, dynamic>{3: "hello", "hello": 3};
+  }
+  {
+    core::Map<dynamic, core::String> l0 = <dynamic, dynamic>{};
+    core::Map<dynamic, core::String> l1 = <dynamic, dynamic>{3: "hello"};
+    core::Map<dynamic, core::String> l2 = <dynamic, dynamic>{"hello": "hello"};
+    core::Map<dynamic, core::String> l3 = <dynamic, dynamic>{3: 3};
+    core::Map<dynamic, core::String> l4 = <dynamic, dynamic>{3: "hello", "hello": 3};
+  }
+  {
+    core::Map<core::int, dynamic> l0 = <dynamic, dynamic>{};
+    core::Map<core::int, dynamic> l1 = <dynamic, dynamic>{3: "hello"};
+    core::Map<core::int, dynamic> l2 = <dynamic, dynamic>{"hello": "hello"};
+    core::Map<core::int, dynamic> l3 = <dynamic, dynamic>{3: 3};
+    core::Map<core::int, dynamic> l4 = <dynamic, dynamic>{3: "hello", "hello": 3};
+  }
+  {
+    core::Map<core::int, core::String> l0 = <core::num, dynamic>{};
+    core::Map<core::int, core::String> l1 = <core::num, dynamic>{3: "hello"};
+    core::Map<core::int, core::String> l3 = <core::num, dynamic>{3: 3};
+  }
+  {
+    const core::Map<core::int, core::String> l0 = const <dynamic, dynamic>{};
+    const core::Map<core::int, core::String> l1 = const <dynamic, dynamic>{3: "hello"};
+    const core::Map<core::int, core::String> l2 = const <dynamic, dynamic>{"hello": "hello"};
+    const core::Map<core::int, core::String> l3 = const <dynamic, dynamic>{3: 3};
+    const core::Map<core::int, core::String> l4 = const <dynamic, dynamic>{3: "hello", "hello": 3};
+  }
+}

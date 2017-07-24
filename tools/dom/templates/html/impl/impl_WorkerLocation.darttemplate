@@ -7,17 +7,5 @@ part of $LIBRARYNAME;
 @DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DARTIUM
-  // Override these methods for Dartium _WorkerLocation can't be abstract.
-  String get hash => _blink.BlinkWorkerLocation.instance.hash_Getter_(this);
-  String get host => _blink.BlinkWorkerLocation.instance.host_Getter_(this);
-  String get hostname => _blink.BlinkWorkerLocation.instance.hostname_Getter_(this);
-  String get href => _blink.BlinkWorkerLocation.instance.href_Getter_(this);
-  String get origin => _blink.BlinkWorkerLocation.instance.origin_Getter_(this);
-  String get pathname => _blink.BlinkWorkerLocation.instance.pathname_Getter_(this);
-  String get port => _blink.BlinkWorkerLocation.instance.port_Getter_(this);
-  String get protocol => _blink.BlinkWorkerLocation.instance.protocol_Getter_(this);
-  String get search => _blink.BlinkWorkerLocation.instance.search_Getter_(this);
-$endif
 }
 

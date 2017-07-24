@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Pair<T extends core::Object, U extends core::Object> extends core::Object {
+  field self::Pair::T t;
+  field self::Pair::U u;
+  constructor •(self::Pair::T t, self::Pair::U u) → void
+    : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
+    ;
+  get reversed() → self::Pair<self::Pair::U, self::Pair::T>
+    return new self::Pair::•<dynamic, dynamic>(this.u, this.t);
+}
+static method main() → dynamic {}

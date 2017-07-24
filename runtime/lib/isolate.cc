@@ -70,7 +70,7 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
-  return Integer::NewFromUint64(port.Id());
+  return Integer::New(port.Id());
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 1) {
@@ -82,12 +82,12 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
   PortMap::ClosePort(id);
-  return Integer::NewFromUint64(id);
+  return Integer::New(id);
 }
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  return Integer::NewFromUint64(port.Id());
+  return Integer::New(port.Id());
 }
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 1) {

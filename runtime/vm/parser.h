@@ -538,8 +538,8 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveSignature(const Function& signature);
-  void ResolveType(AbstractType* type);
+  void ResolveSignatureTypeParameters(const Function& signature);
+  void ResolveTypeParameters(AbstractType* type);
   RawAbstractType* CanonicalizeType(const AbstractType& type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,

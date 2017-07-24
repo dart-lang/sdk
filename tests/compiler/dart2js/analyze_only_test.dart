@@ -5,18 +5,19 @@
 // Smoke test of the dart2js compiler API.
 library analyze_only;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import "package:async_helper/async_helper.dart";
 
-import '../../utils/dummy_compiler_test.dart' as dummy;
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
+
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/options.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show MessageKind, MessageTemplate;
 import 'package:compiler/src/old_to_new_api.dart';
+import 'package:compiler/src/options.dart';
 
+import '../dart2js_extra/dummy_compiler_test.dart' as dummy;
 import 'output_collector.dart';
 
 runCompiler(String main, List<String> options,

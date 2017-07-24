@@ -52,7 +52,6 @@ class Configuration {
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.drtPath,
-      this.dartiumPath,
       this.chromePath,
       this.safariPath,
       this.firefoxPath,
@@ -118,7 +117,6 @@ class Configuration {
   // Various file paths.
 
   final String drtPath;
-  final String dartiumPath;
   final String chromePath;
   final String safariPath;
   final String firefoxPath;
@@ -253,9 +251,6 @@ class Configuration {
       case Runtime.chrome:
         location = chromePath;
         break;
-      case Runtime.dartium:
-        location = dartiumPath;
-        break;
       case Runtime.drt:
         location = drtPath;
         break;
@@ -284,12 +279,6 @@ class Configuration {
         System.macos:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         System.linux: 'google-chrome'
-      },
-      Runtime.dartium: const {
-        System.windows: 'client\\tests\\dartium\\chrome.exe',
-        System.macos:
-            'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
-        System.linux: 'client/tests/dartium/chrome'
       },
       Runtime.safari: const {
         System.macos: '/Applications/Safari.app/Contents/MacOS/Safari'
@@ -404,11 +393,10 @@ class Configuration {
   /// Returns the correct configuration directory (the last component of the
   /// output directory path) for regular dart checkouts.
   ///
-  /// Dartium checkouts use the `--build-directory` option to pass in the
-  /// correct build directory explicitly. We allow our code to have been cross
-  /// compiled, i.e., that there is an X in front of the arch. We don't allow
-  /// both a cross compiled and a normal version to be present (except if you
-  /// specifically pass in the build_directory).
+  /// We allow our code to have been cross compiled, i.e., that there is an X
+  /// in front of the arch. We don't allow both a cross compiled and a normal
+  /// version to be present (except if you specifically pass in the
+  /// build_directory).
   String _calculateDirectory() {
     // Capitalize the mode name.
     var modeName =
@@ -527,7 +515,6 @@ class Compiler {
           Runtime.jsshell,
           Runtime.drt,
           Runtime.none,
-          Runtime.dartium,
           Runtime.firefox,
           Runtime.chrome,
           Runtime.safari,
@@ -562,9 +549,7 @@ class Compiler {
           Runtime.vm,
           Runtime.flutter,
           Runtime.drt,
-          Runtime.dartium,
-          Runtime.contentShellOnAndroid,
-          Runtime.dartiumOnAndroid
+          Runtime.contentShellOnAndroid
         ];
     }
 
@@ -638,7 +623,6 @@ class Runtime {
   static const d8 = const Runtime._('d8');
   static const jsshell = const Runtime._('jsshell');
   static const drt = const Runtime._('drt');
-  static const dartium = const Runtime._('dartium');
   static const firefox = const Runtime._('firefox');
   static const chrome = const Runtime._('chrome');
   static const safari = const Runtime._('safari');
@@ -649,7 +633,6 @@ class Runtime {
   static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
   static const safariMobileSim = const Runtime._('safarimobilesim');
   static const contentShellOnAndroid = const Runtime._('ContentShellOnAndroid');
-  static const dartiumOnAndroid = const Runtime._('DartiumOnAndroid');
   static const selfCheck = const Runtime._('self_check');
   static const none = const Runtime._('none');
 
@@ -662,7 +645,6 @@ class Runtime {
     d8,
     jsshell,
     drt,
-    dartium,
     firefox,
     chrome,
     safari,
@@ -673,7 +655,6 @@ class Runtime {
     chromeOnAndroid,
     safariMobileSim,
     contentShellOnAndroid,
-    dartiumOnAndroid,
     selfCheck,
     none
   ], key: (Runtime runtime) => runtime.name);
@@ -694,7 +675,6 @@ class Runtime {
 
   bool get isBrowser => const [
         drt,
-        dartium,
         ie9,
         ie10,
         ie11,
@@ -704,8 +684,7 @@ class Runtime {
         firefox,
         chromeOnAndroid,
         safariMobileSim,
-        contentShellOnAndroid,
-        dartiumOnAndroid,
+        contentShellOnAndroid
       ].contains(this);
 
   bool get isIE => name.startsWith("ie");

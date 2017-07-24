@@ -1667,7 +1667,7 @@ class FixProcessor {
         // prepare library name - unit name or 'dart:name' for SDK library
         String libraryName = libraryElement.definingCompilationUnit.displayName;
         if (libraryElement.isInSdk) {
-          libraryName = imp.uri;
+          libraryName = libraryElement.source.shortName;
         }
         // don't add this library again
         alreadyImportedWithPrefix.add(libraryElement.source);

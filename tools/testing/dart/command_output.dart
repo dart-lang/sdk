@@ -105,7 +105,7 @@ class CommandOutput extends UniqueObject {
 
 class ContentShellCommandOutput extends CommandOutput {
   // Although tests are reported as passing, content shell sometimes exits with
-  // a nonzero exitcode which makes our dartium builders extremely falky.
+  // a nonzero exitcode which makes our builders extremely flaky.
   // See: http://dartbug.com/15139.
   // TODO(rnystrom): Is this still needed? The underlying bug is closed.
   static const _whitelistedContentShellExitCode = -1073740022;

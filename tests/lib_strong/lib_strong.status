@@ -238,15 +238,12 @@ math/math2_test: RuntimeError # Issue 29922
 math/math_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 mirrors/accessor_cache_overflow_test: RuntimeError # Issue 29922
-mirrors/array_tracing3_test: RuntimeError # Issue 29922
-mirrors/array_tracing_test: RuntimeError # Issue 29922
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 29922
 mirrors/class_mirror_location_test: RuntimeError # Issue 29922
 mirrors/class_mirror_type_variables_test: RuntimeError # Issue 29922
 mirrors/closurization_equivalence_test: RuntimeError # Issue 29922
 mirrors/constructor_kinds_test/01: RuntimeError # Issue 29922
 mirrors/constructor_kinds_test/none: RuntimeError # Issue 29922
-mirrors/constructor_optional_args_test: RuntimeError # Issue 29922
 mirrors/constructor_private_name_test: RuntimeError # Issue 29922
 mirrors/declarations_type_test: RuntimeError # Issue 29922
 mirrors/deferred_mirrors_metadata_test: RuntimeError # Issue 29922
@@ -276,7 +273,6 @@ mirrors/globalized_closures2_test/00: RuntimeError # Issue 29922
 mirrors/globalized_closures2_test/none: RuntimeError # Issue 29922
 mirrors/globalized_closures_test/00: RuntimeError # Issue 29922
 mirrors/globalized_closures_test/none: RuntimeError # Issue 29922
-mirrors/hierarchy_invariants_test: RuntimeError # Issue 29922
 mirrors/hot_get_field_test: RuntimeError # Issue 29922
 mirrors/hot_set_field_test: RuntimeError # Issue 29922
 mirrors/inherited_metadata_test: RuntimeError # Issue 29922
@@ -298,7 +294,6 @@ mirrors/invoke_private_test: RuntimeError # Issue 29922
 mirrors/invoke_private_wrong_library_test: RuntimeError # Issue 29922
 mirrors/invoke_test: RuntimeError # Issue 29922
 mirrors/invoke_throws_test: RuntimeError # Issue 29922
-mirrors/io_html_mutual_exclusion_test: RuntimeError # Issue 29922
 mirrors/libraries_test: RuntimeError # Issue 29922
 mirrors/library_enumeration_deferred_loading_test: RuntimeError # Issue 29922
 mirrors/library_metadata_test: RuntimeError # Issue 29922
@@ -315,7 +310,6 @@ mirrors/method_mirror_returntype_test: RuntimeError # Issue 29922
 mirrors/method_mirror_source_line_ending_test: RuntimeError # Issue 29922
 mirrors/method_mirror_source_test: RuntimeError # Issue 29922
 mirrors/mirrors_reader_test: RuntimeError # Issue 29922
-mirrors/mirrors_resolve_fields_test: RuntimeError # Issue 29922
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError # Issue 29922
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError # Issue 29922
 mirrors/mixin_test: RuntimeError # Issue 29922

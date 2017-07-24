@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Function2<S extends core::Object, T extends core::Object> = (S) → T;
+static method main() → void {
+  {
+    (core::int) → core::String l0 = (core::int x) → dynamic => null;
+    (core::int) → core::String l1 = (core::int x) → dynamic => "hello";
+    (core::int) → core::String l2 = (core::String x) → dynamic => "hello";
+    (core::int) → core::String l3 = (core::int x) → dynamic => 3;
+    (core::int) → core::String l4 = (core::int x) → dynamic {
+      return 3;
+    };
+  }
+  {
+    (core::int) → core::String l0 = (dynamic x) → dynamic => null;
+    (core::int) → core::String l1 = (dynamic x) → dynamic => "hello";
+    (core::int) → core::String l2 = (dynamic x) → dynamic => 3;
+    (core::int) → core::String l3 = (dynamic x) → dynamic {
+      return 3;
+    };
+    (core::int) → core::String l4 = (dynamic x) → dynamic {
+      return x;
+    };
+  }
+  {
+    (core::int) → core::List<core::String> l0 = (core::int x) → dynamic => null;
+    (core::int) → core::List<core::String> l1 = (core::int x) → dynamic => <dynamic>["hello"];
+    (core::int) → core::List<core::String> l2 = (core::String x) → dynamic => <dynamic>["hello"];
+    (core::int) → core::List<core::String> l3 = (core::int x) → dynamic => <dynamic>[3];
+    (core::int) → core::List<core::String> l4 = (core::int x) → dynamic {
+      return <dynamic>[3];
+    };
+  }
+  {
+    (core::int) → core::int l0 = (dynamic x) → dynamic => x;
+    (core::int) → core::int l1 = (dynamic x) → dynamic => x.+(1);
+    (core::int) → core::String l2 = (dynamic x) → dynamic => x;
+    (core::int) → core::String l3 = (dynamic x) → dynamic => x.substring(3);
+    (core::String) → core::String l4 = (dynamic x) → dynamic => x.substring(3);
+  }
+}

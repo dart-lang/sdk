@@ -15,8 +15,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
-import '../../scanner/token.dart' show BeginToken, Token;
-
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
@@ -25,12 +23,19 @@ import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, finalMask;
 
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../parser/native_support.dart' show skipNativeClause;
 
-import '../parser/parser.dart'
-    show Assert, FormalParameterType, MemberKind, optional;
+import '../parser.dart'
+    show
+        Assert,
+        FormalParameterKind,
+        IdentifierContext,
+        MemberKind,
+        closeBraceTokenFor,
+        optional;
+
+import '../parser/formal_parameter_kind.dart'
+    show isOptionalPositionalFormalParameterKind;
 
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
@@ -43,6 +48,8 @@ import '../quote.dart'
         unescapeFirstStringPart,
         unescapeLastStringPart,
         unescapeString;
+
+import '../scanner.dart' show Token;
 
 import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 
@@ -407,16 +414,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
-    doFields(count);
+    push(count);
   }
 
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    doFields(count);
+    push(count);
   }
 
-  void doFields(int count) {
+  @override
+  void finishFields() {
+    debugEvent("finishFields");
+    int count = pop();
     List<FieldBuilder> fields = <FieldBuilder>[];
     for (int i = 0; i < count; i++) {
       Expression initializer = pop();
@@ -463,7 +473,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endMember() {
     debugEvent("Member");
-    checkEmpty(-1);
   }
 
   @override
@@ -740,9 +749,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpression(this, popForValue(), token.endGroup));
+    push(new ParenthesizedExpression(
+        this, popForValue(), closeBraceTokenFor(token)));
   }
 
   @override
@@ -1812,7 +1822,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     if (thisKeyword != null) {
       if (!inConstructor) {
@@ -1864,9 +1874,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
-    FormalParameterType kind = optional("{", beginToken)
-        ? FormalParameterType.NAMED
-        : FormalParameterType.POSITIONAL;
+    FormalParameterKind kind = optional("{", beginToken)
+        ? FormalParameterKind.optionalNamed
+        : FormalParameterKind.optionalPositional;
     push(new OptionalFormals(kind, popList(count) ?? []));
   }
 
@@ -2427,8 +2437,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void beginFunctionDeclaration(Token token) {
-    debugEvent("beginNamedFunctionExpression");
+  void beginLocalFunctionDeclaration(Token token) {
+    debugEvent("beginLocalFunctionDeclaration");
     enterFunction();
   }
 
@@ -2474,8 +2484,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFunctionDeclaration(Token endToken) {
-    debugEvent("FunctionDeclaration");
+  void endLocalFunctionDeclaration(Token token) {
+    debugEvent("LocalFunctionDeclaration");
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     if (functionNestingLevel != 0) {
@@ -2486,7 +2496,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = formals.charOffset
-      ..fileEndOffset = endToken.charOffset);
+      ..fileEndOffset = token.charOffset);
     exitLocalScope();
     var declaration = pop();
     var returnType = pop();
@@ -3653,7 +3663,7 @@ class LabelTarget extends Builder implements JumpTarget {
 }
 
 class OptionalFormals {
-  final FormalParameterType kind;
+  final FormalParameterKind kind;
 
   final List<VariableDeclaration> formals;
 
@@ -3671,7 +3681,7 @@ class FormalParameters {
     function.requiredParameterCount = required.length;
     function.positionalParameters.addAll(required);
     if (optional != null) {
-      if (optional.kind.isPositional) {
+      if (isOptionalPositionalFormalParameterKind(optional.kind)) {
         function.positionalParameters.addAll(optional.formals);
       } else {
         function.namedParameters.addAll(optional.formals);
@@ -3693,7 +3703,7 @@ class FormalParameters {
       positionalParameters.add(parameter.type);
     }
     if (optional != null) {
-      if (optional.kind.isPositional) {
+      if (isOptionalPositionalFormalParameterKind(optional.kind)) {
         for (VariableDeclaration parameter in optional.formals) {
           positionalParameters.add(parameter.type);
         }

@@ -332,7 +332,7 @@ class List<E> {
       }
       list = JSArray.markFixedList(JS('', 'new Array(#)', length));
     }
-    return new JSArray<E>.typed(list);
+    return new JSArray<E>.of(list);
   }
 
   @patch

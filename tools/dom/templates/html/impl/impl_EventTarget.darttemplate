@@ -90,12 +90,6 @@ class ElementEvents extends Events {
  */
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-$if DARTIUM
-  // Default constructor to allow other classes e.g. GlobalEventHandlers to be
-  // constructed using _internalWrap when mapping Blink object to Dart class.
-  EventTarget();
-
-$endif
   // Custom element created callback.
   EventTarget._created();
 

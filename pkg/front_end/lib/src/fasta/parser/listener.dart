@@ -4,15 +4,21 @@
 
 library fasta.parser.listener;
 
-import '../fasta_codes.dart' show Message;
+import '../../scanner/token.dart' show Token, TokenType;
 
-import '../../scanner/token.dart' show BeginToken, Token, TokenType;
+import '../fasta_codes.dart' show Message;
 
 import '../util/link.dart' show Link;
 
-import 'parser.dart' show Assert, FormalParameterType, MemberKind;
+import 'assert.dart' show Assert;
+
+import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
+
+import 'member_kind.dart' show MemberKind;
+
+import 'parser_error.dart' show ParserError;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -196,7 +202,7 @@ class Listener {
   void beginFormalParameter(Token token, MemberKind kind) {}
 
   void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterType kind, MemberKind memberKind) {
+      FormalParameterKind kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 
@@ -275,7 +281,8 @@ class Listener {
     logEvent("NamedFunctionExpression");
   }
 
-  void beginFunctionDeclaration(Token token) {}
+  /// Handle the beginning of a local function declaration.
+  void beginLocalFunctionDeclaration(Token token) {}
 
   /// A function declaration.
   ///
@@ -288,7 +295,7 @@ class Listener {
   /// - Initializers
   /// - Async modifier
   /// - Function body (block or arrow expression).
-  void endFunctionDeclaration(Token endToken) {
+  void endLocalFunctionDeclaration(Token endToken) {
     logEvent("FunctionDeclaration");
   }
 
@@ -332,13 +339,13 @@ class Listener {
   /// - Metadata
   /// - Return type
   /// - Name (identifier)
-  /// - Template variables (type variables to the template)
+  /// - Alias type variables
   /// - Formal parameters
   ///
   /// If [equals] is not null, then the have the following substructures:
   /// - Metadata
   /// - Name (identifier)
-  /// - Template variables (type variables to the template)
+  /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
@@ -979,7 +986,7 @@ class Listener {
     logEvent("OperatorName");
   }
 
-  void handleParenthesizedExpression(BeginToken token) {
+  void handleParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }
 
@@ -1100,21 +1107,4 @@ class Listener {
     if (next == null) return null;
     return new Token(TokenType.RECOVERY, next.charOffset)..next = next;
   }
-}
-
-class ParserError {
-  /// Character offset from the beginning of file where this error starts.
-  final int beginOffset;
-
-  /// Character offset from the beginning of file where this error ends.
-  final int endOffset;
-
-  final Message message;
-
-  ParserError(this.beginOffset, this.endOffset, this.message);
-
-  ParserError.fromTokens(Token begin, Token end, Message message)
-      : this(begin.charOffset, end.charOffset + end.charCount, message);
-
-  String toString() => "@${beginOffset}: ${message.message}\n${message.tip}";
 }

@@ -1379,8 +1379,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+#if !defined(PRODUCT)
   Label stepping, done_stepping;
-  if (FLAG_support_debugger && !optimized) {
+  if (!optimized) {
     __ Comment("Check single stepping");
     __ LoadIsolate(R8);
     __ ldrb(R8, Address(R8, Isolate::single_step_offset()));
@@ -1388,6 +1389,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ b(&stepping, NE);
     __ Bind(&done_stepping);
   }
+#endif
 
   Label not_smi_or_overflow;
   if (kind != Token::kILLEGAL) {
@@ -1508,7 +1510,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ bx(R2);
 
-  if (FLAG_support_debugger && !optimized) {
+#if !defined(PRODUCT)
+  if (!optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ Push(R9);  // Preserve IC data.
@@ -1518,6 +1521,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LeaveStubFrame();
     __ b(&done_stepping);
   }
+#endif
 }
 
 // Use inline cache data array to invoke the target or continue in inline
@@ -1597,15 +1601,15 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   }
 #endif  // DEBUG
 
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(R8);
-    __ ldrb(R8, Address(R8, Isolate::single_step_offset()));
-    __ CompareImmediate(R8, 0);
-    __ b(&stepping, NE);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(R8);
+  __ ldrb(R8, Address(R8, Isolate::single_step_offset()));
+  __ CompareImmediate(R8, 0);
+  __ b(&stepping, NE);
+  __ Bind(&done_stepping);
+#endif
 
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
@@ -1631,16 +1635,16 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ Push(R9);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R9);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ b(&done_stepping);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ Push(R9);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ Pop(R9);
+  __ RestoreCodePointer();
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
+#endif
 }
 
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
@@ -2001,15 +2005,15 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
+#if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
-    __ LoadIsolate(R1);
-    __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
-    __ CompareImmediate(R1, 0);
-    __ b(&stepping, NE);
-    __ Bind(&done_stepping);
-  }
+  __ LoadIsolate(R1);
+  __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
+  __ CompareImmediate(R1, 0);
+  __ b(&stepping, NE);
+  __ Bind(&done_stepping);
+#endif
 
   const Register temp = R2;
   const Register left = R1;
@@ -2019,14 +2023,14 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ Ret();
 
-  if (FLAG_support_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ RestoreCodePointer();
-    __ LeaveStubFrame();
-    __ b(&done_stepping);
-  }
+#if !defined(PRODUCT)
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ RestoreCodePointer();
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
+#endif
 }
 
 // Called from optimized code only.

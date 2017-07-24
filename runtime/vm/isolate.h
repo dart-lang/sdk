@@ -301,9 +301,11 @@ class Isolate : public BaseIsolate {
   bool is_runnable() const { return is_runnable_; }
   void set_is_runnable(bool value) {
     is_runnable_ = value;
+#if !defined(PRODUCT)
     if (is_runnable_) {
       set_last_resume_timestamp();
     }
+#endif
   }
 
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
@@ -319,13 +321,12 @@ class Isolate : public BaseIsolate {
   }
   Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
 
+#if !defined(PRODUCT)
   Debugger* debugger() const {
-    if (!FLAG_support_debugger) {
-      return NULL;
-    }
     ASSERT(debugger_ != NULL);
     return debugger_;
   }
+#endif
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -333,6 +334,7 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
+#if !defined(PRODUCT)
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
     resume_request_ = true;
@@ -352,6 +354,7 @@ class Isolate : public BaseIsolate {
     resume_request_ = false;
     return resume_request;
   }
+#endif
 
   // Verify that the sender has the capability to pause or terminate the
   // isolate.
@@ -632,8 +635,10 @@ class Isolate : public BaseIsolate {
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
+#if !defined(PRODUCT)
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
+#endif
 
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(const Function& parent,
@@ -766,9 +771,9 @@ class Isolate : public BaseIsolate {
   Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
-  Debugger* debugger_;
-  bool resume_request_;
-  int64_t last_resume_timestamp_;
+  NOT_IN_PRODUCT(Debugger* debugger_);
+  NOT_IN_PRODUCT(bool resume_request_);
+  NOT_IN_PRODUCT(int64_t last_resume_timestamp_);
   Random random_;
   Simulator* simulator_;
   Mutex* mutex_;          // Protects compiler stats.
@@ -882,7 +887,9 @@ class Isolate : public BaseIsolate {
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_IsolateCleanupCallback cleanup_callback_;
 
+#if !defined(PRODUCT)
   static void WakePauseEventHandler(Dart_Isolate isolate);
+#endif
 
   // Manage list of existing isolates.
   static bool AddIsolateToList(Isolate* isolate);

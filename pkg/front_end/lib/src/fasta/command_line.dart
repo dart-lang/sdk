@@ -27,6 +27,7 @@ class ParsedArguments {
   toString() => "ParsedArguments($options, $arguments)";
 }
 
+/// Abstract parser for command-line options.
 class CommandLine {
   final Map<String, dynamic> options;
 

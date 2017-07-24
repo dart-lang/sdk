@@ -52,152 +52,26 @@ import '../scanner/characters.dart' show $CLOSE_CURLY_BRACKET;
 
 import '../util/link.dart' show Link;
 
+import 'assert.dart' show Assert;
+
 import 'async_modifier.dart' show AsyncModifier;
 
-import 'listener.dart' show Listener;
+import 'formal_parameter_kind.dart'
+    show
+        FormalParameterKind,
+        isMandatoryFormalParameterKind,
+        isOptionalPositionalFormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
-/// Returns true if [token] is the symbol or keyword [value].
-bool optional(String value, Token token) {
-  return identical(value, token.stringValue);
-}
+import 'listener.dart' show Listener;
 
-// TODO(ahe): Convert this to an enum.
-class FormalParameterType {
-  final String type;
+import 'member_kind.dart' show MemberKind;
 
-  final TypeContinuation typeContinuation;
+import 'type_continuation.dart'
+    show TypeContinuation, typeContiunationFromFormalParameterKind;
 
-  const FormalParameterType(this.type, this.typeContinuation);
-
-  bool get isRequired => this == REQUIRED;
-
-  bool get isPositional => this == POSITIONAL;
-
-  bool get isNamed => this == NAMED;
-
-  static final REQUIRED = const FormalParameterType(
-      'required', TypeContinuation.NormalFormalParameter);
-
-  static final POSITIONAL = const FormalParameterType(
-      'positional', TypeContinuation.OptionalPositionalFormalParameter);
-
-  static final NAMED =
-      const FormalParameterType('named', TypeContinuation.NamedFormalParameter);
-}
-
-enum MemberKind {
-  /// A catch block, not a real member.
-  Catch,
-
-  /// A factory
-  Factory,
-
-  /// Old-style typedef.
-  FunctionTypeAlias,
-
-  /// Old-style function-typed parameter, not a real member.
-  FunctionTypedParameter,
-
-  /// A generalized function type, not a real member.
-  GeneralizedFunctionType,
-
-  /// A local function.
-  Local,
-
-  /// A non-static method in a class (including constructors).
-  NonStaticMethod,
-
-  /// A static method in a class.
-  StaticMethod,
-
-  /// A top-level method.
-  TopLevelMethod,
-
-  /// An instance field in a class.
-  NonStaticField,
-
-  /// A static field in a class.
-  StaticField,
-
-  /// A top-level field.
-  TopLevelField,
-}
-
-/// Syntactic forms of `assert`.
-///
-/// An assertion can legally occur as a statement. However, assertions are also
-/// experimentally allowed in initializers. For improved error recovery, we
-/// also attempt to parse asserts as expressions.
-enum Assert {
-  Expression,
-  Initializer,
-  Statement,
-}
-
-/// Indication of how the parser should continue after (attempting) to parse a
-/// type.
-///
-/// Depending on the continuation, the parser may not parse a type at all.
-enum TypeContinuation {
-  /// Indicates that a type is unconditionally expected.
-  Required,
-
-  /// Indicates that a type may follow. If the following matches one of these
-  /// productions, it is parsed as a type:
-  ///
-  ///  - `'void'`
-  ///  - `'Function' ( '(' | '<' )`
-  ///  - `identifier ('.' identifier)? ('<' ... '>')? identifer`
-  ///
-  /// Otherwise, do nothing.
-  Optional,
-
-  /// Same as [Optional], but we have seen `var`.
-  OptionalAfterVar,
-
-  /// Indicates that the keyword `typedef` has just been seen, and the parser
-  /// should parse the following as a type unless it is followed by `=`.
-  Typedef,
-
-  /// Indicates that what follows is either a local declaration or an
-  /// expression.
-  ExpressionStatementOrDeclaration,
-
-  /// Indicates that the keyword `const` has just been seen, and what follows
-  /// may be a local variable declaration or an expression.
-  ExpressionStatementOrConstDeclaration,
-
-  /// Indicates that the parser is parsing an expression and has just seen an
-  /// identifier.
-  SendOrFunctionLiteral,
-
-  /// Indicates that the parser has just parsed `for '('` and is looking to
-  /// parse a variable declaration or expression.
-  VariablesDeclarationOrExpression,
-
-  /// Indicates that an optional type followed by a normal formal parameter is
-  /// expected.
-  NormalFormalParameter,
-
-  /// Indicates that an optional type followed by an optional positional formal
-  /// parameter is expected.
-  OptionalPositionalFormalParameter,
-
-  /// Indicates that an optional type followed by a named formal parameter is
-  /// expected.
-  NamedFormalParameter,
-
-  /// Same as [NormalFormalParameter], but we have seen `var`.
-  NormalFormalParameterAfterVar,
-
-  /// Same as [OptionalPositionalFormalParameter], but we have seen `var`.
-  OptionalPositionalFormalParameterAfterVar,
-
-  /// Same as [NamedFormalParameter], but we have seen `var`.
-  NamedFormalParameterAfterVar,
-}
+import 'util.dart' show closeBraceTokenFor, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -685,10 +559,9 @@ class Parser {
               token, fasta.templateExpectedButGot.withArguments("("))
           .next;
     }
-    BeginToken beginGroupToken = token;
-    Token endToken = beginGroupToken.endGroup;
-    listener.endFormalParameters(0, token, endToken, kind);
-    return endToken.next;
+    Token closeBrace = closeBraceTokenFor(token);
+    listener.endFormalParameters(0, token, closeBrace, kind);
+    return closeBrace.next;
   }
 
   /// Parses the formal parameter list of a function.
@@ -719,14 +592,14 @@ class Parser {
         token = token.next;
         break;
       }
-      token = parseFormalParameter(token, FormalParameterType.REQUIRED, kind);
+      token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
     return expect(')', token);
   }
 
   Token parseFormalParameter(
-      Token token, FormalParameterType parameterKind, MemberKind memberKind) {
+      Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token, forParameter: true);
     listener.beginFormalParameter(token, memberKind);
     token = parseModifiers(token, memberKind, parameterKind: parameterKind);
@@ -746,8 +619,9 @@ class Parser {
       } else if (!isNamed && optional(']', token)) {
         break;
       }
-      var type =
-          isNamed ? FormalParameterType.NAMED : FormalParameterType.POSITIONAL;
+      var type = isNamed
+          ? FormalParameterKind.optionalNamed
+          : FormalParameterKind.optionalPositional;
       token = parseFormalParameter(token, type, kind);
       ++parameterCount;
     } while (optional(',', token));
@@ -792,8 +666,7 @@ class Parser {
     /// [isValidMethodTypeArguments].
     Token tryParseMethodTypeArguments(Token token) {
       if (!identical(token.kind, LT_TOKEN)) return null;
-      BeginToken beginToken = token;
-      Token endToken = beginToken.endGroup;
+      Token endToken = closeBraceTokenFor(token);
       if (endToken == null ||
           !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
         return null;
@@ -888,12 +761,12 @@ class Parser {
       return reportUnrecoverableError(token, fasta.messageExpectedBlockToSkip)
           .next;
     }
-    BeginToken beginGroupToken = token;
-    Token endGroup = beginGroupToken.endGroup;
-    if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnmatchedToken(beginGroupToken).next;
+    Token closeBrace = closeBraceTokenFor(token);
+    if (closeBrace == null ||
+        !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
+      return reportUnmatchedToken(token).next;
     }
-    return beginGroupToken.endGroup;
+    return closeBrace;
   }
 
   Token parseEnum(Token token) {
@@ -1088,10 +961,6 @@ class Parser {
       [TypeContinuation continuation = TypeContinuation.Required,
       IdentifierContext continuationContext,
       MemberKind memberKind]) {
-    /// Returns the close brace, bracket, or parenthesis of [left]. For '<', it
-    /// may return null.
-    Token getClose(BeginToken left) => left.endToken;
-
     /// True if we've seen the `var` keyword.
     bool hasVar = false;
 
@@ -1112,7 +981,7 @@ class Parser {
     IdentifierContext context = IdentifierContext.typeReference;
 
     /// Non-null if type arguments were seen during analysis.
-    BeginToken typeArguments;
+    Token typeArguments;
 
     /// The number of function types seen during analysis.
     int functionTypes = 0;
@@ -1120,7 +989,7 @@ class Parser {
     /// The start of type variables of function types seen during
     /// analysis. Notice that the tokens in this list might be either `'<'` or
     /// `'('` as not all function types have type parameters. Also, it is safe
-    /// to assume that [getClose] will return non-null for all these tokens.
+    /// to assume that [closeBraceTokenFor] will return non-null for all these tokens.
     Link<Token> typeVariableStarters = const Link<Token>();
 
     {
@@ -1156,7 +1025,7 @@ class Parser {
           token = token.next.next;
         }
         if (optional("<", token)) {
-          Token close = getClose(token);
+          Token close = closeBraceTokenFor(token);
           if (close != null &&
               (optional(">", close) || optional(">>", close))) {
             // We found some type arguments.
@@ -1173,7 +1042,7 @@ class Parser {
       while (optional("Function", token)) {
         Token typeVariableStart = token.next;
         if (optional("<", token.next)) {
-          Token close = getClose(token.next);
+          Token close = closeBraceTokenFor(token.next);
           if (close != null && optional(">", close)) {
             token = close;
           } else {
@@ -1182,7 +1051,7 @@ class Parser {
         }
         if (optional("(", token.next)) {
           // This is a function type.
-          Token close = getClose(token.next);
+          Token close = closeBraceTokenFor(token.next);
           assert(optional(")", close));
           looksLikeType = true;
           functionTypes++;
@@ -1240,7 +1109,7 @@ class Parser {
         token = token.next;
         if (optional("<", token)) {
           // Skip type parameters, they were parsed above.
-          token = getClose(token).next;
+          token = closeBraceTokenFor(token).next;
         }
         token =
             parseFormalParameters(token, MemberKind.GeneralizedFunctionType);
@@ -1268,7 +1137,7 @@ class Parser {
           optional('sync', token);
     }
 
-    FormalParameterType parameterKind;
+    FormalParameterKind parameterKind;
     switch (continuation) {
       case TypeContinuation.Required:
         return commitType();
@@ -1325,20 +1194,21 @@ class Parser {
             return parseVariablesDeclaration(begin);
           } else if (OPEN_PAREN_TOKEN == afterIdKind) {
             // We are looking at `type identifier '('`.
-            if (looksLikeFunctionBody(getClose(afterId).next)) {
+            if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
               // We are looking at `type identifier '(' ... ')'` followed
               // `( '{' | '=>' | 'async' | 'sync' )`.
-              return parseFunctionDeclaration(begin);
+              return parseLocalFunctionDeclaration(begin);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
-            Token afterTypeVariables = getClose(afterId)?.next;
+            Token afterTypeVariables = closeBraceTokenFor(afterId)?.next;
             if (afterTypeVariables != null &&
                 optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
+              if (looksLikeFunctionBody(
+                  closeBraceTokenFor(afterTypeVariables).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
-                return parseFunctionDeclaration(begin);
+                return parseLocalFunctionDeclaration(begin);
               }
             }
           }
@@ -1348,15 +1218,16 @@ class Parser {
           if (optional(':', token.next)) {
             return parseLabeledStatement(token);
           } else if (optional('(', token.next)) {
-            if (looksLikeFunctionBody(getClose(token.next).next)) {
-              return parseFunctionDeclaration(token);
+            if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
+              return parseLocalFunctionDeclaration(token);
             }
           } else if (optional('<', token.next)) {
-            Token afterTypeVariables = getClose(token.next)?.next;
+            Token afterTypeVariables = closeBraceTokenFor(token.next)?.next;
             if (afterTypeVariables != null &&
                 optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(getClose(afterTypeVariables).next)) {
-                return parseFunctionDeclaration(token);
+              if (looksLikeFunctionBody(
+                  closeBraceTokenFor(afterTypeVariables).next)) {
+                return parseLocalFunctionDeclaration(token);
               }
             }
             // Fall through to expression statement.
@@ -1407,13 +1278,13 @@ class Parser {
 
       case TypeContinuation.NormalFormalParameter:
       case TypeContinuation.NormalFormalParameterAfterVar:
-        parameterKind = FormalParameterType.REQUIRED;
+        parameterKind = FormalParameterKind.mandatory;
         hasVar = continuation == TypeContinuation.NormalFormalParameterAfterVar;
         continue handleParameters;
 
       case TypeContinuation.OptionalPositionalFormalParameter:
       case TypeContinuation.OptionalPositionalFormalParameterAfterVar:
-        parameterKind = FormalParameterType.POSITIONAL;
+        parameterKind = FormalParameterKind.optionalPositional;
         hasVar = continuation ==
             TypeContinuation.OptionalPositionalFormalParameterAfterVar;
         continue handleParameters;
@@ -1424,9 +1295,10 @@ class Parser {
 
       handleParameters:
       case TypeContinuation.NamedFormalParameter:
-        parameterKind ??= FormalParameterType.NAMED;
+        parameterKind ??= FormalParameterKind.optionalNamed;
         bool inFunctionType = memberKind == MemberKind.GeneralizedFunctionType;
-        bool isNamedParameter = parameterKind == FormalParameterType.NAMED;
+        bool isNamedParameter =
+            parameterKind == FormalParameterKind.optionalNamed;
 
         bool untyped = false;
         if (!looksLikeType || optional("this", begin)) {
@@ -1467,7 +1339,7 @@ class Parser {
 
         Token inlineFunctionTypeStart;
         if (optional("<", token)) {
-          Token closer = getClose(token);
+          Token closer = closeBraceTokenFor(token);
           if (closer != null) {
             if (optional("(", closer.next)) {
               inlineFunctionTypeStart = token;
@@ -1476,7 +1348,7 @@ class Parser {
           }
         } else if (optional("(", token)) {
           inlineFunctionTypeStart = token;
-          token = getClose(token).next;
+          token = closeBraceTokenFor(token).next;
         }
 
         if (inlineFunctionTypeStart != null) {
@@ -1523,10 +1395,11 @@ class Parser {
           Token equal = token;
           token = parseExpression(token.next);
           listener.handleValuedFormalParameter(equal, token);
-          if (parameterKind.isRequired) {
+          if (isMandatoryFormalParameterKind(parameterKind)) {
             reportRecoverableError(
                 equal, fasta.messageRequiredParameterWithDefault);
-          } else if (parameterKind.isPositional && identical(':', value)) {
+          } else if (isOptionalPositionalFormalParameterKind(parameterKind) &&
+              identical(':', value)) {
             reportRecoverableError(
                 equal, fasta.messagePositionalParameterWithEquals);
           } else if (inFunctionType ||
@@ -1851,11 +1724,12 @@ class Parser {
           }
           if (optional('<', token.next)) {
             if (token.next is BeginToken) {
-              BeginToken beginGroup = token.next;
-              if (beginGroup.endGroup == null) {
-                token = reportUnmatchedToken(beginGroup).next;
+              token = token.next;
+              Token closeBrace = closeBraceTokenFor(token);
+              if (closeBrace == null) {
+                token = reportUnmatchedToken(token).next;
               } else {
-                token = beginGroup.endGroup;
+                token = closeBrace;
               }
             }
           }
@@ -1878,11 +1752,11 @@ class Parser {
         token = token.next;
         if (optional('<', token)) {
           if (token is BeginToken) {
-            BeginToken beginGroup = token;
-            if (beginGroup.endGroup == null) {
-              token = reportUnmatchedToken(beginGroup).next;
+            Token closeBrace = closeBraceTokenFor(token);
+            if (closeBrace == null) {
+              token = reportUnmatchedToken(token).next;
             } else {
-              token = beginGroup.endGroup.next;
+              token = closeBrace.next;
             }
           }
         }
@@ -1893,11 +1767,11 @@ class Parser {
           token = expect("(", token);
         }
         if (token is BeginToken) {
-          BeginToken beginGroup = token;
-          if (beginGroup.endGroup == null) {
-            token = reportUnmatchedToken(beginGroup).next;
+          Token closeBrace = closeBraceTokenFor(token);
+          if (closeBrace == null) {
+            token = reportUnmatchedToken(token).next;
           } else {
-            token = beginGroup.endGroup.next;
+            token = closeBrace.next;
           }
         }
       }
@@ -2031,11 +1905,12 @@ class Parser {
   /// When parsing the formal parameters of any function, [parameterKind] is
   /// non-null.
   Token parseModifiers(Token token, MemberKind memberKind,
-      {FormalParameterType parameterKind, bool isVarAllowed: false}) {
+      {FormalParameterKind parameterKind, bool isVarAllowed: false}) {
     int count = 0;
 
     int currentOrder = -1;
-    TypeContinuation typeContinuation = parameterKind?.typeContinuation;
+    TypeContinuation typeContinuation =
+        typeContiunationFromFormalParameterKind(parameterKind);
 
     while (token.kind == KEYWORD_TOKEN) {
       if (token.type.isPseudo) {
@@ -2163,12 +2038,12 @@ class Parser {
               token, fasta.templateExpectedClassBodyToSkip)
           .next;
     }
-    BeginToken beginGroupToken = token;
-    Token endGroup = beginGroupToken.endGroup;
-    if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnmatchedToken(beginGroupToken).next;
+    Token closeBrace = closeBraceTokenFor(token);
+    if (closeBrace == null ||
+        !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
+      return reportUnmatchedToken(token).next;
     }
-    return endGroup;
+    return closeBrace;
   }
 
   Token parseClassBody(Token token) {
@@ -2460,8 +2335,8 @@ class Parser {
     return isBlock ? token.next : token;
   }
 
-  Token parseFunctionDeclaration(Token token) {
-    listener.beginFunctionDeclaration(token);
+  Token parseLocalFunctionDeclaration(Token token) {
+    listener.beginLocalFunctionDeclaration(token);
     Token beginToken = token;
     token = parseModifiers(token, MemberKind.Local);
     listener.beginFunctionName(token);
@@ -2477,7 +2352,7 @@ class Parser {
     token = parseFunctionBody(token, false, true);
     asyncState = savedAsyncModifier;
     token = token.next;
-    listener.endFunctionDeclaration(token);
+    listener.endLocalFunctionDeclaration(token);
     return token;
   }
 
@@ -2854,8 +2729,7 @@ class Parser {
           //   Foo() : map = {};
           //   Foo.x() : map = true ? {} : {};
           // }
-          BeginToken begin = token.next;
-          token = (begin.endGroup != null) ? begin.endGroup : token;
+          token = closeBraceTokenFor(token.next) ?? token;
           token = token.next;
           continue;
         }
@@ -2866,12 +2740,10 @@ class Parser {
           //   Foo() : map = <String, Foo>{};
           //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
           // }
-          BeginToken begin = token.next;
-          token = (begin.endGroup != null) ? begin.endGroup : token;
+          token = closeBraceTokenFor(token.next) ?? token;
           token = token.next;
           if (identical(token.stringValue, '{')) {
-            begin = token;
-            token = (begin.endGroup != null) ? begin.endGroup : token;
+            token = closeBraceTokenFor(token) ?? token;
             token = token.next;
           }
           continue;
@@ -2881,8 +2753,7 @@ class Parser {
         break;
       }
       if (token is BeginToken) {
-        BeginToken begin = token;
-        token = (begin.endGroup != null) ? begin.endGroup : token;
+        token = closeBraceTokenFor(token) ?? token;
       } else if (token is ErrorToken) {
         reportErrorToken(token, false).next;
       }
@@ -3149,8 +3020,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    BeginToken beginGroup = token;
-    Token nextToken = beginGroup.endGroup.next;
+    Token nextToken = closeBraceTokenFor(token).next;
     int kind = nextToken.kind;
     if (mayParseFunctionExpressions &&
         (identical(kind, FUNCTION_TOKEN) ||
@@ -3271,9 +3141,9 @@ class Parser {
   /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
   Token parseLiteralFunctionSuffix(Token token) {
     assert(optional('(', token));
-    BeginToken beginGroup = token;
-    if (beginGroup.endGroup != null) {
-      Token nextToken = beginGroup.endGroup.next;
+    Token closeBrace = closeBraceTokenFor(token);
+    if (closeBrace != null) {
+      Token nextToken = closeBrace.next;
       int kind = nextToken.kind;
       if (identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
@@ -3297,10 +3167,10 @@ class Parser {
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
     assert(optional('<', token));
-    BeginToken begin = token;
+    Token closeBrace = closeBraceTokenFor(token);
     if (constKeyword == null &&
-        begin.endGroup != null &&
-        identical(begin.endGroup.next.kind, OPEN_PAREN_TOKEN)) {
+        closeBrace != null &&
+        identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
       token = parseTypeVariablesOpt(token);
       return parseLiteralFunctionSuffix(token);
     } else {
@@ -3335,13 +3205,12 @@ class Parser {
 
   bool isFunctionDeclaration(Token token) {
     if (optional('<', token)) {
-      BeginToken begin = token;
-      if (begin.endGroup == null) return false;
-      token = begin.endGroup.next;
+      Token closeBrace = closeBraceTokenFor(token);
+      if (closeBrace == null) return false;
+      token = closeBrace.next;
     }
     if (optional('(', token)) {
-      BeginToken begin = token;
-      String afterParens = begin.endGroup.next.stringValue;
+      String afterParens = closeBraceTokenFor(token).next.stringValue;
       if (identical(afterParens, '{') ||
           identical(afterParens, '=>') ||
           identical(afterParens, 'async') ||
@@ -3511,8 +3380,7 @@ class Parser {
   Token skipArgumentsOpt(Token token) {
     listener.handleNoArguments(token);
     if (optional('(', token)) {
-      BeginToken begin = token;
-      return begin.endGroup.next;
+      return closeBraceTokenFor(token).next;
     } else {
       return token;
     }

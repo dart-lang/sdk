@@ -23,8 +23,8 @@ main(List<String> args) async {
     ..target = new Dart2jsTarget(new TargetFlags())
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = true
-    ..linkedDependencies = [Uri.base.resolve(flags['platform'])]
-    ..onError = errorHandler;
+    ..setExitCodeOnProblem = true
+    ..linkedDependencies = [Uri.base.resolve(flags['platform'])];
 
   if (flags.rest.isEmpty) {
     var script = relativizeUri(Platform.script);
@@ -37,11 +37,6 @@ main(List<String> args) async {
   Uri entry = Uri.base.resolve(flags.rest.first);
   var program = await kernelForProgram(entry, options);
   await writeProgramToBinary(program, flags['out']);
-}
-
-void errorHandler(CompilationError e) {
-  exitCode = 1;
-  print(e.message);
 }
 
 ArgParser _argParser = new ArgParser()

@@ -15,7 +15,6 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   _ChildNodeListLazy(this._this);
 
 
-$if DART2JS
   Node get first {
     Node result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
@@ -32,24 +31,6 @@ $if DART2JS
     if (l > 1) throw new StateError("More than one element");
     return JS('Node|Null', '#.firstChild', _this);
   }
-$else
-  Node get first {
-    Node result = _this.firstChild;
-    if (result == null) throw new StateError("No elements");
-    return result;
-  }
-  Node get last {
-    Node result = _this.lastChild;
-    if (result == null) throw new StateError("No elements");
-    return result;
-  }
-  Node get single {
-    int l = this.length;
-    if (l == 0) throw new StateError("No elements");
-    if (l > 1) throw new StateError("More than one element");
-    return _this.firstChild;
-  }
-$endif
 
   void add(Node value) {
     _this.append(value);
@@ -114,12 +95,7 @@ $endif
   bool remove(Object object) {
     if (object is! Node) return false;
     Node node = object;
-$if JSINTEROP
-    // We aren't preserving identity of nodes in JSINTEROP mode
-    if (_this != node.parentNode) return false;
-$else
     if (!identical(_this, node.parentNode)) return false;
-$endif
     _this._removeChild(node);
     return true;
   }
@@ -201,11 +177,7 @@ $endif
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   // Custom element created callback.
-$if DART2JS
   Node._created() : super._created();
-$else
-  Node._created() : super._created();
-$endif
 
   /**
    * A modifiable list of this node's children.
@@ -290,19 +262,6 @@ $endif
     return value == null ? super.toString() : value;
   }
 
-$if DARTIUM
-  /**
-   * A list of this node's children.
-   *
-   * ## Other resources
-   *
-   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   *   from MDN.
-   */
-  @DomName('Node.childNodes')
-  @DocsEditable()
-  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
-$else
   /**
    * A list of this node's children.
    *
@@ -317,6 +276,5 @@ $else
   @Creates('NodeList')
   final List<Node> childNodes;
 
-$endif
 $!MEMBERS
 }

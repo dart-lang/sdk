@@ -23,9 +23,11 @@ class Check {
   final String property;
   final Object value1;
   final Object value2;
+  final Function toStringFunc;
 
   Check(this.parent, this.object1, this.object2, this.property, this.value1,
-      this.value2);
+      this.value2,
+      [this.toStringFunc]);
 
   String printOn(StringBuffer sb, String indent) {
     if (parent != null) {
@@ -34,11 +36,25 @@ class Check {
     }
     sb.write("${indent}property='$property'\n ");
     sb.write("${indent}object1=$object1 (${object1.runtimeType})\n ");
-    sb.write("${indent}value=${value1 == null ? "null" : "'$value1'"} ");
-    sb.write("(${value1.runtimeType}) vs\n ");
+    sb.write("${indent}value=");
+    if (value1 == null) {
+      sb.write("null");
+    } else if (toStringFunc != null) {
+      sb.write(toStringFunc(value1));
+    } else {
+      sb.write("'$value1'");
+    }
+    sb.write(" (${value1.runtimeType}) vs\n ");
     sb.write("${indent}object2=$object2 (${object2.runtimeType})\n ");
-    sb.write("${indent}value=${value2 == null ? "null" : "'$value2'"} ");
-    sb.write("(${value2.runtimeType})");
+    sb.write("${indent}value=");
+    if (value2 == null) {
+      sb.write("null");
+    } else if (toStringFunc != null) {
+      sb.write(toStringFunc(value2));
+    } else {
+      sb.write("'$value2'");
+    }
+    sb.write(" (${value2.runtimeType})");
     return ' $indent';
   }
 
@@ -112,9 +128,9 @@ class CheckStrategy extends TestStrategy {
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
 bool check(var object1, var object2, String property, var value1, var value2,
-    [bool equivalence(a, b) = equality]) {
-  currentCheck =
-      new Check(currentCheck, object1, object2, property, value1, value2);
+    [bool equivalence(a, b) = equality, String toString(a)]) {
+  currentCheck = new Check(
+      currentCheck, object1, object2, property, value1, value2, toString);
   if (!equivalence(value1, value2)) {
     throw currentCheck;
   }

@@ -9,21 +9,18 @@ import 'dart:io' show exit;
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
 
+import '../../compiler_options.dart';
+import '../base/processed_options.dart';
 import 'command_line.dart' show CommandLine, deprecated_argumentError;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'command_line_reporting.dart' as command_line_reporting;
-
 import 'fasta_codes.dart'
     show
-        LocatedMessage,
         Message,
         messageFastaUsageLong,
         messageFastaUsageShort,
         templateUnspecified;
-
-import 'severity.dart' show Severity;
 
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
@@ -37,6 +34,8 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "-t": String,
 };
 
+/// Parser for options accepted by the `fasta` command-line tools.
+// TODO(ahe,sigmund): move this and other tools under pkg/front_end/tool/
 class CompilerCommandLine extends CommandLine {
   final String programName;
 
@@ -59,13 +58,9 @@ class CompilerCommandLine extends CommandLine {
         options.containsKey("/?");
   }
 
-  bool get setExitCodeOnProblem {
-    return options.containsKey("--set-exit-code-on-problem");
-  }
-
   void validate() {
     if (help) {
-      print(computeUsage(programName, verbose));
+      print(computeUsage(programName, verbose).message);
       exit(0);
     }
 
@@ -82,8 +77,16 @@ class CompilerCommandLine extends CommandLine {
       return deprecated_argumentError(
           usage, "Can't specify both '--compile-sdk' and '--platform'.");
     }
-    if (programName == "compile_platform" && arguments.length != 3) {
-      return deprecated_argumentError(usage, "Expected three arguments.");
+    if (programName == "compile_platform") {
+      if (arguments.length != 3) {
+        return deprecated_argumentError(usage, "Expected three arguments.");
+      }
+      if (options.containsKey("--compile-sdk")) {
+        return deprecated_argumentError(usage,
+            "Cannot specify '--compile-sdk' option to compile_platform.");
+      }
+      options['--compile-sdk'] =
+          Uri.base.resolveUri(new Uri.file(arguments[0]));
     } else if (arguments.isEmpty) {
       return deprecated_argumentError(usage, "No Dart file specified.");
     }
@@ -111,7 +114,7 @@ class CompilerCommandLine extends CommandLine {
         : options["--platform"] ?? Uri.base.resolve("platform.dill");
   }
 
-  Uri get packages => options["--packages"] ?? Uri.base.resolve(".packages");
+  Uri get packages => options["--packages"];
 
   Uri get sdk => options["--sdk"] ?? options["--compile-sdk"];
 
@@ -133,32 +136,41 @@ class CompilerCommandLine extends CommandLine {
 
   Target get target => options["target"];
 
-  void Function(LocatedMessage, Severity) get report {
-    return options["report"] ?? command_line_reporting.report;
-  }
+  static dynamic withGlobalOptions(
+      String programName,
+      List<String> arguments,
+      bool areRestArgumentsInputs,
+      dynamic f(CompilerContext context, List<String> restArguments)) {
+    // TODO(sigmund,ahe): delete this wrapper by moving validation into the
+    // callback. Note that this requires some subtle changes because validate
+    // sets some implicit options (like --compile-sdk in compile_platform).
+    var cl = CompilerContext.runWithDefaultOptions(
+        (_) => new CompilerCommandLine(programName, arguments));
+    var options = new CompilerOptions()
+      ..compileSdk = cl.options.containsKey("--compile-sdk")
+      ..sdkRoot = cl.sdk
+      ..sdkSummary = cl.platform
+      ..packagesFileUri = cl.packages
+      ..strongMode = cl.strongMode
+      ..target = cl.target
+      ..throwOnErrors = cl.errorsAreFatal
+      ..throwOnWarnings = cl.warningsAreFatal
+      ..throwOnNits = cl.nitsAreFatal
+      ..embedSourceText = !cl.excludeSource
+      // All command-line tools take only a single entry point and chase
+      // dependencies, and provide a non-zero exit code when errors are found.
+      ..chaseDependencies = true
+      ..setExitCodeOnProblem = true
+      ..debugDump = cl.dumpIr
+      ..verbose = cl.verbose
+      ..verify = cl.verify;
 
-  void Function(Message, Severity) get reportWithoutLocation {
-    return options["reportWithoutLocation"] ??
-        command_line_reporting.reportWithoutLocation;
-  }
-
-  String Function(LocatedMessage, Severity) get format {
-    return options["format"] ?? command_line_reporting.format;
-  }
-
-  String Function(Message, Severity) get formatWithoutLocation {
-    return options["formatWithoutLocation"] ??
-        command_line_reporting.formatWithoutLocation;
-  }
-
-  static dynamic withGlobalOptions(String programName, List<String> arguments,
-      dynamic f(CompilerContext context)) {
-    return CompilerContext.withGlobalOptions(
-        new CompilerCommandLine(programName, arguments), f);
-  }
-
-  static CompilerCommandLine forRootContext() {
-    return new CompilerCommandLine("", [""]);
+    var inputs = <Uri>[];
+    if (areRestArgumentsInputs) {
+      inputs = cl.arguments.map(Uri.base.resolve).toList();
+    }
+    var pOptions = new ProcessedOptions(options, false, inputs, cl.output);
+    return CompilerContext.runWithOptions(pOptions, (c) => f(c, cl.arguments));
   }
 }
 
