@@ -178,8 +178,10 @@ simdbc, simdbc64''',
         'fast_startup', 'Pass the --fast-startup flag to dart2js.'),
     new _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
-    new _Option.bool('dart2js_with_kernel',
-        'Enable the internal pipeline in dart2js to use kernel.'),
+    new _Option.bool(
+        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.'),
+    new _Option.bool('dart2js_with_kernel_in_ssa',
+        'Pass the --use-kernel-in-ssa flag to dart2js.'),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.'),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.'),
@@ -594,6 +596,8 @@ compiler.''')
                 useFastStartup: data["fast_startup"] as bool,
                 useEnableAsserts: data["enable_asserts"] as bool,
                 useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                useDart2JSWithKernelInSsa:
+                    data["dart2js_with_kernel_in_ssa"] as bool,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 drtPath: data["drt"] as String,
