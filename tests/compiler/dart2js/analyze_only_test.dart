@@ -17,7 +17,7 @@ import 'package:compiler/src/diagnostics/messages.dart'
 import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/options.dart';
 
-import 'dummy_compiler_test.dart' as dummy;
+import '../dart2js_extra/dummy_compiler_test.dart' as dummy;
 import 'output_collector.dart';
 
 runCompiler(String main, List<String> options,
