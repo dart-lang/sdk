@@ -144,6 +144,9 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 string_trimlr_test/01: Fail
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
+[ $compiler == dart2js && $runtime == d8 ]
+string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
 [ $compiler == dart2js && $dart2js_with_kernel ]
 symbol_reserved_word_test/03: Pass # Issue 27394
 symbol_operator_test/03: RuntimeError # Issue 27394
@@ -151,9 +154,6 @@ symbol_reserved_word_test/06: RuntimeError # Issue 27394
 symbol_reserved_word_test/09: RuntimeError # Issue 27394
 symbol_reserved_word_test/12: RuntimeError # Issue 27394
 symbol_test/none: RuntimeError # Issue 27394
-
-[ $compiler == dart2js && $runtime == jsshell ]
-symbol_test/none: RuntimeError
 
 [ $compiler == none && $runtime == vm ]
 string_static_test: MissingCompileTimeError

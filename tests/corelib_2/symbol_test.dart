@@ -37,7 +37,6 @@ main() {
     print('Caught TypeError');
   }
 
-  print("here2");
   try {
     print(new Symbol('0'));
     throw 'Expected an ArgumentError';
