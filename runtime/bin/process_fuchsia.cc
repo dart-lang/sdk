@@ -18,6 +18,7 @@
 #include <magenta/syscalls.h>
 #include <magenta/syscalls/object.h>
 #include <magenta/types.h>
+#include <mxio/io.h>
 #include <mxio/private.h>
 #include <mxio/util.h>
 #include <poll.h>
@@ -762,50 +763,37 @@ class ProcessStarter {
   }
 
  private:
-#define CHECK_FOR_ERROR(status, msg)                                           \
-  if (status < 0) {                                                            \
-    const intptr_t kMaxMessageSize = 256;                                      \
-    char* message = DartUtils::ScopedCString(kMaxMessageSize);                 \
-    snprintf(message, kMaxMessageSize, "%s:%d: %s: %s\n", __FILE__, __LINE__,  \
-             msg, mx_status_get_string(status));                               \
-    *os_error_message_ = message;                                              \
-    return status;                                                             \
-  }
-
   mx_status_t SetupLaunchpad(launchpad_t** launchpad) {
-    // Set up a vmo for the binary.
-    mx_handle_t binary_vmo = launchpad_vmo_from_file(path_);
-    CHECK_FOR_ERROR(binary_vmo, "launchpad_vmo_from_file");
-
-    // Run the child process in the same "job".
-    mx_handle_t job = MX_HANDLE_INVALID;
-    mx_status_t status =
-        mx_handle_duplicate(mx_job_default(), MX_RIGHT_SAME_RIGHTS, &job);
-    if (status != MX_OK) {
-      mx_handle_close(binary_vmo);
-    }
-    CHECK_FOR_ERROR(status, "mx_handle_duplicate");
-
-    // Set up the launchpad.
+    // TODO(zra): Use the supplied working directory when launchpad adds an
+    // API to set it.
+    ASSERT(launchpad != NULL);
     launchpad_t* lp = NULL;
-    launchpad_create(job, program_arguments_[0], &lp);
+    launchpad_create(MX_HANDLE_INVALID, program_arguments_[0], &lp);
     launchpad_set_args(lp, program_arguments_count_, program_arguments_);
     launchpad_set_environ(lp, program_environment_);
     launchpad_clone(lp, LP_CLONE_MXIO_NAMESPACE);
-    // TODO(zra): Use the supplied working directory when launchpad adds an
-    // API to set it.
     launchpad_clone(lp, LP_CLONE_MXIO_CWD);
     launchpad_add_pipe(lp, &write_out_, 0);
     launchpad_add_pipe(lp, &read_in_, 1);
     launchpad_add_pipe(lp, &read_err_, 2);
     launchpad_add_vdso_vmo(lp);
-    launchpad_elf_load(lp, binary_vmo);
-    launchpad_load_vdso(lp, MX_HANDLE_INVALID);
+    launchpad_load_from_file(lp, path_);
+
+    // If there were any errors, grab launchpad's error message and put it in
+    // the os_error_message_ field.
+    mx_status_t status = launchpad_get_status(lp);
+    if (status != MX_OK) {
+      const intptr_t kMaxMessageSize = 256;
+      char* message = DartUtils::ScopedCString(kMaxMessageSize);
+      snprintf(message, kMaxMessageSize, "launchpad failed: %s, %s",
+               mx_status_get_string(status), launchpad_error_message(lp));
+      *os_error_message_ = message;
+      return status;
+    }
+
     *launchpad = lp;
     return MX_OK;
   }
-
-#undef CHECK_FOR_ERROR
 
   int read_in_;    // Pipe for stdout to child process.
   int read_err_;   // Pipe for stderr to child process.
