@@ -455,7 +455,7 @@ abstract class ServerPlugin {
   /**
    * Send notifications corresponding to the given description of subscriptions.
    * The map is keyed by the path of each file for which notifications should be
-   * send and has values representing the list of services associated with the
+   * sent and has values representing the list of services associated with the
    * notifications to send.
    */
   void sendNotificationsForSubscriptions(
