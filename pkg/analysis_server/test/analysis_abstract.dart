@@ -329,6 +329,12 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
+  List<String> pathsFor(String pluginPath) {
+    fail('Unexpected invocation of pathsFor');
+    return null;
+  }
+
+  @override
   List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
     fail('Unexpected invocation of pluginsForContextRoot');
     return null;
