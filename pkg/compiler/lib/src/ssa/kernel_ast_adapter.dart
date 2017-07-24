@@ -364,7 +364,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
         getClass(cls), getDartTypes(typeArguments));
   }
 
-  MemberEntity getConstructorBody(ir.Constructor constructor) {
+  FunctionEntity getConstructorBody(ir.Constructor constructor) {
     AstElement element = getElement(constructor);
     MemberEntity constructorBody =
         ConstructorBodyElementX.createFromResolvedAst(element.resolvedAst);

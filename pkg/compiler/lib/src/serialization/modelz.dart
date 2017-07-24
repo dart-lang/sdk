@@ -1039,6 +1039,7 @@ abstract class MixinApplicationElementMixin
   ClassElement get mixin => mixinType.element;
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class NamedMixinApplicationElementZ extends ClassElementZ
     with MixinApplicationElementMixin {
   Link<Element> _constructors;
@@ -1054,6 +1055,7 @@ class NamedMixinApplicationElementZ extends ClassElementZ
   ClassElement get subclass => null;
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class UnnamedMixinApplicationElementZ extends ElementZ
     with
         ClassElementCommon,
@@ -1322,6 +1324,7 @@ abstract class ConstructorElementZ extends DeserializedElementZ
       newType;
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class GenerativeConstructorElementZ extends ConstructorElementZ {
   GenerativeConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1332,6 +1335,7 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
   bool get isRedirectingGenerative => _decoder.getBool(Key.IS_REDIRECTING);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class DefaultConstructorElementZ extends ConstructorElementZ {
   DefaultConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1350,6 +1354,7 @@ class DefaultConstructorElementZ extends ConstructorElementZ {
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class FactoryConstructorElementZ extends ConstructorElementZ {
   FactoryConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1357,6 +1362,7 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
   ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
   ResolutionDartType _effectiveTargetType;
   ConstructorElement _immediateRedirectionTarget;
@@ -1695,16 +1701,19 @@ abstract class FunctionElementZ extends DeserializedElementZ
   bool get isOperator => _decoder.getBool(Key.IS_OPERATOR);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class TopLevelFunctionElementZ extends FunctionElementZ
     with LibraryMemberMixin {
   TopLevelFunctionElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class StaticFunctionElementZ extends FunctionElementZ
     with ClassMemberMixin, StaticMemberMixin {
   StaticFunctionElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class InstanceFunctionElementZ extends FunctionElementZ
     with ClassMemberMixin, InstanceMemberMixin {
   InstanceFunctionElementZ(ObjectDecoder decoder) : super(decoder);
@@ -1808,15 +1817,18 @@ abstract class GetterElementZ extends DeserializedElementZ
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class TopLevelGetterElementZ extends GetterElementZ with LibraryMemberMixin {
   TopLevelGetterElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class StaticGetterElementZ extends GetterElementZ
     with ClassMemberMixin, StaticMemberMixin {
   StaticGetterElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class InstanceGetterElementZ extends GetterElementZ
     with ClassMemberMixin, InstanceMemberMixin {
   InstanceGetterElementZ(ObjectDecoder decoder) : super(decoder);
@@ -1852,15 +1864,18 @@ abstract class SetterElementZ extends DeserializedElementZ
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class TopLevelSetterElementZ extends SetterElementZ with LibraryMemberMixin {
   TopLevelSetterElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class StaticSetterElementZ extends SetterElementZ
     with ClassMemberMixin, StaticMemberMixin {
   StaticSetterElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class InstanceSetterElementZ extends SetterElementZ
     with ClassMemberMixin, InstanceMemberMixin {
   InstanceSetterElementZ(ObjectDecoder decoder) : super(decoder);

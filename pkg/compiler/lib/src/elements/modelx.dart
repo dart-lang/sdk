@@ -250,8 +250,8 @@ class ErroneousElementX extends ElementX
   get functionSignature => unsupported();
   get parameterStructure => unsupported();
   get parameters => unsupported();
-  Element get patch => null;
-  Element get origin => this;
+  FunctionElement get patch => null;
+  FunctionElement get origin => this;
   get immediateRedirectionTarget => unsupported();
   get nestedClosures => unsupported();
   get memberContext => unsupported();
@@ -3554,9 +3554,8 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 ///
 /// See `patch_parser.dart` for a description of the terminology.
 abstract class PatchMixin<E extends Element> implements Element {
-  // TODO(johnniwinther): Use type variables.
-  Element /* E */ patch = null;
-  Element /* E */ origin = null;
+  E patch = null;
+  E origin = null;
 
   bool get isPatch => origin != null;
   bool get isPatched => patch != null;
@@ -3564,8 +3563,8 @@ abstract class PatchMixin<E extends Element> implements Element {
   bool get isImplementation => !isPatched;
   bool get isDeclaration => !isPatch;
 
-  Element /* E */ get implementation => isPatched ? patch : this;
-  Element /* E */ get declaration => isPatch ? origin : this;
+  E get implementation => isPatched ? patch : this;
+  E get declaration => isPatch ? origin : this;
 
   /// Applies a patch to this element. This method must be called at most once.
   void applyPatch(PatchMixin<E> patch) {
@@ -3573,7 +3572,9 @@ abstract class PatchMixin<E extends Element> implements Element {
     assert(this.origin == null, failedAt(this, "Origin element is a patch."));
     assert(patch.origin == null, failedAt(patch, "Element is patched twice."));
     assert(patch.patch == null, failedAt(patch, "Patch element is patched."));
+    // ignore: INVALID_ASSIGNMENT
     this.patch = patch;
+    // ignore: INVALID_ASSIGNMENT
     patch.origin = this;
   }
 }
