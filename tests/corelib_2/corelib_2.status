@@ -160,7 +160,6 @@ symbol_test/04: MissingCompileTimeError
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-string_split_test: RuntimeError # Issue 21431
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
