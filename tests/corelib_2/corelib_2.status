@@ -15,6 +15,10 @@ string_static_test: MissingCompileTimeError
 core_runtime_types_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
+[ $compiler == dart2analyzer && !$strong ]
+symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
+symbol_test/04: MissingCompileTimeError # Issue 30245
+
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 

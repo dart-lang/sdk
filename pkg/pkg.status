@@ -38,7 +38,7 @@ front_end/test/fasta/rasta/*: SkipByDesign
 front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/bootstrap_test: Pass, Slow
-front_end/test/fasta/compile_test: Pass, Slow
+front_end/test/fasta/compile_test: Fail, Slow # Issue 30244
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
@@ -69,6 +69,7 @@ dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
+dev_compiler/test/codegen_test: MissingCompileTimeError # Issue 30245
 
 [ $compiler == none && $runtime == drt ]
 mutation_observer: Skip # Issue 21149
