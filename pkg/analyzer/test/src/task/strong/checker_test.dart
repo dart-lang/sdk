@@ -2661,6 +2661,22 @@ class F extends D with M<int> {
     ''');
   }
 
+  test_interfacesFromMixinsOnlyConsiderMostDerivedMember() {
+    // Regression test for dart2js interface pattern in strong mode.
+    return checkFile(r'''
+abstract class I1 { num get x; } 
+abstract class I2 extends I1 { int get x; }
+
+class M1 { num get x => 0; }
+class M2 { int get x => 0; }
+
+class Base extends Object with M1 implements I1 {}
+class Child extends Base with M2 implements I2 {}
+
+class C extends Object with M1, M2 implements I1, I2 {}
+    ''');
+  }
+
   test_invalidOverrides_baseClassOverrideToChildInterface() async {
     await checkFile('''
 class A {}
@@ -3287,20 +3303,16 @@ class M {
     m(B a) {}
 }
 
-// Here we want to report both, because the error location is
-// different.
-// TODO(sigmund): should we merge these as well?
+// TODO(jmesserly): the `INCONSISTENT_METHOD_INHERITANCE` message is from the
+// Dart 1 checking logic (using strong mode type system), it is not produced
+// by the strong mode OverrideChecker.
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
-    /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
+    extends Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I1 {}
 
-
-// Here we want to report both, because the error location is
-// different.
-// TODO(sigmund): should we merge these as well?
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 =
-    /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/Base
+    Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I1;
 ''');
@@ -3351,11 +3363,8 @@ class M2 {
     m(B a) {}
 }
 
-// Here we want to report both, because the error location is
-// different.
-// TODO(sigmund): should we merge these as well?
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Object
-    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1,
+    with M1,
     /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2
     implements I1 {}
 ''');

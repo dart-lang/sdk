@@ -2052,7 +2052,6 @@ final compileErrorTests = new HashSet<String>.from([
   'corelib/string_from_environment3_test_03_multi',
   'corelib/string_from_environment3_test_04_multi',
   'corelib/string_from_environment3_test_05_multi',
-  'corelib/string_replace_test',
   'corelib/symbol_reserved_word_test_04_multi',
   'corelib/symbol_reserved_word_test_05_multi',
   'corelib/symbol_reserved_word_test_07_multi',

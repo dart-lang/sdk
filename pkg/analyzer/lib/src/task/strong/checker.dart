@@ -1665,28 +1665,33 @@ class _OverrideChecker {
     return genericSupertypes;
   }
 
-  /// Checks that members on this class correctly override all reachable
-  /// interfaces.
+  /// Checks that most-derived concrete members on this class correctly override
+  /// all reachable interfaces, and reports errors if all interfaces are not
+  /// correctly implemented.
+  ///
+  /// This checks the soundness property: for all interfaces implemented by this
+  /// class (including inherited interfaces), we ensure that calls through that
+  /// interface will be sound.
   void _checkAllInterfaceOverrides(Declaration node, ClassElement element) {
     var interfaces = _collectInterfacesToCheck(element.type);
     var visitedClasses = new Set<InterfaceType>();
+    var visitedMembers = new HashSet<String>();
 
-    // Visit all members on `type` (including inherited) and report errors if
-    // all `interfaces` are not correctly overridden.
+    // Checks all most-derived concrete members on this `type`. We skip over
+    // members that are already `visitedMembers`, because they were overridden
+    // and we've already checked that member.
     //
-    // Generally we only need to check the most derived concrete member, and
-    // we record members that have been seen already in `seen`. However we do
-    // report errors for every mixin member (unless it is overridden) by
-    // the class itself.
-    //
-    // TODO(jmesserly): what should mixins be doing? This behavior does not
-    // seem correct, but it is preserved for backwards compatibility.
-    void checkType(InterfaceType type, Set<String> seen, AstNode location) {
+    // Because of that, it is important we visit types in the order that they
+    // will override members.
+    void checkType(InterfaceType type, AstNode location) {
+      // Skip `Object` because we don't need to check those members here.
+      // (because `Object` is the root of everything, it will be checked in
+      // _checkSuperOverrides for all classes).
       if (type == null || type.isObject || !visitedClasses.add(type)) return;
 
       // Check `member` against all `interfaces`.
       void checkOverride(ExecutableElement member, [AstNode loc]) {
-        if (!seen.add(member.name)) return;
+        if (!visitedMembers.add(member.name)) return;
         for (var interface in interfaces) {
           if (_checkMemberOverride(member, interface, loc ?? location) ==
               false) {
@@ -1697,8 +1702,13 @@ class _OverrideChecker {
         }
       }
 
-      // Check direct overrides on the class.
+      // When we're checking the class declaration node we started from, we
+      // can use a more precise error location for reporting override errors.
+      //
+      // Otherwise, we'll use the `extends` or `with` clause.
       var isRootClass = identical(location, node);
+
+      // Check direct overrides on the class.
       if (isRootClass) {
         _checkClassMembers(node, checkOverride);
       } else {
@@ -1707,20 +1717,19 @@ class _OverrideChecker {
 
       // Check mixin members against interfaces.
       //
-      // We want to check each mixin application class separately, so we report
-      // errors for any invalid overrides, even if multiple mixins have a member
-      // of the same name.
-      for (int i = 0; i < type.mixins.length; i++) {
-        checkType(type.mixins[i], new Set.from(seen),
+      // We visit mixins in reverse order to reflect how they override
+      // eachother.
+      for (int i = type.mixins.length - 1; i >= 0; i--) {
+        checkType(type.mixins[i],
             isRootClass ? _withClause(node).mixinTypes[i] : location);
       }
 
       // Check members on the superclass.
-      checkType(type.superclass, seen,
+      checkType(type.superclass,
           isRootClass ? _extendsErrorLocation(node) : location);
     }
 
-    checkType(element.type, new Set(), node);
+    checkType(element.type, node);
   }
 
   /// Gets the set of all interfaces on [type] that should be checked to see

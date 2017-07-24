@@ -175,7 +175,10 @@ main() {
   Expect.equals(
       "foo-$o",
       "foo-bar".replaceFirstMapped("bar", (v) {
-        return o;
+        // TODO(jmesserly): in strong mode, this function must return a string.
+        // If we want to allow any Object, we'll have to fix the API signature.
+        // See https://github.com/dart-lang/sdk/issues/30248.
+        return '$o';
       }));
 
   for (var string in ["", "x", "foo", "x\u2000z"]) {
