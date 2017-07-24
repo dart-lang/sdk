@@ -41,6 +41,7 @@ const_list_literal_test: RuntimeError # Issue 29921
 const_list_remove_range_test: RuntimeError # Issue 29921
 const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
+date_time10_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
 string_replace_test: RuntimeError # Issue 29921
 symbol_operator_test: RuntimeError # Issue 29921
