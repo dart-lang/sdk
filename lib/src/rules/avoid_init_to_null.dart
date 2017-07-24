@@ -79,4 +79,11 @@ class Visitor extends SimpleAstVisitor {
       rule.reportLint(node);
     }
   }
+
+  @override
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (DartTypeUtilities.isNullLiteral(node.defaultValue)) {
+      rule.reportLint(node);
+    }
+  }
 }
