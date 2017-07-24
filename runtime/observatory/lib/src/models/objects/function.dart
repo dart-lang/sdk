@@ -7,6 +7,7 @@ part of models;
 enum FunctionKind {
   regular,
   closure,
+  implicitClosure,
   getter,
   setter,
   constructor,

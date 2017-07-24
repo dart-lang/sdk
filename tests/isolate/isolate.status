@@ -57,6 +57,7 @@ enum_const_test/02: RuntimeError # Issue 21817
 error_exit_at_spawn_test: Skip # Issue 23876
 error_at_spawn_test: Skip # Issue 23876
 exit_at_spawn_test: Skip # Issue 23876
+message4_test: Skip # Issue 30247
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell

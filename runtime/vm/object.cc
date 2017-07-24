@@ -5601,6 +5601,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kClosureFunction:
       return "ClosureFunction";
       break;
+    case RawFunction::kImplicitClosureFunction:
+      return "ImplicitClosureFunction";
+      break;
     case RawFunction::kSignatureFunction:
       return "SignatureFunction";
       break;
@@ -5987,20 +5990,23 @@ intptr_t Function::NumParameters() const {
 }
 
 intptr_t Function::NumImplicitParameters() const {
-  if (kind() == RawFunction::kConstructor) {
+  const RawFunction::Kind k = kind();
+  if (k == RawFunction::kConstructor) {
     // Type arguments for factory; instance for generative constructor.
     return 1;
   }
-  if ((kind() == RawFunction::kClosureFunction) ||
-      (kind() == RawFunction::kSignatureFunction)) {
+  if ((k == RawFunction::kClosureFunction) ||
+      (k == RawFunction::kImplicitClosureFunction) ||
+      (k == RawFunction::kSignatureFunction)) {
     return 1;  // Closure object.
   }
   if (!is_static()) {
     // Closure functions defined inside instance (i.e. non-static) functions are
     // marked as non-static, but they do not have a receiver.
     // Closures are handled above.
-    ASSERT((kind() != RawFunction::kClosureFunction) &&
-           (kind() != RawFunction::kSignatureFunction));
+    ASSERT((k != RawFunction::kClosureFunction) &&
+           (k != RawFunction::kImplicitClosureFunction) &&
+           (k != RawFunction::kSignatureFunction));
     return 1;  // Receiver.
   }
   return 0;  // No implicit parameters.
@@ -6530,26 +6536,12 @@ bool Function::IsImplicitConstructor() const {
   return IsGenerativeConstructor() && (token_pos() == end_token_pos());
 }
 
-bool Function::IsImplicitClosureFunction() const {
-  if (!IsClosureFunction()) {
-    return false;
-  }
-  const Function& parent = Function::Handle(parent_function());
-  return (parent.implicit_closure_function() == raw());
-}
-
 bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
   NoSafepointScope no_safepoint;
   uint32_t kind_tag = func->ptr()->kind_tag_;
-  if (KindBits::decode(kind_tag) != RawFunction::kClosureFunction) {
-    return false;
-  }
-  if (!StaticBit::decode(kind_tag)) {
-    return false;
-  }
-  RawClosureData* data = reinterpret_cast<RawClosureData*>(func->ptr()->data_);
-  RawFunction* parent_function = data->ptr()->parent_function_;
-  return (parent_function->ptr()->data_ == reinterpret_cast<RawObject*>(func));
+  return (KindBits::decode(kind_tag) ==
+          RawFunction::kImplicitClosureFunction) &&
+         StaticBit::decode(kind_tag);
 }
 
 bool Function::IsConstructorClosureFunction() const {
@@ -6613,6 +6605,7 @@ RawFunction* Function::New(const String& name,
   result.SetInstructionsSafe(
       Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction ||
+      kind == RawFunction::kImplicitClosureFunction ||
       kind == RawFunction::kConvertedClosureFunction) {
     ASSERT(space == Heap::kOld);
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
@@ -6678,15 +6671,22 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   return clone.raw();
 }
 
-RawFunction* Function::NewClosureFunction(const String& name,
-                                          const Function& parent,
-                                          TokenPosition token_pos) {
+RawFunction* Function::NewClosureFunctionWithKind(RawFunction::Kind kind,
+                                                  const String& name,
+                                                  const Function& parent,
+                                                  TokenPosition token_pos) {
+  ASSERT((kind == RawFunction::kClosureFunction) ||
+         (kind == RawFunction::kImplicitClosureFunction) ||
+         (kind == RawFunction::kConvertedClosureFunction));
   ASSERT(!parent.IsNull());
+  // Only static top-level functions are allowed to be converted right now.
+  ASSERT((kind != RawFunction::kConvertedClosureFunction) ||
+         parent.is_static());
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
   ASSERT(!parent_owner.IsNull());
   const Function& result = Function::Handle(
-      Function::New(name, RawFunction::kClosureFunction,
+      Function::New(name, kind,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
                     /* is_abstract = */ false,
@@ -6696,24 +6696,25 @@ RawFunction* Function::NewClosureFunction(const String& name,
   return result.raw();
 }
 
+RawFunction* Function::NewClosureFunction(const String& name,
+                                          const Function& parent,
+                                          TokenPosition token_pos) {
+  return NewClosureFunctionWithKind(RawFunction::kClosureFunction, name, parent,
+                                    token_pos);
+}
+
+RawFunction* Function::NewImplicitClosureFunction(const String& name,
+                                                  const Function& parent,
+                                                  TokenPosition token_pos) {
+  return NewClosureFunctionWithKind(RawFunction::kImplicitClosureFunction, name,
+                                    parent, token_pos);
+}
+
 RawFunction* Function::NewConvertedClosureFunction(const String& name,
                                                    const Function& parent,
                                                    TokenPosition token_pos) {
-  ASSERT(!parent.IsNull());
-  // Only static top-level functions are allowed to be converted right now.
-  ASSERT(parent.is_static());
-  // Use the owner defining the parent function and not the class containing it.
-  const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
-  ASSERT(!parent_owner.IsNull());
-  const Function& result = Function::Handle(
-      Function::New(name, RawFunction::kConvertedClosureFunction,
-                    /* is_static = */ true,
-                    /* is_const = */ false,
-                    /* is_abstract = */ false,
-                    /* is_external = */ false,
-                    /* is_native = */ false, parent_owner, token_pos));
-  result.set_parent_function(parent);
-  return result.raw();
+  return NewClosureFunctionWithKind(RawFunction::kConvertedClosureFunction,
+                                    name, parent, token_pos);
 }
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
@@ -6767,7 +6768,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Create closure function.
   const String& closure_name = String::Handle(zone, name());
   const Function& closure_function = Function::Handle(
-      zone, NewClosureFunction(closure_name, *this, token_pos()));
+      zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
   if (is_static()) {
@@ -7482,6 +7483,7 @@ const char* Function::ToCString() const {
   switch (kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
+    case RawFunction::kImplicitClosureFunction:
     case RawFunction::kConvertedClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
