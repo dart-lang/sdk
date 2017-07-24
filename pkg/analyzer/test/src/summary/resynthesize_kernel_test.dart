@@ -40,6 +40,9 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because of a Fasta problem.
+const _fastaProblem = const Object();
+
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   final resourceProvider = new MemoryResourceProvider(context: pathos.posix);
@@ -114,18 +117,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_alias_with_forwarding_constructors_type_substitution() async {
-    await super
-        .test_class_alias_with_forwarding_constructors_type_substitution();
-  }
-
-  @failingTest
-  test_class_alias_with_forwarding_constructors_type_substitution_complex() async {
-    await super
-        .test_class_alias_with_forwarding_constructors_type_substitution_complex();
-  }
-
-  @failingTest
+  @_fastaProblem
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // Fasta does not generate the class.
     // main() with a fatal error is generated instead.
@@ -143,28 +135,31 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @_fastaProblem
   test_class_interfaces_unresolved() async {
+    // Fasta generates additional `#errors` top-level variable.
     await super.test_class_interfaces_unresolved();
   }
 
   @failingTest
+  @_fastaProblem
   test_class_mixins_unresolved() async {
+    // Fasta generates additional `#errors` top-level variable.
     await super.test_class_mixins_unresolved();
   }
 
   @failingTest
+  @_fastaProblem
   test_class_supertype_unresolved() async {
+    // Fasta generates additional `#errors` top-level variable.
     await super.test_class_supertype_unresolved();
   }
 
   @failingTest
+  @_fastaProblem
   test_class_type_parameters_bound() async {
+    // Fasta does not provide a flag for explicit vs. implicit Object bound.
     await super.test_class_type_parameters_bound();
-  }
-
-  @failingTest
-  test_class_type_parameters_f_bound_complex() async {
-    await super.test_class_type_parameters_f_bound_complex();
   }
 
   @failingTest
@@ -959,11 +954,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_inferred_type_is_typedef() async {
     await super.test_inferred_type_is_typedef();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_bound_type_param() async {
-    await super.test_inferred_type_refers_to_bound_type_param();
   }
 
   @failingTest
@@ -2118,7 +2108,7 @@ class _KernelLibraryResynthesizerContextImpl
   InterfaceType getInterfaceType(
       ElementImpl context, kernel.Supertype kernelType) {
     return _getInterfaceType(
-        kernelType.className.canonicalName, kernelType.typeArguments);
+        context, kernelType.className.canonicalName, kernelType.typeArguments);
   }
 
   @override
@@ -2130,8 +2120,8 @@ class _KernelLibraryResynthesizerContextImpl
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
     if (kernelType is kernel.InterfaceType) {
-      return _getInterfaceType(
-          kernelType.className.canonicalName, kernelType.typeArguments);
+      return _getInterfaceType(context, kernelType.className.canonicalName,
+          kernelType.typeArguments);
     }
     if (kernelType is kernel.TypeParameterType) {
       kernel.TypeParameter kTypeParameter = kernelType.parameter;
@@ -2214,7 +2204,7 @@ class _KernelLibraryResynthesizerContextImpl
     throw new UnimplementedError('Should not be reached.');
   }
 
-  InterfaceType _getInterfaceType(
+  InterfaceType _getInterfaceType(ElementImpl context,
       kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
     var libraryName = className.parent;
     var libraryElement = _resynthesizer.getLibrary(libraryName.name);
@@ -2227,7 +2217,7 @@ class _KernelLibraryResynthesizerContextImpl
     return new InterfaceTypeImpl.elementWithNameAndArgs(
         classElement, classElement.name, () {
       List<DartType> arguments = kernelArguments
-          .map((kernel.DartType k) => getType(classElement, k))
+          .map((kernel.DartType k) => getType(context, k))
           .toList(growable: false);
       return arguments;
     });

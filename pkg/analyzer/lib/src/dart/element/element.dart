@@ -1265,8 +1265,13 @@ class ClassElementImpl extends AbstractClassElementImpl
         while (supertype.classNode.isSyntheticMixinImplementation) {
           var superNode = supertype.classNode;
           var substitute = kernel.Substitution.fromSupertype(supertype);
-          var thisMixin = substitute.substituteSupertype(superNode.mixedInType);
-          _kernelMixins.add(thisMixin);
+
+          var superMixin = superNode.mixedInType;
+          if (superMixin != null) {
+            var thisMixin = substitute.substituteSupertype(superMixin);
+            _kernelMixins.add(thisMixin);
+          }
+
           supertype = substitute.substituteSupertype(superNode.supertype);
         }
         _kernelMixins = _kernelMixins.reversed.toList();

@@ -2113,7 +2113,7 @@ class C<C1> {
 
   test_class_mixins_unresolved() async {
     var library = await checkLibrary(
-        'class C extends Object with X, Y, Z; class X {} class Z {}',
+        'class C extends Object with X, Y, Z {} class X {} class Z {}',
         allowErrors: true);
     checkElementText(library, r'''
 class C extends Object with X, Z {
