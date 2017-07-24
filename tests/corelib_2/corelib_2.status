@@ -5,14 +5,17 @@
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ !$strong && $compiler != dartdevc && $checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$strong ]
@@ -35,6 +38,14 @@ const_list_literal_test: RuntimeError # Issue 29921
 const_list_remove_range_test: RuntimeError # Issue 29921
 const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
+string_operations_with_null_test: RuntimeError # Issue 29921
+string_replace_test: RuntimeError # Issue 29921
+symbol_operator_test: RuntimeError # Issue 29921
+symbol_operator_test/03: RuntimeError # Issue 29921
+symbol_test/none: RuntimeError # Issue 29921
+symbol_reserved_word_test/06: RuntimeError # Issue 29921
+symbol_reserved_word_test/09: RuntimeError # Issue 29921
+symbol_reserved_word_test/12: RuntimeError # Issue 29921
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
@@ -104,7 +115,7 @@ bool_from_environment_test: Skip
 unicode_test: Fail
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
-big_integer_parsed_mul_div_vm_test: Pass, Slow
+big_integer_parsed_mul_div_vm_test: Pass, SloW
 
 [ $compiler == precompiler ]
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify

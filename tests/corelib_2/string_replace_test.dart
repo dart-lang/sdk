@@ -78,11 +78,7 @@ main() {
   Expect.throws(
       () => "hello".replaceFirst("h", "X", null), (e) => e is ArgumentError);
 
-  // Test object startIndex
-  Expect.throws(() => "hello".replaceFirst("h", "X", new Object()));
-
   // Test replaceFirstMapped.
-
   Expect.equals(
       "AtoBtoCDtoE", "AfromBtoCDtoE".replaceFirstMapped("from", (_) => "to"));
 
@@ -160,10 +156,6 @@ main() {
   Expect.throws(() => "hello".replaceFirstMapped("h", (_) => "X", null),
       (e) => e is ArgumentError);
 
-  // Test object startIndex
-  Expect
-      .throws(() => "hello".replaceFirstMapped("h", (_) => "X", new Object()));
-
   // Test replacement depending on argument.
   Expect.equals("foo-BAR-foo-bar",
       "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v[0].toUpperCase()));
@@ -186,18 +178,6 @@ main() {
         return o;
       }));
 
-  Expect.equals(
-      "foo-42",
-      "foo-bar".replaceFirstMapped("bar", (v) {
-        return 42;
-      }));
-
-  // Test replacement returning object throwing on string-conversion.
-  var n = new Naughty();
-  Expect.throws(() => "foo-bar".replaceFirstMapped("bar", (v) {
-        return n;
-      }));
-
   for (var string in ["", "x", "foo", "x\u2000z"]) {
     for (var replacement in ["", "foo", string]) {
       for (int start = 0; start <= string.length; start++) {
@@ -214,14 +194,7 @@ main() {
       }
     }
     Expect.throws(() => string.replaceRange(0, 0, null));
-    Expect.throws(() => string.replaceRange(0, 0, 42));
-    Expect.throws(() => string.replaceRange(0, 0, ["x"]));
     Expect.throws(() => string.replaceRange(-1, 0, "x"));
     Expect.throws(() => string.replaceRange(0, string.length + 1, "x"));
   }
-}
-
-// Fails to return a String on toString, throws if converted by "$naughty".
-class Naughty {
-  toString() => this;
 }
