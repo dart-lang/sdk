@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -118,4 +118,4 @@ class NullByteStoreTest {
   }
 }
 
-class _TestByteStore extends TypedMock implements ByteStore {}
+class _TestByteStore extends Mock implements ByteStore {}
