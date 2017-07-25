@@ -42,7 +42,6 @@ string_replace_test: Skip
 
 [ $compiler == dartdevc ]
 hash_set_test/01: RuntimeError # Issue 29921
-int_from_environment_test: RuntimeError # Issue 29921
 int_modulo_arith_test/bignum: RuntimeError # Issue 29921
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
 int_modulo_arith_test/none: RuntimeError # Issue 29921
