@@ -125,12 +125,8 @@ void regressFromCompare() {
   Expect.equals(null, map[key(5)]);
   Expect.equals(null, map[1]);
   Expect.equals(null, map["string"]);
-  Expect.throws(() {
-    map[1] = 42;
-  });
-  Expect.throws(() {
-    map["string"] = 42;
-  });
+  map[1] = 42; //# 01: compile-time error
+  map["string"] = 42; //# 02: compile-time error
   map[key(5)] = 42;
   Expect.equals(4, map.length);
   Expect.equals(42, map[key(5)]);

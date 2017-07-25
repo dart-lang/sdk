@@ -5,18 +5,24 @@
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 core_runtime_types_static_test: MissingCompileTimeError
+splay_tree_test/01: MissingCompileTimeError
+splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ !$strong && $compiler != dartdevc && $checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+splay_tree_test/01: MissingCompileTimeError
+splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
+splay_tree_test/01: MissingCompileTimeError
+splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
@@ -373,3 +379,9 @@ unicode_test: Crash
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+
+[ $compiler == dart2js && $runtime != none && !$checked ]
+splay_tree_from_iterable_test: RuntimeError
+
+[ $compiler == none && $runtime == vm && !$checked ]
+splay_tree_from_iterable_test: RuntimeError

@@ -37,7 +37,8 @@ print_test: Skip
 queue_test: Skip
 regexp/global_test: Skip
 regexp/regexp_test: Skip
-splay_tree_test: Skip
+regexp/regress-regexp-codeflush_test: Skip
+regexp/standalones_test: Skip
 string_replace_test: Skip
 
 [ $compiler == dartdevc ]
