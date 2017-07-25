@@ -111,6 +111,7 @@ group("analysis_server") {
 group("dart2js_bot") {
   deps = [
     ":create_sdk",
+    "utils/compiler:patched_dart2js_sdk",
   ]
 }
 
