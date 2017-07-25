@@ -112,12 +112,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_alias_documented() async {
-    await super.test_class_alias_documented();
-  }
-
-  @failingTest
-  @_fastaProblem
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // Fasta does not generate the class.
     // main() with a fatal error is generated instead.
@@ -125,17 +119,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_documented_tripleSlash() async {
-    await super.test_class_documented_tripleSlash();
-  }
-
-  @failingTest
-  test_class_documented_withLeadingNotDocumentation() async {
-    await super.test_class_documented_withLeadingNotDocumentation();
-  }
-
-  @failingTest
-  @_fastaProblem
   test_class_interfaces_unresolved() async {
     // Fasta generates additional `#errors` top-level variable.
     await super.test_class_interfaces_unresolved();

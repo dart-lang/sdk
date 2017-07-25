@@ -271,7 +271,8 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder applyMixins(KernelTypeBuilder type,
-      {List<MetadataBuilder> metadata,
+      {String documentationComment,
+      List<MetadataBuilder> metadata,
       bool isSyntheticMixinImplementation: false,
       String name,
       String subclassName,
@@ -454,6 +455,7 @@ class KernelLibraryBuilder
       checkArguments(mixin);
 
       KernelNamedTypeBuilder t = applyMixin(supertype, mixin, signature,
+          documentationComment: documentationComment,
           metadata: metadata,
           name: name,
           isSyntheticMixinImplementation: isSyntheticMixinImplementation,
@@ -476,6 +478,7 @@ class KernelLibraryBuilder
   }
 
   void addNamedMixinApplication(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -486,6 +489,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+        documentationComment: documentationComment,
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,

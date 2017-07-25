@@ -207,6 +207,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addNamedMixinApplication(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,

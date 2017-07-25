@@ -1405,6 +1405,54 @@ class E {
 
   test_class_alias_documented() async {
     var library = await checkLibrary('''
+/**
+ * Docs
+ */
+class C = D with E;
+
+class D {}
+class E {}
+''');
+    checkElementText(library, r'''
+/**
+ * Docs
+ */
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+  }
+
+  test_class_alias_documented_tripleSlash() async {
+    var library = await checkLibrary('''
+/// aaa
+/// b
+/// cc
+class C = D with E;
+
+class D {}
+class E {}
+''');
+    checkElementText(library, r'''
+/// aaa
+/// b
+/// cc
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+  }
+
+  test_class_alias_documented_withLeadingNonDocumentation() async {
+    var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
@@ -1810,6 +1858,70 @@ class C {}''');
  * Docs
  */
 class C {
+}
+''');
+  }
+
+  test_class_documented_mix() async {
+    var library = await checkLibrary('''
+/**
+ * aaa
+ */
+/**
+ * bbb
+ */
+class A {}
+
+/**
+ * aaa
+ */
+/// bbb
+/// ccc
+class B {}
+
+/// aaa
+/// bbb
+/**
+ * ccc
+ */
+class C {}
+
+/// aaa
+/// bbb
+/**
+ * ccc
+ */
+/// ddd
+class D {}
+
+/**
+ * aaa
+ */
+// bbb
+class E {}
+''');
+    checkElementText(library, r'''
+/**
+ * bbb
+ */
+class A {
+}
+/// bbb
+/// ccc
+class B {
+}
+/**
+ * ccc
+ */
+class C {
+}
+/// ddd
+class D {
+}
+/**
+ * aaa
+ */
+class E {
 }
 ''');
   }
