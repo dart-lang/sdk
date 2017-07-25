@@ -418,14 +418,40 @@ class _KernelLibraryResynthesizerContextImpl
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
+
     if (kernelType is kernel.InterfaceType) {
       return _getInterfaceType(context, kernelType.className.canonicalName,
           kernelType.typeArguments);
     }
+
     if (kernelType is kernel.TypeParameterType) {
       kernel.TypeParameter kTypeParameter = kernelType.parameter;
       return _getTypeParameter(context, kTypeParameter).type;
     }
+
+    if (kernelType is kernel.FunctionType) {
+      var functionElement = new FunctionElementImpl.synthetic([], null);
+      functionElement.enclosingElement = context;
+
+      functionElement.typeParameters = kernelType.typeParameters.map((k) {
+        return new TypeParameterElementImpl.forKernel(functionElement, k);
+      }).toList(growable: false);
+
+      functionElement.parameters = ParameterElementImpl.forKernelParameters(
+          functionElement,
+          kernelType.requiredParameterCount,
+          kernelType.positionalParameters
+              .map((t) => new kernel.VariableDeclaration(null, type: t))
+              .toList(),
+          kernelType.namedParameters
+              .map((t) => new kernel.VariableDeclaration(t.name, type: t.type))
+              .toList());
+
+      functionElement.returnType =
+          getType(functionElement, kernelType.returnType);
+      return functionElement.type;
+    }
+
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
   }

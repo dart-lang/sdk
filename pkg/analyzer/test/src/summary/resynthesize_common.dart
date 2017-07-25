@@ -3515,6 +3515,26 @@ dynamic foo() {}
     }
   }
 
+  test_const_reference_topLevelFunction_generic() async {
+    var library = await checkLibrary(r'''
+R foo<P, R>(P p) {}
+const V = foo;
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+const <P,R>(P) → R V =
+        foo/*location: test.dart;foo*/;
+R foo<P, R>(P p) {}
+''');
+    } else {
+      checkElementText(library, r'''
+const dynamic V =
+        foo/*location: test.dart;foo*/;
+R foo<P, R>(P p) {}
+''');
+    }
+  }
+
   test_const_reference_topLevelFunction_imported() async {
     addLibrarySource('/a.dart', r'''
 foo() {}

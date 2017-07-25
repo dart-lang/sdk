@@ -4071,7 +4071,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => null;
+  List<kernel.TypeParameter> get kernelTypeParams {
+    return _kernel?.function?.typeParameters;
+  }
 
   @override
   List<ElementAnnotation> get metadata {
@@ -8171,14 +8173,28 @@ class ParameterElementImpl extends VariableElementImpl
    */
   static List<ParameterElement> forKernelFunction(
       ElementImpl enclosingElement, kernel.FunctionNode function) {
-    if (function.positionalParameters.isNotEmpty ||
-        function.namedParameters.isNotEmpty) {
+    return forKernelParameters(
+        enclosingElement,
+        function.requiredParameterCount,
+        function.positionalParameters,
+        function.namedParameters);
+  }
+
+  /**
+   * Create and return [ParameterElement]s for the given Kernel parameters.
+   */
+  static List<ParameterElement> forKernelParameters(
+      ElementImpl enclosingElement,
+      int requiredParameterCount,
+      List<kernel.VariableDeclaration> positionalParameters,
+      List<kernel.VariableDeclaration> namedParameters) {
+    if (positionalParameters.isNotEmpty || namedParameters.isNotEmpty) {
       var parameters = <ParameterElement>[];
 
       // Add positional required and optional parameters.
-      for (int i = 0; i < function.positionalParameters.length; i++) {
-        kernel.VariableDeclaration parameter = function.positionalParameters[i];
-        if (i < function.requiredParameterCount) {
+      for (int i = 0; i < positionalParameters.length; i++) {
+        kernel.VariableDeclaration parameter = positionalParameters[i];
+        if (i < requiredParameterCount) {
           if (parameter.isFieldFormal) {
             parameters.add(new FieldFormalParameterElementImpl.forKernel(
                 enclosingElement, parameter, ParameterKind.REQUIRED));
@@ -8198,7 +8214,7 @@ class ParameterElementImpl extends VariableElementImpl
       }
 
       // Add named parameters.
-      for (var k in function.namedParameters) {
+      for (var k in namedParameters) {
         if (k.isFieldFormal) {
           parameters.add(new DefaultFieldFormalParameterElementImpl.forKernel(
               enclosingElement, k, ParameterKind.NAMED));

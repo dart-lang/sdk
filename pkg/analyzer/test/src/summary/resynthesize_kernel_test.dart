@@ -19,6 +19,7 @@ import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -38,6 +39,8 @@ const _fastaProblem = const Object();
 
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
+  static const DEBUG = false;
+
   final resourceProvider = new MemoryResourceProvider(context: pathos.posix);
 
   @override
@@ -91,6 +94,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
       }
+    }
+
+    if (DEBUG) {
+      var library = libraryMap[testUriStr];
+      print(_getLibraryText(library));
     }
 
     var resynthesizer =
@@ -229,38 +237,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_length_staticMethod() async {
-    await super.test_const_length_staticMethod();
-  }
-
-  @failingTest
   test_const_reference_staticField_imported_withPrefix() async {
     await super.test_const_reference_staticField_imported_withPrefix();
   }
 
   @failingTest
-  test_const_reference_staticMethod() async {
-    await super.test_const_reference_staticMethod();
-  }
-
-  @failingTest
-  test_const_reference_staticMethod_imported() async {
-    await super.test_const_reference_staticMethod_imported();
-  }
-
-  @failingTest
   test_const_reference_staticMethod_imported_withPrefix() async {
     await super.test_const_reference_staticMethod_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_topLevelFunction() async {
-    await super.test_const_reference_topLevelFunction();
-  }
-
-  @failingTest
-  test_const_reference_topLevelFunction_imported() async {
-    await super.test_const_reference_topLevelFunction_imported();
   }
 
   @failingTest
@@ -336,11 +319,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constExpr_pushReference_enum_method() async {
     await super.test_constExpr_pushReference_enum_method();
-  }
-
-  @failingTest
-  test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
-    await super.test_constExpr_pushReference_staticMethod_simpleIdentifier();
   }
 
   @failingTest
@@ -669,31 +647,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_parameter_parameters() async {
-    await super.test_function_parameter_parameters();
-  }
-
-  @failingTest
-  test_function_parameter_return_type() async {
-    await super.test_function_parameter_return_type();
-  }
-
-  @failingTest
-  test_function_parameter_return_type_void() async {
-    await super.test_function_parameter_return_type_void();
-  }
-
-  @failingTest
-  test_function_type_parameter() async {
-    await super.test_function_type_parameter();
-  }
-
-  @failingTest
-  test_function_type_parameter_with_function_typed_parameter() async {
-    await super.test_function_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
   test_futureOr() async {
     await super.test_futureOr();
   }
@@ -709,38 +662,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_generic_gClass_gMethodStatic() async {
-    await super.test_generic_gClass_gMethodStatic();
-  }
-
-  @failingTest
-  test_genericFunction_asFunctionReturnType() async {
-    await super.test_genericFunction_asFunctionReturnType();
-  }
-
-  @failingTest
-  test_genericFunction_asFunctionTypedParameterReturnType() async {
-    await super.test_genericFunction_asFunctionTypedParameterReturnType();
-  }
-
-  @failingTest
   test_genericFunction_asGenericFunctionReturnType() async {
     await super.test_genericFunction_asGenericFunctionReturnType();
-  }
-
-  @failingTest
-  test_genericFunction_asMethodReturnType() async {
-    await super.test_genericFunction_asMethodReturnType();
-  }
-
-  @failingTest
-  test_genericFunction_asParameterType() async {
-    await super.test_genericFunction_asParameterType();
-  }
-
-  @failingTest
-  test_genericFunction_asTopLevelVariableType() async {
-    await super.test_genericFunction_asTopLevelVariableType();
   }
 
   @failingTest
@@ -849,19 +772,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_function_type_for_variable_in_generic_function() async {
-    await super.test_inferred_function_type_for_variable_in_generic_function();
-  }
-
-  @failingTest
   test_inferred_function_type_in_generic_class_constructor() async {
     await super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @failingTest
-  test_inferred_function_type_in_generic_class_in_generic_method() async {
-    await super
-        .test_inferred_function_type_in_generic_class_in_generic_method();
   }
 
   @failingTest
@@ -875,84 +787,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
-    await super
-        .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() async {
-    await super
-        .test_inferred_type_refers_to_function_typed_parameter_type_other_lib();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_method_function_typed_parameter_type();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param() async {
-    await super.test_inferred_type_refers_to_nested_function_typed_param();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param_named() async {
-    await super
-        .test_inferred_type_refers_to_nested_function_typed_param_named();
-  }
-
-  @failingTest
-  test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_setter_function_typed_parameter_type();
-  }
-
-  @failingTest
   test_inferredType_definedInSdkLibraryPart() async {
     await super.test_inferredType_definedInSdkLibraryPart();
-  }
-
-  @failingTest
-  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    await super
-        .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure() async {
-    await super.test_initializer_executable_with_return_type_from_closure();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_dynamic();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future3_int() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future3_int();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future_int() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future_int();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future_noArg() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future_noArg();
-  }
-
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_field() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_field();
   }
 
   @failingTest
@@ -1236,11 +1072,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_typeParameter_ofFunction() async {
-    await super.test_metadata_typeParameter_ofFunction();
-  }
-
-  @failingTest
   test_metadata_typeParameter_ofTypedef() async {
     await super.test_metadata_typeParameter_ofTypedef();
   }
@@ -1248,43 +1079,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_method_documented() async {
     await super.test_method_documented();
-  }
-
-  @failingTest
-  test_method_type_parameter() async {
-    await super.test_method_type_parameter();
-  }
-
-  @failingTest
-  test_method_type_parameter_in_generic_class() async {
-    await super.test_method_type_parameter_in_generic_class();
-  }
-
-  @failingTest
-  test_method_type_parameter_with_function_typed_parameter() async {
-    await super.test_method_type_parameter_with_function_typed_parameter();
-  }
-
-  @failingTest
-  test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
-    await super
-        .test_nested_generic_functions_in_generic_class_with_function_typed_params();
-  }
-
-  @failingTest
-  test_nested_generic_functions_in_generic_class_with_local_variables() async {
-    await super
-        .test_nested_generic_functions_in_generic_class_with_local_variables();
-  }
-
-  @failingTest
-  test_nested_generic_functions_with_function_typed_param() async {
-    await super.test_nested_generic_functions_with_function_typed_param();
-  }
-
-  @failingTest
-  test_nested_generic_functions_with_local_variables() async {
-    await super.test_nested_generic_functions_with_local_variables();
   }
 
   @failingTest
@@ -1305,26 +1099,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
-  }
-
-  @failingTest
-  test_parameter_parameters() async {
-    await super.test_parameter_parameters();
-  }
-
-  @failingTest
-  test_parameter_parameters_in_generic_class() async {
-    await super.test_parameter_parameters_in_generic_class();
-  }
-
-  @failingTest
-  test_parameter_return_type() async {
-    await super.test_parameter_return_type();
-  }
-
-  @failingTest
-  test_parameter_return_type_void() async {
-    await super.test_parameter_return_type_void();
   }
 
   @failingTest
@@ -1370,11 +1144,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @failingTest
-  test_syntheticFunctionType_inGenericFunction() async {
-    await super.test_syntheticFunctionType_inGenericFunction();
   }
 
   @failingTest
@@ -1678,11 +1447,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_unused_type_parameter() async {
-    await super.test_unused_type_parameter();
-  }
-
-  @failingTest
   test_variable_documented() async {
     await super.test_variable_documented();
   }
@@ -1710,6 +1474,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_variable_setterInPart_getterInPart() async {
     await super.test_variable_setterInPart_getterInPart();
+  }
+
+  String _getLibraryText(kernel.Library library) {
+    StringBuffer buffer = new StringBuffer();
+    new kernel.Printer(buffer, syntheticNames: new kernel.NameSystem())
+        .writeLibraryFile(library);
+    return buffer.toString();
   }
 }
 
