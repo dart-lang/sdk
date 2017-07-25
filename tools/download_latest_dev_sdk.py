@@ -72,13 +72,13 @@ def main(argv):
   os.remove(remote_sha_path)
 
   if local_sha == '' or local_sha != remote_sha:
-    with open(local_sha_path, 'w') as fp:
-      fp.write(remote_sha)
     print 'Downloading prebuilt Dart SDK from: ' + zip_url
     urllib.urlretrieve(zip_url, zip_path)
     with zipfile.ZipFile(zip_path, 'r') as zf:
       for info in zf.infolist():
         extract_file(zf, info, sdk_path)
+    with open(local_sha_path, 'w') as fp:
+      fp.write(remote_sha)
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
