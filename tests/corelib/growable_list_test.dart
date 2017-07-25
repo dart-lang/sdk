@@ -96,7 +96,7 @@ void testConstructor() {
   testGrowable(new List<int>.filled(5, null, growable: true));
   Expect.throws(() => new List<int>(-1), (e) => e is ArgumentError, "-1");
   // There must be limits. Fix this test if we ever allow 10^30 elements.
-  Expect.throws(() => new List<int>(0x1000000000000000000000000000000),
+  Expect.throws(() => new List<int>(0x7fffffffffffffff),
       (e) => e is ArgumentError, "bignum");
   Expect.throws(() => new List<int>(null), (e) => e is ArgumentError, "null");
   testThrowsOrTypeError(
