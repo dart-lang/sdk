@@ -854,16 +854,19 @@ class KernelLibraryLoaderTask extends CompilerTask
         program = new ir.Program();
         new BinaryBuilder(input.data).readProgram(program);
       } else {
+        // TODO(sigmund): remove this hack. Ship platform.dill with the SDK
+        // instead.
+        // Note: this logic only works on development and bot configurations,
+        // but will not work when using dart2js outside the repo.
+        var executableUri = new Uri.file(Platform.resolvedExecutable);
+        Uri platformFile = executableUri.path.endsWith('dart-sdk/bin/dart')
+            ? executableUri.resolve('../../patched_dart2js_sdk/platform.dill')
+            : executableUri.resolve('patched_dart2js_sdk/platform.dill');
         var options = new fe.CompilerOptions()
           ..fileSystem = new CompilerFileSystem(compilerInput)
           ..target = new Dart2jsTarget(new TargetFlags())
           ..compileSdk = true
-          ..linkedDependencies = [
-            // TODO(sigmund): infer the location of platform.dill
-            // once it is shipped as part of the sdk.
-            new Uri.file(Platform.resolvedExecutable)
-                .resolve('patched_dart2js_sdk/platform.dill')
-          ]
+          ..linkedDependencies = [platformFile]
           ..onError = (e) => reportFrontEndMessage(reporter, e);
 
         program = await fe.kernelForProgram(resolvedUri, options);

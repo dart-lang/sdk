@@ -57,3 +57,25 @@ arithmetic_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 abstract_exact_selector_test/01: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+abstract_beats_arguments_test: Crash
+abstract_exact_selector_test/01: Crash
+abstract_getter2_test: Crash
+abstract_syntax_test/00: Crash
+abstract_syntax_test/none: Crash
+accessor_conflict_export2_test: Crash
+accessor_conflict_export_test: Crash
+accessor_conflict_import2_test: Crash
+accessor_conflict_import_prefixed2_test: Crash
+accessor_conflict_import_prefixed_test: Crash
+accessor_conflict_import_test: Crash
+ackermann_test: Crash
+adjacent_const_string_literals_test: Crash
+adjacent_string_literals_test: Crash
+allocate_large_object_test: Crash
+allocate_test: Crash
+allocation_sinking_inlining_test: Crash
+and_operation_on_non_integer_operand_test: Crash
+arithmetic_canonicalization_test: Crash
+arithmetic_smi_overflow_test: Crash
