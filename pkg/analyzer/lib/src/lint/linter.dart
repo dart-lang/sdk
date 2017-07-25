@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
@@ -60,11 +62,11 @@ class DartLinter implements AnalysisErrorListener {
   /// Creates a new linter.
   DartLinter(this.options, {this.reporter: const PrintingReporter()});
 
-  Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
+  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     List<AnalysisErrorInfo> errors = [];
-    var analysisDriver = new LintDriver(options);
-    errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
+    final lintDriver = new LintDriver(options);
+    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
+    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
       numSourcesAnalyzed++;
       return errors.addAll(_lintPubspecFile(p));
@@ -193,6 +195,7 @@ class LinterException implements Exception {
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
   LintFilter filter;
+  file_system.ResourceProvider resourceProvider;
   LinterOptions([this.enabledLints]) {
     enabledLints ??= Registry.ruleRegistry;
   }
@@ -361,11 +364,11 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   SourceLinter(this.options, {this.reporter: const PrintingReporter()});
 
   @override
-  Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
+  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     List<AnalysisErrorInfo> errors = [];
-    var analysisDriver = new LintDriver(options);
-    errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
+    final lintDriver = new LintDriver(options);
+    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
+    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
       numSourcesAnalyzed++;
       return errors.addAll(_lintPubspecFile(p));
