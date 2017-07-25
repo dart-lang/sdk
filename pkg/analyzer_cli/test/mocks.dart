@@ -8,20 +8,20 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:typed_mock/typed_mock.dart';
+import 'package:mockito/mockito.dart';
 
-class MockAnalysisError extends TypedMock implements AnalysisError {}
+class MockAnalysisError extends Mock implements AnalysisError {}
 
-class MockAnalysisErrorInfo extends TypedMock implements AnalysisErrorInfo {}
+class MockAnalysisErrorInfo extends Mock implements AnalysisErrorInfo {}
 
-class MockCommandLineOptions extends TypedMock implements CommandLineOptions {}
+class MockCommandLineOptions extends Mock implements CommandLineOptions {}
 
-class MockErrorCode extends TypedMock implements ErrorCode {}
+class MockErrorCode extends Mock implements ErrorCode {}
 
-class MockErrorType extends TypedMock implements ErrorType {}
+class MockErrorType extends Mock implements ErrorType {}
 
-class MockLineInfo extends TypedMock implements LineInfo {}
+class MockLineInfo extends Mock implements LineInfo {}
 
-class MockLineInfo_Location extends TypedMock implements LineInfo_Location {}
+class MockLineInfo_Location extends Mock implements LineInfo_Location {}
 
-class MockSource extends TypedMock implements Source {}
+class MockSource extends Mock implements Source {}

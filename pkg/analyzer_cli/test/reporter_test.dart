@@ -9,7 +9,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
-import 'package:typed_mock/typed_mock.dart';
+import 'package:mockito/mockito.dart';
 
 import 'mocks.dart';
 
@@ -80,7 +80,7 @@ MockAnalysisErrorInfo mockError(ErrorType type, ErrorSeverity severity) {
   var location = new MockLineInfo_Location();
   when(location.columnNumber).thenReturn(3);
   when(location.lineNumber).thenReturn(3);
-  when(lineInfo.getLocation(anyObject)).thenReturn(location);
+  when(lineInfo.getLocation(any)).thenReturn(location);
   when(info.lineInfo).thenReturn(lineInfo);
 
   // Details
