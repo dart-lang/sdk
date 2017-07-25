@@ -503,6 +503,9 @@ regress_r21715_test: Crash
 safe_to_string_test: Crash
 sort_test: Crash
 
+[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
+*: Skip # Issue 29626
+
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 from_environment_const_type_test/02: MissingCompileTimeError

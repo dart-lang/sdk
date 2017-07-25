@@ -3930,3 +3930,6 @@ wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/01: Crash
 wrong_number_type_arguments_test/02: Crash
 wrong_number_type_arguments_test/none: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
+*: Skip # Issue 29626

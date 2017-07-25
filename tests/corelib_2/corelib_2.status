@@ -358,3 +358,6 @@ throw_half_surrogate_pair_test/02: Crash
 toInt_test: Crash
 type_hashcode_test: Crash
 unicode_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
+*: Skip # Issue 29626
