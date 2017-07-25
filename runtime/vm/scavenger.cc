@@ -608,6 +608,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
+#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -618,9 +619,11 @@ void Scavenger::UpdateMaxHeapCapacity() {
   ASSERT(isolate != NULL);
   isolate->GetHeapNewCapacityMaxMetric()->SetValue(to_->size_in_words() *
                                                    kWordSize);
+#endif  // !defined(PRODUCT)
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
+#if !defined(PRODUCT)
   if (heap_ == NULL) {
     // Some unit tests.
     return;
@@ -630,6 +633,7 @@ void Scavenger::UpdateMaxHeapUsage() {
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate != NULL);
   isolate->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
+#endif  // !defined(PRODUCT)
 }
 
 void Scavenger::EnqueueWeakProperty(RawWeakProperty* raw_weak) {

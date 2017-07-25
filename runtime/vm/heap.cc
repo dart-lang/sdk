@@ -445,12 +445,14 @@ void Heap::WaitForSweeperTasks(Thread* thread) {
 }
 
 void Heap::UpdateGlobalMaxUsed() {
+#if !defined(PRODUCT)
   ASSERT(isolate_ != NULL);
   // We are accessing the used in words count for both new and old space
   // without synchronizing. The value of this metric is approximate.
   isolate_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
+#endif  // !defined(PRODUCT)
 }
 
 void Heap::InitGrowthControl() {
@@ -482,10 +484,17 @@ void Heap::Init(Isolate* isolate,
 }
 
 void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
+#if defined(PRODUCT)
+  const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
+                               (heap->isolate()->name() == NULL);
+  const char* isolate_name =
+      no_isolate_name ? "<unknown>" : heap->isolate()->name();
+#else
   const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
                                (heap->isolate()->debugger_name() == NULL);
   const char* isolate_name =
       no_isolate_name ? "<unknown>" : heap->isolate()->debugger_name();
+#endif  // !defined(PRODUCT)
   const char* space_name = NULL;
   switch (space) {
     case kNew:
@@ -702,6 +711,7 @@ void Heap::RecordAfterGC(Space space) {
 }
 
 void Heap::PrintStats() {
+#if !defined(PRODUCT)
   if (!FLAG_verbose_gc) return;
 
   if ((FLAG_verbose_gc_hdr != 0) &&
@@ -765,6 +775,7 @@ void Heap::PrintStats() {
     stats_.data_[2],
     stats_.data_[3]);
   // clang-format on
+#endif  // !defined(PRODUCT)
 }
 
 void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
