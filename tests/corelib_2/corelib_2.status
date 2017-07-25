@@ -31,6 +31,7 @@ apply3_test: Fail # mirrors not supported
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
 [ $compiler == dartdevc && $runtime != none ]
 apply2_test: RuntimeError # Issue 29921
@@ -42,6 +43,14 @@ const_list_remove_range_test: RuntimeError # Issue 29921
 const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
+regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
+regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
+regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
+regexp/results-cache_test: RuntimeError # Issue 29921
+regexp/stack-overflow2_test: RuntimeError # Issue 29921
+regexp/stack-overflow_test: RuntimeError # Issue 29921
+regexp/unicode-handling_test: RuntimeError # Issue 29921
+regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
 symbol_operator_test: RuntimeError # Issue 29921
 symbol_operator_test/03: RuntimeError # Issue 29921
@@ -361,3 +370,6 @@ unicode_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
 *: Skip # Issue 29626
+
+[$arch == simdbc || $arch == simdbc64]
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

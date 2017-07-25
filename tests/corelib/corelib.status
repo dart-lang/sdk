@@ -106,7 +106,6 @@ regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 int_parse_radix_test/*: Pass, Slow
 
 [ $compiler == precompiler ]
-regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == precompiler || $compiler == app_jit ]
@@ -114,10 +113,7 @@ package_resource_test: Skip # Resolve URI not supported yet in product mode.
 file_resource_test: Skip # Resolve URI not supported yet in product mode.
 http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
-[ $arch == simdbc || $arch == simdbc64 ]
-regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-
-[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
+[ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
 map_test: Crash # Issue 27394
 regexp/pcre_test: RuntimeError # Issue 27394
