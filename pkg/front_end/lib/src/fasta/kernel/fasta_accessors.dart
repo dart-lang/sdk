@@ -88,10 +88,10 @@ abstract class BuilderHelper {
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
   Initializer buildFieldInitializer(
-      String name, int offset, Expression expression);
+      bool isSynthetic, String name, int offset, Expression expression);
 
   Initializer buildSuperInitializer(
-      Constructor constructor, Arguments arguments,
+      bool isSynthetic, Constructor constructor, Arguments arguments,
       [int offset]);
 
   Initializer buildRedirectingInitializer(
@@ -396,7 +396,8 @@ class ThisAccessor extends FastaAccessor {
               isSuper: isSuper, name: name.name, offset: offset),
           offset);
     } else if (isSuper) {
-      return helper.buildSuperInitializer(constructor, arguments, offset);
+      return helper.buildSuperInitializer(
+          false, constructor, arguments, offset);
     } else {
       return helper.buildRedirectingInitializer(constructor, arguments, offset);
     }

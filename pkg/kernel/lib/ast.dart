@@ -1254,6 +1254,10 @@ enum ProcedureKind {
 
 /// Part of an initializer list in a constructor.
 abstract class Initializer extends TreeNode {
+  /// True if this is a synthetic constructor initializer.
+  @informative
+  bool isSynthetic = false;
+
   accept(InitializerVisitor v);
 }
 

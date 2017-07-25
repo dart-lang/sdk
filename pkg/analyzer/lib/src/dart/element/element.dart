@@ -2215,10 +2215,19 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * there are no initializers, or `null` if there was an error in the source.
    */
   List<ConstructorInitializer> get constantInitializers {
-    if (serializedExecutable != null && _constantInitializers == null) {
-      _constantInitializers ??= serializedExecutable.constantInitializers
-          .map((i) => _buildConstructorInitializer(i))
-          .toList(growable: false);
+    if (_constantInitializers == null) {
+      if (_kernelConstructor != null) {
+        var context = enclosingUnit._kernelContext;
+        _constantInitializers = _kernelConstructor.initializers
+            .map((k) => context.getConstructorInitializer(this, k))
+            .where((i) => i != null)
+            .toList();
+      }
+      if (serializedExecutable != null) {
+        _constantInitializers = serializedExecutable.constantInitializers
+            .map((i) => _buildConstructorInitializer(i))
+            .toList(growable: false);
+      }
     }
     return _constantInitializers;
   }
@@ -2349,18 +2358,29 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ConstructorElement get redirectedConstructor {
-    if (serializedExecutable != null && _redirectedConstructor == null) {
-      if (serializedExecutable.isRedirectedConstructor) {
-        if (serializedExecutable.isFactory) {
-          _redirectedConstructor = enclosingUnit.resynthesizerContext
-              .resolveConstructorRef(
-                  enclosingElement, serializedExecutable.redirectedConstructor);
-        } else {
-          _redirectedConstructor = enclosingElement.getNamedConstructor(
-              serializedExecutable.redirectedConstructorName);
+    if (_redirectedConstructor == null) {
+      if (_kernelConstructor != null) {
+        for (var initializer in _kernelConstructor.initializers) {
+          if (initializer is kernel.RedirectingInitializer) {
+            return _redirectedConstructor = enclosingUnit._kernelContext
+                    .getElement(initializer.targetReference)
+                as ConstructorElementImpl;
+          }
         }
-      } else {
-        return null;
+      }
+      if (serializedExecutable != null) {
+        if (serializedExecutable.isRedirectedConstructor) {
+          if (serializedExecutable.isFactory) {
+            _redirectedConstructor = enclosingUnit.resynthesizerContext
+                .resolveConstructorRef(enclosingElement,
+                    serializedExecutable.redirectedConstructor);
+          } else {
+            _redirectedConstructor = enclosingElement.getNamedConstructor(
+                serializedExecutable.redirectedConstructorName);
+          }
+        } else {
+          return null;
+        }
       }
     }
     return _redirectedConstructor;
@@ -5863,6 +5883,18 @@ class ImportElementImpl extends UriReferencedElementImpl
  */
 abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
+
+  /**
+   * Return the resynthesized [ConstructorInitializer] for the given Kernel
+   * [initializer], or `null` if synthetic.
+   */
+  ConstructorInitializer getConstructorInitializer(
+      ConstructorElementImpl constructor, kernel.Initializer initializer);
+
+  /**
+   * Return the [Element] referenced by the given [reference].
+   */
+  ElementImpl getElement(kernel.Reference reference);
 
   /**
    * Return the [Expression] for the given kernel.

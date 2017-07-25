@@ -562,7 +562,8 @@ class KernelTarget extends TargetImplementation {
             initializer = new InvalidInitializer();
           } else {
             initializer =
-                new SuperInitializer(superTarget, new Arguments.empty());
+                new SuperInitializer(superTarget, new Arguments.empty())
+                  ..isSynthetic = true;
           }
           constructor.initializers.add(initializer);
           initializer.parent = constructor;
@@ -617,7 +618,8 @@ class KernelTarget extends TargetImplementation {
       for (Field field in initializedFields.difference(fields.toSet())) {
         if (field.initializer == null) {
           FieldInitializer initializer =
-              new FieldInitializer(field, new NullLiteral());
+              new FieldInitializer(field, new NullLiteral())
+                ..isSynthetic = true;
           initializer.parent = constructor;
           constructor.initializers.insert(0, initializer);
         }

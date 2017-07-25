@@ -626,15 +626,20 @@ class BinaryBuilder {
 
   Initializer readInitializer() {
     int tag = readByte();
+    bool isSynthetic = readByte() == 1;
     switch (tag) {
       case Tag.InvalidInitializer:
         return new InvalidInitializer();
       case Tag.FieldInitializer:
-        return new FieldInitializer.byReference(
-            readMemberReference(), readExpression());
+        var reference = readMemberReference();
+        var value = readExpression();
+        return new FieldInitializer.byReference(reference, value)
+          ..isSynthetic = isSynthetic;
       case Tag.SuperInitializer:
-        return new SuperInitializer.byReference(
-            readMemberReference(), readArguments());
+        var reference = readMemberReference();
+        var arguments = readArguments();
+        return new SuperInitializer.byReference(reference, arguments)
+          ..isSynthetic = isSynthetic;
       case Tag.RedirectingInitializer:
         return new RedirectingInitializer.byReference(
             readMemberReference(), readArguments());

@@ -439,6 +439,7 @@ void StreamingScopeBuilder::VisitFunctionNode() {
 
 void StreamingScopeBuilder::VisitInitializer() {
   Tag tag = builder_->ReadTag();
+  builder_->ReadByte();  // read isSynthetic flag.
   switch (tag) {
     case kInvalidInitializer:
       return;
@@ -2850,6 +2851,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     intptr_t list_length = ReadListLength();  // read initializers list length.
     for (intptr_t i = 0; i < list_length; ++i) {
       Tag tag = ReadTag();
+      ReadByte();  // read isSynthetic flag.
       switch (tag) {
         case kInvalidInitializer:
           UNIMPLEMENTED();

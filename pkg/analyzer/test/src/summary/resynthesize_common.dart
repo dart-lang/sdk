@@ -4443,7 +4443,7 @@ class C {
     var library = await checkLibrary('''
 class C {
   final x;
-  const A() : x = foo();
+  const C() : x = foo();
 }
 int foo() => 42;
 ''', allowErrors: true);
@@ -4491,6 +4491,26 @@ class A {
 class C extends A {
   const C() : super.
         aaa/*location: test.dart;A;aaa*/(42);
+}
+''');
+  }
+
+  test_constructor_initializers_superInvocation_named_underscore() async {
+    var library = await checkLibrary('''
+class A {
+  const A._();
+}
+class B extends A {
+  const B() : super._();
+}
+''');
+    checkElementText(library, r'''
+class A {
+  const A._();
+}
+class B extends A {
+  const B() : super.
+        _/*location: test.dart;A;_*/();
 }
 ''');
   }
@@ -4991,7 +5011,24 @@ class D {
   D() : x = new C();
 }
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      // The shared front-end keeps initializers for cycled constructors.
+      checkElementText(library, r'''
+class C {
+  final dynamic x;
+  C() :
+        x/*location: test.dart;C;x*/ = new
+        D/*location: test.dart;D*/();
+}
+class D {
+  final dynamic x;
+  D() :
+        x/*location: test.dart;D;x*/ = new
+        C/*location: test.dart;C*/();
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   final dynamic x;
   C();
@@ -5001,6 +5038,7 @@ class D {
   D();
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_constructor() async {

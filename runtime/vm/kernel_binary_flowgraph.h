@@ -1189,6 +1189,7 @@ class ConstructorHelper {
             builder_->ReadListLength();  // read initializers list length.
         for (intptr_t i = 0; i < list_length; i++) {
           Tag tag = builder_->ReadTag();
+          builder_->ReadByte();  // read isSynthetic.
           switch (tag) {
             case kInvalidInitializer:
               continue;

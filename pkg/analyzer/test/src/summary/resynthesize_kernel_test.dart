@@ -393,48 +393,17 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_initializers_field() async {
-    await super.test_constructor_initializers_field();
-  }
-
-  @failingTest
+  @_fastaProblem
   test_constructor_initializers_field_notConst() async {
+    // Fasta generates additional `#errors` top-level variable.
     await super.test_constructor_initializers_field_notConst();
   }
 
   @failingTest
+  @_fastaProblem
   test_constructor_initializers_field_withParameter() async {
+    // https://github.com/dart-lang/sdk/issues/30251
     await super.test_constructor_initializers_field_withParameter();
-  }
-
-  @failingTest
-  test_constructor_initializers_superInvocation_named() async {
-    await super.test_constructor_initializers_superInvocation_named();
-  }
-
-  @failingTest
-  test_constructor_initializers_superInvocation_namedExpression() async {
-    await super.test_constructor_initializers_superInvocation_namedExpression();
-  }
-
-  @failingTest
-  test_constructor_initializers_superInvocation_unnamed() async {
-    await super.test_constructor_initializers_superInvocation_unnamed();
-  }
-
-  @failingTest
-  test_constructor_initializers_thisInvocation_named() async {
-    await super.test_constructor_initializers_thisInvocation_named();
-  }
-
-  @failingTest
-  test_constructor_initializers_thisInvocation_namedExpression() async {
-    await super.test_constructor_initializers_thisInvocation_namedExpression();
-  }
-
-  @failingTest
-  test_constructor_initializers_thisInvocation_unnamed() async {
-    await super.test_constructor_initializers_thisInvocation_unnamed();
   }
 
   @failingTest
@@ -531,11 +500,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_constructor_redirected_thisInvocation_unnamed_generic() async {
     await super.test_constructor_redirected_thisInvocation_unnamed_generic();
-  }
-
-  @failingTest
-  test_constructor_withCycles_const() async {
-    await super.test_constructor_withCycles_const();
   }
 
   @failingTest
@@ -926,6 +890,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_inferred_function_type_for_variable_in_generic_function() async {
     await super.test_inferred_function_type_for_variable_in_generic_function();
+  }
+
+  @failingTest
+  test_inferred_function_type_in_generic_class_constructor() async {
+    await super.test_inferred_function_type_in_generic_class_constructor();
   }
 
   @failingTest
@@ -1897,6 +1866,16 @@ class _ExprBuilder {
       }
     }
 
+    if (expr is kernel.StaticInvocation) {
+      kernel.Procedure target = expr.target;
+      String name = target.name.name;
+      List<Expression> arguments = _toArguments(expr.arguments);
+      MethodInvocation invocation =
+          AstTestFactory.methodInvocation3(null, name, null, arguments);
+      invocation.methodName.staticElement = _getElement(target.reference);
+      return invocation;
+    }
+
     if (expr is kernel.ConstructorInvocation) {
       var element = _getElement(expr.targetReference);
 
@@ -1916,6 +1895,53 @@ class _ExprBuilder {
 
     // TODO(scheglov): complete getExpression
     throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
+  }
+
+  ConstructorInitializer buildInitializer(kernel.Initializer k) {
+    if (k is kernel.FieldInitializer) {
+      Expression value = build(k.value);
+      ConstructorFieldInitializer initializer = AstTestFactory
+          .constructorFieldInitializer(false, k.field.name.name, value);
+      initializer.fieldName.staticElement = _getElement(k.fieldReference);
+      return initializer;
+    }
+
+    if (k is kernel.RedirectingInitializer) {
+      ConstructorElementImpl redirect = _getElement(k.targetReference);
+      var arguments = _toArguments(k.arguments);
+
+      RedirectingConstructorInvocation invocation =
+          AstTestFactory.redirectingConstructorInvocation(arguments);
+      invocation.staticElement = redirect;
+
+      String name = k.target.name.name;
+      if (name.isNotEmpty) {
+        invocation.constructorName = AstTestFactory.identifier3(name)
+          ..staticElement = redirect;
+      }
+
+      return invocation;
+    }
+
+    if (k is kernel.SuperInitializer) {
+      ConstructorElementImpl redirect = _getElement(k.targetReference);
+      var arguments = _toArguments(k.arguments);
+
+      SuperConstructorInvocation invocation =
+          AstTestFactory.superConstructorInvocation(arguments);
+      invocation.staticElement = redirect;
+
+      String name = k.target.name.name;
+      if (name.isNotEmpty) {
+        invocation.constructorName = AstTestFactory.identifier3(name)
+          ..staticElement = redirect;
+      }
+
+      return invocation;
+    }
+
+    // TODO(scheglov) Support other kernel initializer types.
+    throw new UnimplementedError('For ${k.runtimeType}');
   }
 
   Expression _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
@@ -2083,6 +2109,22 @@ class _KernelLibraryResynthesizerContextImpl
   _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
 
   @override
+  ConstructorInitializer getConstructorInitializer(
+      ConstructorElementImpl constructor, kernel.Initializer k) {
+    if (k is kernel.LocalInitializer ||
+        k is kernel.FieldInitializer && k.isSynthetic ||
+        k is kernel.SuperInitializer && k.isSynthetic) {
+      return null;
+    }
+    return new _ExprBuilder(this).buildInitializer(k);
+  }
+
+  @override
+  ElementImpl getElement(kernel.Reference reference) {
+    return _getElement(reference.canonicalName);
+  }
+
+  @override
   Expression getExpression(kernel.Expression expression) {
     return new _ExprBuilder(this).build(expression);
   }
@@ -2125,6 +2167,11 @@ class _KernelLibraryResynthesizerContextImpl
     // If the parent is the root, then this name is a library.
     if (parentName.isRoot) {
       return _resynthesizer.getLibrary(name.name);
+    }
+
+    // If the name is private, it is prefixed with a library URI.
+    if (name.name.startsWith('_')) {
+      parentName = parentName.parent;
     }
 
     // Skip qualifiers.

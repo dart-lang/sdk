@@ -361,6 +361,17 @@ class _ElementWriter {
       writeExpression(e.key);
       buffer.write(': ');
       writeExpression(e.value);
+    } else if (e is MethodInvocation) {
+      if (e.target != null) {
+        writeExpression(e.target);
+        buffer.write(e.operator);
+      }
+      writeExpression(e.methodName);
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
+      }
+      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
+          includeEmpty: true);
     } else if (e is NamedExpression) {
       writeExpression(e.name);
       buffer.write(e.expression);
