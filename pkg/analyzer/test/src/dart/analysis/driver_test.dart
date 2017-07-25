@@ -562,8 +562,25 @@ part 'part.dart';
     AnalysisResult result1 = await driver.getResult(a);
     expect(driver.test.priorityResults, containsPair(a, result1));
 
-    AnalysisResult result2 = await driver.getResult(a);
-    expect(result2, same(result1));
+    await scheduler.waitForIdle();
+    allResults.clear();
+
+    // Get the (cached) result, not reported to the stream.
+    {
+      AnalysisResult result2 = await driver.getResult(a);
+      expect(result2, same(result1));
+      expect(allResults, isEmpty);
+    }
+
+    // Get the (cached) result, reported to the stream.
+    {
+      AnalysisResult result2 =
+          await driver.getResult(a, sendCachedToStream: true);
+      expect(result2, same(result1));
+
+      expect(allResults, hasLength(1));
+      expect(allResults.single, same(result1));
+    }
   }
 
   test_cachedPriorityResults_flush_onAnyFileChange() async {

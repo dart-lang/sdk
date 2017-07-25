@@ -161,7 +161,8 @@ class MockAnalysisDriver implements AnalysisDriver {
   }
 
   @override
-  Future<AnalysisResult> getResult(String path) async {
+  Future<AnalysisResult> getResult(String path,
+      {bool sendCachedToStream: false}) async {
     return result;
   }
 

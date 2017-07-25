@@ -669,6 +669,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The [path] can be any file - explicitly or implicitly analyzed, or neither.
    *
    * If the driver has the cached analysis result for the file, it is returned.
+   * If [sendCachedToStream] is `true`, then the result is also reported into
+   * the [results] stream, just as if it were freshly computed.
    *
    * Otherwise causes the analysis state to transition to "analyzing" (if it is
    * not in that state already), the driver will produce the analysis result for
@@ -676,7 +678,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * of the files previously reported using [changeFile]), prior to the next
    * time the analysis state transitions to "idle".
    */
-  Future<AnalysisResult> getResult(String path) {
+  Future<AnalysisResult> getResult(String path,
+      {bool sendCachedToStream: false}) {
     if (!_fsState.hasUri(path)) {
       return new Future.value();
     }
@@ -685,6 +688,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     {
       AnalysisResult result = getCachedResult(path);
       if (result != null) {
+        if (sendCachedToStream) {
+          _resultController.add(result);
+        }
         return new Future.value(result);
       }
     }
