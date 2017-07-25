@@ -226,3 +226,6 @@ analyzer/test/src/task/strong/checker_test: Pass, Slow
 
 [ $browser ]
 testing/test/analyze_test: SkipByDesign
+
+[ $browser || $runtime == flutter ]
+status_file/*: SkipByDesign # Only meant to run on the standalone VM.

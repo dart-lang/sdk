@@ -4,10 +4,11 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'environment.dart';
 import 'expectation.dart';
-import 'path.dart';
-import 'status_expression.dart';
+import 'src/expression.dart';
 
 /// Matches the header that begins a new section, like:
 ///
@@ -46,6 +47,8 @@ class StatusFile {
   final List<StatusSection> sections = [];
 
   /// Parses the status file at [_path].
+  ///
+  /// Throws a [SyntaxError] if the file could not be parsed.
   StatusFile.read(this._path) {
     var lines = new File(_path).readAsLinesSync();
 
@@ -58,14 +61,7 @@ class StatusFile {
       lineNumber++;
 
       fail(String message, [List<String> errors]) {
-        print('$message in "$_shortPath" line $lineNumber:\n$line');
-
-        if (errors != null) {
-          for (var error in errors) {
-            print("- ${error.replaceAll('\n', '\n  ')}");
-          }
-        }
-        exit(1);
+        throw new SyntaxError(_shortPath, lineNumber, line, message, errors);
       }
 
       // Strip off the comment and whitespace.
@@ -85,17 +81,7 @@ class StatusFile {
       var match = _sectionPattern.firstMatch(source);
       if (match != null) {
         try {
-          var condition = Expression.parse(match[1].trim());
-
-          var errors = <String>[];
-          condition.validate(errors);
-
-          if (errors.isNotEmpty) {
-            var s = errors.length > 1 ? "s" : "";
-            fail('Validation error$s', errors);
-          }
-
-          section = new StatusSection(condition);
+          section = new StatusSection(Expression.parse(match[1].trim()));
           sections.add(section);
         } on FormatException {
           fail("Status expression syntax error");
@@ -135,12 +121,31 @@ class StatusFile {
     }
   }
 
+  /// Validates that the variables and values used in all of the section
+  /// condition expressions are defined in [environment].
+  ///
+  /// Throws a [SyntaxError] on the first found error.
+  void validate(Environment environment) {
+    // TODO(rnystrom): It would be more useful if it reported all of the errors
+    // instead of stopping on the first.
+    for (var section in sections) {
+      if (section._condition == null) continue;
+
+      var errors = <String>[];
+      section._condition.validate(environment, errors);
+
+      if (errors.isNotEmpty) {
+        var s = errors.length > 1 ? "s" : "";
+        throw new SyntaxError(_shortPath, section.lineNumber,
+            "[ ${section._condition} ]", 'Validation error$s', errors);
+      }
+    }
+  }
+
   /// Gets the path to this status file relative to the Dart repo root.
   String get _shortPath {
-    var repoRoot = new Path(Platform.script
-            .toFilePath(windows: Platform.operatingSystem == "windows"))
-        .join(new Path("../../../../"));
-    return new Path(_path).relativeTo(repoRoot).toString();
+    var repoRoot = p.join(p.dirname(p.fromUri(Platform.script)), "../../../");
+    return p.normalize(p.relative(_path, from: repoRoot));
   }
 
   /// Returns the issue number embedded in [comment] or `null` if there is none.
@@ -154,7 +159,7 @@ class StatusFile {
   String toString() {
     var buffer = new StringBuffer();
     for (var section in sections) {
-      buffer.writeln("[${section._condition}]");
+      buffer.writeln("[ ${section._condition} ]");
 
       for (var entry in section.entries) {
         buffer.write("${entry.path}: ${entry.expectations.join(', ')}");
@@ -195,4 +200,29 @@ class StatusEntry {
   final int issue;
 
   StatusEntry(this.path, this.expectations, this.issue);
+}
+
+/// Error thrown when a parse or validation error occurs in a [StatusFile].
+class SyntaxError implements Exception {
+  final String file;
+  final int lineNumber;
+  final String line;
+  final String message;
+  final List<String> errors;
+
+  SyntaxError(this.file, this.lineNumber, this.line, this.message, this.errors);
+
+  String toString() {
+    var buffer = new StringBuffer();
+    buffer.writeln('$message in "$file" line $lineNumber:');
+    buffer.writeln(line);
+
+    if (errors != null) {
+      for (var error in errors) {
+        buffer.writeln("- ${error.replaceAll('\n', '\n  ')}");
+      }
+    }
+
+    return buffer.toString().trimRight();
+  }
 }

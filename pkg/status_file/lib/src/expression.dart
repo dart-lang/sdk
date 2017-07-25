@@ -1,8 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'environment.dart';
+import '../environment.dart';
 
 /// A parsed Boolean expression AST.
 abstract class Expression {
@@ -29,7 +29,7 @@ abstract class Expression {
   /// Ensures that any variable names are known and that any literal values are
   /// allowed for their corresponding variable. If an invalid variable or value
   /// is found, adds appropriate error messages to [errors].
-  void validate(List<String> errors);
+  void validate(Environment environment, List<String> errors);
 
   /// Evaluates the expression where all variables are defined by the given
   /// [environment].
@@ -83,8 +83,8 @@ class _ComparisonExpression implements Expression {
 
   _ComparisonExpression(this.left, this.right, this.negate);
 
-  void validate(List<String> errors) {
-    Environment.validate(left.name, right, errors);
+  void validate(Environment environment, List<String> errors) {
+    environment.validate(left.name, right, errors);
   }
 
   bool evaluate(Environment environment) {
@@ -117,9 +117,9 @@ class _VariableExpression implements Expression {
 
   _VariableExpression(this.variable, {this.negate = false});
 
-  void validate(List<String> errors) {
+  void validate(Environment environment, List<String> errors) {
     // It must be a Boolean, so it should allow either Boolean value.
-    Environment.validate(variable.name, "true", errors);
+    environment.validate(variable.name, "true", errors);
   }
 
   bool evaluate(Environment environment) =>
@@ -138,9 +138,9 @@ class _LogicExpression implements Expression {
 
   _LogicExpression(this.op, this.left, this.right);
 
-  void validate(List<String> errors) {
-    left.validate(errors);
-    right.validate(errors);
+  void validate(Environment environment, List<String> errors) {
+    left.validate(environment, errors);
+    right.validate(environment, errors);
   }
 
   bool evaluate(Environment environment) => (op == _Token.and)

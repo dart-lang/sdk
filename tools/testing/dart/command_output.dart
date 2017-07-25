@@ -7,10 +7,11 @@ import 'dart:convert';
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
 
+import 'package:status_file/expectation.dart';
+
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
-import 'expectation.dart';
 import 'test_runner.dart';
 import 'utils.dart';
 

@@ -17,13 +17,14 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
+import "package:status_file/expectation.dart";
+
 import 'android.dart';
 import 'browser_controller.dart';
 import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
 import 'dependency_graph.dart';
-import 'expectation.dart';
 import 'runtime_configuration.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';

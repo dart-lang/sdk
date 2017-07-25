@@ -1,16 +1,20 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
 
-import "../../tools/testing/dart/environment.dart";
-import "../../tools/testing/dart/status_expression.dart";
+import "package:status_file/environment.dart";
+import "package:status_file/src/expression.dart";
 
 class TestEnvironment implements Environment {
   final Map<String, String> _values;
 
   TestEnvironment(this._values);
+
+  void validate(String name, String value, List<String> errors) {
+    throw new UnimplementedError();
+  }
 
   /// Looks up the value of the variable with [name].
   String lookUp(String name) => _values[name];

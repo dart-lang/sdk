@@ -7,9 +7,10 @@ import 'dart:async';
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
 
+import 'package:status_file/expectation.dart';
+
 import 'command_output.dart';
 import 'configuration.dart';
-import 'expectation.dart';
 import 'path.dart';
 import 'utils.dart';
 
