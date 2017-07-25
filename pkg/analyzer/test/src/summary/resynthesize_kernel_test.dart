@@ -351,18 +351,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_redirected_factory_named() async {
-    await super.test_constructor_redirected_factory_named();
-  }
-
-  @failingTest
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_named_imported() async {
-    await super.test_constructor_redirected_factory_named_imported();
   }
 
   @failingTest
@@ -371,29 +361,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_redirected_factory_named_prefixed() async {
-    await super.test_constructor_redirected_factory_named_prefixed();
-  }
-
-  @failingTest
   test_constructor_redirected_factory_named_prefixed_generic() async {
     await super.test_constructor_redirected_factory_named_prefixed_generic();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_named_unresolved_class() async {
-    await super.test_constructor_redirected_factory_named_unresolved_class();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_named_unresolved_constructor() async {
-    await super
-        .test_constructor_redirected_factory_named_unresolved_constructor();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_unnamed() async {
-    await super.test_constructor_redirected_factory_unnamed();
   }
 
   @failingTest
@@ -402,48 +371,13 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_redirected_factory_unnamed_imported() async {
-    await super.test_constructor_redirected_factory_unnamed_imported();
-  }
-
-  @failingTest
   test_constructor_redirected_factory_unnamed_imported_generic() async {
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
   }
 
   @failingTest
-  test_constructor_redirected_factory_unnamed_prefixed() async {
-    await super.test_constructor_redirected_factory_unnamed_prefixed();
-  }
-
-  @failingTest
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @failingTest
-  test_constructor_redirected_factory_unnamed_unresolved() async {
-    await super.test_constructor_redirected_factory_unnamed_unresolved();
-  }
-
-  @failingTest
-  test_constructor_redirected_thisInvocation_named() async {
-    await super.test_constructor_redirected_thisInvocation_named();
-  }
-
-  @failingTest
-  test_constructor_redirected_thisInvocation_named_generic() async {
-    await super.test_constructor_redirected_thisInvocation_named_generic();
-  }
-
-  @failingTest
-  test_constructor_redirected_thisInvocation_unnamed() async {
-    await super.test_constructor_redirected_thisInvocation_unnamed();
-  }
-
-  @failingTest
-  test_constructor_redirected_thisInvocation_unnamed_generic() async {
-    await super.test_constructor_redirected_thisInvocation_unnamed_generic();
   }
 
   @failingTest
@@ -769,11 +703,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_import_show() async {
     await super.test_import_show();
-  }
-
-  @failingTest
-  test_inferred_function_type_in_generic_class_constructor() async {
-    await super.test_inferred_function_type_in_generic_class_constructor();
   }
 
   @failingTest

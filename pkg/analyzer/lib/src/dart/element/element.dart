@@ -571,6 +571,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       _constructors = <ConstructorElement>[]
         ..addAll(constructors)
         ..addAll(factories);
+      _constructors.sort((a, b) => a.nameOffset - b.nameOffset);
     }
     if (_unlinkedClass != null && _constructors == null) {
       _constructors = _unlinkedClass.executables
@@ -1294,6 +1295,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_kernel != null) {
       // Build explicit fields and implicit property accessors.
       for (var k in _kernel.fields) {
+        if (k.name.name.startsWith('_redirecting#')) {
+          continue;
+        }
         var field = new FieldElementImpl.forKernelFactory(this, k);
         explicitFields.add(field);
         implicitAccessors.add(
@@ -2217,11 +2221,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
   List<ConstructorInitializer> get constantInitializers {
     if (_constantInitializers == null) {
       if (_kernelConstructor != null) {
-        var context = enclosingUnit._kernelContext;
-        _constantInitializers = _kernelConstructor.initializers
-            .map((k) => context.getConstructorInitializer(this, k))
-            .where((i) => i != null)
-            .toList();
+        if (_kernelConstructor.isConst) {
+          var context = enclosingUnit._kernelContext;
+          _constantInitializers = _kernelConstructor.initializers
+              .map((k) => context.getConstructorInitializer(this, k))
+              .where((i) => i != null)
+              .toList();
+        } else {
+          _constantInitializers = const <ConstructorInitializer>[];
+        }
       }
       if (serializedExecutable != null) {
         _constantInitializers = serializedExecutable.constantInitializers
@@ -2359,14 +2367,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   ConstructorElement get redirectedConstructor {
     if (_redirectedConstructor == null) {
-      if (_kernelConstructor != null) {
-        for (var initializer in _kernelConstructor.initializers) {
-          if (initializer is kernel.RedirectingInitializer) {
-            return _redirectedConstructor = enclosingUnit._kernelContext
-                    .getElement(initializer.targetReference)
-                as ConstructorElementImpl;
-          }
-        }
+      if (_kernelConstructor != null || _kernelFactory != null) {
+        _redirectedConstructor = enclosingUnit._kernelContext
+            .getRedirectedConstructor(_kernelConstructor, _kernelFactory);
       }
       if (serializedExecutable != null) {
         if (serializedExecutable.isRedirectedConstructor) {
@@ -4098,6 +4101,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     if (offset == 0 && serializedExecutable != null) {
       return serializedExecutable.nameOffset;
     }
@@ -5898,11 +5904,6 @@ abstract class KernelLibraryResynthesizerContext {
       ConstructorElementImpl constructor, kernel.Initializer initializer);
 
   /**
-   * Return the [Element] referenced by the given [reference].
-   */
-  ElementImpl getElement(kernel.Reference reference);
-
-  /**
    * Return the [Expression] for the given kernel.
    */
   Expression getExpression(kernel.Expression expression);
@@ -5917,6 +5918,13 @@ abstract class KernelLibraryResynthesizerContext {
    * Return the [LibraryElement] for the given absolute [uriStr].
    */
   LibraryElement getLibrary(String uriStr);
+
+  /**
+   * Return the [ConstructorElementImpl] to which the given [kernelConstructor]
+   * or [kernelFactory] redirects.
+   */
+  ConstructorElementImpl getRedirectedConstructor(
+      kernel.Constructor kernelConstructor, kernel.Procedure kernelFactory);
 
   /**
    * Return the [DartType] for the given Kernel [type], or `null` if the [type]
@@ -8353,6 +8361,13 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
         super(name, nameOffset);
 
   /**
+   * Initialize using the given kernel.
+   */
+  PrefixElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedImport = null,
+        super.forSerialized(enclosingLibrary);
+
+  /**
    * Initialize a newly created prefix element to have the given [name].
    */
   PrefixElementImpl.forNode(Identifier name)
@@ -8366,13 +8381,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   PrefixElementImpl.forSerialized(
       this._unlinkedImport, LibraryElementImpl enclosingLibrary)
       : _kernel = null,
-        super.forSerialized(enclosingLibrary);
-
-  /**
-   * Initialize using the given kernel.
-   */
-  PrefixElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
-      : _unlinkedImport = null,
         super.forSerialized(enclosingLibrary);
 
   @override

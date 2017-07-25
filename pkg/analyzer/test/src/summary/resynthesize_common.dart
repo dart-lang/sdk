@@ -5031,24 +5031,7 @@ class D {
   D() : x = new C();
 }
 ''');
-    if (isSharedFrontEnd) {
-      // The shared front-end keeps initializers for cycled constructors.
-      checkElementText(library, r'''
-class C {
-  final dynamic x;
-  C() :
-        x/*location: test.dart;C;x*/ = new
-        D/*location: test.dart;D*/();
-}
-class D {
-  final dynamic x;
-  D() :
-        x/*location: test.dart;D;x*/ = new
-        C/*location: test.dart;C*/();
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 class C {
   final dynamic x;
   C();
@@ -5058,7 +5041,6 @@ class D {
   D();
 }
 ''');
-    }
   }
 
   test_defaultValue_refersToGenericClass_constructor() async {

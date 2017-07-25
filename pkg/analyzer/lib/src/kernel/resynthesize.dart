@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:front_end/src/base/source.dart';
+import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
 
@@ -394,11 +395,6 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   @override
-  ElementImpl getElement(kernel.Reference reference) {
-    return _getElement(reference.canonicalName);
-  }
-
-  @override
   Expression getExpression(kernel.Expression expression) {
     return new _ExprBuilder(this).build(expression);
   }
@@ -413,6 +409,30 @@ class _KernelLibraryResynthesizerContextImpl
   @override
   LibraryElement getLibrary(String uriStr) {
     return _resynthesizer.getLibrary(uriStr);
+  }
+
+  @override
+  ConstructorElementImpl getRedirectedConstructor(
+      kernel.Constructor kernelConstructor, kernel.Procedure kernelFactory) {
+    if (kernelConstructor != null) {
+      for (var initializer in kernelConstructor.initializers) {
+        if (initializer is kernel.RedirectingInitializer) {
+          return _getElement(initializer.targetReference.canonicalName)
+              as ConstructorElementImpl;
+        }
+      }
+    }
+    if (kernelFactory != null) {
+      kernel.Statement body = kernelFactory.function.body;
+      if (body is RedirectingFactoryBody) {
+        kernel.Member target = body.target;
+        if (target != null) {
+          return _getElement(target.reference.canonicalName)
+              as ConstructorElementImpl;
+        }
+      }
+    }
+    return null;
   }
 
   DartType getType(ElementImpl context, kernel.DartType kernelType) {
