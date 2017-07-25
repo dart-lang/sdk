@@ -11,8 +11,7 @@ class Override {
 
   int foo() => hash; //   Just some function that can be closurized.
 
-  bool operator ==(Object other) =>
-      other is Override && (other as Override).hash == hash;
+  bool operator ==(Object other) => other is Override && other.hash == hash;
 }
 
 int bar() => 42; // Some global function.

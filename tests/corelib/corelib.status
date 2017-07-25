@@ -8,9 +8,6 @@
 [ $compiler == none && $runtime == drt ]
 from_environment_const_type_test: Skip
 from_environment_const_type_undefined_test: Skip
-int_from_environment2_test: Skip
-int_from_environment3_test: Skip
-int_from_environment_test: Skip
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 string_case_test/01: Fail # Bug 18061
@@ -19,8 +16,6 @@ string_case_test/01: Fail # Bug 18061
 int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 int_parse_radix_test/02: Fail # No bigints.
 integer_to_radix_string_test: RuntimeError # issue 22045
-int_modulo_arith_test/bignum: RuntimeError # No bigints.
-int_modulo_arith_test/modPow: RuntimeError # No bigints.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 
 [ $runtime == safari || $runtime == safarimobilesim ]
@@ -34,7 +29,6 @@ double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. 
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 error_stack_trace1_test: RuntimeError # Issue 12399
-hash_set_test/01: RuntimeError # Issue 11551
 integer_to_string_test/01: RuntimeError # Issue 1533
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
@@ -70,7 +64,6 @@ from_environment_const_type_undefined_test/16: CompileTimeError
 
 [ $compiler == dart2analyzer ]
 int_parse_radix_bad_handler_test: fail
-hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
@@ -122,11 +115,6 @@ regexp/pcre_test: RuntimeError # Issue 27394
 regress/4562_test/01: Crash # Issue 27394
 
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
-int_from_environment3_test/01: MissingCompileTimeError
-int_from_environment3_test/02: MissingCompileTimeError
-int_from_environment3_test/03: MissingCompileTimeError
-int_from_environment3_test/04: MissingCompileTimeError
-int_from_environment3_test/05: MissingCompileTimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
@@ -169,21 +157,6 @@ for_in_test: Crash
 growable_list_test: Crash
 has_next_iterator_test: Crash
 hash_map2_test: Crash
-hash_set_test/01: Crash
-hash_set_test/none: Crash
-hash_set_type_check_test: Crash
-hashcode_test: Crash
-hidden_library2_test/01: Crash
-hidden_library2_test/none: Crash
-indexed_list_access_test: Crash
-int_from_environment3_test/01: MissingCompileTimeError
-int_from_environment3_test/02: MissingCompileTimeError
-int_from_environment3_test/03: MissingCompileTimeError
-int_from_environment3_test/04: MissingCompileTimeError
-int_from_environment3_test/05: Crash
-int_modulo_arith_test/bignum: Crash
-int_modulo_arith_test/modPow: Crash
-int_modulo_arith_test/none: Crash
 int_parse_radix_bad_handler_test: Crash
 int_parse_radix_test/01: Crash
 int_parse_radix_test/02: Crash
@@ -370,7 +343,6 @@ symbol_test/03: Crash
 symbol_test/none: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-hash_map_test: Crash
 list_sort_test: Crash
 map_contains_key_test: Crash
 map_index_test: Crash
@@ -425,14 +397,6 @@ from_environment_const_type_undefined_test/14: Crash
 from_environment_const_type_undefined_test/15: Crash
 from_environment_const_type_undefined_test/16: Crash
 from_environment_const_type_undefined_test/none: Crash
-hash_map_test: Crash
-hashcode_boxed_test: Crash
-int_ceil_test: Crash
-int_ceil_to_double_test: Crash
-int_floor_test: Crash
-int_floor_to_double_test: Crash
-int_from_environment2_test: Crash
-int_from_environment_test: Crash
 int_round_test: Crash
 int_round_to_double_test: Crash
 int_to_int_test: Crash
@@ -527,8 +491,6 @@ from_environment_const_type_undefined_test/08: MissingCompileTimeError
 
 # Possible bugs
 format_exception_test: RuntimeError # Flutter Issue 9111
-int_from_environment_test: Fail # Flutter Issue 9111
-int_from_environment2_test: Fail # Flutter Issue 9111
 from_environment_const_type_test/none: Fail # Flutter Issue 9111
 from_environment_const_type_test/01: Fail # Flutter Issue 9111
 from_environment_const_type_test/05: Fail # Flutter Issue 9111

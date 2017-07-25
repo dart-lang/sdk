@@ -72,6 +72,10 @@ big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 bit_twiddling_bigint_test: RuntimeError # Required bigint support.
 compare_to2_test: RuntimeError, OK # Requires bigint support.
+hash_set_test/01: RuntimeError # Issue 11551
+int_modulo_arith_test/bignum: RuntimeError # Issue 29921
+int_modulo_arith_test/modPow: RuntimeError # Issue 29921
+int_modulo_arith_test/none: RuntimeError # Issue 29921
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -79,6 +83,8 @@ core_runtime_types_test: Pass, Fail # Issue 27913
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
 bool_from_environment_test: Fail # Flutter Issue 9111
+int_from_environment_test: Fail # Flutter Issue 9111
+int_from_environment2_test: Fail # Flutter Issue 9111
 string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
@@ -257,6 +263,20 @@ date_time4_test: Crash
 date_time7_test: Crash
 date_time_parse_test: Crash
 date_time_test: Crash
+hash_set_test/01: Crash
+hash_set_test/none: Crash
+hash_set_type_check_test: RuntimeError
+hashcode_test: Crash
+hidden_library2_test/01: Crash
+hidden_library2_test/none: Crash
+int_from_environment3_test/01: MissingCompileTimeError
+int_from_environment3_test/02: MissingCompileTimeError
+int_from_environment3_test/03: MissingCompileTimeError
+int_from_environment3_test/04: MissingCompileTimeError
+int_from_environment3_test/05: Crash
+int_modulo_arith_test/bignum: Crash
+int_modulo_arith_test/modPow: Crash
+int_modulo_arith_test/none: Crash
 stacktrace_fromstring_test: Crash
 stopwatch2_test: Crash
 string_base_vm_test: Crash
