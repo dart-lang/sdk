@@ -35,7 +35,7 @@ main() {
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.
-const _fastaProblem = const Object();
+const fastaProblem = const Object();
 
 @reflectiveTest
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
@@ -126,21 +126,21 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @_fastaProblem
+  @fastaProblem
   test_class_mixins_unresolved() async {
     // Fasta generates additional `#errors` top-level variable.
     await super.test_class_mixins_unresolved();
   }
 
   @failingTest
-  @_fastaProblem
+  @fastaProblem
   test_class_supertype_unresolved() async {
     // Fasta generates additional `#errors` top-level variable.
     await super.test_class_supertype_unresolved();
   }
 
   @failingTest
-  @_fastaProblem
+  @fastaProblem
   test_class_type_parameters_bound() async {
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
     await super.test_class_type_parameters_bound();
@@ -337,46 +337,58 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  @_fastaProblem
+  @fastaProblem
   test_constructor_initializers_field_notConst() async {
     // Fasta generates additional `#errors` top-level variable.
     await super.test_constructor_initializers_field_notConst();
   }
 
   @failingTest
-  @_fastaProblem
+  @fastaProblem
   test_constructor_initializers_field_withParameter() async {
     // https://github.com/dart-lang/sdk/issues/30251
     await super.test_constructor_initializers_field_withParameter();
   }
 
   @failingTest
+  @fastaProblem
   test_constructor_redirected_factory_named_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_named_generic();
   }
 
   @failingTest
+  @fastaProblem
   test_constructor_redirected_factory_named_imported_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_named_imported_generic();
   }
 
   @failingTest
+  @fastaProblem
   test_constructor_redirected_factory_named_prefixed_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_named_prefixed_generic();
   }
 
   @failingTest
+  @fastaProblem
   test_constructor_redirected_factory_unnamed_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_unnamed_generic();
   }
 
   @failingTest
+  @fastaProblem
   test_constructor_redirected_factory_unnamed_imported_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
   }
 
   @failingTest
+  @fastaProblem
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30258
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
   }
 
