@@ -2401,10 +2401,6 @@ class SsaAstGraphBuilder extends ast.Visitor
     return interceptor;
   }
 
-  HLiteralList buildLiteralList(List<HInstruction> inputs) {
-    return new HLiteralList(inputs, commonMasks.extendableArrayType);
-  }
-
   @override
   void visitAs(ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);

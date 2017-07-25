@@ -1547,7 +1547,6 @@ list_literal3_test: Crash
 list_literal4_test: Crash
 list_test: Crash
 list_tracer_call_last_test: RuntimeError
-list_tracer_closure_test: Crash
 local_function2_test: RuntimeError
 local_function3_test: Crash
 local_function_non_equal_test: Crash

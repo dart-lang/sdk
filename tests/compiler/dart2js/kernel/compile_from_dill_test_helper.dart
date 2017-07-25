@@ -183,8 +183,16 @@ const _MARKER = const _Marker();
 class Thing<X> {
   Thing([length = _MARKER]);
 }
+foo(x) {
+  print(new List(x).length);
+}
 main() {
   print(new Thing<String>(100));
+
+  print(new List());
+  print(new List(4));
+  foo(3);
+  foo(4);
 }
 '''
   }, expectIdenticalOutput: true),
