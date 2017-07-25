@@ -39,6 +39,7 @@ class Interpreter {
 class Location {
   Value value;
 
+  Location.empty();
   Location(this.value);
 }
 
@@ -174,7 +175,7 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
       log.info('static-invocation-${node.target.name.toString()}\n');
 
       List<InterpreterExpression> args =
-          _createArgumentExpressionList(node.arguments, node.target.function);
+          _getArgumentExpressions(node.arguments, node.target.function);
       ApplicationContinuation cont =
           new StaticInvocationA(node.target.function, config.continuation);
       return new EvalListConfiguration(args, config.environment, cont);
@@ -192,8 +193,13 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
   }
 
   Configuration visitConstructorInvocation(
-          ConstructorInvocation node, EvalConfiguration config) =>
-      defaultExpression(node, config);
+      ConstructorInvocation node, EvalConfiguration config) {
+    ApplicationContinuation cont =
+        new ConstructorInvocationA(node.target, config.continuation);
+    var args = _getArgumentExpressions(node.arguments, node.target.function);
+
+    return new EvalListConfiguration(args, config.environment, cont);
+  }
 
   Configuration visitNot(Not node, EvalConfiguration config) {
     return new EvalConfiguration(
@@ -229,8 +235,10 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
   }
 
   Configuration visitThisExpression(
-          ThisExpression node, EvalConfiguration config) =>
-      defaultExpression(node, config);
+      ThisExpression node, EvalConfiguration config) {
+    return new ValuePassingConfiguration(
+        config.continuation, config.environment.thisInstance);
+  }
 
   // Evaluation of BasicLiterals.
   Configuration visitStringLiteral(
@@ -510,16 +518,6 @@ class BlockSK extends StatementContinuation {
   }
 }
 
-class NewSK extends StatementContinuation {
-  final ExpressionContinuation continuation;
-  final Location location;
-
-  NewSK(this.continuation, this.location);
-
-  Configuration call(Environment _) =>
-      new ValuePassingConfiguration(continuation, location.value);
-}
-
 class WhileConditionSK extends StatementContinuation {
   final Expression condition;
   final Statement body;
@@ -532,6 +530,31 @@ class WhileConditionSK extends StatementContinuation {
     // Evaluate the condition for the while loop execution.
     var cont = new WhileConditionEK(condition, body, enclosingEnv, state);
     return new EvalConfiguration(condition, enclosingEnv, cont);
+  }
+}
+
+/// Applies the expression continuation to the provided value.
+class NewSK extends StatementContinuation {
+  final ExpressionContinuation continuation;
+  final Location location;
+
+  NewSK(this.continuation, this.location);
+
+  Configuration call(Environment _) =>
+      new ValuePassingConfiguration(continuation, location.value);
+}
+
+class ConstructorBodySK extends StatementContinuation {
+  final Statement body;
+  final Environment environment;
+  // TODO(zhivkag): Add component for exception handler.
+  final StatementContinuation continuation;
+
+  ConstructorBodySK(this.body, this.environment, this.continuation);
+
+  Configuration call(Environment _) {
+    return new ExecConfiguration(
+        body, environment, new State(null, null, continuation));
   }
 }
 
@@ -625,6 +648,28 @@ class StaticInvocationA extends ApplicationContinuation {
   }
 }
 
+/// Represents the application continuation for constructor invocation applied
+/// on the list of evaluated arguments when a constructor is invoked with new.
+///
+/// It creates the newly allocated object instance.
+class ConstructorInvocationA extends ApplicationContinuation {
+  final Constructor constructor;
+  final ExpressionContinuation continuation;
+
+  ConstructorInvocationA(this.constructor, this.continuation);
+
+  Configuration call(List<InterpreterValue> argValues) {
+    Environment ctrEnv = ApplicationContinuation.createEnvironment(
+        constructor.function, argValues);
+
+    var newObject = new ObjectValue(constructor.enclosingClass);
+    var cont = new InitializationEK(
+        constructor, ctrEnv, new NewSK(continuation, new Location(newObject)));
+
+    return new ValuePassingConfiguration(cont, newObject);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                           Expression Continuations
 // ------------------------------------------------------------------------
@@ -669,7 +714,6 @@ class PropertyGetEK extends ExpressionContinuation {
   PropertyGetEK(this.name, this.continuation);
 
   Configuration call(Value receiver) {
-    // TODO: CPS the invocation of the getter.
     Value propertyValue = receiver.class_.lookupImplicitGetter(name)(receiver);
     return new ValuePassingConfiguration(continuation, propertyValue);
   }
@@ -891,12 +935,41 @@ class VariableInitializerEK extends ExpressionContinuation {
   final VariableDeclaration variable;
   final Environment environment;
   final StatementContinuation continuation;
-
   VariableInitializerEK(this.variable, this.environment, this.continuation);
 
   Configuration call(Value v) {
     return new ForwardConfiguration(
         continuation, environment.extend(variable, v));
+  }
+}
+
+/// Expression continuation that further initializes the newly allocated object
+/// instance with running the constructor.
+class InitializationEK extends ExpressionContinuation {
+  final Constructor constructor;
+  final Environment environment;
+  // TODO(zhivkag): Add components for exception handling support
+  final StatementContinuation continuation;
+
+  InitializationEK(this.constructor, this.environment, this.continuation);
+
+  Configuration call(Value value) {
+    if (constructor.enclosingClass.superclass.superclass != null) {
+      throw 'Support for super constructors in not implemented.';
+    }
+
+    if (constructor.initializers.isNotEmpty &&
+        !(constructor.initializers.last is SuperInitializer)) {
+      throw 'Support for initializer is not implemented.';
+    }
+
+    // The statement body is captured by the next statement continuation and
+    // expressions for field initialization are evaluated.
+    var ctrEnv = environment.extendWithThis(value);
+    var bodyCont =
+        new ConstructorBodySK(constructor.function.body, ctrEnv, continuation);
+    // TODO(zhivkag): Add support for initialization of fields with initializers.
+    return new ForwardConfiguration(bodyCont, ctrEnv);
   }
 }
 
@@ -1095,7 +1168,7 @@ class Class {
       if (f.hasImplicitSetter) {
         // Shadowing an inherited setter with the same name.
         implicitSetters[f.name] = (Value receiver, Value value) =>
-            receiver.fields[currentFieldIndex] = new Location(value);
+            receiver.fields[currentFieldIndex].value = value;
       }
     }
   }
@@ -1107,10 +1180,11 @@ class Class {
       _populateInstanceMethods(class_.superclass);
     }
 
-    for (Procedure p in class_.members) {
-      if (p.isStatic) continue;
-      // Shadowing an inherited method, getter or setter with the same name.
-      methods[p.name] = p;
+    for (Member m in class_.members) {
+      if (m is Procedure) {
+        // Shadowing an inherited method, getter or setter with the same name.
+        methods[m.name] = m;
+      }
     }
   }
 }
@@ -1142,11 +1216,18 @@ abstract class Value {
 }
 
 class ObjectValue extends Value {
-  Class class_;
-  List<Location> fields;
+  final Class class_;
+  final List<Location> fields;
   Object get value => this;
 
-  ObjectValue(this.class_, this.fields);
+  ObjectValue(ast.Class classDeclaration)
+      : class_ = new Class(classDeclaration.reference),
+        fields = new List<Location>(classDeclaration.fields.length) {
+    for (int i = 0; i < fields.length; i++) {
+      // Create fresh locations for each field.
+      fields[i] = new Location.empty();
+    }
+  }
 }
 
 abstract class LiteralValue extends Value {
@@ -1252,10 +1333,11 @@ notImplemented({String m, Object obj}) {
 // ------------------------------------------------------------------------
 //                             INTERNAL FUNCTIONS
 // ------------------------------------------------------------------------
+
 /// Creates a list of all argument expressions to be evaluated for the
 /// invocation of the provided [FunctionNode] containing the actual arguments
 /// and the optional argument initializers.
-List<InterpreterExpression> _createArgumentExpressionList(
+List<InterpreterExpression> _getArgumentExpressions(
     Arguments providedArgs, FunctionNode fun) {
   List<InterpreterExpression> args = <InterpreterExpression>[];
   // Add positional arguments expressions.
