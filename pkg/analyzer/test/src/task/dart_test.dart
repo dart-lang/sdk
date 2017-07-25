@@ -3478,7 +3478,7 @@ class A {}
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
@@ -3589,7 +3589,7 @@ class A {}
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
@@ -4292,10 +4292,9 @@ var tau = piFirst ? pi * 2 : 6.28;
     CompilationUnit unit2 = units[2];
 
     InterfaceType intType = context.typeProvider.intType;
-    DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
@@ -4303,7 +4302,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
-    assertAssignmentStatementTypes(statements[1], intType, dynamicType);
+    assertAssignmentStatementTypes(statements[1], intType, intType);
   }
 
   // Test inference interactions between local variables and fields
@@ -4431,12 +4430,11 @@ var tau = piFirst ? pi * 2 : 6.28;
     CompilationUnit unit2 = units[2];
 
     InterfaceType intType = context.typeProvider.intType;
-    DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
@@ -4447,7 +4445,7 @@ var tau = piFirst ? pi * 2 : 6.28;
         AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
-    assertAssignmentStatementTypes(statements[2], intType, dynamicType);
+    assertAssignmentStatementTypes(statements[2], intType, intType);
   }
 
   // Test inference across units (non-cyclic)

@@ -1253,20 +1253,8 @@ class CodeChecker extends RecursiveAstVisitor {
         return;
       }
 
-      Element enclosing = e.enclosingElement;
-      if (enclosing is CompilationUnitElement) {
-        if (e is PropertyAccessorElement) {
-          validateHasType(e);
-        }
-      } else if (enclosing is ClassElement) {
-        if (e is PropertyAccessorElement) {
-          if (e.isStatic) {
-            validateHasType(e);
-          } else {
-            _recordMessage(
-                n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [name, e.name]);
-          }
-        }
+      if (e is PropertyAccessorElement) {
+        validateHasType(e);
       }
     }
 
@@ -1296,8 +1284,8 @@ class CodeChecker extends RecursiveAstVisitor {
           operator == TokenType.BANG_EQ) {
         // These operators give 'bool', no need to validate operands.
       } else if (operator == TokenType.QUESTION_QUESTION) {
-        _recordMessage(n, StrongModeCode.TOP_LEVEL_UNSUPPORTED,
-            [name, n.runtimeType.toString()]);
+        _validateTopLevelInitializer(name, n.leftOperand);
+        _validateTopLevelInitializer(name, n.rightOperand);
       } else {
         _validateTopLevelInitializer(name, n.leftOperand);
       }
@@ -1324,20 +1312,6 @@ class CodeChecker extends RecursiveAstVisitor {
         }
       }
     } else if (n is FunctionExpression) {
-      for (FormalParameter p in n.parameters.parameters) {
-        if (p is DefaultFormalParameter) {
-          p = (p as DefaultFormalParameter).parameter;
-        }
-        if (p is SimpleFormalParameter) {
-          if (p.type == null) {
-            _recordMessage(
-                p,
-                StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER,
-                [name, p.element?.name]);
-          }
-        }
-      }
-
       FunctionBody body = n.body;
       if (body is ExpressionFunctionBody) {
         _validateTopLevelInitializer(name, body.expression);
@@ -1345,15 +1319,7 @@ class CodeChecker extends RecursiveAstVisitor {
         _recordMessage(n, StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, []);
       }
     } else if (n is InstanceCreationExpression) {
-      ConstructorElement constructor = n.staticElement;
-      ClassElement clazz = constructor?.enclosingElement;
-      if (clazz != null && clazz.typeParameters.isNotEmpty) {
-        TypeName type = n.constructorName.type;
-        if (type.typeArguments == null) {
-          _recordMessage(type, StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
-              [name, clazz.name]);
-        }
-      }
+      // Nothing to validate.
     } else if (n is AsExpression) {
       // Nothing to validate.
     } else if (n is IsExpression) {
@@ -1365,22 +1331,10 @@ class CodeChecker extends RecursiveAstVisitor {
       validateIdentifierElement(n.propertyName, element);
     } else if (n is FunctionExpressionInvocation) {
       _validateTopLevelInitializer(name, n.function);
-      // TODO(scheglov) type arguments
     } else if (n is MethodInvocation) {
       _validateTopLevelInitializer(name, n.target);
-      SimpleIdentifier methodName = n.methodName;
-      Element element = methodName.staticElement;
-      if (element is ExecutableElement && element.typeParameters.isNotEmpty) {
-        if (n.typeArguments == null) {
-          _recordMessage(methodName, StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
-              [name, methodName.name]);
-        }
-      }
     } else if (n is CascadeExpression) {
       _validateTopLevelInitializer(name, n.target);
-    } else {
-      _recordMessage(n, StrongModeCode.TOP_LEVEL_UNSUPPORTED,
-          [name, n.runtimeType.toString()]);
     }
   }
 }

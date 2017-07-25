@@ -338,7 +338,7 @@ var y = C.x;
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '(D) → dynamic');
+        '(D) → E');
   }
 
   void test_inferredType_implicitFunctionTypeIndices() {
@@ -525,11 +525,11 @@ class C {
     addBundle('/a.ds', bundle);
     createLinker('''
 import 'a.dart';
-var x = new C().f; // Inferred type: dynamic
+var x = new C().f; // Inferred type: int
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'dynamic');
+        'int');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_instanceField_toInstanceField() {
@@ -542,12 +542,12 @@ class C {
     createLinker('''
 import 'a.dart';
 class D {
-  var g = new C().f; // Inferred type: dynamic
+  var g = new C().f; // Inferred type: int
 }
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     ClassElementForLink_Class classD = library.getContainedName('D');
-    expect(classD.fields[0].inferredType.toString(), 'dynamic');
+    expect(classD.fields[0].inferredType.toString(), 'int');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {

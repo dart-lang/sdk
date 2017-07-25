@@ -64,18 +64,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
 
   @override
   @failingTest
-  test_const_invokeConstructor_generic_noTypeArguments() async {
-    await super.test_const_invokeConstructor_generic_noTypeArguments();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_boundRefersToItself() async {
-    await super.test_instantiateToBounds_boundRefersToItself();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     await super.test_syntheticFunctionType_genericClosure();
   }

@@ -31,7 +31,7 @@ class InstanceMemberInferrerTest extends ResolverTestCase {
     AnalysisContext context = library.context;
     var inheritanceManager = new InheritanceManager(library);
     return new InstanceMemberInferrer(
-        context.typeProvider, (_) => inheritanceManager, new Set(),
+        context.typeProvider, (_) => inheritanceManager,
         typeSystem: context.typeSystem);
   }
 

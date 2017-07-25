@@ -5002,6 +5002,8 @@ class StrongModeCode extends ErrorCode {
    * hints and then clean up the function _errorSeverity in
    * test/src/task/strong/strong_test_helper.dart.
    */
+  /* TODO(leafp) Delete most of these.  
+   */
   static const StrongModeCode TOP_LEVEL_CYCLE = const StrongModeCode(
       ErrorType.HINT,
       'TOP_LEVEL_CYCLE',

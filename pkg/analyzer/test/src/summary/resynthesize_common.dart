@@ -1144,8 +1144,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else if (resynthesized is BottomTypeImpl && original is BottomTypeImpl) {
       expect(resynthesized, same(original));
     } else if (resynthesized.runtimeType != original.runtimeType) {
-      fail('Type mismatch: expected ${original.runtimeType},'
-          ' got ${resynthesized.runtimeType} ($desc)');
+      fail('Type mismatch: expected $original,'
+          ' got $resynthesized ($desc)');
     } else {
       fail('Unimplemented comparison for ${original.runtimeType}');
     }
@@ -3133,7 +3133,7 @@ const int v = 'abc'.
 ''');
       } else {
         checkElementText(library, r'''
-const dynamic v/*error: instanceGetter*/ = 'abc'.
+const int v = 'abc'.
         length/*location: dart:core;String;length?*/;
 ''');
       }
@@ -3161,7 +3161,7 @@ const int v =
       } else {
         checkElementText(library, r'''
 const String S = 'abc';
-const dynamic v/*error: instanceGetter*/ =
+const int v =
         S/*location: test.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
@@ -3187,7 +3187,7 @@ const v = S.length;
     if (isStrongMode) {
       checkElementText(library, r'''
 import 'a.dart';
-const dynamic v/*error: instanceGetter*/ =
+const int v =
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
@@ -3212,7 +3212,7 @@ const v = p.S.length;
     if (isStrongMode) {
       checkElementText(library, r'''
 import 'a.dart' as p;
-const dynamic v/*error: instanceGetter*/ =
+const int v =
         p/*location: test.dart;p*/.
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
@@ -4307,7 +4307,7 @@ enum E {
 }
 final E vValue;
 final List<E> vValues;
-final dynamic vIndex/*error: instanceGetter*/;
+final int vIndex;
 ''');
     } else {
       checkElementText(library, r'''
