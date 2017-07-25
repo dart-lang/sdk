@@ -19,7 +19,8 @@ HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 
-BASE_URL = 'http://gsdview.appspot.com/dart-archive/channels/dev/raw/latest/sdk'
+DART_VERSION = '1.25.0-dev.7.0'
+BASE_URL = 'http://gsdview.appspot.com/dart-archive/channels/dev/raw/' + DART_VERSION +'/sdk'
 
 def host_os_for_sdk(host_os):
   if host_os.startswith('macos'):
