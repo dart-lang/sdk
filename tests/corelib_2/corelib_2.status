@@ -124,6 +124,12 @@ bool_from_environment_test: Skip
 string_case_test/01: Fail # Issue 18061
 
 [ $runtime == ff || $runtime == jsshell ]
+# Firefox takes advantage of the ECMAScript number parsing cop-out clause
+# (presumably added to allow Mozilla's existing behavior)
+# and only looks at the first 20 significant digits.
+# The Dart VM and the other ECMAScript implementations follow the correct
+# IEEE-754 rounding algorithm.
+double_parse_test/02: Fail, OK
 unicode_test: Fail
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]

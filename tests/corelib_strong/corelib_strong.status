@@ -43,7 +43,6 @@ splay_tree_test: Skip
 string_replace_test: Skip
 
 [ $compiler == dartdevc ]
-double_parse_test/01: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
 int_from_environment_test: RuntimeError # Issue 29921
 int_modulo_arith_test/bignum: RuntimeError # Issue 29921
