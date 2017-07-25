@@ -235,39 +235,6 @@ abstract class ServerPlugin {
   }
 
   /**
-   * Handle an 'analysis.reanalyze' request.
-   */
-  Future<AnalysisReanalyzeResult> handleAnalysisReanalyze(
-      AnalysisReanalyzeParams parameters) async {
-    List<String> rootPaths = parameters.roots;
-    if (rootPaths == null) {
-      //
-      // Reanalyze everything.
-      //
-      List<ContextRoot> roots = driverMap.keys.toList();
-      for (ContextRoot contextRoot in roots) {
-        AnalysisDriverGeneric driver = driverMap[contextRoot];
-        driver.dispose();
-        driver = createAnalysisDriver(contextRoot);
-        driverMap[contextRoot] = driver;
-      }
-      return new AnalysisReanalyzeResult();
-    } else {
-      //
-      // Reanalyze a specific set of files.
-      //
-      // TODO(brianwilkerson) There is no API for telling a driver that we need
-      // to have some files reanalyzed.
-//      for (String rootPath in rootPaths) {
-//        ContextRoot contextRoot = contextRootContaining(rootPath);
-//        AnalysisDriverGeneric driver = driverMap[contextRoot];
-//        driver.reanalyze(rootPath);
-//      }
-      return null;
-    }
-  }
-
-  /**
    * Handle an 'analysis.setContextRoots' request.
    */
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
@@ -506,10 +473,6 @@ abstract class ServerPlugin {
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
         var params = new AnalysisHandleWatchEventsParams.fromRequest(request);
         result = await handleAnalysisHandleWatchEvents(params);
-        break;
-      case ANALYSIS_REQUEST_REANALYZE:
-        var params = new AnalysisReanalyzeParams.fromRequest(request);
-        result = await handleAnalysisReanalyze(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
         var params = new AnalysisSetContextRootsParams.fromRequest(request);

@@ -72,12 +72,4 @@ class ReanalyzeTest extends AbstractAnalysisTest {
       expect(errors, hasLength(1));
     }
   }
-
-  test_sentToPlugins() async {
-    createProject();
-    Request request = new Request("0", ANALYSIS_REQUEST_REANALYZE);
-    handleSuccessfulRequest(request);
-    // verify
-    expect(pluginManager.broadcastedRequest, isNotNull);
-  }
 }

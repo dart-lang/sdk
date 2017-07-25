@@ -156,6 +156,22 @@ abstract class PluginInfo {
   }
 
   /**
+   * Add the given context [roots] to the set of context roots being analyzed by
+   * this plugin.
+   */
+  void addContextRoots(Iterable<analyzer.ContextRoot> roots) {
+    bool changed = false;
+    for (analyzer.ContextRoot contextRoot in roots) {
+      if (contextRoots.add(contextRoot)) {
+        changed = true;
+      }
+    }
+    if (changed) {
+      _updatePluginRoots();
+    }
+  }
+
+  /**
    * Return `true` if at least one of the context roots being analyzed contains
    * the file with the given [filePath].
    */
@@ -485,6 +501,46 @@ class PluginManager {
       if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
         plugin.stop();
+      }
+    }
+  }
+
+  /**
+   * Restart all currently running plugins.
+   */
+  Future<Null> restartPlugins() async {
+    for (PluginInfo plugin in _pluginMap.values.toList()) {
+      if (plugin.currentSession != null) {
+        //
+        // Capture needed state.
+        //
+        Set<analyzer.ContextRoot> contextRoots = plugin.contextRoots;
+        String path = plugin.pluginId;
+        //
+        // Stop the plugin.
+        //
+        await plugin.stop();
+        //
+        // Restart the plugin.
+        //
+        _pluginMap[path] = plugin;
+        PluginSession session = await plugin.start(byteStorePath, sdkPath);
+        session?.onDone?.then((_) {
+          _pluginMap.remove(path);
+        });
+        //
+        // Re-initialize the plugin.
+        //
+        plugin.addContextRoots(contextRoots);
+        if (_analysisSetSubscriptionsParams != null) {
+          plugin.sendRequest(_analysisSetSubscriptionsParams);
+        }
+        if (_overlayState.isNotEmpty) {
+          plugin.sendRequest(new AnalysisUpdateContentParams(_overlayState));
+        }
+        if (_analysisSetPriorityFilesParams != null) {
+          plugin.sendRequest(_analysisSetPriorityFilesParams);
+        }
       }
     }
   }
