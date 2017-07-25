@@ -2,5 +2,5 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-field: Pass # This should be RuntimeError when Run step is enabled. See dartbug.com/29143.
-type_variables: Pass # This should be RuntimeError when Run step is enabled. See dartbug.com/29143.
+field: RuntimeError
+type_variables: RuntimeError

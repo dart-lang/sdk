@@ -55,8 +55,7 @@ class ClosureConversionContext extends ChainContext implements CompileContext {
               updateExpectations: updateExpectations),
           const WriteDill(),
           const ReadDill(),
-          // TODO(29143): add `Run` step when Vectors are added to VM.
-          //const Run(),
+          const Run(),
         ];
 
   static Future<ClosureConversionContext> create(
