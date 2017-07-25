@@ -70,7 +70,7 @@ class ElementBackendStrategy extends ComputeSpannableMixin
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return _compiler.options.useKernel
+    return _compiler.options.useKernelInSsa
         ? new RastaSsaBuilder(task, backend, sourceInformationStrategy)
         : new SsaAstBuilder(task, backend, sourceInformationStrategy);
   }

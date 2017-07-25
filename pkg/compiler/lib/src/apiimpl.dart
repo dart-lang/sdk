@@ -139,7 +139,7 @@ class CompilerImpl extends Compiler {
     if (!resourceUri.isAbsolute) {
       if (node == null) node = NO_LOCATION_SPANNABLE;
       reporter.internalError(
-          node, 'Relative uri $resourceUri provided to readScript(Uri).');
+          node, 'Relative uri $resourceUri provided to readBinary(Uri).');
     }
 
     // We need to store the current element since we are reporting read errors

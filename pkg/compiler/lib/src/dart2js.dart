@@ -131,7 +131,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool showWarnings;
   bool showHints;
   bool enableColors;
-  bool loadFromDill = false;
+  bool useKernel = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
@@ -278,8 +278,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough('--categories=${categories.join(",")}');
   }
 
-  void setLoadFromDill(String argument) {
-    loadFromDill = true;
+  void setPreviewDart2(String argument) {
+    useKernel = true;
     passThrough(argument);
   }
 
@@ -334,8 +334,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // TODO(efortuna): Remove this once kernel global inference is fully
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
-    new OptionHandler(Flags.useKernel, passThrough),
-    new OptionHandler(Flags.loadFromDill, setLoadFromDill),
+    new OptionHandler(Flags.useKernelInSsa, passThrough),
+    new OptionHandler(Flags.useKernel, setPreviewDart2),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -461,9 +461,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   for (String hint in hints) {
     diagnosticHandler.info(hint, api.Diagnostic.HINT);
   }
-  if (loadFromDill) {
-    diagnosticHandler.autoReadFileUri = true;
-  }
 
   if (wantHelp || wantVersion) {
     helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
@@ -581,6 +578,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   Uri script = currentDirectory.resolve(arguments[0]);
+  if (useKernel && script.path.endsWith('.dill')) {
+    diagnosticHandler.autoReadFileUri = true;
+  }
   CompilerOptions compilerOptions = new CompilerOptions.parse(
       entryPoint: script,
       libraryRoot: libraryRoot,

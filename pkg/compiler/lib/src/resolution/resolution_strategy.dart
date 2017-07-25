@@ -6,6 +6,7 @@ library dart2js.resolution_strategy;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 
+import '../../compiler_new.dart' as api;
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
@@ -73,6 +74,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
       ScriptLoader scriptLoader,
+      api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
       LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,

@@ -165,8 +165,7 @@ class TypeBuilder {
   /// Check that [type] is valid in the context of `localsHandler.contextClass`.
   /// This should only be called in assertions.
   bool assertTypeInContext(DartType type, [Spannable spannable]) {
-    if (builder.compiler.options.useKernel) return true;
-    if (builder.compiler.options.loadFromDill) return true;
+    if (builder.compiler.options.useKernelInSsa) return true;
     ClassEntity contextClass = DartTypes.getClassContext(type);
     assert(
         contextClass == null ||

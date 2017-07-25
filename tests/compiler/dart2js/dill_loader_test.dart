@@ -62,7 +62,7 @@ main() {
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output,
-        options: [Flags.loadFromDill]);
+        options: [Flags.useKernel]);
     await compiler.setupSdk();
     await compiler.libraryLoader.loadLibrary(entryPoint);
 

@@ -4,6 +4,7 @@
 
 library dart2js.kernel.frontend_strategy;
 
+import '../../compiler_new.dart' as api;
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
@@ -54,6 +55,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
       ScriptLoader scriptLoader,
+      api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
       LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,
@@ -61,8 +63,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       env.Environment environment,
       DiagnosticReporter reporter,
       Measurer measurer) {
-    return new DillLibraryLoaderTask(
-        _elementMap, uriTranslator, scriptLoader, reporter, measurer);
+    return new KernelLibraryLoaderTask(
+        _elementMap, compilerInput, reporter, measurer);
   }
 
   @override

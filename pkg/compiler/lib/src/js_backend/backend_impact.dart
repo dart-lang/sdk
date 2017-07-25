@@ -203,12 +203,12 @@ class BackendImpacts {
 
   BackendImpact get throwNoSuchMethod {
     return _throwNoSuchMethod ??= new BackendImpact(
-        instantiatedClasses: _options.useKernel
+        instantiatedClasses: _options.useKernelInSsa
             ? [
                 _commonElements.symbolImplementationClass,
               ]
             : [],
-        staticUses: _options.useKernel
+        staticUses: _options.useKernelInSsa
             ? [
                 _commonElements.genericNoSuchMethod,
                 _commonElements.unresolvedConstructorError,
@@ -287,7 +287,7 @@ class BackendImpacts {
 
   BackendImpact get throwRuntimeError {
     return _throwRuntimeError ??= new BackendImpact(
-        staticUses: _options.useKernel
+        staticUses: _options.useKernelInSsa
             ? [
                 // TODO(sra): Refactor impacts so that we know which of these
                 // are called.
@@ -505,7 +505,7 @@ class BackendImpacts {
 
   BackendImpact get malformedTypeCheck {
     return _malformedTypeCheck ??= new BackendImpact(
-        staticUses: _options.useKernel
+        staticUses: _options.useKernelInSsa
             ? [
                 _commonElements.malformedTypeError,
               ]

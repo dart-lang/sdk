@@ -46,7 +46,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
     if (element is MethodElement) {
-      // TODO(sigmund): replace by kernel transformer when `useKernel` is true.
+      // TODO(sigmund): replace by kernel transformer when `useKernelInSsa` is
+      // true.
       result =
           backend.rewriteAsync(closedWorld.commonElements, element, result);
     }

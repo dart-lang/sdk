@@ -739,7 +739,7 @@ main(List<String> args) {
         memorySourceFiles: SOURCE,
         options: [
           fullTest ? Flags.analyzeAll : Flags.analyzeOnly,
-          Flags.useKernel,
+          Flags.useKernelInSsa,
           Flags.enableAssertMessage
         ]);
     compiler.resolution.retainCachesForTesting = true;

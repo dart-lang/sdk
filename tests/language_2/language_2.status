@@ -11,11 +11,11 @@ abstract_factory_constructor_test/00: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && ! $dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
 
-[ $compiler == dart2js && $runtime != none ]
+[ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
@@ -45,3 +45,15 @@ generic_methods_generic_function_result_test/none: CompileTimeError # Issue #302
 
 [ $compiler == dart2js || $compiler == dartk || $compiler == dartdevc ]
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+
+[ $compiler == dart2js && $dart2js_with_kernel ]
+aborting_switch_case_test: Crash
+abstract_exact_selector_test/none: Crash
+abstract_getter_test/01: Crash
+abstract_method_test: Crash
+abstract_object_method_test: Crash
+arg_param_trailing_comma_test/none: Crash
+arithmetic_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+abstract_exact_selector_test/01: Crash

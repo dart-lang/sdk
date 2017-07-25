@@ -52,6 +52,7 @@ typedef String LibrarySourceProvider(Uri uri);
 
 class MockCompiler extends Compiler {
   api.CompilerDiagnostics diagnosticHandler;
+  final api.CompilerInput provider = null;
 
   /// Expected number of warnings. If `null`, the number of warnings is
   /// not checked.

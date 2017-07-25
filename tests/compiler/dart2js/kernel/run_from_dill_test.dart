@@ -67,7 +67,7 @@ Future<ResultKind> mainInternal(List<String> args,
   List<String> dart2jsArgs = [
     dillFile.toString(),
     '-o$output',
-    Flags.loadFromDill,
+    Flags.useKernel,
     Flags.disableTypeInference,
     Flags.disableInlining,
     Flags.enableAssertMessage

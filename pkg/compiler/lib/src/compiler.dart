@@ -82,6 +82,8 @@ typedef CompilerDiagnosticReporter MakeReporterFunction(
 abstract class Compiler {
   Measurer get measurer;
 
+  api.CompilerInput get provider;
+
   final IdGenerator idGenerator = new IdGenerator();
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
@@ -188,10 +190,10 @@ abstract class Compiler {
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    frontendStrategy = options.loadFromDill
+    frontendStrategy = options.useKernel
         ? new KernelFrontEndStrategy(options, reporter, environment)
         : new ResolutionFrontEndStrategy(this);
-    backendStrategy = options.loadFromDill
+    backendStrategy = options.useKernel
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
@@ -213,6 +215,7 @@ abstract class Compiler {
           options.compileOnly
               ? new _NoScriptLoader(this)
               : new _ScriptLoader(this),
+          provider,
           new _ElementScanner(scanner),
           serialization,
           resolvePatchUri,
@@ -380,7 +383,7 @@ abstract class Compiler {
     // front end for the Kernel path since Kernel doesn't have the notion of
     // imports (everything has already been resolved). (See
     // https://github.com/dart-lang/sdk/issues/29368)
-    if (!options.useKernel && !options.loadFromDill) {
+    if (!options.useKernel) {
       for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
         if (loadedLibraries.containsLibrary(uri)) {
           Set<String> importChains =
@@ -461,6 +464,9 @@ abstract class Compiler {
         reporter.log('Compiling $uri (${options.buildId})');
       }
       LoadedLibraries libraries = await libraryLoader.loadLibrary(uri);
+      // Note: libraries may be null because of errors trying to find files or
+      // parse-time errors (when using `package:front_end` as a loader).
+      if (libraries == null) return;
       processLoadedLibraries(libraries);
       mainApp = libraries.rootLibrary;
     }
@@ -515,7 +521,7 @@ abstract class Compiler {
         FunctionEntity mainFunction =
             frontendStrategy.computeMain(rootLibrary, mainImpact);
 
-        if (!options.loadFromDill) {
+        if (!options.useKernel) {
           // TODO(johnniwinther): Support mirrors usages analysis from dill.
           mirrorUsageAnalyzerTask.analyzeUsage(rootLibrary);
         }
@@ -557,7 +563,7 @@ abstract class Compiler {
           }
         }
         if (frontendStrategy.commonElements.mirrorsLibrary != null &&
-            !options.loadFromDill) {
+            !options.useKernel) {
           // TODO(johnniwinther): Support mirrors from dill.
           resolveLibraryMetadata();
         }
@@ -572,7 +578,8 @@ abstract class Compiler {
         _reporter.reportSuppressedMessagesSummary();
 
         if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors || options.useKernel) {
+          if (!options.generateCodeWithCompileTimeErrors ||
+              options.useKernelInSsa) {
             return;
           }
           if (mainFunction == null) return;

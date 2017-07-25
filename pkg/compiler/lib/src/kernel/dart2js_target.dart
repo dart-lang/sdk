@@ -9,7 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
 
-import 'package:compiler/src/native/native.dart' show maybeEnableNative;
+import '../native/native.dart' show maybeEnableNative;
 
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {

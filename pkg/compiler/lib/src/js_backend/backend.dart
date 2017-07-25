@@ -443,7 +443,7 @@ class JavaScriptBackend {
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
-      bool useKernel: false})
+      bool useKernelInSsa: false})
       : optimizerHints = new OptimizerHintsForTests(
             compiler.frontendStrategy.elementEnvironment,
             compiler.frontendStrategy.commonElements),

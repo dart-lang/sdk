@@ -200,11 +200,19 @@ class CompilerOptions implements DiagnosticOptions {
   final bool useContentSecurityPolicy;
 
   /// Whether to use kernel internally as part of compilation.
-  final bool useKernel;
+  final bool useKernelInSsa;
 
-  /// Read input from a .dill file rather than a .dart input (only to be used in
-  /// conjunction with useKernel = true).
-  final bool loadFromDill;
+  /// Preview the unified front-end and compilation from kernel.
+  ///
+  /// When enabled the compiler will use the unified front-end to compile
+  /// sources to kernel, and then continue compilation from the kernel
+  /// representation. Setting this flag will implicitly set [useKernelInSsa] to
+  /// true as well.
+  ///
+  /// When this flag is on, the compiler also acccepts reading .dill files from
+  /// disk. The compiler reads the sources differently depending on the
+  /// extension format.
+  final bool useKernel;
 
   // Whether to use kernel internally for global type inference calculations.
   // TODO(efortuna): Remove this and consolidate with useKernel.
@@ -323,8 +331,8 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
+        useKernelInSsa: _hasOption(options, Flags.useKernelInSsa),
         useKernel: _hasOption(options, Flags.useKernel),
-        loadFromDill: _hasOption(options, Flags.loadFromDill),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
         useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
@@ -386,8 +394,8 @@ class CompilerOptions implements DiagnosticOptions {
       bool trustPrimitives: false,
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
+      bool useKernelInSsa: false,
       bool useKernel: false,
-      bool loadFromDill: false,
       bool useFrequencyNamer: true,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
@@ -432,8 +440,10 @@ class CompilerOptions implements DiagnosticOptions {
         suppressWarnings: suppressWarnings,
         suppressHints: suppressHints,
         shownPackageWarnings: shownPackageWarnings,
-        disableInlining: disableInlining,
-        disableTypeInference: disableTypeInference,
+        // TODO(sigmund): remove once we support inlining and type-inference
+        // with `useKernel`.
+        disableInlining: disableInlining || useKernel,
+        disableTypeInference: disableTypeInference || useKernel,
         dumpInfo: dumpInfo,
         enableAssertMessage: enableAssertMessage,
         enableExperimentalMirrors: enableExperimentalMirrors,
@@ -443,7 +453,8 @@ class CompilerOptions implements DiagnosticOptions {
         enableUserAssertions: enableUserAssertions,
         experimentalTrackAllocations: experimentalTrackAllocations,
         experimentalAllocationsPath: experimentalAllocationsPath,
-        generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors,
+        generateCodeWithCompileTimeErrors:
+            generateCodeWithCompileTimeErrors && !useKernel,
         generateSourceMap: generateSourceMap,
         kernelGlobalInference: kernelGlobalInference,
         outputUri: outputUri,
@@ -461,8 +472,8 @@ class CompilerOptions implements DiagnosticOptions {
         trustPrimitives: trustPrimitives,
         trustTypeAnnotations: trustTypeAnnotations,
         useContentSecurityPolicy: useContentSecurityPolicy,
+        useKernelInSsa: useKernelInSsa || useKernel,
         useKernel: useKernel,
-        loadFromDill: loadFromDill,
         useFrequencyNamer: useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo,
@@ -514,8 +525,8 @@ class CompilerOptions implements DiagnosticOptions {
       this.trustPrimitives: false,
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
+      this.useKernelInSsa: false,
       this.useKernel: false,
-      this.loadFromDill: false,
       this.useFrequencyNamer: false,
       this.useMultiSourceInfo: false,
       this.useNewSourceInfo: false,
@@ -574,8 +585,8 @@ class CompilerOptions implements DiagnosticOptions {
       trustPrimitives,
       trustTypeAnnotations,
       useContentSecurityPolicy,
+      useKernelInSsa,
       useKernel,
-      loadFromDill,
       useFrequencyNamer,
       useMultiSourceInfo,
       useNewSourceInfo,
@@ -646,8 +657,8 @@ class CompilerOptions implements DiagnosticOptions {
             trustTypeAnnotations ?? options.trustTypeAnnotations,
         useContentSecurityPolicy:
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
+        useKernelInSsa: useKernelInSsa ?? options.useKernelInSsa,
         useKernel: useKernel ?? options.useKernel,
-        loadFromDill: loadFromDill ?? options.loadFromDill,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
