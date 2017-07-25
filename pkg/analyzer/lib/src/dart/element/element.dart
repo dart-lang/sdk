@@ -5765,8 +5765,12 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   PrefixElement get prefix {
-    if (_unlinkedImport != null) {
-      if (_unlinkedImport.prefixReference != 0 && _prefix == null) {
+    if (_prefix == null) {
+      if (_kernel != null && _kernel.name != null) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _prefix = new PrefixElementImpl.forKernel(library, _kernel);
+      }
+      if (_unlinkedImport != null && _unlinkedImport.prefixReference != 0) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
         _prefix = new PrefixElementImpl.forSerialized(_unlinkedImport, library);
       }
@@ -8319,11 +8323,17 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   final UnlinkedImport _unlinkedImport;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.LibraryDependency _kernel;
+
+  /**
    * Initialize a newly created method element to have the given [name] and
    * [nameOffset].
    */
   PrefixElementImpl(String name, int nameOffset)
       : _unlinkedImport = null,
+        _kernel = null,
         super(name, nameOffset);
 
   /**
@@ -8331,6 +8341,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl.forNode(Identifier name)
       : _unlinkedImport = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -8338,7 +8349,15 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl.forSerialized(
       this._unlinkedImport, LibraryElementImpl enclosingLibrary)
-      : super.forSerialized(enclosingLibrary);
+      : _kernel = null,
+        super.forSerialized(enclosingLibrary);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  PrefixElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedImport = null,
+        super.forSerialized(enclosingLibrary);
 
   @override
   String get displayName => name;
@@ -8358,6 +8377,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedImport != null) {
       if (_name == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;

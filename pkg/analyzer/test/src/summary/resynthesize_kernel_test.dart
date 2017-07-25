@@ -169,23 +169,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_invokeConstructor_generic_named_imported_withPrefix() async {
-    await super
-        .test_const_invokeConstructor_generic_named_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
-    await super
-        .test_const_invokeConstructor_generic_unnamed_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_named_imported_withPrefix() async {
-    await super.test_const_invokeConstructor_named_imported_withPrefix();
-  }
-
-  @failingTest
   test_const_invokeConstructor_named_unresolved() async {
     await super.test_const_invokeConstructor_named_unresolved();
   }
@@ -213,11 +196,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_invokeConstructor_named_unresolved6() async {
     await super.test_const_invokeConstructor_named_unresolved6();
-  }
-
-  @failingTest
-  test_const_invokeConstructor_unnamed_imported_withPrefix() async {
-    await super.test_const_invokeConstructor_unnamed_imported_withPrefix();
   }
 
   @failingTest
@@ -348,11 +326,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_const_topLevel_this() async {
     await super.test_const_topLevel_this();
-  }
-
-  @failingTest
-  test_const_topLevel_typedList_importedWithPrefix() async {
-    await super.test_const_topLevel_typedList_importedWithPrefix();
   }
 
   @failingTest
@@ -863,11 +836,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_import_multiple_combinators() async {
     await super.test_import_multiple_combinators();
-  }
-
-  @failingTest
-  test_import_prefixed() async {
-    await super.test_import_prefixed();
   }
 
   @failingTest
