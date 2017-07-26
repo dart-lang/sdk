@@ -469,16 +469,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_export_class() async {
-    await super.test_export_class();
-  }
-
-  @failingTest
-  test_export_class_type_alias() async {
-    await super.test_export_class_type_alias();
-  }
-
-  @failingTest
   test_export_configurations_useDefault() async {
     await super.test_export_configurations_useDefault();
   }
@@ -494,16 +484,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_export_function() async {
-    await super.test_export_function();
-  }
-
-  @failingTest
-  test_export_getter() async {
-    await super.test_export_getter();
-  }
-
-  @failingTest
   test_export_hide() async {
     await super.test_export_hide();
   }
@@ -514,33 +494,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_export_setter() async {
-    await super.test_export_setter();
-  }
-
-  @failingTest
   test_export_show() async {
     await super.test_export_show();
-  }
-
-  @failingTest
-  test_export_typedef() async {
-    await super.test_export_typedef();
-  }
-
-  @failingTest
-  test_export_variable() async {
-    await super.test_export_variable();
-  }
-
-  @failingTest
-  test_export_variable_const() async {
-    await super.test_export_variable_const();
-  }
-
-  @failingTest
-  test_export_variable_final() async {
-    await super.test_export_variable_final();
   }
 
   @failingTest
@@ -551,11 +506,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
-  }
-
-  @failingTest
-  test_exports() async {
-    await super.test_exports();
   }
 
   @failingTest
@@ -586,11 +536,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_function_documented() async {
     await super.test_function_documented();
-  }
-
-  @failingTest
-  test_function_entry_point_in_export() async {
-    await super.test_function_entry_point_in_export();
   }
 
   @failingTest
@@ -809,33 +754,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_main_class_alias_via_export() async {
-    await super.test_main_class_alias_via_export();
-  }
-
-  @failingTest
-  test_main_class_via_export() async {
-    await super.test_main_class_via_export();
-  }
-
-  @failingTest
-  test_main_getter_via_export() async {
-    await super.test_main_getter_via_export();
-  }
-
-  @failingTest
   test_main_typedef() async {
     await super.test_main_typedef();
-  }
-
-  @failingTest
-  test_main_typedef_via_export() async {
-    await super.test_main_typedef_via_export();
-  }
-
-  @failingTest
-  test_main_variable_via_export() async {
-    await super.test_main_variable_via_export();
   }
 
   @failingTest
@@ -1363,11 +1283,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
     // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_unnamedConstructorCall_noClass();
-  }
-
-  @failingTest
-  test_unresolved_export() async {
-    await super.test_unresolved_export();
   }
 
   @failingTest

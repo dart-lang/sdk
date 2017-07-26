@@ -1685,7 +1685,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
       }
       if (builder is PrefixBuilder) {
-        name = scopeLookup(builder.exports, suffix, beginToken,
+        name = scopeLookup(builder.exportScope, suffix, beginToken,
             isQualified: true, prefix: builder);
       } else {
         push(const InvalidType());
@@ -2137,7 +2137,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       var prefix = type[0];
       identifier = type[1];
       if (prefix is PrefixBuilder) {
-        type = scopeLookup(prefix.exports, identifier.name, start,
+        type = scopeLookup(prefix.exportScope, identifier.name, start,
             isQualified: true, prefix: prefix);
         identifier = null;
       } else if (prefix is TypeDeclarationAccessor) {

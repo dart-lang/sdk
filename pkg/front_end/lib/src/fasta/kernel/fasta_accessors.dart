@@ -511,7 +511,7 @@ class SendAccessor extends IncompleteSend {
             "Library prefix '${prefix.name}' can't be used with null-aware "
             "operator.\nTry removing '?'.");
       }
-      receiver = helper.scopeLookup(prefix.exports, name.name, token,
+      receiver = helper.scopeLookup(prefix.exportScope, name.name, token,
           isQualified: true, prefix: prefix);
       return helper.finishSend(receiver, arguments, offsetForToken(token));
     }
@@ -583,7 +583,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
             "Library prefix '${prefix.name}' can't be used with null-aware "
             "operator.\nTry removing '?'.");
       }
-      return helper.scopeLookup(prefix.exports, name.name, token,
+      return helper.scopeLookup(prefix.exportScope, name.name, token,
           isQualified: true, prefix: prefix);
     }
 

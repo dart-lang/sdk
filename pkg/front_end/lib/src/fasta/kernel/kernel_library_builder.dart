@@ -5,6 +5,7 @@
 library fasta.kernel_library_builder;
 
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
+import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
 
@@ -731,6 +732,18 @@ class KernelLibraryBuilder
             new LibraryDependency.import(importedLibrary, name: import.prefix));
       }
     }
+    for (Export import in exports) {
+      var exportedBuilder = import.exported;
+      Library exportedLibrary;
+      if (exportedBuilder is DillLibraryBuilder) {
+        exportedLibrary = exportedBuilder.library;
+      } else if (exportedBuilder is KernelLibraryBuilder) {
+        exportedLibrary = exportedBuilder.library;
+      }
+      if (exportedLibrary != null) {
+        library.addDependency(new LibraryDependency.export(exportedLibrary));
+      }
+    }
     library.name = name;
     library.procedures.sort(compareProcedures);
     return library;
@@ -794,7 +807,7 @@ class KernelLibraryBuilder
         // Handles the case where the same prefix is used for different
         // imports.
         return builder
-          ..exports.merge(other.exports,
+          ..exportScope.merge(other.exportScope,
               (String name, Builder existing, Builder member) {
             return buildAmbiguousBuilder(name, existing, member, charOffset,
                 isExport: isExport, isImport: isImport);

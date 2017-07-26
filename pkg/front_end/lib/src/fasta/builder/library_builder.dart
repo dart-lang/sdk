@@ -37,7 +37,7 @@ import 'builder.dart'
 abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   final Scope scope;
 
-  final Scope exports;
+  final Scope exportScope;
 
   final ScopeBuilder scopeBuilder;
 
@@ -56,11 +56,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   bool mayImplementRestrictedTypes = false;
 
-  LibraryBuilder(Uri fileUri, this.scope, this.exports)
+  LibraryBuilder(Uri fileUri, this.scope, this.exportScope)
       : fileUri = fileUri,
         relativeFileUri = relativizeUri(fileUri),
         scopeBuilder = new ScopeBuilder(scope),
-        exportScopeBuilder = new ScopeBuilder(exports),
+        exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
   Loader get loader;
@@ -103,7 +103,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Map<String, Builder> map =
-        member.isSetter ? exports.setters : exports.local;
+        member.isSetter ? exportScope.setters : exportScope.local;
     Builder existing = map[name];
     if (existing == member) return false;
     if (existing != null) {
@@ -149,8 +149,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
           -1,
           null);
     }
-    Builder cls =
-        (bypassLibraryPrivacy ? scope : exports).lookup(className, -1, null);
+    Builder cls = (bypassLibraryPrivacy ? scope : exportScope)
+        .lookup(className, -1, null);
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.

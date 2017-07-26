@@ -68,6 +68,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<Import> imports = <Import>[];
 
+  final List<Export> exports = <Export>[];
+
   final Scope importScope;
 
   final Uri fileUri;
@@ -151,9 +153,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addExport(List<MetadataBuilder> metadata, String uri,
       Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    loader
-        .read(resolve(uri), charOffset, accessor: this)
-        .addExporter(this, combinators, charOffset);
+    var exportedLibrary = loader.read(resolve(uri), charOffset, accessor: this);
+    exportedLibrary.addExporter(this, combinators, charOffset);
+    exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
 
   void addImport(
@@ -337,7 +339,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             fileUri);
       }
       return existing
-        ..exports.merge(builder.exports,
+        ..exportScope.merge(builder.exportScope,
             (String name, Builder existing, Builder member) {
           return buildAmbiguousBuilder(name, existing, member, charOffset);
         });
@@ -498,7 +500,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exports.forEach((String name, Builder member) {
+      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
         addToScope(name, member, -1, true);
       });
     }

@@ -4293,6 +4293,11 @@ class ExportElementImpl extends UriReferencedElementImpl
   final UnlinkedExportNonPublic _unlinkedExportNonPublic;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.LibraryDependency _kernel;
+
+  /**
    * The library that is exported from this library by this export directive.
    */
   LibraryElement _exportedLibrary;
@@ -4314,14 +4319,24 @@ class ExportElementImpl extends UriReferencedElementImpl
   ExportElementImpl(int offset)
       : _unlinkedExportPublic = null,
         _unlinkedExportNonPublic = null,
+        _kernel = null,
         super(null, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ExportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedExportPublic = null,
+        _unlinkedExportNonPublic = null,
+        super.forSerialized(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
    */
   ExportElementImpl.forSerialized(this._unlinkedExportPublic,
       this._unlinkedExportNonPublic, LibraryElementImpl enclosingLibrary)
-      : super.forSerialized(enclosingLibrary);
+      : _kernel = null,
+        super.forSerialized(enclosingLibrary);
 
   @override
   List<NamespaceCombinator> get combinators {
@@ -4339,9 +4354,18 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   LibraryElement get exportedLibrary {
-    if (_unlinkedExportNonPublic != null && _exportedLibrary == null) {
-      LibraryElementImpl library = enclosingElement as LibraryElementImpl;
-      _exportedLibrary = library.resynthesizerContext.buildExportedLibrary(uri);
+    if (_exportedLibrary == null) {
+      if (_kernel != null) {
+        Uri exportedUri = _kernel.targetLibrary.importUri;
+        String exportedUriStr = exportedUri.toString();
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _exportedLibrary = library._kernelContext.getLibrary(exportedUriStr);
+      }
+      if (_unlinkedExportNonPublic != null) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _exportedLibrary =
+            library.resynthesizerContext.buildExportedLibrary(uri);
+      }
     }
     return _exportedLibrary;
   }
@@ -6235,28 +6259,37 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ExportElement> get exports {
-    if (_unlinkedDefiningUnit != null && _exports == null) {
-      List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
-          _unlinkedDefiningUnit.exports;
-      List<UnlinkedExportPublic> unlinkedPublicExports =
-          _unlinkedDefiningUnit.publicNamespace.exports;
-      assert(
-          _unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
-      int length = unlinkedNonPublicExports.length;
-      if (length != 0) {
-        List<ExportElement> exports = new List<ExportElement>();
-        for (int i = 0; i < length; i++) {
-          UnlinkedExportPublic serializedExportPublic =
-              unlinkedPublicExports[i];
-          UnlinkedExportNonPublic serializedExportNonPublic =
-              unlinkedNonPublicExports[i];
-          ExportElementImpl exportElement = new ExportElementImpl.forSerialized(
-              serializedExportPublic, serializedExportNonPublic, library);
-          exports.add(exportElement);
+    if (_exports == null) {
+      if (_kernelContext != null) {
+        _exports = _kernelContext.library.dependencies
+            .where((k) => k.isExport)
+            .map((k) => new ExportElementImpl.forKernel(this, k))
+            .toList(growable: false);
+      }
+      if (_unlinkedDefiningUnit != null) {
+        List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
+            _unlinkedDefiningUnit.exports;
+        List<UnlinkedExportPublic> unlinkedPublicExports =
+            _unlinkedDefiningUnit.publicNamespace.exports;
+        assert(_unlinkedDefiningUnit.exports.length ==
+            unlinkedPublicExports.length);
+        int length = unlinkedNonPublicExports.length;
+        if (length != 0) {
+          List<ExportElement> exports = new List<ExportElement>();
+          for (int i = 0; i < length; i++) {
+            UnlinkedExportPublic serializedExportPublic =
+                unlinkedPublicExports[i];
+            UnlinkedExportNonPublic serializedExportNonPublic =
+                unlinkedNonPublicExports[i];
+            ExportElementImpl exportElement =
+                new ExportElementImpl.forSerialized(
+                    serializedExportPublic, serializedExportNonPublic, library);
+            exports.add(exportElement);
+          }
+          _exports = exports;
+        } else {
+          _exports = const <ExportElement>[];
         }
-        _exports = exports;
-      } else {
-        _exports = const <ExportElement>[];
       }
     }
     return _exports ?? const <ExportElement>[];

@@ -285,7 +285,7 @@ class KernelDriver {
           DillLibraryBuilder exportedLibrary =
               dillTarget.loader.read(export.library.uri, -1, accessor: library);
           if (exportedLibrary != null) {
-            exportedLibrary.exports.forEach((name, member) {
+            exportedLibrary.exportScope.forEach((name, member) {
               if (export.isExposed(name) &&
                   library.addToExportScope(name, member)) {
                 wasChanged = true;
