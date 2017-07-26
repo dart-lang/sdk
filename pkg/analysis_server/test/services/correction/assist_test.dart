@@ -1042,6 +1042,34 @@ build() {
 ''');
   }
 
+  test_convertPartOfToUri_file_nonSibling() async {
+    addSource('/pkg/lib/foo.dart', '''
+library foo;
+part 'src/bar.dart';
+''');
+    testFile = provider.convertPath('/pkg/lib/src/bar.dart');
+    await resolveTestUnit('''
+part of foo;
+''');
+    await assertHasAssistAt('foo', DartAssistKind.CONVERT_PART_OF_TO_URI, '''
+part of '../foo.dart';
+''');
+  }
+
+  test_convertPartOfToUri_file_sibling() async {
+    addSource('/pkg/foo.dart', '''
+library foo;
+part 'bar.dart';
+''');
+    testFile = provider.convertPath('/pkg/bar.dart');
+    await resolveTestUnit('''
+part of foo;
+''');
+    await assertHasAssistAt('foo', DartAssistKind.CONVERT_PART_OF_TO_URI, '''
+part of 'foo.dart';
+''');
+  }
+
   test_convertToBlockBody_BAD_noEnclosingFunction() async {
     await resolveTestUnit('''
 var v = 123;
