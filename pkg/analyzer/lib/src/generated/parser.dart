@@ -6911,6 +6911,12 @@ class Parser {
                 ['}', ']']);
             rightCurlyBracket = rightSquareBracket;
             rightSquareBracket = null;
+            // Skip over synthetic closer inserted by fasta
+            // since we've already reported an error
+            if (_currentToken.type == TokenType.CLOSE_CURLY_BRACKET &&
+                _currentToken.isSynthetic) {
+              _advance();
+            }
           } else {
             _reportErrorForCurrentToken(
                 ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
@@ -6927,6 +6933,12 @@ class Parser {
                 [']', '}']);
             rightSquareBracket = rightCurlyBracket;
             rightCurlyBracket = null;
+            // Skip over synthetic closer inserted by fasta
+            // since we've already reported an error
+            if (_currentToken.type == TokenType.CLOSE_SQUARE_BRACKET &&
+                _currentToken.isSynthetic) {
+              _advance();
+            }
           } else {
             _reportErrorForCurrentToken(
                 ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,

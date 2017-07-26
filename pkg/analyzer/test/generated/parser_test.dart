@@ -4140,18 +4140,16 @@ main() {
     createParser('(a, b})');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(fe.Scanner.useFasta
-        ? [ScannerErrorCode.EXPECTED_TOKEN]
-        : [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes(
+        [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_optional() {
     createParser('(a, b])');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(fe.Scanner.useFasta
-        ? [ScannerErrorCode.EXPECTED_TOKEN]
-        : [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes(
+        [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
@@ -4391,7 +4389,11 @@ void main() {
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     listener.assertErrorsWithCodes(fe.Scanner.useFasta
-        ? [ScannerErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN]
+        ? [
+            // fasta scanner generates '(a, {b, c]})' where '}' is synthetic
+            ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+            ScannerErrorCode.EXPECTED_TOKEN,
+          ]
         : [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
@@ -4399,8 +4401,12 @@ void main() {
     createParser('(a, [b, c})');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(fe.Scanner.useFasta
-        ? [ScannerErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN]
+    listener.assertErrorsWithCodes(usingFastaScanner
+        ? [
+            // fasta scanner generates '(a, [b, c}])' where ']' is synthetic
+            ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+            ScannerErrorCode.EXPECTED_TOKEN,
+          ]
         : [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 }

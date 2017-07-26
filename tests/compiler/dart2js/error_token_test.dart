@@ -12,7 +12,8 @@ import "package:compiler/src/diagnostics/messages.dart";
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
-Future runTest(String code, {MessageKind error}) async {
+Future runTest(String code,
+    {MessageKind error, int expectedWarningCount: 0}) async {
   DiagnosticCollector diagnostics = new DiagnosticCollector();
   OutputCollector output = new OutputCollector();
   await runCompiler(
@@ -22,10 +23,9 @@ Future runTest(String code, {MessageKind error}) async {
       outputProvider: output);
 
   Expect.equals(error != null ? 1 : 0, diagnostics.errors.length);
-  if (error != null) {
+  if (error != null)
     Expect.equals(error, diagnostics.errors.first.message.kind);
-  }
-  Expect.equals(0, diagnostics.warnings.length);
+  Expect.equals(expectedWarningCount, diagnostics.warnings.length);
   Expect.equals(0, diagnostics.hints.length);
   Expect.equals(0, diagnostics.infos.length);
 }
@@ -34,23 +34,25 @@ void main() {
   asyncTest(() async {
     await runTest(
         '''
-main() {}
+main() {Foo.bar();}
 class Foo {
 	static void bar() {
 		baz());
 	}
 }
 ''',
-        error: MessageKind.UNMATCHED_TOKEN);
+        error: MessageKind.MISSING_TOKEN_AFTER_THIS,
+        expectedWarningCount: 1);
 
     await runTest(
         '''
-main() {}
+main() {new C(v);}
 class C {
   C(v) {
     throw '');
   }
 }''',
-        error: MessageKind.UNMATCHED_TOKEN);
+        error: MessageKind.MISSING_TOKEN_AFTER_THIS,
+        expectedWarningCount: 1);
   });
 }
