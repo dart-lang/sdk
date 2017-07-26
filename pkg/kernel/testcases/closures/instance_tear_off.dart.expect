@@ -50,7 +50,7 @@ class E<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return MakeClosure<(dynamic) → dynamic>(self::closure#E#g#function, null);
+    return MakeClosure<<T extends core::Object>(T) → dynamic, self::E::T>(self::closure#E#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -107,7 +107,7 @@ static method closure#D#g#function(Vector #contextParameter, dynamic x) → dyna
 static method closure#D#f#function(Vector #contextParameter) → dynamic {
   return "f";
 }
-static method closure#E#g#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#E#g#function<T extends core::Object>(Vector #contextParameter, self::closure#E#g#function::T x) → dynamic {
   return "g(${x})";
 }
 static method closure#E#f#function(Vector #contextParameter) → dynamic {

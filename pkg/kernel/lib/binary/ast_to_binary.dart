@@ -872,6 +872,7 @@ class BinaryPrinter extends Visitor {
     writeReference(node.topLevelFunctionReference);
     writeNode(node.contextVector);
     writeNode(node.functionType);
+    writeNodeList(node.typeArguments);
   }
 
   writeStatementOrEmpty(Statement node) {
