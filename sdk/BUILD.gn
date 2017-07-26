@@ -65,6 +65,8 @@ if (is_fuchsia ||
 # ......_internal/
 #.........spec.sum
 #.........strong.sum
+#.........dart2js_platform.dill
+#.........vm_outline.dill
 #.........dev_compiler/
 # ......analysis_server/
 # ......analyzer/
@@ -444,6 +446,36 @@ copy("copy_analysis_summaries") {
   ]
 }
 
+# This rule copies vm's outline.dill file to lib/_internal
+copy("copy_vm_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../runtime/vm:patched_sdk",
+  ]
+  sources = [
+    "$root_out_dir/patched_sdk/outline.dill",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/vm_outline.dill",
+  ]
+}
+
+# This rule copies dart2js's platform.dill file to lib/_internal
+copy("copy_dart2js_dill_files") {
+  visibility = [ ":create_full_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/compiler:patched_dart2js_sdk",
+  ]
+  sources = [
+    "$root_out_dir/patched_dart2js_sdk/platform.dill",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/dart2js_platform.dill",
+  ]
+}
+
 # This rule copies ddc summaries to lib/_internal
 copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
@@ -710,6 +742,7 @@ group("create_common_sdk") {
     ":copy_platform_files",
     ":copy_pub_assets",
     ":copy_readme",
+    ":copy_vm_dill_files",
     ":write_revision_file",
     ":write_version_file",
   ]
@@ -738,6 +771,7 @@ group("create_full_sdk") {
   ]
 
   deps = [
+    ":copy_dart2js_dill_files",
     ":copy_dev_compiler_sdk",
     ":copy_full_sdk_libraries",
     ":copy_full_sdk_scripts",
