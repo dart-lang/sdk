@@ -235,8 +235,7 @@ class CloneVisitor extends TreeVisitor {
     return new ClosureCreation.byReference(
         node.topLevelFunctionReference,
         cloneOptional(node.contextVector),
-        visitOptionalType(node.functionType),
-        node.typeArguments.map(visitType).toList());
+        visitOptionalType(node.functionType));
   }
 
   visitVectorSet(VectorSet node) {

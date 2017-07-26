@@ -13,6 +13,7 @@ import '../../ast.dart'
         ClosureCreation,
         Constructor,
         DartType,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -259,12 +260,39 @@ class ClosureConverter extends Transformer {
     context = context.toNestedContext(
         new VariableAccessor(contextVariable, null, TreeNode.noOffset));
 
-    Set<TypeParameter> captured =
-        capturedTypeVariables[currentFunction] ?? new Set<TypeParameter>();
-    typeSubstitution = copyTypeVariables(captured);
+    Set<TypeParameter> captured = capturedTypeVariables[currentFunction];
+    if (captured != null) {
+      typeSubstitution = copyTypeVariables(captured);
+    } else {
+      typeSubstitution = const <TypeParameter, DartType>{};
+    }
 
+    // TODO(29181): remove replacementTypeSubstitution variable and its usages.
+    // All the type variables used in this function body are replaced with
+    // either dynamic or their bounds. This is to temporarily remove the type
+    // variables from closure conversion. They should be returned after the VM
+    // changes are done to support vectors and closure creation. See #29181.
+    Map<TypeParameter, DartType> replacementTypeSubstitution =
+        <TypeParameter, DartType>{};
+    for (TypeParameter parameter in typeSubstitution.keys) {
+      replacementTypeSubstitution[parameter] = const DynamicType();
+    }
+    for (TypeParameter parameter in typeSubstitution.keys) {
+      if (!isObject(parameter.bound)) {
+        replacementTypeSubstitution[parameter] =
+            substitute(parameter.bound, replacementTypeSubstitution);
+      }
+    }
+    typeSubstitution = replacementTypeSubstitution;
     function.transformChildren(this);
 
+    // TODO(29181): don't replace typeSubstitution with an empty map.
+    // Information about captured type variables is deleted from the closure
+    // class, because the type variables in this function body are already
+    // replaced with either dynamic or their bounds. This change should be
+    // undone after the VM support for vectors and closure creation is
+    // implemented. See #29181.
+    typeSubstitution = <TypeParameter, DartType>{};
     Expression result = addClosure(function, contextVariable, parent.expression,
         typeSubstitution, enclosingTypeSubstitution);
     currentFunction = enclosingFunction;
@@ -294,7 +322,9 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitFunctionExpression(FunctionExpression node) {
-    return saveContext(() => handleLocalFunction(node.function));
+    return saveContext(() {
+      return handleLocalFunction(node.function);
+    });
   }
 
   /// Add a new procedure to the current library that looks like this:
@@ -316,16 +346,6 @@ class ClosureConverter extends Transformer {
       Expression accessContext,
       Map<TypeParameter, DartType> substitution,
       Map<TypeParameter, DartType> enclosingTypeSubstitution) {
-    var fnTypeParams = <TypeParameter>[];
-    var fnTypeArgs = <TypeParameterType>[];
-    for (TypeParameter t in substitution.keys) {
-      var fnTypeParam = (substitution[t] as TypeParameterType).parameter;
-      fnTypeParams.add(fnTypeParam);
-      fnTypeArgs
-          .add(substitute(new TypeParameterType(t), enclosingTypeSubstitution));
-    }
-
-    function.typeParameters.insertAll(0, fnTypeParams);
     function.positionalParameters.insert(0, contextVariable);
     ++function.requiredParameterCount;
     Procedure closedTopLevelFunction = new Procedure(
@@ -336,29 +356,21 @@ class ClosureConverter extends Transformer {
         fileUri: currentFileUri);
     newLibraryMembers.add(closedTopLevelFunction);
 
-    // We need to again make new type parameters for the function's function
-    // type, and substitute them into the function type's arguments' types.
-    var closureTypeParams = <TypeParameter>[];
-    var closureTypeSubstitutionMap = copyTypeVariables(function.typeParameters);
-    for (DartType d in closureTypeSubstitutionMap.values)
-      closureTypeParams.add((d as TypeParameterType).parameter);
-
     FunctionType closureType = new FunctionType(
         function.positionalParameters
             .skip(1)
-            .map((VariableDeclaration decl) =>
-                substitute(decl.type, closureTypeSubstitutionMap))
+            .map((VariableDeclaration decl) => decl.type)
             .toList(),
-        substitute(function.returnType, closureTypeSubstitutionMap),
+        function.returnType,
         namedParameters: function.namedParameters
-            .map((VariableDeclaration decl) => new NamedType(
-                decl.name, substitute(decl.type, closureTypeSubstitutionMap)))
+            .map((VariableDeclaration decl) =>
+                new NamedType(decl.name, decl.type))
             .toList(),
-        typeParameters: closureTypeParams,
+        typeParameters: function.typeParameters,
         requiredParameterCount: function.requiredParameterCount - 1);
 
     return new ClosureCreation(
-        closedTopLevelFunction, accessContext, closureType, fnTypeArgs);
+        closedTopLevelFunction, accessContext, closureType);
   }
 
   TreeNode visitProcedure(Procedure node) {
@@ -652,19 +664,14 @@ class ClosureConverter extends Transformer {
 
   /// Creates copies of the type variables in [original] and returns a
   /// substitution that can be passed to [substitute] to substitute all uses of
-  /// [original] with their copies. Additionally returns a list of new type
-  /// parameters to prefix to the enclosing function's type parameters and the
-  /// arguments to be passed for those parameters.
-  ///
+  /// [original] with their copies.
   Map<TypeParameter, DartType> copyTypeVariables(
       Iterable<TypeParameter> original) {
     if (original.isEmpty) return const <TypeParameter, DartType>{};
-
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (TypeParameter t in original) {
       substitution[t] = new TypeParameterType(new TypeParameter(t.name));
     }
-
     substitution.forEach((TypeParameter t, DartType copy) {
       if (copy is TypeParameterType) {
         copy.parameter.bound = substitute(t.bound, substitution);

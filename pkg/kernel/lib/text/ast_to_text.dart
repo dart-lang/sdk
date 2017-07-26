@@ -1061,8 +1061,6 @@ class Printer extends Visitor<Null> {
     writeWord('MakeClosure');
     writeSymbol('<');
     writeNode(node.functionType);
-    if (node.typeArguments.length > 0) writeSymbol(', ');
-    writeList(node.typeArguments, writeType);
     writeSymbol('>');
     writeSymbol('(');
     writeMemberReference(node.topLevelFunction);

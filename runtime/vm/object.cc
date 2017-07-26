@@ -6879,7 +6879,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // Converted closure functions are used in VM Closure instances that represent
 // the results of evaluation of [MakeClosure] primitive operations.
 //
-// Internally, converted closure functions are represented with the same Closure
+// Internally, converted closure functins are represented with the same Closure
 // class as implicit closure functions (that are used for dealing with
 // tear-offs).  The Closure class instances have two fields, one for the
 // function, and one for the captured context.  Implicit closure functions have
@@ -6903,7 +6903,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // this way, is invoked, it should receive the [Vector] as the first argument,
 // and take the rest of the arguments from the invocation.
 //
-// Converted closure functions in VM follow same discipline as implicit closure
+// Converted cosure functions in VM follow same discipline as implicit closure
 // functions, because they are similar in many ways. For further deatils, please
 // refer to the following methods:
 //   -> Function::ConvertedClosureFunction

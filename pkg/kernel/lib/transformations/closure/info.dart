@@ -30,7 +30,6 @@ class ClosureInfo extends RecursiveVisitor {
 
   final Set<VariableDeclaration> variables = new Set<VariableDeclaration>();
 
-  /// Map from functions to set of type variables captured within them.
   final Map<FunctionNode, Set<TypeParameter>> typeVariables =
       <FunctionNode, Set<TypeParameter>>{};
 
@@ -167,10 +166,7 @@ class ClosureInfo extends RecursiveVisitor {
       // Propagate captured type variables to enclosing function.
       typeVariables
           .putIfAbsent(currentFunction, () => new Set<TypeParameter>())
-          .addAll(
-              // 't.parent == currentFunction' will be true if the type variable
-              // is defined by one of our type parameters.
-              capturedTypeVariables.where((t) => t.parent != currentFunction));
+          .addAll(capturedTypeVariables);
     }
   }
 
@@ -194,7 +190,7 @@ class ClosureInfo extends RecursiveVisitor {
   }
 
   visitTypeParameterType(TypeParameterType node) {
-    if (!isOuterMostContext && node.parameter.parent != currentFunction) {
+    if (!isOuterMostContext) {
       typeVariables
           .putIfAbsent(currentFunction, () => new Set<TypeParameter>())
           .add(node.parameter);

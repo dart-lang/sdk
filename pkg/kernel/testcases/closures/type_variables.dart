@@ -29,15 +29,6 @@ class C<T, S> {
   C.internal();
 }
 
-fn<A>(A x) {
-  var fn2 = (A x2) {
-    var l = <A>[];
-    l.add(x2);
-    return l;
-  };
-  return fn2(x);
-}
-
 main(arguments) {
   print(new C<String, String>().foo(null)(arguments.first));
   dynamic c = new C<int, int>().baz()()();
@@ -46,5 +37,4 @@ main(arguments) {
     throw "$c passes type test 'is C<String, String>'";
   }
   print(c);
-  print(fn<int>(3));
 }

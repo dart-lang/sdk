@@ -3080,15 +3080,14 @@ class ClosureCreation extends Expression {
   Reference topLevelFunctionReference;
   Expression contextVector;
   FunctionType functionType;
-  List<DartType> typeArguments;
 
   ClosureCreation(Member topLevelFunction, Expression contextVector,
-      FunctionType functionType, List<DartType> typeArguments)
-      : this.byReference(getMemberReference(topLevelFunction), contextVector,
-            functionType, typeArguments);
+      FunctionType functionType)
+      : this.byReference(
+            getMemberReference(topLevelFunction), contextVector, functionType);
 
-  ClosureCreation.byReference(this.topLevelFunctionReference,
-      this.contextVector, this.functionType, this.typeArguments) {
+  ClosureCreation.byReference(
+      this.topLevelFunctionReference, this.contextVector, this.functionType) {
     contextVector?.parent = this;
   }
 
@@ -3103,8 +3102,6 @@ class ClosureCreation extends Expression {
 
   visitChildren(Visitor v) {
     contextVector?.accept(v);
-    functionType.accept(v);
-    visitList(typeArguments, v);
   }
 
   transformChildren(Transformer v) {
@@ -3112,8 +3109,6 @@ class ClosureCreation extends Expression {
       contextVector = contextVector.accept(v);
       contextVector?.parent = this;
     }
-    functionType = v.visitDartType(functionType);
-    transformTypeList(typeArguments, v);
   }
 
   DartType getStaticType(TypeEnvironment types) {
