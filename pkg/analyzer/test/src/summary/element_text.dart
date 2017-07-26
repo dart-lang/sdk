@@ -278,7 +278,9 @@ class _ElementWriter {
       buffer.write('(');
     }
 
-    if (e is Annotation) {
+    if (e == null) {
+      buffer.write('<null>');
+    } else if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);
       if (e.constructorName != null) {

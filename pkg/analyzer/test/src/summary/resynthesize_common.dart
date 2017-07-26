@@ -368,7 +368,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           rItem is ConstructorFieldInitializer) {
         compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
         if (variablesWithNotConstInitializers.contains(rItem.fieldName.name)) {
-          _assertUnresolvedIdentifier(rItem.expression, desc);
+          expect(rItem.expression, isNull, reason: desc);
         } else {
           compareConstAsts(rItem.expression, oItem.expression, desc);
         }
@@ -1168,7 +1168,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
         if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
-          _assertUnresolvedIdentifier(initializer, desc);
+          expect(initializer, isNull, reason: desc);
         } else {
           compareConstAsts(initializer, originalActual.constantInitializer,
               '$desc.constantInitializer');
@@ -1230,12 +1230,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     prepareAnalysisContext(createOptions());
-  }
-
-  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
-    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
-    SimpleIdentifier identifier = initializer;
-    expect(identifier.staticElement, isNull, reason: desc);
   }
 
   List<PropertyAccessorElement> _getSortedPropertyAccessors(
@@ -2471,16 +2465,14 @@ int foo() => 42;
     if (isStrongMode) {
       checkElementText(library, r'''
 class C {
-  static const int f =
-        $$invalidConstExpr$$/*location: null*/;
+  static const int f;
 }
 int foo() {}
 ''');
     } else {
       checkElementText(library, r'''
 class C {
-  static const dynamic f =
-        $$invalidConstExpr$$/*location: null*/;
+  static const dynamic f;
 }
 int foo() {}
 ''');
@@ -2498,16 +2490,14 @@ int foo() => 42;
     if (isStrongMode) {
       checkElementText(library, r'''
 class C {
-  final int f =
-        $$invalidConstExpr$$/*location: null*/;
+  final int f;
 }
 int foo() {}
 ''');
     } else {
       checkElementText(library, r'''
 class C {
-  final dynamic f =
-        $$invalidConstExpr$$/*location: null*/;
+  final dynamic f;
 }
 int foo() {}
 ''');
@@ -2531,14 +2521,12 @@ int foo() => 42;
 ''', allowErrors: true);
     if (isStrongMode) {
       checkElementText(library, r'''
-const int v =
-        $$invalidConstExpr$$/*location: null*/;
+const int v;
 int foo() {}
 ''');
     } else {
       checkElementText(library, r'''
-const dynamic v =
-        $$invalidConstExpr$$/*location: null*/;
+const dynamic v;
 int foo() {}
 ''');
     }
@@ -4471,8 +4459,7 @@ int foo() => 42;
 class C {
   final dynamic x;
   const C() :
-        x/*location: test.dart;C;x*/ =
-        $$invalidConstExpr$$/*location: null*/;
+        x/*location: test.dart;C;x*/ = <null>;
 }
 int foo() {}
 ''');
@@ -5503,8 +5490,7 @@ class C<T> {
 ''');
     checkElementText(library, r'''
 class C<T> {
-  final dynamic f =
-        $$invalidConstExpr$$/*location: null*/;
+  final dynamic f;
 }
 ''');
   }

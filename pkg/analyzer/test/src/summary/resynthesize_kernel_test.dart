@@ -159,13 +159,10 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_invalid_field_const() async {
+    // Fasta generates additional `#errors` top-level variable.
     await super.test_const_invalid_field_const();
-  }
-
-  @failingTest
-  test_const_invalid_field_final() async {
-    await super.test_const_invalid_field_final();
   }
 
   @failingTest
@@ -176,7 +173,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_invalid_topLevel() async {
+    // Fasta generates additional `#errors` top-level variable.
     await super.test_const_invalid_topLevel();
   }
 
@@ -557,11 +556,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_exports() async {
     await super.test_exports();
-  }
-
-  @failingTest
-  test_expr_invalid_typeParameter_asPrefix() async {
-    await super.test_expr_invalid_typeParameter_asPrefix();
   }
 
   @failingTest
