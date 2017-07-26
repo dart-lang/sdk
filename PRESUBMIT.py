@@ -42,24 +42,20 @@ def _CheckDartFormat(input_api, output_api):
 
   def HasFormatErrors(filename=None, contents=None):
     args = [prebuilt_dartfmt, '--set-exit-if-changed']
-    if contents:
-      process = subprocess.Popen(args,
-                                 stdout=subprocess.PIPE,
-                                 stdin=subprocess.PIPE
-                                 )
-      out, err = process.communicate(input=contents)
+    if not contents:
+      args += [filename, '-n']
 
-      # There was a bug in the return code dartfmt returns when reading from
-      # stdin so we have to check whether the content matches rather than using
-      # the return code. When the next version of the dartfmt lands in the sdk
-      # we can switch this line to "return process.returncode != 0"
-      return out != contents
-    else:
-      try:
-        subprocess.check_output(args + [filename, '-n'])
-      except subprocess.CalledProcessError:
-        return True
-      return False
+    process = subprocess.Popen(args,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE
+                               )
+    process.communicate(input=contents)
+
+    # Check for exit code 1 explicitly to distinguish it from a syntax error
+    # in the file (exit code 65). The repo contains many Dart files that are
+    # known to have syntax errors for testing purposes and which can't be
+    # parsed and formatted. Don't treat those as errors.
+    return process.returncode == 1
 
   unformatted_files = []
   for git_file in input_api.AffectedTextFiles():
