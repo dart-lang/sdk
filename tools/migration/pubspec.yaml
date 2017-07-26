@@ -3,3 +3,5 @@ name: migration
 dependencies:
   path:
     path: ../../third_party/pkg/path
+  status_file:
+    path: ../../pkg/status_file

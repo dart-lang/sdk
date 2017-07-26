@@ -43,14 +43,16 @@ final _issuePattern = new RegExp(r"[Ii]ssue (\d+)");
 /// Entries may also appear before any section header, in which case they
 /// always apply.
 class StatusFile {
-  final String _path;
+  final String path;
   final List<StatusSection> sections = [];
 
-  /// Parses the status file at [_path].
+  StatusFile(this.path);
+
+  /// Parses the status file at [path].
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
-  StatusFile.read(this._path) {
-    var lines = new File(_path).readAsLinesSync();
+  StatusFile.read(this.path) {
+    var lines = new File(path).readAsLinesSync();
 
     // The current section whose rules are being parsed.
     StatusSection section;
@@ -121,6 +123,8 @@ class StatusFile {
     }
   }
 
+  bool get isEmpty => sections.isEmpty;
+
   /// Validates that the variables and values used in all of the section
   /// condition expressions are defined in [environment].
   ///
@@ -129,15 +133,15 @@ class StatusFile {
     // TODO(rnystrom): It would be more useful if it reported all of the errors
     // instead of stopping on the first.
     for (var section in sections) {
-      if (section._condition == null) continue;
+      if (section.condition == null) continue;
 
       var errors = <String>[];
-      section._condition.validate(environment, errors);
+      section.condition.validate(environment, errors);
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
         throw new SyntaxError(_shortPath, section.lineNumber,
-            "[ ${section._condition} ]", 'Validation error$s', errors);
+            "[ ${section.condition} ]", 'Validation error$s', errors);
       }
     }
   }
@@ -145,7 +149,7 @@ class StatusFile {
   /// Gets the path to this status file relative to the Dart repo root.
   String get _shortPath {
     var repoRoot = p.join(p.dirname(p.fromUri(Platform.script)), "../../../");
-    return p.normalize(p.relative(_path, from: repoRoot));
+    return p.normalize(p.relative(path, from: repoRoot));
   }
 
   /// Returns the issue number embedded in [comment] or `null` if there is none.
@@ -159,7 +163,7 @@ class StatusFile {
   String toString() {
     var buffer = new StringBuffer();
     for (var section in sections) {
-      buffer.writeln("[ ${section._condition} ]");
+      buffer.writeln("[ ${section.condition} ]");
 
       for (var entry in section.entries) {
         buffer.write("${entry.path}: ${entry.expectations.join(', ')}");
@@ -183,14 +187,14 @@ class StatusSection {
   ///
   /// May be `null` for paths that appear before any section header in the file.
   /// In that case, the section always applies.
-  final Expression _condition;
+  final Expression condition;
   final List<StatusEntry> entries = [];
 
   /// Returns true if this section should apply in the given [environment].
   bool isEnabled(Environment environment) =>
-      _condition == null || _condition.evaluate(environment);
+      condition == null || condition.evaluate(environment);
 
-  StatusSection(this._condition);
+  StatusSection(this.condition);
 }
 
 /// Describes the test status of the file or files at a given path.

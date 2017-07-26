@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'package:migration/src/log.dart';
+import 'package:status_file/status_file.dart';
 
 const simpleDirs = const ["corelib", "language", "lib"];
 
@@ -62,15 +63,21 @@ void main(List<String> arguments) {
     }
   }
 
+  if ((endIndex - startIndex) == 0) {
+    print(bold("No tests to migrate."));
+    return;
+  }
+
   print("Migrating ${bold(endIndex - startIndex)} tests from ${bold(first)} "
       "to ${bold(last)}...");
   print("");
 
+  tests = tests.getRange(startIndex, endIndex);
   var todos = <String>[];
   var migratedTests = 0;
   var unmigratedTests = 0;
-  for (var i = startIndex; i < endIndex; i++) {
-    if (tests[i].migrate(todos)) {
+  for (var test in tests) {
+    if (test.migrate(todos)) {
       migratedTests++;
     } else {
       unmigratedTests++;
@@ -93,6 +100,49 @@ void main(List<String> arguments) {
 
   print(summary);
   todos.forEach(todo);
+
+  // Print status file entries.
+  var statusFileEntries = new StringBuffer();
+  var statusFiles = loadStatusFiles();
+  for (var statusFile in statusFiles) {
+    printStatusFileEntries(statusFileEntries, tests, statusFile);
+  }
+
+  new File("statuses.migration")
+      .writeAsStringSync(statusFileEntries.toString());
+  print(
+      bold("Wrote relevant test status file entries to 'statuses.migration'"));
+}
+
+/// Returns a [String] of the relevant status file entries associated with the
+/// tests in [tests] found in [statusFile].
+void printStatusFileEntries(
+    StringBuffer statusFileEntries, List<Fork> tests, StatusFile statusFile) {
+  var filteredStatusFile = new StatusFile(statusFile.path);
+  var testNames = <String>[];
+  for (var test in tests) {
+    testNames.add(test.twoPath.split("/").last.split(".")[0]);
+  }
+  for (var section in statusFile.sections) {
+    StatusSection currentSection;
+    for (var entry in section.entries) {
+      for (var testName in testNames) {
+        if (entry.path.contains(testName)) {
+          if (currentSection == null) {
+            currentSection = new StatusSection(section.condition);
+          }
+          currentSection.entries.add(entry);
+        }
+      }
+    }
+    if (currentSection != null) {
+      filteredStatusFile.sections.add(currentSection);
+    }
+  }
+  if (!filteredStatusFile.isEmpty) {
+    statusFileEntries.writeln("Entries for status file ${statusFile.path}:");
+    statusFileEntries.writeln(filteredStatusFile);
+  }
 }
 
 String toTwoPath(String path) {
@@ -137,7 +187,6 @@ List<Fork> scanTests() {
 
       var fromPath = p.relative(entry.path, from: testRoot);
       var twoPath = p.join(twoDir, p.relative(fromPath, from: fromDir));
-
       var fork = tests.putIfAbsent(twoPath, () => new Fork(twoPath));
       if (fromDir.contains("_strong")) {
         fork.strongPath = fromPath;
@@ -159,6 +208,29 @@ List<Fork> scanTests() {
   var sorted = tests.values.toList();
   sorted.sort((a, b) => a.twoPath.compareTo(b.twoPath));
   return sorted;
+}
+
+List<StatusFile> loadStatusFiles() {
+  var statusFiles = <StatusFile>[];
+
+  addStatusFile(String fromDir) {
+    for (var entry
+        in new Directory(p.join(testRoot, fromDir)).listSync(recursive: true)) {
+      if (!entry.path.endsWith(".status")) continue;
+
+      statusFiles.add(new StatusFile.read(entry.path));
+    }
+  }
+
+  addStatusFile("corelib");
+  addStatusFile("corelib_strong");
+  addStatusFile("html");
+  addStatusFile("isolate");
+  addStatusFile("language");
+  addStatusFile("language_strong");
+  addStatusFile("lib");
+  addStatusFile("lib_strong");
+  return statusFiles;
 }
 
 /// Moves the file from [from] to [to], which are both assumed to be relative
