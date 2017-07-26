@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'package:migration/src/log.dart';
+import 'package:migration/src/validate.dart';
 import 'package:status_file/status_file.dart';
 
 const simpleDirs = const ["corelib", "language", "lib"];
@@ -64,7 +65,7 @@ void main(List<String> arguments) {
   }
 
   if ((endIndex - startIndex) == 0) {
-    print(bold("No tests to migrate."));
+    print(bold("No tests in range."));
     return;
   }
 
@@ -72,34 +73,19 @@ void main(List<String> arguments) {
       "to ${bold(last)}...");
   print("");
 
-  tests = tests.getRange(startIndex, endIndex);
-  var todos = <String>[];
+  var allTodos = <String, List<String>>{};
+  tests = tests.sublist(startIndex, endIndex);
   var migratedTests = 0;
   var unmigratedTests = 0;
   for (var test in tests) {
-    if (test.migrate(todos)) {
+    var todos = test.migrate();
+    if (todos.isEmpty) {
       migratedTests++;
     } else {
       unmigratedTests++;
+      allTodos[test.twoPath] = todos;
     }
   }
-
-  print("");
-
-  var summary = "";
-
-  if (migratedTests > 0) {
-    var s = migratedTests == 1 ? "" : "s";
-    summary += "Successfully migrated ${green(migratedTests)} test$s. ";
-  }
-
-  if (unmigratedTests > 0) {
-    var s = migratedTests == 1 ? "" : "s";
-    summary += "Need manual work on ${red(unmigratedTests)} test$s:";
-  }
-
-  print(summary);
-  todos.forEach(todo);
 
   // Print status file entries.
   var statusFileEntries = new StringBuffer();
@@ -110,8 +96,29 @@ void main(List<String> arguments) {
 
   new File("statuses.migration")
       .writeAsStringSync(statusFileEntries.toString());
-  print(
-      bold("Wrote relevant test status file entries to 'statuses.migration'"));
+  print("Wrote relevant test status file entries to 'statuses.migration'.");
+
+  // Tell the user what's left TODO.
+  print("");
+  var summary = "";
+
+  if (migratedTests > 0) {
+    var s = migratedTests == 1 ? "" : "s";
+    summary += "Successfully migrated ${green(migratedTests)} test$s. ";
+  }
+
+  if (unmigratedTests > 0) {
+    var s = unmigratedTests == 1 ? "" : "s";
+    summary += "Need manual work on ${red(unmigratedTests)} test$s:";
+  }
+
+  print(summary);
+  var todoTests = allTodos.keys.toList();
+  todoTests.sort();
+  for (var todoTest in todoTests) {
+    print("- ${bold(todoTest)}:");
+    allTodos[todoTest].forEach(todo);
+  }
 }
 
 /// Returns a [String] of the relevant status file entries associated with the
@@ -148,7 +155,9 @@ void printStatusFileEntries(
 String toTwoPath(String path) {
   // Allow eliding "_test" and/or ".dart" to make things more command-line
   // friendly.
-  if (!path.endsWith("_test.dart")) path += "_test.dart";
+  if (!path.endsWith(".dart") && !path.endsWith("_test.dart")) {
+    path += "_test.dart";
+  }
   if (!path.endsWith(".dart")) path += ".dart";
 
   for (var dir in simpleDirs) {
@@ -183,10 +192,11 @@ List<Fork> scanTests() {
   addTestDirectory(String fromDir, String twoDir) {
     for (var entry
         in new Directory(p.join(testRoot, fromDir)).listSync(recursive: true)) {
-      if (!entry.path.endsWith("_test.dart")) continue;
+      if (!entry.path.endsWith(".dart")) continue;
 
       var fromPath = p.relative(entry.path, from: testRoot);
       var twoPath = p.join(twoDir, p.relative(fromPath, from: fromDir));
+
       var fork = tests.putIfAbsent(twoPath, () => new Fork(twoPath));
       if (fromDir.contains("_strong")) {
         fork.strongPath = fromPath;
@@ -241,6 +251,9 @@ void moveFile(String from, String to) {
     return;
   }
 
+  // Create the directory if needed.
+  new Directory(p.dirname(p.join(testRoot, to))).createSync(recursive: true);
+
   new File(p.join(testRoot, from)).renameSync(p.join(testRoot, to));
 }
 
@@ -258,13 +271,6 @@ void deleteFile(String path) {
   }
 
   new File(p.join(testRoot, path)).deleteSync();
-}
-
-bool checkForUnitTest(String path, String source) {
-  if (!source.contains("package:unittest")) return false;
-
-  note("${bold(path)} uses unittest package.");
-  return true;
 }
 
 class Fork {
@@ -298,10 +304,10 @@ class Fork {
 
   Fork(this.twoPath);
 
-  bool migrate(List<String> todos) {
+  List<String> migrate() {
     print("- ${bold(twoPath)}:");
 
-    var todosBefore = todos.length;
+    var todos = <String>[];
     var isMigrated = new File(p.join(testRoot, twoPath)).existsSync();
 
     // If there is a migrated version and it's the same as an unmigrated one,
@@ -314,8 +320,8 @@ class Fork {
         } else {
           note("${bold(onePath)} does not match already-migrated "
               "${bold(twoPath)}.");
-          todos.add("Merge ${bold(onePath)} into ${bold(twoPath)}.");
-          checkForUnitTest(onePath, oneSource);
+          todos.add("Merge from ${bold(onePath)} into this file.");
+          validateFile(onePath, oneSource);
         }
       }
 
@@ -326,8 +332,8 @@ class Fork {
         } else {
           note("${bold(strongPath)} does not match already-migrated "
               "${bold(twoPath)}.");
-          todos.add("Merge ${bold(strongPath)} into ${bold(twoPath)}.");
-          checkForUnitTest(strongPath, strongSource);
+          todos.add("Merge from ${bold(strongPath)} into this file.");
+          validateFile(strongPath, strongSource);
         }
       }
     } else {
@@ -343,20 +349,19 @@ class Fork {
         moveFile(onePath, twoPath);
         deleteFile(strongPath);
         done("Merged identical forks.");
-        checkForUnitTest(twoPath, oneSource);
+        validateFile(twoPath, oneSource);
       } else {
         // Otherwise, a manual merge is required. Start with the strong one.
+        print(new File(strongPath).existsSync());
         moveFile(strongPath, twoPath);
         done("Moved strong fork, kept 1.0 fork, manual merge required.");
-        todos.add("Merge ${bold(onePath)} into ${bold(twoPath)}.");
-        checkForUnitTest(onePath, oneSource);
+        todos.add("Merge from ${bold(onePath)} into this file.");
+        validateFile(onePath, oneSource);
       }
     }
 
-    if (checkForUnitTest(twoPath, twoSource)) {
-      todos.add("Migrate ${bold(twoPath)} off unittest.");
-    }
+    validateFile(twoPath, twoSource, todos);
 
-    return todos.length == todosBefore;
+    return todos;
   }
 }
