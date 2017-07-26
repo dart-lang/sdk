@@ -407,5 +407,5 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 [ $compiler == dart2js && $runtime != none && !$checked ]
 splay_tree_from_iterable_test: RuntimeError
 
-[ $compiler == none && $runtime == vm && !$checked ]
+[ ($compiler == none || $compiler == app_jit) && $runtime == vm && !$checked ]
 splay_tree_from_iterable_test: RuntimeError
