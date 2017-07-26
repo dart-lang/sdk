@@ -243,36 +243,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_length_ofClassConstField_imported_withPrefix() async {
-    await super.test_const_length_ofClassConstField_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_length_ofTopLevelVariable_imported_withPrefix() async {
-    await super.test_const_length_ofTopLevelVariable_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_staticField_imported_withPrefix() async {
-    await super.test_const_reference_staticField_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_staticMethod_imported_withPrefix() async {
-    await super.test_const_reference_staticMethod_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_topLevelFunction_imported_withPrefix() async {
-    await super.test_const_reference_topLevelFunction_imported_withPrefix();
-  }
-
-  @failingTest
-  test_const_reference_topLevelVariable_imported_withPrefix() async {
-    await super.test_const_reference_topLevelVariable_imported_withPrefix();
-  }
-
-  @failingTest
   test_const_reference_type() async {
     await super.test_const_reference_type();
   }

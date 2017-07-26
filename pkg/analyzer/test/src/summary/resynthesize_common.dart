@@ -3099,7 +3099,16 @@ class C {
 import 'a.dart' as p;
 const int v = p.C.F.length;
 ''');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const int v =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const int v =
         p/*location: test.dart;p*/.
@@ -3107,6 +3116,7 @@ const int v =
         F/*location: a.dart;C;F?*/.
         length/*location: dart:core;String;length?*/;
 ''');
+    }
   }
 
   test_const_length_ofStringLiteral() async {
@@ -3198,13 +3208,22 @@ import 'a.dart' as p;
 const v = p.S.length;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const int v =
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const int v =
         p/*location: test.dart;p*/.
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
@@ -3381,13 +3400,22 @@ import 'a.dart' as p;
 const V = p.C.F;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const int V =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const int V =
         p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
@@ -3465,13 +3493,22 @@ import 'a.dart' as p;
 const V = p.C.m;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const (int, String) → int V =
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const (int, String) → int V =
         p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
@@ -3555,12 +3592,20 @@ import 'a.dart' as p;
 const V = p.foo;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const () → dynamic V =
+        foo/*location: a.dart;foo*/;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const () → dynamic V =
         p/*location: test.dart;p*/.
         foo/*location: a.dart;foo*/;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
@@ -3623,12 +3668,20 @@ import 'a.dart' as p;
 const B = p.A + 2;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'a.dart' as p;
+const int B =
+        A/*location: a.dart;A?*/ + 2;
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart' as p;
 const int B =
         p/*location: test.dart;p*/.
         A/*location: a.dart;A?*/ + 2;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart' as p;
