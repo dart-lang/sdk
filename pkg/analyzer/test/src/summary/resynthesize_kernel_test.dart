@@ -147,7 +147,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_closure_generic() async {
+    // https://github.com/dart-lang/sdk/issues/30265
     await super.test_closure_generic();
   }
 
@@ -167,7 +169,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_invalid_intLiteral() async {
+    // https://github.com/dart-lang/sdk/issues/30266
     await super.test_const_invalid_intLiteral();
   }
 
@@ -177,47 +181,65 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_named_unresolved() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_named_unresolved();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_named_unresolved2() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_named_unresolved2();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_named_unresolved3() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_named_unresolved3();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_named_unresolved4() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_named_unresolved4();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_named_unresolved5() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_named_unresolved5();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_named_unresolved6() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_named_unresolved6();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_unnamed_unresolved() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_unnamed_unresolved();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_unnamed_unresolved2() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_unnamed_unresolved2();
   }
 
   @failingTest
+  @fastaProblem
   test_const_invokeConstructor_unnamed_unresolved3() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_invokeConstructor_unnamed_unresolved3();
   }
 
@@ -958,7 +980,9 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_metadata_invalid_classDeclaration() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_metadata_invalid_classDeclaration();
   }
 
@@ -1298,72 +1322,97 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_instanceCreation_argument_super() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_instanceCreation_argument_super();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_instanceCreation_argument_this() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_instanceCreation_argument_this();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_namedConstructorCall_noClass() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_namedConstructorCall_noClass();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_namedConstructorCall_noConstructor();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_prefixedIdentifier_badPrefix();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_prefixedIdentifier_noDeclaration();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super
         .test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super
         .test_unresolved_annotation_prefixedNamedConstructorCall_noClass();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
     await super
         .test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super
         .test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super
         .test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_simpleIdentifier() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_simpleIdentifier();
   }
 
   @failingTest
+  @fastaProblem
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_unresolved_annotation_unnamedConstructorCall_noClass();
   }
 
