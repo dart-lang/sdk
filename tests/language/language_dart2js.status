@@ -64,6 +64,7 @@ assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
 
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
+syntax_test/none: CompileTimeError # Issue #30176.
 
 [ $compiler == dart2js && $fast_startup && ! $dart2js_with_kernel ]
 const_evaluation_test/*: Fail # mirrors not supported
@@ -497,6 +498,7 @@ try_catch_syntax_test/13: Crash # Issue 27394
 try_catch_syntax_test/14: Crash # Issue 27394
 try_catch_syntax_test/15: Crash # Issue 27394
 generalized_void_syntax_test: Crash # Issue #30176
+syntax_test/none: Crash # Issue #30176.
 
 # Note: there are two flags to test dart2js with kernel:
 #  - dart2js_with_kernel_in_ssa: tests cover SSA via Kernel, but no other part of the

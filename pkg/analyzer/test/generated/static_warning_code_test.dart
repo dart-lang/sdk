@@ -3731,6 +3731,6 @@ class S {
   void get value {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
+    assertNoErrors(source);
   }
 }

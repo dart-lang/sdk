@@ -4724,16 +4724,6 @@ class StaticWarningCode extends ErrorCode {
           "defining the setter in a superclass of '{1}'.");
 
   /**
-   * 7.2 Getters: It is a static warning if the return type of a getter is void.
-   */
-  static const StaticWarningCode VOID_RETURN_FOR_GETTER =
-      const StaticWarningCode(
-          'VOID_RETURN_FOR_GETTER',
-          "The return type of a getter can't be 'void'.",
-          "Try providing a return type for the getter.",
-          false);
-
-  /**
    * A flag indicating whether this warning is an error when running with strong
    * mode enabled.
    */
