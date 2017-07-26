@@ -227,11 +227,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_const_length_ofTopLevelVariable_imported() async {
-    await super.test_const_length_ofTopLevelVariable_imported();
-  }
-
-  @failingTest
   test_const_length_ofTopLevelVariable_imported_withPrefix() async {
     await super.test_const_length_ofTopLevelVariable_imported_withPrefix();
   }
