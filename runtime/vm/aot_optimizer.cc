@@ -253,13 +253,13 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
           call->set_has_unique_selector(true);
           // Add redefinition of the receiver to prevent code motion across
           // this call.
-          RedefinitionInstr* redefinition =
-              new (Z) RedefinitionInstr(new (Z) Value(call->ArgumentAt(0)));
+          RedefinitionInstr* redefinition = new (Z)
+              RedefinitionInstr(new (Z) Value(call->ArgumentAt(receiver_idx)));
           redefinition->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
           redefinition->InsertAfter(call);
           // Replace all uses of the receiver dominated by this call.
-          FlowGraph::RenameDominatedUses(call->ArgumentAt(0), redefinition,
-                                         redefinition);
+          FlowGraph::RenameDominatedUses(call->ArgumentAt(receiver_idx),
+                                         redefinition, redefinition);
           if (!redefinition->HasUses()) {
             redefinition->RemoveFromGraph();
           }
@@ -1660,6 +1660,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
+  const intptr_t receiver_idx = instr->FirstParamIndex();
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
@@ -1724,6 +1725,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kGTE: {
       if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
           HasLikelySmiOperand(instr)) {
+        ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
         Definition* right = instr->ArgumentAt(1);
         CheckedSmiComparisonInstr* smi_op = new (Z)
@@ -1744,6 +1746,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kMUL: {
       if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
           HasLikelySmiOperand(instr)) {
+        ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
         Definition* right = instr->ArgumentAt(1);
         CheckedSmiOpInstr* smi_op =
@@ -1761,7 +1764,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
-      instr->PushArgumentAt(0)->value()->Type()->ToCid();
+      instr->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
@@ -1775,7 +1778,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  Definition* callee_receiver = instr->ArgumentAt(0);
+  Definition* callee_receiver = instr->ArgumentAt(receiver_idx);
   const Function& function = flow_graph_->function();
   Class& receiver_class = Class::Handle(Z);
 
@@ -1785,7 +1788,7 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     receiver_class = function.Owner();
   } else {
     // Check if we have an non-nullable compile type for the receiver.
-    CompileType* type = instr->ArgumentAt(0)->Type();
+    CompileType* type = instr->ArgumentAt(receiver_idx)->Type();
     if (type->ToAbstractType()->IsType() &&
         !type->ToAbstractType()->IsDynamicType() && !type->is_nullable()) {
       receiver_class = type->ToAbstractType()->type_class();
@@ -1905,8 +1908,9 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 void AotOptimizer::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
+  const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
   const intptr_t receiver_cid =
-      call->PushArgumentAt(0)->value()->Type()->ToCid();
+      call->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
@@ -1957,7 +1961,8 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       // We can handle only monomorphic min/max call sites with both arguments
       // being either doubles or smis.
       if (CanUnboxDouble() && call->HasICData() &&
-          call->ic_data()->NumberOfChecksIs(1)) {
+          call->ic_data()->NumberOfChecksIs(1) &&
+          (call->FirstParamIndex() == 0)) {
         const ICData& ic_data = *call->ic_data();
         intptr_t result_cid = kIllegalCid;
         if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
@@ -1982,7 +1987,8 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
     }
     case MethodRecognizer::kDoubleFromInteger: {
-      if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1)) {
+      if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1) &&
+          (call->FirstParamIndex() == 0)) {
         const ICData& ic_data = *call->ic_data();
         if (CanUnboxDouble()) {
           if (ArgIsAlways(kSmiCid, ic_data, 1)) {
@@ -2051,6 +2057,7 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   // Field guard was detached.
+  ASSERT(instr->FirstParamIndex() == 0);
   StoreInstanceFieldInstr* store = new (Z)
       StoreInstanceFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
                               new (Z) Value(instr->ArgumentAt(1)),
