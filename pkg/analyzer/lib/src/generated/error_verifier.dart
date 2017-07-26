@@ -962,6 +962,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForMismatchedAccessorTypes(node, methodName);
       }
       if (node.isGetter) {
+        _checkForVoidReturnType(node);
         _checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter) {
         _checkForInvalidModifierOnBody(
@@ -6037,6 +6038,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 //        // TODO(jwren) Report error, constructor initializer variable is a top level element
 //        // (Either here or in ErrorVerifier.checkForAllFinalInitializedErrorCodes)
 //        }
+  }
+
+  /**
+   * Verify that the given [getter] does not have a return type of 'void'.
+   *
+   * See [StaticWarningCode.VOID_RETURN_FOR_GETTER].
+   */
+  void _checkForVoidReturnType(MethodDeclaration getter) {
+    TypeAnnotation returnType = getter.returnType;
+    if (returnType is TypeName && returnType.name.name == "void") {
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.VOID_RETURN_FOR_GETTER, returnType);
+    }
   }
 
   /**

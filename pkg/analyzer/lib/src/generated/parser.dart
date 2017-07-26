@@ -351,7 +351,7 @@ class Parser {
   bool get hasReturnTypeInTypeAlias {
     // TODO(brianwilkerson) This is too expensive as implemented and needs to be
     // re-implemented or removed.
-    Token next = skipTypeAnnotation(_currentToken);
+    Token next = skipReturnType(_currentToken);
     if (next == null) {
       return false;
     }
@@ -449,7 +449,10 @@ class Parser {
    */
   bool isFunctionDeclaration() {
     Keyword keyword = _currentToken.keyword;
-    Token afterReturnType = skipTypeWithoutFunction(_currentToken);
+    if (keyword == Keyword.VOID) {
+      return true;
+    }
+    Token afterReturnType = skipTypeName(_currentToken);
     if (afterReturnType != null &&
         _tokenMatchesKeyword(afterReturnType, Keyword.FUNCTION)) {
       afterReturnType = skipGenericFunctionTypeAfterReturnType(afterReturnType);
@@ -1325,6 +1328,9 @@ class Parser {
             TokenType.COMMA,
             TokenType.SEMICOLON
           ])) {
+        if (returnType is! GenericFunctionType) {
+          _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+        }
         return parseInitializedIdentifierList(
             commentAndMetadata,
             modifiers.staticKeyword,
@@ -2131,6 +2137,9 @@ class Parser {
             TokenType.COMMA,
             TokenType.SEMICOLON
           ])) {
+        if (returnType is! GenericFunctionType) {
+          _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+        }
         return astFactory.topLevelVariableDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
@@ -2208,7 +2217,7 @@ class Parser {
               null, _validateModifiersForTopLevelVariable(modifiers), null),
           _expect(TokenType.SEMICOLON));
     }
-    TypeAnnotation returnType = parseTypeAnnotation(false);
+    TypeAnnotation returnType = parseReturnType(false);
     keyword = _currentToken.keyword;
     next = _peek();
     if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
@@ -2883,7 +2892,7 @@ class Parser {
         keywordToken = null;
       }
     } else if (_isTypedIdentifier(_currentToken)) {
-      type = parseTypeAnnotation(false);
+      type = parseReturnType(false);
     } else if (inFunctionType && _matchesIdentifier()) {
       type = parseTypeAnnotation(false);
     } else if (!optional) {
@@ -3405,7 +3414,7 @@ class Parser {
    *       | '(' normalParameterTypes ',' optionalParameterTypes ')' |
    *       | '(' optionalParameterTypes ')'
    *     normalParameterTypes ::=
-   *         normalParameterType (',' normalParameterType)*
+   *     normalParameterType (',' normalParameterType)*
    *     normalParameterType ::=
    *         type | typedIdentifier
    *     optionalParameterTypes ::=
@@ -4128,6 +4137,9 @@ class Parser {
               TokenType.COMMA,
               TokenType.SEMICOLON
             ])) {
+          if (returnType is! GenericFunctionType) {
+            _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+          }
           return _parseVariableDeclarationStatementAfterType(
               commentAndMetadata, null, returnType);
         } else {
@@ -4205,6 +4217,9 @@ class Parser {
             TokenType.COMMA,
             TokenType.SEMICOLON
           ])) {
+        if (returnType is! GenericFunctionType) {
+          _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+        }
         return _parseVariableDeclarationStatementAfterType(
             commentAndMetadata, null, returnType);
       } else {
@@ -4350,10 +4365,15 @@ class Parser {
       //_reportErrorForToken(ParserErrorCode.MISSING_PARAMETERS, typeParameters.endToken);
     }
     TypeAnnotation type = holder.type;
-    if (type != null &&
-        holder.keyword != null &&
-        _tokenMatchesKeyword(holder.keyword, Keyword.VAR)) {
-      _reportErrorForToken(ParserErrorCode.VAR_AND_TYPE, holder.keyword);
+    if (type != null) {
+      if (type is TypeName &&
+          _tokenMatchesKeyword(type.name.beginToken, Keyword.VOID)) {
+        _reportErrorForToken(
+            ParserErrorCode.VOID_PARAMETER, type.name.beginToken);
+      } else if (holder.keyword != null &&
+          _tokenMatchesKeyword(holder.keyword, Keyword.VAR)) {
+        _reportErrorForToken(ParserErrorCode.VAR_AND_TYPE, holder.keyword);
+      }
     }
     if (thisKeyword != null) {
       // TODO(brianwilkerson) If there are type parameters but no parameters,
@@ -4681,14 +4701,14 @@ class Parser {
     if (keyword == Keyword.AS) {
       Token asOperator = getAndAdvance();
       return astFactory.asExpression(
-          expression, asOperator, parseTypeNotVoid(true));
+          expression, asOperator, parseTypeAnnotation(true));
     } else if (keyword == Keyword.IS) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;
       if (_matches(TokenType.BANG)) {
         notOperator = getAndAdvance();
       }
-      TypeAnnotation type = parseTypeNotVoid(true);
+      TypeAnnotation type = parseTypeAnnotation(true);
       return astFactory.isExpression(expression, isOperator, notOperator, type);
     } else if (_currentToken.type.isRelationalOperator) {
       Token operator = getAndAdvance();
@@ -4725,6 +4745,26 @@ class Parser {
     Expression expression = parseExpression2();
     Token semicolon = _expect(TokenType.SEMICOLON);
     return astFactory.returnStatement(returnKeyword, expression, semicolon);
+  }
+
+  /**
+   * Parse a return type. Return the return type that was parsed.
+   *
+   *     returnType ::=
+   *         'void'
+   *       | type
+   */
+  TypeAnnotation parseReturnType(bool inExpression) {
+    if (_currentToken.keyword == Keyword.VOID) {
+      if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+        return parseTypeAnnotation(false);
+      } else {
+        return astFactory.typeName(
+            astFactory.simpleIdentifier(getAndAdvance()), null);
+      }
+    } else {
+      return parseTypeAnnotation(inExpression);
+    }
   }
 
   /**
@@ -5090,7 +5130,7 @@ class Parser {
       TypeName exceptionType = null;
       if (_matchesKeyword(Keyword.ON)) {
         onKeyword = getAndAdvance();
-        exceptionType = parseTypeNotVoid(false);
+        exceptionType = parseTypeAnnotation(false);
       }
       Token catchKeyword = null;
       Token leftParenthesis = null;
@@ -5182,27 +5222,6 @@ class Parser {
     if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
       // Generic function type with no return type.
       type = parseGenericFunctionTypeAfterReturnType(null);
-    } else {
-      type = parseTypeWithoutFunction(inExpression);
-    }
-    while (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
-      type = parseGenericFunctionTypeAfterReturnType(type);
-    }
-    return type;
-  }
-
-  /**
-   * Parse a type which is not `void`.
-   *
-   *     typeNotVoid ::=
-   *         functionType
-   *       | typeNotVoidWithoutFunction
-   */
-  TypeAnnotation parseTypeNotVoid(bool inExpression) {
-    TypeAnnotation type = null;
-    if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
-      // Generic function type with no return type.
-      type = parseGenericFunctionTypeAfterReturnType(null);
     } else if (_currentToken.keyword == Keyword.VOID &&
         _atGenericFunctionTypeAfterReturnType(_currentToken.next)) {
       type = astFactory.typeName(
@@ -5214,22 +5233,6 @@ class Parser {
       type = parseGenericFunctionTypeAfterReturnType(type);
     }
     return type;
-  }
-
-  /**
-   * Parse a type which is not a function type.
-   *
-   *     typeWithoutFunction ::=
-   *         `void`
-   *       | typeNotVoidWithoutFunction
-   */
-  TypeAnnotation parseTypeWithoutFunction(bool inExpression) {
-    if (_currentToken.keyword == Keyword.VOID) {
-      return astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
-    } else {
-      return parseTypeName(inExpression);
-    }
   }
 
   /**
@@ -5257,14 +5260,11 @@ class Parser {
   }
 
   /**
-   * Parse a type which is not void and is not a function type. Return the type
-   * that was parsed.
+   * Parse a type name. Return the type name that was parsed.
    *
-   *     typeNotVoidWithoutFunction ::=
+   *     type ::=
    *         qualified typeArguments?
    */
-  // TODO(eernst): Rename this to `parseTypeNotVoidWithoutFunction`?
-  // Apparently,  it was named `parseTypeName` before type arguments existed.
   TypeName parseTypeName(bool inExpression) {
     TypeName realType = _parseTypeName(inExpression);
     // If this is followed by a generic method type comment, allow the comment
@@ -5290,7 +5290,7 @@ class Parser {
     }
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
-      TypeAnnotation bound = parseTypeNotVoid(false);
+      TypeAnnotation bound = parseTypeAnnotation(false);
       return astFactory.typeParameter(commentAndMetadata.comment,
           commentAndMetadata.metadata, name, keyword, bound);
     }
@@ -5621,6 +5621,29 @@ class Parser {
   }
 
   /**
+   * Parse a return type, starting at the [startToken], without actually
+   * creating a return type or changing the current token. Return the token
+   * following the return type that was parsed, or `null` if the given token is
+   * not the first token in a valid return type.
+   *
+   * This method must be kept in sync with [parseReturnType].
+   *
+   *     returnType ::=
+   *         'void'
+   *       | type
+   */
+  Token skipReturnType(Token startToken) {
+    if (_tokenMatchesKeyword(startToken, Keyword.VOID)) {
+      if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+        return skipTypeAnnotation(startToken);
+      }
+      return startToken.next;
+    } else {
+      return skipTypeAnnotation(startToken);
+    }
+  }
+
+  /**
    * Parse a simple identifier, starting at the [startToken], without actually
    * creating a simple identifier or changing the current token. Return the
    * token following the simple identifier that was parsed, or `null` if the
@@ -5678,31 +5701,17 @@ class Parser {
   Token skipTypeAnnotation(Token startToken) {
     Token next = null;
     if (_atGenericFunctionTypeAfterReturnType(startToken)) {
-      // Generic function type with no return type.
       next = skipGenericFunctionTypeAfterReturnType(startToken);
+    } else if (startToken.keyword == Keyword.VOID &&
+        _atGenericFunctionTypeAfterReturnType(startToken.next)) {
+      next = startToken.next;
     } else {
-      next = skipTypeWithoutFunction(startToken);
+      next = skipTypeName(startToken);
     }
     while (next != null && _atGenericFunctionTypeAfterReturnType(next)) {
       next = skipGenericFunctionTypeAfterReturnType(next);
     }
     return next;
-  }
-
-  /**
-   * Parse a typeWithoutFunction, starting at the [startToken], without actually
-   * creating a TypeAnnotation or changing the current token. Return the token
-   * following the typeWithoutFunction that was parsed, or `null` if the given
-   * token is not the first token in a valid typeWithoutFunction.
-   *
-   * This method must be kept in sync with [parseTypeWithoutFunction].
-   */
-  Token skipTypeWithoutFunction(Token startToken) {
-    if (startToken.keyword == Keyword.VOID) {
-      return startToken.next;
-    } else {
-      return skipTypeName(startToken);
-    }
   }
 
   /**
@@ -5726,7 +5735,7 @@ class Parser {
         !_injectGenericCommentTypeList()) {
       return null;
     }
-    token = skipTypeAnnotation(token.next);
+    token = skipTypeName(token.next);
     if (token == null) {
       // If the start token '<' is followed by '>'
       // then assume this should be type argument list but is missing a type
@@ -5737,7 +5746,7 @@ class Parser {
       return null;
     }
     while (_tokenMatches(token, TokenType.COMMA)) {
-      token = skipTypeAnnotation(token.next);
+      token = skipTypeName(token.next);
       if (token == null) {
         return null;
       }
@@ -5924,7 +5933,7 @@ class Parser {
         // This looks like the start of a function
         return true;
       }
-      Token token = skipTypeAnnotation(_currentToken);
+      Token token = skipReturnType(_currentToken);
       if (token == null) {
         return false;
       }
@@ -6312,7 +6321,7 @@ class Parser {
    * name that is followed by a variable or field formal parameter.
    */
   bool _isTypedIdentifier(Token startToken) {
-    Token token = skipTypeAnnotation(startToken);
+    Token token = skipReturnType(startToken);
     if (token == null) {
       return false;
     } else if (_tokenMatchesIdentifier(token)) {
@@ -6320,6 +6329,10 @@ class Parser {
     } else if (_tokenMatchesKeyword(token, Keyword.THIS) &&
         _tokenMatches(token.next, TokenType.PERIOD) &&
         _tokenMatchesIdentifier(token.next.next)) {
+      return true;
+    } else if (_tokenMatchesKeyword(startToken, Keyword.VOID)) {
+      // The keyword 'void' isn't a valid identifier, so it should be assumed to
+      // be a type name.
       return true;
     } else if (startToken.next != token &&
         !_tokenMatches(token, TokenType.OPEN_PAREN)) {
@@ -7010,7 +7023,7 @@ class Parser {
       CommentAndMetadata commentAndMetadata, Token keyword) {
     TypeAnnotation returnType = null;
     if (hasReturnTypeInTypeAlias) {
-      returnType = parseTypeAnnotation(false);
+      returnType = parseReturnType(false);
     }
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
@@ -7325,7 +7338,7 @@ class Parser {
           // type.
           return null;
         }
-        return parseTypeAnnotation(false);
+        return parseReturnType(false);
       }
       Token next2 = next.next;
       Token next3 = next2.next;
@@ -7333,7 +7346,7 @@ class Parser {
           _tokenMatchesIdentifier(next2) &&
           (_tokenMatchesIdentifier(next3) ||
               _tokenMatches(next3, TokenType.LT))) {
-        return parseTypeAnnotation(false);
+        return parseReturnType(false);
       }
     }
     return null;
@@ -7878,7 +7891,7 @@ class Parser {
               (_tokenMatchesIdentifier(next.next.next) ||
                   _tokenMatches(next.next.next, TokenType.LT) ||
                   _tokenMatchesKeyword(next.next.next, Keyword.THIS)))) {
-        return skipTypeAnnotation(startToken);
+        return skipReturnType(startToken);
       }
     }
     return null;

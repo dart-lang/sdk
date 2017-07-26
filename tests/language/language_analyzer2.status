@@ -449,7 +449,7 @@ regress_27572_test: StaticWarning # Warning about undefined method expected.
 
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
-# TODO: generalized_void_syntax_test: CompileTimeError # Issue #30177.
+generalized_void_syntax_test: CompileTimeError # Issue #30177.
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649

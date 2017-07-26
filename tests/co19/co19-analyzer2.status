@@ -7,7 +7,6 @@
 Language/Classes/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
 Language/Classes/Getters/static_t01: StaticWarning # Please triage this failure.
-Language/Classes/Getters/void_return_type_t01: MissingStaticWarning # Issue co19/30264
 Language/Classes/Instance_Variables/definition_t03: StaticWarning # Please triage this failure.
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: MissingStaticWarning # Issue 23749
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: MissingStaticWarning # TBF: Static members should not be accessible via subclasses.
@@ -94,10 +93,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 Language/Types/Interface_Types/subtype_t12: fail, OK # co19 issue #442, undefined name "Expect"
-Language/Types/Type_Void/syntax_t01: MissingCompileTimeError # Issue co19/30264
-Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # Issue co19/30264
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # Issue co19/30264
-Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # Issue 30177: `print(v)` is an error.
 Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError # Please triage this failure
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError # Please triage this failure
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError # Please triage this failure
