@@ -165,6 +165,17 @@ void testInts(Set create()) {
   }
   Expect.isTrue(twice.difference(thrice).difference(twice).isEmpty);
 
+  // Test Set.difference with non-element type.
+  Set diffSet = create()..addAll([0, 1, 2, 499, 999]);
+  Set<Object> objectSet = new Set<Object>();
+  objectSet.add("foo");
+  objectSet.add(499);
+  Set diffResult = diffSet.difference(objectSet);
+  Expect.equals(4, diffResult.length);
+  for (int value in [0, 1, 2, 999]) {
+    Expect.isTrue(diffResult.contains(value));
+  }
+
   // Test Set.addAll.
   List list = new List(10);
   for (int i = 0; i < 10; i++) {

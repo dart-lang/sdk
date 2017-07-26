@@ -49,6 +49,7 @@ const_list_remove_range_test: RuntimeError # Issue 29921
 const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
+hash_set_test/01: RuntimeError # Issue 29921
 regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
 regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
 regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
@@ -57,6 +58,7 @@ regexp/stack-overflow2_test: RuntimeError # Issue 29921
 regexp/stack-overflow_test: RuntimeError # Issue 29921
 regexp/unicode-handling_test: RuntimeError # Issue 29921
 regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
+regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
 symbol_operator_test: RuntimeError # Issue 29921
 symbol_operator_test/03: RuntimeError # Issue 29921
@@ -76,6 +78,7 @@ hash_set_test/01: RuntimeError # Issue 11551
 int_modulo_arith_test/bignum: RuntimeError # Issue 29921
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
 int_modulo_arith_test/none: RuntimeError # Issue 29921
+regress_r21715_test: RuntimeError # Requires bigint support.
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -176,6 +179,7 @@ symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
 
 [ $compiler == dart2js ]
+hash_set_test/01: RuntimeError # Issue 11551
 string_static_test: MissingCompileTimeError
 symbol_test/04: MissingCompileTimeError
 
