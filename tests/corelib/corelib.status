@@ -5,10 +5,6 @@
 [ $strong ]
 *: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
 
-[ $compiler == none && $runtime == drt ]
-from_environment_const_type_test: Skip
-from_environment_const_type_undefined_test: Skip
-
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 string_case_test/01: Fail # Bug 18061
 

@@ -24,7 +24,7 @@ issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
 
-[ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none) ]
+[ ($runtime != vm && $runtime != dart_precompiled) && ($compiler != none) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 env_test: Skip # This is testing a vm command line parsing scenario.
 

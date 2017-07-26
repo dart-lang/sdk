@@ -43,11 +43,6 @@ assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
-[$compiler == none && $runtime == drt && !$checked]
-assertion_initializer_const_error2_test/cc02: Fail
-assertion_initializer_const_error_test/01: Fail
-assertion_initializer_const_function_error_test/01: Fail
-
 [$compiler == app_jit && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
@@ -58,7 +53,7 @@ abstract_beats_arguments2_test/01: Crash # Issue 29171
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 
-# These test entries will be valid for vm/dartium (with and without kernel).
+# These test entries will be valid for vm (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 async_star_cancel_while_paused_test: RuntimeError
 # This is OK for now, but we may want to change the semantics to match the test.
@@ -107,7 +102,7 @@ multiline_strings_test: Fail # Issue 23020
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
+async_star_regression_2238_test: CompileTimeError, RuntimeError
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,

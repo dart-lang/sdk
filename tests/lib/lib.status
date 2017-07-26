@@ -338,9 +338,6 @@ mirrors/library_uri_package_test: RuntimeError
 # fstat bug, MG-479.
 mirrors/invocation_fuzz_test: Crash
 
-[ $compiler == none && $runtime == drt && $checked ]
-async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
-
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 mirrors/null_test: Fail # Issue 16831

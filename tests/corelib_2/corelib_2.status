@@ -141,11 +141,6 @@ string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
 
-[ $compiler == none && $runtime == drt ]
-bool_from_environment2_test: Skip
-bool_from_environment_test: Skip
-string_case_test/01: Fail # Issue 18061
-
 [ $runtime == ff || $runtime == jsshell ]
 # Firefox takes advantage of the ECMAScript number parsing cop-out clause
 # (presumably added to allow Mozilla's existing behavior)
