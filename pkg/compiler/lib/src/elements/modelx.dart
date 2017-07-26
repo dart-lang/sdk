@@ -3572,10 +3572,8 @@ abstract class PatchMixin<E extends Element> implements Element {
     assert(this.origin == null, failedAt(this, "Origin element is a patch."));
     assert(patch.origin == null, failedAt(patch, "Element is patched twice."));
     assert(patch.patch == null, failedAt(patch, "Patch element is patched."));
-    // ignore: INVALID_ASSIGNMENT
-    this.patch = patch;
-    // ignore: INVALID_ASSIGNMENT
-    patch.origin = this;
+    this.patch = patch as E;
+    patch.origin = this as E;
   }
 }
 
