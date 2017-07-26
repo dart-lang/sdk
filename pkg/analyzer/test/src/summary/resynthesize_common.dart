@@ -2034,7 +2034,7 @@ abstract class C {
     var library = await checkLibrary('class C { external int get x; }');
     checkElementText(library, r'''
 class C {
-  external int get x {}
+  external int get x;
 }
 ''');
   }
@@ -2247,7 +2247,7 @@ abstract class C {
         await checkLibrary('class C { external void set x(int value); }');
     checkElementText(library, r'''
 class C {
-  external void set x(int value) {}
+  external void set x(int value);
 }
 ''');
   }
@@ -6238,7 +6238,7 @@ dynamic get x {}
   test_getter_external() async {
     var library = await checkLibrary('external int get x;');
     checkElementText(library, r'''
-external int get x {}
+external int get x;
 ''');
   }
 
@@ -8707,7 +8707,7 @@ void set x(dynamic value) {}
   test_setter_external() async {
     var library = await checkLibrary('external void set x(int value);');
     checkElementText(library, r'''
-external void set x(int value) {}
+external void set x(int value);
 ''');
   }
 

@@ -384,6 +384,74 @@ class _KernelLibraryResynthesizerContextImpl
   _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
 
   @override
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors(
+      CompilationUnitElementImpl unit) {
+    var accessorsData = new UnitExplicitTopLevelAccessors();
+    var implicitVariables = <String, TopLevelVariableElementImpl>{};
+    // Build explicit property accessors and implicit fields.
+    for (var procedure in library.procedures) {
+      bool isGetter = procedure.kind == kernel.ProcedureKind.Getter;
+      bool isSetter = procedure.kind == kernel.ProcedureKind.Setter;
+      if (isGetter || isSetter) {
+        var accessor =
+            new PropertyAccessorElementImpl.forKernel(unit, procedure);
+        accessorsData.accessors.add(accessor);
+
+        // Create or update the implicit variable.
+        String name = accessor.displayName;
+        TopLevelVariableElementImpl variable = implicitVariables[name];
+        if (variable == null) {
+          variable = new TopLevelVariableElementImpl(name, -1);
+          implicitVariables[name] = variable;
+          variable.enclosingElement = unit;
+          variable.isSynthetic = true;
+          variable.isFinal = isGetter;
+        } else {
+          variable.isFinal = false;
+        }
+
+        // Attach the accessor to the variable.
+        accessor.variable = variable;
+        if (isGetter) {
+          variable.getter = accessor;
+        } else {
+          variable.setter = accessor;
+        }
+      }
+    }
+    accessorsData.implicitVariables.addAll(implicitVariables.values);
+    return accessorsData;
+  }
+
+  @override
+  UnitExplicitTopLevelVariables buildTopLevelVariables(
+      CompilationUnitElementImpl unit) {
+    int numberOfVariables = library.fields.length;
+    var variablesData = new UnitExplicitTopLevelVariables(numberOfVariables);
+    for (int i = 0; i < numberOfVariables; i++) {
+      kernel.Field field = library.fields[i];
+
+      // Add the explicit variables.
+      TopLevelVariableElementImpl variable;
+      if (field.isConst && field.initializer != null) {
+        variable = new ConstTopLevelVariableElementImpl.forKernel(unit, field);
+      } else {
+        variable = new TopLevelVariableElementImpl.forKernel(unit, field);
+      }
+      variablesData.variables[i] = variable;
+
+      // Add the implicit accessors.
+      variablesData.implicitAccessors
+          .add(new PropertyAccessorElementImpl_ImplicitGetter(variable));
+      if (!(variable.isConst || variable.isFinal)) {
+        variablesData.implicitAccessors
+            .add(new PropertyAccessorElementImpl_ImplicitSetter(variable));
+      }
+    }
+    return variablesData;
+  }
+
+  @override
   ConstructorInitializer getConstructorInitializer(
       ConstructorElementImpl constructor, kernel.Initializer k) {
     if (k is kernel.LocalInitializer ||

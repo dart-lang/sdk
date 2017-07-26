@@ -683,6 +683,14 @@ class _ElementWriter {
       PropertyInducingElement variable = e.variable;
       expect(variable, isNotNull);
       expect(variable.isSynthetic, isTrue);
+
+      var variableEnclosing = variable.enclosingElement;
+      if (variableEnclosing is CompilationUnitElement) {
+        expect(variableEnclosing.topLevelVariables, contains(variable));
+      } else if (variableEnclosing is ClassElement) {
+        expect(variableEnclosing.fields, contains(variable));
+      }
+
       if (e.isGetter) {
         expect(variable.getter, same(e));
         if (variable.setter != null) {
@@ -732,7 +740,7 @@ class _ElementWriter {
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
 
-    if (e.isAbstract) {
+    if (e.isAbstract || e.isExternal) {
       buffer.writeln(';');
     } else {
       buffer.writeln(' {}');

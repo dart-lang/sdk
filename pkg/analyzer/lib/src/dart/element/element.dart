@@ -1570,17 +1570,23 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_unlinkedUnit != null) {
-      if (_accessors == null) {
+    if (_accessors == null) {
+      if (_kernelContext != null) {
+        _explicitTopLevelAccessors ??=
+            _kernelContext.buildTopLevelAccessors(this);
+        _explicitTopLevelVariables ??=
+            _kernelContext.buildTopLevelVariables(this);
+      }
+      if (_unlinkedUnit != null) {
         _explicitTopLevelAccessors ??=
             resynthesizerContext.buildTopLevelAccessors();
         _explicitTopLevelVariables ??=
             resynthesizerContext.buildTopLevelVariables();
-        List<PropertyAccessorElementImpl> accessors =
-            <PropertyAccessorElementImpl>[];
-        accessors.addAll(_explicitTopLevelAccessors.accessors);
-        accessors.addAll(_explicitTopLevelVariables.implicitAccessors);
-        _accessors = accessors;
+      }
+      if (_explicitTopLevelAccessors != null) {
+        _accessors = <PropertyAccessorElementImpl>[]
+          ..addAll(_explicitTopLevelAccessors.accessors)
+          ..addAll(_explicitTopLevelVariables.implicitAccessors);
       }
     }
     return _accessors ?? PropertyAccessorElement.EMPTY_LIST;
@@ -1717,36 +1723,36 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
-    if (_kernelContext != null) {
-      return _variables ??= _kernelContext.library.fields.map((k) {
-        if (k.isConst && k.initializer != null) {
-          return new ConstTopLevelVariableElementImpl.forKernel(this, k);
-        } else {
-          return new TopLevelVariableElementImpl.forKernel(this, k);
-        }
-      }).toList(growable: false);
-    }
-    if (_unlinkedUnit != null) {
-      if (_variables == null) {
+    if (_variables == null) {
+      if (_kernelContext != null) {
+        _explicitTopLevelAccessors ??=
+            _kernelContext.buildTopLevelAccessors(this);
+        _explicitTopLevelVariables ??=
+            _kernelContext.buildTopLevelVariables(this);
+      }
+      if (_unlinkedUnit != null) {
         _explicitTopLevelAccessors ??=
             resynthesizerContext.buildTopLevelAccessors();
         _explicitTopLevelVariables ??=
             resynthesizerContext.buildTopLevelVariables();
-        List<TopLevelVariableElementImpl> variables =
-            <TopLevelVariableElementImpl>[];
-        variables.addAll(_explicitTopLevelVariables.variables);
-        variables.addAll(_explicitTopLevelAccessors.implicitVariables);
+      }
+      if (_explicitTopLevelVariables != null) {
+        var variables = <TopLevelVariableElement>[]
+          ..addAll(_explicitTopLevelVariables.variables)
+          ..addAll(_explicitTopLevelAccessors.implicitVariables);
+
         // Ensure that getters and setters in different units use
         // the same top-level variables.
-        (enclosingElement as LibraryElementImpl)
-            .resynthesizerContext
-            .patchTopLevelAccessors();
-        _variables = variables;
+        BuildLibraryElementUtils.patchTopLevelAccessors(library);
+
+        // Apply recorded patches to variables.
         _topLevelVariableReplaceMap?.forEach((from, to) {
-          int index = _variables.indexOf(from);
-          _variables[index] = to;
+          int index = variables.indexOf(from);
+          variables[index] = to;
         });
         _topLevelVariableReplaceMap = null;
+
+        _variables = variables;
       }
     }
     return _variables ?? TopLevelVariableElement.EMPTY_LIST;
@@ -5895,6 +5901,18 @@ class ImportElementImpl extends UriReferencedElementImpl
  */
 abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
+
+  /**
+   * Build explicit top-level property accessors.
+   */
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors(
+      CompilationUnitElementImpl unit);
+
+  /**
+   * Build explicit top-level variables.
+   */
+  UnitExplicitTopLevelVariables buildTopLevelVariables(
+      CompilationUnitElementImpl unit);
 
   /**
    * Return the resynthesized [ConstructorInitializer] for the given Kernel

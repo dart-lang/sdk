@@ -669,26 +669,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_getter_external() async {
-    await super.test_getter_external();
-  }
-
-  @failingTest
-  test_getters() async {
-    await super.test_getters();
-  }
-
-  @failingTest
-  test_implicitTopLevelVariable_getterFirst() async {
-    await super.test_implicitTopLevelVariable_getterFirst();
-  }
-
-  @failingTest
-  test_implicitTopLevelVariable_setterFirst() async {
-    await super.test_implicitTopLevelVariable_setterFirst();
-  }
-
-  @failingTest
   test_import_configurations_useDefault() async {
     await super.test_import_configurations_useDefault();
   }
@@ -829,11 +809,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_localFunctions_inTopLevelGetter() async {
-    await super.test_localFunctions_inTopLevelGetter();
-  }
-
-  @failingTest
   test_main_class_alias_via_export() async {
     await super.test_main_class_alias_via_export();
   }
@@ -841,11 +816,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_main_class_via_export() async {
     await super.test_main_class_via_export();
-  }
-
-  @failingTest
-  test_main_getter() async {
-    await super.test_main_getter();
   }
 
   @failingTest
@@ -1078,21 +1048,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_setter_documented() async {
     await super.test_setter_documented();
-  }
-
-  @failingTest
-  test_setter_external() async {
-    await super.test_setter_external();
-  }
-
-  @failingTest
-  test_setter_inferred_type_top_level_implicit_return() async {
-    await super.test_setter_inferred_type_top_level_implicit_return();
-  }
-
-  @failingTest
-  test_setters() async {
-    await super.test_setters();
   }
 
   @failingTest
