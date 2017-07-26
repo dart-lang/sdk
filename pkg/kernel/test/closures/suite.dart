@@ -59,8 +59,7 @@ class ClosureConversionContext extends ChainContext implements CompileContext {
         ];
 
   static Future<ClosureConversionContext> create(
-      Chain suite, Map<String, String> environment) async {
-    bool strongMode = environment.containsKey(STRONG_MODE);
+      Chain suite, Map<String, String> environment, bool strongMode) async {
     bool updateExpectations = environment["updateExpectations"] == "true";
     return new ClosureConversionContext(strongMode, updateExpectations);
   }
@@ -68,9 +67,10 @@ class ClosureConversionContext extends ChainContext implements CompileContext {
 
 Future<ClosureConversionContext> createContext(
     Chain suite, Map<String, String> environment) async {
+  bool strongMode = environment.containsKey(STRONG_MODE);
   environment["updateExpectations"] =
       const String.fromEnvironment("updateExpectations");
-  return ClosureConversionContext.create(suite, environment);
+  return ClosureConversionContext.create(suite, environment, strongMode);
 }
 
 class ClosureConversion

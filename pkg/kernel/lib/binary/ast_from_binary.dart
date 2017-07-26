@@ -937,8 +937,9 @@ class BinaryBuilder {
         var topLevelFunctionReference = readMemberReference();
         var contextVector = readExpression();
         var functionType = readDartType();
+        var typeArgs = readDartTypeList();
         return new ClosureCreation.byReference(
-            topLevelFunctionReference, contextVector, functionType);
+            topLevelFunctionReference, contextVector, functionType, typeArgs);
       default:
         throw fail('Invalid expression tag: $tag');
     }

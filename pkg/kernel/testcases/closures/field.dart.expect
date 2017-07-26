@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
-  field dynamic v = MakeClosure<(dynamic) → dynamic>(self::closure#C#v#function, null);
+  field dynamic v = MakeClosure<<T extends core::Object>(dynamic) → dynamic, self::C::T>(self::closure#C#v#function, null);
   final field dynamic y = MakeClosure<() → dynamic>(self::closure#C#y#function, null);
   static final field dynamic z = MakeClosure<() → dynamic>(self::closure#C#z#function, null);
   default constructor •() → void
@@ -31,8 +31,8 @@ static method main() → dynamic {
   if(!"z".==(self::C::z.call()))
     throw "z";
 }
-static method closure#C#v#function(Vector #contextParameter, dynamic x) → dynamic {
-  return x is dynamic;
+static method closure#C#v#function<T extends core::Object>(Vector #contextParameter, dynamic x) → dynamic {
+  return x is self::closure#C#v#function::T;
 }
 static method closure#C#y#function(Vector #contextParameter) → dynamic {
   return "y";
