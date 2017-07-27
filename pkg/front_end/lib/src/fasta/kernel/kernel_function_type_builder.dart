@@ -14,7 +14,6 @@ import 'package:kernel/ast.dart'
         TypeParameter;
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction;
-
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,

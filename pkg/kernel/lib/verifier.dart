@@ -337,7 +337,8 @@ class VerifyingVisitor extends RecursiveVisitor {
         !(parent is ForStatement && parent.body != node) &&
         !(parent is ForInStatement && parent.body != node) &&
         parent is! Let &&
-        parent is! LocalInitializer) {
+        parent is! LocalInitializer &&
+        parent is! Typedef) {
       problem(
           node,
           "VariableDeclaration must be a direct child of a Block, "

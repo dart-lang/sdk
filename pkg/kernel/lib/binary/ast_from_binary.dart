@@ -438,6 +438,13 @@ class BinaryBuilder {
     String name = readStringReference();
     String fileUri = readUriReference();
     readAndPushTypeParameterList(node.typeParameters, node);
+
+    int requiredParameterCount = readUInt();
+    var positionalParameters = readVariableDeclarationList();
+    var namedParameters = readVariableDeclarationList();
+    node.setParameters(
+        requiredParameterCount, positionalParameters, namedParameters);
+
     var type = readDartType();
     typeParameterStack.length = 0;
     if (shouldWriteData) {
@@ -1219,6 +1226,11 @@ class BinaryBuilder {
 
   NamedExpression readNamedExpression() {
     return new NamedExpression(readStringReference(), readExpression());
+  }
+
+  List<VariableDeclaration> readVariableDeclarationList() {
+    return new List<VariableDeclaration>.generate(
+        readUInt(), (i) => readVariableDeclaration());
   }
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {

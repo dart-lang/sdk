@@ -344,14 +344,19 @@ class BinaryPrinter extends Visitor {
   }
 
   void visitTypedef(Typedef node) {
+    _variableIndexer = new VariableIndexer();
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeUriReference(node.fileUri ?? '');
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
+    writeUInt30(node.requiredParameterCount);
+    writeVariableDeclarationList(node.positionalParameters);
+    writeVariableDeclarationList(node.namedParameters);
     writeNode(node.type);
     _typeParameterIndexer.exit(node.typeParameters);
+    _variableIndexer = null;
   }
 
   void writeAnnotation(Expression annotation) {
