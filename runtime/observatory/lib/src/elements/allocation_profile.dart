@@ -64,8 +64,8 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
   bool _autoRefresh = false;
   bool _isCompacted = false;
   StreamSubscription _gcSubscription;
-  _SortingField _sortingField = _SortingField.className;
-  _SortingDirection _sortingDirection = _SortingDirection.ascending;
+  _SortingField _sortingField = _SortingField.currentSize;
+  _SortingDirection _sortingDirection = _SortingDirection.descending;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;

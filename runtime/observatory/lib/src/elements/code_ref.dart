@@ -51,13 +51,12 @@ class CodeRefElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    final name = (_code.isOptimized ? '*' : '') + _code.name;
     children = [
       new AnchorElement(
           href: ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
               ? null
               : Uris.inspect(_isolate, object: _code))
-        ..text = name
+        ..text = _code.name
     ];
   }
 }
