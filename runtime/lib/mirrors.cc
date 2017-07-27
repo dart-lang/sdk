@@ -357,21 +357,6 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
       return Instance::null();
     }
   }
-  if (str.Equals("dart:io")) {
-    // Hack around dart:io being loaded into non-service isolates in Dartium.
-    Isolate* isolate = thread->isolate();
-    const GrowableObjectArray& libraries =
-        GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
-    Library& other_lib = Library::Handle(zone);
-    String& other_uri = String::Handle(zone);
-    for (intptr_t i = 0; i < libraries.Length(); i++) {
-      other_lib ^= libraries.At(i);
-      other_uri = other_lib.url();
-      if (other_uri.Equals("dart:html")) {
-        return Instance::null();
-      }
-    }
-  }
   args.SetAt(2, str);
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);
 }
