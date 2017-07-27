@@ -50,6 +50,12 @@ const_list_set_range_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
+regexp/quantified-assertions_test: RuntimeError # Issue 29921
+regexp/range-bound-ffff_test: RuntimeError # Issue 29921
+regexp/range-out-of-order_test: RuntimeError # Issue 29921
+regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
+regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
+regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
 regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
 regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
 regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
@@ -275,6 +281,9 @@ int_from_environment3_test/05: Crash
 int_modulo_arith_test/bignum: Crash
 int_modulo_arith_test/modPow: Crash
 int_modulo_arith_test/none: Crash
+regexp/range-out-of-order_test: Crash
+regexp/regexp_kde_test: Crash
+regexp/regexp_test: Crash
 stacktrace_fromstring_test: Crash
 stopwatch2_test: Crash
 string_base_vm_test: Crash
@@ -372,6 +381,11 @@ double_parse_test/02: Crash
 double_parse_test/03: Crash
 double_parse_test/04: Crash
 double_parse_test/none: Crash
+regexp/quantified-assertions_test: Crash
+regexp/range-bound-ffff_test: Crash
+regexp/ranges-and-escaped-hyphens_test: Crash
+regexp/regress-6-9-regexp_test: Crash
+regexp/regress-6-9-regexp_test: Crash
 stopwatch_test: Crash
 string_base_vm_static_test: Crash
 string_case_test/01: Crash
