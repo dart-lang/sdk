@@ -50,8 +50,6 @@ front_end/test/fasta/analyze_test: Pass, Slow
 
 kernel/test/closures_test: Slow, Pass
 
-front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 29819
-
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 

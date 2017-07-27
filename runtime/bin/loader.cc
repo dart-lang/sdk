@@ -635,7 +635,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
   if (tag == Dart_kScriptTag) {
-    if (dfe.UseDartFrontend()) {
+    if (dfe.UseDartFrontend() || dfe.kernel_file_specified()) {
       Dart_Isolate current = Dart_CurrentIsolate();
       // Check if we are trying to reload a kernel file or if the '--dfe'
       // option was specified and we need to compile sources using DFE.

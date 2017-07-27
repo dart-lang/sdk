@@ -20,7 +20,8 @@ DFE::DFE()
       platform_binary_filename_(NULL),
       vmservice_io_binary_filename_(NULL),
       kernel_platform_(NULL),
-      kernel_vmservice_io_(NULL) {}
+      kernel_vmservice_io_(NULL),
+      kernel_file_specified_(false) {}
 
 DFE::~DFE() {
   frontend_filename_ = NULL;
@@ -77,9 +78,7 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   }
   void* kernel_program = Dart_ReadKernelBinary(kernel_ir, kernel_ir_size);
   ASSERT(kernel_program != NULL);
-  Dart_Handle url = Dart_NewStringFromCString(url_string);
-  Dart_Handle result = Dart_LoadScript(
-      url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+  Dart_Handle result = Dart_LoadKernel(kernel_program);
   if (Dart_IsError(result)) {
     return result;
   }

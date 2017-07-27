@@ -34,6 +34,9 @@ class DFE {
 
   void* kernel_vmservice_io() const { return kernel_vmservice_io_; }
 
+  bool kernel_file_specified() const { return kernel_file_specified_; }
+  void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
+
   // Method to reload a script into a running a isolate.
   // If the specified script [url] is not a kernel IR, compile it first using
   // DFE and then reload the resulting kernel IR into the isolate.
@@ -76,6 +79,7 @@ class DFE {
   char* vmservice_io_binary_filename_;
   void* kernel_platform_;
   void* kernel_vmservice_io_;
+  bool kernel_file_specified_;  // Kernel file was specified on the cmd line.
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };
