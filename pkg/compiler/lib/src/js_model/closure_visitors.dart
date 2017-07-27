@@ -266,7 +266,6 @@ class CapturedScopeBuilder extends ir.Visitor {
         savedScopeInfo.freeVariables;
     assert(freeVariables.isEmpty || savedIsInsideClosure);
     for (ir.VariableDeclaration freeVariable in freeVariables) {
-      assert(!_capturedVariables.contains(freeVariable));
       _capturedVariables.add(freeVariable);
       _markVariableAsUsed(freeVariable);
     }
