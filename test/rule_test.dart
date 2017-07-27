@@ -412,8 +412,8 @@ testRule(String ruleName, File file, {bool debug: false}) {
       return;
     }
 
-    MemoryResourceProvider memoryResourceProvider =
-        new MemoryResourceProvider();
+    MemoryResourceProvider memoryResourceProvider = new MemoryResourceProvider(
+        context: PhysicalResourceProvider.INSTANCE.pathContext);
     TestResourceProvider resourceProvider =
         new TestResourceProvider(memoryResourceProvider);
 
@@ -463,7 +463,7 @@ class TestResourceProvider implements file_system.ResourceProvider {
 
   @override
   AbsolutePathContext get absolutePathContext =>
-      memoryResourceProvider.absolutePathContext;
+      physicalResourceProvider.absolutePathContext;
 
   @override
   file_system.File getFile(String path) {
@@ -501,7 +501,7 @@ class TestResourceProvider implements file_system.ResourceProvider {
   }
 
   @override
-  p.Context get pathContext => memoryResourceProvider.pathContext;
+  p.Context get pathContext => physicalResourceProvider.pathContext;
 }
 
 class Annotation {
