@@ -33,6 +33,7 @@ vars = {
   # "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
+  "gyp_rev": "@4801a5331ae62da9769a327f11c4213d32fb0dad",
 
   # Revisions of GN related dependencies. This should match the revision
   # pulled by Flutter.
@@ -139,6 +140,10 @@ vars = {
 }
 
 deps = {
+  # Stuff needed for GYP to run.
+  Var("dart_root") + "/third_party/gyp":
+      Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
+
   # Stuff needed for GN build.
   Var("dart_root") + "/buildtools":
      Var("fuchsia_git") + "/buildtools" + Var("buildtools_revision"),
@@ -470,6 +475,12 @@ hooks = [
     'name': 'buildtools',
     'pattern': '.',
     'action': ['python', 'sdk/tools/buildtools/update.py'],
+  },
+  {
+    # Update the Windows toolchain if necessary.
+    'name': 'win_toolchain',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
   {
     "pattern": ".",
