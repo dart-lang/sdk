@@ -11,43 +11,6 @@
 [$compiler == precompiler && $runtime == dart_precompiled ]
 stacktrace_demangle_ctors_test: RuntimeError
 
-[$compiler == precompiler && $runtime == dart_precompiled && !$checked]
-assertion_initializer_const_error2_test/cc01: Pass, OK
-assertion_initializer_const_error2_test/cc02: CompileTimeError
-assertion_initializer_const_error2_test/cc03: Pass, OK
-assertion_initializer_const_error2_test/cc04: Pass, OK
-assertion_initializer_const_error2_test/cc05: Pass, OK
-assertion_initializer_const_error2_test/cc06: Pass, OK
-assertion_initializer_const_error2_test/cc07: Pass, OK
-assertion_initializer_const_error2_test/cc08: Pass, OK
-assertion_initializer_const_error2_test/cc09: Pass, OK
-assertion_initializer_const_error2_test/cc10: Pass, OK
-assertion_initializer_const_error2_test/cc11: Pass, OK
-assertion_initializer_const_error2_test/none: CompileTimeError
-
-[$compiler == precompiler && $runtime == dart_precompiled && $checked]
-assertion_initializer_const_error2_test/cc01: Pass
-assertion_initializer_const_error2_test/cc03: Pass
-assertion_initializer_const_error2_test/cc04: Pass
-assertion_initializer_const_error2_test/cc05: Pass
-assertion_initializer_const_error2_test/cc06: Pass
-assertion_initializer_const_error2_test/cc07: Pass
-assertion_initializer_const_error2_test/cc08: Pass
-assertion_initializer_const_error2_test/cc09: Pass
-assertion_initializer_const_error2_test/cc10: Pass
-assertion_initializer_const_error2_test/cc11: Pass
-assertion_initializer_const_error2_test/none: CompileTimeError
-
-[$compiler == none && $runtime == vm && !$checked]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-
-[$compiler == app_jit && $runtime == vm && !$checked]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
@@ -133,27 +96,10 @@ vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Is
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled)) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
-[ $compiler == precompiler && $runtime == dart_precompiled ]
-assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc02: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc03: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc04: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc05: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc06: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc07: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc08: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc09: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc10: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/cc11: Crash, MissingCompileTimeError
-
 vm/regress_27671_test: Skip # Unsupported
 export_double_same_main_test: Skip # Issue 29895
 export_ambiguous_main_negative_test: Skip # Issue 29895
 vm/optimized_stacktrace_test: Skip # Issue 30198
-
-[ $compiler == precompiler && $runtime == dart_precompiled && !$checked]
-assertion_initializer_const_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331
@@ -216,7 +162,6 @@ vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
 [ $mode == product ]
 issue13474_test: SkipByDesign # Requires checked mode.
-assertion_test: SkipByDesign # Requires checked mode.
 named_parameters_type_test/01: SkipByDesign # Requires checked mode.
 named_parameters_type_test/02: SkipByDesign # Requires checked mode.
 named_parameters_type_test/03: SkipByDesign # Requires checked mode.
@@ -291,14 +236,6 @@ conditional_import_string_test: Crash # Requires deferred libraries
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
 
-[ ($runtime != vm && $compiler != dartk && $compiler != dartkp ) || ($compiler != none && $compiler != dartk && $compiler != dartkp )]
-assert_initializer_test/*: SKIP  # not implemented yet, experiment is VM only.
-
-[($runtime == vm || $runtime == flutter) && $compiler == none && $checked]
-# The VM doesn't enforce that potentially const expressions are actually
-# const expressions when the constructor is called with `const`.
-assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
-
 [($runtime == vm || $runtime == flutter) && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 
@@ -331,9 +268,6 @@ syntax_test/none: CompileTimeError # Issue #30176.
 await_backwards_compatibility_test/none: CompileTimeError
 await_test: CompileTimeError
 async_await_test: CompileTimeError
-async_await_syntax_test/a05c: CompileTimeError
-async_await_syntax_test/a05e: CompileTimeError
-async_await_syntax_test/d08c: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 new_expression_type_args_test/02: CompileTimeError
 super_getter_setter_test: CompileTimeError

@@ -85,10 +85,10 @@ main() {
 }
 
 void test(int x, int y) {
-  bool checkedMode = false;
-  assert(checkedMode = true);
+  bool assertionsEnabled = false;
+  assert(assertionsEnabled = true);
 
-  bool Function(C Function()) doTest = (checkedMode && x >= y)
+  bool Function(C Function()) doTest = (assertionsEnabled && x >= y)
     ? (f) { Expect.throws(f, (e) => e is AssertionError); }
     : (f) { Expect.equals(x, f().x); };
 

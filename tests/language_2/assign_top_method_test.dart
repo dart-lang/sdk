@@ -10,6 +10,5 @@ method() {
 
 main() {
   // Illegal, can't change a top level method
-  Expect.throws(() { method = () { return 1; }; }, //# 01: static type warning
-                (e) => e is NoSuchMethodError); //   //# 01: continued
+  /*@compile-error=unspecified*/ method = () { return 1; };
 }
