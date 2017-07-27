@@ -4,5 +4,4 @@
 
 /constructor_test: Crash
 /object_fields_test: Crash
-/object_initializers_test: Crash
 /object_super_test: Crash

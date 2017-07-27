@@ -670,6 +670,33 @@ class ConstructorInvocationA extends ApplicationContinuation {
   }
 }
 
+/// Represents the application continuation applied on the list of evaluated
+/// field initializer expressions.
+class InstanceFieldsA extends ApplicationContinuation {
+  final Constructor constructor;
+  final Location location;
+  final Environment environment;
+  final ConstructorBodySK continuation;
+
+  final Class _currentClass;
+
+  InstanceFieldsA(
+      this.constructor, this.location, this.environment, this.continuation)
+      : _currentClass = new Class(constructor.enclosingClass.reference);
+
+  Configuration call(List<InterpreterValue> fieldValues) {
+    for (FieldInitializerValue f in fieldValues) {
+      // Directly set the field with the corresponding implicit setter.
+      _currentClass.implicitSetters[f.field.name](location.value, f.value);
+    }
+
+    // TODO(zhivkag): Execute constructor initializer list before initializing
+    // fields in immediately enclosing class to null.
+    _initializeNullFields(_currentClass, location.value);
+    return new ForwardConfiguration(continuation, environment);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                           Expression Continuations
 // ------------------------------------------------------------------------
@@ -960,7 +987,7 @@ class InitializationEK extends ExpressionContinuation {
 
     if (constructor.initializers.isNotEmpty &&
         !(constructor.initializers.last is SuperInitializer)) {
-      throw 'Support for initializer is not implemented.';
+      throw 'Support for initializers is not implemented.';
     }
 
     // The statement body is captured by the next statement continuation and
@@ -968,8 +995,11 @@ class InitializationEK extends ExpressionContinuation {
     var ctrEnv = environment.extendWithThis(value);
     var bodyCont =
         new ConstructorBodySK(constructor.function.body, ctrEnv, continuation);
-    // TODO(zhivkag): Add support for initialization of fields with initializers.
-    return new ForwardConfiguration(bodyCont, ctrEnv);
+    var initializers = _getFieldInitializers(constructor.enclosingClass);
+    var fieldsCont =
+        new InstanceFieldsA(constructor, new Location(value), ctrEnv, bodyCont);
+    return new EvalListConfiguration(
+        initializers, new Environment.empty(), fieldsCont);
   }
 }
 
@@ -1368,4 +1398,31 @@ List<InterpreterExpression> _getArgumentExpressions(
   args.addAll(namedFormals.values);
 
   return args;
+}
+
+/// Creates a list of all field expressions to be evaluated.
+///
+/// A field expression is an initializer expression for a given field defined
+/// when the field was created.
+List<InterpreterExpression> _getFieldInitializers(ast.Class class_) {
+  var fieldInitializers = new List<InterpreterExpression>();
+
+  for (Field f in class_.fields) {
+    if (f.initializer != null) {
+      fieldInitializers.add(new FieldInitializerExpression(f, f.initializer));
+    }
+  }
+
+  return fieldInitializers;
+}
+
+/// Initializes all non initialized fields from the provided class to
+/// `Value.nullInstance` in the provided value.
+void _initializeNullFields(Class class_, Value value) {
+  int startIndex = class_.superclass?.instanceSize ?? 0;
+  for (int i = startIndex; i < class_.instanceSize; i++) {
+    if (value.fields[i].value == null) {
+      value.fields[i].value = Value.nullInstance;
+    }
+  }
 }
