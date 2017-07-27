@@ -46,8 +46,8 @@ main() {}
   @failingTest
   test_bare_none() {
     List<ImportedElements> elements = <ImportedElements>[
-      new ImportedElements(provider.convertPath('/p/lib/a.dart'),
-          'package:p/a.dart', '', <String>['A']),
+      new ImportedElements(
+          provider.convertPath('/p/lib/a.dart'), '', <String>['A']),
     ];
     List<SourceEdit> edits = _computeEditsFor(elements);
     expect(edits, hasLength(1));

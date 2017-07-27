@@ -11025,7 +11025,6 @@ class ImplementedMember implements HasToJson {
  *
  * {
  *   "path": FilePath
- *   "uri": String
  *   "prefix": String
  *   "elements": List<String>
  * }
@@ -11034,8 +11033,6 @@ class ImplementedMember implements HasToJson {
  */
 class ImportedElements implements HasToJson {
   String _path;
-
-  String _uri;
 
   String _prefix;
 
@@ -11052,19 +11049,6 @@ class ImportedElements implements HasToJson {
   void set path(String value) {
     assert(value != null);
     this._path = value;
-  }
-
-  /**
-   * The URI that was used when importing the library into the original source.
-   */
-  String get uri => _uri;
-
-  /**
-   * The URI that was used when importing the library into the original source.
-   */
-  void set uri(String value) {
-    assert(value != null);
-    this._uri = value;
   }
 
   /**
@@ -11095,10 +11079,8 @@ class ImportedElements implements HasToJson {
     this._elements = value;
   }
 
-  ImportedElements(
-      String path, String uri, String prefix, List<String> elements) {
+  ImportedElements(String path, String prefix, List<String> elements) {
     this.path = path;
-    this.uri = uri;
     this.prefix = prefix;
     this.elements = elements;
   }
@@ -11115,12 +11097,6 @@ class ImportedElements implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "path");
       }
-      String uri;
-      if (json.containsKey("uri")) {
-        uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "uri");
-      }
       String prefix;
       if (json.containsKey("prefix")) {
         prefix = jsonDecoder.decodeString(jsonPath + ".prefix", json["prefix"]);
@@ -11134,7 +11110,7 @@ class ImportedElements implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      return new ImportedElements(path, uri, prefix, elements);
+      return new ImportedElements(path, prefix, elements);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ImportedElements", json);
     }
@@ -11144,7 +11120,6 @@ class ImportedElements implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["path"] = path;
-    result["uri"] = uri;
     result["prefix"] = prefix;
     result["elements"] = elements;
     return result;
@@ -11157,7 +11132,6 @@ class ImportedElements implements HasToJson {
   bool operator ==(other) {
     if (other is ImportedElements) {
       return path == other.path &&
-          uri == other.uri &&
           prefix == other.prefix &&
           listEqual(elements, other.elements, (String a, String b) => a == b);
     }
@@ -11168,7 +11142,6 @@ class ImportedElements implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, path.hashCode);
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, prefix.hashCode);
     hash = JenkinsSmiHash.combine(hash, elements.hashCode);
     return JenkinsSmiHash.finish(hash);
