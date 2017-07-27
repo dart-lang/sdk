@@ -202,6 +202,8 @@ constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 
+syntax_test/none: CompileTimeError # Issue #30176.
+
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 const_instance_field_test/01: Crash
