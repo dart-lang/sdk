@@ -34,6 +34,9 @@ const Map<String, List<String>> WHITE_LIST = const {
   "pkg/kernel/lib/transformations/closure/info.dart": const [
     "Types 'FunctionNode' and 'FunctionDeclaration' have no common subtypes."
   ],
+  "third_party/pkg/collection/lib/src/functions.dart": const [
+    "Method type variables are treated as `dynamic` in `as` expressions."
+  ],
 };
 
 void main() {
