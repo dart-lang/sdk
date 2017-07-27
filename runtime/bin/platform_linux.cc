@@ -53,6 +53,10 @@ bool Platform::Initialize() {
     perror("sigaction() failed.");
     return false;
   }
+  if (sigaction(SIGBUS, &act, NULL) != 0) {
+    perror("sigaction() failed.");
+    return false;
+  }
   if (sigaction(SIGTRAP, &act, NULL) != 0) {
     perror("sigaction() failed.");
     return false;
