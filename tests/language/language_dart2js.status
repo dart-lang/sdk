@@ -17,8 +17,6 @@ getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
-async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
 
@@ -98,8 +96,6 @@ vm/reflect_core_vm_test: Fail # mirrors not supported
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
-async_star_no_cancel_test: RuntimeError # Need triage
-async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser && ! $dart2js_with_kernel ]
 config_import_test: Fail # Test flag is not passed to the compiler.
@@ -169,8 +165,6 @@ multiline_newline_test/06r: MissingCompileTimeError # Issue 23888
 mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
 
 [ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
-async_return_types_test/nestedFuture: Fail # Issue 26429
-async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 regress_26133_test: RuntimeError # Issue 26429
 regress_29405_test: Fail # Issue 29422
 type_variable_bounds_test/02: Fail # Issue 12702
@@ -329,10 +323,6 @@ async_await_syntax_test/b06a: RuntimeError # Issue 27394
 async_await_syntax_test/c06a: RuntimeError # Issue 27394
 async_await_syntax_test/d06a: RuntimeError # Issue 27394
 async_await_test: RuntimeError # Issue 27394
-async_star_pause_test: RuntimeError # Issue 27394
-async_star_regression_fisk_test: RuntimeError # Issue 27394
-async_star_stream_take_test: RuntimeError # Issue 27394
-async_star_take_reyield_test: RuntimeError # Issue 27394
 async_star_test: RuntimeError # Issue 27394
 await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
@@ -659,35 +649,6 @@ async_await_syntax_test/d08c: RuntimeError
 async_await_syntax_test/d09a: Crash
 async_await_syntax_test/d10a: Crash
 async_await_test: Crash
-async_break_in_finally_test: Crash
-async_continue_label_test/await_in_body: Crash
-async_continue_label_test/await_in_condition: Crash
-async_continue_label_test/await_in_init: Crash
-async_continue_label_test/await_in_update: Crash
-async_continue_label_test/none: Crash
-async_control_structures_test: Crash
-async_finally_rethrow_test: Crash
-async_or_generator_return_type_stacktrace_test/01: Crash
-async_or_generator_return_type_stacktrace_test/02: Crash
-async_or_generator_return_type_stacktrace_test/03: Crash
-async_or_generator_return_type_stacktrace_test/none: Crash
-async_regression_23058_test: Crash
-async_rethrow_test: Crash
-async_return_types_test/nestedFuture: Crash
-async_return_types_test/none: Crash
-async_return_types_test/tooManyTypeParameters: Crash
-async_return_types_test/wrongReturnType: Crash
-async_return_types_test/wrongTypeParameter: Crash
-async_star_cancel_and_throw_in_finally_test: Crash
-async_star_cancel_while_paused_test: Crash
-async_star_no_cancel2_test: Crash
-async_star_no_cancel_test: Crash
-async_star_pause_test: Crash
-async_star_regression_2238_test: Crash
-async_star_regression_23116_test: Crash
-async_star_regression_fisk_test: Crash
-async_star_stream_take_test: Crash
-async_star_take_reyield_test: Crash
 async_star_test: Crash
 async_switch_test/none: Crash
 async_switch_test/withDefault: Crash

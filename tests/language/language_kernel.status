@@ -276,8 +276,6 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 assign_static_type_test/02: MissingCompileTimeError
 async_await_test: RuntimeError
-async_return_types_test/nestedFuture: Fail
-async_return_types_test/wrongTypeParameter: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
