@@ -860,6 +860,10 @@ abstract class Member extends NamedNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
+  /// Documentation comment of the member, or `null`.
+  @informative
+  String documentationComment;
+
   /// List of metadata annotations on the member.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add

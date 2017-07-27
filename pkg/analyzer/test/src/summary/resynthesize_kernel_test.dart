@@ -308,11 +308,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constructor_documented() async {
-    await super.test_constructor_documented();
-  }
-
-  @failingTest
   test_constructor_initializers_assertInvocation() async {
     await super.test_constructor_initializers_assertInvocation();
   }
@@ -484,11 +479,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_field_documented() async {
-    await super.test_field_documented();
-  }
-
-  @failingTest
   test_field_propagatedType_final_dep_inLib() async {
     await super.test_field_propagatedType_final_dep_inLib();
   }
@@ -501,11 +491,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_field_propagatedType_final_noDep_instance() async {
     await super.test_field_propagatedType_final_noDep_instance();
-  }
-
-  @failingTest
-  test_function_documented() async {
-    await super.test_function_documented();
   }
 
   @failingTest
@@ -576,11 +561,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_getElement_unit() async {
     await super.test_getElement_unit();
-  }
-
-  @failingTest
-  test_getter_documented() async {
-    await super.test_getter_documented();
   }
 
   @failingTest
@@ -796,11 +776,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_method_documented() async {
-    await super.test_method_documented();
-  }
-
-  @failingTest
   test_parameter_checked() async {
     await super.test_parameter_checked();
   }
@@ -838,11 +813,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_setter_covariant() async {
     await super.test_setter_covariant();
-  }
-
-  @failingTest
-  test_setter_documented() async {
-    await super.test_setter_documented();
   }
 
   @failingTest
@@ -1103,11 +1073,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_unresolved_part() async {
     await super.test_unresolved_part();
-  }
-
-  @failingTest
-  test_variable_documented() async {
-    await super.test_variable_documented();
   }
 
   @failingTest

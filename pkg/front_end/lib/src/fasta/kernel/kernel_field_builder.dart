@@ -37,6 +37,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final bool hasInitializer;
 
   KernelFieldBuilder(
+      String documentationComment,
       this.metadata,
       this.type,
       String name,
@@ -47,7 +48,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.hasInitializer)
       : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset,
-        super(name, modifiers, compilationUnit, charOffset);
+        super(
+            documentationComment, name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
@@ -61,6 +63,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       type == null && (hasInitializer || isInstanceMember);
 
   Field build(SourceLibraryBuilder library) {
+    field.documentationComment = documentationComment;
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);

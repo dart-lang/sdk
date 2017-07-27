@@ -3974,6 +3974,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable?.documentationComment?.text;
     }
@@ -7610,6 +7613,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable?.documentationComment?.text;
     }

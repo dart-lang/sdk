@@ -219,6 +219,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addField(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T type,
@@ -227,8 +228,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Token initializerTokenForInference,
       bool hasInitializer);
 
-  void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<Object> fieldsInfo) {
+  void addFields(String documentationComment, List<MetadataBuilder> metadata,
+      int modifiers, T type, List<Object> fieldsInfo) {
     for (int i = 0; i < fieldsInfo.length; i += 4) {
       String name = fieldsInfo[i];
       int charOffset = fieldsInfo[i + 1];
@@ -239,12 +240,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         Token beforeLast = fieldsInfo[i + 3];
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(metadata, modifiers, type, name, charOffset,
-          initializerTokenForInference, hasInitializer);
+      addField(documentationComment, metadata, modifiers, type, name,
+          charOffset, initializerTokenForInference, hasInitializer);
     }
   }
 
   void addProcedure(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
@@ -275,6 +277,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addFactoryMethod(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       ConstructorReferenceBuilder name,
