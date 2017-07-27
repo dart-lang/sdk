@@ -27,6 +27,7 @@ class TimelineEvent;
 class TimelineEventBlock;
 class TimelineEventRecorder;
 class TimelineStream;
+class VirtualMemory;
 class Zone;
 
 // (name, enabled by default for isolate).
@@ -705,7 +706,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
 
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
 
-  TimelineEventBlock** blocks_;
+  VirtualMemory* memory_;
+  TimelineEventBlock* blocks_;
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;

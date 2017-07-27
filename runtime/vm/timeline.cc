@@ -1174,30 +1174,32 @@ TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
 
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
-    : blocks_(NULL), capacity_(capacity), num_blocks_(0), block_cursor_(0) {
+    : memory_(NULL),
+      blocks_(NULL),
+      capacity_(capacity),
+      num_blocks_(0),
+      block_cursor_(0) {
   // Capacity must be a multiple of TimelineEventBlock::kBlockSize
   ASSERT((capacity % TimelineEventBlock::kBlockSize) == 0);
   // Allocate blocks array.
   num_blocks_ = capacity / TimelineEventBlock::kBlockSize;
-  blocks_ = reinterpret_cast<TimelineEventBlock**>(
-      calloc(num_blocks_, sizeof(TimelineEventBlock*)));
-  // Allocate each block.
-  for (intptr_t i = 0; i < num_blocks_; i++) {
-    blocks_[i] = new TimelineEventBlock(i);
+
+  intptr_t size = Utils::RoundUp(num_blocks_ * sizeof(TimelineEventBlock),
+                                 VirtualMemory::PageSize());
+  const bool kNotExecutable = false;
+  memory_ = VirtualMemory::Reserve(size);
+  if ((memory_ == NULL) || !memory_->Commit(kNotExecutable, "dart-timeline")) {
+    OUT_OF_MEMORY();
   }
-  // Chain blocks together.
-  for (intptr_t i = 0; i < num_blocks_ - 1; i++) {
-    blocks_[i]->set_next(blocks_[i + 1]);
-  }
+  blocks_ = reinterpret_cast<TimelineEventBlock*>(memory_->address());
 }
 
 TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
-    TimelineEventBlock* block = blocks_[i];
-    delete block;
+    blocks_[i].Reset();
   }
-  free(blocks_);
+  delete memory_;
 }
 
 void TimelineEventFixedBufferRecorder::PrintJSONEvents(
@@ -1215,7 +1217,7 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
   }
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
     TimelineEventBlock* block =
-        blocks_[(block_idx + block_offset) % num_blocks_];
+        &blocks_[(block_idx + block_offset) % num_blocks_];
     if (!filter->IncludeBlock(block)) {
       continue;
     }
@@ -1260,13 +1262,13 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
 }
 
 TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
-  return blocks_[0];
+  return &blocks_[0];
 }
 
 void TimelineEventFixedBufferRecorder::Clear() {
   MutexLocker ml(&lock_);
   for (intptr_t i = 0; i < num_blocks_; i++) {
-    TimelineEventBlock* block = blocks_[i];
+    TimelineEventBlock* block = &blocks_[i];
     block->Reset();
   }
 }
@@ -1275,7 +1277,7 @@ intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   int64_t earliest_time = kMaxInt64;
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
-    TimelineEventBlock* block = blocks_[block_idx];
+    TimelineEventBlock* block = &blocks_[block_idx];
     if (block->IsEmpty()) {
       // Skip empty blocks.
       continue;
@@ -1305,7 +1307,7 @@ TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;
@@ -1315,7 +1317,7 @@ TimelineEventBlock* TimelineEventStartupRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     return NULL;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;

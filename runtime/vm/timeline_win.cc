@@ -33,7 +33,7 @@ TimelineEventBlock* TimelineEventPlatformRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;
