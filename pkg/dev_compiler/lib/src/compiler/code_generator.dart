@@ -3641,9 +3641,8 @@ class CodeGenerator extends Object
     if (_doubleEqIsIdentity(left, right)) {
       return _emitJSDoubleEq(args, negated: negated);
     }
-    var bang = negated ? '!' : '';
-    return js.call(
-        "${bang}#", new JS.Call(_emitTopLevelName(_coreIdentical), args));
+    var code = negated ? '!#' : '#';
+    return js.call(code, new JS.Call(_emitTopLevelName(_coreIdentical), args));
   }
 
   /// Emits a function call, to a top-level function, local function, or
@@ -4269,7 +4268,6 @@ class CodeGenerator extends Object
       return _emitCoreIdenticalCall([left, right], negated: negated);
     }
 
-    var bang = op.type == TokenType.BANG_EQ ? '!' : '';
     var leftElement = leftType.element;
 
     // If either is null, we can use simple equality.
@@ -4291,12 +4289,12 @@ class CodeGenerator extends Object
         leftType is FunctionType ||
         isNullable(left)) {
       // Fall back to equality for now.
-      var code = '${bang}#.equals(#, #)';
+      var code = negated ? '!#.equals(#, #)' : '#.equals(#, #)';
       return js.call(code, [_runtimeModule, _visit(left), _visit(right)]);
     }
 
     var name = _emitMemberName('==', type: leftType);
-    var code = '${bang}#[#](#)';
+    var code = negated ? '!#[#](#)' : '#[#](#)';
     return js.call(code, [_visit(left), name, _visit(right)]);
   }
 
