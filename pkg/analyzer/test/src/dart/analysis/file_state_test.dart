@@ -18,9 +18,9 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -814,6 +814,6 @@ set _V3(_) {}
   }
 }
 
-class _GeneratedUriResolverMock extends TypedMock implements UriResolver {}
+class _GeneratedUriResolverMock extends Mock implements UriResolver {}
 
-class _SourceMock extends TypedMock implements Source {}
+class _SourceMock extends Mock implements Source {}

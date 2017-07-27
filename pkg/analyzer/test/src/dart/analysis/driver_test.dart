@@ -26,9 +26,9 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../../utils.dart';
 import '../../context/mock_sdk.dart';
@@ -1018,8 +1018,9 @@ bbb() {}
 
     when(generatedUriResolver.resolveAbsolute(uri, uri))
         .thenReturn(generatedSource);
-    when(generatedUriResolver.restoreAbsolute(anyObject))
-        .thenInvoke((Source source) {
+    when(generatedUriResolver.restoreAbsolute(any))
+        .thenAnswer((Invocation invocation) {
+      Source source = invocation.positionalArguments[0];
       String path = source.fullName;
       if (path == templatePath || path == generatedPath) {
         return uri;
@@ -2748,4 +2749,4 @@ part 'part2.dart';
   String _p(String path) => provider.convertPath(path);
 }
 
-class _SourceMock extends TypedMock implements Source {}
+class _SourceMock extends Mock implements Source {}

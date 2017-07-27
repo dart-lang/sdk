@@ -25,9 +25,9 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../generated/test_support.dart';
 
@@ -331,7 +331,7 @@ class DartWorkManagerTest {
   }
 
   void test_getLibrariesContainingPart() {
-    when(context.aboutToComputeResult(anyObject, anyObject)).thenReturn(false);
+    when(context.aboutToComputeResult(any, any)).thenReturn(false);
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');
@@ -356,8 +356,10 @@ class DartWorkManagerTest {
     Source library1 = new TestSource('library1.dart');
     Source library2 = new TestSource('library2.dart');
     // configure AnalysisContext mock
-    when(context.aboutToComputeResult(anyObject, CONTAINING_LIBRARIES))
-        .thenInvoke((CacheEntry entry, ResultDescriptor result) {
+    when(context.aboutToComputeResult(any, CONTAINING_LIBRARIES))
+        .thenAnswer((invocation) {
+      CacheEntry entry = invocation.positionalArguments[0];
+      ResultDescriptor result = invocation.positionalArguments[1];
       if (entry.target == part1) {
         entry.setValue(result as ResultDescriptor<List<Source>>,
             <Source>[library1, library2], []);
@@ -529,7 +531,7 @@ class DartWorkManagerTest {
   }
 
   void test_onAnalysisOptionsChanged() {
-    when(context.exists(anyObject)).thenReturn(true);
+    when(context.exists(any)).thenReturn(true);
     // set cache values
     entry1.setValue(PARSED_UNIT, AstTestFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
@@ -573,7 +575,7 @@ class DartWorkManagerTest {
   }
 
   void test_onSourceFactoryChanged() {
-    when(context.exists(anyObject)).thenReturn(true);
+    when(context.exists(any)).thenReturn(true);
     // set cache values
     entry1.setValue(PARSED_UNIT, AstTestFactory.compilationUnit(), []);
     entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
@@ -657,7 +659,7 @@ class DartWorkManagerTest {
     expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // configure AnalysisContext mock
     when(context.prioritySources).thenReturn(<Source>[]);
-    when(context.shouldErrorsBeAnalyzed(anyObject)).thenReturn(false);
+    when(context.shouldErrorsBeAnalyzed(any)).thenReturn(false);
     // library1 parts
     manager.resultsComputed(library1, <ResultDescriptor, dynamic>{
       INCLUDED_PARTS: [part1, part2],
@@ -701,7 +703,7 @@ class DartWorkManagerTest {
     // notify and validate
     Map<ResultDescriptor, dynamic> outputs = <ResultDescriptor, dynamic>{};
     manager.resultsComputed(source, outputs);
-    verify(sdkDartWorkManagerMock.resultsComputed(source, outputs)).once();
+    verify(sdkDartWorkManagerMock.resultsComputed(source, outputs)).called(1);
   }
 
   void test_resultsComputed_noSourceKind() {
@@ -814,11 +816,11 @@ class DartWorkManagerTest {
   }
 }
 
-class _DartSdkMock extends TypedMock implements DartSdk {}
+class _DartSdkMock extends Mock implements DartSdk {}
 
-class _DartWorkManagerMock extends TypedMock implements DartWorkManager {}
+class _DartWorkManagerMock extends Mock implements DartWorkManager {}
 
-class _InternalAnalysisContextMock extends TypedMock
+class _InternalAnalysisContextMock extends Mock
     implements InternalAnalysisContext {
   @override
   CachePartition privateAnalysisCachePartition;
@@ -860,9 +862,9 @@ class _InternalAnalysisContextMock extends TypedMock
   }
 }
 
-class _SourceFactoryMock extends TypedMock implements SourceFactory {}
+class _SourceFactoryMock extends Mock implements SourceFactory {}
 
-class _SourceMock extends TypedMock implements Source {
+class _SourceMock extends Mock implements Source {
   final String shortName;
   _SourceMock(this.shortName);
   @override

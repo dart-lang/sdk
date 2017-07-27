@@ -24,9 +24,9 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../generated/test_support.dart';
 
@@ -284,7 +284,7 @@ class HtmlWorkManagerTest {
   }
 
   void test_onAnalysisOptionsChanged() {
-    when(context.exists(anyObject)).thenReturn(true);
+    when(context.exists(any)).thenReturn(true);
     // set cache values
     entry1.setValue(DART_SCRIPTS, [], []);
     entry1.setValue(HTML_DOCUMENT, null, []);
@@ -314,7 +314,7 @@ class HtmlWorkManagerTest {
   }
 
   void test_onSourceFactoryChanged() {
-    when(context.exists(anyObject)).thenReturn(true);
+    when(context.exists(any)).thenReturn(true);
     // set cache values
     entry1.setValue(DART_SCRIPTS, [], []);
     entry1.setValue(HTML_DOCUMENT, null, []);
@@ -348,7 +348,7 @@ class HtmlWorkManagerTest {
   }
 }
 
-class _InternalAnalysisContextMock extends TypedMock
+class _InternalAnalysisContextMock extends Mock
     implements InternalAnalysisContext {
   @override
   CachePartition privateAnalysisCachePartition;
@@ -399,4 +399,4 @@ class _InternalAnalysisContextMock extends TypedMock
   }
 }
 
-class _SourceFactoryMock extends TypedMock implements SourceFactory {}
+class _SourceFactoryMock extends Mock implements SourceFactory {}

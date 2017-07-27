@@ -24,7 +24,6 @@ import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -132,8 +131,6 @@ class AnalyzedSourcesListener {
     }
   }
 }
-
-class CompilationUnitMock extends TypedMock implements CompilationUnit {}
 
 class MockSourceFactory extends SourceFactoryImpl {
   MockSourceFactory() : super([]);

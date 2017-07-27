@@ -26,5 +26,5 @@ dependencies:
   cli_util: ^0.1.0
 dev_dependencies:
   test_reflective_loader: ^0.1.0
-  typed_mock: '>=0.0.4 <1.0.0'
+  mockito: ^2.0.2
   test: ^0.12.0

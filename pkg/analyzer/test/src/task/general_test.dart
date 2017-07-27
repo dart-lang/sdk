@@ -9,9 +9,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../generated/test_support.dart';
 
@@ -80,4 +80,4 @@ class GetContentTaskTest extends EngineTestCase {
   }
 }
 
-class _MockContext extends TypedMock implements AnalysisContext {}
+class _MockContext extends Mock implements AnalysisContext {}

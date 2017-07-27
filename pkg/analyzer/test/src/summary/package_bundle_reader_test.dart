@@ -10,9 +10,9 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -61,9 +61,9 @@ class ResynthesizerResultProviderTest {
     cachePartition.put(entry2);
     cachePartition.put(entry3);
 
-    when(sourceFactory.resolveUri(anyObject, 'package:p1/u1.dart'))
+    when(sourceFactory.resolveUri(any, 'package:p1/u1.dart'))
         .thenReturn(source1);
-    when(sourceFactory.resolveUri(anyObject, 'package:p1/u2.dart'))
+    when(sourceFactory.resolveUri(any, 'package:p1/u2.dart'))
         .thenReturn(source2);
     when(context.sourceFactory).thenReturn(sourceFactory);
 
@@ -78,9 +78,10 @@ class ResynthesizerResultProviderTest {
     when(unlinkedUnit1.isPartOf).thenReturn(false);
     when(unlinkedUnit2.isPartOf).thenReturn(true);
 
-    when(unlinkedUnit1.publicNamespace)
-        .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
-    when(unlinkedUnit2.publicNamespace).thenReturn(_namespaceWithParts([]));
+    var namespace1 = _namespaceWithParts(['package:p1/u2.dart']);
+    var namespace2 = _namespaceWithParts([]);
+    when(unlinkedUnit1.publicNamespace).thenReturn(namespace1);
+    when(unlinkedUnit2.publicNamespace).thenReturn(namespace2);
 
     provider = new _TestResynthesizerResultProvider(context, dataStore);
     provider.sourcesWithResults.add(source1);
@@ -279,10 +280,11 @@ class SummaryDataStoreTest {
   }
 
   void _setupDataStore(SummaryDataStore store) {
+    var namespace1 = _namespaceWithParts(['package:p1/u2.dart']);
+    var namespace2 = _namespaceWithParts([]);
     // bundle1
-    when(unlinkedUnit11.publicNamespace)
-        .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
-    when(unlinkedUnit12.publicNamespace).thenReturn(_namespaceWithParts([]));
+    when(unlinkedUnit11.publicNamespace).thenReturn(namespace1);
+    when(unlinkedUnit12.publicNamespace).thenReturn(namespace2);
     when(bundle1.unlinkedUnitUris)
         .thenReturn(<String>['package:p1/u1.dart', 'package:p1/u2.dart']);
     when(bundle1.unlinkedUnits)
@@ -292,7 +294,7 @@ class SummaryDataStoreTest {
     when(bundle1.apiSignature).thenReturn('signature1');
     store.addBundle('/p1.ds', bundle1);
     // bundle2
-    when(unlinkedUnit21.publicNamespace).thenReturn(_namespaceWithParts([]));
+    when(unlinkedUnit21.publicNamespace).thenReturn(namespace2);
     when(bundle2.unlinkedUnitUris).thenReturn(<String>['package:p2/u1.dart']);
     when(bundle2.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit21]);
     when(bundle2.linkedLibraryUris).thenReturn(<String>['package:p2/u1.dart']);
@@ -307,14 +309,14 @@ class _ConflictingSummaryException extends TypeMatcher {
   bool matches(item, Map matchState) => item is ConflictingSummaryException;
 }
 
-class _InternalAnalysisContextMock extends TypedMock
+class _InternalAnalysisContextMock extends Mock
     implements InternalAnalysisContext {}
 
-class _LinkedLibraryMock extends TypedMock implements LinkedLibrary {}
+class _LinkedLibraryMock extends Mock implements LinkedLibrary {}
 
-class _PackageBundleMock extends TypedMock implements PackageBundle {}
+class _PackageBundleMock extends Mock implements PackageBundle {}
 
-class _SourceFactoryMock extends TypedMock implements SourceFactory {}
+class _SourceFactoryMock extends Mock implements SourceFactory {}
 
 class _SourceMock implements Source {
   final Uri uri;
@@ -347,7 +349,7 @@ class _TestResynthesizerResultProvider extends ResynthesizerResultProvider {
   }
 }
 
-class _UnlinkedPublicNamespaceMock extends TypedMock
+class _UnlinkedPublicNamespaceMock extends Mock
     implements UnlinkedPublicNamespace {}
 
-class _UnlinkedUnitMock extends TypedMock implements UnlinkedUnit {}
+class _UnlinkedUnitMock extends Mock implements UnlinkedUnit {}
