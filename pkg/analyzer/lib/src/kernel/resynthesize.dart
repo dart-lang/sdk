@@ -384,6 +384,21 @@ class _KernelLibraryResynthesizerContextImpl
   _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
 
   @override
+  List<ElementAnnotation> buildAnnotations(
+      CompilationUnitElementImpl unit, List<kernel.Expression> expressions) {
+    int length = expressions.length;
+    if (length != 0) {
+      var annotations = new List<ElementAnnotation>(length);
+      for (int i = 0; i < length; i++) {
+        annotations[i] = _buildAnnotation(unit, expressions[i]);
+      }
+      return annotations;
+    } else {
+      return const <ElementAnnotation>[];
+    }
+  }
+
+  @override
   UnitExplicitTopLevelAccessors buildTopLevelAccessors(
       CompilationUnitElementImpl unit) {
     var accessorsData = new UnitExplicitTopLevelAccessors();
@@ -542,6 +557,27 @@ class _KernelLibraryResynthesizerContextImpl
 
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
+  }
+
+  ElementAnnotationImpl _buildAnnotation(
+      CompilationUnitElementImpl unit, kernel.Expression expression) {
+    ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
+    Expression constExpr = getExpression(expression);
+    if (constExpr is Identifier) {
+      elementAnnotation.element = constExpr.staticElement;
+      elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
+    } else if (constExpr is InstanceCreationExpression) {
+      elementAnnotation.element = constExpr.staticElement;
+      Identifier typeName = constExpr.constructorName.type.name;
+      SimpleIdentifier constructorName = constExpr.constructorName.name;
+      elementAnnotation.annotationAst = AstTestFactory.annotation2(
+          typeName, constructorName, constExpr.argumentList)
+        ..element = constExpr.staticElement;
+    } else {
+      throw new StateError(
+          'Unexpected annotation type: ${constExpr.runtimeType}');
+    }
+    return elementAnnotation;
   }
 
   /**

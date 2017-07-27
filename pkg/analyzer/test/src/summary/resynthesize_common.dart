@@ -8049,7 +8049,16 @@ unit: foo.dart
   test_metadata_prefixed_variable() async {
     addLibrarySource('/a.dart', 'const b = null;');
     var library = await checkLibrary('import "a.dart" as a; @a.b class C {}');
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+import 'a.dart' as a;
+@
+        b/*location: a.dart;b?*/
+class C {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as a;
 @
         a/*location: test.dart;a*/.
@@ -8057,6 +8066,7 @@ import 'a.dart' as a;
 class C {
 }
 ''');
+    }
   }
 
   test_metadata_simpleFormalParameter() async {

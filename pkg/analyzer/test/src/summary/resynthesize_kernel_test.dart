@@ -729,48 +729,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_classDeclaration() async {
-    await super.test_metadata_classDeclaration();
-  }
-
-  @failingTest
   test_metadata_classTypeAlias() async {
     await super.test_metadata_classTypeAlias();
-  }
-
-  @failingTest
-  test_metadata_constructor_call_named() async {
-    await super.test_metadata_constructor_call_named();
-  }
-
-  @failingTest
-  test_metadata_constructor_call_named_prefixed() async {
-    await super.test_metadata_constructor_call_named_prefixed();
-  }
-
-  @failingTest
-  test_metadata_constructor_call_unnamed() async {
-    await super.test_metadata_constructor_call_unnamed();
-  }
-
-  @failingTest
-  test_metadata_constructor_call_unnamed_prefixed() async {
-    await super.test_metadata_constructor_call_unnamed_prefixed();
-  }
-
-  @failingTest
-  test_metadata_constructor_call_with_args() async {
-    await super.test_metadata_constructor_call_with_args();
-  }
-
-  @failingTest
-  test_metadata_constructorDeclaration_named() async {
-    await super.test_metadata_constructorDeclaration_named();
-  }
-
-  @failingTest
-  test_metadata_constructorDeclaration_unnamed() async {
-    await super.test_metadata_constructorDeclaration_unnamed();
   }
 
   @failingTest
@@ -784,11 +744,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_fieldDeclaration() async {
-    await super.test_metadata_fieldDeclaration();
-  }
-
-  @failingTest
   test_metadata_fieldFormalParameter() async {
     await super.test_metadata_fieldFormalParameter();
   }
@@ -796,21 +751,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_metadata_fieldFormalParameter_withDefault() async {
     await super.test_metadata_fieldFormalParameter_withDefault();
-  }
-
-  @failingTest
-  test_metadata_functionDeclaration_function() async {
-    await super.test_metadata_functionDeclaration_function();
-  }
-
-  @failingTest
-  test_metadata_functionDeclaration_getter() async {
-    await super.test_metadata_functionDeclaration_getter();
-  }
-
-  @failingTest
-  test_metadata_functionDeclaration_setter() async {
-    await super.test_metadata_functionDeclaration_setter();
   }
 
   @failingTest
@@ -846,28 +786,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_methodDeclaration_getter() async {
-    await super.test_metadata_methodDeclaration_getter();
-  }
-
-  @failingTest
-  test_metadata_methodDeclaration_method() async {
-    await super.test_metadata_methodDeclaration_method();
-  }
-
-  @failingTest
-  test_metadata_methodDeclaration_setter() async {
-    await super.test_metadata_methodDeclaration_setter();
-  }
-
-  @failingTest
   test_metadata_partDirective() async {
     await super.test_metadata_partDirective();
-  }
-
-  @failingTest
-  test_metadata_prefixed_variable() async {
-    await super.test_metadata_prefixed_variable();
   }
 
   @failingTest
@@ -878,11 +798,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_metadata_simpleFormalParameter_withDefault() async {
     await super.test_metadata_simpleFormalParameter_withDefault();
-  }
-
-  @failingTest
-  test_metadata_topLevelVariableDeclaration() async {
-    await super.test_metadata_topLevelVariableDeclaration();
   }
 
   @failingTest

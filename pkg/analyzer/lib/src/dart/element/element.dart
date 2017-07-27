@@ -849,6 +849,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??= enclosingUnit._kernelContext
+          .buildAnnotations(enclosingUnit, _kernel.annotations);
+    }
     if (_unlinkedClass != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedClass.annotations);
@@ -4086,6 +4090,10 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??= enclosingUnit._kernelContext
+          .buildAnnotations(enclosingUnit, _kernel.annotations);
+    }
     if (serializedExecutable != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, serializedExecutable.annotations);
@@ -5927,6 +5935,12 @@ abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
 
   /**
+   * Build [ElementAnnotation]s for the given Kernel [annotations].
+   */
+  List<ElementAnnotation> buildAnnotations(
+      CompilationUnitElementImpl unit, List<kernel.Expression> annotations);
+
+  /**
    * Build explicit top-level property accessors.
    */
   UnitExplicitTopLevelAccessors buildTopLevelAccessors(
@@ -7636,6 +7650,10 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??= enclosingUnit._kernelContext
+          .buildAnnotations(enclosingUnit, _kernel.annotations);
+    }
     if (_unlinkedVariable != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedVariable.annotations);
