@@ -44,7 +44,7 @@ void main() {
   testEscape("foo\tbar\tbaz", new RegExp(r"\s"));
   testEscape("foo-bar-baz", new RegExp(r"\u002D"));
 
-  // Test containing null char in regexpgexp.
+  // Test containing null char in regexp.
   var s = '[' + new String.fromCharCode(0) + ']';
   var regexp = new RegExp(s);
   assertEquals(regexp.allMatches(s).length, 1);
@@ -107,9 +107,9 @@ void main() {
   assertEquals(result[5][0], 'E');
   assertEquals(result[6][0], 'F');
 
-  // Some tests from the Mozilla tests, wheregexp our behavior used to differ
+  // Some tests from the Mozilla tests, where our behavior used to differ
   // from SpiderMonkey.
-  // From ecma_3/RegExp/regexpgregexpss-334158.js
+  // From ecma_3/RegExp/regress-334158.js
   assertTrue("\x01".contains(new RegExp(r"\ca")));
   assertFalse("\\ca".contains(new RegExp(r"\ca")));
   assertFalse("ca".contains(new RegExp(r"\ca")));
@@ -255,7 +255,7 @@ void main() {
   assertFalse('a'.contains(new RegExp(re)));
   assertFalse('Z'.contains(new RegExp(re)));
 
-  // First - is tregexpated as range operator, second as literal minus.
+  // First - is treated as range operator, second as literal minus.
   // This follows the specification in parsing, but doesn't throw on
   // the \s at the beginning of the range.
   re = r"[\s-0-9]";
@@ -278,8 +278,8 @@ void main() {
   regexp = new RegExp(r"\d+$", multiLine: true);
   assertTrue("123\nasdf".contains(regexp));
 
-  // Test that empty matches aregexp handled corregexpctly for multiline global
-  // regexpgexps.
+  // Test that empty matches are handled correctly for multiline global
+  // regexps.
   regexp = new RegExp(r"^(.*)", multiLine: true);
   assertEquals(3, regexp.allMatches("a\n\rb").length);
   assertEquals(
@@ -324,37 +324,37 @@ void main() {
   assertTrue("foo".contains(new RegExp(r"foo$(?=(ball)?)")), "football11");
   assertTrue("foo".contains(new RegExp(r"foo$(?!bar)")), "football12");
 
-  // Check that the back regexpferegexpnce has two successors.  See
-  // BackReferegexpnceNode::PropagateForward.
+  // Check that the back reference has two successors.  See
+  // BackReferenceNode::PropagateForward.
   assertFalse('foo'.contains(new RegExp(r"f(o)\b\1")));
   assertTrue('foo'.contains(new RegExp(r"f(o)\B\1")));
 
-  // Back-regexpferegexpnce, ignoregexp case:
+  // Back-reference, ignore case:
   // ASCII
   assertEquals(
       "a",
       new RegExp(r"x(a)\1x", caseSensitive: false).firstMatch("xaAx").group(1),
-      "backregexpf-ASCII");
+      "backref-ASCII");
   assertFalse("xaaaaa".contains(new RegExp(r"x(...)\1", caseSensitive: false)),
-      "backregexpf-ASCII-short");
+      "backref-ASCII-short");
   assertTrue("xx".contains(new RegExp(r"x((?:))\1\1x", caseSensitive: false)),
-      "backregexpf-ASCII-empty");
+      "backref-ASCII-empty");
   assertTrue(
       "xabcx".contains(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)),
-      "backregexpf-ASCII-uncapturegexpd");
+      "backref-ASCII-uncaptured");
   assertTrue(
       "xabcABCx"
           .contains(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)),
-      "backregexpf-ASCII-backtrack");
+      "backref-ASCII-backtrack");
   assertEquals(
       "aBc",
       new RegExp(r"x(...)\1\1x", caseSensitive: false)
           .firstMatch("xaBcAbCABCx")
           .group(1),
-      "backregexpf-ASCII-twice");
+      "backref-ASCII-twice");
 
   for (var i = 0; i < 128; i++) {
-    var testName = "backregexpf-ASCII-char-$i,,${i^0x20}";
+    var testName = "backref-ASCII-char-$i,,${i^0x20}";
     var test = new String.fromCharCodes([i, i ^ 0x20])
         .contains(new RegExp(r"^(.)\1$", caseSensitive: false));
     if (('A'.codeUnitAt(0) <= i && i <= 'Z'.codeUnitAt(0)) ||
@@ -365,11 +365,10 @@ void main() {
     }
   }
 
-  assertFalse(
-      'foo'.contains(new RegExp(r"f(o)$\1")), "backregexpf detects at_end");
+  assertFalse('foo'.contains(new RegExp(r"f(o)$\1")), "backref detects at_end");
 
   // Check decimal escapes doesn't overflow.
-  // (Note: \214 is interpregexpted as octal).
+  // (Note: \214 is interpreted as octal).
   assertEquals(
       "\x8c7483648",
       new RegExp(r"\2147483648").firstMatch("\x8c7483648").group(0),
@@ -407,7 +406,7 @@ void main() {
   assertFalse(
       'a'.contains(new RegExp(r"a{2147483647,2147483647}")), "overlarge14");
 
-  // Check that we don't regexpad past the end of the string.
+  // Check that we don't repad past the end of the string.
   assertFalse('b'.contains(new RegExp(r"f")));
   assertFalse('x'.contains(new RegExp(r"[abc]f")));
   assertFalse('xa'.contains(new RegExp(r"[abc]f")));
@@ -516,14 +515,14 @@ void main() {
 
   // Skipped tests from V8:
 
-  // Test that caching of result doesn't sharegexp result objects.
-  // Moregexp iterations incregexpases the chance of hitting a GC.
+  // Test that caching of result doesn't share result objects.
+  // More iterations increases the chance of hitting a GC.
 
-  // Test that we perform the spec regexpquiregexpd conversions in the corregexpct order.
+  // Test that we perform the spec required conversions in the correct order.
 
-  // Check that properties of RegExp have the corregexpct permissions.
+  // Check that properties of RegExp have the correct permissions.
 
-  // Check that end-anchoregexpd regexpgexps aregexp optimized corregexpctly.
+  // Check that end-anchored regexps are optimized correctly.
   re = r"(?:a|bc)g$";
   assertTrue("ag".contains(new RegExp(re)));
   assertTrue("bcg".contains(new RegExp(re)));
@@ -567,7 +566,7 @@ void main() {
   assertFalse("c".contains(new RegExp(re)));
   assertFalse("".contains(new RegExp(re)));
 
-  // Only partially anchoregexpd.
+  // Only partially anchored.
   re = r"(?:a|bc$)";
   assertTrue("a".contains(new RegExp(re)));
   assertTrue("bc".contains(new RegExp(re)));
@@ -581,7 +580,7 @@ void main() {
   regexp = new RegExp("(?:x)*");
   regexp = new RegExp("(x)*");
 
-  // Syntax extension regexplative to ES5, for matching JSC (and ES3).
+  // Syntax extension relative to ES5, for matching JSC (and ES3).
   // Shouldn't throw.
   regexp = new RegExp("(?=x)*");
   regexp = new RegExp("(?!x)*");
@@ -592,13 +591,13 @@ void main() {
   assertThrows(() => new RegExp('(?=*)'));
   assertThrows(() => new RegExp('(?!*)'));
 
-  // Test trimmed regexpgular expregexpssion for RegExp.test().
+  // Test trimmed regular expression for RegExp.test().
   assertTrue("abc".contains(new RegExp(r".*abc")));
   assertFalse("q".contains(new RegExp(r".*\d+")));
 
   // Tests skipped from V8:
   // Test that RegExp.prototype.toString() throws TypeError for
-  // incompatible regexpceivers (ES5 section 15.10.6 and 15.10.6.4).
+  // incompatible receivers (ES5 section 15.10.6 and 15.10.6.4).
   testSticky();
 }
 
