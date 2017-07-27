@@ -57,23 +57,71 @@ Heap::~Heap() {
   }
 }
 
+void Heap::AbandonRemainingTLAB(Thread* thread) {
+  uword start = thread->top();
+  uword end = thread->end();
+  ASSERT(end >= start);
+  intptr_t size = end - start;
+  if (end == new_space_.end()) {
+    size = 0;
+  }
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  if (size >= kObjectAlignment) {
+    FreeListElement::AsElement(start, size);
+    ASSERT(RawObject::FromAddr(start)->Size() == size);
+    ASSERT((start + size) == new_space_.top());
+  }
+  thread->set_top(0);
+  thread->set_end(0);
+}
+
+intptr_t Heap::CalculateTLABSize() {
+  intptr_t size = new_space_.end() - new_space_.top();
+  return Utils::RoundDown(size, kObjectAlignment);
+}
+
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   // Currently, only the Dart thread may allocate in new space.
   isolate()->AssertCurrentThreadIsMutator();
   Thread* thread = Thread::Current();
   uword addr = new_space_.TryAllocateInTLAB(thread, size);
-  if (addr == 0) {
-    // This call to CollectGarbage might end up "reusing" a collection spawned
-    // from a different thread and will be racing to allocate the requested
-    // memory with other threads being released after the collection.
-    CollectGarbage(kNew);
-    addr = new_space_.TryAllocateInTLAB(thread, size);
-    if (addr == 0) {
-      return AllocateOld(size, HeapPage::kData);
+  if (addr != 0) {
+    return addr;
+  }
+
+  intptr_t tlab_size = CalculateTLABSize();
+  if ((tlab_size > 0) && (size > tlab_size)) {
+    return AllocateOld(size, HeapPage::kData);
+  }
+
+  AbandonRemainingTLAB(thread);
+  if (tlab_size > 0) {
+    uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
+    if (tlab_top != 0) {
+      addr = new_space_.TryAllocateInTLAB(thread, size);
+      ASSERT(addr != 0);
+      return addr;
     }
   }
-  return addr;
+
+  ASSERT(!thread->HasActiveTLAB());
+
+  // This call to CollectGarbage might end up "reusing" a collection spawned
+  // from a different thread and will be racing to allocate the requested
+  // memory with other threads being released after the collection.
+  CollectGarbage(kNew);
+  tlab_size = CalculateTLABSize();
+  uword tlab_top = new_space_.TryAllocateNewTLAB(thread, tlab_size);
+  if (tlab_top != 0) {
+    addr = new_space_.TryAllocateInTLAB(thread, size);
+    // It is possible a GC doesn't clear enough space.
+    // In that case, we must fall through and allocate into old space.
+    if (addr != 0) {
+      return addr;
+    }
+  }
+  return AllocateOld(size, HeapPage::kData);
 }
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
@@ -555,13 +603,14 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   StackZone stack_zone(Thread::Current());
 
   // Change the new space's top_ with the more up-to-date thread's view of top_
-  new_space_.FlushTLS();
+  uword saved_top = new_space_.FlushTLS();
 
   ObjectSet* allocated_set =
       CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
   VisitObjectPointers(&visitor);
 
+  new_space_.UnflushTLS(saved_top);
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
 }

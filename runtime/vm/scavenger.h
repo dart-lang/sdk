@@ -121,6 +121,25 @@ class Scavenger {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
+  uword TryAllocateNewTLAB(Thread* thread, intptr_t size) {
+    ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    ASSERT(!scavenging_);
+    uword result = top_;
+    intptr_t remaining = end_ - top_;
+    if (remaining < size) {
+      return 0;
+    }
+    ASSERT(to_->Contains(result));
+    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+    top_ += size;
+    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+    ASSERT(result < top_);
+    thread->set_top(result);
+    thread->set_end(top_);
+    return result;
+  }
+
   uword AllocateGC(intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
@@ -134,7 +153,7 @@ class Scavenger {
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
     top_ += size;
-    ASSERT(to_->Contains(top_) || (top_ == to_->end()));
+    ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
     return result;
   }
 
@@ -143,6 +162,8 @@ class Scavenger {
     ASSERT(heap_ != Dart::vm_isolate()->heap());
     ASSERT(thread->IsMutatorThread());
     ASSERT(thread->isolate()->IsMutatorThreadScheduled());
+    ASSERT(thread->top() <= top_);
+    ASSERT((thread->end() == 0) || (thread->end() == top_));
 #if defined(DEBUG)
     if (FLAG_gc_at_alloc) {
       ASSERT(!scavenging_);
@@ -159,7 +180,7 @@ class Scavenger {
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == object_alignment_);
     top += size;
-    ASSERT(to_->Contains(top) || (top == to_->end()));
+    ASSERT((to_->Contains(top)) || (top == to_->end()));
     thread->set_top(top);
     return result;
   }
@@ -215,7 +236,9 @@ class Scavenger {
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
 
-  void FlushTLS() const;
+  uword FlushTLS() const;
+  void UnflushTLS(uword value) const;
+  uword FirstObjectStart() const { return to_->start() | object_alignment_; }
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -234,7 +257,6 @@ class Scavenger {
     kToKBAfterStoreBuffer = 3
   };
 
-  uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
