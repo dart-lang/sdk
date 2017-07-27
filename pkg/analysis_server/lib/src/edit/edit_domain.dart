@@ -400,14 +400,14 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute the edits required to import the required elements.
     //
-    List<SourceEdit> edits =
-        new ImportElementsComputer(result, params.file, params.elements)
-            .compute();
+    ImportElementsComputer computer =
+        new ImportElementsComputer(server.resourceProvider, result);
+    SourceChange change = await computer.createEdits(params.elements);
     //
     // Send the response.
     //
-    server.sendResponse(
-        new EditImportElementsResult(edits).toResponse(request.id));
+    server.sendResponse(new EditImportElementsResult(change.edits[0].edits)
+        .toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
