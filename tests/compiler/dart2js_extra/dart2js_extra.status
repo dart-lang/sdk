@@ -131,6 +131,7 @@ closure_capture2_test: Crash
 closure_capture3_test: Crash
 closure_capture4_test: Crash
 closure_capture5_test: Crash
+closure_capture6_test: Crash
 closure_capture_test: Crash
 closure_test: Crash
 compile_time_constant4_test/01: Crash
@@ -368,6 +369,7 @@ closure_capture2_test: RuntimeError
 closure_capture3_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_capture5_test: RuntimeError
+closure_capture6_test: RuntimeError
 closure_capture_test: RuntimeError
 closure_test: RuntimeError
 closure_type_reflection2_test: Crash
