@@ -6,7 +6,7 @@ homepage: https://github.com/dart-lang/linter
 environment:
   sdk: '>=1.12.0 <2.0.0-dev.infinity'
 dependencies:
-  analyzer: ^0.30.0
+  analyzer: ^0.31.0-alpha.0
   args: '>=0.12.1 <0.14.0'
   glob: ^1.0.3
   meta: ^1.0.2
@@ -20,5 +20,5 @@ dev_dependencies:
   matcher: ^0.12.0
   mockito: ^1.0.0
   path: '>=0.9.0 <2.0.0'
-  test: ^0.12.0
+  test: ^0.12.24+1
   unscripted: ^0.6.2

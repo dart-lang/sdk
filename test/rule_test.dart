@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
@@ -61,8 +66,7 @@ defineRuleUnitTests() {
       [
         Uri.parse('package:foo/src/bar.dart'),
         Uri.parse('package:foo/src/baz/bar.dart')
-      ]
-        ..forEach((uri) {
+      ]..forEach((uri) {
           test(uri.toString(), () {
             expect(isPackage(uri), isTrue);
           });
@@ -71,8 +75,7 @@ defineRuleUnitTests() {
         Uri.parse('foo/bar.dart'),
         Uri.parse('src/bar.dart'),
         Uri.parse('dart:async')
-      ]
-        ..forEach((uri) {
+      ]..forEach((uri) {
           test(uri.toString(), () {
             expect(isPackage(uri), isFalse);
           });
@@ -98,8 +101,7 @@ defineRuleUnitTests() {
       [
         Uri.parse('package:foo/src/bar.dart'),
         Uri.parse('package:foo/src/baz/bar.dart')
-      ]
-        ..forEach((uri) {
+      ]..forEach((uri) {
           test(uri.toString(), () {
             expect(isImplementation(uri), isTrue);
           });
@@ -387,7 +389,7 @@ testEachInt(Iterable<Object> values, bool f(int s), Matcher m) {
 testRule(String ruleName, File file, {bool debug: false}) {
   registerLintRules();
 
-  test('$ruleName', () {
+  test('$ruleName', () async {
     if (!file.existsSync()) {
       throw new Exception('No rule found defined at: ${file.path}');
     }
@@ -410,13 +412,19 @@ testRule(String ruleName, File file, {bool debug: false}) {
       return;
     }
 
+    MemoryResourceProvider memoryResourceProvider =
+        new MemoryResourceProvider();
+    TestResourceProvider resourceProvider =
+        new TestResourceProvider(memoryResourceProvider);
+
     LinterOptions options = new LinterOptions([rule])
-      ..mockSdk = new MockSdk()
+      ..mockSdk = new MockSdk(memoryResourceProvider)
+      ..resourceProvider = resourceProvider
       ..packageRootPath = '.';
 
     DartLinter driver = new DartLinter(options);
 
-    Iterable<AnalysisErrorInfo> lints = driver.lintFiles([file]);
+    Iterable<AnalysisErrorInfo> lints = await driver.lintFiles([file]);
 
     List<Annotation> actual = [];
     lints.forEach((AnalysisErrorInfo info) {
@@ -443,6 +451,57 @@ testRule(String ruleName, File file, {bool debug: false}) {
       throw e;
     }
   });
+}
+
+class TestResourceProvider implements file_system.ResourceProvider {
+  MemoryResourceProvider memoryResourceProvider;
+
+  TestResourceProvider(this.memoryResourceProvider);
+
+  PhysicalResourceProvider get physicalResourceProvider =>
+      PhysicalResourceProvider.INSTANCE;
+
+  @override
+  AbsolutePathContext get absolutePathContext =>
+      memoryResourceProvider.absolutePathContext;
+
+  @override
+  file_system.File getFile(String path) {
+    file_system.File file = memoryResourceProvider.getFile(path);
+    return file.exists ? file : physicalResourceProvider.getFile(path);
+  }
+
+  @override
+  file_system.Folder getFolder(String path) {
+    file_system.Folder folder = memoryResourceProvider.getFolder(path);
+    return folder.exists ? folder : physicalResourceProvider.getFolder(path);
+  }
+
+  @override
+  Future<List<int>> getModificationTimes(List<Source> sources) {
+    //If this gets tripped, we know to implement it! :)
+    throw new StateError('Unexpected call to getModificationTimes');
+  }
+
+  @override
+  file_system.Resource getResource(String path) {
+    file_system.Resource resource = memoryResourceProvider.getResource(path);
+    return resource.exists
+        ? resource
+        : physicalResourceProvider.getResource(path);
+  }
+
+  @override
+  file_system.Folder getStateLocation(String pluginId) {
+    file_system.Folder folder =
+        memoryResourceProvider.getStateLocation(pluginId);
+    return folder.exists
+        ? folder
+        : physicalResourceProvider.getStateLocation(pluginId);
+  }
+
+  @override
+  p.Context get pathContext => memoryResourceProvider.pathContext;
 }
 
 class Annotation {

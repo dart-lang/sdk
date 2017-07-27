@@ -34,8 +34,8 @@ defineTests() {
         exitCode = 0;
       });
       group('config', () {
-        test('excludes', () {
-          dartlint
+        test('excludes', () async {
+          await dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig.yaml']);
           expect(exitCode, 1);
           expect(
@@ -43,15 +43,15 @@ defineTests() {
               stringContainsInOrder(
                   ['4 files analyzed, 1 issue found (2 filtered), in']));
         });
-        test('overrrides', () {
-          dartlint
+        test('overrrides', () async {
+          await dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig2.yaml']);
           expect(exitCode, 0);
           expect(collectingOut.trim(),
               stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
         });
-        test('default', () {
-          dartlint.main(['test/_data/p2']);
+        test('default', () async {
+          await dartlint.main(['test/_data/p2']);
           expect(exitCode, 1);
           expect(collectingOut.trim(),
               stringContainsInOrder(['4 files analyzed, 3 issues found, in']));
@@ -66,8 +66,8 @@ defineTests() {
         collectingOut.buffer.clear();
         outSink = currentOut;
       });
-      test('bad pubspec', () {
-        dartlint.main(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
+      test('bad pubspec', () async {
+        await dartlint.main(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
         expect(collectingOut.trim(),
             startsWith('1 file analyzed, 0 issues found, in'));
       });
@@ -80,10 +80,10 @@ defineTests() {
         collectingOut.buffer.clear();
         outSink = currentOut;
       });
-      test('no warnings due to bad canonicalization', () {
+      test('no warnings due to bad canonicalization', () async {
         var packagesFilePath =
             new File('test/_data/p4/_packages').absolute.path;
-        dartlint.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
+        await dartlint.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
             new LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
@@ -103,9 +103,9 @@ defineTests() {
         exitCode = 0;
       });
       group('.packages', () {
-        test('basic', () {
+        test('basic', () async {
           // Requires .packages to analyze cleanly.
-          dartlint
+          await dartlint
               .main(['test/_data/p5', '--packages', 'test/_data/p5/_packages']);
           // Should have 0 issues.
           expect(exitCode, 0);
@@ -127,8 +127,8 @@ defineTests() {
       });
 
       // https://github.com/dart-lang/linter/issues/246
-      test('overrides across libraries', () {
-        dartlint.main(
+      test('overrides across libraries', () async {
+        await dartlint.main(
             ['test/_data/overridden_fields', '--rules', 'overridden_fields']);
         expect(exitCode, 1);
         expect(
@@ -151,9 +151,9 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('close sinks', () {
+      test('close sinks', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/close_sinks',
@@ -183,8 +183,8 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('cancel subscriptions', () {
-        dartlint.main([
+      test('cancel subscriptions', () async {
+        await dartlint.main([
           'test/_data/cancel_subscriptions',
           '--rules=cancel_subscriptions'
         ]);
@@ -212,9 +212,9 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('dart_directives_go_first', () {
+      test('dart_directives_go_first', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/directives_ordering/dart_directives_go_first',
@@ -236,9 +236,9 @@ defineTests() {
             ]));
       });
 
-      test('package_directives_before_relative', () {
+      test('package_directives_before_relative', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/directives_ordering/package_directives_before_relative',
@@ -260,9 +260,9 @@ defineTests() {
             ]));
       });
 
-      test('third_party_package_directives_before_own', () {
+      test('third_party_package_directives_before_own', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/directives_ordering/third_party_package_directives_before_own',
@@ -284,15 +284,14 @@ defineTests() {
             ]));
       });
 
-      test('export_directives_after_import_directives', () {
+      test('export_directives_after_import_directives', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/directives_ordering/export_directives_after_import_directives',
           '--rules=directives_ordering'
         ]);
-        expect(exitCode, 1);
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
@@ -302,11 +301,12 @@ defineTests() {
               "export 'dummy2.dart';  // LINT",
               '5 files analyzed, 2 issues found, in'
             ]));
+        expect(exitCode, 1);
       });
 
-      test('sort_directive_sections_alphabetically', () {
+      test('sort_directive_sections_alphabetically', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/directives_ordering/sort_directive_sections_alphabetically',
@@ -344,9 +344,9 @@ defineTests() {
             ]));
       });
 
-      test('lint_one_node_no_more_than_once', () {
+      test('lint_one_node_no_more_than_once', () async {
         var packagesFilePath = new File('.packages').absolute.path;
-        dartlint.main([
+        await dartlint.main([
           '--packages',
           packagesFilePath,
           'test/_data/directives_ordering/lint_one_node_no_more_than_once',
@@ -376,8 +376,8 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('only throw errors', () {
-        dartlint.main(
+      test('only throw errors', () async {
+        await dartlint.main(
             ['test/_data/only_throw_errors', '--rules=only_throw_errors']);
         expect(exitCode, 1);
         expect(
@@ -406,8 +406,8 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('only throw errors', () {
-        dartlint.runLinter([
+      test('only throw errors', () async {
+        await dartlint.runLinter([
           'test/_data/always_require_non_null_named_parameters',
           '--rules=always_require_non_null_named_parameters'
         ], new LinterOptions()..enableAssertInitializer = true);
@@ -432,8 +432,8 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('only throw errors', () {
-        dartlint.runLinter([
+      test('only throw errors', () async {
+        await dartlint.runLinter([
           'test/_data/prefer_asserts_in_initializer_lists',
           '--rules=prefer_asserts_in_initializer_lists'
         ], new LinterOptions()..enableAssertInitializer = true);
@@ -458,8 +458,8 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('only throw errors', () {
-        dartlint.runLinter([
+      test('only throw errors', () async {
+        await dartlint.runLinter([
           'test/_data/prefer_const_constructors_in_immutables',
           '--rules=prefer_const_constructors_in_immutables'
         ], new LinterOptions()..enableAssertInitializer = true);

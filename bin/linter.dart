@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
@@ -16,8 +18,8 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 
-void main(List<String> args) {
-  runLinter(args, new LinterOptions());
+Future main(List<String> args) async {
+  await runLinter(args, new LinterOptions());
 }
 
 const processFileFailedExitCode = 65;
@@ -27,7 +29,7 @@ const unableToProcessExitCode = 64;
 String getRoot(List<String> paths) =>
     paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
 
-isLinterErrorCode(int code) =>
+bool isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
 
 void printUsage(ArgParser parser, IOSink out, [String error]) {
@@ -44,7 +46,7 @@ For more information, see https://github.com/dart-lang/linter
 ''');
 }
 
-void runLinter(List<String> args, LinterOptions initialLintOptions) {
+Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   // Force the rule registry to be populated.
   registerLintRules();
 
@@ -150,7 +152,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
 
   lintOptions
     ..packageConfigPath = packageConfigFile
-    ..visitTransitiveClosure = options['visit-transitive-closure'];
+    ..resourceProvider = PhysicalResourceProvider.INSTANCE;
 
   List<File> filesToLint = [];
   for (var path in options.rest) {
@@ -166,7 +168,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
 
   try {
     final timer = new Stopwatch()..start();
-    List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
+    List<AnalysisErrorInfo> errors = await linter.lintFiles(filesToLint);
     timer.stop();
 
     if (errors.length > 0) {
