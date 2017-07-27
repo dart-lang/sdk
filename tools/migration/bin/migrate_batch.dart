@@ -11,19 +11,13 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-
-import 'package:migration/src/log.dart';
-import 'package:migration/src/validate.dart';
 import 'package:status_file/status_file.dart';
 
+import 'package:migration/src/fork.dart';
+import 'package:migration/src/io.dart';
+import 'package:migration/src/log.dart';
+
 const simpleDirs = const ["corelib", "language", "lib"];
-
-final String sdkRoot =
-    p.normalize(p.join(p.dirname(p.fromUri(Platform.script)), '../../../'));
-
-final String testRoot = p.join(sdkRoot, "tests");
-
-bool dryRun = false;
 
 void main(List<String> arguments) {
   if (arguments.contains("--dry-run")) {
@@ -42,29 +36,20 @@ void main(List<String> arguments) {
     exit(1);
   }
 
-  var first = toTwoPath(arguments[0]);
-  var last = toTwoPath(arguments[1]);
-
   var tests = scanTests();
 
-  // Find the range of files in the chunk. We use comparisons here instead of
-  // equality to try to compensate for files that may only appear in one fork
-  // and should be part of the chunk but aren't officially listed as the begin
-  // or end point.
-  var startIndex = -1;
-  var endIndex = 0;
-  for (var i = 0; i < tests.length; i++) {
-    if (startIndex == -1 && tests[i].twoPath.compareTo(first) >= 0) {
-      startIndex = i;
-    }
+  var startIndex = findFork(tests, arguments[0]);
+  var endIndex = findFork(tests, arguments[1]);
 
-    if (tests[i].twoPath.compareTo(last) > 0) {
-      endIndex = i;
-      break;
-    }
-  }
+  if (startIndex == null || endIndex == null) exit(1);
 
-  if ((endIndex - startIndex) == 0) {
+  var first = tests[startIndex].twoPath;
+  var last = tests[endIndex].twoPath;
+
+  // Make the range half-inclusive to simplify the math below.
+  endIndex++;
+
+  if (endIndex - startIndex == 0) {
     print(bold("No tests in range."));
     return;
   }
@@ -152,34 +137,27 @@ void printStatusFileEntries(
   }
 }
 
-String toTwoPath(String path) {
-  // Allow eliding "_test" and/or ".dart" to make things more command-line
-  // friendly.
-  if (!path.endsWith(".dart") && !path.endsWith("_test.dart")) {
-    path += "_test.dart";
-  }
-  if (!path.endsWith(".dart")) path += ".dart";
+int findFork(List<Fork> forks, String description) {
+  var matches = <int>[];
 
-  for (var dir in simpleDirs) {
-    if (p.isWithin(dir, path)) {
-      return p.join("${dir}_2", p.relative(path, from: dir));
+  for (var i = 0; i < forks.length; i++) {
+    if (forks[i].twoPath.contains(description)) matches.add(i);
+  }
+
+  if (matches.isEmpty) {
+    print('Could not find a test matching "${bold(description)}".');
+    return null;
+  } else if (matches.length == 1) {
+    return matches.first;
+  } else {
+    print('Description "${bold(description)}" is ambiguous. Could be any of:');
+    for (var i in matches) {
+      print("- ${forks[i].twoPath.replaceAll(description, bold(description))}");
     }
 
-    if (p.isWithin("${dir}_strong", path)) {
-      return p.join("${dir}_2", p.relative(path, from: dir));
-    }
+    print("Please use a more precise description.");
+    return null;
   }
-
-  if (p.isWithin("html", path)) {
-    return p.join("lib_2/html", p.relative(path, from: "html"));
-  }
-
-  if (p.isWithin("isolate", path)) {
-    return p.join("lib_2/isolate", p.relative(path, from: "isolate"));
-  }
-
-  // Guess it's already a two path.
-  return path;
 }
 
 /// Loads all of the unforked test files.
@@ -189,12 +167,9 @@ String toTwoPath(String path) {
 List<Fork> scanTests() {
   var tests = <String, Fork>{};
 
-  addTestDirectory(String fromDir, String twoDir) {
-    for (var entry
-        in new Directory(p.join(testRoot, fromDir)).listSync(recursive: true)) {
-      if (!entry.path.endsWith(".dart")) continue;
-
-      var fromPath = p.relative(entry.path, from: testRoot);
+  addFromDirectory(String fromDir, String twoDir) {
+    for (var path in listFiles(fromDir)) {
+      var fromPath = p.relative(path, from: testRoot);
       var twoPath = p.join(twoDir, p.relative(fromPath, from: fromDir));
 
       var fork = tests.putIfAbsent(twoPath, () => new Fork(twoPath));
@@ -206,14 +181,29 @@ List<Fork> scanTests() {
     }
   }
 
-  addTestDirectory("corelib", "corelib_2");
-  addTestDirectory("corelib_strong", "corelib_2");
-  addTestDirectory("html", "lib_2/html");
-  addTestDirectory("isolate", "lib_2/isolate");
-  addTestDirectory("language", "language_2");
-  addTestDirectory("language_strong", "language_2");
-  addTestDirectory("lib", "lib_2");
-  addTestDirectory("lib_strong", "lib_2");
+  addFromDirectory("corelib", "corelib_2");
+  addFromDirectory("corelib_strong", "corelib_2");
+  addFromDirectory("html", "lib_2/html");
+  addFromDirectory("isolate", "lib_2/isolate");
+  addFromDirectory("language", "language_2");
+  addFromDirectory("language_strong", "language_2");
+  addFromDirectory("lib", "lib_2");
+  addFromDirectory("lib_strong", "lib_2");
+
+  // Include tests that have already been migrated too so we can show what
+  // works remains to be done in them.
+  const twoDirs = const [
+    "corelib_2",
+    "lib_2",
+    "language_2",
+  ];
+
+  for (var dir in twoDirs) {
+    for (var path in listFiles(dir)) {
+      var twoPath = p.relative(path, from: testRoot);
+      tests.putIfAbsent(twoPath, () => new Fork(twoPath));
+    }
+  }
 
   var sorted = tests.values.toList();
   sorted.sort((a, b) => a.twoPath.compareTo(b.twoPath));
@@ -224,11 +214,8 @@ List<StatusFile> loadStatusFiles() {
   var statusFiles = <StatusFile>[];
 
   addStatusFile(String fromDir) {
-    for (var entry
-        in new Directory(p.join(testRoot, fromDir)).listSync(recursive: true)) {
-      if (!entry.path.endsWith(".status")) continue;
-
-      statusFiles.add(new StatusFile.read(entry.path));
+    for (var path in listFiles(fromDir, extension: ".status")) {
+      statusFiles.add(new StatusFile.read(path));
     }
   }
 
@@ -241,127 +228,4 @@ List<StatusFile> loadStatusFiles() {
   addStatusFile("lib");
   addStatusFile("lib_strong");
   return statusFiles;
-}
-
-/// Moves the file from [from] to [to], which are both assumed to be relative
-/// paths inside "tests".
-void moveFile(String from, String to) {
-  if (dryRun) {
-    print("  Dry run: move $from to $to");
-    return;
-  }
-
-  // Create the directory if needed.
-  new Directory(p.dirname(p.join(testRoot, to))).createSync(recursive: true);
-
-  new File(p.join(testRoot, from)).renameSync(p.join(testRoot, to));
-}
-
-/// Reads the contents of the file at [path], which is assumed to be relative
-/// within "tests".
-String readFile(String path) {
-  return new File(p.join(testRoot, path)).readAsStringSync();
-}
-
-/// Deletes the file at [path], which is assumed to be relative within "tests".
-void deleteFile(String path) {
-  if (dryRun) {
-    print("  Dry run: delete $path");
-    return;
-  }
-
-  new File(p.join(testRoot, path)).deleteSync();
-}
-
-class Fork {
-  final String twoPath;
-  String onePath;
-  String strongPath;
-
-  String get twoSource {
-    if (twoPath == null) return null;
-    if (_twoSource == null) _twoSource = readFile(twoPath);
-    return _twoSource;
-  }
-
-  String _twoSource;
-
-  String get oneSource {
-    if (onePath == null) return null;
-    if (_oneSource == null) _oneSource = readFile(onePath);
-    return _oneSource;
-  }
-
-  String _oneSource;
-
-  String get strongSource {
-    if (strongPath == null) return null;
-    if (_strongSource == null) _strongSource = readFile(strongPath);
-    return _strongSource;
-  }
-
-  String _strongSource;
-
-  Fork(this.twoPath);
-
-  List<String> migrate() {
-    print("- ${bold(twoPath)}:");
-
-    var todos = <String>[];
-    var isMigrated = new File(p.join(testRoot, twoPath)).existsSync();
-
-    // If there is a migrated version and it's the same as an unmigrated one,
-    // delete the unmigrated one.
-    if (isMigrated) {
-      if (onePath != null) {
-        if (oneSource == twoSource) {
-          deleteFile(onePath);
-          done("Deleted already-migrated $onePath.");
-        } else {
-          note("${bold(onePath)} does not match already-migrated "
-              "${bold(twoPath)}.");
-          todos.add("Merge from ${bold(onePath)} into this file.");
-          validateFile(onePath, oneSource);
-        }
-      }
-
-      if (strongPath != null) {
-        if (strongSource == twoSource) {
-          deleteFile(strongPath);
-          done("Deleted already-migrated ${bold(strongPath)}.");
-        } else {
-          note("${bold(strongPath)} does not match already-migrated "
-              "${bold(twoPath)}.");
-          todos.add("Merge from ${bold(strongPath)} into this file.");
-          validateFile(strongPath, strongSource);
-        }
-      }
-    } else {
-      // If it only exists in one place, just move it.
-      if (strongPath == null) {
-        moveFile(onePath, twoPath);
-        done("Moved from ${bold(onePath)} (no strong mode fork).");
-      } else if (onePath == null) {
-        moveFile(strongPath, twoPath);
-        done("Moved from ${bold(strongPath)} (no 1.0 mode fork).");
-      } else if (oneSource == strongSource) {
-        // The forks are identical, pick one.
-        moveFile(onePath, twoPath);
-        deleteFile(strongPath);
-        done("Merged identical forks.");
-        validateFile(twoPath, oneSource);
-      } else {
-        // Otherwise, a manual merge is required. Start with the strong one.
-        print(new File(strongPath).existsSync());
-        moveFile(strongPath, twoPath);
-        done("Moved strong fork, kept 1.0 fork, manual merge required.");
-        todos.add("Merge from ${bold(onePath)} into this file.");
-        validateFile(onePath, oneSource);
-      }
-    }
-
-    validateFile(twoPath, twoSource, todos);
-
-    return todos;
-  }
 }
