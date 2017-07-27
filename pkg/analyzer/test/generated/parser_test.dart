@@ -4315,53 +4315,53 @@ void main() {
     createParser('void a)');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrorsWithCodes([ParserErrorCode.VOID_PARAMETER]);
+    listener.assertNoErrors();
   }
 
   void test_voidVariable_parseClassMember_initializer() {
     createParser('void x = 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.VOID_VARIABLE]);
+    listener.assertNoErrors();
   }
 
   void test_voidVariable_parseClassMember_noInitializer() {
     createParser('void x;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.VOID_VARIABLE]);
+    listener.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnit_initializer() {
-    parseCompilationUnit("void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
+    parseCompilationUnit("void x = 0;");
   }
 
   void test_voidVariable_parseCompilationUnit_noInitializer() {
-    parseCompilationUnit("void x;", [ParserErrorCode.VOID_VARIABLE]);
+    parseCompilationUnit("void x;");
   }
 
   void test_voidVariable_parseCompilationUnitMember_initializer() {
     createParser('void a = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.VOID_VARIABLE]);
+    listener.assertNoErrors();
   }
 
   void test_voidVariable_parseCompilationUnitMember_noInitializer() {
     createParser('void a;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes([ParserErrorCode.VOID_VARIABLE]);
+    listener.assertNoErrors();
   }
 
   void test_voidVariable_statement_initializer() {
     parseStatement("void x = 0;");
-    assertErrorsWithCodes([ParserErrorCode.VOID_VARIABLE]);
+    listener.assertNoErrors();
   }
 
   void test_voidVariable_statement_noInitializer() {
     parseStatement("void x;");
-    assertErrorsWithCodes([ParserErrorCode.VOID_VARIABLE]);
+    listener.assertNoErrors();
   }
 
   void test_withBeforeExtends() {
@@ -11194,6 +11194,14 @@ void''');
     createParser('void,');
     FinalConstVarOrType result = parser.parseFinalConstVarOrType(false);
     expectNotNullIfNoErrors(result);
+    listener.assertErrorsWithCodes(
+        [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
+  }
+
+  void test_parseFinalConstVarOrType_void_identifier() {
+    createParser('void x');
+    FinalConstVarOrType result = parser.parseFinalConstVarOrType(false);
+    expectNotNullIfNoErrors(result);
     listener.assertNoErrors();
     expect(result.keyword, isNull);
     expect(result.type, isNotNull);
@@ -11490,8 +11498,9 @@ void''');
   }
 
   void test_parseReturnType_function() {
+    // TODO(eernst): `parseReturnType` eliminated, delete this test?
     createParser('A<B> Function<B>(B)');
-    GenericFunctionType type = parser.parseReturnType(false);
+    GenericFunctionType type = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(type);
     listener.assertNoErrors();
     expect(type.returnType, isNotNull);
@@ -11500,8 +11509,9 @@ void''');
   }
 
   void test_parseReturnType_named() {
+    // TODO(eernst): `parseReturnType` eliminated, delete this test?
     createParser('A<B>');
-    TypeName typeName = parser.parseReturnType(false);
+    TypeName typeName = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(typeName);
     listener.assertNoErrors();
     expect(typeName.name, isNotNull);
@@ -11509,8 +11519,9 @@ void''');
   }
 
   void test_parseReturnType_void() {
+    // TODO(eernst): `parseReturnType` eliminated, delete this test?
     createParser('void');
-    TypeName typeName = parser.parseReturnType(false);
+    TypeName typeName = parser.parseTypeAnnotation(false);
     expectNotNullIfNoErrors(typeName);
     listener.assertNoErrors();
     expect(typeName.name, isNotNull);
@@ -12020,21 +12031,24 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_skipReturnType_invalid() {
+    // TODO(eernst): `skipReturnType` eliminated, delete this test?
     createParser('+');
-    Token following = parser.skipReturnType(parser.currentToken);
+    Token following = parser.skipTypeAnnotation(parser.currentToken);
     expect(following, isNull);
   }
 
   void test_skipReturnType_type() {
+    // TODO(eernst): `skipReturnType` eliminated, delete this test?
     createParser('C +');
-    Token following = parser.skipReturnType(parser.currentToken);
+    Token following = parser.skipTypeAnnotation(parser.currentToken);
     expect(following, isNotNull);
     expect(following.type, TokenType.PLUS);
   }
 
   void test_skipReturnType_void() {
+    // TODO(eernst): `skipReturnType` eliminated, delete this test?
     createParser('void +');
-    Token following = parser.skipReturnType(parser.currentToken);
+    Token following = parser.skipTypeAnnotation(parser.currentToken);
     expect(following, isNotNull);
     expect(following.type, TokenType.PLUS);
   }

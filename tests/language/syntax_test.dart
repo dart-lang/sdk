@@ -225,18 +225,18 @@ main() {
     function __PROTO__$(...args) { return 12; } //# 56: compile-time error
     G<> t; //# 57: compile-time error
     G<null> t; //# 58: compile-time error
-    A<void> a = null; //# 59: compile-time error
-    void v; //# 60: compile-time error
-    void v = null; //# 61: compile-time error
-    print(null is void); //# 62: compile-time error
+    A<void> a = null;
+    void v;
+    void v = null;
+    print(null is void); //# 59: compile-time error
     new A();
     new B();
 
     new Bad();
 
-    1 + 2 = 1; //# 63: compile-time error
-    new SyntaxTest() = 1; //# 64: compile-time error
-    futureOf(null) = 1; //# 65: compile-time error
+    1 + 2 = 1; //# 60: compile-time error
+    new SyntaxTest() = 1; //# 61: compile-time error
+    futureOf(null) = 1; //# 62: compile-time error
 
     new C();
   } catch (ex) {
@@ -250,6 +250,6 @@ class Bad {
 }
 
 class C {
-  void f; // //# 66: compile-time error
-  static void g; // //# 67: compile-time error
+  void f;
+  static void g;
 }

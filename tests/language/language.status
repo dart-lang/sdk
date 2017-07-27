@@ -329,6 +329,7 @@ config_import_corelib_test: StaticWarning, OK
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
+syntax_test/none: CompileTimeError # Issue #30176.
 
 # flutter uses --error_on_bad_type, --error_on_bad_override
 # and --await_is_keyword so # the following tests fail with
