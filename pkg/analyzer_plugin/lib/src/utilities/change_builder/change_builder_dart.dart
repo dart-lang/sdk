@@ -612,61 +612,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   String _getBaseNameFromExpression(Expression expression) {
-    String name = null;
-    // e as Type
     if (expression is AsExpression) {
-      AsExpression asExpression = expression as AsExpression;
-      expression = asExpression.expression;
+      return _getBaseNameFromExpression(expression.expression);
+    } else if (expression is ParenthesizedExpression) {
+      return _getBaseNameFromExpression(expression.expression);
     }
-    // analyze expressions
-    if (expression is SimpleIdentifier) {
-      SimpleIdentifier node = expression;
-      return node.name;
-    } else if (expression is PrefixedIdentifier) {
-      PrefixedIdentifier node = expression;
-      return node.identifier.name;
-    } else if (expression is PropertyAccess) {
-      PropertyAccess node = expression;
-      return node.propertyName.name;
-    } else if (expression is MethodInvocation) {
-      name = expression.methodName.name;
-    } else if (expression is InstanceCreationExpression) {
-      InstanceCreationExpression creation = expression;
-      ConstructorName constructorName = creation.constructorName;
-      TypeName typeName = constructorName.type;
-      if (typeName != null) {
-        Identifier typeNameIdentifier = typeName.name;
-        // new ClassName()
-        if (typeNameIdentifier is SimpleIdentifier) {
-          return typeNameIdentifier.name;
-        }
-        // new prefix.name();
-        if (typeNameIdentifier is PrefixedIdentifier) {
-          PrefixedIdentifier prefixed = typeNameIdentifier;
-          // new prefix.ClassName()
-          if (prefixed.prefix.staticElement is PrefixElement) {
-            return prefixed.identifier.name;
-          }
-          // new ClassName.constructorName()
-          return prefixed.prefix.name;
-        }
-      }
-    }
-    // strip known prefixes
-    if (name != null) {
-      for (int i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
-        String prefix = _KNOWN_METHOD_NAME_PREFIXES[i];
-        if (name.startsWith(prefix)) {
-          if (name == prefix) {
-            return null;
-          } else if (isUpperCase(name.codeUnitAt(prefix.length))) {
-            return name.substring(prefix.length);
-          }
-        }
-      }
-    }
-    // done
-    return name;
+    return _getBaseNameFromUnwrappedExpression(expression);
   }
 
   String _getBaseNameFromLocationInParent(Expression expression) {
@@ -688,6 +639,62 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // unknown
     return null;
+  }
+
+  String _getBaseNameFromUnwrappedExpression(Expression expression) {
+    String name = null;
+    // analyze expressions
+    if (expression is SimpleIdentifier) {
+      return expression.name;
+    } else if (expression is PrefixedIdentifier) {
+      return expression.identifier.name;
+    } else if (expression is PropertyAccess) {
+      return expression.propertyName.name;
+    } else if (expression is MethodInvocation) {
+      name = expression.methodName.name;
+    } else if (expression is InstanceCreationExpression) {
+      ConstructorName constructorName = expression.constructorName;
+      TypeName typeName = constructorName.type;
+      if (typeName != null) {
+        Identifier typeNameIdentifier = typeName.name;
+        // new ClassName()
+        if (typeNameIdentifier is SimpleIdentifier) {
+          return typeNameIdentifier.name;
+        }
+        // new prefix.name();
+        if (typeNameIdentifier is PrefixedIdentifier) {
+          PrefixedIdentifier prefixed = typeNameIdentifier;
+          // new prefix.ClassName()
+          if (prefixed.prefix.staticElement is PrefixElement) {
+            return prefixed.identifier.name;
+          }
+          // new ClassName.constructorName()
+          return prefixed.prefix.name;
+        }
+      }
+    } else if (expression is IndexExpression) {
+      name = _getBaseNameFromExpression(expression.realTarget);
+      if (name.endsWith('es')) {
+        name = name.substring(0, name.length - 2);
+      } else if (name.endsWith('s')) {
+        name = name.substring(0, name.length - 1);
+      }
+    }
+    // strip known prefixes
+    if (name != null) {
+      for (int i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
+        String prefix = _KNOWN_METHOD_NAME_PREFIXES[i];
+        if (name.startsWith(prefix)) {
+          if (name == prefix) {
+            return null;
+          } else if (isUpperCase(name.codeUnitAt(prefix.length))) {
+            return name.substring(prefix.length);
+          }
+        }
+      }
+    }
+    // done
+    return name;
   }
 
   /**

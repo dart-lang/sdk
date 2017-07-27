@@ -68,8 +68,8 @@ class Required {
 ''');
 
   Source addPackageSource(String packageName, String filePath, String content) {
-    packageMap[packageName] = [(newFolder('/pubcache/$packageName'))];
-    File file = newFile('/pubcache/$packageName/$filePath', content);
+    packageMap[packageName] = [(newFolder('/pubcache/$packageName/lib'))];
+    File file = newFile('/pubcache/$packageName/lib/$filePath', content);
     return file.createSource();
   }
 
