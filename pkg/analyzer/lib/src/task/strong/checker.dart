@@ -1637,7 +1637,10 @@ class _OverrideChecker {
     //
     // Because of that, it is important we visit types in the order that they
     // will override members.
-    void checkType(InterfaceType type, AstNode location) {
+    // If checkingMixin is true, then we are checking [type] in a mixin position
+    // and hence should consider its own mixins and superclass as abstract.
+    void checkType(InterfaceType type, AstNode location,
+        {bool checkingMixin: false}) {
       // Skip `Object` because we don't need to check those members here.
       // (because `Object` is the root of everything, it will be checked in
       // _checkSuperOverrides for all classes).
@@ -1669,18 +1672,31 @@ class _OverrideChecker {
         _checkTypeMembers(type, checkOverride);
       }
 
-      // Check mixin members against interfaces.
-      //
-      // We visit mixins in reverse order to reflect how they override
-      // eachother.
-      for (int i = type.mixins.length - 1; i >= 0; i--) {
-        checkType(type.mixins[i],
-            isRootClass ? _withClause(node).mixinTypes[i] : location);
-      }
+      // If we are currently checking a mixin, then its own mixins and
+      // superclass are abstract, and we should not check their members.
+      // This should only happen when super mixins is enabled, and we
+      // don't do proper checking for super mixins (we don't check that
+      // the contract implied by the mixin declaration is satisfied by
+      // the mixin use), but this prevents us from erroneously
+      // rejecting some super mixin patterns.
+      // If this is a mixin application (class A = Object with B)
+      // however, then we do still need to treat the mixin as concrete.
+      if (!checkingMixin || type.element.isMixinApplication) {
+        // Check mixin members against interfaces.
+        //
+        // We visit mixins in reverse order to reflect how they override
+        // eachother.
+        for (int i = type.mixins.length - 1; i >= 0; i--) {
+          checkType(type.mixins[i],
+              isRootClass ? _withClause(node).mixinTypes[i] : location,
+              checkingMixin: true);
+        }
 
-      // Check members on the superclass.
-      checkType(type.superclass,
-          isRootClass ? _extendsErrorLocation(node) : location);
+        // Check members on the superclass.
+        checkType(type.superclass,
+            isRootClass ? _extendsErrorLocation(node) : location,
+            checkingMixin: checkingMixin);
+      }
     }
 
     checkType(element.type, node);

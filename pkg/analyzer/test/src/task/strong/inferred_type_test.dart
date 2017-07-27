@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +40,12 @@ abstract class InferredTypeMixin {
    * Add the file, process it (resolve, validate, etc) and return the resolved
    * unit.
    */
-  Future<CompilationUnit> checkFile(String content);
+  Future<CompilationUnit> checkFile(String content,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
+      bool implicitDynamic: true,
+      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
+      bool superMixins: false});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved

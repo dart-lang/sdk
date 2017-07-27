@@ -2639,6 +2639,22 @@ class C2 extends Object with M2 {
     ''');
   }
 
+  test_interfacesFromMixinsOnlyConsiderMostDerivedMember() {
+    // Regression test for dart2js interface pattern in strong mode.
+    return checkFile(r'''
+abstract class I1 { num get x; }
+abstract class I2 extends I1 { int get x; }
+
+class M1 { num get x => 0; }
+class M2 { int get x => 0; }
+
+class Base extends Object with M1 implements I1 {}
+class Child extends Base with M2 implements I2 {}
+
+class C extends Object with M1, M2 implements I1, I2 {}
+    ''');
+  }
+
   test_interfacesFromMixinsUsedTwiceAreChecked() {
     // Regression test for https://github.com/dart-lang/sdk/issues/29782
     return checkFile(r'''
@@ -2658,22 +2674,6 @@ class E extends D with M<int> {
 class F extends D with M<int> {
   num x;
 }
-    ''');
-  }
-
-  test_interfacesFromMixinsOnlyConsiderMostDerivedMember() {
-    // Regression test for dart2js interface pattern in strong mode.
-    return checkFile(r'''
-abstract class I1 { num get x; } 
-abstract class I2 extends I1 { int get x; }
-
-class M1 { num get x => 0; }
-class M2 { int get x => 0; }
-
-class Base extends Object with M1 implements I1 {}
-class Child extends Base with M2 implements I2 {}
-
-class C extends Object with M1, M2 implements I1, I2 {}
     ''');
   }
 
@@ -3167,6 +3167,22 @@ class A {
     test(foo);
   }
 }
+    ''');
+  }
+
+  test_mixinApplicationIsConcrete() {
+    return checkFile(r'''
+class A {
+  int get foo => 3;
+}
+
+class B {
+  num get foo => 3.0;
+}
+
+class C = Object with B;
+
+class D extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/C implements A {}
     ''');
   }
 
@@ -3911,6 +3927,52 @@ class B extends A {
   B() : super(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
 }
 ''');
+  }
+
+  @failingTest
+  test_superMixin_invalidApplication() {
+    // Failing: https://github.com/dart-lang/sdk/issues/30283
+    return checkFile(r'''
+    class A {
+  int get foo => 3;
+}
+
+// This expects a super class which satisfies the contract of A
+class B extends A {}
+
+class C {
+  num get foo => null;
+}
+
+// This mixin application doesn't provide a valid superclass for B
+class D extends C with /*error:INCONSISTENT_METHOD_INHERITANCE*/B {}
+}
+    ''', superMixins: true);
+  }
+
+  test_superMixinsMakeSuperclassMethodsAbstract() {
+    return checkFile(r'''
+  abstract class A {}
+
+abstract class B extends A {}
+
+abstract class ProvidesConcreteAGetter {
+  A get constraints => null;
+}
+
+abstract class ProvidesConcreteBGetter extends ProvidesConcreteAGetter {
+  @override
+  B get constraints => null;
+}
+
+abstract class ProvidesAbstractBGetter implements ProvidesConcreteBGetter {}
+
+abstract class ProvidesAbstractAGetterMixin extends ProvidesConcreteAGetter {}
+
+abstract class HasConcreteBGetterButMixesinAbstractAGetter
+    extends ProvidesConcreteBGetter
+    with ProvidesAbstractAGetterMixin, ProvidesAbstractBGetter {}
+    ''', superMixins: true);
   }
 
   test_tearOffTreatedConsistentlyAsStrictArrow() async {
