@@ -10,7 +10,7 @@
 
 [$compiler == precompiler && $runtime == dart_precompiled ]
 stacktrace_demangle_ctors_test: RuntimeError
-regress_27671_test: RuntimeError Issue 30289
+regress_27671_test: RuntimeError # Issue 30289
 export_double_same_main_test: Skip  # Crashes Issue 30289
 export_ambiguous_main_negative_test: Skip # Crashes Issue 30289
 optimized_stacktrace_test: Skip # Crashes Issue 30289
