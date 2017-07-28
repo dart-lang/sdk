@@ -86,6 +86,12 @@ class AnalysisSessionImplTest {
     expect(await session.getUnitElementSignature('path'), signature);
   }
 
+  test_sourceFactory() {
+    SourceFactory sourceFactory = new SourceFactory([]);
+    driver.sourceFactory = sourceFactory;
+    expect(session.sourceFactory, sourceFactory);
+  }
+
   test_typeProvider() async {
     _initializeSDK();
     expect(await session.typeProvider, isNotNull);
@@ -143,6 +149,7 @@ class MockAnalysisDriver implements AnalysisDriver {
   Map<String, LibraryElement> libraryMap = <String, LibraryElement>{};
   ParseResult parseResult;
   AnalysisResult result;
+  SourceFactory sourceFactory;
   SourceKind sourceKind;
   List<TopLevelDeclarationInSource> topLevelDeclarations;
   UnitElementResult unitElementResult;

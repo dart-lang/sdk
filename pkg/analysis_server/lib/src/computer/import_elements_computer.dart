@@ -53,7 +53,7 @@ class ImportElementsComputer {
     List<ImportedElements> filteredImportedElements =
         _filterImportedElements(importedElementsList);
     LibraryElement libraryElement = libraryResult.libraryElement;
-    SourceFactory sourceFactory = libraryElement.context.sourceFactory;
+    SourceFactory sourceFactory = libraryResult.session.sourceFactory;
     List<ImportDirective> existingImports = <ImportDirective>[];
     for (var directive in libraryResult.unit.directives) {
       if (directive is ImportDirective) {
