@@ -405,6 +405,9 @@ async_star_regression_fisk_test: Crash
 async_star_stream_take_test: Crash
 async_star_take_reyield_test: Crash
 
+[ $compiler == dart2js && $runtime != none && $checked ]
+assert_with_message_test: RuntimeError
+
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail
