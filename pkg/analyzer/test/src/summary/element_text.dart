@@ -644,13 +644,23 @@ class _ElementWriter {
     writeIf(e.isCovariant, 'covariant ');
     writeIf(e.isFinal, 'final ');
 
-    writeType2(e.type);
+    if (e.parameters.isNotEmpty) {
+      var type = e.type as FunctionType;
+      writeType2(type.returnType);
+    } else {
+      writeType2(e.type);
+    }
 
     if (e is FieldFormalParameterElement) {
       buffer.write('this.');
     }
 
     writeName(e);
+
+    if (e.parameters.isNotEmpty) {
+      writeList('(', ')', e.parameters, ', ', writeParameterElement,
+          includeEmpty: true);
+    }
 
     writeVariableTypeInferenceError(e);
 

@@ -504,6 +504,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_function_parameter_parameters() async {
+    await super.test_function_parameter_parameters();
+  }
+
+  @failingTest
+  test_function_type_parameter_with_function_typed_parameter() async {
+    await super.test_function_type_parameter_with_function_typed_parameter();
+  }
+
+  @failingTest
   test_futureOr() async {
     await super.test_futureOr();
   }
@@ -516,6 +526,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_futureOr_inferred() async {
     await super.test_futureOr_inferred();
+  }
+
+  @failingTest
+  test_genericFunction_asFunctionTypedParameterReturnType() async {
+    await super.test_genericFunction_asFunctionTypedParameterReturnType();
   }
 
   @failingTest
@@ -614,8 +629,43 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
+    await super
+        .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
+  }
+
+  @failingTest
+  test_inferred_type_refers_to_method_function_typed_parameter_type() async {
+    await super
+        .test_inferred_type_refers_to_method_function_typed_parameter_type();
+  }
+
+  @failingTest
+  test_inferred_type_refers_to_nested_function_typed_param() async {
+    await super.test_inferred_type_refers_to_nested_function_typed_param();
+  }
+
+  @failingTest
+  test_inferred_type_refers_to_nested_function_typed_param_named() async {
+    await super
+        .test_inferred_type_refers_to_nested_function_typed_param_named();
+  }
+
+  @failingTest
+  test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
+    await super
+        .test_inferred_type_refers_to_setter_function_typed_parameter_type();
+  }
+
+  @failingTest
   test_inferredType_definedInSdkLibraryPart() async {
     await super.test_inferredType_definedInSdkLibraryPart();
+  }
+
+  @failingTest
+  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
+    await super
+        .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
   }
 
   @failingTest
@@ -786,6 +836,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_method_type_parameter_with_function_typed_parameter() async {
+    await super.test_method_type_parameter_with_function_typed_parameter();
+  }
+
+  @failingTest
   test_parameter_checked() async {
     await super.test_parameter_checked();
   }
@@ -803,6 +858,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
+  }
+
+  @failingTest
+  test_parameter_parameters() async {
+    await super.test_parameter_parameters();
+  }
+
+  @failingTest
+  test_parameter_parameters_in_generic_class() async {
+    await super.test_parameter_parameters_in_generic_class();
   }
 
   @failingTest

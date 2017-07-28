@@ -5939,7 +5939,7 @@ dynamic f(dynamic x) {}
   test_function_parameter_parameters() async {
     var library = await checkLibrary('f(g(x, y)) {}');
     checkElementText(library, r'''
-dynamic f((dynamic, dynamic) → dynamic g) {}
+dynamic f(dynamic g(dynamic x, dynamic y)) {}
 ''');
   }
 
@@ -6004,7 +6004,7 @@ T f<T, U>(U u) {}
     prepareAnalysisContext(createOptions());
     var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
-void f<T, U>((U) → T x) {}
+void f<T, U>(T x(U u)) {}
 ''');
   }
 
@@ -6143,7 +6143,7 @@ int Function(int a, String b) f() => null;
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
     checkElementText(library, r'''
-void f((num) → (int, String) → int p) {}
+void f((int, String) → int p(num c)) {}
 ''');
   }
 
@@ -6704,7 +6704,7 @@ h(F f) => null;
 var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
 ''');
     checkElementText(library, r'''
-typedef void F((String) → int g);
+typedef void F(int g(String s));
 dynamic v;
 dynamic h(F f) {}
 ''');
@@ -6724,7 +6724,7 @@ class C<T, U> extends D<U, int> {
   void f(int x, (U) → int g) {}
 }
 abstract class D<V, W> {
-  void f(int x, (V) → W g);
+  void f(int x, W g(V s));
 }
 ''');
     } else {
@@ -6733,7 +6733,7 @@ class C<T, U> extends D<U, int> {
   void f(int x, dynamic g) {}
 }
 abstract class D<V, W> {
-  void f(int x, (V) → W g);
+  void f(int x, W g(V s));
 }
 ''');
     }
@@ -6781,7 +6781,7 @@ class C extends D {
   void f(int x, (String) → int g) {}
 }
 abstract class D {
-  void f(int x, (String) → int g);
+  void f(int x, int g(String s));
 }
 ''');
     } else {
@@ -6790,7 +6790,7 @@ class C extends D {
   void f(int x, dynamic g) {}
 }
 abstract class D {
-  void f(int x, (String) → int g);
+  void f(int x, int g(String s));
 }
 ''');
     }
@@ -6803,7 +6803,7 @@ var v = f((x, y) {});
 ''');
     checkElementText(library, r'''
 dynamic v;
-dynamic f((int, () → void) → void g) {}
+dynamic f(void g(int x, () → void h)) {}
 ''');
   }
 
@@ -6814,7 +6814,7 @@ var v = f(g: (x, y) {});
 ''');
     checkElementText(library, r'''
 dynamic v;
-dynamic f({(int, () → void) → void g}) {}
+dynamic f({void g(int x, () → void h)}) {}
 ''');
   }
 
@@ -6827,7 +6827,7 @@ class C extends D {
   void set f((String) → int g) {}
 }
 abstract class D {
-  void set f((String) → int g);
+  void set f(int g(String s));
 }
 ''');
     } else {
@@ -6836,7 +6836,7 @@ class C extends D {
   void set f(dynamic g) {}
 }
 abstract class D {
-  void set f((String) → int g);
+  void set f(int g(String s));
 }
 ''');
     }
@@ -6893,14 +6893,14 @@ var v = [f, g];
     if (isStrongMode) {
       checkElementText(library, r'''
 List<((String) → int) → Object> v;
-int f((String) → int x) {}
-String g((String) → int x) {}
+int f(int x(String y)) {}
+String g(int x(String y)) {}
 ''');
     } else {
       checkElementText(library, r'''
 dynamic v;
-int f((String) → int x) {}
-String g((String) → int x) {}
+int f(int x(String y)) {}
+String g(int x(String y)) {}
 ''');
     }
   }
@@ -8241,7 +8241,7 @@ class C<T, U> {
     var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
 class C {
-  void f<T, U>((U) → T x) {}
+  void f<T, U>(T x(U u)) {}
 }
 ''');
   }
@@ -8582,7 +8582,7 @@ class B<T> extends A<T> {
     var library = await checkLibrary('class C { f(g(x, y)) {} }');
     checkElementText(library, r'''
 class C {
-  dynamic f((dynamic, dynamic) → dynamic g) {}
+  dynamic f(dynamic g(dynamic x, dynamic y)) {}
 }
 ''');
   }
@@ -8591,7 +8591,7 @@ class C {
     var library = await checkLibrary('class C<A, B> { f(A g(B x)) {} }');
     checkElementText(library, r'''
 class C<A, B> {
-  dynamic f((B) → A g) {}
+  dynamic f(A g(B x)) {}
 }
 ''');
   }
@@ -9396,14 +9396,14 @@ class A {
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
-typedef dynamic F((dynamic, dynamic) → dynamic g);
+typedef dynamic F(dynamic g(dynamic x, dynamic y));
 ''');
   }
 
   test_typedef_parameter_parameters_in_generic_class() async {
     var library = await checkLibrary('typedef F<A, B>(A g(B x));');
     checkElementText(library, r'''
-typedef dynamic F<A, B>((B) → A g);
+typedef dynamic F<A, B>(A g(B x));
 ''');
   }
 
