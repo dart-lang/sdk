@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, AstVisitor;
@@ -27,7 +26,7 @@ main() {
 }
 
 /// Linter engine tests
-Future defineLinterEngineTests() {
+void defineLinterEngineTests() {
   group('engine', () {
     group('reporter', () {
       _test(String label, String expected, report(PrintingReporter r)) {
