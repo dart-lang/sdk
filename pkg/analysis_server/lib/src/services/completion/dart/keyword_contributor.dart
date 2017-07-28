@@ -253,6 +253,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (constructorDeclaration != null) {
       _addSuggestions([Keyword.THIS]);
     }
+    if (entity is Token && (entity as Token).type == TokenType.CLOSE_PAREN) {
+      _addSuggestion(Keyword.COVARIANT);
+    } else if (entity is FormalParameter) {
+      Token beginToken = (entity as FormalParameter).beginToken;
+      if (beginToken != null && request.target.offset == beginToken.end) {
+        _addSuggestion(Keyword.COVARIANT);
+      }
+    }
   }
 
   @override
