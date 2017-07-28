@@ -1,3 +1,7 @@
+# 0.1.35
+
+* linter engine updated to use new analysis driver.
+
 # 0.1.34
 
 ## Features
