@@ -737,7 +737,6 @@ bit_operations_test/none: Crash
 black_listed_test/none: Crash
 bool_check_test: Crash
 bool_test: Crash
-bootstrap_test: RuntimeError
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
@@ -829,8 +828,8 @@ closure_break2_test: Crash
 closure_break_test: Crash
 closure_call_wrong_argument_count_negative_test: Crash
 closure_cycles_test: Crash
-closure_in_constructor_test: RuntimeError
-closure_in_field_initializer_test: RuntimeError
+closure_in_constructor_test: Crash
+closure_in_field_initializer_test: Crash
 closure_in_initializer2_test: Crash
 closure_in_initializer_test: Crash
 closure_internals_test: Crash
@@ -1071,7 +1070,8 @@ fauxverride_test/05: MissingCompileTimeError
 field_increment_bailout_test: Crash
 field_inference_test: Crash
 field_initialization_order_test: RuntimeError
-field_method_test: RuntimeError
+field_method4_negative_test: Crash
+field_method_test: Crash
 field_override2_test: RuntimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
@@ -1482,7 +1482,6 @@ issue21079_test: Crash
 issue21159_test: Crash
 issue22800_test: Crash
 issue23244_test: Crash
-issue4295001_test: Crash
 issue9602_test: Crash
 issue9664_test: Crash
 issue9939_test: Crash
@@ -1957,7 +1956,7 @@ regress_18713_test: Crash
 regress_20074_test: Crash
 regress_20394_test/01: Crash
 regress_20394_test/none: Crash
-regress_20840_test: RuntimeError
+regress_20840_test: Crash
 regress_21016_test: Crash
 regress_21795_test: Crash
 regress_22438_test: Crash
@@ -2106,6 +2105,7 @@ syncstar_less_than_test: Crash
 syncstar_yield_test/copyParameters: Crash
 syncstar_yield_test/none: Crash
 syncstar_yieldstar_test: Crash
+syntax_test/none: CompileTimeError
 syntax_test/none: Crash
 temp_mangling_test: Crash
 third_test: Crash
@@ -2150,13 +2150,13 @@ type_check_test: Crash
 type_checks_in_factory_method_test: Crash
 type_error_test: Crash
 type_literal_prefix_call_test/00: Crash
-type_parameter_test/01: RuntimeError
-type_parameter_test/02: RuntimeError
-type_parameter_test/03: RuntimeError
-type_parameter_test/04: RuntimeError
-type_parameter_test/05: RuntimeError
-type_parameter_test/06: RuntimeError
-type_parameter_test/none: RuntimeError
+type_parameter_test/01: Crash
+type_parameter_test/02: Crash
+type_parameter_test/03: Crash
+type_parameter_test/04: Crash
+type_parameter_test/05: Crash
+type_parameter_test/06: Crash
+type_parameter_test/none: Crash
 type_propagation2_test: Crash
 type_propagation_assert_assignable_test: Crash
 type_propagation_in_for_update_test: Crash
@@ -2173,8 +2173,8 @@ type_variable_conflict2_test/04: Crash
 type_variable_conflict2_test/05: Crash
 type_variable_conflict2_test/07: Crash
 type_variable_conflict2_test/09: Crash
-type_variable_field_initializer_closure2_test: RuntimeError
-type_variable_field_initializer_closure_test: RuntimeError
+type_variable_field_initializer_closure2_test: Crash
+type_variable_field_initializer_closure_test: Crash
 type_variable_function_type_test: Crash
 type_variable_identifier_expression_test: Crash
 type_variable_nested_test: Crash
@@ -3931,6 +3931,3 @@ wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/01: Crash
 wrong_number_type_arguments_test/02: Crash
 wrong_number_type_arguments_test/none: Crash
-
-[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
-*: Skip # Issue 29626

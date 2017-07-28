@@ -79,6 +79,3 @@ allocation_sinking_inlining_test: Crash
 and_operation_on_non_integer_operand_test: Crash
 arithmetic_canonicalization_test: Crash
 arithmetic_smi_overflow_test: Crash
-
-[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
-*: Skip # Issue 29626

@@ -5,7 +5,6 @@
 library dart2js.library_loader;
 
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:front_end/front_end.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
@@ -824,6 +823,8 @@ class ResolutionLibraryLoaderTask extends CompilerTask
 // TODO(sigmund): move this class to a new file under src/kernel/.
 class KernelLibraryLoaderTask extends CompilerTask
     implements LibraryLoaderTask {
+  final Uri sdkRoot;
+
   final DiagnosticReporter reporter;
 
   final api.CompilerInput compilerInput;
@@ -834,8 +835,8 @@ class KernelLibraryLoaderTask extends CompilerTask
 
   List<LibraryEntity> _allLoadedLibraries;
 
-  KernelLibraryLoaderTask(
-      this._elementMap, this.compilerInput, this.reporter, Measurer measurer)
+  KernelLibraryLoaderTask(this.sdkRoot, this._elementMap, this.compilerInput,
+      this.reporter, Measurer measurer)
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -854,19 +855,13 @@ class KernelLibraryLoaderTask extends CompilerTask
         program = new ir.Program();
         new BinaryBuilder(input.data).readProgram(program);
       } else {
-        // TODO(sigmund): remove this hack. Ship platform.dill with the SDK
-        // instead.
-        // Note: this logic only works on development and bot configurations,
-        // but will not work when using dart2js outside the repo.
-        var executableUri = new Uri.file(Platform.resolvedExecutable);
-        Uri platformFile = executableUri.path.endsWith('dart-sdk/bin/dart')
-            ? executableUri.resolve('../../patched_dart2js_sdk/platform.dill')
-            : executableUri.resolve('patched_dart2js_sdk/platform.dill');
         var options = new fe.CompilerOptions()
           ..fileSystem = new CompilerFileSystem(compilerInput)
           ..target = new Dart2jsTarget(new TargetFlags())
           ..compileSdk = true
-          ..linkedDependencies = [platformFile]
+          ..linkedDependencies = [
+            sdkRoot.resolve('_internal/dart2js_platform.dill')
+          ]
           ..onError = (e) => reportFrontEndMessage(reporter, e);
 
         program = await fe.kernelForProgram(resolvedUri, options);

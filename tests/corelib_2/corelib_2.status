@@ -263,6 +263,12 @@ date_time4_test: Crash
 date_time7_test: Crash
 date_time_parse_test: Crash
 date_time_test: Crash
+double_floor2_test: Crash
+double_parse_test/01: Crash
+double_parse_test/02: Crash
+double_parse_test/03: Crash
+double_parse_test/04: Crash
+double_parse_test/none: Crash
 hash_set_test/01: Crash
 hash_set_test/none: Crash
 hash_set_type_check_test: RuntimeError
@@ -280,6 +286,27 @@ int_modulo_arith_test/none: Crash
 regexp/range-out-of-order_test: Crash
 regexp/regexp_kde_test: Crash
 regexp/regexp_test: Crash
+regexp/regress-regexp-codeflush_test: Crash
+regexp/standalones_test: Crash
+regexp/toString_test: Crash
+regexp/unicode-handling_test: Crash
+regexp/unicodeCaseInsensitive_test: Crash
+set_containsAll_test: Crash
+set_contains_test: Crash
+set_intersection_test: Crash
+set_iterator_test: Crash
+set_removeAll_test: Crash
+set_remove_test: Crash
+set_retainAll_test: Crash
+set_test: Crash
+set_to_string_test: Crash
+shuffle_test: Crash
+sort_test: RuntimeError
+splay_tree_from_iterable_test: Crash
+splay_tree_from_iterables_test: Crash
+splay_tree_test/01: Crash
+splay_tree_test/02: Crash
+splay_tree_test/none: Crash
 stacktrace_fromstring_test: Crash
 stopwatch2_test: Crash
 string_base_vm_test: Crash
@@ -400,9 +427,6 @@ throw_half_surrogate_pair_test/02: Crash
 toInt_test: Crash
 type_hashcode_test: Crash
 unicode_test: Crash
-
-[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
-*: Skip # Issue 29626
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

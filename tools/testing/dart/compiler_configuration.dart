@@ -283,6 +283,13 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     var suffix = executableScriptSuffix;
 
     if (_isHostChecked) {
+      if (_useSdk) {
+        // Note: when [_useSdk] is true, dart2js is run from a snapshot that was
+        // built without checked mode. The VM cannot make such snapshot run in
+        // checked mode later. These two flags could be used together if we also
+        // build an sdk with checked snapshots.
+        throw "--host-checked and --use-sdk cannot be used together";
+      }
       // The script dart2js_developer is not included in the
       // shipped SDK, that is the script is not installed in
       // "$buildDir/dart-sdk/bin/"

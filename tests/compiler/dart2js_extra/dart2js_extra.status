@@ -243,9 +243,6 @@ typevariable_factory_test: Crash
 typevariable_substitution_test: Crash
 while_test: Crash
 
-[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
-*: Skip # Issue 29626
-
 [ $compiler == dart2js && $runtime == safari ]
 deferred_fail_and_retry_worker_test: Timeout  # Issue 22106
 

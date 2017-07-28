@@ -132,9 +132,6 @@ native_class_inheritance2_frog_test: Crash # Issue 27394
 native_class_inheritance3_frog_test: Crash # Issue 27394
 native_wrapping_function3_frog_test: Crash # Issue 27394
 
-[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
-*: Skip # Issue 29626
-
 [ $compiler == dart2js && $dart2js_with_kernel ]
 # TODO(sigmund): currently the FE disallows imports to dart:_* from the unit
 # test files.
