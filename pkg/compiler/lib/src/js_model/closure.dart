@@ -61,7 +61,17 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {
-    var closuresToGenerate = <MemberEntity, Map<ir.TreeNode, ScopeInfo>>{};
+    Map<MemberEntity, ClosureModel> closureModels =
+        _computeClosureModels(processedEntities);
+    _createClosureEntities(closureModels, closedWorldRefiner);
+  }
+
+  // TODO(johnniwinther,efortuna): Compute this during resolution. See
+  // documentation on [convertClosures].
+  Map<MemberEntity, ClosureModel> _computeClosureModels(
+      Iterable<MemberEntity> processedEntities) {
+    Map<MemberEntity, ClosureModel> closureModels =
+        <MemberEntity, ClosureModel>{};
 
     processedEntities.forEach((MemberEntity kEntity) {
       MemberEntity entity = _kToJElementMap.toBackendMember(kEntity);
@@ -74,12 +84,31 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         // Skip top-level/static fields without an initializer.
         if (field.initializer == null) return;
       }
-      closuresToGenerate[entity] =
-          _buildClosureModel(entity, closedWorldRefiner);
+      closureModels[entity] = _buildClosureModel(entity);
     });
+    return closureModels;
+  }
 
-    closuresToGenerate.forEach(
-        (MemberEntity member, Map<ir.TreeNode, ScopeInfo> closuresToGenerate) {
+  void _createClosureEntities(Map<MemberEntity, ClosureModel> closureModels,
+      ClosedWorldRefiner closedWorldRefiner) {
+    closureModels.forEach((MemberEntity member, ClosureModel model) {
+      KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
+      if (model.scopeInfo != null) {
+        _scopeMap[member] = new JsScopeInfo.from(model.scopeInfo, localsMap);
+      }
+
+      model.capturedScopesMap
+          .forEach((ir.Node node, KernelCapturedScope scope) {
+        if (scope is KernelCapturedLoopScope) {
+          _capturedScopesMap[node] =
+              new JsCapturedLoopScope.from(scope, localsMap);
+        } else {
+          _capturedScopesMap[node] = new JsCapturedScope.from(scope, localsMap);
+        }
+      });
+
+      Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
+          model.closuresToGenerate;
       for (ir.TreeNode node in closuresToGenerate.keys) {
         _produceSyntheticElements(
             member, node, closuresToGenerate[node], closedWorldRefiner);
@@ -89,11 +118,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  Map<ir.TreeNode, ScopeInfo> _buildClosureModel(
-      MemberEntity entity, ClosedWorldRefiner closedWorldRefiner) {
-    assert(!_scopeMap.containsKey(entity),
-        failedAt(entity, "ScopeInfo already computed for $entity."));
-    Map<ir.TreeNode, ScopeInfo> closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
+  ClosureModel _buildClosureModel(MemberEntity entity) {
+    ClosureModel model = new ClosureModel();
     MemberDefinition definition = _elementMap.getMemberDefinition(entity);
     switch (definition.kind) {
       case MemberKind.regular:
@@ -103,14 +129,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         failedAt(entity, "Unexpected member definition $definition");
     }
     ir.Node node = definition.node;
-    assert(!_scopeMap.containsKey(entity),
-        failedAt(entity, "CaptureScope already computed for $node."));
-    CapturedScopeBuilder translator = new CapturedScopeBuilder(
-        entity,
-        _capturedScopesMap,
-        _scopeMap,
-        closuresToGenerate,
-        _globalLocalsMap.getLocalsMap(entity));
+    CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
+        hasThisLocal: entity.isInstanceMember || entity.isConstructor);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         translator.translateLazyInitializer(node);
@@ -119,7 +139,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       assert(node is ir.Procedure || node is ir.Constructor);
       translator.translateConstructorOrProcedure(node);
     }
-    return closuresToGenerate;
+    return model;
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -131,7 +151,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   void _produceSyntheticElements(
       MemberEntity member,
       ir.TreeNode /* ir.Member | ir.FunctionNode */ node,
-      ScopeInfo info,
+      KernelScopeInfo info,
       ClosedWorldRefiner closedWorldRefiner) {
     String name = _computeClosureName(node);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
@@ -240,25 +260,55 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   }
 }
 
-class KernelScopeInfo extends ScopeInfo {
+class KernelScopeInfo {
+  final Set<ir.VariableDeclaration> localsUsedInTryOrSync;
+  final bool hasThisLocal;
+  final Set<ir.VariableDeclaration> boxedVariables;
+
+  /// The set of variables that were defined in another scope, but are used in
+  /// this scope.
+  Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
+
+  KernelScopeInfo(this.hasThisLocal)
+      : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
+        boxedVariables = new Set<ir.VariableDeclaration>();
+
+  KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
+      : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
+        boxedVariables = info.boxedVariables;
+
+  KernelScopeInfo.withBoxedVariables(this.boxedVariables,
+      this.localsUsedInTryOrSync, this.freeVariables, this.hasThisLocal);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('this=$hasThisLocal,');
+    sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
+    return sb.toString();
+  }
+}
+
+class JsScopeInfo extends ScopeInfo {
   final Set<Local> localsUsedInTryOrSync;
   final Local thisLocal;
   final Set<Local> boxedVariables;
 
   /// The set of variables that were defined in another scope, but are used in
   /// this scope.
-  Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
+  final Set<Local> freeVariables;
 
-  KernelScopeInfo(this.thisLocal)
-      : localsUsedInTryOrSync = new Set<Local>(),
-        boxedVariables = new Set<Local>();
+  JsScopeInfo(this.thisLocal, this.localsUsedInTryOrSync, this.boxedVariables,
+      this.freeVariables);
 
-  KernelScopeInfo.from(this.thisLocal, KernelScopeInfo info)
-      : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
-        boxedVariables = info.boxedVariables;
-
-  KernelScopeInfo.withBoxedVariables(this.boxedVariables,
-      this.localsUsedInTryOrSync, this.freeVariables, this.thisLocal);
+  JsScopeInfo.from(KernelScopeInfo info, KernelToLocalsMap localsMap)
+      : this.thisLocal =
+            info.hasThisLocal ? new ThisLocal(localsMap.currentMember) : null,
+        this.localsUsedInTryOrSync =
+            info.localsUsedInTryOrSync.map(localsMap.getLocalVariable).toSet(),
+        this.boxedVariables =
+            info.boxedVariables.map(localsMap.getLocalVariable).toSet(),
+        this.freeVariables =
+            info.freeVariables.map(localsMap.getLocalVariable).toSet();
 
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {
     boxedVariables.forEach((Local l) {
@@ -280,40 +330,63 @@ class KernelScopeInfo extends ScopeInfo {
   bool isBoxed(Local variable) => boxedVariables.contains(variable);
 }
 
-class KernelCapturedScope extends KernelScopeInfo implements CapturedScope {
-  final Local context;
+class KernelCapturedScope extends KernelScopeInfo {
+  final ir.TreeNode context;
 
   KernelCapturedScope(
-      Set<Local> boxedVariables,
+      Set<ir.VariableDeclaration> boxedVariables,
       this.context,
-      Set<Local> localsUsedInTryOrSync,
+      Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.VariableDeclaration> freeVariables,
-      Local thisLocal)
+      bool hasThisLocal)
       : super.withBoxedVariables(
-            boxedVariables, localsUsedInTryOrSync, freeVariables, thisLocal);
+            boxedVariables, localsUsedInTryOrSync, freeVariables, hasThisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
 
-class KernelCapturedLoopScope extends KernelCapturedScope
-    implements CapturedLoopScope {
-  final List<Local> boxedLoopVariables;
+class JsCapturedScope extends JsScopeInfo implements CapturedScope {
+  final Local context;
+
+  JsCapturedScope.from(
+      KernelCapturedScope capturedScope, KernelToLocalsMap localsMap)
+      : this.context = localsMap.getLocalVariable(capturedScope.context),
+        super.from(capturedScope, localsMap);
+
+  bool get requiresContextBox => boxedVariables.isNotEmpty;
+}
+
+class KernelCapturedLoopScope extends KernelCapturedScope {
+  final List<ir.VariableDeclaration> boxedLoopVariables;
 
   KernelCapturedLoopScope(
-      Set<Local> boxedVariables,
+      Set<ir.VariableDeclaration> boxedVariables,
       this.boxedLoopVariables,
-      Local context,
-      Set<Local> localsUsedInTryOrSync,
+      ir.TreeNode context,
+      Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.VariableDeclaration> freeVariables,
-      Local thisLocal)
+      bool hasThisLocal)
       : super(boxedVariables, context, localsUsedInTryOrSync, freeVariables,
-            thisLocal);
+            hasThisLocal);
+
+  bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
+}
+
+class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
+  final List<Local> boxedLoopVariables;
+
+  JsCapturedLoopScope.from(
+      KernelCapturedLoopScope capturedScope, KernelToLocalsMap localsMap)
+      : this.boxedLoopVariables = capturedScope.boxedLoopVariables
+            .map(localsMap.getLocalVariable)
+            .toList(),
+        super.from(capturedScope, localsMap);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
 
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
-class KernelClosureClass extends KernelScopeInfo
+class KernelClosureClass extends JsScopeInfo
     implements ClosureRepresentationInfo, JClass {
   final ir.Location location;
 
@@ -328,7 +401,7 @@ class KernelClosureClass extends KernelScopeInfo
 
   KernelClosureClass.fromScopeInfo(this.name, this.library,
       KernelScopeInfo info, this.location, KernelToLocalsMap localsMap)
-      : super.from(info.thisLocal, info) {
+      : super.from(info, localsMap) {
     // Make a corresponding field entity in this closure class for every single
     // freeVariable in the KernelScopeInfo.freeVariable.
     int i = 0;
@@ -337,7 +410,7 @@ class KernelClosureClass extends KernelScopeInfo
       // old Element version. The old version did all the boxed items and then
       // all the others.
       Local capturedLocal = localsMap.getLocalVariable(variable);
-      if (info.isBoxed(capturedLocal)) {
+      if (isBoxed(capturedLocal)) {
         // TODO(efortuna): Coming soon.
       } else {
         localToFieldMap[capturedLocal] = new ClosureField(
@@ -421,4 +494,21 @@ class ClosureClassDefinition implements ClassDefinition {
 
   String toString() =>
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
+}
+
+/// Collection of closure data collected for a single member.
+class ClosureModel {
+  /// Collection [ScopeInfo] data for the member, if any.
+  // TODO(johnniwinther): [scopeInfo] seem to be missing only for fields
+  // without initializers; we shouldn't even create a [ClosureModel] in these
+  // cases.
+  KernelScopeInfo scopeInfo;
+
+  /// Collected [CapturedScope] data for nodes.
+  Map<ir.Node, KernelCapturedScope> capturedScopesMap =
+      <ir.Node, KernelCapturedScope>{};
+
+  /// Collected [ScopeInfo] data for nodes.
+  Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
+      <ir.TreeNode, KernelScopeInfo>{};
 }

@@ -5,32 +5,28 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
-import '../elements/entities.dart';
-import '../kernel/element_map.dart';
 import 'closure.dart';
 
 /// This builder walks the code to determine what variables are captured/free at
 /// various points to build CapturedScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
 class CapturedScopeBuilder extends ir.Visitor {
-  final MemberEntity _currentMember;
-  Local _currentLocalFunction;
+  ir.TreeNode _currentLocalFunction;
+
+  ClosureModel _model;
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
   /// was encountered while visiting a closure (initially called through
   /// [translateLazyIntializer] or [translateConstructorOrProcedure]).
-  final Map<ir.Node, CapturedScope> _scopesCapturedInClosureMap;
-
-  /// Map entities to their corresponding scope information (such as what
-  /// variables are captured/used).
-  final Map<Entity, ScopeInfo> _scopeInfoMap;
+  Map<ir.Node, KernelCapturedScope> get _scopesCapturedInClosureMap =>
+      _model.capturedScopesMap;
 
   /// A map of the nodes that we have flagged as necessary to generate closure
   /// classes for in a later stage. We map that node to information ascertained
   /// about variable usage in the surrounding scope.
-  final Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, ScopeInfo>
-      _closuresToGenerate;
+  Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, KernelScopeInfo>
+      get _closuresToGenerate => _model.closuresToGenerate;
 
   /// The local variables that have been declared in the current scope.
   List<ir.VariableDeclaration> _scopeVariables;
@@ -60,44 +56,38 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// try block.
   bool _inTry = false;
 
-  /// Lookup the local entity that corresponds to a kernel variable declaration.
-  final KernelToLocalsMap _localsMap;
-
   /// The current scope we are in.
   KernelScopeInfo _currentScopeInfo;
 
-  final Entity _thisLocal;
+  final bool _hasThisLocal;
 
-  CapturedScopeBuilder(this._currentMember, this._scopesCapturedInClosureMap,
-      this._scopeInfoMap, this._closuresToGenerate, this._localsMap)
-      : this._thisLocal =
-            _currentMember.isInstanceMember || _currentMember.isConstructor
-                ? new ThisLocal(_currentMember)
-                : null;
+  CapturedScopeBuilder(this._model, {bool hasThisLocal})
+      : this._hasThisLocal = hasThisLocal;
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
   void attachCapturedScopeVariables(ir.Node node) {
-    Set<Local> capturedVariablesForScope = new Set<Local>();
+    Set<ir.VariableDeclaration> capturedVariablesForScope =
+        new Set<ir.VariableDeclaration>();
 
     for (ir.VariableDeclaration variable in _scopeVariables) {
       // No need to box non-assignable elements.
       if (variable.isFinal || variable.isConst) continue;
       if (!_mutatedVariables.contains(variable)) continue;
       if (_capturedVariables.contains(variable)) {
-        capturedVariablesForScope.add(_localsMap.getLocalVariable(variable));
+        capturedVariablesForScope.add(variable);
       }
     }
     if (!capturedVariablesForScope.isEmpty) {
-      assert(_scopeInfoMap[_currentMember] != null);
+      assert(_model.scopeInfo != null);
       assert(_currentLocalFunction != null);
-      KernelScopeInfo from = _scopeInfoMap[_currentMember];
+      KernelScopeInfo from = _model.scopeInfo;
       _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
           capturedVariablesForScope,
           _currentLocalFunction,
           from.localsUsedInTryOrSync,
           from.freeVariables,
-          _thisLocal);
+          _hasThisLocal);
     }
   }
 
@@ -158,14 +148,14 @@ class CapturedScopeBuilder extends ir.Visitor {
       _currentScopeInfo.freeVariables.add(variable);
     }
     if (_inTry) {
-      _currentScopeInfo.localsUsedInTryOrSync
-          .add(_localsMap.getLocalVariable(variable));
+      _currentScopeInfo.localsUsedInTryOrSync.add(variable);
     }
   }
 
   @override
   void visitForStatement(ir.ForStatement node) {
-    List<Local> boxedLoopVariables = <Local>[];
+    List<ir.VariableDeclaration> boxedLoopVariables =
+        <ir.VariableDeclaration>[];
     enterNewScope(node, () {
       // First visit initialized variables and update steps so we can easily
       // check if a loop variable was captured in one of these subexpressions.
@@ -194,7 +184,7 @@ class CapturedScopeBuilder extends ir.Visitor {
         // gets cleared when `enterNewScope` returns, so check it here.
         if (_capturedVariables.contains(variable) &&
             _mutatedVariables.contains(variable)) {
-          boxedLoopVariables.add(_localsMap.getLocalVariable(variable));
+          boxedLoopVariables.add(variable);
         }
       }
     });
@@ -206,27 +196,27 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.context,
         scope.localsUsedInTryOrSync,
         scope.freeVariables,
-        scope.thisLocal);
+        scope.hasThisLocal);
   }
 
   void visitInvokable(ir.TreeNode node) {
     bool oldIsInsideClosure = _isInsideClosure;
     ir.Node oldExecutableContext = _executableContext;
     KernelScopeInfo oldScopeInfo = _currentScopeInfo;
-    Local oldLocalFunction = _currentLocalFunction;
+    ir.TreeNode oldLocalFunction = _currentLocalFunction;
 
     // _outermostNode is only null the first time we enter the body of the
     // field, constructor, or method that is being analyzed.
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
 
-    _currentScopeInfo = new KernelScopeInfo(_thisLocal);
+    _currentScopeInfo = new KernelScopeInfo(_hasThisLocal);
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
-      _currentLocalFunction = _localsMap.getLocalFunction(node.parent);
+      _currentLocalFunction = node.parent;
     } else {
       _outermostNode = node;
-      _scopeInfoMap[_currentMember] = _currentScopeInfo;
+      _model.scopeInfo = _currentScopeInfo;
     }
 
     enterNewScope(node, () {
