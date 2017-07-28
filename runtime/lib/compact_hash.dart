@@ -55,7 +55,7 @@ abstract class _HashVMBase {
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for
-// normal and VM-internalized classes, respectivley), which provide the
+// normal and VM-internalized classes, respectiveley), which provide the
 // actual fields/accessors that this mixin assumes.
 // TODO(koda): Consider moving field comments to _HashFieldBase.
 abstract class _HashBase {
