@@ -280,10 +280,12 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   @override
   void sendRequest(Request request) {
-    Map<String, Object> json = request.toJson();
-    String encodedRequest = JSON.encode(json);
-    instrumentationService.logPluginRequest(pluginId, encodedRequest);
-    _sendPort.send(json);
+    if (_sendPort != null) {
+      Map<String, Object> json = request.toJson();
+      String encodedRequest = JSON.encode(json);
+      instrumentationService.logPluginRequest(pluginId, encodedRequest);
+      _sendPort.send(json);
+    }
   }
 
   /**
