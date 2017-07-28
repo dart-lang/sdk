@@ -25,7 +25,7 @@
 library dart.dom.html;
 
 import 'dart:async';
-import 'dart:collection';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';

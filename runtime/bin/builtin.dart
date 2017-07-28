@@ -6,7 +6,7 @@ library builtin;
 
 // NOTE: Do not import 'dart:io' in builtin.
 import 'dart:async';
-import 'dart:collection';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:isolate';
 import 'dart:typed_data';
