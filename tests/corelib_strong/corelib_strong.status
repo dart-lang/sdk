@@ -58,7 +58,6 @@ nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test: RuntimeError # Issue 29921
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
-regexp/bol-with-multiline_test: RuntimeError # Issue 29921
 regexp/capture-3_test: RuntimeError # Issue 29921
 regexp/char-insensitive_test: RuntimeError # Issue 29921
 regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
@@ -69,17 +68,5 @@ regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
 regexp/extended-characters-match_test: RuntimeError # Issue 29921
 regexp/extended-characters-more_test: RuntimeError # Issue 29921
 regexp/find-first-asserted_test: RuntimeError # Issue 29921
-regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
-regexp/look-ahead_test: RuntimeError # Issue 29921
-regexp/loop-capture_test: RuntimeError # Issue 29921
-regexp/malformed-escapes_test: RuntimeError # Issue 29921
-regexp/many-brackets_test: RuntimeError # Issue 29921
-regexp/negative-special-characters_test: RuntimeError # Issue 29921
-regexp/no-extensions_test: RuntimeError # Issue 29921
-regexp/non-bmp_test: RuntimeError # Issue 29921
-regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
-regexp/non-capturing-groups_test: RuntimeError # Issue 29921
-regexp/non-character_test: RuntimeError # Issue 29921
-regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921

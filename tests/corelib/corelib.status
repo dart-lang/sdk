@@ -255,14 +255,6 @@ regexp/ecma-regex-examples_test: Crash
 regexp/extended-characters-more_test: Crash
 regexp/global_test: Crash
 regexp/indexof_test: Crash
-regexp/invalid-range-in-class_test: Crash
-regexp/issue_19193_test: Crash
-regexp/lastindex_test: Crash
-regexp/lookahead_test: Crash
-regexp/multiline_test: Crash
-regexp/negative-special-characters_test: Crash
-regexp/no-extensions_test: Crash
-regexp/non-capturing-groups_test: Crash
 regexp/parentheses_test: Crash
 regress_r21715_test: RuntimeError
 set_containsAll_test: Crash
@@ -407,7 +399,6 @@ regexp/alternative-length-miscalculation_test: Crash
 regexp/alternatives_test: Crash
 regexp/assertion_test: Crash
 regexp/backreferences_test: Crash
-regexp/bol-with-multiline_test: Crash
 regexp/bol_test: Crash
 regexp/captures_test: Crash
 regexp/char-insensitive_test: Crash
@@ -417,14 +408,6 @@ regexp/default_arguments_test: Crash
 regexp/dotstar_test: Crash
 regexp/extended-characters-match_test: Crash
 regexp/find-first-asserted_test: Crash
-regexp/look-ahead_test: Crash
-regexp/loop-capture_test: Crash
-regexp/malformed-escapes_test: Crash
-regexp/many-brackets_test: Crash
-regexp/non-bmp_test: Crash
-regexp/non-capturing-backtracking_test: Crash
-regexp/non-character_test: Crash
-regexp/non-greedy-parentheses_test: Crash
 regexp/norepeat_test: Crash
 regexp/overflow_test: Crash
 regexp/stack-overflow2_test: Crash
