@@ -8,8 +8,8 @@
 import "package:expect/expect.dart";
 
 void main() {
-  for (int j = 1; j < 50; j++) {
-    for (int i = 0; i < 20 * j; i++) {
+  for (int j = 1; j < 50; j += 4) {
+    for (int i = 0; i < 15 * j; i++) {
       var regExp = new RegExp("foo$i");
       var match = regExp.firstMatch("foo$i");
       Expect.isNotNull(match);
