@@ -202,6 +202,7 @@ symbol_test/03: MissingCompileTimeError # Issue 11669
 [ $compiler == dart2js && $runtime == safari ]
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
+regexp/overflow_test: RuntimeError
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
