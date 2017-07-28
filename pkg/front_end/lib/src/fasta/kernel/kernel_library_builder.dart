@@ -502,6 +502,7 @@ class KernelLibraryBuilder
 
   @override
   void addField(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder type,
@@ -511,8 +512,16 @@ class KernelLibraryBuilder
       bool hasInitializer) {
     addBuilder(
         name,
-        new KernelFieldBuilder(metadata, type, name, modifiers, this,
-            charOffset, initializerTokenForInference, hasInitializer),
+        new KernelFieldBuilder(
+            documentationComment,
+            metadata,
+            type,
+            name,
+            modifiers,
+            this,
+            charOffset,
+            initializerTokenForInference,
+            hasInitializer),
         charOffset);
   }
 
@@ -541,6 +550,7 @@ class KernelLibraryBuilder
   }
 
   void addProcedure(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -562,6 +572,7 @@ class KernelLibraryBuilder
     if (constructorName != null) {
       name = constructorName;
       procedure = new KernelConstructorBuilder(
+          documentationComment,
           metadata,
           modifiers & ~abstractMask,
           returnType,
@@ -575,6 +586,7 @@ class KernelLibraryBuilder
           nativeMethodName);
     } else {
       procedure = new KernelProcedureBuilder(
+          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -596,6 +608,7 @@ class KernelLibraryBuilder
   }
 
   void addFactoryMethod(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       ConstructorReferenceBuilder constructorNameReference,
@@ -618,6 +631,7 @@ class KernelLibraryBuilder
     }
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
+        documentationComment,
         metadata,
         staticMask | modifiers,
         returnType,
