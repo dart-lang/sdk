@@ -328,10 +328,8 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers =
         Modifier.validate(pop(), isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
     library.addProcedure(
-        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -431,9 +429,7 @@ class OutlineBuilder extends UnhandledListener {
       modifiers &= ~abstractMask;
     }
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
     library.addProcedure(
-        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -726,9 +722,7 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
-    library.addFields(
-        documentationComment, metadata, modifiers, type, fieldsInfo);
+    library.addFields(metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -739,9 +733,7 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
-    library.addFields(
-        documentationComment, metadata, modifiers, type, fieldsInfo);
+    library.addFields(metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -801,9 +793,7 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = _getDocumentationComment(beginToken);
     library.addFactoryMethod(
-        documentationComment,
         metadata,
         modifiers,
         name,

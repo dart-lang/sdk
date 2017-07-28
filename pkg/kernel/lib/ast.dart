@@ -493,16 +493,6 @@ class Typedef extends NamedNode {
   List<Expression> annotations = const <Expression>[];
   String name;
   final List<TypeParameter> typeParameters;
-
-  @informative
-  int requiredParameterCount = 0;
-
-  @informative
-  List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
-
-  @informative
-  List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
-
   DartType type;
 
   Typedef(this.name, this.type,
@@ -518,22 +508,9 @@ class Typedef extends NamedNode {
     return v.visitTypedef(this);
   }
 
-  void setParameters(
-      int requiredParameterCount,
-      List<VariableDeclaration> positionalParameters,
-      List<VariableDeclaration> namedParameters) {
-    this.requiredParameterCount = requiredParameterCount;
-    this.positionalParameters = positionalParameters;
-    this.namedParameters = namedParameters;
-    setParents(this.positionalParameters, this);
-    setParents(this.namedParameters, this);
-  }
-
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
     transformList(typeParameters, v, this);
-    transformList(positionalParameters, v, this);
-    transformList(namedParameters, v, this);
     if (type != null) {
       type = v.visitDartType(type);
     }
@@ -542,9 +519,6 @@ class Typedef extends NamedNode {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     visitList(typeParameters, v);
-    visitList(typeParameters, v);
-    visitList(positionalParameters, v);
-    visitList(namedParameters, v);
     type?.accept(v);
   }
 
@@ -859,10 +833,6 @@ abstract class Member extends NamedNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
-
-  /// Documentation comment of the member, or `null`.
-  @informative
-  String documentationComment;
 
   /// List of metadata annotations on the member.
   ///

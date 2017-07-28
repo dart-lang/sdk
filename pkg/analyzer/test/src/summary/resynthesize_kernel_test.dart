@@ -308,6 +308,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_constructor_documented() async {
+    await super.test_constructor_documented();
+  }
+
+  @failingTest
   test_constructor_initializers_assertInvocation() async {
     await super.test_constructor_initializers_assertInvocation();
   }
@@ -479,6 +484,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_field_documented() async {
+    await super.test_field_documented();
+  }
+
+  @failingTest
   test_field_propagatedType_final_dep_inLib() async {
     await super.test_field_propagatedType_final_dep_inLib();
   }
@@ -491,6 +501,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_field_propagatedType_final_noDep_instance() async {
     await super.test_field_propagatedType_final_noDep_instance();
+  }
+
+  @failingTest
+  test_function_documented() async {
+    await super.test_function_documented();
   }
 
   @failingTest
@@ -561,6 +576,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_getElement_unit() async {
     await super.test_getElement_unit();
+  }
+
+  @failingTest
+  test_getter_documented() async {
+    await super.test_getter_documented();
   }
 
   @failingTest
@@ -704,6 +724,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_main_typedef() async {
+    await super.test_main_typedef();
+  }
+
+  @failingTest
   test_metadata_classTypeAlias() async {
     await super.test_metadata_classTypeAlias();
   }
@@ -776,6 +801,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_metadata_typeParameter_ofTypedef() async {
+    await super.test_metadata_typeParameter_ofTypedef();
+  }
+
+  @failingTest
+  test_method_documented() async {
+    await super.test_method_documented();
+  }
+
+  @failingTest
   test_parameter_checked() async {
     await super.test_parameter_checked();
   }
@@ -813,6 +848,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_setter_covariant() async {
     await super.test_setter_covariant();
+  }
+
+  @failingTest
+  test_setter_documented() async {
+    await super.test_setter_documented();
   }
 
   @failingTest
@@ -956,6 +996,61 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  test_typedef_parameter_parameters() async {
+    await super.test_typedef_parameter_parameters();
+  }
+
+  @failingTest
+  test_typedef_parameter_parameters_in_generic_class() async {
+    await super.test_typedef_parameter_parameters_in_generic_class();
+  }
+
+  @failingTest
+  test_typedef_parameter_return_type() async {
+    await super.test_typedef_parameter_return_type();
+  }
+
+  @failingTest
+  test_typedef_parameter_type() async {
+    await super.test_typedef_parameter_type();
+  }
+
+  @failingTest
+  test_typedef_parameter_type_generic() async {
+    await super.test_typedef_parameter_type_generic();
+  }
+
+  @failingTest
+  test_typedef_parameters() async {
+    await super.test_typedef_parameters();
+  }
+
+  @failingTest
+  test_typedef_return_type() async {
+    await super.test_typedef_return_type();
+  }
+
+  @failingTest
+  test_typedef_return_type_generic() async {
+    await super.test_typedef_return_type_generic();
+  }
+
+  @failingTest
+  test_typedef_return_type_implicit() async {
+    await super.test_typedef_return_type_implicit();
+  }
+
+  @failingTest
+  test_typedef_return_type_void() async {
+    await super.test_typedef_return_type_void();
+  }
+
+  @failingTest
+  test_typedef_type_parameters() async {
+    await super.test_typedef_type_parameters();
+  }
+
+  @failingTest
   test_typedef_type_parameters_bound() async {
     await super.test_typedef_type_parameters_bound();
   }
@@ -968,6 +1063,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_typedef_type_parameters_bound_recursive2() async {
     await super.test_typedef_type_parameters_bound_recursive2();
+  }
+
+  @failingTest
+  test_typedef_type_parameters_f_bound_complex() async {
+    await super.test_typedef_type_parameters_f_bound_complex();
+  }
+
+  @failingTest
+  test_typedef_type_parameters_f_bound_simple() async {
+    await super.test_typedef_type_parameters_f_bound_simple();
   }
 
   @failingTest
@@ -1073,6 +1178,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_unresolved_part() async {
     await super.test_unresolved_part();
+  }
+
+  @failingTest
+  test_variable_documented() async {
+    await super.test_variable_documented();
   }
 
   @failingTest

@@ -4225,18 +4225,6 @@ void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
   SkipStringReference();         // read name index.
   ReadUInt();                    // read source_uri_index.
   SkipTypeParametersList();      // read type parameters.
-  ReadUInt();                    // read required parameter count
-
-  intptr_t positional_count = ReadListLength();
-  for (intptr_t i = 0; i < positional_count; i++) {
-    SkipVariableDeclaration();
-  }
-
-  intptr_t named_count = ReadListLength();
-  for (intptr_t i = 0; i < named_count; i++) {
-    SkipVariableDeclaration();
-  }
-
   SkipDartType();                // read type.
 }
 

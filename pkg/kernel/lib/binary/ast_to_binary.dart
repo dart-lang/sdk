@@ -344,19 +344,14 @@ class BinaryPrinter extends Visitor {
   }
 
   void visitTypedef(Typedef node) {
-    _variableIndexer = new VariableIndexer();
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeUriReference(node.fileUri ?? '');
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
-    writeUInt30(node.requiredParameterCount);
-    writeVariableDeclarationList(node.positionalParameters);
-    writeVariableDeclarationList(node.namedParameters);
     writeNode(node.type);
     _typeParameterIndexer.exit(node.typeParameters);
-    _variableIndexer = null;
   }
 
   void writeAnnotation(Expression annotation) {
@@ -420,7 +415,6 @@ class BinaryPrinter extends Visitor {
     Class parent = node.parent;
     writeUInt30(parent.binaryOffset);
     writeName(node.name ?? _emptyName);
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -450,7 +444,6 @@ class BinaryPrinter extends Visitor {
     }
     writeName(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
     _variableIndexer = null;
@@ -474,7 +467,6 @@ class BinaryPrinter extends Visitor {
     }
     writeName(node.name);
     writeUriReference(node.fileUri ?? '');
-    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -1378,27 +1370,9 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
-  @override
-  visitConstructor(Constructor node) {
-    putOptional(node.documentationComment);
-    super.visitConstructor(node);
-  }
-
-  @override
-  visitField(Field node) {
-    putOptional(node.documentationComment);
-    super.visitField(node);
-  }
-
   visitNamedExpression(NamedExpression node) {
     put(node.name);
     node.visitChildren(this);
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    putOptional(node.documentationComment);
-    super.visitProcedure(node);
   }
 
   visitStringLiteral(StringLiteral node) {

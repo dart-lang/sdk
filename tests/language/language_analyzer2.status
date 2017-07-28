@@ -453,3 +453,8 @@ part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
+
+[$compiler == dart2analyzer && $runtime == none]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: CompileTimeError

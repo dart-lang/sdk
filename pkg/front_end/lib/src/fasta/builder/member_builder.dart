@@ -13,11 +13,9 @@ abstract class MemberBuilder extends ModifierBuilder {
   /// library and updated later.
   Builder parent;
 
-  String documentationComment;
-
   String get name;
 
-  MemberBuilder(Builder parent, int charOffset, this.documentationComment)
+  MemberBuilder(Builder parent, int charOffset)
       : parent = parent,
         super(parent, charOffset);
 

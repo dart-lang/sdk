@@ -8,6 +8,15 @@
 
 # Skip tests that are not yet strong-mode clean.
 [ $strong ]
+abstract_exact_selector_test: Skip
+abstract_runtime_error_test: Skip
+argument_definition_test: Skip
+assign_instance_method_negative_test: Skip
+assign_static_type_test: Skip
+assign_to_type_test: Skip
+assign_top_method_test: Skip
+assignable_expression_test: Skip
+async_await_syntax_test: Skip
 async_or_generator_return_type_stacktrace_test: Skip
 async_return_types_test: Skip
 await_backwards_compatibility_test: Skip

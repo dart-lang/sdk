@@ -7,6 +7,7 @@
 vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 enum_test: Fail # Issue 28340
 regress_28341_test: Fail # Issue 28340
 regress_29349_test: CompileTimeError # Issue 29745
@@ -15,6 +16,8 @@ deferred_not_loaded_check_test: Fail # Issue 27577
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
+
+async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
@@ -46,6 +49,19 @@ generic_function_typedef2_test/05: Crash # Issue 28214
 generic_function_typedef2_test/06: Crash # Issue 28214
 
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
+
+assertion_initializer_const_error2_test/cc01: Crash
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/cc03: Crash
+assertion_initializer_const_error2_test/cc04: Crash
+assertion_initializer_const_error2_test/cc05: Crash
+assertion_initializer_const_error2_test/cc06: Crash
+assertion_initializer_const_error2_test/cc07: Crash
+assertion_initializer_const_error2_test/cc08: Crash
+assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: Crash
 
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 syntax_test/none: CompileTimeError # Issue #30176.
@@ -82,6 +98,8 @@ vm/reflect_core_vm_test: Fail # mirrors not supported
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+async_star_no_cancel_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser && ! $dart2js_with_kernel ]
 config_import_test: Fail # Test flag is not passed to the compiler.
@@ -151,6 +169,8 @@ multiline_newline_test/06r: MissingCompileTimeError # Issue 23888
 mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
 
 [ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 regress_26133_test: RuntimeError # Issue 26429
 regress_29405_test: Fail # Issue 29422
 type_variable_bounds_test/02: Fail # Issue 12702
@@ -181,6 +201,9 @@ named_parameters_type_test/03: MissingRuntimeError, OK
 positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
+
+[ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel ]
+assertion_test: RuntimeError # Issue 12748
 
 [ $compiler == dart2js && ! $checked && $enable_asserts && ! $dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
@@ -291,7 +314,25 @@ switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
 constants_test/01: Crash
+abstract_beats_arguments_test: RuntimeError # Issue 27394
+abstract_runtime_error_test/01: RuntimeError # Issue 27394
+abstract_runtime_error_test/02: RuntimeError # Issue 27394
+arithmetic_canonicalization_test: RuntimeError # Issue 27394
+assertion_initializer_const_error_test/01: Crash
+assertion_initializer_const_function_test/01: Crash
+assign_top_method_test/01: Crash # Issue 27394
+async_await_syntax_test/a04b: Crash # Issue 27394
+async_await_syntax_test/a06a: RuntimeError # Issue 27394
+async_await_syntax_test/a07b: Crash # Issue 27394
+async_await_syntax_test/a08b: Crash # Issue 27394
+async_await_syntax_test/b06a: RuntimeError # Issue 27394
+async_await_syntax_test/c06a: RuntimeError # Issue 27394
+async_await_syntax_test/d06a: RuntimeError # Issue 27394
 async_await_test: RuntimeError # Issue 27394
+async_star_pause_test: RuntimeError # Issue 27394
+async_star_regression_fisk_test: RuntimeError # Issue 27394
+async_star_stream_take_test: RuntimeError # Issue 27394
+async_star_take_reyield_test: RuntimeError # Issue 27394
 async_star_test: RuntimeError # Issue 27394
 await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
@@ -513,6 +554,9 @@ function_type/function_type99_test: Crash # Issue 27394
 generic_function_typedef_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
+[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+assertion_initializer_const_function_test/none: RuntimeError
+
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && ! $dart2js_with_kernel ]
 conditional_method_invocation_test/02: Crash # Issue 27394
 conditional_method_invocation_test/04: Crash # Issue 27394
@@ -538,7 +582,112 @@ named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+abstract_method_test: Crash
+abstract_object_method_test: Crash
+abstract_runtime_error_test/01: Crash
+abstract_runtime_error_test/02: Crash
+arg_param_trailing_comma_test/none: Crash
+arithmetic2_test: Crash
+arithmetic_test: Crash
+assert_message_test: Crash
+assert_trailing_comma_test/none: CompileTimeError
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_test: CompileTimeError
+assertion_test: Crash
+assign_to_type_test/01: Crash
+assign_to_type_test/02: Crash
+assign_to_type_test/03: Crash
+assign_to_type_test/04: Crash
+assign_top_method_test/01: Crash
+async_and_or_test: Crash
+async_await_catch_regression_test: Crash
+async_await_syntax_test/a01a: Crash
+async_await_syntax_test/a02a: Crash
+async_await_syntax_test/a03a: Crash
+async_await_syntax_test/a03b: Crash
+async_await_syntax_test/a04a: RuntimeError
+async_await_syntax_test/a04c: RuntimeError
+async_await_syntax_test/a05a: Crash
+async_await_syntax_test/a05b: Crash
+async_await_syntax_test/a05c: Crash
+async_await_syntax_test/a05e: Crash
+async_await_syntax_test/a06a: Crash
+async_await_syntax_test/a07a: RuntimeError
+async_await_syntax_test/a08a: RuntimeError
+async_await_syntax_test/a09a: Crash
+async_await_syntax_test/a10a: Crash
+async_await_syntax_test/a11b: RuntimeError
+async_await_syntax_test/a11c: Crash
+async_await_syntax_test/a11d: Crash
+async_await_syntax_test/a12g: Crash
+async_await_syntax_test/b01a: Crash
+async_await_syntax_test/b02a: Crash
+async_await_syntax_test/b03a: Crash
+async_await_syntax_test/b04a: RuntimeError
+async_await_syntax_test/b05a: Crash
+async_await_syntax_test/b06a: Crash
+async_await_syntax_test/b07a: RuntimeError
+async_await_syntax_test/b08a: RuntimeError
+async_await_syntax_test/b09a: Crash
+async_await_syntax_test/b10a: Crash
+async_await_syntax_test/b11b: RuntimeError
+async_await_syntax_test/b11c: Crash
+async_await_syntax_test/b11d: Crash
+async_await_syntax_test/b12g: Crash
+async_await_syntax_test/c01a: Crash
+async_await_syntax_test/c02a: Crash
+async_await_syntax_test/c03a: Crash
+async_await_syntax_test/c04a: Crash
+async_await_syntax_test/c05a: Crash
+async_await_syntax_test/c06a: Crash
+async_await_syntax_test/c07a: Crash
+async_await_syntax_test/c08a: Crash
+async_await_syntax_test/c09a: Crash
+async_await_syntax_test/c10a: Crash
+async_await_syntax_test/d01a: Crash
+async_await_syntax_test/d02a: Crash
+async_await_syntax_test/d03a: Crash
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d05a: Crash
+async_await_syntax_test/d06a: Crash
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
+async_await_syntax_test/d08b: RuntimeError
+async_await_syntax_test/d08c: RuntimeError
+async_await_syntax_test/d09a: Crash
+async_await_syntax_test/d10a: Crash
 async_await_test: Crash
+async_break_in_finally_test: Crash
+async_continue_label_test/await_in_body: Crash
+async_continue_label_test/await_in_condition: Crash
+async_continue_label_test/await_in_init: Crash
+async_continue_label_test/await_in_update: Crash
+async_continue_label_test/none: Crash
+async_control_structures_test: Crash
+async_finally_rethrow_test: Crash
+async_or_generator_return_type_stacktrace_test/01: Crash
+async_or_generator_return_type_stacktrace_test/02: Crash
+async_or_generator_return_type_stacktrace_test/03: Crash
+async_or_generator_return_type_stacktrace_test/none: Crash
+async_regression_23058_test: Crash
+async_rethrow_test: Crash
+async_return_types_test/nestedFuture: Crash
+async_return_types_test/none: Crash
+async_return_types_test/tooManyTypeParameters: Crash
+async_return_types_test/wrongReturnType: Crash
+async_return_types_test/wrongTypeParameter: Crash
+async_star_cancel_and_throw_in_finally_test: Crash
+async_star_cancel_while_paused_test: Crash
+async_star_no_cancel2_test: Crash
+async_star_no_cancel_test: Crash
+async_star_pause_test: Crash
+async_star_regression_2238_test: Crash
+async_star_regression_23116_test: Crash
+async_star_regression_fisk_test: Crash
+async_star_stream_take_test: Crash
+async_star_take_reyield_test: Crash
 async_star_test: Crash
 async_switch_test/none: Crash
 async_switch_test/withDefault: Crash
@@ -2046,6 +2195,13 @@ void_type_test: Crash
 yieldstar_pause_test: Crash
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
+assertion_initializer_const_function_test/01: Crash
+assign_instance_method_negative_test: Crash
+async_await_syntax_test/d04a: Crash
+async_await_syntax_test/d07a: Crash
+async_await_syntax_test/d08a: Crash
+async_await_syntax_test/d08b: Crash
+async_await_syntax_test/d08c: Crash
 bad_override_test/04: Crash
 bailout3_test: Crash
 bailout5_test: Crash
@@ -2341,6 +2497,35 @@ wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
+assert_assignable_type_test: Crash
+assert_with_type_test_or_cast_test: Crash
+assertion_initializer_const_error_test/none: Crash
+assertion_initializer_const_function_error_test/none: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_const_function_test/none: Crash
+assign_instance_method_negative_test: Crash
+assign_op_test: Crash
+assign_static_type_test/03: Crash
+assign_static_type_test/04: Crash
+assignable_expression_test/none: Crash
+async_await_syntax_test/a04a: Crash
+async_await_syntax_test/a04c: Crash
+async_await_syntax_test/a07a: Crash
+async_await_syntax_test/a08a: Crash
+async_await_syntax_test/a11b: Crash
+async_await_syntax_test/b04a: Crash
+async_await_syntax_test/b07a: Crash
+async_await_syntax_test/b08a: Crash
+async_await_syntax_test/b11b: Crash
+async_await_syntax_test/b13a: Crash
+async_await_syntax_test/b13c: Crash
+async_await_syntax_test/b14a: Crash
+async_await_syntax_test/b14c: Crash
+async_await_syntax_test/d04a: Crash
+async_await_syntax_test/d07a: Crash
+async_await_syntax_test/d08a: Crash
+async_await_syntax_test/d08b: Crash
+async_await_syntax_test/d08c: Crash
 bad_constructor_test/05: Crash
 bad_constructor_test/none: Crash
 bad_override_test/01: Crash

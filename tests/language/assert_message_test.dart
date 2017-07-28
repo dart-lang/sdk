@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--assert-message
+
 import "dart:async";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-
-// TODO(rnystrom): Unify with assert_with_message_test.dart.
 
 main() {
   // Only run with asserts enabled mode.

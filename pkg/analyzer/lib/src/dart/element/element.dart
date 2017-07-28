@@ -1683,11 +1683,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
-    if (_kernelContext != null) {
-      _typeAliases ??= _kernelContext.library.typedefs
-          .map((k) => new FunctionTypeAliasElementImpl.forKernel(this, k))
-          .toList(growable: false);
-    }
     if (_unlinkedUnit != null) {
       _typeAliases ??= _unlinkedUnit.typedefs.map((t) {
         if (t.style == TypedefStyle.functionType) {
@@ -3974,9 +3969,6 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   String get documentationComment {
-    if (_kernel != null) {
-      return _kernel.documentationComment;
-    }
     if (serializedExecutable != null) {
       return serializedExecutable?.documentationComment?.text;
     }
@@ -4929,11 +4921,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   final UnlinkedTypedef _unlinkedTypedef;
 
   /**
-   * The kernel of the element.
-   */
-  final kernel.Typedef _kernel;
-
-  /**
    * A list containing all of the parameters defined by this type alias.
    */
   List<ParameterElement> _parameters;
@@ -4957,23 +4944,13 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    */
   FunctionTypeAliasElementImpl(String name, int nameOffset)
       : _unlinkedTypedef = null,
-        _kernel = null,
         super(name, nameOffset);
-
-  /**
-   * Initialize using the given kernel.
-   */
-  FunctionTypeAliasElementImpl.forKernel(
-      CompilationUnitElementImpl enclosingUnit, this._kernel)
-      : _unlinkedTypedef = null,
-        super.forSerialized(enclosingUnit);
 
   /**
    * Initialize a newly created type alias element to have the given [name].
    */
   FunctionTypeAliasElementImpl.forNode(Identifier name)
       : _unlinkedTypedef = null,
-        _kernel = null,
         super.forNode(name);
 
   /**
@@ -4981,8 +4958,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    */
   FunctionTypeAliasElementImpl.forSerialized(
       this._unlinkedTypedef, CompilationUnitElementImpl enclosingUnit)
-      : _kernel = null,
-        super.forSerialized(enclosingUnit);
+      : super.forSerialized(enclosingUnit);
 
   @override
   int get codeLength {
@@ -5023,7 +4999,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       _enclosingElement as CompilationUnitElementImpl;
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
+  List<kernel.TypeParameter> get kernelTypeParams => null;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
@@ -5039,9 +5015,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   String get name {
-    if (_kernel != null) {
-      return _kernel.name;
-    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.name;
     }
@@ -5059,13 +5032,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (_kernel != null) {
-      _parameters ??= ParameterElementImpl.forKernelParameters(
-          this,
-          _kernel.requiredParameterCount,
-          _kernel.positionalParameters,
-          _kernel.namedParameters);
-    }
     if (_unlinkedTypedef != null) {
       _parameters ??= ParameterElementImpl.resynthesizeList(
           _unlinkedTypedef.parameters, this);
@@ -5088,17 +5054,10 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (_returnType == null) {
-      if (_kernel != null) {
-        var type = _kernel.type as kernel.FunctionType;
-        _returnType =
-            enclosingUnit._kernelContext.getType(this, type.returnType);
-      }
-      if (_unlinkedTypedef != null) {
-        _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-            this, _unlinkedTypedef.returnType,
-            declaredType: true);
-      }
+    if (_unlinkedTypedef != null && _returnType == null) {
+      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          this, _unlinkedTypedef.returnType,
+          declaredType: true);
     }
     return _returnType;
   }
@@ -5110,10 +5069,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (_type == null) {
-      if (_kernel != null || _unlinkedTypedef != null) {
-        _type = new FunctionTypeImpl.forTypedef(this);
-      }
+    if (_unlinkedTypedef != null && _type == null) {
+      _type = new FunctionTypeImpl.forTypedef(this);
     }
     return _type;
   }
@@ -7613,9 +7570,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   String get documentationComment {
-    if (_kernel != null) {
-      return _kernel.documentationComment;
-    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable?.documentationComment?.text;
     }

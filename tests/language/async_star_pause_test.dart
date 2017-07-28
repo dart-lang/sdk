@@ -4,13 +4,11 @@
 
 library async_star_pause_test;
 
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
+import "package:unittest/unittest.dart";
 import "dart:async";
 
 main() {
-  // await for pauses stream during body.
-  asyncTest(() async {
+  test("await for pauses stream during body", () async {
     // Assumes await-for uses streamIterator.
     var log = [];
     var s = () async* {
@@ -26,7 +24,7 @@ main() {
       await nextMicrotask();
       log.add("$i!");
     }
-    Expect.listEquals(log, [
+    expect(log, [
       "0-",
       "0?",
       "0!",

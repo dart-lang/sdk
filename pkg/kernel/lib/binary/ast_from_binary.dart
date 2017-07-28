@@ -438,13 +438,6 @@ class BinaryBuilder {
     String name = readStringReference();
     String fileUri = readUriReference();
     readAndPushTypeParameterList(node.typeParameters, node);
-
-    int requiredParameterCount = readUInt();
-    var positionalParameters = readVariableDeclarationList();
-    var namedParameters = readVariableDeclarationList();
-    node.setParameters(
-        requiredParameterCount, positionalParameters, namedParameters);
-
     var type = readDartType();
     typeParameterStack.length = 0;
     if (shouldWriteData) {
@@ -532,7 +525,6 @@ class BinaryBuilder {
     readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     var type = readDartType();
@@ -545,7 +537,6 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.type = type;
       node.initializer = initializer;
@@ -570,7 +561,6 @@ class BinaryBuilder {
     var flags = readByte();
     readUInt(); // parent class binary offset.
     var name = readName();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
     var function = readFunctionNode();
@@ -589,7 +579,6 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function..parent = node;
       node.transformerFlags = transformerFlags;
@@ -615,7 +604,6 @@ class BinaryBuilder {
     readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
-    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
     var function = readFunctionNodeOption();
@@ -628,7 +616,6 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
-      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function;
       node.function?.parent = node;
@@ -1232,11 +1219,6 @@ class BinaryBuilder {
 
   NamedExpression readNamedExpression() {
     return new NamedExpression(readStringReference(), readExpression());
-  }
-
-  List<VariableDeclaration> readVariableDeclarationList() {
-    return new List<VariableDeclaration>.generate(
-        readUInt(), (i) => readVariableDeclaration());
   }
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {

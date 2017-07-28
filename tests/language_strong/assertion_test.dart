@@ -1,8 +1,8 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks --enable_asserts
-
+// VMOptions=--enable_type_checks
+//
 // Dart test program testing assert statements.
 
 import "package:expect/expect.dart";

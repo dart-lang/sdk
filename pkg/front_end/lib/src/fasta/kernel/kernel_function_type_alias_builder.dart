@@ -4,8 +4,6 @@
 
 library fasta.kernel_function_type_alias_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_function_type_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -13,15 +11,15 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InvalidType,
         TypeParameter,
-        Typedef,
-        VariableDeclaration;
+        Typedef;
+
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../fasta_codes.dart' show templateCyclicTypedef;
+
 import 'kernel_builder.dart'
     show
         FunctionTypeAliasBuilder,
-        KernelFormalParameterBuilder,
         KernelFunctionTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
@@ -63,7 +61,6 @@ class KernelFunctionTypeAliasBuilder
       return thisType;
     }
     thisType = const InvalidType();
-
     DartType builtType = type?.build(library) ?? const DynamicType();
     if (typeVariables != null) {
       for (KernelTypeVariableBuilder tv in typeVariables) {
@@ -71,9 +68,6 @@ class KernelFunctionTypeAliasBuilder
         target.typeParameters.add(tv.parameter..parent = target);
       }
     }
-
-    _buildParameters(library);
-
     return thisType = builtType;
   }
 
@@ -108,24 +102,5 @@ class KernelFunctionTypeAliasBuilder
       }
     }
     return buildTypesWithBuiltArguments(library, builtArguments);
-  }
-
-  /// Build and set formal parameters of this typedef.
-  void _buildParameters(LibraryBuilder library) {
-    int requiredCount = 0;
-    final positional = <VariableDeclaration>[];
-    final named = <VariableDeclaration>[];
-    if (type.formals != null) {
-      for (KernelFormalParameterBuilder formal in type.formals) {
-        KernelVariableDeclaration parameter = formal.build(library);
-        if (formal.isPositional) {
-          positional.add(parameter);
-          if (formal.isRequired) requiredCount++;
-        } else if (formal.isNamed) {
-          named.add(parameter);
-        }
-      }
-      target.setParameters(requiredCount, positional, named);
-    }
   }
 }

@@ -125,10 +125,9 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///       static const List<E> values = const <E>[id0, ..., idn-1];
     ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
     ///     }
-    members["index"] = new KernelFieldBuilder(null, null, intType, "index",
-        finalMask, parent, charOffset, null, true);
+    members["index"] = new KernelFieldBuilder(
+        null, intType, "index", finalMask, parent, charOffset, null, true);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
-        null,
         null,
         constMask,
         null,
@@ -145,19 +144,10 @@ class KernelEnumBuilder extends SourceClassBuilder
     constructors[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
-        null,
-        null,
-        listType,
-        "values",
-        constMask | staticMask,
-        parent,
-        charOffset,
-        null,
-        true);
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
+        "values", constMask | staticMask, parent, charOffset, null, true);
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
-        null,
         null,
         0,
         stringType,
@@ -188,16 +178,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         constantNamesAndOffsets[i] = null;
         continue;
       }
-      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
-          null,
-          null,
-          selfType,
-          name,
-          constMask | staticMask,
-          parent,
-          charOffset,
-          null,
-          true);
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(null, selfType,
+          name, constMask | staticMask, parent, charOffset, null, true);
       members[name] = fieldBuilder;
       toStringEntries.add(new MapEntry(
           new IntLiteral(index), new StringLiteral("$className.$name")));
