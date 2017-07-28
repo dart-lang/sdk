@@ -2267,6 +2267,10 @@ void StreamingConstantEvaluator::EvaluateBigIntLiteral() {
   const dart::String& value =
       H.DartString(builder_->ReadStringReference());  // read string reference.
   result_ = Integer::New(value, Heap::kOld);
+  if (result_.IsNull()) {
+    H.ReportError("Integer literal %s is out of range", value.ToCString());
+    UNREACHABLE();
+  }
   result_ = H.Canonicalize(result_);
 }
 
@@ -5774,7 +5778,13 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
   const dart::String& value =
       H.DartString(ReadStringReference());  // read index into string table.
-  return Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
+  const Integer& integer =
+      Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  if (integer.IsNull()) {
+    H.ReportError("Integer literal %s is out of range", value.ToCString());
+    UNREACHABLE();
+  }
+  return Constant(integer);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral(

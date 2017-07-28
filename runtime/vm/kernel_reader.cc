@@ -38,13 +38,19 @@ class SimpleExpressionConverter {
     uint8_t payload = 0;
     Tag tag = builder_->ReadTag(&payload);  // read tag.
     switch (tag) {
-      case kBigIntLiteral:
-        simple_value_ = &Integer::ZoneHandle(
-            Z, Integer::New(
-                   H.DartString(builder_->ReadStringReference(),
-                                Heap::kOld)));  // read index into string table.
+      case kBigIntLiteral: {
+        const dart::String& literal_str =
+            H.DartString(builder_->ReadStringReference(),
+                         Heap::kOld);  // read index into string table.
+        simple_value_ = &Integer::ZoneHandle(Z, Integer::New(literal_str));
+        if (simple_value_->IsNull()) {
+          H.ReportError("Integer literal %s is out of range",
+                        literal_str.ToCString());
+          UNREACHABLE();
+        }
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
+      }
       case kStringLiteral:
         simple_value_ = &H.DartSymbol(
             builder_->ReadStringReference());  // read index into string table.
