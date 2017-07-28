@@ -160,7 +160,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   }
 
   if (benchmark) {
-    writeBenchmarks(outSink, filesToLint, lintOptions);
+    await writeBenchmarks(outSink, filesToLint, lintOptions);
     return;
   }
 
