@@ -1946,6 +1946,7 @@ class InitializingFormalElementX extends ParameterElementX
   ConstructorElement get functionDeclaration => super.functionDeclaration;
 }
 
+// ignore: strong_mode_invalid_method_override_from_base
 class ErroneousInitializingFormalElementX extends ParameterElementX
     implements InitializingFormalElementX {
   final ErroneousFieldElementX fieldElement;

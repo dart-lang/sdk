@@ -47,9 +47,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   KernelAnnotationProcessor _annotationProcesser;
 
   KernelFrontEndStrategy(
-      this._options, DiagnosticReporter reporter, env.Environment environment)
-      : _elementMap =
-            new KernelToElementMapForImpactImpl(reporter, environment);
+      this._options, DiagnosticReporter reporter, env.Environment environment) {
+    _elementMap =
+        new KernelToElementMapForImpactImpl(reporter, environment, this);
+  }
 
   @override
   LibraryLoaderTask createLibraryLoader(

@@ -118,6 +118,9 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   @override
   CommonElements get commonElements => _commonElements;
 
+  /// NativeBasicData is need for computation of the default super class.
+  NativeBasicData get nativeBasicData;
+
   FunctionEntity get _mainFunction {
     return _env.mainMethod != null ? _getMethod(_env.mainMethod) : null;
   }
@@ -307,7 +310,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
           return supertype;
         }
 
-        data.supertype = processSupertype(node.supertype);
+        InterfaceType supertype = processSupertype(node.supertype);
+        if (supertype == _commonElements.objectType) {
+          ClassEntity defaultSuperclass =
+              _commonElements.getDefaultSuperclass(cls, nativeBasicData);
+          data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
+        } else {
+          data.supertype = supertype;
+        }
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
@@ -1028,9 +1038,10 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         ElementCreatorMixin,
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
+  FrontendStrategy _frontendStrategy;
 
-  KernelToElementMapForImpactImpl(
-      DiagnosticReporter reporter, Environment environment)
+  KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
+      Environment environment, this._frontendStrategy)
       : super(reporter, environment);
 
   @override
@@ -1041,6 +1052,9 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
             "Unexpected entity $entity, expected family $kElementPrefix."));
     return true;
   }
+
+  @override
+  NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
   /// Adds libraries in [program] to the set of libraries.
   ///
@@ -1796,6 +1810,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         ElementCreatorMixin
     implements
         KernelToWorldBuilder {
+  NativeBasicData nativeBasicData;
+
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapForImpactImpl _elementMap)
       : super(reporter, environment) {
