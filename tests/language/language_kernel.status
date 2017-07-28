@@ -2,34 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[$compiler == dartk && $runtime == vm]
-assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
-
-[$compiler == dartk && $runtime == vm && !$checked]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-
-[$compiler == dartk && $runtime == vm && $checked]
-assertion_initializer_const_function_test/01: RuntimeError
-
-[$compiler == dartkp && $runtime == dart_precompiled]
-assertion_initializer_const_error2_test/none: CompileTimeError
-
-[$compiler == dartkp && $runtime == dart_precompiled && !$checked]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
-
-[$compiler == dartkp && $runtime == dart_precompiled && $checked]
-assertion_initializer_const_error2_test/cc02: Crash
-assertion_initializer_const_error_test/none: Crash
-assertion_initializer_const_function_error_test/01: Crash
-assertion_initializer_const_function_error_test/none: Crash
-assertion_initializer_const_function_test/01: Crash
-assertion_initializer_const_function_test/none: Crash
-assertion_initializer_test: CompileTimeError
-
 [ !$checked && ($compiler == dartk || $compiler == dartkp) ]
 
 deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -37,7 +9,6 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeE
 deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 [ $compiler == dartk || $compiler == dartkp ]
-assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 method_override_test: RuntimeError # Not triaged.
 
 cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -257,24 +228,6 @@ regress_23498_test: Crash
 
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
-assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/32: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/33: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/34: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/35: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/36: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/37: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/38: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/41: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/42: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/43: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/44: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/45: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/46: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
-assign_static_type_test/02: MissingCompileTimeError
 async_await_test: RuntimeError
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail

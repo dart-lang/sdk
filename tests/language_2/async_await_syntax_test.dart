@@ -54,7 +54,7 @@ a07b() sync { yield 0; } //                    //# a07b: compile-time error
 a08a() sync* { yield* []; } //                 //# a08a: ok
 a08b() sync { yield 0; } //                    //# a08b: compile-time error
 a09a() async* { yield 0; } //                  //# a09a: ok
-a10a() async* { yield* []; } //                //# a10a: static type warning
+a10a() async* { yield* []; } //                //# a10a: compile-time error
 
 get sync sync {} //                            //# a11a: compile-time error
 get sync sync* {} //                           //# a11b: ok
@@ -122,7 +122,7 @@ class C extends B {
   b07a() sync* { yield 0; } //                   //# b07a: ok
   b08a() sync* { yield* []; } //                 //# b08a: ok
   b09a() async* { yield 0; } //                  //# b09a: ok
-  b10a() async* { yield* []; } //                //# b10a: static type warning
+  b10a() async* { yield* []; } //                //# b10a: compile-time error
   b10b() async { yield 0; } //                   //# b10b: compile-time error
 
   get sync sync {} //                            //# b11a: compile-time error
@@ -167,7 +167,7 @@ method1() {
   c07a() sync* { yield 0; } c07a(); //                   //# c07a: ok
   c08a() sync* { yield* []; } c08a(); //                 //# c08a: ok
   c09a() async* { yield 0; } c09a(); //                  //# c09a: ok
-  c10a() async* { yield* []; } c10a(); //                //# c10a: static type warning
+  c10a() async* { yield* []; } c10a(); //                //# c10a: compile-time error
   c11a() async { yield -5; } c11a(); //                  //# c11a: compile-time error
   c11b() async { yield* st; } c11b(); //                 //# c11b: compile-time error
 }
@@ -184,10 +184,10 @@ method2() {
   var d06a = () async { await for (var o in st) {} }; d06a(); // //# d06a: ok
   var d07a = () sync* { yield 0; }; d07a(); //                   //# d07a: ok
   var d08a = () sync* { yield* []; }; d08a(); //                 //# d08a: ok
-  var d08b = () sync* { yield*0+1; }; d08b(); //                 //# d08b: static type warning
+  var d08b = () sync* { yield*0+1; }; d08b(); //                 //# d08b: compile-time error
   var d08c = () { yield*0+1; }; d08c(); //                       //# d08c: ok
   var d09a = () async* { yield 0; }; d09a(); //                  //# d09a: ok
-  var d10a = () async* { yield* []; }; d10a(); //                //# d10a: static type warning
+  var d10a = () async* { yield* []; }; d10a(); //                //# d10a: compile-time error
 }
 
 void main() {
