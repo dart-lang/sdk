@@ -123,7 +123,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
   void _produceSyntheticElements(
-      ir.TreeNode /* ir.Field | ir.FunctionNode */ node,
+      ir.TreeNode /* ir.Member | ir.FunctionNode */ node,
       ScopeInfo info,
       ClosedWorldRefiner closedWorldRefiner) {
     Entity entity;
@@ -132,7 +132,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       entity = _elementMap.getMember(node);
       library = node.enclosingLibrary;
     } else {
-      entity = _elementMap.getLocalFunction(node);
+      assert(node is ir.FunctionNode);
+      entity = _elementMap.getLocalFunction(node.parent);
       // TODO(efortuna): Consider the less roundabout way of getting this value
       // which is just storing the "enclosingLibrary" value of the original call
       // to CapturedScopeBuilder.

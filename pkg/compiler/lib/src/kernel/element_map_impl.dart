@@ -896,6 +896,10 @@ abstract class ElementCreatorMixin {
   }
 
   Local _getLocalFunction(ir.TreeNode node) {
+    assert(
+        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
     return _localFunctionMap.putIfAbsent(node, () {
       MemberEntity memberContext;
       Entity executableContext;

@@ -227,7 +227,13 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
 
   LibraryElement getLibrary(ir.Library node) => getElement(node).declaration;
 
-  LocalFunctionElement getLocalFunction(ir.TreeNode node) => getElement(node);
+  LocalFunctionElement getLocalFunction(ir.TreeNode node) {
+    assert(
+        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
+    return getElement(node);
+  }
 
   /// Returns the uri for the deferred import [node].
   String getDeferredUri(ir.LibraryDependency node) {

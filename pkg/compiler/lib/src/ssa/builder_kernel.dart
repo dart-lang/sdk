@@ -3034,7 +3034,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
-    Local methodElement = _elementMap.getLocalFunction(node);
+    Local methodElement = _elementMap.getLocalFunction(node.parent);
     ClosureRepresentationInfo closureInfo =
         closureDataLookup.getClosureRepresentationInfo(methodElement);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
@@ -3055,7 +3055,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
     assert(isReachable);
     declaration.function.accept(this);
-    Local localFunction = _elementMap.getLocalFunction(declaration.function);
+    Local localFunction = _elementMap.getLocalFunction(declaration);
     localsHandler.updateLocal(localFunction, pop());
   }
 
