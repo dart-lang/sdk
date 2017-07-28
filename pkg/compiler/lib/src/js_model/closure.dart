@@ -100,9 +100,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     ir.Node node = definition.node;
     if (_capturedScopesMap.keys.contains(node)) return;
     CapturedScopeBuilder translator = new CapturedScopeBuilder(
+        entity,
         _capturedScopesMap,
         _scopeMap,
-        entity,
         closuresToGenerate,
         _globalLocalsMap.getLocalsMap(entity),
         _elementMap);

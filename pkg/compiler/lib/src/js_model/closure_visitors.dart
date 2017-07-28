@@ -13,6 +13,9 @@ import 'closure.dart';
 /// various points to build CapturedScope that can respond to queries
 /// about how a particular variable is being used at any point in the code.
 class CapturedScopeBuilder extends ir.Visitor {
+  final MemberEntity _currentMember;
+  Local _currentLocalFunction;
+
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
   /// was encountered while visiting a closure (initially called through
@@ -63,19 +66,22 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// The current scope we are in.
   KernelScopeInfo _currentScopeInfo;
 
+  // TODO(johnniwinther): Remove the need for this.
   final KernelToElementMap _kernelToElementMap;
 
-  /// The original entity from which we start the tree-walk to find closure and
-  /// scope information.
-  final Entity _originalEntity;
+  final Entity _thisLocal;
 
   CapturedScopeBuilder(
+      this._currentMember,
       this._scopesCapturedInClosureMap,
       this._scopeInfoMap,
-      this._originalEntity,
       this._closuresToGenerate,
       this._localsMap,
-      this._kernelToElementMap);
+      this._kernelToElementMap)
+      : this._thisLocal =
+            _currentMember.isInstanceMember || _currentMember.isConstructor
+                ? new ThisLocal(_currentMember)
+                : null;
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
@@ -91,40 +97,22 @@ class CapturedScopeBuilder extends ir.Visitor {
       }
     }
     if (!capturedVariablesForScope.isEmpty) {
-      ThisLocal thisLocal = null;
-      if (node is ir.Member && node.isInstanceMember) {
-        if (node is ir.Procedure) {
-          thisLocal = new ThisLocal(_kernelToElementMap.getMethod(node));
-        } else if (node is ir.Field) {
-          thisLocal = new ThisLocal(_kernelToElementMap.getField(node));
-        }
-      } else if (node is ir.Constructor) {
-        thisLocal = new ThisLocal(_kernelToElementMap.getConstructor(node));
-      }
-
-      assert(_scopeInfoMap[_nodeToEntity(node)] != null);
-      KernelScopeInfo from = _scopeInfoMap[_nodeToEntity(node)];
+      assert(_scopeInfoMap[_currentMember] != null);
+      assert(_currentLocalFunction != null);
+      KernelScopeInfo from = _scopeInfoMap[_currentMember];
       _scopesCapturedInClosureMap[node] = new KernelCapturedScope(
           capturedVariablesForScope,
-          _nodeToEntity(_executableContext),
+          _currentLocalFunction,
           from.localsUsedInTryOrSync,
           from.freeVariables,
           from.localsMap,
-          thisLocal);
-    }
-  }
-
-  Entity _nodeToEntity(ir.Node node) {
-    if (node is ir.Member) {
-      return _kernelToElementMap.getMember(node);
-    } else {
-      return _kernelToElementMap.getLocalFunction(node);
+          _thisLocal);
     }
   }
 
   /// Perform book-keeping with the current set of local variables that have
   /// been seen thus far before entering this new scope.
-  void enterNewScope(ir.Node node, Function visitNewScope) {
+  void enterNewScope(ir.Node node, void visitNewScope()) {
     List<ir.VariableDeclaration> oldScopeVariables = _scopeVariables;
     _scopeVariables = <ir.VariableDeclaration>[];
     visitNewScope();
@@ -235,17 +223,20 @@ class CapturedScopeBuilder extends ir.Visitor {
     bool oldIsInsideClosure = _isInsideClosure;
     ir.Node oldExecutableContext = _executableContext;
     KernelScopeInfo oldScopeInfo = _currentScopeInfo;
+    Local oldLocalFunction = _currentLocalFunction;
 
     // _outermostNode is only null the first time we enter the body of the
     // field, constructor, or method that is being analyzed.
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
-    _currentScopeInfo = new KernelScopeInfo(_nodeToThisLocal(node), _localsMap);
+
+    _currentScopeInfo = new KernelScopeInfo(_thisLocal, _localsMap);
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
+      _currentLocalFunction = _kernelToElementMap.getLocalFunction(node.parent);
     } else {
       _outermostNode = node;
-      _scopeInfoMap[_originalEntity] = _currentScopeInfo;
+      _scopeInfoMap[_currentMember] = _currentScopeInfo;
     }
 
     enterNewScope(node, () {
@@ -259,6 +250,7 @@ class CapturedScopeBuilder extends ir.Visitor {
     _isInsideClosure = oldIsInsideClosure;
     _currentScopeInfo = oldScopeInfo;
     _executableContext = oldExecutableContext;
+    _currentLocalFunction = oldLocalFunction;
 
     // Mark all free variables as captured and expect to encounter them in the
     // outer function.
@@ -291,33 +283,5 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   void visitFunctionNode(ir.FunctionNode functionNode) {
     visitInvokable(functionNode);
-  }
-
-  /// If [node] is an instance member return the corresponding `this` reference.
-  /// If not, return null.
-  Entity _nodeToThisLocal(
-      ir.TreeNode
-          /*ir.Field|ir.FunctionNode|ir.Constructor|ir.Procedure*/ node) {
-    ir.Node nodeToConvert = node;
-    if (nodeToConvert is ir.Field) {
-      if (!nodeToConvert.isInstanceMember) return null;
-      return new ThisLocal(_kernelToElementMap.getField(nodeToConvert));
-    } else {
-      if (nodeToConvert is ir.FunctionNode) {
-        // Step up one node higher to find the corresponding entity for this
-        // node.
-        nodeToConvert = node.parent;
-      }
-      if (nodeToConvert is ir.Constructor ||
-          (nodeToConvert is ir.Procedure &&
-              nodeToConvert.kind == ir.ProcedureKind.Factory &&
-              nodeToConvert.isInstanceMember)) {
-        return new ThisLocal(_kernelToElementMap.getConstructor(nodeToConvert));
-      } else if (nodeToConvert is ir.Procedure &&
-          nodeToConvert.isInstanceMember) {
-        return new ThisLocal(_kernelToElementMap.getMethod(nodeToConvert));
-      }
-    }
-    return null;
   }
 }

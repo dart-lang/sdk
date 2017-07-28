@@ -234,6 +234,8 @@ abstract class ConstructorBodyEntity extends FunctionEntity {
 // TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
 abstract class Local extends Entity {
   /// The context in which this local is defined.
+  // TODO(johnniwinther): Remove this. It is only used in the AST based closure
+  // converter.
   Entity get executableContext;
 
   /// The outermost member that contains this element.
