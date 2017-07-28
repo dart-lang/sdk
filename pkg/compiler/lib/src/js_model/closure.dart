@@ -134,15 +134,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ScopeInfo info,
       ClosedWorldRefiner closedWorldRefiner) {
     String name = _computeClosureName(node);
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClass closureClass = new KernelClosureClass.fromScopeInfo(
-        name, member.library, info, node.location);
+        name, member.library, info, node.location, localsMap);
 
     Entity entity;
     if (node is ir.Member) {
       entity = member;
     } else {
       assert(node is ir.FunctionNode);
-      KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       entity = localsMap.getLocalFunction(node.parent);
       // We want the original declaration where that function is used to point
       // to the correct closure class.
@@ -249,24 +249,16 @@ class KernelScopeInfo extends ScopeInfo {
   /// this scope.
   Set<ir.VariableDeclaration> freeVariables = new Set<ir.VariableDeclaration>();
 
-  /// Used to map [freeVariables] to their corresponding locals.
-  final KernelToLocalsMap localsMap;
-
-  KernelScopeInfo(this.thisLocal, this.localsMap)
+  KernelScopeInfo(this.thisLocal)
       : localsUsedInTryOrSync = new Set<Local>(),
         boxedVariables = new Set<Local>();
 
   KernelScopeInfo.from(this.thisLocal, KernelScopeInfo info)
       : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
-        boxedVariables = info.boxedVariables,
-        localsMap = info.localsMap;
+        boxedVariables = info.boxedVariables;
 
-  KernelScopeInfo.withBoxedVariables(
-      this.boxedVariables,
-      this.localsUsedInTryOrSync,
-      this.freeVariables,
-      this.localsMap,
-      this.thisLocal);
+  KernelScopeInfo.withBoxedVariables(this.boxedVariables,
+      this.localsUsedInTryOrSync, this.freeVariables, this.thisLocal);
 
   void forEachBoxedVariable(f(Local local, FieldEntity field)) {
     boxedVariables.forEach((Local l) {
@@ -296,10 +288,9 @@ class KernelCapturedScope extends KernelScopeInfo implements CapturedScope {
       this.context,
       Set<Local> localsUsedInTryOrSync,
       Set<ir.VariableDeclaration> freeVariables,
-      KernelToLocalsMap localsMap,
       Local thisLocal)
-      : super.withBoxedVariables(boxedVariables, localsUsedInTryOrSync,
-            freeVariables, localsMap, thisLocal);
+      : super.withBoxedVariables(
+            boxedVariables, localsUsedInTryOrSync, freeVariables, thisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -314,10 +305,9 @@ class KernelCapturedLoopScope extends KernelCapturedScope
       Local context,
       Set<Local> localsUsedInTryOrSync,
       Set<ir.VariableDeclaration> freeVariables,
-      KernelToLocalsMap localsMap,
       Local thisLocal)
       : super(boxedVariables, context, localsUsedInTryOrSync, freeVariables,
-            localsMap, thisLocal);
+            thisLocal);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -336,8 +326,8 @@ class KernelClosureClass extends KernelScopeInfo
 
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
-  KernelClosureClass.fromScopeInfo(
-      this.name, this.library, KernelScopeInfo info, this.location)
+  KernelClosureClass.fromScopeInfo(this.name, this.library,
+      KernelScopeInfo info, this.location, KernelToLocalsMap localsMap)
       : super.from(info.thisLocal, info) {
     // Make a corresponding field entity in this closure class for every single
     // freeVariable in the KernelScopeInfo.freeVariable.
@@ -346,7 +336,7 @@ class KernelClosureClass extends KernelScopeInfo
       // NOTE: This construction order may be slightly different than the
       // old Element version. The old version did all the boxed items and then
       // all the others.
-      Local capturedLocal = info.localsMap.getLocalVariable(variable);
+      Local capturedLocal = localsMap.getLocalVariable(variable);
       if (info.isBoxed(capturedLocal)) {
         // TODO(efortuna): Coming soon.
       } else {

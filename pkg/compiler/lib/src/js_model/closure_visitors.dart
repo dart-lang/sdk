@@ -97,7 +97,6 @@ class CapturedScopeBuilder extends ir.Visitor {
           _currentLocalFunction,
           from.localsUsedInTryOrSync,
           from.freeVariables,
-          from.localsMap,
           _thisLocal);
     }
   }
@@ -207,7 +206,6 @@ class CapturedScopeBuilder extends ir.Visitor {
         scope.context,
         scope.localsUsedInTryOrSync,
         scope.freeVariables,
-        _localsMap,
         scope.thisLocal);
   }
 
@@ -222,7 +220,7 @@ class CapturedScopeBuilder extends ir.Visitor {
     _isInsideClosure = _outermostNode != null;
     _executableContext = node;
 
-    _currentScopeInfo = new KernelScopeInfo(_thisLocal, _localsMap);
+    _currentScopeInfo = new KernelScopeInfo(_thisLocal);
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
       _currentLocalFunction = _localsMap.getLocalFunction(node.parent);
