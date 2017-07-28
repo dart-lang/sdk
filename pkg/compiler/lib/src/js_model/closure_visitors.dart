@@ -66,18 +66,10 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// The current scope we are in.
   KernelScopeInfo _currentScopeInfo;
 
-  // TODO(johnniwinther): Remove the need for this.
-  final KernelToElementMap _kernelToElementMap;
-
   final Entity _thisLocal;
 
-  CapturedScopeBuilder(
-      this._currentMember,
-      this._scopesCapturedInClosureMap,
-      this._scopeInfoMap,
-      this._closuresToGenerate,
-      this._localsMap,
-      this._kernelToElementMap)
+  CapturedScopeBuilder(this._currentMember, this._scopesCapturedInClosureMap,
+      this._scopeInfoMap, this._closuresToGenerate, this._localsMap)
       : this._thisLocal =
             _currentMember.isInstanceMember || _currentMember.isConstructor
                 ? new ThisLocal(_currentMember)
@@ -93,7 +85,7 @@ class CapturedScopeBuilder extends ir.Visitor {
       if (variable.isFinal || variable.isConst) continue;
       if (!_mutatedVariables.contains(variable)) continue;
       if (_capturedVariables.contains(variable)) {
-        capturedVariablesForScope.add(_localsMap.getLocal(variable));
+        capturedVariablesForScope.add(_localsMap.getLocalVariable(variable));
       }
     }
     if (!capturedVariablesForScope.isEmpty) {
@@ -168,7 +160,7 @@ class CapturedScopeBuilder extends ir.Visitor {
     }
     if (_inTry) {
       _currentScopeInfo.localsUsedInTryOrSync
-          .add(_localsMap.getLocal(variable));
+          .add(_localsMap.getLocalVariable(variable));
     }
   }
 
@@ -203,7 +195,7 @@ class CapturedScopeBuilder extends ir.Visitor {
         // gets cleared when `enterNewScope` returns, so check it here.
         if (_capturedVariables.contains(variable) &&
             _mutatedVariables.contains(variable)) {
-          boxedLoopVariables.add(_localsMap.getLocal(variable));
+          boxedLoopVariables.add(_localsMap.getLocalVariable(variable));
         }
       }
     });
@@ -233,7 +225,7 @@ class CapturedScopeBuilder extends ir.Visitor {
     _currentScopeInfo = new KernelScopeInfo(_thisLocal, _localsMap);
     if (_isInsideClosure) {
       _closuresToGenerate[node] = _currentScopeInfo;
-      _currentLocalFunction = _kernelToElementMap.getLocalFunction(node.parent);
+      _currentLocalFunction = _localsMap.getLocalFunction(node.parent);
     } else {
       _outermostNode = node;
       _scopeInfoMap[_currentMember] = _currentScopeInfo;

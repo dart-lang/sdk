@@ -24,7 +24,7 @@ class GlobalLocalsMap {
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
   final List<MemberEntity> _members = <MemberEntity>[];
-  Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
+  Map<ir.TreeNode, JLocal> _map = <ir.TreeNode, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
 
@@ -125,9 +125,24 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  Local getLocal(ir.VariableDeclaration node) {
+  Local getLocalVariable(ir.VariableDeclaration node) {
     return _map.putIfAbsent(node, () {
       return new JLocal(node.name, currentMember);
+    });
+  }
+
+  @override
+  Local getLocalFunction(ir.TreeNode node) {
+    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+        failedAt(currentMember, 'Invalid local function node: $node'));
+    return _map.putIfAbsent(node, () {
+      String name;
+      if (node is ir.FunctionDeclaration) {
+        name = node.variable.name;
+      } else if (node is ir.FunctionExpression) {
+        name = '';
+      }
+      return new JLocal(name, currentMember);
     });
   }
 

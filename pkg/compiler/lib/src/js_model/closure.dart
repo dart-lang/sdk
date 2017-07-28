@@ -61,7 +61,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {
-    var closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
+    var closuresToGenerate = <MemberEntity, Map<ir.TreeNode, ScopeInfo>>{};
+
     processedEntities.forEach((MemberEntity kEntity) {
       MemberEntity entity = _kToJElementMap.toBackendMember(kEntity);
       if (entity.isAbstract) return;
@@ -73,22 +74,26 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         // Skip top-level/static fields without an initializer.
         if (field.initializer == null) return;
       }
-      _buildClosureModel(entity, closuresToGenerate, closedWorldRefiner);
+      closuresToGenerate[entity] =
+          _buildClosureModel(entity, closedWorldRefiner);
     });
 
-    for (ir.TreeNode node in closuresToGenerate.keys) {
-      _produceSyntheticElements(
-          node, closuresToGenerate[node], closedWorldRefiner);
-    }
+    closuresToGenerate.forEach(
+        (MemberEntity member, Map<ir.TreeNode, ScopeInfo> closuresToGenerate) {
+      for (ir.TreeNode node in closuresToGenerate.keys) {
+        _produceSyntheticElements(
+            member, node, closuresToGenerate[node], closedWorldRefiner);
+      }
+    });
   }
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  void _buildClosureModel(
-      MemberEntity entity,
-      Map<ir.TreeNode, ScopeInfo> closuresToGenerate,
-      ClosedWorldRefiner closedWorldRefiner) {
-    if (_scopeMap.keys.contains(entity)) return;
+  Map<ir.TreeNode, ScopeInfo> _buildClosureModel(
+      MemberEntity entity, ClosedWorldRefiner closedWorldRefiner) {
+    assert(!_scopeMap.containsKey(entity),
+        failedAt(entity, "ScopeInfo already computed for $entity."));
+    Map<ir.TreeNode, ScopeInfo> closuresToGenerate = <ir.TreeNode, ScopeInfo>{};
     MemberDefinition definition = _elementMap.getMemberDefinition(entity);
     switch (definition.kind) {
       case MemberKind.regular:
@@ -98,14 +103,14 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         failedAt(entity, "Unexpected member definition $definition");
     }
     ir.Node node = definition.node;
-    if (_capturedScopesMap.keys.contains(node)) return;
+    assert(!_scopeMap.containsKey(entity),
+        failedAt(entity, "CaptureScope already computed for $node."));
     CapturedScopeBuilder translator = new CapturedScopeBuilder(
         entity,
         _capturedScopesMap,
         _scopeMap,
         closuresToGenerate,
-        _globalLocalsMap.getLocalsMap(entity),
-        _elementMap);
+        _globalLocalsMap.getLocalsMap(entity));
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         translator.translateLazyInitializer(node);
@@ -114,6 +119,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       assert(node is ir.Procedure || node is ir.Constructor);
       translator.translateConstructorOrProcedure(node);
     }
+    return closuresToGenerate;
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -123,45 +129,30 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
   void _produceSyntheticElements(
+      MemberEntity member,
       ir.TreeNode /* ir.Member | ir.FunctionNode */ node,
       ScopeInfo info,
       ClosedWorldRefiner closedWorldRefiner) {
-    Entity entity;
-    ir.Library library;
-    if (node is ir.Member) {
-      entity = _elementMap.getMember(node);
-      library = node.enclosingLibrary;
-    } else {
-      assert(node is ir.FunctionNode);
-      entity = _elementMap.getLocalFunction(node.parent);
-      // TODO(efortuna): Consider the less roundabout way of getting this value
-      // which is just storing the "enclosingLibrary" value of the original call
-      // to CapturedScopeBuilder.
-      ir.TreeNode temp = node;
-      while (temp != null && temp is! ir.Library) {
-        temp = temp.parent;
-      }
-      assert(temp is ir.Library);
-      library = temp;
-    }
-    assert(entity != null);
-
     String name = _computeClosureName(node);
     KernelClosureClass closureClass = new KernelClosureClass.fromScopeInfo(
-        name, _elementMap.getLibrary(library), info, node.location);
-    if (node is ir.FunctionNode) {
+        name, member.library, info, node.location);
+
+    Entity entity;
+    if (node is ir.Member) {
+      entity = member;
+    } else {
+      assert(node is ir.FunctionNode);
+      KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
+      entity = localsMap.getLocalFunction(node.parent);
       // We want the original declaration where that function is used to point
       // to the correct closure class.
-      // TODO(efortuna): entity equivalent of element.declaration?
-      node = (node as ir.FunctionNode).parent;
       _closureRepresentationMap[closureClass.callMethod] = closureClass;
     }
-
+    assert(entity != null);
     _closureRepresentationMap[entity] = closureClass;
 
     // Register that a new class has been created.
-    closedWorldRefiner.registerClosureClass(
-        closureClass, node is ir.Member && node.isInstanceMember);
+    closedWorldRefiner.registerClosureClass(closureClass);
   }
 
   // Returns a non-unique name for the given closure element.
@@ -355,7 +346,7 @@ class KernelClosureClass extends KernelScopeInfo
       // NOTE: This construction order may be slightly different than the
       // old Element version. The old version did all the boxed items and then
       // all the others.
-      Local capturedLocal = info.localsMap.getLocal(variable);
+      Local capturedLocal = info.localsMap.getLocalVariable(variable);
       if (info.isBoxed(capturedLocal)) {
         // TODO(efortuna): Coming soon.
       } else {

@@ -383,12 +383,10 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             classSets);
 
   @override
-  void registerClosureClass(ClassEntity cls, bool fromInstanceMember) {
+  void registerClosureClass(ClassEntity cls) {
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)
-    ClassEntity superclass = fromInstanceMember
-        ? commonElements.boundClosureClass
-        : commonElements.closureClass;
+    ClassEntity superclass = commonElements.closureClass;
     ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
     ClassHierarchyNode node = new ClassHierarchyNode(
         parentNode, cls, getHierarchyDepth(superclass) + 1);

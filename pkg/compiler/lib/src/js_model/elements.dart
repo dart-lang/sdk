@@ -172,15 +172,6 @@ class JsElementCreatorMixin {
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
 
-  Local createLocalFunction(String name, MemberEntity memberContext,
-      Entity executableContext, FunctionType functionType) {
-    // TODO(efortuna, johnniwinther): This function should not be called once
-    // the K + J element situation has been properly sorted out. Ultimately this
-    // should throw.
-    return new JLocalFunction(
-        name, memberContext, executableContext, functionType);
-  }
-
   LibraryEntity convertLibrary(IndexedLibrary library) {
     return createLibrary(
         library.libraryIndex, library.name, library.canonicalUri);
@@ -546,17 +537,4 @@ class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
 
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
-}
-
-class JLocalFunction implements Local {
-  final String name;
-  final MemberEntity memberContext;
-  final Entity executableContext;
-  final FunctionType functionType;
-
-  JLocalFunction(
-      this.name, this.memberContext, this.executableContext, this.functionType);
-
-  String toString() => '${jsElementPrefix}local_function'
-      '(${memberContext.name}.${name ?? '<anonymous>'})';
 }

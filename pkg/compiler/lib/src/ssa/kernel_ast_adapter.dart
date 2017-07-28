@@ -260,7 +260,7 @@ class KernelAstAdapter extends KernelToElementMapBaseMixin
   }
 
   @override
-  Local getLocal(ir.VariableDeclaration variable) {
+  Local getLocalVariable(ir.VariableDeclaration variable) {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
       return _syntheticLocals.putIfAbsent(

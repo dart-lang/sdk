@@ -63,11 +63,6 @@ abstract class KernelToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  // TODO(johnniwinther): Move this to [KernelToElementMapForImpact].
-  Local getLocalFunction(ir.TreeNode node);
-
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
   ///
@@ -154,6 +149,10 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+
+  /// Returns the [Local] corresponding to the [node]. The node must be either
+  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Local getLocalFunction(ir.TreeNode node);
 }
 
 /// Interface that translates between Kernel IR nodes and entities used for
@@ -362,7 +361,6 @@ abstract class KernelToTypeInferenceMap {
 }
 
 /// Map from kernel IR nodes to local entities.
-// TODO(johnniwinther): Add `getLocalFunction`.
 abstract class KernelToLocalsMap {
   /// The member currently being built.
   MemberEntity get currentMember;
@@ -376,7 +374,11 @@ abstract class KernelToLocalsMap {
   void leaveInlinedMember(covariant MemberEntity member);
 
   /// Returns the [Local] for [node].
-  Local getLocal(ir.VariableDeclaration node);
+  Local getLocalVariable(ir.VariableDeclaration node);
+
+  /// Returns the [Local] corresponding to the [node]. The node must be either
+  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Local getLocalFunction(ir.TreeNode node);
 
   /// Returns the [JumpTarget] for the break statement [node].
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node);

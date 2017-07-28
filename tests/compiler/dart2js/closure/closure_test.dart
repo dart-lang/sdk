@@ -114,7 +114,7 @@ class ClosureIrChecker extends AbstractIrComputer {
   @override
   String computeNodeValue(ir.Node node) {
     if (node is ir.VariableDeclaration) {
-      Local local = _localsMap.getLocal(node);
+      Local local = _localsMap.getLocalVariable(node);
       return computeLocalValue(info, local);
     }
     // TODO(johnniwinther,efortuna): Collect data for other nodes?

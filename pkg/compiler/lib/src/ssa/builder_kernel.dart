@@ -376,7 +376,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ConstructorEntity constructorElement = _elementMap.getConstructor(body);
 
       void handleParameter(ir.VariableDeclaration node) {
-        Local parameter = localsMap.getLocal(node);
+        Local parameter = localsMap.getLocalVariable(node);
         // If [parameter] is boxed, it will be a field in the box passed as the
         // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
@@ -636,7 +636,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Constructor caller) {
     var index = 0;
     void handleParameter(ir.VariableDeclaration node) {
-      Local parameter = localsMap.getLocal(node);
+      Local parameter = localsMap.getLocalVariable(node);
       HInstruction argument = arguments[index++];
       // Because we are inlining the initializer, we must update
       // what was given as parameter. This will be used in case
@@ -726,7 +726,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     Map<Local, TypeMask> parameterMap = <Local, TypeMask>{};
     if (function != null) {
       void handleParameter(ir.VariableDeclaration node) {
-        Local local = localsMap.getLocal(node);
+        Local local = localsMap.getLocalVariable(node);
         parameterMap[local] =
             _typeInferenceMap.getInferredTypeOfParameter(local);
       }
@@ -1041,7 +1041,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction value = new HIndex(array, index, null, type);
       add(value);
 
-      Local loopVariableLocal = localsMap.getLocal(forInStatement.variable);
+      Local loopVariableLocal =
+          localsMap.getLocalVariable(forInStatement.variable);
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
       if (loopVariableLocal is! SyntheticLocal) {
@@ -1108,7 +1109,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
-      Local loopVariableLocal = localsMap.getLocal(forInStatement.variable);
+      Local loopVariableLocal =
+          localsMap.getLocalVariable(forInStatement.variable);
       HInstruction value = pop();
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
@@ -1156,7 +1158,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _pushDynamicInvocation(forInStatement, mask, [streamIterator],
           selector: Selectors.current);
       localsHandler.updateLocal(
-          localsMap.getLocal(forInStatement.variable), pop());
+          localsMap.getLocalVariable(forInStatement.variable), pop());
       forInStatement.body.accept(this);
     }
 
@@ -2207,7 +2209,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    Local local = localsMap.getLocal(variableGet.variable);
+    Local local = localsMap.getLocalVariable(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
   }
 
@@ -2255,7 +2257,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitVariableDeclaration(ir.VariableDeclaration declaration) {
-    Local local = localsMap.getLocal(declaration);
+    Local local = localsMap.getLocalVariable(declaration);
     if (declaration.initializer == null) {
       HInstruction initialValue = graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(local, initialValue);
@@ -2271,7 +2273,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
-    Local local = localsMap.getLocal(variable);
+    Local local = localsMap.getLocalVariable(variable);
 
     // Give the value a name if it doesn't have one already.
     if (value.sourceElement == null) {
@@ -3034,7 +3036,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
-    Local methodElement = _elementMap.getLocalFunction(node.parent);
+    Local methodElement = localsMap.getLocalFunction(node.parent);
     ClosureRepresentationInfo closureInfo =
         closureDataLookup.getClosureRepresentationInfo(methodElement);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
@@ -3055,7 +3057,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
     assert(isReachable);
     declaration.function.accept(this);
-    Local localFunction = _elementMap.getLocalFunction(declaration);
+    Local localFunction = localsMap.getLocalFunction(declaration);
     localsHandler.updateLocal(localFunction, pop());
   }
 
@@ -3586,7 +3588,7 @@ class TryCatchFinallyBuilder {
       catchesIndex++;
       if (catchBlock.exception != null) {
         Local exceptionVariable =
-            kernelBuilder.localsMap.getLocal(catchBlock.exception);
+            kernelBuilder.localsMap.getLocalVariable(catchBlock.exception);
         kernelBuilder.localsHandler
             .updateLocal(exceptionVariable, unwrappedException);
       }
@@ -3598,7 +3600,7 @@ class TryCatchFinallyBuilder {
                 kernelBuilder._commonElements.traceFromException));
         HInstruction traceInstruction = kernelBuilder.pop();
         Local traceVariable =
-            kernelBuilder.localsMap.getLocal(catchBlock.stackTrace);
+            kernelBuilder.localsMap.getLocalVariable(catchBlock.stackTrace);
         kernelBuilder.localsHandler
             .updateLocal(traceVariable, traceInstruction);
       }

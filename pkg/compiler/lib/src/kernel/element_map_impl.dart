@@ -398,11 +398,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   FieldEntity _getField(ir.Field node);
 
   @override
-  Local getLocalFunction(ir.TreeNode node) => _getLocalFunction(node);
-
-  Local _getLocalFunction(ir.TreeNode node);
-
-  @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
@@ -895,42 +890,6 @@ abstract class ElementCreatorMixin {
         requiredParameters, positionalParameters, namedParameters);
   }
 
-  Local _getLocalFunction(ir.TreeNode node) {
-    assert(
-        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-        failedAt(
-            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
-    return _localFunctionMap.putIfAbsent(node, () {
-      MemberEntity memberContext;
-      Entity executableContext;
-      ir.TreeNode parent = node.parent;
-      while (parent != null) {
-        if (parent is ir.Member) {
-          executableContext = memberContext = getMember(parent);
-          break;
-        }
-        if (parent is ir.FunctionDeclaration ||
-            parent is ir.FunctionExpression) {
-          Local localFunction = _getLocalFunction(parent);
-          executableContext = localFunction;
-          memberContext = localFunction.memberContext;
-          break;
-        }
-        parent = parent.parent;
-      }
-      String name;
-      FunctionType functionType;
-      if (node is ir.FunctionDeclaration) {
-        name = node.variable.name;
-        functionType = getFunctionType(node.function);
-      } else if (node is ir.FunctionExpression) {
-        functionType = getFunctionType(node.function);
-      }
-      return createLocalFunction(
-          name, memberContext, executableContext, functionType);
-    });
-  }
-
   IndexedLibrary createLibrary(int libraryIndex, String name, Uri canonicalUri);
 
   IndexedClass createClass(LibraryEntity library, int classIndex, String name,
@@ -978,9 +937,6 @@ abstract class ElementCreatorMixin {
   IndexedField createField(int memberIndex, LibraryEntity library,
       ClassEntity enclosingClass, Name name,
       {bool isStatic, bool isAssignable, bool isConst});
-
-  Local createLocalFunction(String name, MemberEntity memberContext,
-      Entity executableContext, FunctionType functionType);
 }
 
 /// Completes the [ElementCreatorMixin] by creating K-model elements.
@@ -1062,12 +1018,6 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
     return new KField(memberIndex, library, enclosingClass, name,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
-
-  Local createLocalFunction(String name, MemberEntity memberContext,
-      Entity executableContext, FunctionType functionType) {
-    return new KLocalFunction(
-        name, memberContext, executableContext, functionType);
-  }
 }
 
 /// Implementation of [KernelToElementMapForImpact] that only supports world
@@ -1115,6 +1065,43 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   Iterable<ConstantValue> _getClassMetadata(KClass cls) {
     return _classData[cls.classIndex].getMetadata(this);
+  }
+
+  @override
+  Local getLocalFunction(ir.TreeNode node) {
+    assert(
+        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
+    return _localFunctionMap.putIfAbsent(node, () {
+      MemberEntity memberContext;
+      Entity executableContext;
+      ir.TreeNode parent = node.parent;
+      while (parent != null) {
+        if (parent is ir.Member) {
+          executableContext = memberContext = getMember(parent);
+          break;
+        }
+        if (parent is ir.FunctionDeclaration ||
+            parent is ir.FunctionExpression) {
+          Local localFunction = getLocalFunction(parent);
+          executableContext = localFunction;
+          memberContext = localFunction.memberContext;
+          break;
+        }
+        parent = parent.parent;
+      }
+      String name;
+      FunctionType functionType;
+      if (node is ir.FunctionDeclaration) {
+        name = node.variable.name;
+        functionType = getFunctionType(node.function);
+      } else if (node is ir.FunctionExpression) {
+        functionType = getFunctionType(node.function);
+      }
+      return new KLocalFunction(
+          name, memberContext, executableContext, functionType);
+    });
   }
 }
 
@@ -1686,32 +1673,8 @@ class KernelClosedWorld extends ClosedWorldBase
   }
 
   @override
-  void registerClosureClass(ClassEntity cls, bool fromInstanceMember) {
-    // Tell the hierarchy that this is the super class. then we can use
-    // .getSupertypes(class)
-    IndexedClass superclass = fromInstanceMember
-        ? commonElements.boundClosureClass
-        : commonElements.closureClass;
-    ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
-    ClassHierarchyNode node = new ClassHierarchyNode(
-        parentNode, cls, getHierarchyDepth(superclass) + 1);
-    addClassHierarchyNode(cls, node);
-    for (InterfaceType type in getOrderedTypeSet(superclass).types) {
-      // TODO(efortuna): assert that the FunctionClass is in this ordered set.
-      // If not, we need to explicitly add node as a subtype of FunctionClass.
-      ClassSet subtypeSet = getClassSet(type.element);
-      subtypeSet.addSubtype(node);
-    }
-    addClassSet(cls, new ClassSet(node));
-
-    // Ensure that the supertype's hierarchy is completely set up.
-    var supertype = new InterfaceType(superclass, const []);
-    ClassData superdata = elementMap._classData[superclass.classIndex];
-    elementMap._ensureSupertypes(superclass, superdata);
-    elementMap._ensureThisAndRawType(superclass, superdata);
-
-    elementMap.addClosureClass(cls, supertype);
-    node.isDirectlyInstantiated = true;
+  void registerClosureClass(ClassEntity cls) {
+    throw new UnsupportedError('KernelClosedWorld.registerClosureClass');
   }
 }
 

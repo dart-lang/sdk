@@ -482,9 +482,7 @@ class ClosureClassElement extends ClassElementX {
             // classes (since the emitter sorts classes by their id).
             compiler.idGenerator.getNextFreeId(),
             STATE_DONE) {
-    ClassElement superclass = methodElement.isInstanceMember
-        ? compiler.resolution.commonElements.boundClosureClass
-        : compiler.resolution.commonElements.closureClass;
+    ClassElement superclass = compiler.resolution.commonElements.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<ResolutionDartType>();
@@ -1379,7 +1377,7 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
-    closedWorldRefiner.registerClosureClass(globalizedElement, false);
+    closedWorldRefiner.registerClosureClass(globalizedElement);
     MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
     backend.mirrorsDataBuilder.maybeMarkClosureAsNeededForReflection(
