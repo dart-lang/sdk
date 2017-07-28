@@ -6,7 +6,6 @@ interactive_test: Skip # Must be run manually.
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == dart2js ]
-indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/attributes: Fail # Issue 21555
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
@@ -108,7 +107,6 @@ webgl_1_test: Pass, Fail # Issue 8219
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $runtime == chrome ]
-element_classes_test: RuntimeError
 css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710
 
