@@ -6,11 +6,6 @@
 async_await_test/02: DartkCompileTimeError
 async_await_test/03: DartkCompileTimeError
 async_await_test/none: DartkCompileTimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
-async_star_cancel_while_paused_test: RuntimeError
-async_star_regression_fisk_test: Timeout
-async_star_stream_take_test: Timeout
-async_star_take_reyield_test: Timeout
 async_star_test/01: DartkCompileTimeError
 async_star_test/02: DartkCompileTimeError
 async_star_test/03: DartkCompileTimeError

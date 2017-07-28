@@ -14,13 +14,8 @@ stacktrace_demangle_ctors_test: RuntimeError
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
-[ $runtime == vm || $runtime == dart_precompiled ]
-
 # These test entries will be valid for vm (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
-async_star_cancel_while_paused_test: RuntimeError
-# This is OK for now, but we may want to change the semantics to match the test.
-async_star_pause_test: Fail, OK
 
 # These tests are skipped in the VM because it has "--supermixin"
 # functionality enabled unconditionally.  The tests should be removed
@@ -64,8 +59,6 @@ multiline_strings_test: Fail # Issue 23020
 
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
-
-async_star_regression_2238_test: CompileTimeError, RuntimeError
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,
@@ -352,7 +345,6 @@ override_inheritance_method_test/30: CompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
 method_override6_test: CompileTimeError
 try_catch_syntax_test/08: CompileTimeError
-async_return_types_test/tooManyTypeParameters: CompileTimeError
 method_override4_test: CompileTimeError
 super_call4_test: CompileTimeError
 wrong_number_type_arguments_test/00: CompileTimeError
@@ -500,13 +492,7 @@ deferred_global_test: Skip # Timeout
 config_import_test: RuntimeError # Flutter Issue 9110
 vm/no_such_method_error_message_callable_vm_test: RuntimeError # Flutter Issue 9110
 vm/regress_27201_test: Fail # Flutter Issue 9110
-async_return_types_test/nestedFuture: Skip # Flutter Issue 9110
-async_return_types_test/wrongTypeParameter: Skip # Flutter Issue 9110
-async_return_types_test/wrongReturnType: Skip # Flutter Issue 9110
-async_return_types_test/return_value_sync_star: Skip # Flutter Issue 9110
 asyncstar_yield_test: Skip # Flutter Issue 9110
-async_star_no_cancel_test: Skip # Flutter Issue 9110
-async_star_cancel_while_paused_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
 await_for_cancel_test: Skip # Flutter Issue 9110
 

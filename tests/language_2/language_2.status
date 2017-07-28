@@ -109,6 +109,7 @@ accessor_conflict_import_test: StaticWarning # Issue 25626
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 
 [ $compiler == dart2analyzer && $strong ]
+async_return_types_test/nestedFuture: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 
 [ $compiler == dart2js || $compiler == dartk || $compiler == dartdevc ]
@@ -147,6 +148,10 @@ allocation_sinking_inlining_test: Crash
 and_operation_on_non_integer_operand_test: Crash
 arithmetic_canonicalization_test: Crash
 arithmetic_smi_overflow_test: Crash
+
+[ $compiler == dartdevc && $runtime != none ]
+async_star_cancel_while_paused_test: RuntimeError # Issue 29920
+async_star_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
 *: Skip # Issue 29626

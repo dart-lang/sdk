@@ -229,8 +229,6 @@ regress_23498_test: Crash
 # dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 async_await_test: RuntimeError
-async_return_types_test/nestedFuture: Fail
-async_return_types_test/wrongTypeParameter: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
