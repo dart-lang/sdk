@@ -246,6 +246,7 @@ reg_exp5_test: Crash
 reg_exp_all_matches_test: Crash
 reg_exp_start_end_test: Crash
 regexp/ascii-regexp-subject_test: Crash
+regexp/bol-with-multiline_test: Crash
 regexp/capture-3_test: Crash
 regexp/capture_test: Crash
 regexp/compile-crash_test: Crash
