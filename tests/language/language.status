@@ -96,6 +96,7 @@ vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Is
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled)) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
+[ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 export_double_same_main_test: Skip # Issue 29895
 export_ambiguous_main_negative_test: Skip # Issue 29895
