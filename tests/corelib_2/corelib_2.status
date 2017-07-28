@@ -62,6 +62,7 @@ regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
 regexp/non-capturing-groups_test: RuntimeError # Issue 29921
 regexp/non-character_test: RuntimeError # Issue 29921
 regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
+regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regexp/quantified-assertions_test: RuntimeError # Issue 29921
 regexp/range-bound-ffff_test: RuntimeError # Issue 29921
 regexp/range-out-of-order_test: RuntimeError # Issue 29921
@@ -306,6 +307,8 @@ regexp/multiline_test: Crash
 regexp/negative-special-characters_test: Crash
 regexp/no-extensions_test: Crash
 regexp/non-capturing-groups_test: Crash
+regexp/parentheses_test: Crash
+regexp/pcre-test-4_test: Crash
 regexp/range-out-of-order_test: Crash
 regexp/regexp_kde_test: Crash
 regexp/regexp_test: Crash
@@ -447,6 +450,9 @@ regexp/non-bmp_test: Crash
 regexp/non-capturing-backtracking_test: Crash
 regexp/non-character_test: Crash
 regexp/non-greedy-parentheses_test: Crash
+regexp/norepeat_test: Crash
+regexp/overflow_test: Crash
+regexp/stack-overflow_test: Crash
 regexp/quantified-assertions_test: Crash
 regexp/range-bound-ffff_test: Crash
 regexp/ranges-and-escaped-hyphens_test: Crash
