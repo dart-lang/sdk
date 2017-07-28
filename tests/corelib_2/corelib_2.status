@@ -55,6 +55,7 @@ regexp/range-out-of-order_test: RuntimeError # Issue 29921
 regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
 regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
 regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
+regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
 regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
 regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
@@ -213,6 +214,7 @@ string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel]
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
+regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ ($compiler == none && $runtime == vm) || $compiler == dart2js ]
 string_base_vm_static_test: MissingCompileTimeError
@@ -307,6 +309,9 @@ splay_tree_from_iterables_test: Crash
 splay_tree_test/01: Crash
 splay_tree_test/02: Crash
 splay_tree_test/none: Crash
+regexp/pcre_test: RuntimeError # Issue 27394
+regexp/pcre_test: Crash
+regexp/pcre-test-4_test: Crash
 stacktrace_fromstring_test: Crash
 stopwatch2_test: Crash
 string_base_vm_test: Crash
@@ -439,3 +444,9 @@ splay_tree_from_iterable_test: RuntimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 splay_tree_from_iterable_test: RuntimeError
+
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
+rexexp/pcre_test: Pass, Slow, Timeout
+
+[ $mode == debug ]
+regexp/pcre_test: Pass, Slow # Issue 22008

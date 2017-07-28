@@ -81,6 +81,5 @@ regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
 regexp/non-capturing-groups_test: RuntimeError # Issue 29921
 regexp/non-character_test: RuntimeError # Issue 29921
 regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
-regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921

@@ -33,7 +33,6 @@ iterable_to_list_test/01: RuntimeError # Issue 26501
 big_integer_*: Skip # VM specific test.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
 nan_infinity_test/01: Fail # Issue 11551
-regexp/pcre_test: Pass, Slow # Issue 21593
 regress_r21715_test: RuntimeError # Requires bigint support.
 
 [ $compiler == dart2js && $runtime == none ]
@@ -75,7 +74,6 @@ regexp/*: Skip
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
-regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
 
 [ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer]
@@ -86,7 +84,6 @@ http_resource_test: Skip, OK # VM specific test, uses dart:io.
 package_resource_test: RuntimeError # Issue 26842
 
 [ $mode == debug ]
-regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
 int_parse_radix_test/*: Pass, Slow
@@ -102,7 +99,6 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
 map_test: Crash # Issue 27394
-regexp/pcre_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && $dart2js_with_kernel ]
 regress/4562_test/01: Crash # Issue 27394
@@ -268,8 +264,6 @@ regexp/negative-special-characters_test: Crash
 regexp/no-extensions_test: Crash
 regexp/non-capturing-groups_test: Crash
 regexp/parentheses_test: Crash
-regexp/pcre-test-4_test: Crash
-regexp/pcre_test: Crash
 regress_r21715_test: RuntimeError
 set_containsAll_test: Crash
 set_contains_test: Crash
