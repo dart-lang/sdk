@@ -232,7 +232,6 @@ assert_message_test: RuntimeError # Looks like bug in dartdevc codegen.
 
 [ $compiler == dartk && $runtime == vm ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
-assertion_test: RuntimeError
 
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
