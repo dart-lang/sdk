@@ -2910,7 +2910,6 @@ function_type_call_getter_test: Crash
 function_type_parameter2_test: Crash
 function_type_parameter_test: Crash
 function_type_this_parameter_test: Crash
-gc_test: Crash
 generic2_test: Crash
 generic_creation_test: Crash
 generic_deep_test: Crash
@@ -3090,6 +3089,7 @@ issue18628_1_test/01: Crash
 issue21957_test: Crash
 issue3806_test: Crash
 issue4157508_test: Crash
+issue4295001_test: Crash
 issue4515170_test: Crash
 issue7513_test: Crash
 issue7525_test: Crash
@@ -3134,6 +3134,7 @@ list_literal_syntax_test/03: Crash
 list_literal_syntax_test/none: Crash
 list_literal_test: Crash
 list_tracer_call_last_test: Crash
+list_tracer_closure_test: Crash
 list_tracer_in_list_test: Crash
 list_tracer_in_map_test: Crash
 list_tracer_return_from_tearoff_closure_test: Crash
@@ -3257,18 +3258,10 @@ not_enough_positional_arguments_test/06: Crash
 not_enough_positional_arguments_test/07: Crash
 null2_test: Crash
 null_is2_test: Crash
-null_is_bottom_test/01: Crash
-null_is_bottom_test/02: Crash
-null_is_bottom_test/03: Crash
-null_is_bottom_test/04: Crash
 null_is_bottom_test/05: Crash
 null_is_bottom_test/06: Crash
 null_is_bottom_test/07: Crash
 null_is_bottom_test/08: Crash
-null_is_bottom_test/09: Crash
-null_is_bottom_test/10: Crash
-null_is_bottom_test/11: Crash
-null_is_bottom_test/12: Crash
 null_is_bottom_test/13: Crash
 null_is_bottom_test/14: Crash
 null_is_bottom_test/15: Crash
@@ -3296,7 +3289,6 @@ null_is_bottom_test/37: Crash
 null_is_bottom_test/38: Crash
 null_is_bottom_test/39: Crash
 null_is_bottom_test/40: Crash
-null_is_bottom_test/none: Crash
 null_is_test: Crash
 null_method_test: Crash
 nullaware_opt_test: Crash
