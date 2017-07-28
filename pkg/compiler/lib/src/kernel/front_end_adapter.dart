@@ -81,8 +81,9 @@ void reportFrontEndMessage(
   // TODO(sigmund): translate message kinds using message.dart2jsCode
   MessageKind kind = MessageKind.GENERIC;
   switch (message.severity) {
-    case fe.Severity.error:
     case fe.Severity.internalProblem:
+      throw message.message;
+    case fe.Severity.error:
       reporter.reportErrorMessage(
           NO_LOCATION_SPANNABLE, kind, {'text': message.message});
       break;
