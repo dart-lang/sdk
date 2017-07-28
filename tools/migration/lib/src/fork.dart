@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 
 import 'io.dart';
 import 'log.dart';
+import 'test_directories.dart';
 import 'validate.dart';
 
 /// Tracks one test and the various forked locations where it may appear.
@@ -20,8 +21,8 @@ import 'validate.dart';
 /// * "Two" is the migrated 2.0 destination location: language_2, etc.
 class Fork {
   final String twoPath;
-  String onePath;
-  String strongPath;
+  String get onePath => toOnePath(twoPath);
+  String get strongPath => toStrongPath(twoPath);
 
   String get twoSource {
     if (twoPath == null) return null;
@@ -45,7 +46,9 @@ class Fork {
     return _strongSource;
   }
 
-  bool get isMigrated => new File(p.join(testRoot, twoPath)).existsSync();
+  bool get oneExists => new File(p.join(testRoot, onePath)).existsSync();
+  bool get strongExists => new File(p.join(testRoot, strongPath)).existsSync();
+  bool get twoExists => new File(p.join(testRoot, twoPath)).existsSync();
 
   String _strongSource;
 
@@ -56,13 +59,13 @@ class Fork {
 
     var todos = <String>[];
 
-    if (onePath == null && strongPath == null) {
+    if (!oneExists && !twoExists) {
       // It's already been migrated, so there's nothing to move.
       note("Is already migrated.");
-    } else if (isMigrated) {
+    } else if (twoExists) {
       // If there is a migrated version and it's the same as an unmigrated one,
       // delete the unmigrated one.
-      if (onePath != null) {
+      if (oneExists) {
         if (oneSource == twoSource) {
           deleteFile(onePath);
           done("Deleted already-migrated $onePath.");
@@ -73,7 +76,7 @@ class Fork {
         }
       }
 
-      if (strongPath != null) {
+      if (strongExists) {
         if (strongSource == twoSource) {
           deleteFile(strongPath);
           done("Deleted already-migrated ${bold(strongPath)}.");
@@ -84,11 +87,11 @@ class Fork {
         }
       }
     } else {
-      if (strongPath == null) {
+      if (!strongExists) {
         // If it only exists in one place, just move it.
         moveFile(onePath, twoPath);
         done("Moved from ${bold(onePath)} (no strong mode fork).");
-      } else if (onePath == null) {
+      } else if (!oneExists) {
         // If it only exists in one place, just move it.
         moveFile(strongPath, twoPath);
         done("Moved from ${bold(strongPath)} (no 1.0 mode fork).");
@@ -108,7 +111,7 @@ class Fork {
     }
 
     // See what work is left to be done in the migrated file.
-    if (isMigrated) {
+    if (twoExists) {
       validateFile(twoPath, twoSource, todos);
     }
 

@@ -83,7 +83,8 @@ class StatusFile {
       var match = _sectionPattern.firstMatch(source);
       if (match != null) {
         try {
-          section = new StatusSection(Expression.parse(match[1].trim()));
+          var condition = Expression.parse(match[1].trim());
+          section = new StatusSection(condition, lineNumber);
           sections.add(section);
         } on FormatException {
           fail("Status expression syntax error");
@@ -111,11 +112,12 @@ class StatusFile {
         // If we haven't found a section header yet, create an implicit section
         // that matches everything.
         if (section == null) {
-          section = new StatusSection(null);
+          section = new StatusSection(null, -1);
           sections.add(section);
         }
 
-        section.entries.add(new StatusEntry(path, expectations, issue));
+        section.entries
+            .add(new StatusEntry(path, lineNumber, expectations, issue));
         continue;
       }
 
@@ -188,22 +190,30 @@ class StatusSection {
   /// May be `null` for paths that appear before any section header in the file.
   /// In that case, the section always applies.
   final Expression condition;
+
+  /// The one-based line number where the entry appears in the file.
+  final int lineNumber;
+
   final List<StatusEntry> entries = [];
 
   /// Returns true if this section should apply in the given [environment].
   bool isEnabled(Environment environment) =>
       condition == null || condition.evaluate(environment);
 
-  StatusSection(this.condition);
+  StatusSection(this.condition, this.lineNumber);
 }
 
 /// Describes the test status of the file or files at a given path.
 class StatusEntry {
   final String path;
+
+  /// The one-based line number where the entry appears in the file.
+  final int lineNumber;
+
   final List<Expectation> expectations;
   final int issue;
 
-  StatusEntry(this.path, this.expectations, this.issue);
+  StatusEntry(this.path, this.lineNumber, this.expectations, this.issue);
 }
 
 /// Error thrown when a parse or validation error occurs in a [StatusFile].

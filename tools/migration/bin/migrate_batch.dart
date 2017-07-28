@@ -11,11 +11,12 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:status_file/status_file.dart';
 
 import 'package:migration/src/fork.dart';
 import 'package:migration/src/io.dart';
 import 'package:migration/src/log.dart';
+import 'package:migration/src/migrate_statuses.dart';
+import 'package:migration/src/test_directories.dart';
 
 const simpleDirs = const ["corelib", "language", "lib"];
 
@@ -43,23 +44,21 @@ void main(List<String> arguments) {
 
   if (startIndex == null || endIndex == null) exit(1);
 
-  var first = tests[startIndex].twoPath;
-  var last = tests[endIndex].twoPath;
+  tests = tests.sublist(startIndex, endIndex + 1);
 
-  // Make the range half-inclusive to simplify the math below.
-  endIndex++;
-
-  if (endIndex - startIndex == 0) {
+  if (tests.isEmpty) {
     print(bold("No tests in range."));
     return;
   }
 
-  print("Migrating ${bold(endIndex - startIndex)} tests from ${bold(first)} "
+  var s = tests.length == 1 ? "" : "s";
+  var first = tests.first.twoPath;
+  var last = tests.last.twoPath;
+  print("Migrating ${bold(tests.length)} test$s from ${bold(first)} "
       "to ${bold(last)}...");
   print("");
 
   var allTodos = <String, List<String>>{};
-  tests = tests.sublist(startIndex, endIndex);
   var migratedTests = 0;
   var unmigratedTests = 0;
   for (var test in tests) {
@@ -72,18 +71,9 @@ void main(List<String> arguments) {
     }
   }
 
-  // Print status file entries.
-  var statusFileEntries = new StringBuffer();
-  var statusFiles = loadStatusFiles();
-  for (var statusFile in statusFiles) {
-    printStatusFileEntries(statusFileEntries, tests, statusFile);
-  }
+  migrateStatusEntries(tests);
 
-  new File("statuses.migration")
-      .writeAsStringSync(statusFileEntries.toString());
-  print("Wrote relevant test status file entries to 'statuses.migration'.");
-
-  // Tell the user what's left TODO.
+  // Tell the user what's left to do.
   print("");
   var summary = "";
 
@@ -103,37 +93,6 @@ void main(List<String> arguments) {
   for (var todoTest in todoTests) {
     print("- ${bold(todoTest)}:");
     allTodos[todoTest].forEach(todo);
-  }
-}
-
-/// Returns a [String] of the relevant status file entries associated with the
-/// tests in [tests] found in [statusFile].
-void printStatusFileEntries(
-    StringBuffer statusFileEntries, List<Fork> tests, StatusFile statusFile) {
-  var filteredStatusFile = new StatusFile(statusFile.path);
-  var testNames = <String>[];
-  for (var test in tests) {
-    testNames.add(test.twoPath.split("/").last.split(".")[0]);
-  }
-  for (var section in statusFile.sections) {
-    StatusSection currentSection;
-    for (var entry in section.entries) {
-      for (var testName in testNames) {
-        if (entry.path.contains(testName)) {
-          if (currentSection == null) {
-            currentSection = new StatusSection(section.condition);
-          }
-          currentSection.entries.add(entry);
-        }
-      }
-    }
-    if (currentSection != null) {
-      filteredStatusFile.sections.add(currentSection);
-    }
-  }
-  if (!filteredStatusFile.isEmpty) {
-    statusFileEntries.writeln("Entries for status file ${statusFile.path}:");
-    statusFileEntries.writeln(filteredStatusFile);
   }
 }
 
@@ -167,38 +126,19 @@ int findFork(List<Fork> forks, String description) {
 List<Fork> scanTests() {
   var tests = <String, Fork>{};
 
-  addFromDirectory(String fromDir, String twoDir) {
+  for (var fromDir in fromRootDirs) {
+    var twoDir = toTwoDirectory(fromDir);
     for (var path in listFiles(fromDir)) {
       var fromPath = p.relative(path, from: testRoot);
       var twoPath = p.join(twoDir, p.relative(fromPath, from: fromDir));
 
-      var fork = tests.putIfAbsent(twoPath, () => new Fork(twoPath));
-      if (fromDir.contains("_strong")) {
-        fork.strongPath = fromPath;
-      } else {
-        fork.onePath = fromPath;
-      }
+      tests.putIfAbsent(twoPath, () => new Fork(twoPath));
     }
   }
 
-  addFromDirectory("corelib", "corelib_2");
-  addFromDirectory("corelib_strong", "corelib_2");
-  addFromDirectory("html", "lib_2/html");
-  addFromDirectory("isolate", "lib_2/isolate");
-  addFromDirectory("language", "language_2");
-  addFromDirectory("language_strong", "language_2");
-  addFromDirectory("lib", "lib_2");
-  addFromDirectory("lib_strong", "lib_2");
-
   // Include tests that have already been migrated too so we can show what
   // works remains to be done in them.
-  const twoDirs = const [
-    "corelib_2",
-    "lib_2",
-    "language_2",
-  ];
-
-  for (var dir in twoDirs) {
+  for (var dir in twoRootDirs) {
     for (var path in listFiles(dir)) {
       var twoPath = p.relative(path, from: testRoot);
       tests.putIfAbsent(twoPath, () => new Fork(twoPath));
@@ -208,24 +148,4 @@ List<Fork> scanTests() {
   var sorted = tests.values.toList();
   sorted.sort((a, b) => a.twoPath.compareTo(b.twoPath));
   return sorted;
-}
-
-List<StatusFile> loadStatusFiles() {
-  var statusFiles = <StatusFile>[];
-
-  addStatusFile(String fromDir) {
-    for (var path in listFiles(fromDir, extension: ".status")) {
-      statusFiles.add(new StatusFile.read(path));
-    }
-  }
-
-  addStatusFile("corelib");
-  addStatusFile("corelib_strong");
-  addStatusFile("html");
-  addStatusFile("isolate");
-  addStatusFile("language");
-  addStatusFile("language_strong");
-  addStatusFile("lib");
-  addStatusFile("lib_strong");
-  return statusFiles;
 }
