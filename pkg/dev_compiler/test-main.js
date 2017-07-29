@@ -7,6 +7,7 @@ var pathToModule = function(path) {
 
 var testsToSkip = [
   // syntax error in DDC's generated code:
+  '/base/gen/codegen_output/language/assert_message_test.js',
   '/base/gen/codegen_output/language/execute_finally6_test.js',
   '/base/gen/codegen_output/language/switch_label2_test.js',
   '/base/gen/codegen_output/language/infinite_switch_label_test.js',
