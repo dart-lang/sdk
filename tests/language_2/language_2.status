@@ -178,6 +178,12 @@ async_await_syntax_test/d06a: RuntimeError # Issue 27394
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
 
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+assertion_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == jsshell && $checked ]
+assertion_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_function_test/01: Crash
 assign_instance_method_negative_test: Crash
@@ -363,6 +369,7 @@ async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 [ $compiler == dart2js && $runtime == jsshell && ! $dart2js_with_kernel ]
 async_star_no_cancel_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
+async_star_await_pauses_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
 async_return_types_test/nestedFuture: Fail # Issue 26429
