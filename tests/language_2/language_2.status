@@ -426,11 +426,7 @@ async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 
 [ $compiler == dartk && $runtime == vm ]
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_regression_fisk_test: Timeout
-async_star_stream_take_test: Timeout
-async_star_take_reyield_test: Timeout
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async_star_regression_2238_test: CompileTimeError, RuntimeError
