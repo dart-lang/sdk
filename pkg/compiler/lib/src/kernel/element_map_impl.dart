@@ -673,38 +673,6 @@ abstract class ElementCreatorMixin {
     });
   }
 
-  // TODO(johnniwinther,efortuna): Create the class index and data together with
-  // the [KernelClosureClass].
-  void addClosureClass(KernelClosureClass cls, InterfaceType supertype) {
-    cls.classIndex = _classEnvs.length;
-    _classEnvs.add(new ClassEnv.closureClass());
-    _classList.add(cls);
-
-    // Create a classData and set up the interfaces and subclass
-    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
-    var closureData =
-        new ClassData(null, new ClosureClassDefinition(cls, cls.location));
-    closureData
-      ..isMixinApplication = false
-      ..thisType =
-          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
-      ..supertype = supertype
-      ..interfaces = const <InterfaceType>[];
-    var setBuilder =
-        new _KernelOrderedTypeSetBuilder((this as KernelToElementMapBase), cls);
-    _classData.add(closureData);
-    closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
-        closureData.supertype, const Link<InterfaceType>());
-
-    cls.forEachCapturedVariable((Local local, JField field) {
-      field.setClosureMemberIndex = _memberData.length;
-      // TODO(efortuna): Uncomment this line after Johnni's added in his CL
-      // about Class/MemberDefinition.
-      //_memberData.add(field);
-    });
-    // TODO(efortuna): Does getMetadata get called in ClassData for this object?
-  }
-
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
       KLibrary library = _getLibrary(node.enclosingLibrary);
@@ -2011,6 +1979,87 @@ class JsKernelToElementMap extends KernelToElementMapBase
         f(data.constructorBody);
       }
     });
+  }
+
+  KernelClosureClass constructClosureClass(
+      String name,
+      JLibrary enclosingLibrary,
+      KernelScopeInfo info,
+      ir.Location location,
+      KernelToLocalsMap localsMap,
+      InterfaceType supertype) {
+    KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
+        name, _classEnvs.length, enclosingLibrary, info, location, localsMap);
+    _classList.add(cls);
+    _classEnvs.add(new ClassEnv.closureClass());
+
+    // Create a classData and set up the interfaces and subclass
+    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
+    var closureData =
+        new ClassData(null, new ClosureClassDefinition(cls, cls.location));
+    closureData
+      ..isMixinApplication = false
+      ..thisType =
+          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
+      ..supertype = supertype
+      ..interfaces = const <InterfaceType>[];
+    var setBuilder = new _KernelOrderedTypeSetBuilder(this, cls);
+    _classData.add(closureData);
+    closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
+        closureData.supertype, const Link<InterfaceType>());
+
+    int i = 0;
+    for (ir.VariableDeclaration variable in info.freeVariables) {
+      // Make a corresponding field entity in this closure class for every
+      // single freeVariable in the KernelScopeInfo.freeVariable.
+      _constructClosureFields(cls, variable, i, localsMap);
+      i++;
+    }
+
+    // TODO(efortuna): Does getMetadata get called in ClassData for this object?
+    return cls;
+  }
+
+  _constructClosureFields(
+      KernelClosureClass cls,
+      ir.VariableDeclaration variable,
+      int fieldNumber,
+      KernelToLocalsMap localsMap) {
+    // NOTE: This construction order may be slightly different than the
+    // old Element version. The old version did all the boxed items and then
+    // all the others.
+    Local capturedLocal = localsMap.getLocalVariable(variable);
+    if (cls.isBoxed(capturedLocal)) {
+      // TODO(efortuna): Coming soon.
+    } else {
+      var closureField = new ClosureField(
+          _getClosureVariableName(capturedLocal.name, fieldNumber),
+          _memberData.length,
+          cls,
+          variable.isConst,
+          variable.isFinal || variable.isConst);
+      cls.localToFieldMap[capturedLocal] = closureField;
+      _memberList.add(closureField);
+      _memberData.add(new MemberData(
+          null,
+          new ClosureMemberDefinition(cls.localToFieldMap[capturedLocal],
+              variable.location, MemberKind.closureField, variable)));
+    }
+  }
+
+  /// Generate a unique name for the [id]th closure field, with proposed name
+  /// [name].
+  ///
+  /// The result is used as the name of [ClosureFieldElement]s, and must
+  /// therefore be unique to avoid breaking an invariant in the element model
+  /// (classes cannot declare multiple fields with the same name).
+  ///
+  /// Also, the names should be distinct from real field names to prevent
+  /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
+  String _getClosureVariableName(String name, int id) {
+    return "_captured_${name}_$id";
   }
 
   String getDeferredUri(ir.LibraryDependency node) {

@@ -210,6 +210,9 @@ enum MemberKind {
   // A closure class `call` method whose body is defined by an
   // [ir.FunctionExpression].
   closureCall,
+  // A field corresponding to a captured variable in the closure. It does not
+  // have a corresponding ir.Node.
+  closureField,
 }
 
 /// Definition information for a [MemberEntity].

@@ -366,7 +366,7 @@ closure_capture2_test: RuntimeError
 closure_capture3_test: RuntimeError
 closure_capture4_test: RuntimeError
 closure_capture5_test: RuntimeError
-closure_capture6_test: RuntimeError
+closure_capture6_test: Crash
 closure_capture_test: RuntimeError
 closure_test: RuntimeError
 closure_type_reflection2_test: Crash

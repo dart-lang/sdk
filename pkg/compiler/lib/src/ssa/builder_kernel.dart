@@ -170,6 +170,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _targetFunction = constructor.function;
           buildConstructorBody(constructor);
           break;
+        case MemberKind.closureField:
+          failedAt(targetElement, "Unexpected closure field: $targetElement");
+          break;
       }
       assert(graph.isValid());
       if (_targetFunction != null) {

@@ -314,23 +314,15 @@ class JClass implements ClassEntity, IndexedClass {
 
 abstract class JMember implements MemberEntity, IndexedMember {
   /// Member index used for fast lookup in [JsToFrontendMapImpl].
-  int _memberIndex;
+  final int memberIndex;
   final JLibrary library;
   final JClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  JMember(this._memberIndex, this.library, this.enclosingClass, this._name,
+  JMember(this.memberIndex, this.library, this.enclosingClass, this._name,
       {bool isStatic: false})
       : _isStatic = isStatic;
-
-  int get memberIndex => _memberIndex;
-
-  /// Should only be called by closure methods. All others should set
-  /// memberIndex at initialization time.
-  void set setClosureMemberIndex(int newIndex) {
-    _memberIndex = newIndex;
-  }
 
   String get name => _name.text;
 

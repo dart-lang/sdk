@@ -4,6 +4,8 @@
 
 library dart2js.js_model.strategy;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../closure.dart' show ClosureConversionTask;
 import '../common.dart';
 import '../common/tasks.dart';
@@ -383,11 +385,22 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             classHierarchyNodes,
             classSets);
 
-  @override
-  void registerClosureClass(ClassEntity cls) {
+  /// Construct a closure class and set up the necessary class inference
+  /// hierarchy.
+  KernelClosureClass buildClosureClass(String name, JLibrary enclosingLibrary,
+      KernelScopeInfo info, ir.Location location, KernelToLocalsMap localsMap) {
+    ClassEntity superclass = commonElements.closureClass;
+
+    KernelClosureClass cls = elementMap.constructClosureClass(
+        name,
+        enclosingLibrary,
+        info,
+        location,
+        localsMap,
+        new InterfaceType(superclass, const []));
+
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)
-    ClassEntity superclass = commonElements.closureClass;
     ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
     ClassHierarchyNode node = new ClassHierarchyNode(
         parentNode, cls, getHierarchyDepth(superclass) + 1);
@@ -399,7 +412,13 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       subtypeSet.addSubtype(node);
     }
     addClassSet(cls, new ClassSet(node));
-    elementMap.addClosureClass(cls, new InterfaceType(superclass, const []));
     node.isDirectlyInstantiated = true;
+
+    return cls;
+  }
+
+  @override
+  void registerClosureClass(ClassEntity cls) {
+    throw new UnsupportedError('JsClosedWorld.registerClosureClass');
   }
 }

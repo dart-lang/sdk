@@ -16,6 +16,7 @@ import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
 import 'locals.dart';
+import 'js_strategy.dart' show JsClosedWorld;
 
 /// Closure conversion code using our new Entity model. Closure conversion is
 /// necessary because the semantics of closures are slightly different in Dart
@@ -90,7 +91,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   }
 
   void _createClosureEntities(Map<MemberEntity, ClosureModel> closureModels,
-      ClosedWorldRefiner closedWorldRefiner) {
+      JsClosedWorld closedWorldRefiner) {
     closureModels.forEach((MemberEntity member, ClosureModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       if (model.scopeInfo != null) {
@@ -152,10 +153,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       MemberEntity member,
       ir.TreeNode /* ir.Member | ir.FunctionNode */ node,
       KernelScopeInfo info,
-      ClosedWorldRefiner closedWorldRefiner) {
+      JsClosedWorld closedWorldRefiner) {
     String name = _computeClosureName(node);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
-    KernelClosureClass closureClass = new KernelClosureClass.fromScopeInfo(
+    KernelClosureClass closureClass = closedWorldRefiner.buildClosureClass(
         name, member.library, info, node.location, localsMap);
 
     Entity entity;
@@ -170,9 +171,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     }
     assert(entity != null);
     _closureRepresentationMap[entity] = closureClass;
-
-    // Register that a new class has been created.
-    closedWorldRefiner.registerClosureClass(closureClass);
   }
 
   // Returns a non-unique name for the given closure element.
@@ -395,49 +393,13 @@ class KernelClosureClass extends JsScopeInfo
 
   /// Index into the classData, classList and classEnvironment lists where this
   /// entity is stored in [JsToFrontendMapImpl].
-  int classIndex;
+  final int classIndex;
 
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
-  KernelClosureClass.fromScopeInfo(this.name, this.library,
+  KernelClosureClass.fromScopeInfo(this.name, this.classIndex, this.library,
       KernelScopeInfo info, this.location, KernelToLocalsMap localsMap)
-      : super.from(info, localsMap) {
-    // Make a corresponding field entity in this closure class for every single
-    // freeVariable in the KernelScopeInfo.freeVariable.
-    int i = 0;
-    for (ir.VariableDeclaration variable in info.freeVariables) {
-      // NOTE: This construction order may be slightly different than the
-      // old Element version. The old version did all the boxed items and then
-      // all the others.
-      Local capturedLocal = localsMap.getLocalVariable(variable);
-      if (isBoxed(capturedLocal)) {
-        // TODO(efortuna): Coming soon.
-      } else {
-        localToFieldMap[capturedLocal] = new ClosureField(
-            _getClosureVariableName(capturedLocal.name, i),
-            this,
-            variable.isConst,
-            variable.isFinal || variable.isConst);
-        // TODO(efortuna): These probably need to get registered somewhere.
-      }
-      i++;
-    }
-  }
-
-  /// Generate a unique name for the [id]th closure field, with proposed name
-  /// [name].
-  ///
-  /// The result is used as the name of [ClosureFieldElement]s, and must
-  /// therefore be unique to avoid breaking an invariant in the element model
-  /// (classes cannot declare multiple fields with the same name).
-  ///
-  /// Also, the names should be distinct from real field names to prevent
-  /// clashes with selectors for those fields.
-  ///
-  /// These names are not used in generated code, just as element name.
-  String _getClosureVariableName(String name, int id) {
-    return "_captured_${name}_$id";
-  }
+      : super.from(info, localsMap);
 
   // TODO(efortuna): Implement.
   Local get closureEntity => null;
@@ -474,9 +436,9 @@ class KernelClosureClass extends JsScopeInfo
 }
 
 class ClosureField extends JField {
-  ClosureField(String name, KernelClosureClass containingClass, bool isConst,
-      bool isAssignable)
-      : super(-1, containingClass.library, containingClass,
+  ClosureField(String name, int memberIndex, KernelClosureClass containingClass,
+      bool isConst, bool isAssignable)
+      : super(memberIndex, containingClass.library, containingClass,
             new Name(name, containingClass.library),
             isAssignable: isAssignable, isConst: isConst);
 }
@@ -494,6 +456,18 @@ class ClosureClassDefinition implements ClassDefinition {
 
   String toString() =>
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
+}
+
+class ClosureMemberDefinition implements MemberDefinition {
+  final MemberEntity member;
+  final ir.Location location;
+  final MemberKind kind;
+  final ir.Node node;
+
+  ClosureMemberDefinition(this.member, this.location, this.kind, this.node);
+
+  String toString() =>
+      'ClosureMemberDefinition(kind:$kind,member:$member,location:$location)';
 }
 
 /// Collection of closure data collected for a single member.
