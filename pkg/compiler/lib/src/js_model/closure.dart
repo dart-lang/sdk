@@ -7,9 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common/tasks.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart' show Name;
 import '../kernel/element_map.dart';
 import '../world.dart';
@@ -108,9 +106,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         }
       });
 
-      Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
+      Map<ir.FunctionNode, KernelScopeInfo> closuresToGenerate =
           model.closuresToGenerate;
-      for (ir.TreeNode node in closuresToGenerate.keys) {
+      for (ir.FunctionNode node in closuresToGenerate.keys) {
         _produceSyntheticElements(
             member, node, closuresToGenerate[node], closedWorldRefiner);
       }
@@ -149,70 +147,18 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// the closure accesses a variable that gets accessed at some point), then
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
-  void _produceSyntheticElements(
-      MemberEntity member,
-      ir.TreeNode /* ir.Member | ir.FunctionNode */ node,
-      KernelScopeInfo info,
-      JsClosedWorld closedWorldRefiner) {
-    String name = _computeClosureName(node);
+  void _produceSyntheticElements(MemberEntity member, ir.FunctionNode node,
+      KernelScopeInfo info, JsClosedWorld closedWorldRefiner) {
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClass closureClass = closedWorldRefiner.buildClosureClass(
-        name, member.library, info, node.location, localsMap);
+        member, node, member.library, info, node.location, localsMap);
 
-    Entity entity;
-    if (node is ir.Member) {
-      entity = member;
-    } else {
-      assert(node is ir.FunctionNode);
-      entity = localsMap.getLocalFunction(node.parent);
-      // We want the original declaration where that function is used to point
-      // to the correct closure class.
-      _closureRepresentationMap[closureClass.callMethod] = closureClass;
-    }
+    // We want the original declaration where that function is used to point
+    // to the correct closure class.
+    _closureRepresentationMap[closureClass.callMethod] = closureClass;
+    Entity entity = localsMap.getLocalFunction(node.parent);
     assert(entity != null);
     _closureRepresentationMap[entity] = closureClass;
-  }
-
-  // Returns a non-unique name for the given closure element.
-  String _computeClosureName(ir.TreeNode treeNode) {
-    var parts = <String>[];
-    if (treeNode is ir.Field && treeNode.name.name != "") {
-      parts.add(treeNode.name.name);
-    } else {
-      parts.add('closure');
-    }
-    ir.TreeNode node = treeNode.parent;
-    while (node != null &&
-        (node is ir.Constructor ||
-            node is ir.Class ||
-            node is ir.FunctionNode ||
-            node is ir.Procedure)) {
-      // TODO(johnniwinther): Simplify computed names.
-      if (node is ir.Constructor ||
-          node.parent is ir.Constructor ||
-          (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory)) {
-        FunctionEntity entity;
-        if (node.parent is ir.Constructor) {
-          entity = _elementMap.getConstructorBody(node);
-        } else {
-          entity = _elementMap.getMember(node);
-        }
-        parts.add(utils.reconstructConstructorName(entity));
-      } else {
-        String surroundingName = '';
-        if (node is ir.Class) {
-          surroundingName = Elements.operatorNameToIdentifier(node.name);
-        } else if (node is ir.Procedure) {
-          surroundingName = Elements.operatorNameToIdentifier(node.name.name);
-        }
-        parts.add(surroundingName);
-      }
-      // A generative constructors's parent is the class; the class name is
-      // already part of the generative constructor's name.
-      if (node is ir.Constructor) break;
-      node = node.parent;
-    }
-    return parts.reversed.join('_');
   }
 
   @override
@@ -390,6 +336,7 @@ class KernelClosureClass extends JsScopeInfo
 
   final String name;
   final JLibrary library;
+  JFunction callMethod;
 
   /// Index into the classData, classList and classEnvironment lists where this
   /// entity is stored in [JsToFrontendMapImpl].
@@ -405,9 +352,6 @@ class KernelClosureClass extends JsScopeInfo
   Local get closureEntity => null;
 
   ClassEntity get closureClassEntity => this;
-
-  // TODO(efortuna): Implement.
-  FunctionEntity get callMethod => null;
 
   List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
@@ -435,9 +379,9 @@ class KernelClosureClass extends JsScopeInfo
   String toString() => '${jsElementPrefix}class($name)';
 }
 
-class ClosureField extends JField {
-  ClosureField(String name, int memberIndex, KernelClosureClass containingClass,
-      bool isConst, bool isAssignable)
+class JClosureField extends JField {
+  JClosureField(String name, int memberIndex,
+      KernelClosureClass containingClass, bool isConst, bool isAssignable)
       : super(memberIndex, containingClass.library, containingClass,
             new Name(name, containingClass.library),
             isAssignable: isAssignable, isConst: isConst);
@@ -483,6 +427,6 @@ class ClosureModel {
       <ir.Node, KernelCapturedScope>{};
 
   /// Collected [ScopeInfo] data for nodes.
-  Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
-      <ir.TreeNode, KernelScopeInfo>{};
+  Map<ir.FunctionNode, KernelScopeInfo> closuresToGenerate =
+      <ir.FunctionNode, KernelScopeInfo>{};
 }

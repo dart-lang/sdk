@@ -25,8 +25,8 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// A map of the nodes that we have flagged as necessary to generate closure
   /// classes for in a later stage. We map that node to information ascertained
   /// about variable usage in the surrounding scope.
-  Map<ir.TreeNode /* ir.Field | ir.FunctionNode */, KernelScopeInfo>
-      get _closuresToGenerate => _model.closuresToGenerate;
+  Map<ir.FunctionNode, KernelScopeInfo> get _closuresToGenerate =>
+      _model.closuresToGenerate;
 
   /// The local variables that have been declared in the current scope.
   List<ir.VariableDeclaration> _scopeVariables;

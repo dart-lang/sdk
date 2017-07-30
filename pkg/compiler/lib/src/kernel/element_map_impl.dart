@@ -18,6 +18,7 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
@@ -1982,12 +1983,14 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   KernelClosureClass constructClosureClass(
-      String name,
+      MemberEntity member,
+      ir.FunctionNode node,
       JLibrary enclosingLibrary,
       KernelScopeInfo info,
       ir.Location location,
       KernelToLocalsMap localsMap,
       InterfaceType supertype) {
+    String name = _computeClosureName(node);
     KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
         name, _classEnvs.length, enclosingLibrary, info, location, localsMap);
     _classList.add(cls);
@@ -2016,6 +2019,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
       i++;
     }
 
+    cls.callMethod = new JClosureCallMethod(_memberData.length, cls, member);
+    _memberList.add(cls.callMethod);
+    _memberData.add(new MemberData(
+        null,
+        new ClosureMemberDefinition(
+            member, cls.location, MemberKind.closureCall, node.parent)));
+
     // TODO(efortuna): Does getMetadata get called in ClassData for this object?
     return cls;
   }
@@ -2032,7 +2042,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     if (cls.isBoxed(capturedLocal)) {
       // TODO(efortuna): Coming soon.
     } else {
-      var closureField = new ClosureField(
+      var closureField = new JClosureField(
           _getClosureVariableName(capturedLocal.name, fieldNumber),
           _memberData.length,
           cls,
@@ -2045,6 +2055,48 @@ class JsKernelToElementMap extends KernelToElementMapBase
           new ClosureMemberDefinition(cls.localToFieldMap[capturedLocal],
               variable.location, MemberKind.closureField, variable)));
     }
+  }
+
+  // Returns a non-unique name for the given closure element.
+  String _computeClosureName(ir.TreeNode treeNode) {
+    var parts = <String>[];
+    if (treeNode is ir.Field && treeNode.name.name != "") {
+      parts.add(treeNode.name.name);
+    } else {
+      parts.add('closure');
+    }
+    ir.TreeNode node = treeNode.parent;
+    while (node != null &&
+        (node is ir.Constructor ||
+            node is ir.Class ||
+            node is ir.FunctionNode ||
+            node is ir.Procedure)) {
+      // TODO(johnniwinther): Simplify computed names.
+      if (node is ir.Constructor ||
+          node.parent is ir.Constructor ||
+          (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory)) {
+        FunctionEntity entity;
+        if (node.parent is ir.Constructor) {
+          entity = getConstructorBody(node);
+        } else {
+          entity = getMember(node);
+        }
+        parts.add(utils.reconstructConstructorName(entity));
+      } else {
+        String surroundingName = '';
+        if (node is ir.Class) {
+          surroundingName = Elements.operatorNameToIdentifier(node.name);
+        } else if (node is ir.Procedure) {
+          surroundingName = Elements.operatorNameToIdentifier(node.name.name);
+        }
+        parts.add(surroundingName);
+      }
+      // A generative constructors's parent is the class; the class name is
+      // already part of the generative constructor's name.
+      if (node is ir.Constructor) break;
+      node = node.parent;
+    }
+    return parts.reversed.join('_');
   }
 
   /// Generate a unique name for the [id]th closure field, with proposed name

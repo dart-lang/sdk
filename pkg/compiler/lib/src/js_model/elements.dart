@@ -4,11 +4,13 @@
 
 library dart2js.js_model.elements;
 
+import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../kernel/elements.dart';
 import '../kernel/element_map_impl.dart';
+import 'closure.dart' show KernelClosureClass;
 
 /// Map from 'frontend' to 'backend' elements.
 ///
@@ -516,6 +518,20 @@ class JField extends JMember implements FieldEntity, IndexedField {
   bool get isField => true;
 
   String get _kind => 'field';
+}
+
+class JClosureCallMethod extends JFunction {
+  JClosureCallMethod(int memberIndex, KernelClosureClass containingClass,
+      JFunction origClosureFunctionNode)
+      : super(
+            memberIndex,
+            containingClass.library,
+            containingClass,
+            new Name(Identifiers.call, containingClass.library),
+            origClosureFunctionNode.parameterStructure,
+            origClosureFunctionNode.asyncMarker);
+
+  String get _kind => 'closure_call';
 }
 
 class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {

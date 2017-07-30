@@ -387,12 +387,18 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
-  KernelClosureClass buildClosureClass(String name, JLibrary enclosingLibrary,
-      KernelScopeInfo info, ir.Location location, KernelToLocalsMap localsMap) {
+  KernelClosureClass buildClosureClass(
+      MemberEntity member,
+      ir.FunctionNode originalClosureFunctionNode,
+      JLibrary enclosingLibrary,
+      KernelScopeInfo info,
+      ir.Location location,
+      KernelToLocalsMap localsMap) {
     ClassEntity superclass = commonElements.closureClass;
 
     KernelClosureClass cls = elementMap.constructClosureClass(
-        name,
+        member,
+        originalClosureFunctionNode,
         enclosingLibrary,
         info,
         location,
