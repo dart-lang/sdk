@@ -249,6 +249,9 @@ string_base_vm_static_test: MissingCompileTimeError
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK # Bug in Firefox.
 
+[ $compiler == dart2js && $runtime == jsshell ]
+regexp/UC16_test: RuntimeError
+
 [ $compiler == none && $runtime == drt ]
 string_from_environment2_test: Skip
 string_from_environment3_test: Skip
