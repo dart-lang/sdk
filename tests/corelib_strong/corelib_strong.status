@@ -28,7 +28,6 @@ list_filled_type_argument_test: Skip
 list_index_of2_test: Skip
 list_test: Skip
 list_unmodifiable_test: Skip
-map_test: Skip
 regexp/global_test: Skip
 regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
@@ -48,8 +47,6 @@ list_insert_test: RuntimeError # Issue 29921
 list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
-main_test: RuntimeError # Issue 29921
-map_keys2_test: RuntimeError # Issue 29921
 regexp/compile-crash_test: RuntimeError # Issue 29921
 regexp/default_arguments_test: RuntimeError # Issue 29921
 regexp/early-acid3-86_test: RuntimeError # Issue 29921

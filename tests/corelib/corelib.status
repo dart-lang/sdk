@@ -94,7 +94,6 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
-map_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && $dart2js_with_kernel ]
 regress/4562_test/01: Crash # Issue 27394
@@ -211,14 +210,6 @@ list_test/none: Crash
 list_to_string2_test: Crash
 list_to_string_test: Crash
 list_unmodifiable_test: Crash
-main_test: Crash
-map_contains_value_test: Crash
-map_from_iterable_test: Crash
-map_from_iterables_test: Crash
-map_from_test: Crash
-map_keys2_test: Crash
-map_keys_test: Crash
-map_test: Crash
 regexp/compile-crash_test: Crash
 regexp/compile_test: Crash
 regexp/early-acid3-86_test: Crash
@@ -282,9 +273,6 @@ symbol_reserved_word_test/12: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 list_sort_test: Crash
-map_contains_key_test: Crash
-map_index_test: Crash
-map_remove_test: Crash
 regress_11099_test: Crash
 safe_to_string_test: Crash
 sort_test: Crash
@@ -346,9 +334,6 @@ list_index_of_test: Crash
 list_literal_is_growable_test: Crash
 list_literal_test: Crash
 list_sort_test: Crash
-map_contains_key_test: Crash
-map_index_test: Crash
-map_remove_test: Crash
 reg_exp1_test: Crash
 reg_exp_first_match_test: Crash
 reg_exp_group_test: Crash
@@ -428,4 +413,3 @@ from_environment_const_type_test/11: MissingCompileTimeError # Flutter Issue 911
 from_environment_const_type_test/13: MissingCompileTimeError # Flutter Issue 9111
 from_environment_const_type_test/14: MissingCompileTimeError # Flutter Issue 9111
 from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
-main_test: RuntimeError # Flutter Issue 9111

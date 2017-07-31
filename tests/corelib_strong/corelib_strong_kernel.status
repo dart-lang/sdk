@@ -26,7 +26,6 @@ list_replace_range_test: DartkCompileTimeError
 list_set_all_test: DartkCompileTimeError
 list_set_range_test: DartkCompileTimeError
 list_sublist_test: DartkCompileTimeError
-map_keys2_test: RuntimeError
 set_test: DartkCompileTimeError
 shuffle_test: DartkCompileTimeError
 sort_test: DartkCompileTimeError

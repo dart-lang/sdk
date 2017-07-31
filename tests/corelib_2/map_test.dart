@@ -21,8 +21,8 @@ void main() {
   test(new MapView(new SplayTreeMap()));
   test(new MapBaseMap());
   test(new MapMixinMap());
-  test(newJsonMap());
-  test(newJsonMapCustomReviver());
+  test(newJsonMap(), useIntegerKeys: false);
+  test(newJsonMapCustomReviver(), useIntegerKeys: false);
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
@@ -53,8 +53,6 @@ void main() {
   testNumericKeys(new LinkedHashMap<num, String>.identity());
   testNumericKeys(new MapBaseMap<num, String>());
   testNumericKeys(new MapMixinMap<num, String>());
-  testNumericKeys(newJsonMap());
-  testNumericKeys(newJsonMapCustomReviver());
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -64,8 +62,6 @@ void main() {
   testNaNKeys(new LinkedHashMap<num, String>());
   testNaNKeys(new MapBaseMap<num, String>());
   testNaNKeys(new MapMixinMap<num, String>());
-  testNaNKeys(newJsonMap());
-  testNaNKeys(newJsonMapCustomReviver());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -121,8 +117,6 @@ void main() {
       isValidKey: (v) => v is int));
   testOtherKeys(new MapBaseMap<int, int>());
   testOtherKeys(new MapMixinMap<int, int>());
-  testOtherKeys(newJsonMap());
-  testOtherKeys(newJsonMapCustomReviver());
 
   testUnmodifiableMap(const {1: 37});
   testUnmodifiableMap(new UnmodifiableMapView({1: 37}));
@@ -131,9 +125,11 @@ void main() {
   testFrom();
 }
 
-void test(Map map) {
+void test(Map map, {bool useIntegerKeys = true}) {
   testDeletedElement(map);
-  testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
+  if (useIntegerKeys) {
+    testMap(map, 1, 2, 3, 4, 5, 6, 7, 8);
+  }
   map.clear();
   testMap(map, "value1", "value2", "value3", "value4", "value5", "value6",
       "value7", "value8");
@@ -309,33 +305,33 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   // Test Map.addAll.
   map.clear();
   otherMap.clear();
-  otherMap[99] = 1;
-  otherMap[50] = 50;
-  otherMap[1] = 99;
+  otherMap['99'] = 1;
+  otherMap['50'] = 50;
+  otherMap['1'] = 99;
   map.addAll(otherMap);
   Expect.equals(3, map.length);
-  Expect.equals(1, map[99]);
-  Expect.equals(50, map[50]);
-  Expect.equals(99, map[1]);
-  otherMap[50] = 42;
+  Expect.equals(1, map['99']);
+  Expect.equals(50, map['50']);
+  Expect.equals(99, map['1']);
+  otherMap['50'] = 42;
   map.addAll(new HashMap.from(otherMap));
   Expect.equals(3, map.length);
-  Expect.equals(1, map[99]);
-  Expect.equals(42, map[50]);
-  Expect.equals(99, map[1]);
-  otherMap[99] = 7;
+  Expect.equals(1, map['99']);
+  Expect.equals(42, map['50']);
+  Expect.equals(99, map['1']);
+  otherMap['99'] = 7;
   map.addAll(new SplayTreeMap.from(otherMap));
   Expect.equals(3, map.length);
-  Expect.equals(7, map[99]);
-  Expect.equals(42, map[50]);
-  Expect.equals(99, map[1]);
-  otherMap.remove(99);
-  map[99] = 0;
+  Expect.equals(7, map['99']);
+  Expect.equals(42, map['50']);
+  Expect.equals(99, map['1']);
+  otherMap.remove('99');
+  map['99'] = 0;
   map.addAll(otherMap);
   Expect.equals(3, map.length);
-  Expect.equals(0, map[99]);
-  Expect.equals(42, map[50]);
-  Expect.equals(99, map[1]);
+  Expect.equals(0, map['99']);
+  Expect.equals(42, map['50']);
+  Expect.equals(99, map['1']);
   map.clear();
   otherMap.clear();
   map.addAll(otherMap);
@@ -345,9 +341,9 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
 void testDeletedElement(Map map) {
   map.clear();
   for (int i = 0; i < 100; i++) {
-    map[1] = 2;
+    map['1'] = 2;
     testLength(1, map);
-    map.remove(1);
+    map.remove('1');
     testLength(0, map);
   }
   testLength(0, map);
@@ -793,9 +789,10 @@ int myHashCode(Customer c) => c.secondId;
 bool myEquals(Customer a, Customer b) => a.secondId == b.secondId;
 
 void testIterationOrder(Map map) {
-  var order = [0, 6, 4, 2, 7, 9, 7, 1, 2, 5, 3];
+  var order = ['0', '6', '4', '2', '7', '9', '7', '1', '2', '5', '3'];
   for (int i = 0; i < order.length; i++) map[order[i]] = i;
-  Expect.listEquals(map.keys.toList(), [0, 6, 4, 2, 7, 9, 1, 5, 3]);
+  Expect.listEquals(
+      map.keys.toList(), ['0', '6', '4', '2', '7', '9', '1', '5', '3']);
   Expect.listEquals(map.values.toList(), [0, 1, 2, 8, 6, 5, 7, 9, 10]);
 }
 
@@ -805,9 +802,6 @@ void testOtherKeys(Map<int, int> map) {
   // use the equality/comparator on incompatible objects.
 
   // This should not throw in either checked or unchecked mode.
-  map[0] = 0;
-  map[1] = 1;
-  map[2] = 2;
   Expect.isFalse(map.containsKey("not an int"));
   Expect.isFalse(map.containsKey(1.5));
   Expect.isNull(map.remove("not an int"));
@@ -919,7 +913,7 @@ class UnmodifiableMapBaseMap<K, V> extends UnmodifiableMapBase<K, V> {
 
   int get _modCount => 0;
 
-  V operator [](K key) {
+  V operator [](Object key) {
     int index = _keys.indexOf(key);
     if (index < 0) return null;
     return _values[index];
@@ -933,7 +927,7 @@ abstract class Super implements Comparable {}
 abstract class Interface implements Comparable {}
 
 class Sub extends Super implements Interface, Comparable {
-  int compareTo(Sub other) => 0;
+  int compareTo(dynamic other) => 0;
   int get hashCode => 0;
   bool operator ==(other) => other is Sub;
 }
