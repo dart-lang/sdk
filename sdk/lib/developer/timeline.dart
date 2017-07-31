@@ -9,12 +9,94 @@ const bool _isProduct = const bool.fromEnvironment("dart.vm.product");
 typedef dynamic TimelineSyncFunction();
 typedef Future TimelineAsyncFunction();
 
+/// A class to represent Flow events.
+///
+/// [Flow] objects are used to thread flow events between timeline slices,
+/// for example, those created with the [Timeline] class below. Adding
+/// [Flow] objects cause arrows to be drawn between slices in Chrome's trace
+/// viewer. The arrows start at e.g [Timeline] events that are passed a
+/// [Flow.begin] object, go through [Timeline] events that are passed a
+/// [Flow.step] object, and end at [Timeline] events that are passed a
+/// [Flow.end] object, all having the same [Flow.id]. For example:
+///
+/// ```dart
+/// var flow = Flow.begin();
+/// Timeline.timeSync('flow_test', () {
+///   doSomething();
+/// }, flow: flow);
+///
+/// Timeline.timeSync('flow_test', () {
+///   doSomething();
+/// }, flow: Flow.step(flow.id));
+///
+/// Timeline.timeSync('flow_test', () {
+///   doSomething();
+/// }, flow: Flow.end(flow.id));
+/// ```
+class Flow {
+  // These values must be kept in sync with the enum "EventType" in
+  // runtime/vm/timeline.h.
+  static const int _begin = 9;
+  static const int _step = 10;
+  static const int _end = 11;
+
+  final int _type;
+
+  /// The flow id of the flow event.
+  final int id;
+
+  Flow._(this._type, this.id);
+
+  /// A "begin" Flow event.
+  ///
+  /// When passed to a [Timeline] method, generates a "begin" Flow event.
+  /// If [id] is not provided, an id that conflicts with no other Dart-generated
+  /// flow id's will be generated.
+  static Flow begin({int id}) {
+    return new Flow._(_begin, id ?? _getNextAsyncId());
+  }
+
+  /// A "step" Flow event.
+  ///
+  /// When passed to a [Timeline] method, generates a "step" Flow event.
+  /// The [id] argument is required. It can come either from another [Flow]
+  /// event, or some id that comes from the environment.
+  static Flow step(int id) => new Flow._(_step, id);
+
+  /// An "end" Flow event.
+  ///
+  /// When passed to a [Timeline] method, generates a "end" Flow event.
+  /// The [id] argument is required. It can come either from another [Flow]
+  /// event, or some id that comes from the environment.
+  static Flow end(int id) => new Flow._(_end, id);
+}
+
 /// Add to the timeline.
+///
+/// [Timeline]'s methods add synchronous events to the timeline. When
+/// generating a timeline in Chrome's tracing format, using [Timeline] generates
+/// "Complete" events. [Timeline]'s [startSync] and [endSync] can be used
+/// explicitly, or implicitly by wrapping a closure in [timeSync]. For exmaple:
+///
+/// ```dart
+/// Timeline.startSync("Doing Something");
+/// doSomething();
+/// Timeline.finishSync();
+/// ```
+///
+/// Or:
+///
+/// ```dart
+/// Timeline.timeSync("Doing Something", () {
+///   doSomething();
+/// });
+/// ```
 class Timeline {
   /// Start a synchronous operation labeled [name]. Optionally takes
-  /// a [Map] of [arguments]. This operation must be finished before
+  /// a [Map] of [arguments]. This slice may also optionally be associated with
+  /// a [Flow] event. This operation must be finished before
   /// returning to the event queue.
-  static void startSync(String name, {Map arguments}) {
+  static void startSync(String name, {Map arguments, Flow flow}) {
     if (_isProduct) {
       return;
     }
@@ -29,6 +111,9 @@ class Timeline {
     var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
     if (arguments is Map) {
       block._appendArguments(arguments);
+    }
+    if (flow is Flow) {
+      block.flow = flow;
     }
     _stack.add(block);
   }
@@ -74,8 +159,8 @@ class Timeline {
   /// A utility method to time a synchronous [function]. Internally calls
   /// [function] bracketed by calls to [startSync] and [finishSync].
   static dynamic timeSync(String name, TimelineSyncFunction function,
-      {Map arguments}) {
-    startSync(name, arguments: arguments);
+      {Map arguments, Flow flow}) {
+    startSync(name, arguments: arguments, flow: flow);
     try {
       return function();
     } finally {
@@ -225,6 +310,9 @@ class _SyncBlock {
   // The start time stamp of the thread cpu clock.
   final int _startCpu;
 
+  /// An (optional) flow event associated with this block.
+  Flow _flow;
+
   _SyncBlock._(this.name, this._start, this._startCpu);
 
   /// Finish this block of time. At this point, this block can no longer be
@@ -233,6 +321,10 @@ class _SyncBlock {
     // Report event to runtime.
     _reportCompleteEvent(
         _start, _startCpu, category, name, _argumentsAsJson(_arguments));
+    if (_flow != null) {
+      _reportFlowEvent(_start, _startCpu, category, name, _flow._type, _flow.id,
+          _argumentsAsJson(null));
+    }
   }
 
   void _appendArguments(Map arguments) {
@@ -243,6 +335,10 @@ class _SyncBlock {
       _arguments = {};
     }
     _arguments.addAll(arguments);
+  }
+
+  void set flow(Flow f) {
+    _flow = f;
   }
 }
 
@@ -282,6 +378,10 @@ external void _reportTaskEvent(int start, int taskId, String phase,
 /// Reports a complete synchronous event.
 external void _reportCompleteEvent(int start, int startCpu, String category,
     String name, String argumentsAsJson);
+
+/// Reports a flow event.
+external void _reportFlowEvent(int start, int startCpu, String category,
+    String name, int type, int id, String argumentsAsJson);
 
 /// Reports an instant event.
 external void _reportInstantEvent(

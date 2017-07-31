@@ -1696,6 +1696,57 @@ void DartCommonTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
   event->CompleteWithPreSerializedJSON(json);
 }
 
+void DartCommonTimelineEventHelpers::ReportFlowEvent(Thread* thread,
+                                                     Zone* zone,
+                                                     TimelineEvent* event,
+                                                     int64_t start,
+                                                     int64_t start_cpu,
+                                                     const char* category,
+                                                     const char* name,
+                                                     int64_t type,
+                                                     int64_t flow_id,
+                                                     const char* args) {
+  const int64_t pid = OS::ProcessId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  const int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
+
+  TimelineEvent::EventType event_type =
+      static_cast<TimelineEvent::EventType>(type);
+  const char* typestr;
+  const char* bpstr = "";
+  switch (event_type) {
+    case TimelineEvent::kFlowBegin:
+      typestr = "s";
+      break;
+    case TimelineEvent::kFlowStep:
+      typestr = "t";
+      break;
+    case TimelineEvent::kFlowEnd:
+      typestr = "f";
+      bpstr = ", \"bp\":\"e\"";
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+
+  char* json = OS::SCreate(
+      zone,
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64
+      ","
+      "\"ts\":%" Pd64 ",\"ph\":\"%s\", \"id\":%" Pd64 "%s, \"args\":%s}",
+      name, category, tid, pid, start, typestr, flow_id, bpstr, args);
+  ASSERT(json != NULL);
+
+  // Doesn't really matter what it is since it gets overriden by the
+  // preserialized json.
+  event->FlowBegin("", flow_id, start);
+
+  // json was allocated in the zone and a copy will be stored in event.
+  event->CompleteWithPreSerializedJSON(json);
+}
+
 void DartCommonTimelineEventHelpers::ReportInstantEvent(Thread* thread,
                                                         Zone* zone,
                                                         TimelineEvent* event,

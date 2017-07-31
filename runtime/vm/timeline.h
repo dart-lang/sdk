@@ -875,6 +875,17 @@ class DartTimelineEventHelpers : public AllStatic {
                                   const char* name,
                                   const char* args);
 
+  static void ReportFlowEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t start_cpu,
+                              const char* category,
+                              const char* name,
+                              int64_t type,
+                              int64_t flow_id,
+                              const char* args);
+
   static void ReportInstantEvent(Thread* thread,
                                  Zone* zone,
                                  TimelineEvent* event,
@@ -906,6 +917,17 @@ class DartCommonTimelineEventHelpers : public AllStatic {
                                   const char* category,
                                   const char* name,
                                   const char* args);
+
+  static void ReportFlowEvent(Thread* thread,
+                              Zone* zone,
+                              TimelineEvent* event,
+                              int64_t start,
+                              int64_t start_cpu,
+                              const char* category,
+                              const char* name,
+                              int64_t type,
+                              int64_t flow_id,
+                              const char* args);
 
   static void ReportInstantEvent(Thread* thread,
                                  Zone* zone,

@@ -145,6 +145,21 @@ void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
       thread, zone, event, start, start_cpu, category, name, args);
 }
 
+void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
+                                               Zone* zone,
+                                               TimelineEvent* event,
+                                               int64_t start,
+                                               int64_t start_cpu,
+                                               const char* category,
+                                               const char* name,
+                                               int64_t type,
+                                               int64_t flow_id,
+                                               const char* args) {
+  DartCommonTimelineEventHelpers::ReportFlowEvent(thread, zone, event, start,
+                                                  start_cpu, category, name,
+                                                  type, flow_id, args);
+}
+
 void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
                                                   Zone* zone,
                                                   TimelineEvent* event,

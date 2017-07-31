@@ -17,6 +17,14 @@ primeTimeline() {
   task.start('TASK1');
   task.instant('ITASK');
   task.finish();
+
+  Flow flow = Flow.begin();
+  Timeline.startSync('peach', flow: flow);
+  Timeline.finishSync();
+  Timeline.startSync('watermelon', flow: Flow.step(flow.id));
+  Timeline.finishSync();
+  Timeline.startSync('pear', flow: Flow.end(flow.id));
+  Timeline.finishSync();
 }
 
 List<Map> filterForDartEvents(List<Map> events) {
@@ -92,7 +100,7 @@ var tests = [
     expect(result['traceEvents'], new isInstanceOf<List>());
     final int numEvents = result['traceEvents'].length;
     List<Map> dartEvents = filterForDartEvents(result['traceEvents']);
-    expect(dartEvents.length, equals(5));
+    expect(dartEvents.length, equals(11));
     allEventsHaveIsolateNumber(dartEvents);
     allEventsHaveIsolateNumber(result['traceEvents']);
     expect(eventsContains(dartEvents, 'I', 'ISYNC'), isTrue);
@@ -101,6 +109,9 @@ var tests = [
     expect(eventsContains(dartEvents, 'e', 'TASK1'), isTrue);
     expect(eventsContains(dartEvents, 'n', 'ITASK'), isTrue);
     expect(eventsContains(dartEvents, 'q', 'ITASK'), isFalse);
+    expect(eventsContains(dartEvents, 's', 'peach'), isTrue);
+    expect(eventsContains(dartEvents, 't', 'watermelon'), isTrue);
+    expect(eventsContains(dartEvents, 'f', 'pear'), isTrue);
     // Calculate the time Window of Dart events.
     int origin = timeOrigin(dartEvents);
     int extent = timeDuration(dartEvents, origin);

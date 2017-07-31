@@ -31,6 +31,12 @@
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
 
+* `dart:developer`
+  * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
+    parameter `flow` of type `Flow`. The `flow` parameter is used to generate
+    flow timeline events that are enclosed by the slice described by
+    `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
+
 ### Dart VM
 * Support for MIPS has been remvoed.
 

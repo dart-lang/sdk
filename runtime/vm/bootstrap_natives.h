@@ -172,6 +172,7 @@ namespace dart {
   V(Timeline_getThreadCpuClock, 0)                                             \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportCompleteEvent, 5)                                           \
+  V(Timeline_reportFlowEvent, 7)                                               \
   V(Timeline_reportInstantEvent, 4)                                            \
   V(Timeline_reportTaskEvent, 6)                                               \
   V(TypedData_Int8Array_new, 2)                                                \
