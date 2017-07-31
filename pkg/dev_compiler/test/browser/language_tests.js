@@ -26,8 +26,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   //   'fail' - test fails
   //   'timeout' - test times out
   //   'slow' - use 5s timeout instead of default 2s.
-  //   'helper'  - not a test, used by other tests.
-  //   'unittest' - run separately as a unittest test.
   //   'whitelist' - run with whitelisted type errors allowed
   //
   // Common combinations:
@@ -49,7 +47,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // expect and minitest do not handle.
   // TODO(rnystrom): Move all of these away from using the async test API so
   // they can stop using unittest.
-  const async_unittest = ['unittest', 'skip', 'fail'];
+  const async_unittest = ['skip', 'fail'];
 
   // The number of expected unittest errors should be zero but unfortunately
   // there are a lot of broken html unittests.
@@ -59,9 +57,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
     'language': {
-      'async_await_test_none_multi': 'unittest',
-      'async_await_test_02_multi': 'unittest',
-
       // Flaky on travis (https://github.com/dart-lang/sdk/issues/27224)
       'async_await_test_03_multi': async_unittest,
 
@@ -210,9 +205,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // https://github.com/dart-lang/sdk/issues/26124
       'prefix10_negative_test': fail,
 
-      'library_prefixes_test1': 'helper',
-      'library_prefixes_test2': 'helper',
-      'top_level_prefixed_library_test': 'helper',
+      'library_prefixes_test1': 'skip', // not a test
+      'library_prefixes_test2': 'skip', // not a test
+      'top_level_prefixed_library_test': 'skip', // not a test
 
     },
 
@@ -397,8 +392,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
        // was https://github.com/dart-lang/sdk/issues/27578, needs triage
       'audiocontext_test': is.chrome('<=54') ? fail : pass,
 
-      'canvas_test': ['unittest'],
-      'canvasrenderingcontext2d_test': ['unittest'],
       'cross_domain_iframe_test': async_unittest,
       'cssstyledeclaration_test': async_unittest,
       'css_test': async_unittest,
@@ -416,7 +409,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // please look at the test for instructions on how to generate a new
       // golden file.
       'debugger_test': firefox_fail,
-      'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
       'element_classes_test': 'fail',
@@ -699,11 +691,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       if (typeof expectation == 'string') expectation = [expectation];
       let has = (tag) => expectation.indexOf(tag) >= 0;
 
-      if (has('helper')) {
-        // These are not top-level tests.  They are used by other tests.
-        continue;
-      }
-
       if (has('skip')) {
         let why = 'for unknown reason';
         if (has('timeout')) why = 'known timeout';
@@ -714,21 +701,14 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
       // A few tests are special because they use package:unittest.
       // We run them below.
-      if (has('unittest')) {
+      let mainLibrary = require(module)[libraryName(name)];
+      if (mainLibrary._usesUnittestPackage) {
         unittest_tests.push(() => {
           console.log('Running unittest test ' + testFile);
-          require(module)[libraryName(name)].main();
+          mainLibrary.main();
         });
         continue;
       }
-
-      let protect = (f) => {  // Returns the exception, or `null`.
-        try {
-          return f();
-        } catch (e) {
-          return e;
-        }
-      };
 
       var fullName = status_group + '/' + name;
       test(fullName, function(done) { // 'function' to allow `this.timeout`.
@@ -772,7 +752,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         // TODO(vsm): This currently doesn't handle tests that trigger multiple
         // asynchronous exceptions.
 
-        let mainLibrary = require(module)[libraryName(name)];
         let negative = /negative_test/.test(name) ||
             mainLibrary._expectRuntimeError;
         let fail = has('fail');

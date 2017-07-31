@@ -166,9 +166,8 @@ main(List<String> arguments) {
 
       // This covers tests where the intent of the test is to validate that
       // some static error is produced.
-      var intentionalCompileError =
-          contents.contains(': compile-time error') ||
-              contents.contains('/*@compile-error=');
+      var intentionalCompileError = contents.contains(': compile-time error') ||
+          contents.contains('/*@compile-error=');
 
       // This covers tests that should not produce a static error but that
       // currently do due to issues in our implementation.
@@ -203,9 +202,7 @@ main(List<String> arguments) {
         expect(knownCompileError, isFalse,
             reason: "test $name expected static errors, but compiled.");
       } else {
-        var reason = intentionalCompileError
-            ? "intended"
-            : "unexpected";
+        var reason = intentionalCompileError ? "intended" : "unexpected";
         expect(intentionalCompileError || knownCompileError, isTrue,
             reason: "test $name failed to compile due to $reason errors:"
                 "\n\n${module.errors.join('\n')}.");
@@ -303,13 +300,21 @@ List<String> _setUpTests(List<String> testDirs) {
 
         _ensureDirectory(path.dirname(outputPath));
 
-        // Copy it over. We do this even for multitests because import_self_test
-        // is a multitest, yet imports its own unexpanded form (!).
-        new File(file).copySync(outputPath);
-
         if (file.endsWith("_test.dart")) {
-          var contents = new File(file).readAsStringSync();
 
+          void _writeTest(String outputPath, String contents) {
+            if (contents.contains('package:unittest/')) {
+              // TODO(jmesserly): we could use directive parsing, but that
+              // feels like overkill.
+              // Alternatively, we could detect "unittest" use at runtime.
+              // We really need a better solution for Karma+mocha+unittest
+              // integration.
+              contents += '\nfinal _usesUnittestPackage = true;\n';
+            }
+            new File(outputPath).writeAsStringSync(contents);
+          }
+
+          var contents = new File(file).readAsStringSync();
           if (isMultiTest(contents)) {
             // It's a multitest, so expand it and add all of the variants.
             var tests = <String, String>{};
@@ -323,12 +328,22 @@ List<String> _setUpTests(List<String> testDirs) {
                   path.join(outputDir, '${fileName}_${name}_multi.dart');
               testFiles.add(multiFile);
 
-              new File(multiFile).writeAsStringSync(contents);
+              _writeTest(multiFile, contents);
             });
           } else {
             // It's a single test suite.
             testFiles.add(outputPath);
           }
+
+          // Write the test file.
+          //
+          // We do this even for multitests because import_self_test
+          // is a multitest, yet imports its own unexpanded form (!).
+          _writeTest(outputPath, contents);
+
+        } else {
+          // Copy the non-test file over, in case it is used as an import.
+          new File(file).copySync(outputPath);
         }
       }
     }
