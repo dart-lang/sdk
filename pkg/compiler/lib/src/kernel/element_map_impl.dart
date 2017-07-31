@@ -1041,6 +1041,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     return _memberData[member.memberIndex].getWorldImpact(this);
   }
 
+  ClosureModel computeClosureModel(KMember member) {
+    ir.Member node = _memberData[member.memberIndex].node;
+    return KernelClosureAnalysis.computeClosureModel(member, node);
+  }
+
   /// Returns the kernel [ir.Procedure] node for the [method].
   ir.Procedure _lookupProcedure(KFunction method) {
     return _memberData[method.memberIndex].node;

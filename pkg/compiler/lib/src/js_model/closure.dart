@@ -16,6 +16,32 @@ import 'closure_visitors.dart';
 import 'locals.dart';
 import 'js_strategy.dart' show JsClosedWorld;
 
+class KernelClosureAnalysis {
+  /// Inspect members and mark if those members capture any state that needs to
+  /// be marked as free variables.
+  static ClosureModel computeClosureModel(MemberEntity entity, ir.Member node) {
+    if (entity.isAbstract) return null;
+    if (entity.isField && !entity.isInstanceMember) {
+      ir.Field field = node;
+      // Skip top-level/static fields without an initializer.
+      if (field.initializer == null) return null;
+    }
+
+    ClosureModel model = new ClosureModel();
+    CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
+        hasThisLocal: entity.isInstanceMember || entity.isConstructor);
+    if (entity.isField) {
+      if (node is ir.Field && node.initializer != null) {
+        translator.translateLazyInitializer(node);
+      }
+    } else {
+      assert(node is ir.Procedure || node is ir.Constructor);
+      translator.translateConstructorOrProcedure(node);
+    }
+    return model;
+  }
+}
+
 /// Closure conversion code using our new Entity model. Closure conversion is
 /// necessary because the semantics of closures are slightly different in Dart
 /// than JavaScript. Closure conversion is separated out into two phases:
@@ -34,6 +60,7 @@ import 'js_strategy.dart' show JsClosedWorld;
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
+  final Map<MemberEntity, ClosureModel> _closureModels;
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<Entity, ScopeInfo> _scopeMap = <Entity, ScopeInfo>{};
@@ -42,13 +69,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   Map<Entity, ClosureRepresentationInfo> _closureRepresentationMap =
       <Entity, ClosureRepresentationInfo>{};
 
-  /// Should only be used at the very beginning to ensure we are looking at the
-  /// right kind of elements.
-  // TODO(efortuna): Remove this map once we have one kernel backend strategy.
-  final JsToFrontendMap _kToJElementMap;
-
   KernelClosureConversionTask(Measurer measurer, this._elementMap,
-      this._kToJElementMap, this._globalLocalsMap)
+      this._globalLocalsMap, this._closureModels)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -60,32 +82,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   @override
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {
-    Map<MemberEntity, ClosureModel> closureModels =
-        _computeClosureModels(processedEntities);
-    _createClosureEntities(closureModels, closedWorldRefiner);
-  }
-
-  // TODO(johnniwinther,efortuna): Compute this during resolution. See
-  // documentation on [convertClosures].
-  Map<MemberEntity, ClosureModel> _computeClosureModels(
-      Iterable<MemberEntity> processedEntities) {
-    Map<MemberEntity, ClosureModel> closureModels =
-        <MemberEntity, ClosureModel>{};
-
-    processedEntities.forEach((MemberEntity kEntity) {
-      MemberEntity entity = _kToJElementMap.toBackendMember(kEntity);
-      if (entity.isAbstract) return;
-      if (entity.isField && !entity.isInstanceMember) {
-        MemberDefinition definition = _elementMap.getMemberDefinition(entity);
-        assert(definition.kind == MemberKind.regular,
-            failedAt(entity, "Unexpected member definition $definition"));
-        ir.Field field = definition.node;
-        // Skip top-level/static fields without an initializer.
-        if (field.initializer == null) return;
-      }
-      closureModels[entity] = _buildClosureModel(entity);
-    });
-    return closureModels;
+    _createClosureEntities(_closureModels, closedWorldRefiner);
   }
 
   void _createClosureEntities(Map<MemberEntity, ClosureModel> closureModels,
@@ -113,32 +110,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             member, node, closuresToGenerate[node], closedWorldRefiner);
       }
     });
-  }
-
-  /// Inspect members and mark if those members capture any state that needs to
-  /// be marked as free variables.
-  ClosureModel _buildClosureModel(MemberEntity entity) {
-    ClosureModel model = new ClosureModel();
-    MemberDefinition definition = _elementMap.getMemberDefinition(entity);
-    switch (definition.kind) {
-      case MemberKind.regular:
-      case MemberKind.constructor:
-        break;
-      default:
-        failedAt(entity, "Unexpected member definition $definition");
-    }
-    ir.Node node = definition.node;
-    CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
-        hasThisLocal: entity.isInstanceMember || entity.isConstructor);
-    if (entity.isField) {
-      if (node is ir.Field && node.initializer != null) {
-        translator.translateLazyInitializer(node);
-      }
-    } else {
-      assert(node is ir.Procedure || node is ir.Constructor);
-      translator.translateConstructorOrProcedure(node);
-    }
-    return model;
   }
 
   /// Given what variables are captured at each point, construct closure classes

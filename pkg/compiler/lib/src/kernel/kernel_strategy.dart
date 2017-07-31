@@ -25,6 +25,7 @@ import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_model/closure.dart' show ClosureModel;
 import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
@@ -45,6 +46,9 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   KernelToElementMapForImpactImpl _elementMap;
 
   KernelAnnotationProcessor _annotationProcesser;
+
+  final Map<MemberEntity, ClosureModel> closureModels =
+      <MemberEntity, ClosureModel>{};
 
   KernelFrontEndStrategy(
       this._options, DiagnosticReporter reporter, env.Environment environment) {
@@ -137,8 +141,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer) {
-    return new KernelWorkItemBuilder(
-        elementMap, nativeBasicData, nativeDataBuilder, impactTransformer);
+    return new KernelWorkItemBuilder(elementMap, nativeBasicData,
+        nativeDataBuilder, impactTransformer, closureModels);
   }
 
   @override
@@ -151,16 +155,21 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KernelToElementMapForImpactImpl _elementMap;
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
+  final Map<MemberEntity, ClosureModel> closureModels;
 
-  KernelWorkItemBuilder(this._elementMap, NativeBasicData nativeBasicData,
-      NativeDataBuilder nativeDataBuilder, this._impactTransformer)
+  KernelWorkItemBuilder(
+      this._elementMap,
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
+      this._impactTransformer,
+      this.closureModels)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(
-        _elementMap, _impactTransformer, _nativeMemberResolver, entity);
+    return new KernelWorkItem(_elementMap, _impactTransformer,
+        _nativeMemberResolver, entity, closureModels);
   }
 }
 
@@ -169,14 +178,19 @@ class KernelWorkItem implements ResolutionWorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
+  final Map<MemberEntity, ClosureModel> closureModels;
 
   KernelWorkItem(this._elementMap, this._impactTransformer,
-      this._nativeMemberResolver, this.element);
+      this._nativeMemberResolver, this.element, this.closureModels);
 
   @override
   WorldImpact run() {
     _nativeMemberResolver.resolveNativeMember(element);
     ResolutionImpact impact = _elementMap.computeWorldImpact(element);
+    ClosureModel closureModel = _elementMap.computeClosureModel(element);
+    if (closureModel != null) {
+      closureModels[element] = closureModel;
+    }
     return _impactTransformer.transformResolutionImpact(impact);
   }
 }

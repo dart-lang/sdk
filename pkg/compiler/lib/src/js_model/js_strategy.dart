@@ -212,7 +212,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
     _commonElements = _elementMap.commonElements;
     JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
     _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer, _elementMap, map, _globalLocalsMap);
+        _compiler.measurer,
+        _elementMap,
+        _globalLocalsMap,
+        map.toBackendMemberMap(strategy.closureModels, identity));
 
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage);
