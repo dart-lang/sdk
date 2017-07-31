@@ -5,6 +5,7 @@
 library fasta.kernel_library_builder;
 
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
+import 'package:front_end/src/fasta/combinator.dart' as fasta;
 import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
@@ -733,6 +734,17 @@ class KernelLibraryBuilder
   @override
   Library build(LibraryBuilder coreLibrary) {
     super.build(coreLibrary);
+
+    List<Combinator> toKernelCombinators(
+        Iterable<fasta.Combinator> fastaCombinators) {
+      return fastaCombinators?.map((c) {
+        List<String> nameList = c.names.toList();
+        return c.isShow
+            ? new Combinator.show(nameList)
+            : new Combinator.hide(nameList);
+      })?.toList();
+    }
+
     for (Import import in imports) {
       var importedBuilder = import.imported;
       Library importedLibrary;
@@ -742,12 +754,13 @@ class KernelLibraryBuilder
         importedLibrary = importedBuilder.library;
       }
       if (importedLibrary != null) {
-        library.addDependency(
-            new LibraryDependency.import(importedLibrary, name: import.prefix));
+        library.addDependency(new LibraryDependency.import(importedLibrary,
+            name: import.prefix,
+            combinators: toKernelCombinators(import.combinators)));
       }
     }
-    for (Export import in exports) {
-      var exportedBuilder = import.exported;
+    for (Export export in exports) {
+      var exportedBuilder = export.exported;
       Library exportedLibrary;
       if (exportedBuilder is DillLibraryBuilder) {
         exportedLibrary = exportedBuilder.library;
@@ -755,7 +768,8 @@ class KernelLibraryBuilder
         exportedLibrary = exportedBuilder.library;
       }
       if (exportedLibrary != null) {
-        library.addDependency(new LibraryDependency.export(exportedLibrary));
+        library.addDependency(new LibraryDependency.export(exportedLibrary,
+            combinators: toKernelCombinators(export.combinators)));
       }
     }
     library.name = name;

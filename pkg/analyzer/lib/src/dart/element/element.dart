@@ -4351,9 +4351,15 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_unlinkedExportPublic != null && _combinators == null) {
-      _combinators = ImportElementImpl
-          ._buildCombinators(_unlinkedExportPublic.combinators);
+    if (_combinators == null) {
+      if (_kernel != null) {
+        _combinators =
+            ImportElementImpl._buildCombinatorsForKernel(_kernel.combinators);
+      }
+      if (_unlinkedExportPublic != null) {
+        _combinators = ImportElementImpl
+            ._buildCombinators(_unlinkedExportPublic.combinators);
+      }
     }
     return _combinators ?? const <NamespaceCombinator>[];
   }
@@ -5600,20 +5606,37 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   final UnlinkedCombinator _unlinkedCombinator;
 
   /**
+   * The kernel for the element.
+   */
+  final kernel.Combinator _kernel;
+
+  /**
    * The names that are not to be made visible in the importing library even if
    * they are defined in the imported library.
    */
   List<String> _hiddenNames;
 
-  HideElementCombinatorImpl() : _unlinkedCombinator = null;
+  HideElementCombinatorImpl()
+      : _unlinkedCombinator = null,
+        _kernel = null;
 
   /**
    * Initialize using the given serialized information.
    */
-  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : _kernel = null;
+
+  /**
+   * Initialize using the given kernel.
+   */
+  HideElementCombinatorImpl.forKernel(this._kernel)
+      : _unlinkedCombinator = null;
 
   @override
   List<String> get hiddenNames {
+    if (_kernel != null) {
+      _hiddenNames ??= _kernel.names;
+    }
     if (_unlinkedCombinator != null) {
       _hiddenNames ??= _unlinkedCombinator.hides.toList(growable: false);
     }
@@ -5716,8 +5739,13 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_unlinkedImport != null && _combinators == null) {
-      _combinators = _buildCombinators(_unlinkedImport.combinators);
+    if (_combinators == null) {
+      if (_kernel != null) {
+        _combinators = _buildCombinatorsForKernel(_kernel.combinators);
+      }
+      if (_unlinkedImport != null) {
+        _combinators = _buildCombinators(_unlinkedImport.combinators);
+      }
     }
     return _combinators ?? const <NamespaceCombinator>[];
   }
@@ -5923,6 +5951,24 @@ class ImportElementImpl extends UriReferencedElementImpl
         combinators[i] = unlinkedCombinator.shows.isNotEmpty
             ? new ShowElementCombinatorImpl.forSerialized(unlinkedCombinator)
             : new HideElementCombinatorImpl.forSerialized(unlinkedCombinator);
+      }
+      return combinators;
+    } else {
+      return const <NamespaceCombinator>[];
+    }
+  }
+
+  static List<NamespaceCombinator> _buildCombinatorsForKernel(
+      List<kernel.Combinator> unlinkedCombinators) {
+    int length = unlinkedCombinators.length;
+    if (length != 0) {
+      List<NamespaceCombinator> combinators =
+          new List<NamespaceCombinator>(length);
+      for (int i = 0; i < length; i++) {
+        kernel.Combinator unlinkedCombinator = unlinkedCombinators[i];
+        combinators[i] = unlinkedCombinator.isShow
+            ? new ShowElementCombinatorImpl.forKernel(unlinkedCombinator)
+            : new HideElementCombinatorImpl.forKernel(unlinkedCombinator);
       }
       return combinators;
     } else {
@@ -8968,6 +9014,11 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   final UnlinkedCombinator _unlinkedCombinator;
 
   /**
+   * The kernel for the element.
+   */
+  final kernel.Combinator _kernel;
+
+  /**
    * The names that are to be made visible in the importing library if they are
    * defined in the imported library.
    */
@@ -8984,12 +9035,21 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
    */
   int _offset = 0;
 
-  ShowElementCombinatorImpl() : _unlinkedCombinator = null;
+  ShowElementCombinatorImpl()
+      : _unlinkedCombinator = null,
+        _kernel = null;
 
   /**
    * Initialize using the given serialized information.
    */
-  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : _kernel = null;
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ShowElementCombinatorImpl.forKernel(this._kernel)
+      : _unlinkedCombinator = null;
 
   @override
   int get end {
@@ -9019,6 +9079,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   List<String> get shownNames {
+    if (_kernel != null) {
+      _shownNames ??= _kernel.names;
+    }
     if (_unlinkedCombinator != null) {
       _shownNames ??= _unlinkedCombinator.shows.toList(growable: false);
     }
