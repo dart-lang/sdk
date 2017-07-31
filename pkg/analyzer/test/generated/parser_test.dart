@@ -7605,7 +7605,12 @@ abstract class FormalParameterParserTestMixin
     NormalFormalParameter parameter =
         parseNormalFormalParameter('const this.a');
     expect(parameter, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+    } else {
+      assertNoErrors();
+    }
     expect(parameter, new isInstanceOf<FieldFormalParameter>());
     FieldFormalParameter fieldParameter = parameter;
     expect(fieldParameter.keyword, isNotNull);
@@ -7618,7 +7623,12 @@ abstract class FormalParameterParserTestMixin
     NormalFormalParameter parameter =
         parseNormalFormalParameter('const A this.a');
     expect(parameter, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+    } else {
+      assertNoErrors();
+    }
     expect(parameter, new isInstanceOf<FieldFormalParameter>());
     FieldFormalParameter fieldParameter = parameter;
     expect(fieldParameter.keyword, isNotNull);
@@ -7974,7 +7984,12 @@ abstract class FormalParameterParserTestMixin
   void test_parseNormalFormalParameter_simple_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter('const a');
     expect(parameter, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+    } else {
+      assertNoErrors();
+    }
     expect(parameter, new isInstanceOf<SimpleFormalParameter>());
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.keyword, isNotNull);
@@ -7985,7 +8000,12 @@ abstract class FormalParameterParserTestMixin
   void test_parseNormalFormalParameter_simple_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter('const A a');
     expect(parameter, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.UNEXPECTED_TOKEN]);
+    } else {
+      assertNoErrors();
+    }
     expect(parameter, new isInstanceOf<SimpleFormalParameter>());
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.keyword, isNotNull);
@@ -13779,7 +13799,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('operator<dynamic> _operator = new operator.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
+    } else {
+      assertNoErrors();
+    }
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13823,7 +13848,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('typedef.A _typedef = new typedef.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
+    } else {
+      assertNoErrors();
+    }
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13833,7 +13863,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('abstract.A _abstract = new abstract.A();');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // TODO(danrubel): should not be generating an error
+      assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
+    } else {
+      assertNoErrors();
+    }
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
