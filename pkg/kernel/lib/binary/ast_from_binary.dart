@@ -1163,17 +1163,21 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
+        var positionalNames = readStringReferenceList();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
         return new FunctionType(positional, returnType,
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
-            namedParameters: named);
+            namedParameters: named,
+            positionalParameterNames: positionalNames);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
+        var positionalNames = readStringReferenceList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType);
+        return new FunctionType(positional, returnType,
+            positionalParameterNames: positionalNames);
       case Tag.TypeParameterType:
         int index = readUInt();
         readUInt(); // offset of parameter list in the binary.

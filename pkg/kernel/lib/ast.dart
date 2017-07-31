@@ -4095,13 +4095,20 @@ class FunctionType extends DartType {
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
+
+  /// The optional names of [positionalParameters], not `null`, but might be
+  /// empty if information is not available.
+  @informative
+  final List<String> positionalParameterNames;
+
   final DartType returnType;
   int _hashCode;
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
-      int requiredParameterCount})
+      int requiredParameterCount,
+      this.positionalParameterNames: const <String>[]})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;

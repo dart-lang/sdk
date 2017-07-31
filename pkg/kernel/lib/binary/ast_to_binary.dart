@@ -1119,6 +1119,7 @@ class BinaryPrinter extends Visitor {
         node.namedParameters.isEmpty) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
+      writeStringReferenceList(node.positionalParameterNames);
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
@@ -1129,6 +1130,7 @@ class BinaryPrinter extends Visitor {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
+      writeStringReferenceList(node.positionalParameterNames);
       writeNode(node.returnType);
       _typeParameterIndexer.exit(node.typeParameters);
     }
@@ -1387,6 +1389,12 @@ class StringIndexer extends RecursiveVisitor<Null> {
   visitField(Field node) {
     putOptional(node.documentationComment);
     super.visitField(node);
+  }
+
+  @override
+  visitFunctionType(FunctionType node) {
+    node.positionalParameterNames.forEach(put);
+    super.visitFunctionType(node);
   }
 
   visitNamedExpression(NamedExpression node) {

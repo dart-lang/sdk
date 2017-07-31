@@ -403,6 +403,7 @@ class StreamingFlowGraphBuilder {
   void SkipFunctionType(bool simple);
   void SkipListOfExpressions();
   void SkipListOfDartTypes();
+  void SkipListOfStrings();
   void SkipListOfVariableDeclarations();
   void SkipTypeParametersList();
   void SkipExpression();

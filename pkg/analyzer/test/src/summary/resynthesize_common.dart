@@ -6753,12 +6753,24 @@ class C extends D {
 }
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        // Front-end copies FunctionType instances, which means that if it has
+        // parameter names in superclass, then we have names also in the
+        // subclass.
+        checkElementText(library, r'''
+import 'a.dart';
+class C extends D {
+  void f(int x, int g(String s)) {}
+}
+''');
+      } else {
+        checkElementText(library, r'''
 import 'a.dart';
 class C extends D {
   void f(int x, (String) → int g) {}
 }
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'a.dart';
