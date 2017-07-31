@@ -62,8 +62,6 @@ mockito:third_party/pkg/mockito/lib
 mustache4dart:third_party/pkg/mustache4dart/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
-# Note: this is pointing to the observatory_pub_packages version of pkg/observe
-observe:third_party/observatory_pub_packages/packages/observe/lib
 package_config:third_party/pkg_tested/package_config/lib
 package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
@@ -82,8 +80,6 @@ shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib
 shelf_static:third_party/pkg/shelf_static/lib
 shelf_web_socket:third_party/pkg/shelf_web_socket/lib
-# Note: this is pointing to the observatory_pub_packages version of pkg/observe
-smoke:third_party/observatory_pub_packages/packages/smoke/lib
 source_map_stack_trace:third_party/pkg/source_map_stack_trace/lib
 source_maps:third_party/pkg/source_maps/lib
 source_span:third_party/pkg/source_span/lib

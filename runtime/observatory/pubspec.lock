@@ -6,25 +6,25 @@ packages:
       path: "../../third_party/observatory_pub_packages/packages/analyzer"
       relative: true
     source: path
-    version: "0.26.1+14"
+    version: "0.29.5"
   args:
     description:
       path: "../../third_party/observatory_pub_packages/packages/args"
       relative: true
     source: path
-    version: "0.13.2"
+    version: "0.13.7"
   async:
     description:
       path: "../../third_party/observatory_pub_packages/packages/async"
       relative: true
     source: path
-    version: "1.4.0"
+    version: "1.13.3"
   barback:
     description:
       path: "../../third_party/observatory_pub_packages/packages/barback"
       relative: true
     source: path
-    version: "0.15.2+7"
+    version: "0.15.2+11"
   browser:
     description:
       path: "../../third_party/observatory_pub_packages/packages/browser"
@@ -36,216 +36,210 @@ packages:
       path: "../../third_party/observatory_pub_packages/packages/charcode"
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.1.1"
   charted:
     description:
       path: "../../third_party/observatory_pub_packages/packages/charted"
       relative: true
     source: path
-    version: "0.4.0+1"
+    version: "0.4.8"
   cli_util:
     description:
       path: "../../third_party/observatory_pub_packages/packages/cli_util"
       relative: true
     source: path
-    version: "0.0.1+2"
+    version: "0.1.2"
   code_transformers:
     description:
       path: "../../third_party/observatory_pub_packages/packages/code_transformers"
       relative: true
     source: path
-    version: "0.2.11"
+    version: "0.5.1+3"
   collection:
     description:
       path: "../../third_party/observatory_pub_packages/packages/collection"
       relative: true
     source: path
-    version: "1.2.0"
+    version: "1.14.3"
+  convert:
+    description:
+      path: "../../third_party/observatory_pub_packages/packages/convert"
+      relative: true
+    source: path
+    version: "2.0.1"
+  crypto:
+    description:
+      path: "../../third_party/observatory_pub_packages/packages/crypto"
+      relative: true
+    source: path
+    version: "2.0.2"
   csslib:
     description:
       path: "../../third_party/observatory_pub_packages/packages/csslib"
       relative: true
     source: path
-    version: "0.12.2"
+    version: "0.14.0"
   dart_style:
     description:
       path: "../../third_party/observatory_pub_packages/packages/dart_style"
       relative: true
     source: path
-    version: "0.2.1"
+    version: "0.2.16"
   dart_to_js_script_rewriter:
     description:
       path: "../../third_party/observatory_pub_packages/packages/dart_to_js_script_rewriter"
       relative: true
     source: path
-    version: "1.0.1"
+    version: "1.0.3"
   glob:
     description:
       path: "../../third_party/observatory_pub_packages/packages/glob"
       relative: true
     source: path
-    version: "1.0.5"
+    version: "1.1.3"
   html:
     description:
       path: "../../third_party/observatory_pub_packages/packages/html"
       relative: true
     source: path
-    version: "0.12.2"
+    version: "0.13.2"
   initialize:
     description:
       path: "../../third_party/observatory_pub_packages/packages/initialize"
       relative: true
     source: path
-    version: "0.6.1+2"
+    version: "0.6.2+6"
   intl:
     description:
       path: "../../third_party/observatory_pub_packages/packages/intl"
       relative: true
     source: path
-    version: "0.12.4+3"
+    version: "0.15.1"
+  isolate:
+    description:
+      path: "../../third_party/observatory_pub_packages/packages/isolate"
+      relative: true
+    source: path
+    version: "0.2.3"
   logging:
     description:
       path: "../../third_party/observatory_pub_packages/packages/logging"
       relative: true
     source: path
-    version: "0.11.2"
+    version: "0.11.3+1"
   matcher:
     description:
       path: "../../third_party/observatory_pub_packages/packages/matcher"
       relative: true
     source: path
-    version: "0.12.0+1"
-  observe:
+    version: "0.12.1+1"
+  meta:
     description:
-      path: "../../third_party/observatory_pub_packages/packages/observe"
+      path: "../../third_party/observatory_pub_packages/packages/meta"
       relative: true
     source: path
-    version: "0.13.1+3"
+    version: "1.1.1"
+  observable:
+    description:
+      path: "../../third_party/observatory_pub_packages/packages/observable"
+      relative: true
+    source: path
+    version: "0.14.0+1"
   package_config:
     description:
       path: "../../third_party/observatory_pub_packages/packages/package_config"
       relative: true
     source: path
-    version: "0.1.3"
+    version: "1.0.2"
   path:
     description:
       path: "../../third_party/observatory_pub_packages/packages/path"
       relative: true
     source: path
-    version: "1.3.9"
-  petitparser:
-    description:
-      path: "../../third_party/observatory_pub_packages/packages/petitparser"
-      relative: true
-    source: path
-    version: "1.5.0"
+    version: "1.4.2"
   plugin:
     description:
       path: "../../third_party/observatory_pub_packages/packages/plugin"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0+1"
   pool:
     description:
       path: "../../third_party/observatory_pub_packages/packages/pool"
       relative: true
     source: path
-    version: "1.2.1"
+    version: "1.3.1"
   quiver:
     description:
       path: "../../third_party/observatory_pub_packages/packages/quiver"
       relative: true
     source: path
-    version: "0.21.4"
-  quiver_iterables:
-    description:
-      path: "../../third_party/observatory_pub_packages/packages/quiver_iterables"
-      relative: true
-    source: path
-    version: "1.0.0"
-  smoke:
-    description:
-      path: "../../third_party/observatory_pub_packages/packages/smoke"
-      relative: true
-    source: path
-    version: "0.3.6"
+    version: "0.25.0"
   source_maps:
     description:
       path: "../../third_party/observatory_pub_packages/packages/source_maps"
       relative: true
     source: path
-    version: "0.10.1"
+    version: "0.10.4"
   source_span:
     description:
       path: "../../third_party/observatory_pub_packages/packages/source_span"
       relative: true
     source: path
-    version: "1.2.1"
+    version: "1.4.0"
   stack_trace:
     description:
       path: "../../third_party/observatory_pub_packages/packages/stack_trace"
       relative: true
     source: path
-    version: "1.5.0"
+    version: "1.8.0"
   string_scanner:
     description:
       path: "../../third_party/observatory_pub_packages/packages/string_scanner"
       relative: true
     source: path
-    version: "0.1.4"
-  template_binding:
+    version: "1.0.2"
+  typed_data:
     description:
-      path: "../../third_party/observatory_pub_packages/packages/template_binding"
+      path: "../../third_party/observatory_pub_packages/packages/typed_data"
       relative: true
     source: path
-    version: "0.14.0+2"
+    version: "1.1.3"
   unittest:
     description:
       path: "../../third_party/observatory_pub_packages/packages/unittest"
       relative: true
     source: path
-    version: "0.11.6+1"
+    version: "0.11.7"
   usage:
     description:
       path: "../../third_party/observatory_pub_packages/packages/usage"
       relative: true
     source: path
-    version: "1.0.1"
+    version: "1.2.0"
   utf:
     description:
       path: "../../third_party/observatory_pub_packages/packages/utf"
       relative: true
     source: path
-    version: "0.9.0+2"
+    version: "0.9.0+3"
   watcher:
     description:
       path: "../../third_party/observatory_pub_packages/packages/watcher"
       relative: true
     source: path
-    version: "0.9.7"
+    version: "0.9.7+3"
   web_components:
     description:
       path: "../../third_party/observatory_pub_packages/packages/web_components"
       relative: true
     source: path
-    version: "0.12.3"
-  when:
-    description:
-      path: "../../third_party/observatory_pub_packages/packages/when"
-      relative: true
-    source: path
-    version: "0.2.0"
-  which:
-    description:
-      path: "../../third_party/observatory_pub_packages/packages/which"
-      relative: true
-    source: path
-    version: "0.1.3"
+    version: "0.12.5"
   yaml:
     description:
       path: "../../third_party/observatory_pub_packages/packages/yaml"
       relative: true
     source: path
-    version: "2.1.7"
+    version: "2.1.12"
 sdks:
   dart: any

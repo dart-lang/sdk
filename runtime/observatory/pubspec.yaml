@@ -6,14 +6,13 @@ transformers:
 - $dart2js:
     suppressWarnings: false
     commandLineOptions: [--show-package-warnings]
-    minify: false
 dependencies:
-  args: any
-  charted: ^0.3.0
+  args: ^0.13.2
+  charted: ^0.4.8
   unittest: < 0.12.0
-  usage: any
-  web_components: any
-  dart_to_js_script_rewriter: any
+  usage: ^1.2.0
+  web_components: ^0.12.5
+  dart_to_js_script_rewriter: 1.0.3
 dependency_overrides:
   analyzer:
     path: ../../third_party/observatory_pub_packages/packages/analyzer
@@ -35,6 +34,10 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/code_transformers
   collection:
     path: ../../third_party/observatory_pub_packages/packages/collection
+  convert:
+    path: ../../third_party/observatory_pub_packages/packages/convert
+  crypto:
+    path: ../../third_party/observatory_pub_packages/packages/crypto
   csslib:
     path: ../../third_party/observatory_pub_packages/packages/csslib
   dart_style:
@@ -49,28 +52,26 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/initialize
   intl:
     path: ../../third_party/observatory_pub_packages/packages/intl
+  isolate:
+    path: ../../third_party/observatory_pub_packages/packages/isolate
   logging:
     path: ../../third_party/observatory_pub_packages/packages/logging
   matcher:
     path: ../../third_party/observatory_pub_packages/packages/matcher
-  observe:
-    path: ../../third_party/observatory_pub_packages/packages/observe
+  meta:
+    path: ../../third_party/observatory_pub_packages/packages/meta
+  observable:
+    path: ../../third_party/observatory_pub_packages/packages/observable
   package_config:
     path: ../../third_party/observatory_pub_packages/packages/package_config
   path:
     path: ../../third_party/observatory_pub_packages/packages/path
-  petitparser:
-    path: ../../third_party/observatory_pub_packages/packages/petitparser
   plugin:
     path: ../../third_party/observatory_pub_packages/packages/plugin
   pool:
     path: ../../third_party/observatory_pub_packages/packages/pool
   quiver:
     path: ../../third_party/observatory_pub_packages/packages/quiver
-  quiver_iterables:
-    path: ../../third_party/observatory_pub_packages/packages/quiver_iterables
-  smoke:
-    path: ../../third_party/observatory_pub_packages/packages/smoke
   source_maps:
     path: ../../third_party/observatory_pub_packages/packages/source_maps
   source_span:
@@ -79,8 +80,8 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/stack_trace
   string_scanner:
     path: ../../third_party/observatory_pub_packages/packages/string_scanner
-  template_binding:
-    path: ../../third_party/observatory_pub_packages/packages/template_binding
+  typed_data:
+    path: ../../third_party/observatory_pub_packages/packages/typed_data
   unittest:
     path: ../../third_party/observatory_pub_packages/packages/unittest
   usage:
@@ -91,9 +92,5 @@ dependency_overrides:
     path: ../../third_party/observatory_pub_packages/packages/watcher
   web_components:
     path: ../../third_party/observatory_pub_packages/packages/web_components
-  when:
-    path: ../../third_party/observatory_pub_packages/packages/when
-  which:
-    path: ../../third_party/observatory_pub_packages/packages/which
   yaml:
     path: ../../third_party/observatory_pub_packages/packages/yaml
