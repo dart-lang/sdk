@@ -463,8 +463,9 @@ class BinaryBuilder {
     node.fileEndOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
-    node.isSyntheticMixinImplementation = flags & 0x2 != 0;
-    int levelIndex = (flags >> 2) & 0x3;
+    node.isEnum = flags & 0x2 != 0;
+    node.isSyntheticMixinImplementation = flags & 0x4 != 0;
+    int levelIndex = (flags >> 3) & 0x3;
     var level = ClassLevel.values[levelIndex + 1];
     if (level.index >= node.level.index) {
       node.level = level;

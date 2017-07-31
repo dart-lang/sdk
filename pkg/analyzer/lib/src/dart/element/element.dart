@@ -1634,6 +1634,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get enums {
+    if (_kernelContext != null) {
+      _enums ??= _kernelContext.library.classes
+          .where((k) => k.isEnum)
+          .map((k) => new EnumElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedUnit != null) {
       _enums ??= _unlinkedUnit.enums
           .map((e) => new EnumElementImpl.forSerialized(e, this))
@@ -1793,7 +1799,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassElement> get types {
     if (_kernelContext != null) {
       _types ??= _kernelContext.library.classes
-          .where((k) => !k.isSyntheticMixinImplementation)
+          .where((k) => !k.isEnum && !k.isSyntheticMixinImplementation)
           .map((k) => new ClassElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
@@ -2001,14 +2007,18 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
  */
 class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   final UnlinkedEnumValue _unlinkedEnumValue;
+  final kernel.Field _kernelEnumValue;
   final int _index;
 
-  ConstFieldElementImpl_EnumValue(
-      EnumElementImpl enumElement, this._unlinkedEnumValue, this._index)
+  ConstFieldElementImpl_EnumValue(EnumElementImpl enumElement,
+      this._unlinkedEnumValue, this._kernelEnumValue, this._index)
       : super(enumElement);
 
   @override
   String get documentationComment {
+    if (_kernelEnumValue != null) {
+      return _kernelEnumValue.documentationComment;
+    }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue?.documentationComment?.text;
     }
@@ -2031,6 +2041,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   String get name {
+    if (_kernelEnumValue != null) {
+      return _kernelEnumValue.name.name;
+    }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue.name;
     }
@@ -3627,6 +3640,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
   final UnlinkedEnum _unlinkedEnum;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Class _kernel;
+
+  /**
    * The type defined by the enum.
    */
   InterfaceType _type;
@@ -3637,13 +3655,23 @@ class EnumElementImpl extends AbstractClassElementImpl {
    */
   EnumElementImpl(String name, int offset)
       : _unlinkedEnum = null,
+        _kernel = null,
         super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  EnumElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, this._kernel)
+      : _unlinkedEnum = null,
+        super.forSerialized(enclosingUnit);
 
   /**
    * Initialize a newly created class element to have the given [name].
    */
   EnumElementImpl.forNode(Identifier name)
       : _unlinkedEnum = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -3651,7 +3679,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
    */
   EnumElementImpl.forSerialized(
       this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
+      : _kernel = null,
+        super.forSerialized(enclosingUnit);
 
   /**
    * Set whether this class is abstract.
@@ -3662,8 +3691,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_unlinkedEnum != null && _accessors == null) {
-      _resynthesizeFieldsAndPropertyAccessors();
+    if (_accessors == null) {
+      if (_kernel != null || _unlinkedEnum != null) {
+        _resynthesizeFieldsAndPropertyAccessors();
+      }
     }
     return _accessors ?? const <PropertyAccessorElement>[];
   }
@@ -3704,6 +3735,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum?.documentationComment?.text;
     }
@@ -3712,8 +3746,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<FieldElement> get fields {
-    if (_unlinkedEnum != null && _fields == null) {
-      _resynthesizeFieldsAndPropertyAccessors();
+    if (_fields == null) {
+      if (_kernel != null || _unlinkedEnum != null) {
+        _resynthesizeFieldsAndPropertyAccessors();
+      }
     }
     return _fields ?? const <FieldElement>[];
   }
@@ -3771,6 +3807,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.name;
     }
@@ -3837,11 +3876,25 @@ class EnumElementImpl extends AbstractClassElementImpl {
     // Build the 'values' field.
     fields.add(new ConstFieldElementImpl_EnumValues(this));
     // Build fields for all enum constants.
-    for (int i = 0; i < _unlinkedEnum.values.length; i++) {
-      UnlinkedEnumValue unlinkedValue = _unlinkedEnum.values[i];
-      ConstFieldElementImpl_EnumValue field =
-          new ConstFieldElementImpl_EnumValue(this, unlinkedValue, i);
-      fields.add(field);
+    if (_kernel != null) {
+      for (int i = 0; i < _kernel.fields.length; i++) {
+        kernel.Field kernelField = _kernel.fields[i];
+        if (kernelField.name.name == 'index' ||
+            kernelField.name.name == 'values') {
+          continue;
+        }
+        ConstFieldElementImpl_EnumValue field =
+            new ConstFieldElementImpl_EnumValue(this, null, kernelField, i);
+        fields.add(field);
+      }
+    }
+    if (_unlinkedEnum != null) {
+      for (int i = 0; i < _unlinkedEnum.values.length; i++) {
+        UnlinkedEnumValue unlinkedValue = _unlinkedEnum.values[i];
+        ConstFieldElementImpl_EnumValue field =
+            new ConstFieldElementImpl_EnumValue(this, unlinkedValue, null, i);
+        fields.add(field);
+      }
     }
     // done
     _fields = fields;
@@ -6715,6 +6768,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       ExportElementImpl exportElementImpl = exportElement;
       if (exportElementImpl.identifier == identifier) {
         return exportElementImpl;
+      }
+    }
+    return null;
+  }
+
+  ClassElement getEnum(String name) {
+    ClassElement element = _definingCompilationUnit.getEnum(name);
+    if (element != null) {
+      return element;
+    }
+    for (CompilationUnitElement part in _parts) {
+      element = part.getEnum(name);
+      if (element != null) {
+        return element;
       }
     }
     return null;

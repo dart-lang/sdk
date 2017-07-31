@@ -240,6 +240,7 @@ class KernelEnumBuilder extends SourceClassBuilder
 
   @override
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
+    cls.isEnum = true;
     if (constantNamesAndOffsets.isEmpty) {
       libraryBuilder.addCompileTimeError(
           messageEnumDeclartionEmpty, charOffset, fileUri);

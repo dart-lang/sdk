@@ -616,6 +616,10 @@ class Class extends NamedNode {
   String name;
   bool isAbstract;
 
+  /// Whether this class is an enum.
+  @informative
+  bool isEnum = false;
+
   /// Whether this class is a synthetic implementation created for each
   /// mixed-in class. For example the following code:
   /// class Z extends A with B, C, D {}

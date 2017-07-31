@@ -637,7 +637,7 @@ class _KernelLibraryResynthesizerContextImpl
     }
 
     // Search in the class.
-    if (parentElement is ClassElementImpl) {
+    if (parentElement is AbstractClassElementImpl) {
       if (isGetter) {
         return parentElement.getGetter(name.name) as ElementImpl;
       } else if (isSetter) {
@@ -662,7 +662,8 @@ class _KernelLibraryResynthesizerContextImpl
       kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
     var libraryName = className.parent;
     var libraryElement = _resynthesizer.getLibrary(libraryName.name);
-    ClassElementImpl classElement = libraryElement.getType(className.name);
+    ClassElement classElement = libraryElement.getType(className.name);
+    classElement ??= libraryElement.getEnum(className.name);
 
     if (kernelArguments.isEmpty) {
       return classElement.type;

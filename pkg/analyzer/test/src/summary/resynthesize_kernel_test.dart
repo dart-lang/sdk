@@ -298,16 +298,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_constExpr_pushReference_enum_field() async {
-    await super.test_constExpr_pushReference_enum_field();
-  }
-
-  @failingTest
-  test_constExpr_pushReference_enum_method() async {
-    await super.test_constExpr_pushReference_enum_method();
-  }
-
-  @failingTest
   test_constructor_initializers_assertInvocation() async {
     await super.test_constructor_initializers_assertInvocation();
   }
@@ -411,16 +401,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_enum_value_documented() async {
     await super.test_enum_value_documented();
-  }
-
-  @failingTest
-  test_enum_values() async {
-    await super.test_enum_values();
-  }
-
-  @failingTest
-  test_enums() async {
-    await super.test_enums();
   }
 
   @failingTest
@@ -903,11 +883,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_type_reference_part_to_part() async {
     await super.test_type_reference_part_to_part();
-  }
-
-  @failingTest
-  test_type_reference_to_enum() async {
-    await super.test_type_reference_to_enum();
   }
 
   @failingTest
