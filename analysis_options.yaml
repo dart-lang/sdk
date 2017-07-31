@@ -8,15 +8,29 @@ analyzer:
 linter:
   rules:
 #    - always_declare_return_types
+#    - always_put_control_body_on_new_line
+    - always_put_required_named_parameters_first
+    - always_require_non_null_named_parameters
 #    - always_specify_types
     - annotate_overrides
+    - avoid_annotating_with_dynamic
 #    - avoid_as
+#    - avoid_catches_without_on_clauses
+    - avoid_catching_errors
+#    - avoid_classes_with_only_static_members
     - avoid_empty_else
+#    - avoid_function_literals_in_foreach_calls
     - avoid_init_to_null
+    - avoid_null_checks_in_equality_operators
+#    - avoid_positional_boolean_parameters
     - avoid_return_types_on_setters
-#    - avoid_slow_async_io # not recognized
+    - avoid_returning_null
+    - avoid_returning_this
+    - avoid_setters_without_getters
+    - avoid_slow_async_io
+#    - avoid_types_on_closure_parameters
     - await_only_futures
-#    - camel_case_types
+    - camel_case_types
     - cancel_subscriptions
 #    - cascade_invocations
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
@@ -31,13 +45,15 @@ linter:
     - implementation_imports
     - invariant_booleans
     - iterable_contains_unrelated_type
+    - join_return_with_assignment
     - library_names
     - library_prefixes
     - list_remove_unrelated_type
     - literal_only_boolean_expressions
-#    - no_adjacent_strings_in_list # not recognized
-#    - no_duplicate_case_values # not recognized
+    - no_adjacent_strings_in_list
+    - no_duplicate_case_values
 #    - non_constant_identifier_names
+#    - omit_local_variable_types
 #    - one_member_abstracts
     - only_throw_errors
     - overridden_fields
@@ -45,14 +61,26 @@ linter:
     - package_names
     - package_prefixed_library_names
     - parameter_assignments
+    - prefer_adjacent_string_concatenation
+    - prefer_asserts_in_initializer_lists
+    - prefer_collection_literals
+    - prefer_conditional_assignment
 #    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_constructors_over_static_methods
+    - prefer_contains
+#    - prefer_expression_function_bodies
     - prefer_final_fields
 #    - prefer_final_locals
-#    - prefer_is_empty # not recognized
+#    - prefer_foreach
+#    - prefer_function_declarations_over_variables
+    - prefer_initializing_formals
+#    - prefer_interpolation_to_compose_strings
+    - prefer_is_empty
     - prefer_is_not_empty
     - prefer_single_quotes
 #    - public_member_api_docs
-#    - recursive_getter # not recognized
+    - recursive_getters
     - slash_for_doc_comments
 #    - sort_constructors_first
 #    - sort_unnamed_constructors_first
@@ -63,7 +91,15 @@ linter:
     - type_init_formals
     - unawaited_futures
     - unnecessary_brace_in_string_interps
-#    - unnecessary_getters # not recognized
     - unnecessary_getters_setters
+    - unnecessary_lambdas
+    - unnecessary_null_aware_assignments
+    - unnecessary_null_in_if_null_operators
+    - unnecessary_overrides
+    - unnecessary_this
     - unrelated_type_equality_checks
+    - use_rethrow_when_possible
+    - use_setters_to_change_properties
+    - use_string_buffers
+    - use_to_and_as_if_applicable
     - valid_regexps

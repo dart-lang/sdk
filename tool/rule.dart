@@ -83,7 +83,7 @@ ${parser.usage}
 }
 
 String toClassName(String ruleName) =>
-    ruleName.split('_').map((bit) => capitalize(bit)).join();
+    ruleName.split('_').map(capitalize).join();
 
 void updateRuleRegistry(String ruleName) {
   print("Don't forget to update lib/rules.dart with a line like:");

@@ -171,7 +171,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     List<AnalysisErrorInfo> errors = await linter.lintFiles(filesToLint);
     timer.stop();
 
-    if (errors.length > 0) {
+    if (errors.isNotEmpty) {
       exitCode = _maxSeverity(errors, lintOptions.filter);
     }
 

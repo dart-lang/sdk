@@ -50,7 +50,7 @@ bool isPackage(Uri uri) => uri?.scheme == 'package';
 bool samePackage(Uri uri1, Uri uri2) {
   var segments1 = uri1.pathSegments;
   var segments2 = uri2.pathSegments;
-  if (segments1.length < 1 || segments2.length < 1) {
+  if (segments1.isEmpty || segments2.isEmpty) {
     return false;
   }
   return segments1[0] == segments2[0];

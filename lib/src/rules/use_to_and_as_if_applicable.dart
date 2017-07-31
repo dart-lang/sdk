@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isGetter &&
-        node.parameters.parameters.length == 0 &&
+        node.parameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
         !_beginsWithAsOrTo(node.name.name) &&
         !DartTypeUtilities.hasInheritedMethod(node) &&

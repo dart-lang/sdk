@@ -56,7 +56,7 @@ class Visitor extends SimpleAstVisitor {
         Token bracket = expression.rightBracket;
         if (bracket != null &&
             !isIdentifierPart(bracket.next) &&
-            identifier.name.indexOf('\$') == -1) {
+            !identifier.name.contains('\$')) {
           rule.reportLint(expression);
         }
       }

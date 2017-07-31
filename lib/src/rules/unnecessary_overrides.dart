@@ -200,7 +200,7 @@ class _UnnecessaryOperatorOverrideVisitor
   visitPrefixExpression(PrefixExpression node) {
     final parameters = declaration.parameters.parameters;
     if (node.operator.type == declaration.name.token.type &&
-        parameters.length == 0) {
+        parameters.isEmpty) {
       final operand = node.operand.unParenthesized;
       if (operand is SuperExpression) {
         visitSuperExpression(operand);

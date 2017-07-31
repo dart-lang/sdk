@@ -18,7 +18,7 @@ main([List<String> args]) {
       valueHelp: 'Name of rule to generate.');
 
   _addTask('docs',
-      parser: (String outDir) => generateDocs(outDir),
+      parser: generateDocs,
       description: 'Generate lint rule docs.',
       valueHelp: 'Documentation `lints/` directory.');
 

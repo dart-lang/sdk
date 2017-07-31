@@ -128,7 +128,7 @@ class _Visitor extends SimpleAstVisitor {
 
     _getAssignmentExpressionsInConstructorBody(node)
         .where(isAssignmentExpressionToLint)
-        .map((e) => _getRightElement(e))
+        .map(_getRightElement)
         .forEach(processElement);
 
     _getConstructorFieldInitializersInInitializers(node)

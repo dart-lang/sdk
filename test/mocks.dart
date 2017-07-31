@@ -43,6 +43,7 @@ class MockIOSink extends Mock implements IOSink {}
 
 class MockLineInfo extends Mock implements LineInfo {}
 
+// ignore: camel_case_types
 class MockLineInfo_Location extends Mock implements LineInfo_Location {}
 
 class MockLinter extends Mock implements DartLinter {}

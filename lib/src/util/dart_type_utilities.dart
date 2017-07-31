@@ -243,7 +243,7 @@ class InterfaceTypeDefinition {
       return true;
     }
     return other is InterfaceTypeDefinition &&
-        this.name == other.name &&
-        this.library == other.library;
+        name == other.name &&
+        library == other.library;
   }
 }

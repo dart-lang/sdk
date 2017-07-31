@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.argumentList.arguments.length == 0) {
+    if (node.argumentList.arguments.isEmpty) {
       _checkFileMethods(node);
       return;
     } else {

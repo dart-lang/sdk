@@ -159,9 +159,7 @@ class _Visitor extends SimpleAstVisitor {
           (n is AssignmentExpression &&
               _isFormalParameterReassigned(parameter, n)) ||
           _preOrPostFixExpressionMutation(parameter, n));
-      mutatedNodes.forEach((n) {
-        rule.reportLint(n);
-      });
+      mutatedNodes.forEach(rule.reportLint);
       return;
     }
 

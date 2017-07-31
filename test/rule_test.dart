@@ -448,7 +448,7 @@ testRule(String ruleName, File file, {bool debug: false}) {
       }
 
       // Rethrow and fail.
-      throw e;
+      rethrow;
     }
   });
 }

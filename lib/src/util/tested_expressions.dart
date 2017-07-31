@@ -65,7 +65,7 @@ bool _sameOperands(String eLeftOperand, String bcLeftOperand,
   return sameOperandsSameOrder || sameOperandsInverted;
 }
 
-typedef void _recurseCallback(Expression expression);
+typedef void _RecurseCallback(Expression expression);
 
 class ContradictoryComparisons {
   final Expression first;
@@ -102,7 +102,9 @@ class TestedExpressions {
     if (_contradictions.isEmpty) {
       HashSet<Expression> set = (binaryExpression != null
           ? _extractComparisons(testingExpression)
-          : [testingExpression].toSet())..addAll(truths)..addAll(negations);
+          : [testingExpression].toSet())
+        ..addAll(truths)
+        ..addAll(negations);
       // Here and in several places we proceed only for
       // TokenType.AMPERSAND_AMPERSAND because we then know that all comparisons
       // must be true.
@@ -182,7 +184,7 @@ class TestedExpressions {
     return contradictions;
   }
 
-  _recurseCallback _recurseOnChildNodes(
+  _RecurseCallback _recurseOnChildNodes(
           LinkedHashSet<ContradictoryComparisons> expressions) =>
       (Expression e) {
         BinaryExpression ex = e as BinaryExpression;
