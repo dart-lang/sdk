@@ -2090,12 +2090,11 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
-  RawInteger* integer = Integer::NewFromUint64(value);
-  if (integer == Integer::null()) {
-    return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,
-                         CURRENT_FUNC, value);
+  if (Integer::IsValidUint64(value)) {
+    return Api::NewHandle(T, Integer::NewFromUint64(value));
   }
-  return Api::NewHandle(T, integer);
+  return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,
+                       CURRENT_FUNC, value);
 }
 
 DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {

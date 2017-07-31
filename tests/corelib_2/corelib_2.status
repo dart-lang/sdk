@@ -202,6 +202,7 @@ symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
 hash_set_test/01: RuntimeError # Issue 11551
 string_static_test: MissingCompileTimeError
 int_parse_with_limited_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # Issue 11669

@@ -6422,6 +6422,10 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Creates a new Integer by given uint64_t value.
+  // In the --limit-ints-to-64-bits mode silently casts value to int64_t
+  // (with wrap-around if it is greater than kMaxInt64).
   static RawInteger* NewFromUint64(uint64_t value,
                                    Heap::Space space = Heap::kNew);
 
@@ -6430,6 +6434,9 @@ class Integer : public Number {
   static RawInteger* NewCanonical(const String& str);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
+
+  // Returns true iff the given uint64_t value is representable as Dart integer.
+  static bool IsValidUint64(uint64_t value);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);

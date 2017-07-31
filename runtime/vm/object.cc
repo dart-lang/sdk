@@ -18155,15 +18155,18 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 }
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
-  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    if (FLAG_limit_ints_to_64_bits) {
-      // Out of range.
-      return Integer::null();
-    } else {
-      return Bigint::NewFromUint64(value, space);
-    }
+  if (!FLAG_limit_ints_to_64_bits &&
+      (value > static_cast<uint64_t>(Mint::kMaxValue))) {
+    return Bigint::NewFromUint64(value, space);
+  }
+  return Integer::New(static_cast<int64_t>(value), space);
+}
+
+bool Integer::IsValidUint64(uint64_t value) {
+  if (FLAG_limit_ints_to_64_bits) {
+    return (value <= static_cast<uint64_t>(Mint::kMaxValue));
   } else {
-    return Integer::New(value, space);
+    return true;
   }
 }
 
