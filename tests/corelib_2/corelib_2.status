@@ -510,5 +510,3 @@ regexp/pcre_test: Pass, Slow, Timeout
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
-
-int_parse_with_limited_ints_test: Skip # Issue 30302

@@ -9,7 +9,8 @@
 import "package:expect/expect.dart";
 
 main() {
-  var returnError = (_) => "ERROR";
+  const int ERROR = 42;
+  var returnError = (_) => ERROR;
 
   Expect.equals(0, int.parse("0"));
   Expect.equals(1, int.parse("1"));
@@ -20,9 +21,10 @@ main() {
   Expect.equals(-0x7fffffffffffffff, int.parse("-0x7fffffffffffffff"));
   Expect.equals(-0x7fffffffffffffff - 1, int.parse("-0x8000000000000000"));
 
-  Expect.equals("ERROR", int.parse("0x8000000000000000", onError: returnError));
-  Expect.equals(
-      "ERROR", int.parse("-0x8000000000000001", onError: returnError));
+  Expect.throws(
+      () => int.parse("0x8000000000000000"), (e) => e is FormatException);
+  Expect.equals(ERROR, int.parse("0x8000000000000000", onError: returnError));
+  Expect.equals(ERROR, int.parse("-0x8000000000000001", onError: returnError));
 
   Expect.equals(8999999999999999999, int.parse("8999999999999999999"));
   Expect.equals(-8999999999999999999, int.parse("-8999999999999999999"));
@@ -30,14 +32,10 @@ main() {
   Expect.equals(-9223372036854775807, int.parse("-9223372036854775807"));
   Expect.equals(-9223372036854775807 - 1, int.parse("-9223372036854775808"));
 
-  Expect.equals(
-      "ERROR", int.parse("9223372036854775808", onError: returnError));
-  Expect.equals(
-      "ERROR", int.parse("9223372036854775809", onError: returnError));
-  Expect.equals(
-      "ERROR", int.parse("-9223372036854775809", onError: returnError));
-  Expect.equals(
-      "ERROR", int.parse("10000000000000000000", onError: returnError));
+  Expect.equals(ERROR, int.parse("9223372036854775808", onError: returnError));
+  Expect.equals(ERROR, int.parse("9223372036854775809", onError: returnError));
+  Expect.equals(ERROR, int.parse("-9223372036854775809", onError: returnError));
+  Expect.equals(ERROR, int.parse("10000000000000000000", onError: returnError));
 
   Expect.equals(
       0x7fffffffffffffff,
@@ -56,25 +54,25 @@ main() {
           radix: 2));
 
   Expect.equals(
-      "ERROR",
+      ERROR,
       int.parse(
           "1000000000000000000000000000000000000000000000000000000000000000",
           radix: 2,
           onError: returnError));
   Expect.equals(
-      "ERROR",
+      ERROR,
       int.parse(
           "1111111111111111111111111111111111111111111111111111111111111110",
           radix: 2,
           onError: returnError));
   Expect.equals(
-      "ERROR",
+      ERROR,
       int.parse(
           "1111111111111111111111111111111111111111111111111111111111111111",
           radix: 2,
           onError: returnError));
   Expect.equals(
-      "ERROR",
+      ERROR,
       int.parse(
           "-1000000000000000000000000000000000000000000000000000000000000001",
           radix: 2,
