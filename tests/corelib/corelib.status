@@ -240,15 +240,6 @@ queue_iterator_test: Crash
 queue_last_test: Crash
 queue_single_test: Crash
 queue_test: Crash
-range_error_test: Crash
-reg_exp4_test: Crash
-reg_exp5_test: Crash
-reg_exp_all_matches_test: Crash
-reg_exp_start_end_test: Crash
-regexp/ascii-regexp-subject_test: Crash
-regexp/bol-with-multiline_test: Crash
-regexp/capture-3_test: Crash
-regexp/capture_test: Crash
 regexp/compile-crash_test: Crash
 regexp/compile_test: Crash
 regexp/early-acid3-86_test: Crash
@@ -309,10 +300,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: Crash
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: Crash
-symbol_test/01: Crash
-symbol_test/02: Crash
-symbol_test/03: Crash
-symbol_test/none: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 list_sort_test: Crash
@@ -409,11 +396,17 @@ regexp/default_arguments_test: Crash
 regexp/dotstar_test: Crash
 regexp/extended-characters-match_test: Crash
 regexp/find-first-asserted_test: Crash
+regexp/look-ahead_test: Crash
+regexp/malformed-escapes_test: Crash
+regexp/many-brackets_test: Crash
+regexp/non-bmp_test: Crash
+regexp/non-capturing-backtracking_test: Crash
+regexp/non-character_test: Crash
+regexp/non-greedy-parentheses_test: Crash
 regexp/norepeat_test: Crash
 regexp/overflow_test: Crash
 regexp/stack-overflow2_test: Crash
 regexp/stack-overflow_test: Crash
-regexp/zero-length-alternatives_test: Crash
 regress_11099_test: Crash
 regress_r21715_test: Crash
 safe_to_string_test: Crash

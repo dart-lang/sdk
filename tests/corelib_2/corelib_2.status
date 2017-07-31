@@ -63,6 +63,13 @@ regexp/non-capturing-groups_test: RuntimeError # Issue 29921
 regexp/non-character_test: RuntimeError # Issue 29921
 regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
 regexp/pcre-test-4_test: RuntimeError # Issue 29921
+regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
+regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
+regexp/bol-with-multiline_test: RuntimeError # Issue 29921
+regexp/capture-3_test: RuntimeError # Issue 29921
+regexp/char-insensitive_test: RuntimeError # Issue 29921
+regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
+regexp/loop-capture_test: RuntimeError # Issue 29921
 regexp/quantified-assertions_test: RuntimeError # Issue 29921
 regexp/range-bound-ffff_test: RuntimeError # Issue 29921
 regexp/range-out-of-order_test: RuntimeError # Issue 29921
@@ -315,6 +322,18 @@ regexp/no-extensions_test: Crash
 regexp/non-capturing-groups_test: Crash
 regexp/parentheses_test: Crash
 regexp/pcre-test-4_test: Crash
+range_error_test: Crash
+reg_exp4_test: Crash
+reg_exp5_test: Crash
+reg_exp_all_matches_test: Crash
+reg_exp_start_end_test: Crash
+regexp/ascii-regexp-subject_test: Crash
+regexp/capture-3_test: Crash
+regexp/capture_test: Crash
+symbol_test/01: Crash
+symbol_test/02: Crash
+symbol_test/03: Crash
+symbol_test/none: Crash
 regexp/range-out-of-order_test: Crash
 regexp/regexp_kde_test: Crash
 regexp/regexp_test: Crash
@@ -459,6 +478,25 @@ regexp/non-greedy-parentheses_test: Crash
 regexp/norepeat_test: Crash
 regexp/overflow_test: Crash
 regexp/stack-overflow_test: Crash
+reg_exp1_test: Crash
+reg_exp_first_match_test: Crash
+reg_exp_group_test: Crash
+reg_exp_groups_test: Crash
+reg_exp_has_match_test: Crash
+reg_exp_pattern_test: Crash
+reg_exp_string_match_test: Crash
+regexp/UC16_test: Crash
+regexp/alternative-length-miscalculation_test: Crash
+regexp/alternatives_test: Crash
+regexp/assertion_test: Crash
+regexp/backreferences_test: Crash
+regexp/bol-with-multiline_test: Crash
+regexp/bol_test: Crash
+regexp/captures_test: Crash
+regexp/char-insensitive_test: Crash
+regexp/character-match-out-of-order_test: Crash
+regexp/loop-capture_test: Crash
+regexp/zero-length-alternatives_test: Crash
 regexp/quantified-assertions_test: Crash
 regexp/range-bound-ffff_test: Crash
 regexp/ranges-and-escaped-hyphens_test: Crash

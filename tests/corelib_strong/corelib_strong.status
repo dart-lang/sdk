@@ -56,11 +56,6 @@ main_test: RuntimeError # Issue 29921
 map_keys2_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test: RuntimeError # Issue 29921
-regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
-regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
-regexp/capture-3_test: RuntimeError # Issue 29921
-regexp/char-insensitive_test: RuntimeError # Issue 29921
-regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
 regexp/compile-crash_test: RuntimeError # Issue 29921
 regexp/default_arguments_test: RuntimeError # Issue 29921
 regexp/early-acid3-86_test: RuntimeError # Issue 29921
