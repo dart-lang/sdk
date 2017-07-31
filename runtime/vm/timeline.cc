@@ -1713,7 +1713,7 @@ void DartCommonTimelineEventHelpers::ReportFlowEvent(Thread* thread,
 
   TimelineEvent::EventType event_type =
       static_cast<TimelineEvent::EventType>(type);
-  const char* typestr;
+  const char* typestr = NULL;
   const char* bpstr = "";
   switch (event_type) {
     case TimelineEvent::kFlowBegin:
