@@ -494,18 +494,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_futureOr() async {
-    await super.test_futureOr();
-  }
-
-  @failingTest
   test_futureOr_const() async {
     await super.test_futureOr_const();
-  }
-
-  @failingTest
-  test_futureOr_inferred() async {
-    await super.test_futureOr_inferred();
   }
 
   @failingTest
@@ -853,6 +843,11 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_setter_covariant() async {
     await super.test_setter_covariant();
+  }
+
+  @failingTest
+  test_syntheticFunctionType_genericClosure() async {
+    await super.test_syntheticFunctionType_genericClosure();
   }
 
   @failingTest

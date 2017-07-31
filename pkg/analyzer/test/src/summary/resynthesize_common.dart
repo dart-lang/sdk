@@ -6039,7 +6039,7 @@ dynamic x;
     }
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
-    if (createOptions().strongMode) {
+    if (isStrongMode) {
       expect(variables[0].type.toString(), 'FutureOr<int>');
     } else {
       expect(variables[0].type.toString(), 'dynamic');
@@ -6101,7 +6101,7 @@ dynamic f() {}
     expect(x.name, 'x');
     var y = variables[1];
     expect(y.name, 'y');
-    if (createOptions().strongMode) {
+    if (isStrongMode) {
       expect(x.type.toString(), 'FutureOr<int>');
       expect(y.type.toString(), 'dynamic');
     } else {
@@ -6587,7 +6587,7 @@ class C<U, V> {
   }
 
   test_inferred_function_type_in_generic_closure() async {
-    if (!createOptions().strongMode) {
+    if (!isStrongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -6614,7 +6614,7 @@ dynamic f<T>() {}
   }
 
   test_inferred_generic_function_type_in_generic_closure() async {
-    if (!createOptions().strongMode) {
+    if (!isStrongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -8850,7 +8850,7 @@ dynamic set y(dynamic value) {}
   }
 
   test_syntheticFunctionType_genericClosure() async {
-    if (!createOptions().strongMode) {
+    if (!isStrongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -8868,7 +8868,7 @@ bool f() => true;
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() async {
-    if (!createOptions().strongMode) {
+    if (!isStrongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
