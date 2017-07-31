@@ -132,10 +132,34 @@ class int {
       start = blockEnd;
     }
     int multiplier = _PARSE_LIMITS[tableIndex + 1];
+    int positiveOverflowLimit = 0;
+    int negativeOverflowLimit = 0;
+    if (_limitIntsTo64Bits) {
+      tableIndex = tableIndex << 1; // pre-multiply by 2 for simpler indexing
+      positiveOverflowLimit = _int64OverflowLimits[tableIndex];
+      if (positiveOverflowLimit == 0) {
+        positiveOverflowLimit =
+            _initInt64OverflowLimits(tableIndex, multiplier);
+      }
+      negativeOverflowLimit = _int64OverflowLimits[tableIndex + 1];
+    }
     int blockEnd = start + blockSize;
     do {
       _Smi smi = _parseBlock(source, radix, start, blockEnd);
       if (smi == null) return null;
+      if (_limitIntsTo64Bits) {
+        if (result >= positiveOverflowLimit) {
+          if ((result > positiveOverflowLimit) ||
+              (smi > _int64OverflowLimits[tableIndex + 2])) {
+            return null;
+          }
+        } else if (result <= negativeOverflowLimit) {
+          if ((result < negativeOverflowLimit) ||
+              (smi > _int64OverflowLimits[tableIndex + 3])) {
+            return null;
+          }
+        }
+      }
       result = (result * multiplier) + (sign * smi);
       start = blockEnd;
       blockEnd = start + blockSize;
@@ -206,4 +230,37 @@ class int {
     5, 52521875, 12, 3379220508056640625, //    radix: 35
     5, 60466176, 11, 131621703842267136,
   ];
+
+  /// Flag indicating if integers are limited by 64 bits
+  /// (`--limit-ints-to-64-bits` mode is enabled).
+  static const _limitIntsTo64Bits = ((1 << 64) == 0);
+
+  static const _maxInt64 = 0x7fffffffffffffff;
+  static const _minInt64 = -_maxInt64 - 1;
+
+  /// In the `--limit-ints-to-64-bits` mode calculation of the expression
+  ///
+  ///   result = (result * multiplier) + (sign * smi)
+  ///
+  /// in `_parseRadix()` may overflow 64-bit integers. In such case,
+  /// `int.parse()` should stop with an error.
+  ///
+  /// This table is lazily filled with int64 overflow limits for result and smi.
+  /// For each multiplier from `_PARSE_LIMITS[tableIndex + 1]` this table
+  /// contains
+  ///
+  /// * `[tableIndex*2]` = positive limit for result
+  /// * `[tableIndex*2 + 1]` = negative limit for result
+  /// * `[tableIndex*2 + 2]` = limit for smi if result is exactly at positive limit
+  /// * `[tableIndex*2 + 3]` = limit for smi if result is exactly at negative limit
+  static final Int64List _int64OverflowLimits =
+      new Int64List(_PARSE_LIMITS.length * 2);
+
+  static int _initInt64OverflowLimits(int tableIndex, int multiplier) {
+    _int64OverflowLimits[tableIndex] = _maxInt64 ~/ multiplier;
+    _int64OverflowLimits[tableIndex + 1] = _minInt64 ~/ multiplier;
+    _int64OverflowLimits[tableIndex + 2] = _maxInt64.remainder(multiplier);
+    _int64OverflowLimits[tableIndex + 3] = -(_minInt64.remainder(multiplier));
+    return _int64OverflowLimits[tableIndex];
+  }
 }
