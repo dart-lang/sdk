@@ -12,8 +12,10 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
@@ -79,12 +81,14 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
 
     var uriTranslator =
         new UriTranslatorImpl(dartLibraries, {}, Packages.noPackages);
-    var driver = new KernelDriver(
-        new PerformanceLog(null),
-        new _FileSystemAdaptor(resourceProvider),
-        new MemoryByteStore(),
-        uriTranslator,
-        new NoneTarget(new TargetFlags(strongMode: isStrongMode)));
+    var options = new ProcessedOptions(new CompilerOptions()
+      ..target = new NoneTarget(new TargetFlags(strongMode: isStrongMode))
+      ..reportMessages = false
+      ..logger = new PerformanceLog(null)
+      ..fileSystem = new _FileSystemAdaptor(resourceProvider)
+      ..byteStore = new MemoryByteStore());
+    var driver = new KernelDriver(options.logger, options.fileSystem,
+        options.byteStore, uriTranslator, options);
 
     KernelResult kernelResult = await driver.getKernel(testUri);
 

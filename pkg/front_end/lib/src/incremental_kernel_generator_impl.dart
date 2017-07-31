@@ -11,8 +11,6 @@ import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' hide Source;
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
 import 'package:meta/meta.dart';
 
 /// Implementation of [IncrementalKernelGenerator].
@@ -59,11 +57,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     }
 
     _driver = new KernelDriver(
-        _logger,
-        options.fileSystem,
-        options.byteStore,
-        uriTranslator,
-        new VmFastaTarget(new TargetFlags(strongMode: options.strongMode)),
+        _logger, options.fileSystem, options.byteStore, uriTranslator, options,
         fileAddedFn: onFileAdded);
   }
 

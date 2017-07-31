@@ -34,6 +34,10 @@ Future<IncrementalCompiler> createIncrementalCompiler(String entry,
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..strongMode = false
     ..dartLibraries = loadDartLibraries(sdkRoot)
+    // Note: we do not report error on the console because the incremental
+    // compiler is an ongoing background service that shouldn't polute stdout.
+    // TODO(sigmund): do something with the errors.
+    ..onError = (_) {}
     ..byteStore =
         persistent ? new FileByteStore(tmpDir.path) : new MemoryByteStore();
   return IncrementalCompiler.create(options, entryUri);

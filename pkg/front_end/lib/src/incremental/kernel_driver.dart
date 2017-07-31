@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
@@ -22,7 +21,6 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Source;
 import 'package:kernel/src/incremental_class_hierarchy.dart';
-import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
 
@@ -62,8 +60,8 @@ class KernelDriver {
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   final UriTranslator _uriTranslator;
 
-  /// The backend target to generate kernels for.
-  final Target _target;
+  /// Options used by the kernel compiler.
+  final ProcessedOptions _options;
 
   /// The function that is invoked when a new file is about to be added to
   /// the current file state. The [Future] that it returns is awaited before
@@ -84,7 +82,7 @@ class KernelDriver {
   final _TestView _testView = new _TestView();
 
   KernelDriver(this._logger, this._fileSystem, this._byteStore,
-      this._uriTranslator, this._target,
+      this._uriTranslator, this._options,
       {KernelDriverFileAddedFn fileAddedFn})
       : _fileAddedFn = fileAddedFn {
     _computeSalt();
@@ -135,8 +133,8 @@ class KernelDriver {
       });
 
       CanonicalName nameRoot = new CanonicalName.root();
-      DillTarget dillTarget =
-          new DillTarget(new Ticker(isVerbose: false), _uriTranslator, _target);
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false), _uriTranslator, _options.target);
 
       List<LibraryCycleResult> results = [];
       _testView.compiledCycles.clear();
@@ -171,15 +169,8 @@ class KernelDriver {
   }
 
   Future<T> runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    var options = new CompilerOptions()
-      ..target = _target
-      // Note: we do not report error on the console because the driver is an
-      // ongoing background service that shouldn't polute stdout.
-      // TODO(scheglov,sigmund): add an error handler to forward errors to
-      // analyzer driver and incremental kernel generator.
-      ..reportMessages = false;
     return await CompilerContext.runWithOptions(
-        new ProcessedOptions(options), (_) => _logger.runAsync(msg, f));
+        _options, (_) => _logger.runAsync(msg, f));
   }
 
   /// Return the [TypeEnvironment] that corresponds to the [results].
@@ -303,7 +294,7 @@ class KernelDriver {
   void _computeSalt() {
     var saltBuilder = new ApiSignature();
     saltBuilder.addInt(DATA_VERSION);
-    saltBuilder.addBool(_target.strongMode);
+    saltBuilder.addBool(_options.strongMode);
     _salt = saltBuilder.toByteList();
   }
 

@@ -4,8 +4,10 @@
 
 import 'dart:async';
 
+import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
@@ -656,7 +658,9 @@ import 'b.dart';
         fileSystem,
         new MemoryByteStore(),
         uriTranslator,
-        new NoneTarget(new TargetFlags(strongMode: true)),
+        new ProcessedOptions(new CompilerOptions()
+          ..strongMode = true
+          ..target = new NoneTarget(new TargetFlags(strongMode: true))),
         fileAddedFn: fileAddedFn);
   }
 
