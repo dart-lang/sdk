@@ -5993,7 +5993,6 @@ void f() {}
   }
 
   test_function_type_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('T f<T, U>(U u) => null;');
     checkElementText(library, r'''
 T f<T, U>(U u) {}
@@ -6001,7 +6000,6 @@ T f<T, U>(U u) {}
   }
 
   test_function_type_parameter_with_function_typed_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
 void f<T, U>(T x(U u)) {}
@@ -6111,7 +6109,6 @@ dynamic f() {}
   }
 
   test_generic_gClass_gMethodStatic() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -8213,7 +8210,6 @@ abstract class D {
   }
 
   test_method_type_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('class C { T f<T, U>(U u) => null; }');
     checkElementText(library, r'''
 class C {
@@ -8223,7 +8219,6 @@ class C {
   }
 
   test_method_type_parameter_in_generic_class() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('''
 class C<T, U> {
   V f<V, W>(T t, U u, W w) => null;
@@ -8237,7 +8232,6 @@ class C<T, U> {
   }
 
   test_method_type_parameter_with_function_typed_parameter() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
 class C {
@@ -8539,7 +8533,6 @@ const dynamic checked = null;
   }
 
   test_parameter_covariant() async {
-    prepareAnalysisContext(createOptions());
     var library = await checkLibrary('class C { void m(covariant C c) {} }');
     checkElementText(library, r'''
 class C {
