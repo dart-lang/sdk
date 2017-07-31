@@ -14,7 +14,13 @@ import 'frontend_checker.dart';
 /// includes the multitest in 'language/async_await_syntax_test.dart' but
 /// expects the subtests 'a03b' and 'a04c' to fail.
 const Map<String, List<String>> TESTS = const <String, List<String>>{
-  'language/async_await_syntax_test.dart': const [],
+  'language_2/async_await_syntax_test.dart': const [
+    'a10a',
+    'b10a',
+    'c10a',
+    'd08b',
+    'd10a',
+  ],
 };
 
 void main(List<String> arguments) {
