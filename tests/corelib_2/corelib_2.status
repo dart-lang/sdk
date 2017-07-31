@@ -505,7 +505,7 @@ splay_tree_from_iterable_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
-rexexp/pcre_test: Pass, Slow, Timeout
+regexp/pcre_test: Pass, Slow, Timeout
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
