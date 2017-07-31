@@ -35,27 +35,30 @@ class B extends A {
 A makeA() native;
 B makeB() native;
 
-void setup() native r"""
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
+
+  function A(){}
+  function B(){}
+  inherits(B, A);
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
 }
-
-function A(){}
-function B(){}
-inherits(B, A);
-makeA = function(){return new A;};
-makeB = function(){return new B;};
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
 
 testBasicA_dynamic() {
   setup(); // Fresh constructors.

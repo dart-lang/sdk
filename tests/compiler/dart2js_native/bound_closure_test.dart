@@ -27,24 +27,27 @@ makeBB() native;
 makeCC() native;
 inscrutable(a) native;
 
-void setup() native r"""
-function BB() {}
-BB.prototype.foo = function(u, v) {
-  return 'BB.foo(' + u + ', ' + v + ')';
-};
+void setup() {
+  JS('', r"""
+(function(){
+  function BB() {}
+  BB.prototype.foo = function(u, v) {
+    return 'BB.foo(' + u + ', ' + v + ')';
+  };
 
-function CC() {}
-CC.prototype.foo = function(u, v) {
-  return 'CC.foo(' + u + ', ' + v + ')';
-};
+  function CC() {}
+  CC.prototype.foo = function(u, v) {
+    return 'CC.foo(' + u + ', ' + v + ')';
+  };
 
-makeBB = function(){return new BB;};
-makeCC = function(){return new CC;};
-inscrutable = function(a){return a;};
+  makeBB = function(){return new BB()};
+  makeCC = function(){return new CC()};
+  inscrutable = function(a){return a;};
 
-self.nativeConstructor(BB);
-self.nativeConstructor(CC);
-""";
+  self.nativeConstructor(BB);
+  self.nativeConstructor(CC);
+})()""");
+}
 
 main() {
   nativeTesting();

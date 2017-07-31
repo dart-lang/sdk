@@ -15,8 +15,9 @@ class A {
 
   factory A.fromString(String s) => makeA(s.length);
 
-  // Only functions with zero parameters are allowed with "native r'...'".
-  factory A.nativeConstructor() native r'return makeA(102);';
+  factory A.nativeConstructor() {
+    return JS('A|Null', 'makeA(102)');
+  }
 
   foo() native;
 }

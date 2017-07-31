@@ -42,15 +42,18 @@ BB makeBB() native;
 @Creates('=Object')
 getBBPrototype() native;
 
-void setup() native r"""
-function N2() {}
-N2.prototype.foo = function() { return "foo:" + this.text; }
-function BB() {}
-BB.prototype.__proto__ = N2.prototype;
-makeBB = function(){return new BB;};
+void setup() {
+  JS('', r"""
+(function(){
+  function N2() {}
+  N2.prototype.foo = function() { return "foo:" + this.text; };
+  function BB() {}
+  BB.prototype.__proto__ = N2.prototype;
+  makeBB = function(){return new BB()};
 
-getBBPrototype = function(){return BB.prototype;};
-""";
+  getBBPrototype = function(){return BB.prototype;};
+})()""");
+}
 
 testSuperOnNative() {
   BB b1 = makeBB();

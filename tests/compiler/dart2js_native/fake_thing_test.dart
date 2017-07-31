@@ -15,12 +15,15 @@ class Thing {}
 make1() native;
 make2() native;
 
-void setup() native r"""
-function A() {}
-A.prototype.$isThing = true;
-make1 = function(){return new A;};
-make2 = function(){return {$isThing: true}};
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.$isThing = true;
+  make1 = function(){return new A;};
+  make2 = function(){return {$isThing: true}};
+})()""");
+}
 
 inscrutable(x) {
   if (new DateTime.now().millisecondsSinceEpoch == 0) {

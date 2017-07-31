@@ -24,42 +24,45 @@ class A {
   int settersCalled;
 }
 
-void setup() native r"""
-function getter() {
-  this.gettersCalled++;
-  return 42;
+void setup() {
+  JS('', r"""
+(function(){
+  function getter() {
+    this.gettersCalled++;
+    return 42;
+  }
+
+  function setter(x) {
+    this.settersCalled++;
+    return 314;
+  }
+
+  var descriptor = {
+      get: getter,
+      set: setter,
+      configurable: false,
+      writeable: false
+  };
+
+  function A(){
+    var a = Object.create(
+        { constructor: A },
+        { bar: descriptor,
+          g: descriptor,
+          s: descriptor,
+          end: descriptor,
+          gend: descriptor,
+          send: descriptor
+        });
+    a.gettersCalled = 0;
+    a.settersCalled = 0;
+    return a;
+  }
+
+  makeA = function() { return new A(); };
+  self.nativeConstructor(A);
+})()""");
 }
-
-function setter(x) {
-  this.settersCalled++;
-  return 314;
-}
-
-var descriptor = {
-    get: getter,
-    set: setter,
-    configurable: false,
-    writeable: false
-};
-
-function A(){
-  var a = Object.create(
-      { constructor: A },
-      { bar: descriptor,
-        g: descriptor,
-        s: descriptor,
-        end: descriptor,
-        gend: descriptor,
-        send: descriptor
-      });
-  a.gettersCalled = 0;
-  a.settersCalled = 0;
-  return a;
-}
-
-makeA = function() { return new A; };
-self.nativeConstructor(A);
-""";
 
 A makeA() native;
 

@@ -53,26 +53,29 @@ A makeA() native;
 
 String findMethodTextContaining(instance, string) native;
 
-void setup() native r"""
-function A() {}
-A.prototype.foo = function () { return arguments.length; };
-A.prototype.callFun = function (fn) { return fn ? fn(123) : 1; };
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.foo = function () { return arguments.length; };
+  A.prototype.callFun = function (fn) { return fn ? fn(123) : 1; };
 
-makeA = function(){return new A;};
+  makeA = function(){return new A()};
 
-findMethodTextContaining = function (instance, string) {
-  var proto = Object.getPrototypeOf(instance);
-  var keys = Object.keys(proto);
-  for (var i = 0; i < keys.length; i++) {
-    var name = keys[i];
-    var member = proto[name];
-    var s = String(member);
-    if (s.indexOf(string)>0) return s;
-  }
-};
+  findMethodTextContaining = function (instance, string) {
+    var proto = Object.getPrototypeOf(instance);
+    var keys = Object.keys(proto);
+    for (var i = 0; i < keys.length; i++) {
+      var name = keys[i];
+      var member = proto[name];
+      var s = String(member);
+      if (s.indexOf(string)>0) return s;
+    }
+  };
 
-self.nativeConstructor(A);
-""";
+  self.nativeConstructor(A);
+})()""");
+}
 
 bool get isCheckedMode {
   int i = 0;
