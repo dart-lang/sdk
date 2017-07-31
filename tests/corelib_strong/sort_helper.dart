@@ -24,7 +24,7 @@ class SortHelper {
   }
 
   void testSortIntLists() {
-    List a = new List(40);
+    var a = new List<int>(40);
 
     for (int i = 0; i < a.length; i++) {
       a[i] = i;
@@ -80,10 +80,10 @@ class SortHelper {
     a[33] = 1;
     testSort(a);
 
-    var a2 = new List(0);
+    var a2 = new List<int>(0);
     testSort(a2);
 
-    var a3 = new List(1);
+    var a3 = new List<int>(1);
     a3[0] = 1;
     testSort(a3);
 
@@ -121,7 +121,7 @@ class SortHelper {
   }
 
   void testInsertionSort(int i1, int i2, int i3, int i4) {
-    var a = new List(4);
+    var a = new List<int>(4);
     a[0] = i1;
     a[1] = i2;
     a[2] = i3;
@@ -130,7 +130,7 @@ class SortHelper {
   }
 
   void testSortDoubleLists() {
-    List a = new List(40);
+    var a = new List<double>(40);
     for (int i = 0; i < a.length; i++) {
       a[i] = 1.0 * i + 0.5;
     }

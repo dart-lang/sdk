@@ -73,9 +73,8 @@ throwUnimplementedError(String message) {
   throw new UnimplementedError(message);
 }
 
-throwAssertionError(messageFn()) {
+assertFailed(message) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  var message = messageFn != null ? messageFn() : null;
   throw new AssertionErrorImpl(message);
 }
 

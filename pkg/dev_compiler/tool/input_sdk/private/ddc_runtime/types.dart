@@ -979,7 +979,7 @@ isClassSubType(t1, t2, isCovariant) => JS(
       if (typeArguments2.every($_isTop)) return true;
       return null;
     }
-    $assert_(length == typeArguments2.length);
+    if (length != typeArguments2.length) $assertFailed();
     for (let i = 0; i < length; ++i) {
       let result =
           $_isSubtype(typeArguments1[i], typeArguments2[i], $isCovariant);
