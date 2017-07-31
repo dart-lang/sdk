@@ -597,8 +597,9 @@ class PatchApplier extends GeneralizingAstVisitor {
     var name = _qualifiedName(node);
     var patchNode = patch.patches[name];
     if (patchNode == null) {
-      if (externalKeyword != null) {
+      if (externalKeyword != null && _shouldHaveImplementation(name)) {
         print('warning: patch not found for $name: $node');
+        exitCode = 1;
       }
       return;
     }
@@ -613,6 +614,23 @@ class PatchApplier extends GeneralizingAstVisitor {
     // documentation comments.
     edits.replace(externalKeyword?.offset ?? node.offset, node.end, code);
   }
+}
+
+/// Whether a member should have an implementation after patching the SDK.
+///
+/// True for most members except for the *.fromEnvironment constructors under
+/// the dart2js target.
+bool _shouldHaveImplementation(String qualifiedName) {
+  if (!forDart2js) return true;
+  // Note: dart2js implements int.fromEnvironment, bool.fromEnvironment
+  // and String.fromEnvironment directly and expects the SDK code to
+  // have an external declaration.
+  var isFromEnvironment = const [
+    'bool.fromEnvironment',
+    'int.fromEnvironment',
+    'String.fromEnvironment'
+  ].contains(qualifiedName);
+  return !isFromEnvironment;
 }
 
 class PatchFinder extends GeneralizingAstVisitor {
