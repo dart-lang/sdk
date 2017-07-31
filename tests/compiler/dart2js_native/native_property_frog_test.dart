@@ -25,18 +25,21 @@ class A {
 
 A makeA() native;
 
-void setup() native """
-function A() {}
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
 
-Object.defineProperty(A.prototype, "X", {
-  get: function () { return this._x; },
-  set: function (v) { this._x = v; }
-});
+  Object.defineProperty(A.prototype, "X", {
+    get: function () { return this._x; },
+    set: function (v) { this._x = v; }
+  });
 
-makeA = function(){return new A;};
+  makeA = function(){return new A()};
 
-self.nativeConstructor(A);
-""";
+  self.nativeConstructor(A);
+})()""");
+}
 
 
 main() {

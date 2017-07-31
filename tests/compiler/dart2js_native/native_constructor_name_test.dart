@@ -19,11 +19,14 @@ class Z {
 
 makeZ() native;
 
-void setup() native """
-function A(){}
-makeZ = function(){return new A};
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A(){}
+  makeZ = function(){return new A()};
+  self.nativeConstructor(A);
+})()""");
+}
 
 main() {
   nativeTesting();

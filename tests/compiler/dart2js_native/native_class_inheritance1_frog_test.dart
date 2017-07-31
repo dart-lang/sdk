@@ -37,41 +37,44 @@ class B2 extends A2 {
 makeA2() native;
 makeB2() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
+  function A1(){}
+  function B1(){}
+  inherits(B1, A1);
+  A1.prototype.foo = function(){return 100;};
+  B1.prototype.foo = function(){return 200;};
+
+  makeA1 = function(){return new A1()};
+  makeB1 = function(){return new B1()};
+
+  function A2(){}
+  function B2(){}
+  inherits(B2, A2);
+  A2.prototype.foo = function(a){return a + 10000;};
+  B2.prototype.foo = function(z){return z + 20000;};
+
+  makeA2 = function(){return new A2()};
+  makeB2 = function(){return new B2()};
+
+  self.nativeConstructor(A1);
+  self.nativeConstructor(A2);
+  self.nativeConstructor(B1);
+  self.nativeConstructor(B2);
+})()""");
 }
-function A1(){}
-function B1(){}
-inherits(B1, A1);
-A1.prototype.foo = function(){return 100;}
-B1.prototype.foo = function(){return 200;}
-
-makeA1 = function(){return new A1};
-makeB1 = function(){return new B1};
-
-function A2(){}
-function B2(){}
-inherits(B2, A2);
-A2.prototype.foo = function(a){return a + 10000;}
-B2.prototype.foo = function(z){return z + 20000;}
-
-makeA2 = function(){return new A2};
-makeB2 = function(){return new B2};
-
-self.nativeConstructor(A1);
-self.nativeConstructor(A2);
-self.nativeConstructor(B1);
-self.nativeConstructor(B2);
-""";
 
 main() {
   nativeTesting();

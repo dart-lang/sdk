@@ -13,13 +13,16 @@ class A {
 
 A makeA() native;
 
-void setup() native """
+void setup() {
+  JS('', r"""
+(function(){
 function A() {}
 A.prototype.delete = function() { return 87; };
 
-makeA = function(){return new A;};
+makeA = function(){return new A()};
 self.nativeConstructor(A);
-""";
+})()""");
+}
 
 main() {
   nativeTesting();

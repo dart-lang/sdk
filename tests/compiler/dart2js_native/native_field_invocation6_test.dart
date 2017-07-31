@@ -7,13 +7,16 @@ import "native_testing.dart";
 makeA() native;
 nativeFirst(x, y) native;
 
-void setup() native """
-nativeFirst = function(x, y) { return x; }
+void setup() {
+  JS('', r"""
+(function(){
+  nativeFirst = function(x, y) { return x; };
 
-function A() {}
-makeA = function() { return new A; }
-self.nativeConstructor(A);
-""";
+  function A() {}
+  makeA = function() { return new A() };
+  self.nativeConstructor(A);
+})()""");
+}
 
 @Native("A")
 class A {

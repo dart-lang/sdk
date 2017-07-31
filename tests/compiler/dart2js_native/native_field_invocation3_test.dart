@@ -6,11 +6,14 @@ import "native_testing.dart";
 
 makeCC() native;
 
-void setup() native """
-function CC() {}
-makeCC = function() { return new CC; }
-self.nativeConstructor(CC);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function CC() {}
+  makeCC = function() { return new CC() };
+  self.nativeConstructor(CC);
+})()""");
+}
 
 @Native("CC")
 class ClickCounter {

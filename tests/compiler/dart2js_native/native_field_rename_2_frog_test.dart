@@ -36,20 +36,23 @@ class X {
 A makeA() native;
 X makeX() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function A(){ this.key = 111; }
-A.prototype.getKey = function(){return this.key;};
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function A(){ this.key = 111; }
+  A.prototype.getKey = function(){return this.key;};
 
-function X(){}
-X.prototype.key = function(){return 666;};
+  function X(){}
+  X.prototype.key = function(){return 666;};
 
-makeA = function(){return new A};
-makeX = function(){return new X};
+  makeA = function(){return new A()};
+  makeX = function(){return new X()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(X);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(X);
+})()""");
+}
 
 testDynamic() {
   var a = confuse(makeA());

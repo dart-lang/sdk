@@ -19,17 +19,20 @@ class B {
 A makeA() native;
 B makeB() native;
 
-void setup() native """
-function A() {}
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
 
-function B() {}
+  function B() {}
 
-makeA = function(){return new A;};
-makeB = function(){return new B;};
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 expectThrows(action()) {
   bool threw = false;

@@ -29,15 +29,18 @@ class M2 {
 A makeA() native;
 B makeB() native;
 
-void setup() native """
-function A() {this.foo='A-foo';}
-function B() {A.call(this);this.bar='B-bar';this.baz='M1-baz';}
-makeA = function(){return new A;};
-makeB = function(){return new B;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {this.foo='A-foo';}
+  function B() {A.call(this);this.bar='B-bar';this.baz='M1-baz';}
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 main() {
   nativeTesting();

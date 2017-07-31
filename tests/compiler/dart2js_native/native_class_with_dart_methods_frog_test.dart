@@ -20,11 +20,14 @@ class A {
 
 A makeA() native;
 
-void setup() native """
-function A() {}
-makeA = function(){return new A;};
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  makeA = function(){return new A()};
+  self.nativeConstructor(A);
+})()""");
+}
 
 main() {
   nativeTesting();
