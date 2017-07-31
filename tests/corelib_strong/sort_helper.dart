@@ -6,6 +6,9 @@ library sort_helper;
 
 import "package:expect/expect.dart";
 
+typedef Sorter = void Function(List<num>);
+typedef Comparer = int Function(num, num);
+
 class SortHelper {
   SortHelper(this.sortFunction, this.compareFunction) {}
 
@@ -14,7 +17,7 @@ class SortHelper {
     testSortDoubleLists();
   }
 
-  bool isSorted(List a) {
+  bool isSorted(List<num> a) {
     for (int i = 1; i < a.length; i++) {
       if (compareFunction(a[i - 1], a[i]) > 0) {
         return false;
@@ -115,7 +118,7 @@ class SortHelper {
     testInsertionSort(3, 2, 0, 1);
   }
 
-  void testSort(List a) {
+  void testSort(List<num> a) {
     sortFunction(a);
     Expect.isTrue(isSorted(a));
   }
@@ -147,6 +150,6 @@ class SortHelper {
     testSort(a);
   }
 
-  Function sortFunction;
-  Function compareFunction;
+  Sorter sortFunction;
+  Comparer compareFunction;
 }

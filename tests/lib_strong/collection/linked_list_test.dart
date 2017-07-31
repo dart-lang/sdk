@@ -124,7 +124,7 @@ testBadAdd() {
 }
 
 testConcurrentModificationError() {
-  test(function(LinkedList ll)) {
+  test(function(LinkedList<MyEntry> ll)) {
     var ll = new LinkedList<MyEntry>();
     for (int i = 0; i < 10; i++) {
       ll.add(new MyEntry(i));

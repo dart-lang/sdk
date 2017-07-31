@@ -26,7 +26,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   //   'fail' - test fails
   //   'timeout' - test times out
   //   'slow' - use 5s timeout instead of default 2s.
-  //   'whitelist' - run with whitelisted type errors allowed
   //
   // Common combinations:
   const pass = 'pass';
@@ -40,7 +39,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // These are typically tests with asynchronous exceptions that our
   // test framework doesn't always catch.
   const flaky = 'skip';
-  const whitelist = 'whitelist';
 
   // Tests marked with this are still using the deprecated unittest package
   // because they rely on its support for futures and asynchronous tests, which
@@ -77,8 +75,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'async_star_test_05_multi': async_unittest,
 
       'async_switch_test': fail,
-      'async_test': whitelist,
-      'async_this_bound_test': whitelist,
       'asyncstar_throw_in_catch_test': ['skip', 'fail'],
       'await_future_test': skip_timeout,
       'await_for_test': 'slow',
@@ -161,7 +157,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'list_literal3_test': fail,
       'main_test_03_multi': fail,
       'many_generic_instanceof_test': fail,
-      'many_named_arguments_test': whitelist,
       'map_literal10_test': fail,
       'map_literal7_test': fail,
       'memory_swap_test': skip_timeout,
@@ -174,7 +169,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'number_identifier_test_05_multi': fail,
       'number_identity2_test': fail,
       'numbers_test': fail,
-      'reg_exp_test': whitelist,
       'regress_16640_test': fail,
       'regress_22445_test': fail,
       'regress_22777_test': flaky,
@@ -257,12 +251,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'int_parse_with_limited_ints_test': fail,
       'integer_to_radix_string_test': fail,
       'integer_to_string_test_01_multi': fail,
-      'iterable_empty_test': whitelist,
-      'iterable_join_test': whitelist,
       'iterable_return_type_test_02_multi': fail,
       'json_map_test': fail,
       'list_fill_range_test': fail,
-      'list_insert_all_test': whitelist,
       'list_replace_range_test': fail,
       'list_set_all_test': fail,
       'list_test_01_multi': fail,
@@ -272,15 +263,11 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'map_from_iterable_test': is.firefox('<=50') ? fail : pass,
       'nan_infinity_test_01_multi': fail,
       'null_nosuchmethod_test': fail,
-      'reg_exp_all_matches_test': whitelist,
-      'reg_exp_start_end_test': whitelist,
       'regress_r21715_test': fail,
-      'sort_test': whitelist,
       'splay_tree_from_iterable_test': is.firefox('<=50') ? fail : pass,
       'string_case_test_01_multi': firefox_fail,
       'string_fromcharcodes_test': skip_timeout,
       'string_operations_with_null_test': fail,
-      'string_split_test': whitelist,
       'string_trimlr_test_01_multi': is.chrome('<=58') ? fail : pass,
       'string_trimlr_test_none_multi': is.chrome('<=58') ? fail : pass,
       'symbol_operator_test_03_multi': fail,
@@ -356,33 +343,23 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'zone_run_unary_test': fail,
     },
 
-    'lib/collection': {
-      'linked_list_test': whitelist,
-    },
+    'lib/collection': {},
 
     'lib/convert': {
       'base64_test_01_multi': 'slow',
-      'chunked_conversion_utf82_test': whitelist,
-      'chunked_conversion_utf83_test': whitelist,
-      'chunked_conversion_utf85_test': ['whitelist', 'slow'],
-      'chunked_conversion_utf86_test': whitelist,
-      'chunked_conversion_utf87_test': whitelist,
+      'chunked_conversion_utf85_test': 'slow',
 
       'encoding_test': skip_timeout,
 
       'json_utf8_chunk_test': skip_timeout,
       'latin1_test': skip_timeout,
 
-      'streamed_conversion_json_decode1_test': whitelist,
       'streamed_conversion_json_encode1_test': skip_timeout,
       'streamed_conversion_json_utf8_decode_test': skip_timeout,
       'streamed_conversion_json_utf8_encode_test': skip_timeout,
       'streamed_conversion_utf8_decode_test': skip_timeout,
       'streamed_conversion_utf8_encode_test': skip_timeout,
-      'utf82_test': whitelist,
       'utf85_test': skip_timeout,
-      'utf8_encode_test': whitelist,
-      'utf8_test': whitelist,
     },
 
     'lib/html': {
@@ -519,7 +496,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'int64_list_load_store_test': fail,
       'typed_data_hierarchy_int64_test': fail,
       'typed_data_list_test': fail,
-      'typed_list_iterable_test': whitelist,
     },
 
     'lib/mirrors': {
@@ -756,9 +732,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
             mainLibrary._expectRuntimeError;
         let fail = has('fail');
 
-        let whitelist = has('whitelist');
-        dart_sdk.dart.ignoreWhitelistedErrors(whitelist);
-
         function finish(error) {
           // If the test left any lingering detritus in the DOM, blow it away
           // so it doesn't interfere with later tests.
@@ -785,7 +758,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
           document.body.innerHTML = '';
           console.log("cleared");
           if (error && !(error instanceof Error)) error = new Error(error);
-          dart_sdk.dart.ignoreWhitelistedErrors(false);
           done(error);
         }
 

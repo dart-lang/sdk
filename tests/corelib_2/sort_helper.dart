@@ -6,10 +6,8 @@ library sort_helper;
 
 import "package:expect/expect.dart";
 
-typedef Sorter
-    = void Function(List<num>);
-typedef Comparer
-    = int Function(num, num);
+typedef Sorter = void Function(List<num>);
+typedef Comparer = int Function(num, num);
 
 class SortHelper {
   SortHelper(this.sortFunction, this.compareFunction) {}

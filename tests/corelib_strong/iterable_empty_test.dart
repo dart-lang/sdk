@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  testEmpty(name, it, [depth = 2]) {
+  testEmpty(name, Iterable<int> it, [depth = 2]) {
     Expect.isTrue(it.isEmpty, name);
     Expect.isFalse(it.isNotEmpty, name);
     Expect.equals(0, it.length, name);

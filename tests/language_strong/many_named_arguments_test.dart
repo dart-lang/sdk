@@ -63,7 +63,7 @@ class Fisk {
 
 main() {
   var method = new Fisk().method;
-  var namedArguments = new Map();
+  var namedArguments = new Map<Symbol, dynamic>();
   namedArguments[const Symbol('a')] = 'a';
   Expect.stringEquals(
       EXPECTED_RESULT, Function.apply(method, [], namedArguments));
