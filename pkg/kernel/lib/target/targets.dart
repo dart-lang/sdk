@@ -129,6 +129,15 @@ abstract class Target {
   bool mayDefineRestrictedType(Uri uri) =>
       uri.scheme == 'dart' && uri.path == 'core';
 
+  /// Whether a library is allowed to import a platform private library.
+  ///
+  /// By default only `dart:*` libraries are allowed. May be overriden for
+  /// testing purposes.
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      imported.scheme != "dart" ||
+      !imported.path.startsWith("_") ||
+      importer.scheme == "dart";
+
   /// Whether the `native` language extension is supported within [library].
   ///
   /// The `native` language extension is not part of the language specification,

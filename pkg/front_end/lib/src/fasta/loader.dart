@@ -102,9 +102,8 @@ abstract class Loader<L> {
       return library;
     });
     if (accessor != null &&
-        uri.scheme == "dart" &&
-        uri.path.startsWith("_") &&
-        accessor.uri.scheme != "dart") {
+        !target.backendTarget
+            .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
       accessor.addCompileTimeError(
           messagePlatformPrivateLibraryAccess, charOffset, accessor.fileUri);
     }
