@@ -29,10 +29,6 @@ list_index_of2_test: Skip
 list_test: Skip
 list_unmodifiable_test: Skip
 map_test: Skip
-num_clamp_test: Skip
-package_resource_test: Skip
-print_test: Skip
-queue_test: Skip
 regexp/global_test: Skip
 regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
@@ -54,8 +50,6 @@ list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 map_keys2_test: RuntimeError # Issue 29921
-nan_infinity_test/01: RuntimeError # Issue 29921
-null_nosuchmethod_test: RuntimeError # Issue 29921
 regexp/compile-crash_test: RuntimeError # Issue 29921
 regexp/default_arguments_test: RuntimeError # Issue 29921
 regexp/early-acid3-86_test: RuntimeError # Issue 29921

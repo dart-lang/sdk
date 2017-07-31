@@ -32,7 +32,6 @@ iterable_to_list_test/01: RuntimeError # Issue 26501
 
 big_integer_*: Skip # VM specific test.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
-nan_infinity_test/01: Fail # Issue 11551
 regress_r21715_test: RuntimeError # Requires bigint support.
 
 [ $compiler == dart2js && $runtime == none ]
@@ -61,7 +60,6 @@ from_environment_const_type_undefined_test/16: CompileTimeError
 int_parse_radix_bad_handler_test: fail
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
-num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 duration2_test: StaticWarning, OK # Test generates error on purpose.
 
@@ -81,7 +79,6 @@ file_resource_test: Skip, OK # VM specific test, uses dart:io.
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
 
 [ $compiler == dart2js && ! $browser ]
-package_resource_test: RuntimeError # Issue 26842
 
 [ $mode == debug ]
 
@@ -92,7 +89,6 @@ int_parse_radix_test/*: Pass, Slow
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == precompiler || $compiler == app_jit ]
-package_resource_test: Skip # Resolve URI not supported yet in product mode.
 file_resource_test: Skip # Resolve URI not supported yet in product mode.
 http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
@@ -223,23 +219,6 @@ map_from_test: Crash
 map_keys2_test: Crash
 map_keys_test: Crash
 map_test: Crash
-map_to_string_test: Crash
-map_values2_test: Crash
-map_values3_test: Crash
-map_values4_test: Crash
-map_values_test: Crash
-maps_test: Crash
-nan_infinity_test/01: RuntimeError
-null_nosuchmethod_test: Crash
-null_test: Crash
-num_clamp_test: Crash
-num_parse_test/01: Crash
-num_parse_test/none: Crash
-queue_first_test: Crash
-queue_iterator_test: Crash
-queue_last_test: Crash
-queue_single_test: Crash
-queue_test: Crash
 regexp/compile-crash_test: Crash
 regexp/compile_test: Crash
 regexp/early-acid3-86_test: Crash
@@ -370,11 +349,6 @@ list_sort_test: Crash
 map_contains_key_test: Crash
 map_index_test: Crash
 map_remove_test: Crash
-nan_infinity_test/01: Crash
-nan_infinity_test/none: Crash
-num_sign_test: Crash
-print_test/01: Crash
-print_test/none: Crash
 reg_exp1_test: Crash
 reg_exp_first_match_test: Crash
 reg_exp_group_test: Crash

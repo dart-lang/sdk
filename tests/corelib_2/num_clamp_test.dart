@@ -16,10 +16,6 @@ testIntClamp() {
   Expect.equals(0, (-1).clamp(0, 0));
   Expect.equals(0, 0.clamp(0, 0));
   Expect.throws(() => 0.clamp(0, -1), (e) => e is ArgumentError);
-  Expect.throws(
-      () => 0.clamp("str", -1), (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(
-      () => 0.clamp(0, "2"), (e) => e is ArgumentError || e is TypeError);
 }
 
 testDoubleClamp() {
@@ -33,10 +29,6 @@ testDoubleClamp() {
   Expect.equals(0.0, (-1.0).clamp(0.0, 0.0));
   Expect.equals(0.0, 0.0.clamp(0.0, 0.0));
   Expect.throws(() => 0.0.clamp(0.0, -1.0), (e) => e is ArgumentError);
-  Expect.throws(() => 0.0.clamp("str", -1.0),
-      (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(
-      () => 0.0.clamp(0.0, "2"), (e) => e is ArgumentError || e is TypeError);
 }
 
 testDoubleClampInt() {
@@ -57,10 +49,6 @@ testDoubleClampInt() {
   Expect.equals(0.0, 0.0.clamp(0, 0));
   Expect.isTrue(0.0.clamp(0, 0) is double);
   Expect.throws(() => 0.0.clamp(0, -1), (e) => e is ArgumentError);
-  Expect.throws(
-      () => 0.0.clamp("str", -1), (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(
-      () => 0.0.clamp(0, "2"), (e) => e is ArgumentError || e is TypeError);
 }
 
 testDoubleClampExtremes() {
