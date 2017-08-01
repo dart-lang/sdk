@@ -60,7 +60,7 @@ class StringScanner extends ArrayBasedScanner {
       TokenType type, int start, bool asciiOnly, String closingQuotes) {
     String source = string.substring(start, scanOffset);
     return new SyntheticStringToken(
-        type, source + closingQuotes, start, source.length);
+        type, source + closingQuotes, tokenStart, source.length);
   }
 
   @override

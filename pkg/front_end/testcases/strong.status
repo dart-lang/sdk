@@ -163,11 +163,11 @@ regress/issue_29943: Crash # Issue 29943.
 regress/issue_29944: Crash # Issue 29944.
 regress/issue_29945: Crash # Issue 29945.
 regress/issue_29975: Fail # Issue 29975.
-regress/issue_29976: Crash # Issue 29976.
+regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29977: Crash # Issue 29977.
 regress/issue_29980: Crash # Issue 29980.
 regress/issue_29981: Crash # Issue 29981.
-regress/issue_29982: Crash # Issue 29982.
+regress/issue_29982: RuntimeError # Issue 29982.
 regress/issue_29983: Crash # Issue 29983.
 regress/issue_29984: Crash # Issue 29984.
 regress/issue_29985: Crash # Issue 29985.

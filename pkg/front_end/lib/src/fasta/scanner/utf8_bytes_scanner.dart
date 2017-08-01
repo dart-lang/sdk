@@ -213,7 +213,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       TokenType type, int start, bool asciiOnly, String closingQuotes) {
     String source = StringToken.decodeUtf8(bytes, start, byteOffset, asciiOnly);
     return new SyntheticStringToken(
-        type, source + closingQuotes, start, source.length);
+        type, source + closingQuotes, tokenStart, source.length);
   }
 
   @override
