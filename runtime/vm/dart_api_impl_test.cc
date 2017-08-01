@@ -5340,7 +5340,15 @@ static void NativeArgumentAccess(Dart_NativeArguments args) {
 
     EXPECT(arg_values[1].as_int32 == 77);
 
-    EXPECT(arg_values[2].as_uint64 == 0xffffffffffffffffLL);
+    // Note: this particular value is chosen for the following reasons.
+    // 1) When wrapped-around, it should not fit into int32, because this unit
+    // test verifies that getting it as int32 produces error.
+    // 2) It should be large enough to exercise Bigints with unlimited ints, so
+    // it should be > MaxInt64.
+    // Given these constraints, any value between MaxInt64+1 and
+    // MaxUint64-MaxInt32-1 would work. Value 0x8000000000000000 is in this
+    // range and easy to produce without using a large integer literal.
+    EXPECT(arg_values[2].as_uint64 == 0x8000000000000000LL);
 
     EXPECT(arg_values[3].as_bool == true);
 
@@ -5446,7 +5454,7 @@ TEST_CASE(GetNativeArguments) {
       "  MyObject obj1 = MyObject.createObject();"
       "  MyObject obj2 = MyObject.createObject();"
       "  return obj1.accessFields(77,"
-      "                           0xffffffffffffffff,"
+      "                           1 << 63,"
       "                           true,"
       "                           3.14,"
       "                           str,"
