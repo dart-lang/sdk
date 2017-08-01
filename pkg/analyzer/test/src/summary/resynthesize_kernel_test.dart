@@ -272,17 +272,23 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_reference_unresolved_prefix0() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix0();
   }
 
   @failingTest
+  @fastaProblem
   test_const_reference_unresolved_prefix1() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix1();
   }
 
   @failingTest
+  @fastaProblem
   test_const_reference_unresolved_prefix2() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_reference_unresolved_prefix2();
   }
 
@@ -292,12 +298,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_const_topLevel_super() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_topLevel_super();
   }
 
   @failingTest
+  @fastaProblem
   test_const_topLevel_this() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_const_topLevel_this();
   }
 
@@ -601,12 +611,16 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_annotation_prefixed_constructor() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_prefixed_constructor();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_annotation_unprefixed_constructor() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_annotation_unprefixed_constructor();
   }
 
@@ -616,27 +630,37 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_nameConflict_imported() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_imported();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_nameConflict_imported_exported() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_imported_exported();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_nameConflict_local() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_nameConflict_local();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_setterParameter_fieldFormalParameter() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_setterParameter_fieldFormalParameter();
   }
 
   @failingTest
+  @fastaProblem
   test_invalid_setterParameter_fieldFormalParameter_self() async {
+    // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_setterParameter_fieldFormalParameter_self();
   }
 
