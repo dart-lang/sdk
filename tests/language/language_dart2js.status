@@ -677,7 +677,6 @@ closure8_test: Crash
 closure_break1_test: Crash
 closure_break2_test: Crash
 closure_break_test: Crash
-closure_call_wrong_argument_count_negative_test: Crash
 closure_cycles_test: Crash
 closure_in_constructor_test: Crash
 closure_in_field_initializer_test: Crash
@@ -1286,7 +1285,7 @@ infinite_switch_label_test: Crash
 infinity_test: RuntimeError
 initializing_formal_capture_test: Crash
 initializing_formal_final_test: Crash
-inline_closure_with_constant_arguments_test: Crash
+inline_closure_with_constant_arguments_test: RuntimeError
 inline_super_field_test: Crash
 inlined_conditional_test: Crash
 inlined_throw_test: Crash

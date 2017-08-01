@@ -154,6 +154,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       case MemberKind.regular:
       case MemberKind.constructor:
       case MemberKind.constructorBody:
+      case MemberKind.closureCall:
         return _capturedScopesMap[definition.node] ?? const CapturedScope();
       default:
         throw failedAt(entity, "Unexpected member definition $definition");
@@ -179,6 +180,9 @@ class KernelScopeInfo {
   final Set<ir.VariableDeclaration> localsUsedInTryOrSync;
   final bool hasThisLocal;
   final Set<ir.VariableDeclaration> boxedVariables;
+  // If boxedVariables is empty, this will be null, because no variables will
+  // need to be boxed.
+  final NodeBox capturedVariablesAccessor;
 
   /// The set of variables that were defined in another scope, but are used in
   /// this scope.
@@ -186,14 +190,20 @@ class KernelScopeInfo {
 
   KernelScopeInfo(this.hasThisLocal)
       : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
-        boxedVariables = new Set<ir.VariableDeclaration>();
+        boxedVariables = new Set<ir.VariableDeclaration>(),
+        capturedVariablesAccessor = null;
 
   KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
       : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
-        boxedVariables = info.boxedVariables;
+        boxedVariables = info.boxedVariables,
+        capturedVariablesAccessor = null;
 
-  KernelScopeInfo.withBoxedVariables(this.boxedVariables,
-      this.localsUsedInTryOrSync, this.freeVariables, this.hasThisLocal);
+  KernelScopeInfo.withBoxedVariables(
+      this.boxedVariables,
+      this.capturedVariablesAccessor,
+      this.localsUsedInTryOrSync,
+      this.freeVariables,
+      this.hasThisLocal);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -250,12 +260,13 @@ class KernelCapturedScope extends KernelScopeInfo {
 
   KernelCapturedScope(
       Set<ir.VariableDeclaration> boxedVariables,
+      NodeBox capturedVariablesAccessor,
       this.context,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.VariableDeclaration> freeVariables,
       bool hasThisLocal)
-      : super.withBoxedVariables(
-            boxedVariables, localsUsedInTryOrSync, freeVariables, hasThisLocal);
+      : super.withBoxedVariables(boxedVariables, capturedVariablesAccessor,
+            localsUsedInTryOrSync, freeVariables, hasThisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -276,13 +287,14 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
 
   KernelCapturedLoopScope(
       Set<ir.VariableDeclaration> boxedVariables,
+      NodeBox capturedVariablesAccessor,
       this.boxedLoopVariables,
       ir.TreeNode context,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.VariableDeclaration> freeVariables,
       bool hasThisLocal)
-      : super(boxedVariables, context, localsUsedInTryOrSync, freeVariables,
-            hasThisLocal);
+      : super(boxedVariables, capturedVariablesAccessor, context,
+            localsUsedInTryOrSync, freeVariables, hasThisLocal);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -308,6 +320,7 @@ class KernelClosureClass extends JsScopeInfo
   final String name;
   final JLibrary library;
   JFunction callMethod;
+  final Local closureEntity;
 
   /// Index into the classData, classList and classEnvironment lists where this
   /// entity is stored in [JsToFrontendMapImpl].
@@ -315,12 +328,16 @@ class KernelClosureClass extends JsScopeInfo
 
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
-  KernelClosureClass.fromScopeInfo(this.name, this.classIndex, this.library,
-      KernelScopeInfo info, this.location, KernelToLocalsMap localsMap)
-      : super.from(info, localsMap);
-
-  // TODO(efortuna): Implement.
-  Local get closureEntity => null;
+  KernelClosureClass.fromScopeInfo(
+      ir.FunctionNode closureSourceNode,
+      this.name,
+      this.classIndex,
+      this.library,
+      KernelScopeInfo info,
+      this.location,
+      KernelToLocalsMap localsMap)
+      : closureEntity = localsMap.getLocalFunction(closureSourceNode.parent),
+        super.from(info, localsMap);
 
   ClassEntity get closureClassEntity => this;
 
@@ -333,15 +350,22 @@ class KernelClosureClass extends JsScopeInfo
     localToFieldMap.forEach(f);
   }
 
-  // TODO(efortuna): Implement.
   @override
-  void forEachBoxedVariable(f(Local local, JField field)) {}
+  void forEachBoxedVariable(f(Local local, JField field)) {
+    for (Local l in localToFieldMap.keys) {
+      if (localToFieldMap[l] is JBoxedField) f(l, localToFieldMap[l]);
+    }
+  }
 
-  // TODO(efortuna): Implement.
-  void forEachFreeVariable(f(Local variable, JField field)) {}
+  void forEachFreeVariable(f(Local variable, JField field)) {
+    for (Local l in localToFieldMap.keys) {
+      var jField = localToFieldMap[l];
+      if (jField is! JBoxedField && jField is! BoxLocal) f(l, jField);
+    }
+  }
 
-  // TODO(efortuna): Implement.
-  bool isVariableBoxed(Local variable) => false;
+  bool isVariableBoxed(Local variable) =>
+      localToFieldMap.keys.contains(variable);
 
   bool get isClosure => true;
 
@@ -350,8 +374,31 @@ class KernelClosureClass extends JsScopeInfo
   String toString() => '${jsElementPrefix}class($name)';
 }
 
+/// A local variable to disambiguate between a variable that has been captured
+/// from one scope to another. This is the ir.Node version that corresponds to
+/// [BoxLocal].
+class NodeBox {
+  final String name;
+  final ir.TreeNode executableContext;
+  NodeBox(this.name, this.executableContext);
+}
+
 class JClosureField extends JField {
   JClosureField(String name, int memberIndex,
+      KernelClosureClass containingClass, bool isConst, bool isAssignable)
+      : super(memberIndex, containingClass.library, containingClass,
+            new Name(name, containingClass.library),
+            isAssignable: isAssignable, isConst: isConst);
+}
+
+/// A ClosureField that has been "boxed" to prevent name shadowing with the
+/// original variable and ensure that this variable is updated/read with the
+/// most recent value.
+/// This corresponds to BoxFieldElement; we reuse BoxLocal from the original
+/// algorithm to correspond to the actual name of the variable.
+class JBoxedField extends JField {
+  final BoxLocal box;
+  JBoxedField(String name, int memberIndex, this.box,
       KernelClosureClass containingClass, bool isConst, bool isAssignable)
       : super(memberIndex, containingClass.library, containingClass,
             new Name(name, containingClass.library),

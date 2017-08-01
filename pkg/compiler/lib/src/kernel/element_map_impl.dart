@@ -6,6 +6,7 @@ library dart2js.kernel.element_map;
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../closure.dart' show BoxLocal;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart';
@@ -1996,8 +1997,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       KernelToLocalsMap localsMap,
       InterfaceType supertype) {
     String name = _computeClosureName(node);
-    KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
-        name, _classEnvs.length, enclosingLibrary, info, location, localsMap);
+    KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(node, name,
+        _classEnvs.length, enclosingLibrary, info, location, localsMap);
     _classList.add(cls);
     _classEnvs.add(new ClassEnv.closureClass());
 
@@ -2020,7 +2021,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
     for (ir.VariableDeclaration variable in info.freeVariables) {
       // Make a corresponding field entity in this closure class for every
       // single freeVariable in the KernelScopeInfo.freeVariable.
-      _constructClosureFields(cls, variable, i, localsMap);
+      _constructClosureFields(
+          member, cls, variable, i, info.capturedVariablesAccessor, localsMap);
       i++;
     }
 
@@ -2036,16 +2038,31 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   _constructClosureFields(
+      MemberEntity member,
       KernelClosureClass cls,
       ir.VariableDeclaration variable,
       int fieldNumber,
+      NodeBox box,
       KernelToLocalsMap localsMap) {
     // NOTE: This construction order may be slightly different than the
     // old Element version. The old version did all the boxed items and then
     // all the others.
     Local capturedLocal = localsMap.getLocalVariable(variable);
     if (cls.isBoxed(capturedLocal)) {
-      // TODO(efortuna): Coming soon.
+      var boxedField = new JBoxedField(
+          _getClosureVariableName(capturedLocal.name, fieldNumber),
+          _memberData.length,
+          new BoxLocal(box.name,
+              localsMap.getLocalVariable(box.executableContext), member),
+          cls,
+          variable.isConst,
+          variable.isFinal || variable.isConst);
+      cls.localToFieldMap[capturedLocal] = boxedField;
+      _memberList.add(boxedField);
+      _memberData.add(new MemberData(
+          null,
+          new ClosureMemberDefinition(boxedField, variable.location,
+              MemberKind.closureField, variable)));
     } else {
       var closureField = new JClosureField(
           _getClosureVariableName(capturedLocal.name, fieldNumber),

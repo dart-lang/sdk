@@ -60,15 +60,15 @@ class Class {
   Class();
   Class.named(this.field) {
     staticField = 42;
-  } 
+  }
 
   method() {}
 }
- 
+
 class SubClass extends Class {
   method() {
     super.method();
-  }  
+  }
 }
 
 class Generic<T> {
@@ -145,7 +145,7 @@ testAsFunction(o) => o as NoArg;
 '''
   }),
   const Test(const {
-    'main.dart': ''' 
+    'main.dart': '''
 
 main() {
   var x;
@@ -157,7 +157,7 @@ main() {
     i++;
   } while (i < 10);
   print(x);
-} 
+}
 '''
   }, expectIdenticalOutput: false),
   const Test(const {
