@@ -6465,11 +6465,6 @@ class Integer : public Number {
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
 
-  // Converts integer to hex string.
-  // TODO(alexmarkov): this method can become non-virtual once Bigint class is
-  // decoupled from Integer hierarchy.
-  virtual const char* ToHexCString(Zone* zone) const;
-
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
 
@@ -6627,8 +6622,6 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  virtual const char* ToHexCString(Zone* zone) const;
-
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
@@ -6657,6 +6650,7 @@ class Bigint : public Integer {
   uint32_t DigitAt(intptr_t index) const;
 
   const char* ToDecCString(Zone* zone) const;
+  const char* ToHexCString(Zone* zone) const;
 
   static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
   static const intptr_t kBytesPerDigit = 4;

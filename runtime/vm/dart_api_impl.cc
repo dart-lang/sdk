@@ -2189,7 +2189,13 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
   Zone* scope_zone = Api::TopScope(Thread::Current())->zone();
-  *value = int_obj.ToHexCString(scope_zone);
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    const Bigint& bigint =
+        Bigint::Handle(Z, Bigint::NewFromInt64(int_obj.AsInt64Value()));
+    *value = bigint.ToHexCString(scope_zone);
+  } else {
+    *value = Bigint::Cast(int_obj).ToHexCString(scope_zone);
+  }
   return Api::Success();
 }
 
