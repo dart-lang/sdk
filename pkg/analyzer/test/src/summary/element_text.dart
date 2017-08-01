@@ -278,7 +278,9 @@ class _ElementWriter {
       buffer.write('(');
     }
 
-    if (e is Annotation) {
+    if (e == null) {
+      buffer.write('<null>');
+    } else if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);
       if (e.constructorName != null) {
@@ -361,6 +363,17 @@ class _ElementWriter {
       writeExpression(e.key);
       buffer.write(': ');
       writeExpression(e.value);
+    } else if (e is MethodInvocation) {
+      if (e.target != null) {
+        writeExpression(e.target);
+        buffer.write(e.operator);
+      }
+      writeExpression(e.methodName);
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
+      }
+      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
+          includeEmpty: true);
     } else if (e is NamedExpression) {
       writeExpression(e.name);
       buffer.write(e.expression);
@@ -631,13 +644,23 @@ class _ElementWriter {
     writeIf(e.isCovariant, 'covariant ');
     writeIf(e.isFinal, 'final ');
 
-    writeType2(e.type);
+    if (e.parameters.isNotEmpty) {
+      var type = e.type as FunctionType;
+      writeType2(type.returnType);
+    } else {
+      writeType2(e.type);
+    }
 
     if (e is FieldFormalParameterElement) {
       buffer.write('this.');
     }
 
     writeName(e);
+
+    if (e.parameters.isNotEmpty) {
+      writeList('(', ')', e.parameters, ', ', writeParameterElement,
+          includeEmpty: true);
+    }
 
     writeVariableTypeInferenceError(e);
 
@@ -670,6 +693,14 @@ class _ElementWriter {
       PropertyInducingElement variable = e.variable;
       expect(variable, isNotNull);
       expect(variable.isSynthetic, isTrue);
+
+      var variableEnclosing = variable.enclosingElement;
+      if (variableEnclosing is CompilationUnitElement) {
+        expect(variableEnclosing.topLevelVariables, contains(variable));
+      } else if (variableEnclosing is ClassElement) {
+        expect(variableEnclosing.fields, contains(variable));
+      }
+
       if (e.isGetter) {
         expect(variable.getter, same(e));
         if (variable.setter != null) {
@@ -719,7 +750,7 @@ class _ElementWriter {
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
 
-    if (e.isAbstract) {
+    if (e.isAbstract || e.isExternal) {
       buffer.writeln(';');
     } else {
       buffer.writeln(' {}');

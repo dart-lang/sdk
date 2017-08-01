@@ -100,7 +100,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.2';
+  static final String VERSION = '1.18.3';
 
   /**
    * The options of this server instance.
@@ -560,14 +560,16 @@ class AnalysisServer {
    * analyzed in one of the analysis drivers to which the file was added,
    * otherwise in the first driver, otherwise `null` is returned.
    */
-  Future<nd.AnalysisResult> getAnalysisResult(String path) async {
+  Future<nd.AnalysisResult> getAnalysisResult(String path,
+      {bool sendCachedToStream: false}) async {
     if (!AnalysisEngine.isDartFileName(path)) {
       return null;
     }
 
     try {
       nd.AnalysisDriver driver = getAnalysisDriver(path);
-      return await driver?.getResult(path);
+      return await driver?.getResult(path,
+          sendCachedToStream: sendCachedToStream);
     } catch (e) {
       // Ignore the exception.
       // We don't want to log the same exception again and again.
@@ -871,7 +873,7 @@ class AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (AnalysisEngine.isDartFileName(file)) {
-        getAnalysisResult(file);
+        getAnalysisResult(file, sendCachedToStream: true);
       }
     }
   }

@@ -436,8 +436,7 @@ class Expect {
    *
    *     Expect.throws(myThrowingFunction, (e) => e is MyException);
    */
-  static void throws(void f(),
-      [_CheckExceptionFn check = null, String reason = null]) {
+  static void throws(void f(), [_CheckExceptionFn check, String reason]) {
     String msg = reason == null ? "" : "($reason)";
     if (f is! _Nullary) {
       // Only throws from executing the function body should count as throwing.
@@ -455,6 +454,35 @@ class Expect {
       return;
     }
     _fail('Expect.throws$msg fails: Did not throw');
+  }
+
+  static void throwsArgumentError(void f()) {
+    Expect.throws(f, (error) => error is ArgumentError, "ArgumentError");
+  }
+
+  static void throwsCastError(void f()) {
+    Expect.throws(f, (error) => error is CastError, "CastError");
+  }
+
+  static void throwsNoSuchMethodError(void f()) {
+    Expect.throws(
+        f, (error) => error is NoSuchMethodError, "NoSuchMethodError");
+  }
+
+  static void throwsRangeError(void f()) {
+    Expect.throws(f, (error) => error is RangeError, "RangeError");
+  }
+
+  static void throwsStateError(void f()) {
+    Expect.throws(f, (error) => error is StateError, "StateError");
+  }
+
+  static void throwsTypeError(void f()) {
+    Expect.throws(f, (error) => error is TypeError, "TypeError");
+  }
+
+  static void throwsUnsupportedError(void f()) {
+    Expect.throws(f, (error) => error is UnsupportedError, "UnsupportedError");
   }
 
   static String _getMessage(String reason) =>
@@ -505,6 +533,7 @@ class AssumeDynamic {
 }
 
 /// Is true iff type assertions are enabled.
+// TODO(rnystrom): Remove this once all tests are no longer using it.
 final bool typeAssertionsEnabled = (() {
   try {
     dynamic i = 42;
@@ -526,5 +555,6 @@ final bool assertStatementsEnabled = (() {
 })();
 
 /// Is true iff checked mode is enabled.
+// TODO(rnystrom): Remove this once all tests are no longer using it.
 final bool checkedModeEnabled =
     typeAssertionsEnabled && assertStatementsEnabled;

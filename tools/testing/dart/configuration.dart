@@ -49,6 +49,7 @@ class Configuration {
       this.useFastStartup,
       this.useEnableAsserts,
       this.useDart2JSWithKernel,
+      this.useDart2JSWithKernelInSsa,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.drtPath,
@@ -111,6 +112,7 @@ class Configuration {
   final bool useFastStartup;
   final bool useEnableAsserts;
   final bool useDart2JSWithKernel;
+  final bool useDart2JSWithKernelInSsa;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
 
@@ -217,6 +219,7 @@ class Configuration {
     if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
+    if (useDart2JSWithKernelInSsa) args.add("--use-kernel-in-ssa");
     return args;
   }
 

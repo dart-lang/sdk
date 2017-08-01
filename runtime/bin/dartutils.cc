@@ -339,103 +339,6 @@ Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
                      kNumArgs, dart_args);
 }
 
-static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
-                                        Dart_Handle url,
-                                        Dart_Handle library_url) {
-  const int kNumArgs = 3;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = tag;
-  dart_args[1] = url;
-  dart_args[2] = library_url;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
-                     DartUtils::NewString("_loadDataAsync"), kNumArgs,
-                     dart_args);
-}
-
-Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
-                                         Dart_Handle library,
-                                         Dart_Handle url) {
-  Dart_Handle library_url = Dart_LibraryUrl(library);
-  if (Dart_IsError(library_url)) {
-    return library_url;
-  }
-  if (tag == Dart_kCanonicalizeUrl) {
-    return Dart_DefaultCanonicalizeUrl(library_url, url);
-  }
-  if (!Dart_IsString(url)) {
-    return Dart_NewApiError("url is not a string");
-  }
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  const char* library_url_string = NULL;
-  result = Dart_StringToCString(library_url, &library_url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-
-  bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
-  bool is_dart_library = DartUtils::IsDartSchemeURL(library_url_string);
-
-  // Handle canonicalization, 'import' and 'part' of 'dart:' libraries.
-  if (is_dart_scheme_url || is_dart_library) {
-    if (tag == Dart_kImportTag) {
-      Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
-      if (id == Builtin::kInvalidLibrary) {
-        return NewError(
-            "The built-in library '%s' is not available"
-            " on the stand-alone VM.\n",
-            url_string);
-      }
-      return Builtin::LoadLibrary(url, id);
-    } else {
-      ASSERT(tag == Dart_kSourceTag);
-      Builtin::BuiltinLibraryId id = Builtin::FindId(library_url_string);
-      if (id == Builtin::kInvalidLibrary) {
-        return NewError(
-            "The built-in library '%s' is not available"
-            " on the stand-alone VM. Trying to load"
-            " '%s'.\n",
-            library_url_string, url_string);
-      }
-      // Prepend the library URI to form a unique script URI for the part.
-      intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
-      char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
-      snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
-      Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
-      free(part_uri);
-      return Dart_LoadSource(library, part_uri_obj, Dart_Null(),
-                             Builtin::PartSource(id, url_string), 0, 0);
-    }
-    // All cases should have been handled above.
-    UNREACHABLE();
-  }
-
-  if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
-    // Load a native code shared library to use in a native extension
-    if (tag != Dart_kImportTag) {
-      return NewError("Dart extensions must use import: '%s'", url_string);
-    }
-    Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
-    const char* lib_path_str = NULL;
-    Dart_StringToCString(library_file_path, &lib_path_str);
-    const char* extension_path = DartUtils::RemoveScheme(url_string);
-    if (strchr(extension_path, '/') != NULL ||
-        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
-      return NewError(
-          "Relative paths for dart extensions are not supported: '%s'",
-          extension_path);
-    }
-    return Extensions::LoadExtension(lib_path_str, extension_path, library);
-  }
-
-  // Handle 'import' or 'part' requests for all other URIs. Call dart code to
-  // read the source code asynchronously.
-  return LoadDataAsync_Invoke(Dart_NewInteger(tag), url, library_url);
-}
-
 static bool CheckMagicNumber(const uint8_t** buf,
                              intptr_t* len,
                              const MagicNumberData& magic_number) {
@@ -468,14 +371,6 @@ void DartUtils::WriteMagicNumber(File* file) {
   bool bytes_written =
       file->WriteFully(snapshot_magic_number.bytes, MagicNumberData::kLength);
   ASSERT(bytes_written);
-}
-
-Dart_Handle DartUtils::LoadScript(const char* script_uri) {
-  Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
-                     Dart_GetMainPortId(), Dart_Timeline_Event_Async_Begin, 0,
-                     NULL, NULL);
-  Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-  return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null());
 }
 
 void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {

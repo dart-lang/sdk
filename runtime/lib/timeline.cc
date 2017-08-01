@@ -110,6 +110,38 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(Timeline_reportFlowEvent, 7) {
+#ifndef PRODUCT
+  if (!FLAG_support_timeline) {
+    return Object::null();
+  }
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, start_cpu, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, type, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, flow_id, arguments->NativeArgAt(5));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(6));
+
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return Object::null();
+  }
+
+  TimelineEvent* event = Timeline::GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
+    return Object::null();
+  }
+
+  DartTimelineEventHelpers::ReportFlowEvent(
+      thread, zone, event, start.AsInt64Value(), start_cpu.AsInt64Value(),
+      category.ToCString(), name.ToCString(), type.AsInt64Value(),
+      flow_id.AsInt64Value(), args.ToCString());
+#endif  // !defined(PRODUCT)
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
 #ifndef PRODUCT
   if (!FLAG_support_timeline) {

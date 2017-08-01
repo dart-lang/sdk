@@ -34,11 +34,11 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:mockito/mockito.dart' show Mock, when;
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart' show TypedMock, when;
 
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
@@ -2269,4 +2269,4 @@ part of dart.core;
   }
 }
 
-class _SourceMock extends TypedMock implements Source {}
+class _SourceMock extends Mock implements Source {}

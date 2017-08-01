@@ -5,11 +5,16 @@
 
 import "package:expect/expect.dart";
 
+// Note: in --limit-ints-to-64-bits mode all integers are 64-bit already.
+// Still, it is harmless to apply _uint64Mask because (1 << 64) is 0 (all bits
+// are shifted out), so _uint64Mask is -1 (its bit pattern is 0xffffffffffffffff).
+const _uint64Mask = (1 << 64) - 1;
+
 constants() {
   Expect.equals(0, 499 >> 33);
   Expect.equals(0, (499 << 33) & 0xFFFFFFFF);
   Expect.equals(0, (499 << 32) >> 65);
-  Expect.equals(0, ((499 << 32) << 65) & 0xFFFFFFFFFFFFFFFF);
+  Expect.equals(0, ((499 << 32) << 65) & _uint64Mask);
 }
 
 foo(i) {
@@ -33,7 +38,7 @@ interceptors() {
   Expect.equals(0, id(499) >> 33);
   Expect.equals(0, (id(499) << 33) & 0xFFFFFFFF);
   Expect.equals(0, id(499 << 32) >> 65);
-  Expect.equals(0, (id(499 << 32) << 65) & 0xFFFFFFFFFFFFFFFF);
+  Expect.equals(0, (id(499 << 32) << 65) & _uint64Mask);
 }
 
 speculative() {
@@ -43,7 +48,7 @@ speculative() {
     Expect.equals(0, a >> 33);
     Expect.equals(0, (a << 33) & 0xFFFFFFFF);
     Expect.equals(0, b >> 65);
-    Expect.equals(0, (b << 65) & 0xFFFFFFFFFFFFFFFF);
+    Expect.equals(0, (b << 65) & _uint64Mask);
   }
 }
 

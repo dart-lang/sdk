@@ -125,10 +125,6 @@ class DartUtils {
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
   static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
-  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
-                                       Dart_Handle library,
-                                       Dart_Handle url);
-  static Dart_Handle LoadScript(const char* script_uri);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
                                              bool trace_loading);
   static Dart_Handle SetupServiceLoadPort();

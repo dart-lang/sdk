@@ -217,7 +217,7 @@ class SourceLoader<L> extends Loader<L> {
         both.add(exported);
       }
       for (Export export in exported.exporters) {
-        exported.exports.forEach(export.addToExportScope);
+        exported.exportScope.forEach(export.addToExportScope);
       }
     }
     bool wasChanged = false;
@@ -226,7 +226,7 @@ class SourceLoader<L> extends Loader<L> {
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
           SourceLibraryBuilder exporter = export.exporter;
-          exported.exports.forEach((String name, Builder member) {
+          exported.exportScope.forEach((String name, Builder member) {
             if (exporter.addToExportScope(name, member)) {
               wasChanged = true;
             }
@@ -255,7 +255,7 @@ class SourceLoader<L> extends Loader<L> {
         }
       });
       List<String> exports = <String>[];
-      library.exports.forEach((String name, Builder member) {
+      library.exportScope.forEach((String name, Builder member) {
         while (member != null) {
           if (!members.contains(member)) {
             exports.add(name);

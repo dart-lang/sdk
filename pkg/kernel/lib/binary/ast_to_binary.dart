@@ -363,18 +363,22 @@ class BinaryPrinter extends Visitor {
     writeList(annotations, writeAnnotation);
   }
 
-  int _encodeClassFlags(
-      bool isAbstract, bool isSyntheticMixinImplementation, ClassLevel level) {
+  int _encodeClassFlags(bool isAbstract, bool isEnum,
+      bool isSyntheticMixinImplementation, ClassLevel level) {
     int abstractFlag = isAbstract ? 1 : 0;
+    int isEnumFlag = isSyntheticMixinImplementation ? 2 : 0;
     int isSyntheticMixinImplementationFlag =
-        isSyntheticMixinImplementation ? 2 : 0;
-    int levelFlags = (level.index - 1) << 2;
-    return abstractFlag | isSyntheticMixinImplementationFlag | levelFlags;
+        isSyntheticMixinImplementation ? 4 : 0;
+    int levelFlags = (level.index - 1) << 3;
+    return abstractFlag |
+        isEnumFlag |
+        isSyntheticMixinImplementationFlag |
+        levelFlags;
   }
 
   visitClass(Class node) {
-    int flags = _encodeClassFlags(
-        node.isAbstract, node.isSyntheticMixinImplementation, node.level);
+    int flags = _encodeClassFlags(node.isAbstract, node.isEnum,
+        node.isSyntheticMixinImplementation, node.level);
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
@@ -415,6 +419,7 @@ class BinaryPrinter extends Visitor {
     Class parent = node.parent;
     writeUInt30(parent.binaryOffset);
     writeName(node.name ?? _emptyName);
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -444,6 +449,7 @@ class BinaryPrinter extends Visitor {
     }
     writeName(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
     _variableIndexer = null;
@@ -467,6 +473,7 @@ class BinaryPrinter extends Visitor {
     }
     writeName(node.name);
     writeUriReference(node.fileUri ?? '');
+    writeStringReference(node.documentationComment ?? '');
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -475,28 +482,33 @@ class BinaryPrinter extends Visitor {
 
   visitInvalidInitializer(InvalidInitializer node) {
     writeByte(Tag.InvalidInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
   }
 
   visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.fieldReference);
     writeNode(node.value);
   }
 
   visitSuperInitializer(SuperInitializer node) {
     writeByte(Tag.SuperInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   visitRedirectingInitializer(RedirectingInitializer node) {
     writeByte(Tag.RedirectingInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeVariableDeclaration(node.variable);
   }
 
@@ -867,6 +879,7 @@ class BinaryPrinter extends Visitor {
     writeReference(node.topLevelFunctionReference);
     writeNode(node.contextVector);
     writeNode(node.functionType);
+    writeNodeList(node.typeArguments);
   }
 
   writeStatementOrEmpty(Statement node) {
@@ -1364,9 +1377,27 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
+  @override
+  visitConstructor(Constructor node) {
+    putOptional(node.documentationComment);
+    super.visitConstructor(node);
+  }
+
+  @override
+  visitField(Field node) {
+    putOptional(node.documentationComment);
+    super.visitField(node);
+  }
+
   visitNamedExpression(NamedExpression node) {
     put(node.name);
     node.visitChildren(this);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    putOptional(node.documentationComment);
+    super.visitProcedure(node);
   }
 
   visitStringLiteral(StringLiteral node) {

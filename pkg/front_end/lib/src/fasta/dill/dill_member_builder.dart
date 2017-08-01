@@ -26,7 +26,7 @@ class DillMemberBuilder extends MemberBuilder {
   DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
         member = member,
-        super(parent, member.fileOffset);
+        super(parent, member.fileOffset, member.documentationComment);
 
   String get debugName => "DillMemberBuilder";
 

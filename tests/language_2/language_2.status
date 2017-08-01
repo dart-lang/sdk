@@ -4,18 +4,86 @@
 
 # The VM and dart2js do not implement the Dart 2.0 static type errors yet.
 # Analyzer does, but only when "--strong" is used.
-[ $runtime == vm || $compiler == dart2js || $runtime == dart_precompiled || ($compiler == dart2analyzer && ! $strong) ]
+[ $runtime == vm || $compiler == dart2js || $runtime == dart_precompiled || ($compiler == dart2analyzer && ! $strong && ! $checked) ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
 abstract_factory_constructor_test/00: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
+assign_top_method_test: MissingCompileTimeError
+assign_static_type_test/01: MissingCompileTimeError
+assign_static_type_test/02: MissingCompileTimeError
+assign_static_type_test/03: MissingCompileTimeError
+assign_static_type_test/04: MissingCompileTimeError
+assign_static_type_test/05: MissingCompileTimeError
+assign_static_type_test/06: MissingCompileTimeError
+assign_to_type_test/01: MissingCompileTimeError
+assign_to_type_test/02: MissingCompileTimeError
+assign_to_type_test/03: MissingCompileTimeError
+assign_to_type_test/04: MissingCompileTimeError
+async_await_syntax_test/a10a: MissingCompileTimeError
+async_await_syntax_test/b10a: MissingCompileTimeError
+async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d08b: MissingCompileTimeError
+async_await_syntax_test/d10a: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
+async_return_types_test/wrongReturnType: MissingCompileTimeError
+async_return_types_test/nestedFuture: MissingCompileTimeError
 
-[ $compiler == dart2js ]
+[ $compiler == dart2analyzer && ! $strong && $checked ]
+abstract_beats_arguments_test: MissingCompileTimeError
+abstract_exact_selector_test/01: MissingCompileTimeError
+abstract_factory_constructor_test/00: MissingCompileTimeError
+abstract_getter_test/01: MissingCompileTimeError
+abstract_syntax_test/00: MissingCompileTimeError
+assign_top_method_test: MissingCompileTimeError
+assign_static_type_test/01: MissingCompileTimeError
+assign_static_type_test/03: MissingCompileTimeError
+assign_static_type_test/04: MissingCompileTimeError
+assign_static_type_test/05: MissingCompileTimeError
+assign_static_type_test/06: MissingCompileTimeError
+assign_to_type_test/01: MissingCompileTimeError
+assign_to_type_test/02: MissingCompileTimeError
+assign_to_type_test/03: MissingCompileTimeError
+assign_to_type_test/04: MissingCompileTimeError
+async_await_syntax_test/a10a: MissingCompileTimeError
+async_await_syntax_test/b10a: MissingCompileTimeError
+async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d08b: MissingCompileTimeError
+async_await_syntax_test/d10a: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
+async_return_types_test/wrongReturnType: MissingCompileTimeError
+async_return_types_test/nestedFuture: MissingCompileTimeError
+
+[ $compiler == dartdevc || $compiler == dart2analyzer ]
+async_return_types_test/nestedFuture: MissingCompileTimeError
+
+[ $compiler == dart2js && ! $dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
+assertion_initializer_const_error2_test/cc01: Crash
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/cc03: Crash
+assertion_initializer_const_error2_test/cc04: Crash
+assertion_initializer_const_error2_test/cc05: Crash
+assertion_initializer_const_error2_test/cc06: Crash
+assertion_initializer_const_error2_test/cc07: Crash
+assertion_initializer_const_error2_test/cc08: Crash
+assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: Crash
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
 
-[ $compiler == dart2js && $runtime != none ]
+[ $compiler == dart2js && $runtime != none && ! $dart2js_with_kernel ]
 accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
@@ -41,7 +109,419 @@ accessor_conflict_import_test: StaticWarning # Issue 25626
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 
 [ $compiler == dart2analyzer && $strong ]
+async_return_types_test/nestedFuture: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 
 [ $compiler == dart2js || $compiler == dartk || $compiler == dartdevc ]
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
+
+[ $compiler == dart2js && $dart2js_with_kernel ]
+aborting_switch_case_test: Crash
+abstract_exact_selector_test/none: Crash
+abstract_getter_test/01: Crash
+abstract_method_test: Crash
+abstract_object_method_test: Crash
+arg_param_trailing_comma_test/none: Crash
+arithmetic_test: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+abstract_exact_selector_test/01: Crash
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+abstract_beats_arguments_test: Crash
+abstract_exact_selector_test/01: Crash
+abstract_getter2_test: Crash
+abstract_syntax_test/00: Crash
+abstract_syntax_test/none: Crash
+accessor_conflict_export2_test: Crash
+accessor_conflict_export_test: Crash
+accessor_conflict_import2_test: Crash
+accessor_conflict_import_prefixed2_test: Crash
+accessor_conflict_import_prefixed_test: Crash
+accessor_conflict_import_test: Crash
+ackermann_test: Crash
+adjacent_const_string_literals_test: Crash
+adjacent_string_literals_test: Crash
+allocate_large_object_test: Crash
+allocate_test: Crash
+allocation_sinking_inlining_test: Crash
+and_operation_on_non_integer_operand_test: Crash
+arithmetic_canonicalization_test: Crash
+arithmetic_smi_overflow_test: Crash
+
+[ $compiler == dartdevc && $runtime != none ]
+async_star_cancel_while_paused_test: RuntimeError # Issue 29920
+async_star_pause_test: RuntimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
+*: Skip # Issue 29626
+
+[ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
+assertion_test: RuntimeError # Issue 12748
+
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
+abstract_beats_arguments_test: RuntimeError # Issue 27394
+abstract_runtime_error_test/01: RuntimeError # Issue 27394
+abstract_runtime_error_test/02: RuntimeError # Issue 27394
+arithmetic_canonicalization_test: RuntimeError # Issue 27394
+assertion_initializer_const_error_test/01: Crash
+assertion_initializer_const_function_test/01: Crash
+assign_top_method_test/01: Crash # Issue 27394
+async_await_syntax_test/a04b: Crash # Issue 27394
+async_await_syntax_test/a06a: RuntimeError # Issue 27394
+async_await_syntax_test/a07b: Crash # Issue 27394
+async_await_syntax_test/a08b: Crash # Issue 27394
+async_await_syntax_test/b06a: RuntimeError # Issue 27394
+async_await_syntax_test/c06a: RuntimeError # Issue 27394
+async_await_syntax_test/d06a: RuntimeError # Issue 27394
+
+[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+assertion_initializer_const_function_test/none: RuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+assertion_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == jsshell && $checked ]
+assertion_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
+assertion_initializer_const_function_test/01: Crash
+assign_instance_method_negative_test: Crash
+async_await_syntax_test/d04a: Crash
+async_await_syntax_test/d07a: Crash
+async_await_syntax_test/d08a: Crash
+async_await_syntax_test/d08b: Crash
+async_await_syntax_test/d08c: Crash
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
+assert_assignable_type_test: Crash
+assert_with_type_test_or_cast_test: Crash
+assertion_initializer_const_error_test/none: Crash
+assertion_initializer_const_function_error_test/none: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_const_function_test/none: Crash
+assign_instance_method_negative_test: Crash
+assign_op_test: Crash
+assign_static_type_test/03: Crash
+assign_static_type_test/04: Crash
+assignable_expression_test/none: Crash
+async_await_syntax_test/a04a: Crash
+async_await_syntax_test/a04c: Crash
+async_await_syntax_test/a07a: Crash
+async_await_syntax_test/a08a: Crash
+async_await_syntax_test/a11b: Crash
+async_await_syntax_test/b04a: Crash
+async_await_syntax_test/b07a: Crash
+async_await_syntax_test/b08a: Crash
+async_await_syntax_test/b11b: Crash
+async_await_syntax_test/b13a: Crash
+async_await_syntax_test/b13c: Crash
+async_await_syntax_test/b14a: Crash
+async_await_syntax_test/b14c: Crash
+async_await_syntax_test/d04a: Crash
+async_await_syntax_test/d07a: Crash
+async_await_syntax_test/d08a: Crash
+async_await_syntax_test/d08b: Crash
+async_await_syntax_test/d08c: Crash
+
+[ ($runtime != vm && $compiler != dartk && $compiler != dartkp ) || ($compiler != none && $compiler != dartk && $compiler != dartkp )]
+assert_initializer_test/*: Skip # Not implemented yet, experiment is VM only.
+
+[ $compiler == dart2analyzer && $runtime == none ]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: CompileTimeError
+assertion_initializer_test: CompileTimeError
+
+# dartdevc doesn't support assertions in initializers.
+[ $compiler == dartdevc ]
+assertion_initializer_test: CompileTimeError
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_test/01: CompileTimeError
+
+[ $compiler == dartdevc && $runtime != none ]
+assert_message_test: RuntimeError # Looks like bug in dartdevc codegen.
+
+[ $compiler == dartk && $runtime == vm ]
+arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+
+[ $mode == product ]
+assertion_test: SkipByDesign # Requires checked mode.
+
+[$compiler == precompiler && $runtime == dart_precompiled && !$checked]
+assertion_initializer_const_error2_test/cc01: Pass, OK
+assertion_initializer_const_error2_test/cc02: CompileTimeError
+assertion_initializer_const_error2_test/cc03: Pass, OK
+assertion_initializer_const_error2_test/cc04: Pass, OK
+assertion_initializer_const_error2_test/cc05: Pass, OK
+assertion_initializer_const_error2_test/cc06: Pass, OK
+assertion_initializer_const_error2_test/cc07: Pass, OK
+assertion_initializer_const_error2_test/cc08: Pass, OK
+assertion_initializer_const_error2_test/cc09: Pass, OK
+assertion_initializer_const_error2_test/cc10: Pass, OK
+assertion_initializer_const_error2_test/cc11: Pass, OK
+assertion_initializer_const_error2_test/none: CompileTimeError
+
+[$compiler == precompiler && $runtime == dart_precompiled && $checked]
+assertion_initializer_const_error2_test/cc01: Pass
+assertion_initializer_const_error2_test/cc03: Pass
+assertion_initializer_const_error2_test/cc04: Pass
+assertion_initializer_const_error2_test/cc05: Pass
+assertion_initializer_const_error2_test/cc06: Pass
+assertion_initializer_const_error2_test/cc07: Pass
+assertion_initializer_const_error2_test/cc08: Pass
+assertion_initializer_const_error2_test/cc09: Pass
+assertion_initializer_const_error2_test/cc10: Pass
+assertion_initializer_const_error2_test/cc11: Pass
+assertion_initializer_const_error2_test/none: CompileTimeError
+
+[$compiler == none && $runtime == vm && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[$compiler == none && $runtime == drt && !$checked]
+assertion_initializer_const_error2_test/cc02: Fail
+assertion_initializer_const_error_test/01: Fail
+assertion_initializer_const_function_error_test/01: Fail
+
+[$compiler == app_jit && $runtime == vm && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+assertion_initializer_const_error2_test/cc01: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc02: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc03: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc04: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc05: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc06: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc07: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc08: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc09: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc10: Crash, MissingCompileTimeError
+assertion_initializer_const_error2_test/cc11: Crash, MissingCompileTimeError
+
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked]
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[$compiler == dartk && $runtime == vm]
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_test: CompileTimeError
+
+[$compiler == dartk && $runtime == vm && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+
+[$compiler == dartk && $runtime == vm && $checked]
+assertion_initializer_const_function_test/01: RuntimeError
+
+[$compiler == dartkp && $runtime == dart_precompiled]
+assertion_initializer_const_error2_test/none: CompileTimeError
+
+[$compiler == dartkp && $runtime == dart_precompiled && !$checked]
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+assertion_initializer_test: CompileTimeError
+
+[$compiler == dartkp && $runtime == dart_precompiled && $checked]
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error_test/none: Crash
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_const_function_error_test/none: Crash
+assertion_initializer_const_function_test/01: Crash
+assertion_initializer_const_function_test/none: Crash
+assertion_initializer_test: CompileTimeError
+
+[ $compiler == dartk || $compiler == dartkp ]
+assert_trailing_comma_test/none: CompileTimeError # Issue 29959
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/32: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/33: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/34: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/35: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/36: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/37: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/38: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/41: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/42: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/43: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/44: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/45: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/46: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/47: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
+assign_static_type_test/02: MissingCompileTimeError
+
+[($runtime == vm || $runtime == flutter) && $compiler == none && $checked]
+# The VM doesn't enforce that potentially const expressions are actually
+# const expressions when the constructor is called with `const`.
+assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
+
+[ $compiler == dart2js && ! $dart2js_with_kernel && $runtime != none ]
+async_star_cancel_while_paused_test: RuntimeError # Issue 22853
+
+[ $compiler == dart2js && $runtime == jsshell && ! $dart2js_with_kernel ]
+async_star_no_cancel_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
+async_star_await_pauses_test: RuntimeError # Need triage
+
+[ $compiler == dart2js && $checked && ! $dart2js_with_kernel ]
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
+async_star_pause_test: RuntimeError # Issue 27394
+async_star_regression_fisk_test: RuntimeError # Issue 27394
+async_star_stream_take_test: RuntimeError # Issue 27394
+async_star_take_reyield_test: RuntimeError # Issue 27394
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+async_break_in_finally_test: Crash
+async_continue_label_test/await_in_body: Crash
+async_continue_label_test/await_in_condition: Crash
+async_continue_label_test/await_in_init: Crash
+async_continue_label_test/await_in_update: Crash
+async_continue_label_test/none: Crash
+async_control_structures_test: Crash
+async_finally_rethrow_test: Crash
+async_or_generator_return_type_stacktrace_test/01: Crash
+async_or_generator_return_type_stacktrace_test/02: Crash
+async_or_generator_return_type_stacktrace_test/03: Crash
+async_or_generator_return_type_stacktrace_test/none: Crash
+async_regression_23058_test: Crash
+async_rethrow_test: Crash
+async_return_types_test/nestedFuture: Crash
+async_return_types_test/none: Crash
+async_return_types_test/tooManyTypeParameters: Crash
+async_return_types_test/wrongReturnType: Crash
+async_return_types_test/wrongTypeParameter: Crash
+async_star_cancel_and_throw_in_finally_test: Crash
+async_star_cancel_while_paused_test: Crash
+async_star_no_cancel2_test: Crash
+async_star_no_cancel_test: Crash
+async_star_pause_test: Crash
+async_star_regression_2238_test: Crash
+async_star_regression_23116_test: Crash
+async_star_regression_fisk_test: Crash
+async_star_stream_take_test: Crash
+async_star_take_reyield_test: Crash
+
+[ $compiler == dart2js && $runtime != none && $checked ]
+assert_with_message_test: RuntimeError
+
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+async_return_types_test/nestedFuture: Fail
+async_return_types_test/wrongTypeParameter: Fail
+
+# These test entries will be valid for vm (with and without kernel).
+[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+async_star_cancel_while_paused_test: RuntimeError
+# This is OK for now, but we may want to change the semantics to match the test.
+async_star_pause_test: Fail, OK
+
+[ $compiler == dartk && $runtime == vm ]
+async_star_cancel_while_paused_test: RuntimeError
+
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
+async_star_regression_2238_test: CompileTimeError, RuntimeError
+
+# flutter uses --error_on_bad_type, --error_on_bad_override
+# and --await_is_keyword so # the following tests fail with
+# a Compilation Error
+[ $runtime == flutter ]
+async_await_test: CompileTimeError
+async_await_syntax_test/a05c: CompileTimeError
+async_await_syntax_test/a05e: CompileTimeError
+async_await_syntax_test/d08c: CompileTimeError
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+abstract_method_test: Crash
+abstract_object_method_test: Crash
+abstract_runtime_error_test/01: Crash
+abstract_runtime_error_test/02: Crash
+arg_param_trailing_comma_test/none: Crash
+arithmetic_test: Crash
+assert_message_test: Crash
+assert_trailing_comma_test/none: CompileTimeError
+assertion_initializer_const_error2_test/cc02: Crash
+assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_function_error_test/01: Crash
+assertion_initializer_test: CompileTimeError
+assertion_test: Crash
+assign_to_type_test/01: Crash
+assign_to_type_test/02: Crash
+assign_to_type_test/03: Crash
+assign_to_type_test/04: Crash
+assign_top_method_test/01: Crash
+async_and_or_test: Crash
+async_await_catch_regression_test: Crash
+async_await_syntax_test/a01a: Crash
+async_await_syntax_test/a02a: Crash
+async_await_syntax_test/a03a: Crash
+async_await_syntax_test/a03b: Crash
+async_await_syntax_test/a04a: RuntimeError
+async_await_syntax_test/a04c: RuntimeError
+async_await_syntax_test/a05a: Crash
+async_await_syntax_test/a05b: Crash
+async_await_syntax_test/a05c: Crash
+async_await_syntax_test/a05e: Crash
+async_await_syntax_test/a06a: Crash
+async_await_syntax_test/a07a: RuntimeError
+async_await_syntax_test/a08a: RuntimeError
+async_await_syntax_test/a09a: Crash
+async_await_syntax_test/a10a: Crash
+async_await_syntax_test/a11b: RuntimeError
+async_await_syntax_test/a11c: Crash
+async_await_syntax_test/a11d: Crash
+async_await_syntax_test/a12g: Crash
+async_await_syntax_test/b01a: Crash
+async_await_syntax_test/b02a: Crash
+async_await_syntax_test/b03a: Crash
+async_await_syntax_test/b04a: RuntimeError
+async_await_syntax_test/b05a: Crash
+async_await_syntax_test/b06a: Crash
+async_await_syntax_test/b07a: RuntimeError
+async_await_syntax_test/b08a: RuntimeError
+async_await_syntax_test/b09a: Crash
+async_await_syntax_test/b10a: Crash
+async_await_syntax_test/b11b: RuntimeError
+async_await_syntax_test/b11c: Crash
+async_await_syntax_test/b11d: Crash
+async_await_syntax_test/b12g: Crash
+async_await_syntax_test/c01a: Crash
+async_await_syntax_test/c02a: Crash
+async_await_syntax_test/c03a: Crash
+async_await_syntax_test/c04a: Crash
+async_await_syntax_test/c05a: Crash
+async_await_syntax_test/c06a: Crash
+async_await_syntax_test/c07a: Crash
+async_await_syntax_test/c08a: Crash
+async_await_syntax_test/c09a: Crash
+async_await_syntax_test/c10a: Crash
+async_await_syntax_test/d01a: Crash
+async_await_syntax_test/d02a: Crash
+async_await_syntax_test/d03a: Crash
+async_await_syntax_test/d04a: RuntimeError
+async_await_syntax_test/d05a: Crash
+async_await_syntax_test/d06a: Crash
+async_await_syntax_test/d07a: RuntimeError
+async_await_syntax_test/d08a: RuntimeError
+async_await_syntax_test/d08b: RuntimeError
+async_await_syntax_test/d08c: RuntimeError
+async_await_syntax_test/d09a: Crash
+async_await_syntax_test/d10a: Crash
+async_return_types_test/tooManyTypeParameters: CompileTimeError
+
+# Look like bugs.
+async_return_types_test/nestedFuture: Skip # Flutter Issue 9110
+async_return_types_test/return_value_sync_star: Skip # Flutter Issue 9110
+async_return_types_test/wrongReturnType: Skip # Flutter Issue 9110
+async_return_types_test/wrongTypeParameter: Skip # Flutter Issue 9110
+async_star_cancel_while_paused_test: Skip # Flutter Issue 9110
+async_star_no_cancel_test: Skip # Flutter Issue 9110

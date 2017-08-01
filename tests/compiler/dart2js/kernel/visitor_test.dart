@@ -97,7 +97,7 @@ scheduleTest(String name, {bool selected}) async {
 
 Future<Compiler> newCompiler() async {
   var compiler = compilerFor(
-      options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useKernel]);
+      options: [Flags.analyzeOnly, Flags.analyzeAll, Flags.useKernelInSsa]);
   await compiler.setupSdk();
 
   // The visitor no longer enqueues elements that are not reachable from the

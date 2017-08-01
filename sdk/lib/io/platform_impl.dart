@@ -33,6 +33,7 @@ class _Platform {
   external static String _packageConfig();
   external static String _version();
   external static String _localeName();
+  external static Uri _script();
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
@@ -58,7 +59,7 @@ class _Platform {
   static int get numberOfProcessors => _numberOfProcessors();
   static String get pathSeparator => _pathSeparator();
   static String get operatingSystem => _operatingSystem();
-  static Uri script;
+  static Uri get script => _script();
 
   static String get localHostname {
     var result = _localHostname();

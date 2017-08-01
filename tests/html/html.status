@@ -52,6 +52,7 @@ fontface_test: Fail # Fontface not supported on these.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
 [ $compiler == dart2js && $runtime == chrome ]
+element_classes_test: RuntimeError # Issue 30291
 element_types_test/supported_keygen: RuntimeError # Issue 29055
 fileapi_test/entry: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
@@ -155,7 +156,6 @@ element_types_test/supported_shadow: Fail
 element_types_test/supported_template: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
-indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
@@ -200,7 +200,6 @@ element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
-indexeddb_1_test/supportsDatabaseNames: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
@@ -250,7 +249,6 @@ element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
 element_classes_test: RuntimeError # Issue 27535
 element_types_test/supported_keygen: Fail
 fileapi_test/supported: Fail
-indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail

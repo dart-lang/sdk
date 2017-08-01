@@ -463,8 +463,9 @@ class BinaryBuilder {
     node.fileEndOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
-    node.isSyntheticMixinImplementation = flags & 0x2 != 0;
-    int levelIndex = (flags >> 2) & 0x3;
+    node.isEnum = flags & 0x2 != 0;
+    node.isSyntheticMixinImplementation = flags & 0x4 != 0;
+    int levelIndex = (flags >> 3) & 0x3;
     var level = ClassLevel.values[levelIndex + 1];
     if (level.index >= node.level.index) {
       node.level = level;
@@ -525,6 +526,7 @@ class BinaryBuilder {
     readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     var type = readDartType();
@@ -537,6 +539,7 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.type = type;
       node.initializer = initializer;
@@ -561,6 +564,7 @@ class BinaryBuilder {
     var flags = readByte();
     readUInt(); // parent class binary offset.
     var name = readName();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
     var function = readFunctionNode();
@@ -579,6 +583,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function..parent = node;
       node.transformerFlags = transformerFlags;
@@ -604,6 +609,7 @@ class BinaryBuilder {
     readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
+    var documentationComment = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
     var function = readFunctionNodeOption();
@@ -616,6 +622,7 @@ class BinaryBuilder {
       node.flags = flags;
       node.name = name;
       node.fileUri = fileUri;
+      node.documentationComment = documentationComment;
       node.annotations = annotations;
       node.function = function;
       node.function?.parent = node;
@@ -626,15 +633,20 @@ class BinaryBuilder {
 
   Initializer readInitializer() {
     int tag = readByte();
+    bool isSynthetic = readByte() == 1;
     switch (tag) {
       case Tag.InvalidInitializer:
         return new InvalidInitializer();
       case Tag.FieldInitializer:
-        return new FieldInitializer.byReference(
-            readMemberReference(), readExpression());
+        var reference = readMemberReference();
+        var value = readExpression();
+        return new FieldInitializer.byReference(reference, value)
+          ..isSynthetic = isSynthetic;
       case Tag.SuperInitializer:
-        return new SuperInitializer.byReference(
-            readMemberReference(), readArguments());
+        var reference = readMemberReference();
+        var arguments = readArguments();
+        return new SuperInitializer.byReference(reference, arguments)
+          ..isSynthetic = isSynthetic;
       case Tag.RedirectingInitializer:
         return new RedirectingInitializer.byReference(
             readMemberReference(), readArguments());
@@ -932,8 +944,9 @@ class BinaryBuilder {
         var topLevelFunctionReference = readMemberReference();
         var contextVector = readExpression();
         var functionType = readDartType();
+        var typeArgs = readDartTypeList();
         return new ClosureCreation.byReference(
-            topLevelFunctionReference, contextVector, functionType);
+            topLevelFunctionReference, contextVector, functionType, typeArgs);
       default:
         throw fail('Invalid expression tag: $tag');
     }

@@ -21,7 +21,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   factory JSArray.of(allocation) {
     // TODO(sra): Move this to core.List for better readability.
     // Capture the parameterized ES6 'JSArray' class.
-    return dart.setType(allocation, JS('', 'JSArray'));
+    return JS('-dynamic', '#', dart.setType(allocation, JS('', 'JSArray')));
   }
 
   // TODO(jmesserly): consider a fixed array subclass instead.

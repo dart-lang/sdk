@@ -16,14 +16,14 @@ import '../memory_compiler.dart';
 
 Future<String> compile(String code,
     {dynamic lookup: 'main',
-    bool useKernel: true,
+    bool useKernelInSsa: true,
     bool disableTypeInference: true,
     List<String> extraOptions: const <String>[]}) async {
   List<String> options = <String>[
     Flags.disableInlining,
   ];
   if (disableTypeInference) options.add(Flags.disableTypeInference);
-  if (useKernel) options.add(Flags.useKernel);
+  if (useKernelInSsa) options.add(Flags.useKernelInSsa);
   options.addAll(extraOptions);
 
   if (lookup is String && lookup != 'main' && !code.contains('main')) {
@@ -58,12 +58,12 @@ Future check(String code,
     List<String> extraOptions: const <String>[]}) async {
   var original = await compile(code,
       lookup: lookup,
-      useKernel: false,
+      useKernelInSsa: false,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);
   var kernel = await compile(code,
       lookup: lookup,
-      useKernel: true,
+      useKernelInSsa: true,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);
   expect(kernel, original);

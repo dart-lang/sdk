@@ -39,8 +39,8 @@ class TopLevelInferenceErrorsTest extends AbstractStrongTest {
   test_initializer_assign() async {
     var content = r'''
 var a = 1;
-var t1 = /*error:TOP_LEVEL_UNSUPPORTED*/a += 1;
-var t2 = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2);
+var t1 = a += 1;
+var t2 = a = 2;
 ''';
     await checkFile(content);
   }
@@ -48,7 +48,7 @@ var t2 = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2);
   test_initializer_binary_onlyLeft() async {
     var content = r'''
 var a = 1;
-var t = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1) + (a = 2);
+var t = (a = 1) + (a = 2);
 ''';
     await checkFile(content);
   }
@@ -70,7 +70,7 @@ var t3 = !((a = 1) == 0);
   test_initializer_cascade() async {
     var content = r'''
 var a = 0;
-var t = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1)..isEven;
+var t = (a = 1)..isEven;
 ''';
     await checkFile(content);
   }
@@ -80,8 +80,7 @@ var t = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1)..isEven;
 class A<T> {}
 class B {
   var t1 = new A<int>();
-  var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
-           /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+  var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new A();
 }
 ''';
     await checkFile(content);
@@ -92,8 +91,7 @@ class B {
 class A<T> {}
 class B {
   static var t1 = 1;
-  static var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
-                  /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+  static var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new A();
 }
 ''';
     await checkFile(content);
@@ -104,8 +102,8 @@ class B {
 var a = 1;
 var b = true;
 var t = b ?
-          (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1) :
-          (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2);
+          (a = 1) :
+          (a = 2);
 ''';
     await checkFile(content);
   }
@@ -148,17 +146,14 @@ var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
   test_initializer_functionLiteral_expressionBody() async {
     var content = r'''
 var a = 0;
-var t = (int p) => (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1);
+var t = (int p) => (a = 1);
 ''';
     await checkFile(content);
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
     var content = r'''
-var t = (int a,
-         /*error:TOP_LEVEL_FUNCTION_LITERAL_PARAMETER*/b,
-         int c,
-         /*error:TOP_LEVEL_FUNCTION_LITERAL_PARAMETER*/d) => 0;
+var t = (int a, b,int c, d) => 0;
 ''';
     await checkFile(content);
   }
@@ -196,8 +191,8 @@ var t7 = new A().instance_method;
   test_initializer_identifier_error() async {
     var content = r'''
 var a = 0;
-var b = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1);
-var c = /*error:TOP_LEVEL_IDENTIFIER_NO_TYPE*/b;
+var b = (a = 1);
+var c = b;
 ''';
     await checkFile(content);
   }
@@ -205,7 +200,7 @@ var c = /*error:TOP_LEVEL_IDENTIFIER_NO_TYPE*/b;
   test_initializer_ifNull() async {
     var content = r'''
 var a = 1;
-var t = /*error:TOP_LEVEL_UNSUPPORTED*/a ?? 2;
+var t = a ?? 2;
 ''';
     await checkFile(content);
   }
@@ -222,8 +217,7 @@ var t = new A();
     var content = r'''
 class A<T> {}
 var t1 = new A<int>();
-var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
-         /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new A();
 ''';
     await checkFile(content);
   }
@@ -233,7 +227,7 @@ var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
 class A {
   int f = 1;
 }
-var a = new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f;
+var a = new A().f;
 ''';
     await checkFile(content);
   }
@@ -243,7 +237,7 @@ var a = new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f;
 int f1() => null;
 T f2<T>() => null;
 var t1 = f1();
-var t2 = /*error:TOP_LEVEL_TYPE_ARGUMENTS*/f2();
+var t2 = f2();
 var t3 = f2<int>();
 ''';
     await checkFile(content);
@@ -257,7 +251,7 @@ class A {
 }
 var a = new A();
 var t1 = a.m1();
-var t2 = a./*error:TOP_LEVEL_TYPE_ARGUMENTS*/m2();
+var t2 = a.m2();
 var t3 = a.m2<int>();
 ''';
     await checkFile(content);
@@ -313,7 +307,7 @@ var t = <int, int>{(a = 1) : (a = 2)};
     var content = r'''
 var a = 1;
 var t = /*info:INFERRED_TYPE_LITERAL*/[
-            /*error:TOP_LEVEL_UNSUPPORTED*/a = 1,
+            a = 1,
             2, 3];
 ''';
     await checkFile(content);
@@ -323,8 +317,8 @@ var t = /*info:INFERRED_TYPE_LITERAL*/[
     var content = r'''
 var a = 1;
 var t = /*info:INFERRED_TYPE_LITERAL*/{
-            (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1) :
-            (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2)};
+            (a = 1) :
+            (a = 2)};
 ''';
     await checkFile(content);
   }
@@ -361,11 +355,10 @@ class C implements A, B {
   }
 
   Future<Null> _assertErrorOnlyLeft(List<String> operators) async {
-    var err = '/*error:TOP_LEVEL_UNSUPPORTED*/';
     String code = 'var a = 1;\n';
     for (var i = 0; i < operators.length; i++) {
       String operator = operators[i];
-      code += 'var t$i = (${err}a = 1) $operator (a = 2);\n';
+      code += 'var t$i = (a = 1) $operator (a = 2);\n';
     }
     await checkFile(code);
   }
@@ -406,6 +399,95 @@ var V = 1 as num;
 ''');
     checkElementText(library, r'''
 num V;
+''');
+  }
+
+  test_initializer_assign() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = 1;
+var t1 = (a = 2);
+var t2 = (a += 2);
+''');
+    checkElementText(library, r'''
+int a;
+int t1;
+int t2;
+''');
+  }
+
+  test_initializer_assign_indexed() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = [0];
+var t1 = (a[0] = 2);
+var t2 = (a[0] += 2);
+''');
+    checkElementText(library, r'''
+List<int> a;
+int t1;
+int t2;
+''');
+  }
+
+  test_initializer_assign_prefixed() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f;
+}
+var a = new A();
+var t1 = (a.f = 1);
+var t2 = (a.f += 2);
+''');
+    checkElementText(library, r'''
+class A {
+  int f;
+}
+A a;
+int t1;
+int t2;
+''');
+  }
+
+  test_initializer_assign_prefixed_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  int f;
+}
+abstract class C implements I {}
+C c;
+var t1 = (c.f = 1);
+var t2 = (c.f += 2);
+''');
+    checkElementText(library, r'''
+class I {
+  int f;
+}
+abstract class C implements I {
+}
+C c;
+int t1;
+int t2;
+''');
+  }
+
+  test_initializer_assign_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  int f;
+}
+abstract class C implements I {}
+C getC() => null;
+var t1 = (getC().f = 1);
+var t2 = (getC().f += 2);
+''');
+    checkElementText(library, r'''
+class I {
+  int f;
+}
+abstract class C implements I {
+}
+int t1;
+int t2;
+C getC() {}
 ''');
   }
 
@@ -464,111 +546,13 @@ A vBoth;
 ''');
   }
 
-  test_initializer_conditional() async {
-    var library = await _encodeDecodeLibrary(r'''
-var V = true ? 1 : 2.3;
-''');
-    checkElementText(library, r'''
-num V;
-''');
-  }
-
-  test_initializer_equality() async {
-    var library = await _encodeDecodeLibrary(r'''
-var vEq = 1 == 2;
-var vNotEq = 1 != 2;
-''');
-    checkElementText(library, r'''
-bool vEq;
-bool vNotEq;
-''');
-  }
-
-  test_initializer_error_assign() async {
-    var library = await _encodeDecodeLibrary(r'''
-var a = 1;
-var t1 = (a = 2);
-var t2 = (a += 2);
-''');
-    checkElementText(library, r'''
-int a;
-dynamic t1/*error: assignment*/;
-dynamic t2/*error: assignment*/;
-''');
-  }
-
-  test_initializer_error_assign_prefixed() async {
-    var library = await _encodeDecodeLibrary(r'''
-class A {
-  int f;
-}
-var a = new A();
-var t1 = (a.f = 1);
-var t2 = (a.f += 2);
-''');
-    checkElementText(library, r'''
-class A {
-  int f;
-}
-A a;
-dynamic t1/*error: assignment*/;
-dynamic t2/*error: assignment*/;
-''');
-  }
-
-  test_initializer_error_assign_prefixed_viaInterface() async {
-    var library = await _encodeDecodeLibrary(r'''
-class I {
-  int f;
-}
-abstract class C implements I {}
-C c;
-var t1 = (c.f = 1);
-var t2 = (c.f += 2);
-''');
-    checkElementText(library, r'''
-class I {
-  int f;
-}
-abstract class C implements I {
-}
-C c;
-dynamic t1/*error: assignment*/;
-dynamic t2/*error: assignment*/;
-''');
-  }
-
-  test_initializer_error_assign_viaInterface() async {
-    var library = await _encodeDecodeLibrary(r'''
-class I {
-  int f;
-}
-abstract class C implements I {}
-C getC() => null;
-var t1 = (getC().f = 1);
-var t2 = (getC().f += 2);
-''');
-    checkElementText(library, r'''
-class I {
-  int f;
-}
-abstract class C implements I {
-}
-dynamic t1/*error: assignment*/;
-dynamic t2/*error: assignment*/;
-C getC() {}
-''');
-  }
-
   /**
    * A simple or qualified identifier referring to a top level function, static
    * variable, field, getter; or a static class variable, static getter or
    * method; or an instance method; has the inferred type of the identifier.
    *
-   * Note: specifically, references to instance fields and instance getters are
-   * disallowed here.
    */
-  test_initializer_error_classField_useInstanceGetter() async {
+  test_initializer_classField_useInstanceGetter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   int f = 1;
@@ -611,15 +595,15 @@ class X {
   A a;
   B b;
   C c;
-  dynamic t01/*error: instanceGetter*/;
-  dynamic t02/*error: instanceGetter*/;
-  dynamic t03/*error: instanceGetter*/;
-  dynamic t11/*error: instanceGetter*/;
-  dynamic t12/*error: instanceGetter*/;
-  dynamic t13/*error: instanceGetter*/;
-  dynamic t21/*error: instanceGetter*/;
-  dynamic t22/*error: instanceGetter*/;
-  dynamic t23/*error: instanceGetter*/;
+  int t01;
+  int t02;
+  int t03;
+  int t11;
+  int t12;
+  int t13;
+  int t21;
+  int t22;
+  int t23;
 }
 A newA() {}
 B newB() {}
@@ -627,142 +611,23 @@ C newC() {}
 ''');
   }
 
-  test_initializer_error_extractProperty() async {
+  test_initializer_conditional() async {
     var library = await _encodeDecodeLibrary(r'''
-class C {
-  bool b;
-}
-C f() => null;
-var x = f().b;
+var V = true ? 1 : 2.3;
 ''');
     checkElementText(library, r'''
-class C {
-  bool b;
-}
-dynamic x/*error: instanceGetter*/;
-C f() {}
+num V;
 ''');
   }
 
-  test_initializer_error_extractProperty_inOtherLibraryCycle() async {
-    addFile('/a.dart', r'''
-import 'b.dart';
-var x = new C().f;
-''');
-    addFile('/b.dart', r'''
-class C {
-  var f = 0;
-}
-''');
+  test_initializer_equality() async {
     var library = await _encodeDecodeLibrary(r'''
-import 'a.dart';
-var t1 = x;
+var vEq = 1 == 2;
+var vNotEq = 1 != 2;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
-dynamic t1;
-''');
-  }
-
-  test_initializer_error_extractProperty_inStaticField() async {
-    var library = await _encodeDecodeLibrary(r'''
-class A {
-  int f;
-}
-class B {
-  static var t = new A().f;
-}
-''');
-    checkElementText(library, r'''
-class A {
-  int f;
-}
-class B {
-  static dynamic t/*error: instanceGetter*/;
-}
-''');
-  }
-
-  test_initializer_error_extractProperty_prefixedIdentifier() async {
-    var library = await _encodeDecodeLibrary(r'''
-class C {
-  bool b;
-}
-C c;
-var x = c.b;
-''');
-    checkElementText(library, r'''
-class C {
-  bool b;
-}
-C c;
-dynamic x/*error: instanceGetter*/;
-''');
-  }
-
-  test_initializer_error_extractProperty_prefixedIdentifier_viaInterface() async {
-    var library = await _encodeDecodeLibrary(r'''
-class I {
-  bool b;
-}
-abstract class C implements I {}
-C c;
-var x = c.b;
-''');
-    checkElementText(library, r'''
-class I {
-  bool b;
-}
-abstract class C implements I {
-}
-C c;
-dynamic x/*error: instanceGetter*/;
-''');
-  }
-
-  test_initializer_error_extractProperty_viaInterface() async {
-    var library = await _encodeDecodeLibrary(r'''
-class I {
-  bool b;
-}
-abstract class C implements I {}
-C f() => null;
-var x = f().b;
-''');
-    checkElementText(library, r'''
-class I {
-  bool b;
-}
-abstract class C implements I {
-}
-dynamic x/*error: instanceGetter*/;
-C f() {}
-''');
-  }
-
-  test_initializer_error_instanceGetterOfObject() async {
-    var library = await _encodeDecodeLibrary(r'''
-dynamic f() => null;
-var s = f().toString();
-var h = f().hashCode;
-''');
-    checkElementText(library, r'''
-String s;
-dynamic h/*error: instanceGetter*/;
-dynamic f() {}
-''');
-  }
-
-  test_initializer_error_instanceGetterOfObject_prefixed() async {
-    var library = await _encodeDecodeLibrary(r'''
-dynamic d;
-var s = d.toString();
-var h = d.hashCode;
-''');
-    checkElementText(library, r'''
-dynamic d;
-String s;
-dynamic h/*error: instanceGetter*/;
+bool vEq;
+bool vNotEq;
 ''');
   }
 
@@ -786,48 +651,6 @@ dynamic a/*error: dependencyCycle*/;
 ''');
   }
 
-  test_initializer_error_referenceToFieldOfStaticField() async {
-    var library = await _encodeDecodeLibrary(r'''
-class C {
-  static D d;
-}
-class D {
-  int i;
-}
-final x = C.d.i;
-''');
-    checkElementText(library, r'''
-class C {
-  static D d;
-}
-class D {
-  int i;
-}
-final dynamic x/*error: instanceGetter*/;
-''');
-  }
-
-  test_initializer_error_referenceToFieldOfStaticGetter() async {
-    var library = await _encodeDecodeLibrary(r'''
-class C {
-  static D get d => null;
-}
-class D {
-  int i;
-}
-var x = C.d.i;
-''');
-    checkElementText(library, r'''
-class C {
-  static D get d {}
-}
-class D {
-  int i;
-}
-dynamic x/*error: instanceGetter*/;
-''');
-  }
-
   test_initializer_extractIndex() async {
     var library = await _encodeDecodeLibrary(r'''
 var a = [0, 1.2];
@@ -838,6 +661,119 @@ var b1 = a[1];
 List<num> a;
 num b0;
 num b1;
+''');
+  }
+
+  test_initializer_extractProperty() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  bool b;
+}
+C f() => null;
+var x = f().b;
+''');
+    checkElementText(library, r'''
+class C {
+  bool b;
+}
+bool x;
+C f() {}
+''');
+  }
+
+  test_initializer_extractProperty_inOtherLibraryCycle() async {
+    addFile('/a.dart', r'''
+import 'b.dart';
+var x = new C().f;
+''');
+    addFile('/b.dart', r'''
+class C {
+  var f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var t1 = x;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+int t1;
+''');
+  }
+
+  test_initializer_extractProperty_inStaticField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f;
+}
+class B {
+  static var t = new A().f;
+}
+''');
+    checkElementText(library, r'''
+class A {
+  int f;
+}
+class B {
+  static int t;
+}
+''');
+  }
+
+  test_initializer_extractProperty_prefixedIdentifier() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  bool b;
+}
+C c;
+var x = c.b;
+''');
+    checkElementText(library, r'''
+class C {
+  bool b;
+}
+C c;
+bool x;
+''');
+  }
+
+  test_initializer_extractProperty_prefixedIdentifier_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C c;
+var x = c.b;
+''');
+    checkElementText(library, r'''
+class I {
+  bool b;
+}
+abstract class C implements I {
+}
+C c;
+bool x;
+''');
+  }
+
+  test_initializer_extractProperty_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C f() => null;
+var x = f().b;
+''');
+    checkElementText(library, r'''
+class I {
+  bool b;
+}
+abstract class C implements I {
+}
+bool x;
+C f() {}
 ''');
   }
 
@@ -1022,6 +958,32 @@ var a = new A();
 class A {
 }
 A a;
+''');
+  }
+
+  test_initializer_instanceGetterOfObject() async {
+    var library = await _encodeDecodeLibrary(r'''
+dynamic f() => null;
+var s = f().toString();
+var h = f().hashCode;
+''');
+    checkElementText(library, r'''
+String s;
+int h;
+dynamic f() {}
+''');
+  }
+
+  test_initializer_instanceGetterOfObject_prefixed() async {
+    var library = await _encodeDecodeLibrary(r'''
+dynamic d;
+var s = d.toString();
+var h = d.hashCode;
+''');
+    checkElementText(library, r'''
+dynamic d;
+String s;
+int h;
 ''');
   }
 
@@ -1230,7 +1192,6 @@ int vFloorDivide;
 ''');
   }
 
-  @failingTest
   test_initializer_onlyLeft() async {
     var library = await _encodeDecodeLibrary(r'''
 var a = 1;
@@ -1253,11 +1214,10 @@ int V;
 ''');
   }
 
-  @failingTest
   test_initializer_postfix() async {
     var library = await _encodeDecodeLibrary(r'''
 var vInt = 1;
-var vDouble = 2;
+var vDouble = 2.0;
 var vIncInt = vInt++;
 var vDecInt = vInt--;
 var vIncDouble = vDouble++;
@@ -1265,7 +1225,7 @@ var vDecDouble = vDouble--;
 ''');
     checkElementText(library, r'''
 int vInt;
-int vDouble;
+double vDouble;
 int vIncInt;
 int vDecInt;
 double vIncDouble;
@@ -1273,7 +1233,25 @@ double vDecDouble;
 ''');
   }
 
-  @failingTest
+  test_initializer_postfix_indexed() async {
+    var library = await _encodeDecodeLibrary(r'''
+var vInt = [1];
+var vDouble = [2.0];
+var vIncInt = vInt[0]++;
+var vDecInt = vInt[0]--;
+var vIncDouble = vDouble[0]++;
+var vDecDouble = vDouble[0]--;
+''');
+    checkElementText(library, r'''
+List<int> vInt;
+List<double> vDouble;
+int vIncInt;
+int vDecInt;
+double vIncDouble;
+double vDecDouble;
+''');
+  }
+
   test_initializer_prefix_incDec() async {
     var library = await _encodeDecodeLibrary(r'''
 var vInt = 1;
@@ -1311,6 +1289,25 @@ B vDec;
 ''');
   }
 
+  test_initializer_prefix_incDec_indexed() async {
+    var library = await _encodeDecodeLibrary(r'''
+var vInt = [1];
+var vDouble = [2.0];
+var vIncInt = ++vInt[0];
+var vDecInt = --vInt[0];
+var vIncDouble = ++vDouble[0];
+var vDecInt = --vDouble[0];
+''');
+    checkElementText(library, r'''
+List<int> vInt;
+List<double> vDouble;
+int vIncInt;
+int vDecInt;
+double vIncDouble;
+double vDecInt;
+''');
+  }
+
   test_initializer_prefix_not() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNot = !true;
@@ -1330,6 +1327,48 @@ var vComplement = ~1;
 int vNegateInt;
 double vNegateDouble;
 int vComplement;
+''');
+  }
+
+  test_initializer_referenceToFieldOfStaticField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    checkElementText(library, r'''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final int x;
+''');
+  }
+
+  test_initializer_referenceToFieldOfStaticGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  static D get d => null;
+}
+class D {
+  int i;
+}
+var x = C.d.i;
+''');
+    checkElementText(library, r'''
+class C {
+  static D get d {}
+}
+class D {
+  int i;
+}
+int x;
 ''');
   }
 

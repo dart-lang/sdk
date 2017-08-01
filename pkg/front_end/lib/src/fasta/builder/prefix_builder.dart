@@ -9,7 +9,7 @@ import 'builder.dart' show Builder, LibraryBuilder, Scope;
 class PrefixBuilder extends Builder {
   final String name;
 
-  final Scope exports = new Scope.top();
+  final Scope exportScope = new Scope.top();
 
   final LibraryBuilder parent;
 
@@ -24,7 +24,7 @@ class PrefixBuilder extends Builder {
         super(parent, charOffset, parent.fileUri);
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
-    return exports.lookup(name, charOffset, fileUri);
+    return exportScope.lookup(name, charOffset, fileUri);
   }
 
   @override

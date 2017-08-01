@@ -4,7 +4,8 @@
 
 library summary_report;
 
-import "expectation.dart";
+import "package:status_file/expectation.dart";
+
 import "test_runner.dart";
 
 final summaryReport = new SummaryReport();

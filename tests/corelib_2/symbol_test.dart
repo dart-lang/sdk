@@ -28,16 +28,6 @@ main() {
   }
 
   try {
-    var y = 0;
-    print(new Symbol(y)); //# 04: compile-time error
-    throw 'Expected a NoSuchMethodError or a TypeError'; //# 04: ok
-  } on NoSuchMethodError {
-    print('Caught NoSuchMethodError');
-  } on TypeError {
-    print('Caught TypeError');
-  }
-
-  try {
     print(new Symbol('0'));
     throw 'Expected an ArgumentError';
   } on ArgumentError catch (e) {

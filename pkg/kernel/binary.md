@@ -741,6 +741,7 @@ type ClosureCreation extends Expression {
   MemberReference topLevelFunctionReference;
   Expression contextVector;
   FunctionType functionType;
+  List<DartType> typeArguments;
 }
 
 abstract type Statement extends Node {}

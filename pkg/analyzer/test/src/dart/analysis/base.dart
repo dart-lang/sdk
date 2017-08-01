@@ -16,8 +16,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -160,4 +160,4 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   }
 }
 
-class _GeneratedUriResolverMock extends TypedMock implements UriResolver {}
+class _GeneratedUriResolverMock extends Mock implements UriResolver {}

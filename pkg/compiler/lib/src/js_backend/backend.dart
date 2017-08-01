@@ -443,7 +443,7 @@ class JavaScriptBackend {
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
-      bool useKernel: false})
+      bool useKernelInSsa: false})
       : optimizerHints = new OptimizerHintsForTests(
             compiler.frontendStrategy.elementEnvironment,
             compiler.frontendStrategy.commonElements),
@@ -906,17 +906,6 @@ class JavaScriptBackend {
 
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
-  ClassElement defaultSuperclass(CommonElements commonElements,
-      NativeBasicData nativeBasicData, ClassElement element) {
-    if (nativeBasicData.isJsInteropClass(element)) {
-      return commonElements.jsJavaScriptObjectClass;
-    }
-    // Native classes inherit from Interceptor.
-    return nativeBasicData.isNativeClass(element)
-        ? commonElements.jsInterceptorClass
-        : commonElements.objectClass;
-  }
-
   /**
    * Unit test hook that returns code of an element as a String.
    *
@@ -1336,8 +1325,8 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   ClassElement defaultSuperclass(ClassElement element) {
-    return _backend.defaultSuperclass(
-        _commonElements, _backend.frontendStrategy.nativeBasicData, element);
+    return _commonElements.getDefaultSuperclass(
+        element, _backend.frontendStrategy.nativeBasicData);
   }
 
   @override

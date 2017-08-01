@@ -9,9 +9,9 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../mocks.dart';
 
@@ -240,7 +240,7 @@ class ByteStreamServerChannelTest {
   test_sendNotification_exceptionInSink() async {
     // This IOSink asynchronously throws an exception on any writeln().
     var outputSink = new _IOSinkMock();
-    when(outputSink.writeln(anyObject)).thenInvoke((object) {
+    when(outputSink.writeln(any)).thenAnswer((answer) {
       new Timer(new Duration(milliseconds: 10), () {
         throw '42';
       });
@@ -269,4 +269,4 @@ class ByteStreamServerChannelTest {
   }
 }
 
-class _IOSinkMock extends TypedMock implements IOSink {}
+class _IOSinkMock extends Mock implements IOSink {}

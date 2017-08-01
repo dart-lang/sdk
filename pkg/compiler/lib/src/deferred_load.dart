@@ -814,7 +814,7 @@ class DeferredLoadTask extends CompilerTask {
   void beforeResolution(LibraryEntity mainLibrary) {
     if (mainLibrary == null) return;
     // TODO(johnniwinther): Support deferred load for kernel based elements.
-    if (compiler.options.loadFromDill) return;
+    if (compiler.options.useKernel) return;
     _allDeferredImports[_fakeMainImport] = mainLibrary;
     var lastDeferred;
     // When detecting duplicate prefixes of deferred libraries there are 4

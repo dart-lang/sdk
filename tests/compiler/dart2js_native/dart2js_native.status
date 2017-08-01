@@ -5,28 +5,26 @@
 [ $browser ]
 *: Skip
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && !$dart2js_with_kernel ]
 native_no_such_method_exception4_frog_test: CompileTimeError # Issue 9631
 native_no_such_method_exception5_frog_test: CompileTimeError # Issue 9631
+bound_closure_super_test: Fail
+fake_thing_test: Fail # Issue 13010
 
-[ $compiler == dart2js && $fast_startup ]
+[ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
 mirror_intercepted_field_test: Fail # mirrors not supported
 native_mirror_test: Fail # mirrors not supported
 native_no_such_method_exception3_frog_test: Fail # mirrors not supported
 native_no_such_method_exception4_frog_test: Fail # mirrors not supported
 native_no_such_method_exception5_frog_test: Fail # mirrors not supported
 
-[ $compiler == dart2js ]
-bound_closure_super_test: Fail
-fake_thing_test: Fail # Issue 13010
-
-[ $compiler == dart2js && $minified ]
+[ $compiler == dart2js && $minified && !$dart2js_with_kernel ]
 optimization_hints_test: Fail, OK # Test relies on unminified names.
 
-[ $compiler == dart2js && $runtime == d8 && $system == windows ]
+[ $compiler == dart2js && $runtime == d8 && $system == windows && !$dart2js_with_kernel ]
 compute_this_script_test: Skip # Issue 17458
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 abstract_class_test: RuntimeError # Issue 27394
 bound_closure_test: RuntimeError # Issue 27394
 browser_compat_1_prepatched_test: RuntimeError # Issue 27394
@@ -120,10 +118,10 @@ subclassing_type_test: RuntimeError # Issue 27394
 super_call_test: RuntimeError # Issue 27394
 super_property_test: RuntimeError # Issue 27394
 
-[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && !$dart2js_with_kernel ]
 static_methods_test: Crash # Issue 27394
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $dart2js_with_kernel_in_ssa && $host_checked && !$dart2js_with_kernel ]
 bound_closure_super_test: Crash # Issue 27394
 bound_closure_test: Crash # Issue 27394
 native_call_arity1_frog_test: Crash # Issue 27394
@@ -133,3 +131,124 @@ native_class_inheritance1_frog_test: Crash # Issue 27394
 native_class_inheritance2_frog_test: Crash # Issue 27394
 native_class_inheritance3_frog_test: Crash # Issue 27394
 native_wrapping_function3_frog_test: Crash # Issue 27394
+
+[ $compiler == dart2js && $dart2js_with_kernel ]
+# TODO(sigmund): currently the FE disallows imports to dart:_* from the unit
+# test files.
+native_no_such_method_exception4_frog_test: CompileTimeError
+abstract_class_test: CompileTimeError
+bound_closure_super_test: CompileTimeError
+bound_closure_test: CompileTimeError
+browser_compat_1_prepatched_test: CompileTimeError
+browser_compat_1_unpatched_test: CompileTimeError
+browser_compat_2_test: CompileTimeError
+catch_javascript_null_stack_trace_test: CompileTimeError
+compute_this_script_test: CompileTimeError
+core_type_check_native_test: CompileTimeError
+dispatch_property_initialization_test: CompileTimeError
+downcast_test: CompileTimeError
+error_safeToString_test: CompileTimeError
+event_loop_test: CompileTimeError
+fake_thing_2_test: CompileTimeError
+fake_thing_test: CompileTimeError
+field_type2_test: CompileTimeError
+field_type_test: CompileTimeError
+fixup_get_tag_test: CompileTimeError
+foreign_test: CompileTimeError
+hash_code_test: CompileTimeError
+inference_of_helper_methods_test: CompileTimeError
+internal_library_test: CompileTimeError
+is_check_test: CompileTimeError
+issue9182_test: CompileTimeError
+js_const_test: CompileTimeError
+js_constant_test: CompileTimeError
+jsobject_test: CompileTimeError
+load_elim_refinement_test: CompileTimeError
+mirror_intercepted_field_test: CompileTimeError
+native_call_arity1_frog_test: CompileTimeError
+native_call_arity2_frog_test: CompileTimeError
+native_call_arity3_frog_test: CompileTimeError
+native_checked_arguments1_frog_test: CompileTimeError
+native_checked_fields_frog_test: CompileTimeError
+native_class_avoids_hidden_name_frog_test: CompileTimeError
+native_class_fields_2_test: CompileTimeError
+native_class_fields_3_test: CompileTimeError
+native_class_fields_test: CompileTimeError
+native_class_inheritance1_frog_test: CompileTimeError
+native_class_inheritance2_frog_test: CompileTimeError
+native_class_inheritance3_frog_test: CompileTimeError
+native_class_inheritance4_frog_test: CompileTimeError
+native_class_is_check1_frog_test: CompileTimeError
+native_class_is_check3_frog_test: CompileTimeError
+native_class_with_dart_methods_frog_test: CompileTimeError
+native_closure_identity_frog_test: CompileTimeError
+native_constructor_name_test: CompileTimeError
+native_equals_frog_test: CompileTimeError
+native_exception2_test: CompileTimeError
+native_exception_test: CompileTimeError
+native_exceptions1_frog_test: CompileTimeError
+native_field_invocation2_test: CompileTimeError
+native_field_invocation3_test: CompileTimeError
+native_field_invocation4_test: CompileTimeError
+native_field_invocation5_test: CompileTimeError
+native_field_invocation6_test: CompileTimeError
+native_field_invocation_test: CompileTimeError
+native_field_name_test: CompileTimeError
+native_field_optimization_test: CompileTimeError
+native_field_rename_1_frog_test: CompileTimeError
+native_field_rename_2_frog_test: CompileTimeError
+native_library_same_name_used_frog_test: CompileTimeError
+native_method_inlining_test: CompileTimeError
+native_method_rename1_frog_test: CompileTimeError
+native_method_rename2_frog_test: CompileTimeError
+native_method_rename3_frog_test: CompileTimeError
+native_method_with_keyword_name_test: CompileTimeError
+native_mirror_test: CompileTimeError
+native_missing_method1_frog_test: CompileTimeError
+native_missing_method2_frog_test: CompileTimeError
+native_mixin_field_test: CompileTimeError
+native_mixin_multiple2_test: CompileTimeError
+native_mixin_multiple3_test: CompileTimeError
+native_mixin_multiple_test: CompileTimeError
+native_mixin_test: CompileTimeError
+native_mixin_with_plain_test: CompileTimeError
+native_named_constructors2_frog_test: CompileTimeError
+native_named_constructors3_frog_test: CompileTimeError
+native_no_such_method_exception2_frog_test: CompileTimeError
+native_no_such_method_exception3_frog_test: CompileTimeError
+native_no_such_method_exception5_frog_test: CompileTimeError
+native_no_such_method_exception_frog_test: CompileTimeError
+native_novel_html_test: CompileTimeError
+native_null_closure_frog_test: CompileTimeError
+native_null_frog_test: CompileTimeError
+native_property_frog_test: CompileTimeError
+native_to_string_frog_test: CompileTimeError
+native_use_native_name_in_table_frog_test: CompileTimeError
+native_window1_frog_test: CompileTimeError
+native_window2_frog_test: CompileTimeError
+native_wrapping_function3_frog_test: CompileTimeError
+native_wrapping_function_frog_test: CompileTimeError
+oddly_named_fields_test: CompileTimeError
+optimization_hints_test: CompileTimeError
+rti_only_native_test: CompileTimeError
+runtimetype_test: CompileTimeError
+static_methods_test: CompileTimeError
+subclassing_1_test: CompileTimeError
+subclassing_2_test: CompileTimeError
+subclassing_3_test: CompileTimeError
+subclassing_4_test: CompileTimeError
+subclassing_5_test: CompileTimeError
+subclassing_constructor_1_test: CompileTimeError
+subclassing_constructor_2_test: CompileTimeError
+subclassing_super_call_test: CompileTimeError
+subclassing_super_field_1_test: CompileTimeError
+subclassing_super_field_2_test: CompileTimeError
+subclassing_type_test: CompileTimeError
+super_call_test: CompileTimeError
+super_property_test: CompileTimeError
+type_error_decode_test: CompileTimeError
+undefined_bailout_test: CompileTimeError
+uninstantiated_type_parameter_test: CompileTimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+native_exceptions1_frog_test: Crash

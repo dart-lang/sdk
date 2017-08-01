@@ -204,28 +204,6 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Used to force the re-analysis of everything contained in the specified
-   * context roots. This should cause all previously computed analysis results
-   * to be discarded and recomputed, and should cause all subscribed
-   * notifications to be re-sent.
-   *
-   * Parameters
-   *
-   * roots: List<FilePath> (optional)
-   *
-   *   A list of the context roots that are to be re-analyzed.
-   *
-   *   If no context roots are provided, then all current context roots should
-   *   be re-analyzed.
-   */
-  Future sendAnalysisReanalyze({List<String> roots}) async {
-    var params = new AnalysisReanalyzeParams(roots: roots).toJson();
-    var result = await server.send("analysis.reanalyze", params);
-    outOfTestExpect(result, isNull);
-    return null;
-  }
-
-  /**
    * Set the list of context roots that should be analyzed.
    *
    * Parameters

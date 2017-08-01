@@ -18,6 +18,7 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
@@ -117,6 +118,9 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
   @override
   CommonElements get commonElements => _commonElements;
+
+  /// NativeBasicData is need for computation of the default super class.
+  NativeBasicData get nativeBasicData;
 
   FunctionEntity get _mainFunction {
     return _env.mainMethod != null ? _getMethod(_env.mainMethod) : null;
@@ -307,7 +311,14 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
           return supertype;
         }
 
-        data.supertype = processSupertype(node.supertype);
+        InterfaceType supertype = processSupertype(node.supertype);
+        if (supertype == _commonElements.objectType) {
+          ClassEntity defaultSuperclass =
+              _commonElements.getDefaultSuperclass(cls, nativeBasicData);
+          data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
+        } else {
+          data.supertype = supertype;
+        }
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
@@ -396,11 +407,6 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   FieldEntity getField(ir.Field node) => _getField(node);
 
   FieldEntity _getField(ir.Field node);
-
-  @override
-  Local getLocalFunction(ir.TreeNode node) => _getLocalFunction(node);
-
-  Local _getLocalFunction(ir.TreeNode node);
 
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
@@ -668,38 +674,6 @@ abstract class ElementCreatorMixin {
     });
   }
 
-  // TODO(johnniwinther,efortuna): Create the class index and data together with
-  // the [KernelClosureClass].
-  void addClosureClass(KernelClosureClass cls, InterfaceType supertype) {
-    cls.classIndex = _classEnvs.length;
-    _classEnvs.add(new ClassEnv.closureClass());
-    _classList.add(cls);
-
-    // Create a classData and set up the interfaces and subclass
-    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
-    var closureData =
-        new ClassData(null, new ClosureClassDefinition(cls, cls.location));
-    closureData
-      ..isMixinApplication = false
-      ..thisType =
-          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
-      ..supertype = supertype
-      ..interfaces = const <InterfaceType>[];
-    var setBuilder =
-        new _KernelOrderedTypeSetBuilder((this as KernelToElementMapBase), cls);
-    _classData.add(closureData);
-    closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
-        closureData.supertype, const Link<InterfaceType>());
-
-    cls.forEachCapturedVariable((Local local, JField field) {
-      field.setClosureMemberIndex = _memberData.length;
-      // TODO(efortuna): Uncomment this line after Johnni's added in his CL
-      // about Class/MemberDefinition.
-      //_memberData.add(field);
-    });
-    // TODO(efortuna): Does getMetadata get called in ClassData for this object?
-  }
-
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
       KLibrary library = _getLibrary(node.enclosingLibrary);
@@ -895,38 +869,6 @@ abstract class ElementCreatorMixin {
         requiredParameters, positionalParameters, namedParameters);
   }
 
-  Local _getLocalFunction(ir.TreeNode node) {
-    return _localFunctionMap.putIfAbsent(node, () {
-      MemberEntity memberContext;
-      Entity executableContext;
-      ir.TreeNode parent = node.parent;
-      while (parent != null) {
-        if (parent is ir.Member) {
-          executableContext = memberContext = getMember(parent);
-          break;
-        }
-        if (parent is ir.FunctionDeclaration ||
-            parent is ir.FunctionExpression) {
-          Local localFunction = _getLocalFunction(parent);
-          executableContext = localFunction;
-          memberContext = localFunction.memberContext;
-          break;
-        }
-        parent = parent.parent;
-      }
-      String name;
-      FunctionType functionType;
-      if (node is ir.FunctionDeclaration) {
-        name = node.variable.name;
-        functionType = getFunctionType(node.function);
-      } else if (node is ir.FunctionExpression) {
-        functionType = getFunctionType(node.function);
-      }
-      return createLocalFunction(
-          name, memberContext, executableContext, functionType);
-    });
-  }
-
   IndexedLibrary createLibrary(int libraryIndex, String name, Uri canonicalUri);
 
   IndexedClass createClass(LibraryEntity library, int classIndex, String name,
@@ -974,9 +916,6 @@ abstract class ElementCreatorMixin {
   IndexedField createField(int memberIndex, LibraryEntity library,
       ClassEntity enclosingClass, Name name,
       {bool isStatic, bool isAssignable, bool isConst});
-
-  Local createLocalFunction(String name, MemberEntity memberContext,
-      Entity executableContext, FunctionType functionType);
 }
 
 /// Completes the [ElementCreatorMixin] by creating K-model elements.
@@ -1058,12 +997,6 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
     return new KField(memberIndex, library, enclosingClass, name,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
-
-  Local createLocalFunction(String name, MemberEntity memberContext,
-      Entity executableContext, FunctionType functionType) {
-    return new KLocalFunction(
-        name, memberContext, executableContext, functionType);
-  }
 }
 
 /// Implementation of [KernelToElementMapForImpact] that only supports world
@@ -1074,9 +1007,10 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         ElementCreatorMixin,
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
+  FrontendStrategy _frontendStrategy;
 
-  KernelToElementMapForImpactImpl(
-      DiagnosticReporter reporter, Environment environment)
+  KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
+      Environment environment, this._frontendStrategy)
       : super(reporter, environment);
 
   @override
@@ -1087,6 +1021,9 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
             "Unexpected entity $entity, expected family $kElementPrefix."));
     return true;
   }
+
+  @override
+  NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
   /// Adds libraries in [program] to the set of libraries.
   ///
@@ -1104,6 +1041,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     return _memberData[member.memberIndex].getWorldImpact(this);
   }
 
+  ClosureModel computeClosureModel(KMember member) {
+    ir.Member node = _memberData[member.memberIndex].node;
+    return KernelClosureAnalysis.computeClosureModel(member, node);
+  }
+
   /// Returns the kernel [ir.Procedure] node for the [method].
   ir.Procedure _lookupProcedure(KFunction method) {
     return _memberData[method.memberIndex].node;
@@ -1111,6 +1053,43 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   Iterable<ConstantValue> _getClassMetadata(KClass cls) {
     return _classData[cls.classIndex].getMetadata(this);
+  }
+
+  @override
+  Local getLocalFunction(ir.TreeNode node) {
+    assert(
+        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
+    return _localFunctionMap.putIfAbsent(node, () {
+      MemberEntity memberContext;
+      Entity executableContext;
+      ir.TreeNode parent = node.parent;
+      while (parent != null) {
+        if (parent is ir.Member) {
+          executableContext = memberContext = getMember(parent);
+          break;
+        }
+        if (parent is ir.FunctionDeclaration ||
+            parent is ir.FunctionExpression) {
+          Local localFunction = getLocalFunction(parent);
+          executableContext = localFunction;
+          memberContext = localFunction.memberContext;
+          break;
+        }
+        parent = parent.parent;
+      }
+      String name;
+      FunctionType functionType;
+      if (node is ir.FunctionDeclaration) {
+        name = node.variable.name;
+        functionType = getFunctionType(node.function);
+      } else if (node is ir.FunctionExpression) {
+        functionType = getFunctionType(node.function);
+      }
+      return new KLocalFunction(
+          name, memberContext, executableContext, functionType);
+    });
   }
 }
 
@@ -1682,32 +1661,8 @@ class KernelClosedWorld extends ClosedWorldBase
   }
 
   @override
-  void registerClosureClass(ClassEntity cls, bool fromInstanceMember) {
-    // Tell the hierarchy that this is the super class. then we can use
-    // .getSupertypes(class)
-    IndexedClass superclass = fromInstanceMember
-        ? commonElements.boundClosureClass
-        : commonElements.closureClass;
-    ClassHierarchyNode parentNode = getClassHierarchyNode(superclass);
-    ClassHierarchyNode node = new ClassHierarchyNode(
-        parentNode, cls, getHierarchyDepth(superclass) + 1);
-    addClassHierarchyNode(cls, node);
-    for (InterfaceType type in getOrderedTypeSet(superclass).types) {
-      // TODO(efortuna): assert that the FunctionClass is in this ordered set.
-      // If not, we need to explicitly add node as a subtype of FunctionClass.
-      ClassSet subtypeSet = getClassSet(type.element);
-      subtypeSet.addSubtype(node);
-    }
-    addClassSet(cls, new ClassSet(node));
-
-    // Ensure that the supertype's hierarchy is completely set up.
-    var supertype = new InterfaceType(superclass, const []);
-    ClassData superdata = elementMap._classData[superclass.classIndex];
-    elementMap._ensureSupertypes(superclass, superdata);
-    elementMap._ensureThisAndRawType(superclass, superdata);
-
-    elementMap.addClosureClass(cls, supertype);
-    node.isDirectlyInstantiated = true;
+  void registerClosureClass(ClassEntity cls) {
+    throw new UnsupportedError('KernelClosedWorld.registerClosureClass');
   }
 }
 
@@ -1829,6 +1784,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         ElementCreatorMixin
     implements
         KernelToWorldBuilder {
+  NativeBasicData nativeBasicData;
+
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapForImpactImpl _elementMap)
       : super(reporter, environment) {
@@ -2028,6 +1985,138 @@ class JsKernelToElementMap extends KernelToElementMapBase
         f(data.constructorBody);
       }
     });
+  }
+
+  KernelClosureClass constructClosureClass(
+      MemberEntity member,
+      ir.FunctionNode node,
+      JLibrary enclosingLibrary,
+      KernelScopeInfo info,
+      ir.Location location,
+      KernelToLocalsMap localsMap,
+      InterfaceType supertype) {
+    String name = _computeClosureName(node);
+    KernelClosureClass cls = new KernelClosureClass.fromScopeInfo(
+        name, _classEnvs.length, enclosingLibrary, info, location, localsMap);
+    _classList.add(cls);
+    _classEnvs.add(new ClassEnv.closureClass());
+
+    // Create a classData and set up the interfaces and subclass
+    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
+    var closureData =
+        new ClassData(null, new ClosureClassDefinition(cls, cls.location));
+    closureData
+      ..isMixinApplication = false
+      ..thisType =
+          closureData.rawType = new InterfaceType(cls, const/*<DartType>*/ [])
+      ..supertype = supertype
+      ..interfaces = const <InterfaceType>[];
+    var setBuilder = new _KernelOrderedTypeSetBuilder(this, cls);
+    _classData.add(closureData);
+    closureData.orderedTypeSet = setBuilder.createOrderedTypeSet(
+        closureData.supertype, const Link<InterfaceType>());
+
+    int i = 0;
+    for (ir.VariableDeclaration variable in info.freeVariables) {
+      // Make a corresponding field entity in this closure class for every
+      // single freeVariable in the KernelScopeInfo.freeVariable.
+      _constructClosureFields(cls, variable, i, localsMap);
+      i++;
+    }
+
+    cls.callMethod = new JClosureCallMethod(_memberData.length, cls, member);
+    _memberList.add(cls.callMethod);
+    _memberData.add(new MemberData(
+        null,
+        new ClosureMemberDefinition(
+            member, cls.location, MemberKind.closureCall, node.parent)));
+
+    // TODO(efortuna): Does getMetadata get called in ClassData for this object?
+    return cls;
+  }
+
+  _constructClosureFields(
+      KernelClosureClass cls,
+      ir.VariableDeclaration variable,
+      int fieldNumber,
+      KernelToLocalsMap localsMap) {
+    // NOTE: This construction order may be slightly different than the
+    // old Element version. The old version did all the boxed items and then
+    // all the others.
+    Local capturedLocal = localsMap.getLocalVariable(variable);
+    if (cls.isBoxed(capturedLocal)) {
+      // TODO(efortuna): Coming soon.
+    } else {
+      var closureField = new JClosureField(
+          _getClosureVariableName(capturedLocal.name, fieldNumber),
+          _memberData.length,
+          cls,
+          variable.isConst,
+          variable.isFinal || variable.isConst);
+      cls.localToFieldMap[capturedLocal] = closureField;
+      _memberList.add(closureField);
+      _memberData.add(new MemberData(
+          null,
+          new ClosureMemberDefinition(cls.localToFieldMap[capturedLocal],
+              variable.location, MemberKind.closureField, variable)));
+    }
+  }
+
+  // Returns a non-unique name for the given closure element.
+  String _computeClosureName(ir.TreeNode treeNode) {
+    var parts = <String>[];
+    if (treeNode is ir.Field && treeNode.name.name != "") {
+      parts.add(treeNode.name.name);
+    } else {
+      parts.add('closure');
+    }
+    ir.TreeNode node = treeNode.parent;
+    while (node != null &&
+        (node is ir.Constructor ||
+            node is ir.Class ||
+            node is ir.FunctionNode ||
+            node is ir.Procedure)) {
+      // TODO(johnniwinther): Simplify computed names.
+      if (node is ir.Constructor ||
+          node.parent is ir.Constructor ||
+          (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory)) {
+        FunctionEntity entity;
+        if (node.parent is ir.Constructor) {
+          entity = getConstructorBody(node);
+        } else {
+          entity = getMember(node);
+        }
+        parts.add(utils.reconstructConstructorName(entity));
+      } else {
+        String surroundingName = '';
+        if (node is ir.Class) {
+          surroundingName = Elements.operatorNameToIdentifier(node.name);
+        } else if (node is ir.Procedure) {
+          surroundingName = Elements.operatorNameToIdentifier(node.name.name);
+        }
+        parts.add(surroundingName);
+      }
+      // A generative constructors's parent is the class; the class name is
+      // already part of the generative constructor's name.
+      if (node is ir.Constructor) break;
+      node = node.parent;
+    }
+    return parts.reversed.join('_');
+  }
+
+  /// Generate a unique name for the [id]th closure field, with proposed name
+  /// [name].
+  ///
+  /// The result is used as the name of [ClosureFieldElement]s, and must
+  /// therefore be unique to avoid breaking an invariant in the element model
+  /// (classes cannot declare multiple fields with the same name).
+  ///
+  /// Also, the names should be distinct from real field names to prevent
+  /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
+  String _getClosureVariableName(String name, int id) {
+    return "_captured_${name}_$id";
   }
 
   String getDeferredUri(ir.LibraryDependency node) {

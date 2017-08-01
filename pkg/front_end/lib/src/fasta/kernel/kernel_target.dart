@@ -331,8 +331,19 @@ class KernelTarget extends TargetImplementation {
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
-          null, "main", null, null, ProcedureKind.Method, library, -1, -1, -1);
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
+          null,
+          null,
+          0,
+          null,
+          "main",
+          null,
+          null,
+          ProcedureKind.Method,
+          library,
+          -1,
+          -1,
+          -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new Block(new List<Statement>.from(errors.map(
           (LocatedMessage message) => new ExpressionStatement(new Throw(
@@ -562,7 +573,8 @@ class KernelTarget extends TargetImplementation {
             initializer = new InvalidInitializer();
           } else {
             initializer =
-                new SuperInitializer(superTarget, new Arguments.empty());
+                new SuperInitializer(superTarget, new Arguments.empty())
+                  ..isSynthetic = true;
           }
           constructor.initializers.add(initializer);
           initializer.parent = constructor;
@@ -617,7 +629,8 @@ class KernelTarget extends TargetImplementation {
       for (Field field in initializedFields.difference(fields.toSet())) {
         if (field.initializer == null) {
           FieldInitializer initializer =
-              new FieldInitializer(field, new NullLiteral());
+              new FieldInitializer(field, new NullLiteral())
+                ..isSynthetic = true;
           initializer.parent = constructor;
           constructor.initializers.insert(0, initializer);
         }

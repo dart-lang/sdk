@@ -5,10 +5,11 @@
 import 'dart:convert' show JSON;
 import 'dart:io';
 
+import "package:status_file/expectation.dart";
+
 import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
-import 'expectation.dart';
 import 'path.dart';
 import 'summary_report.dart';
 import 'test_runner.dart';

@@ -55,10 +55,10 @@ TEST_CASE(CallRuntimeStubCode) {
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  Assembler _assembler_;
-  GenerateCallToCallRuntimeStub(&_assembler_, length);
+  Assembler assembler;
+  GenerateCallToCallRuntimeStub(&assembler, length);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallRuntimeStubCode"), &_assembler_));
+      *CreateFunction("Test_CallRuntimeStubCode"), &assembler));
   const Function& function = RegisterFakeFunction(kName, code);
   Array& result = Array::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
@@ -67,20 +67,25 @@ TEST_CASE(CallRuntimeStubCode) {
 
 // Test calls to stub code which calls into a leaf runtime entry.
 static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
-                                              const char* value1,
-                                              const char* value2) {
-  const Bigint& bigint1 =
-      Bigint::ZoneHandle(Bigint::NewFromCString(value1, Heap::kOld));
-  const Bigint& bigint2 =
-      Bigint::ZoneHandle(Bigint::NewFromCString(value2, Heap::kOld));
+                                              const char* str_value,
+                                              intptr_t lhs_index_value,
+                                              intptr_t rhs_index_value,
+                                              intptr_t length_value) {
+  const String& str = String::ZoneHandle(String::New(str_value, Heap::kOld));
+  const Smi& lhs_index = Smi::ZoneHandle(Smi::New(lhs_index_value));
+  const Smi& rhs_index = Smi::ZoneHandle(Smi::New(rhs_index_value));
+  const Smi& length = Smi::ZoneHandle(Smi::New(length_value));
   __ enter(Immediate(0));
-  __ ReserveAlignedFrameSpace(2 * kWordSize);
-  __ LoadObject(EAX, bigint1);
-  __ movl(Address(ESP, 0), EAX);  // Push argument 1 bigint1.
-  __ LoadObject(EAX, bigint2);
-  __ movl(Address(ESP, kWordSize), EAX);  // Push argument 2 bigint2.
-  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  __ SmiTag(EAX);
+  __ ReserveAlignedFrameSpace(4 * kWordSize);
+  __ LoadObject(EAX, str);
+  __ movl(Address(ESP, 0), EAX);  // Push argument 1.
+  __ LoadObject(EAX, lhs_index);
+  __ movl(Address(ESP, kWordSize), EAX);  // Push argument 2.
+  __ LoadObject(EAX, rhs_index);
+  __ movl(Address(ESP, 2 * kWordSize), EAX);  // Push argument 3.
+  __ LoadObject(EAX, length);
+  __ movl(Address(ESP, 3 * kWordSize), EAX);  // Push argument 4.
+  __ CallRuntime(kCaseInsensitiveCompareUC16RuntimeEntry, 4);
   __ leave();
   __ ret();  // Return value is in EAX.
 }
@@ -88,17 +93,20 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
 TEST_CASE(CallLeafRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
-  const char* value1 = "0xAAABBCCDDAABBCCDD";
-  const char* value2 = "0xAABBCCDDAABBCCDD";
+  const char* str_value = "abAB";
+  intptr_t lhs_index_value = 0;
+  intptr_t rhs_index_value = 2;
+  intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  Assembler _assembler_;
-  GenerateCallToCallLeafRuntimeStub(&_assembler_, value1, value2);
+  Assembler assembler;
+  GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
+                                    rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallLeafRuntimeStubCode"), &_assembler_));
+      *CreateFunction("Test_CallLeafRuntimeStubCode"), &assembler));
   const Function& function = RegisterFakeFunction(kName, code);
-  Smi& result = Smi::Handle();
+  Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
-  EXPECT_EQ(1, result.Value());
+  EXPECT_EQ(Bool::True().raw(), result.raw());
 }
 
 }  // namespace dart

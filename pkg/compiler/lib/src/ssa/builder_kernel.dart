@@ -170,6 +170,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _targetFunction = constructor.function;
           buildConstructorBody(constructor);
           break;
+        case MemberKind.closureField:
+          failedAt(targetElement, "Unexpected closure field: $targetElement");
+          break;
       }
       assert(graph.isValid());
       if (_targetFunction != null) {
@@ -376,7 +379,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ConstructorEntity constructorElement = _elementMap.getConstructor(body);
 
       void handleParameter(ir.VariableDeclaration node) {
-        Local parameter = localsMap.getLocal(node);
+        Local parameter = localsMap.getLocalVariable(node);
         // If [parameter] is boxed, it will be a field in the box passed as the
         // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
@@ -636,7 +639,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Constructor caller) {
     var index = 0;
     void handleParameter(ir.VariableDeclaration node) {
-      Local parameter = localsMap.getLocal(node);
+      Local parameter = localsMap.getLocalVariable(node);
       HInstruction argument = arguments[index++];
       // Because we are inlining the initializer, we must update
       // what was given as parameter. This will be used in case
@@ -726,7 +729,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     Map<Local, TypeMask> parameterMap = <Local, TypeMask>{};
     if (function != null) {
       void handleParameter(ir.VariableDeclaration node) {
-        Local local = localsMap.getLocal(node);
+        Local local = localsMap.getLocalVariable(node);
         parameterMap[local] =
             _typeInferenceMap.getInferredTypeOfParameter(local);
       }
@@ -1041,7 +1044,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction value = new HIndex(array, index, null, type);
       add(value);
 
-      Local loopVariableLocal = localsMap.getLocal(forInStatement.variable);
+      Local loopVariableLocal =
+          localsMap.getLocalVariable(forInStatement.variable);
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
       if (loopVariableLocal is! SyntheticLocal) {
@@ -1108,7 +1112,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
-      Local loopVariableLocal = localsMap.getLocal(forInStatement.variable);
+      Local loopVariableLocal =
+          localsMap.getLocalVariable(forInStatement.variable);
       HInstruction value = pop();
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
@@ -1156,7 +1161,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _pushDynamicInvocation(forInStatement, mask, [streamIterator],
           selector: Selectors.current);
       localsHandler.updateLocal(
-          localsMap.getLocal(forInStatement.variable), pop());
+          localsMap.getLocalVariable(forInStatement.variable), pop());
       forInStatement.body.accept(this);
     }
 
@@ -2016,8 +2021,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         element.accept(this);
         elements.add(pop());
       }
-      listInstruction =
-          new HLiteralList(elements, commonMasks.extendableArrayType);
+      listInstruction = buildLiteralList(elements);
       add(listInstruction);
       InterfaceType type = localsHandler.substInContext(_commonElements
           .listType(_elementMap.getDartType(listLiteral.typeArgument)));
@@ -2055,8 +2059,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       constructor = _commonElements.mapLiteralConstructorEmpty;
     } else {
       constructor = _commonElements.mapLiteralConstructor;
-      HLiteralList argList =
-          new HLiteralList(constructorArgs, commonMasks.extendableArrayType);
+      HLiteralList argList = buildLiteralList(constructorArgs);
       add(argList);
       inputs.add(argList);
     }
@@ -2209,7 +2212,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    Local local = localsMap.getLocal(variableGet.variable);
+    Local local = localsMap.getLocalVariable(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
   }
 
@@ -2257,7 +2260,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitVariableDeclaration(ir.VariableDeclaration declaration) {
-    Local local = localsMap.getLocal(declaration);
+    Local local = localsMap.getLocalVariable(declaration);
     if (declaration.initializer == null) {
       HInstruction initialValue = graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(local, initialValue);
@@ -2273,7 +2276,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
-    Local local = localsMap.getLocal(variable);
+    Local local = localsMap.getLocalVariable(variable);
 
     // Give the value a name if it doesn't have one already.
     if (value.sourceElement == null) {
@@ -2404,52 +2407,144 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
 
-    // TODO(johnniwinther): Move factory calls to a helper function?
     if (function is ConstructorEntity && function.isFactoryConstructor) {
-      if (function.isExternal && function.isFromEnvironmentConstructor) {
-        if (invocation.isConst) {
-          // Just like all const constructors (see visitConstructorInvocation).
-          stack.add(graph.addConstant(
-              _elementMap.getConstantValue(invocation), closedWorld));
-        } else {
-          generateUnsupportedError(
-              invocation,
-              '${function.enclosingClass.name}.${function.name} '
-              'can only be used as a const constructor');
-        }
-        return;
+      handleInvokeFactoryConstructor(invocation, function, typeMask, arguments);
+      return;
+    }
+
+    // Static methods currently ignore the type parameters.
+    _pushStaticInvocation(function, arguments, typeMask);
+  }
+
+  void handleInvokeFactoryConstructor(
+      ir.StaticInvocation invocation,
+      ConstructorEntity function,
+      TypeMask typeMask,
+      List<HInstruction> arguments) {
+    if (function.isExternal && function.isFromEnvironmentConstructor) {
+      if (invocation.isConst) {
+        // Just like all const constructors (see visitConstructorInvocation).
+        stack.add(graph.addConstant(
+            _elementMap.getConstantValue(invocation), closedWorld));
+      } else {
+        generateUnsupportedError(
+            invocation,
+            '${function.enclosingClass.name}.${function.name} '
+            'can only be used as a const constructor');
+      }
+      return;
+    }
+
+    bool isFixedList = false; // Any fixed list, e.g. new List(10),  UInt8List.
+
+    // Recognize `new List()` and `new List(n)`.
+    bool isFixedListConstructorCall = false;
+    bool isGrowableListConstructorCall = false;
+    if (commonElements.isUnnamedListConstructor(function) &&
+        invocation.arguments.named.isEmpty) {
+      int argumentCount = invocation.arguments.positional.length;
+      isFixedListConstructorCall = argumentCount == 1;
+      isGrowableListConstructorCall = argumentCount == 0;
+      isFixedList = isFixedListConstructorCall;
+    }
+
+    TypeMask resultType = typeMask;
+
+    bool isJSArrayTypedConstructor =
+        function == commonElements.jsArrayTypedConstructor;
+
+    if (isFixedListConstructorCall) {
+      assert(arguments.length == 1);
+      HInstruction lengthInput = arguments.first;
+      if (!lengthInput.isNumber(closedWorld)) {
+        HTypeConversion conversion = new HTypeConversion(
+            null,
+            HTypeConversion.ARGUMENT_TYPE_CHECK,
+            commonMasks.numType,
+            lengthInput);
+        add(conversion);
+        lengthInput = conversion;
+      }
+      js.Template code = js.js.parseForeignJS('new Array(#)');
+      var behavior = new native.NativeBehavior();
+      // TODO(redemption): Find the full type being created here,
+      // e.g. JSArray<Set<T>>, via 'computeEffectiveTargetType'.
+      var expectedType = closedWorld.elementEnvironment
+          .getRawType(_commonElements.jsArrayClass);
+      behavior.typesInstantiated.add(expectedType);
+      behavior.typesReturned.add(expectedType);
+
+      // The allocation can throw only if the given length is a double or
+      // outside the unsigned 32 bit range.
+      // TODO(sra): Array allocation should be an instruction so that canThrow
+      // can depend on a length type discovered in optimization.
+      bool canThrow = true;
+      if (lengthInput.isUInt32(closedWorld)) {
+        canThrow = false;
       }
 
-      // Factory constructors take type parameters; other static methods ignore
-      // them.
-
+      // TODO(redemption): Pick up site-specific type inference type, which
+      // might be more precise, e.g. a container type.
+      resultType = commonMasks.fixedListType;
+      HForeignCode foreign = new HForeignCode(code, resultType, arguments,
+          nativeBehavior: behavior,
+          throwBehavior: canThrow
+              ? native.NativeThrowBehavior.MAY
+              : native.NativeThrowBehavior.NEVER);
+      push(foreign);
+      // TODO(redemption): Global type analysis tracing may have determined that
+      // the fixed-length property is never checked. If so, we can avoid marking
+      // the array.
+      {
+        js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
+        // We set the instruction as [canThrow] to avoid it being dead code.
+        // We need a finer grained side effect.
+        add(new HForeignCode(code, commonMasks.nullType, [stack.last],
+            throwBehavior: native.NativeThrowBehavior.MAY));
+      }
+    } else if (isGrowableListConstructorCall) {
+      push(buildLiteralList(<HInstruction>[]));
+      // TODO(sra): Pick up type inference type, which might be more precise,
+      // e.g. a container type.
+      resultType = commonMasks.growableListType;
+      stack.last.instructionType = resultType;
+    } else if (isJSArrayTypedConstructor) {
+      // TODO(sra): Instead of calling the identity-like factory constructor,
+      // simply select the single argument.
+      // Factory constructors take type parameters.
       if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments);
       }
-
       _pushStaticInvocation(function, arguments, typeMask);
-
-      bool isFixedListConstructorCall = false;
-      bool isGrowableListConstructorCall = false;
-      if (commonElements.isUnnamedListConstructor(function) &&
-          invocation.arguments.named.isEmpty) {
-        isFixedListConstructorCall =
-            invocation.arguments.positional.length == 1;
-        isGrowableListConstructorCall = invocation.arguments.positional.isEmpty;
-      }
-      bool isJSArrayTypedConstructor =
-          function == commonElements.jsArrayTypedConstructor;
-      if (rtiNeed.classNeedsRti(commonElements.listClass) &&
-          (isFixedListConstructorCall ||
-              isGrowableListConstructorCall ||
-              isJSArrayTypedConstructor)) {
-        InterfaceType type = _elementMap.createInterfaceType(
-            target.enclosingClass, invocation.arguments.types);
-        stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type));
-      }
     } else {
+      // Factory constructors take type parameters.
+      if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
+        _addTypeArguments(arguments, invocation.arguments);
+      }
       _pushStaticInvocation(function, arguments, typeMask);
     }
+
+    HInstruction newInstance = stack.last;
+
+    if (isFixedList) {
+      // If we inlined a constructor the call-site-specific type from type
+      // inference (e.g. a container type) will not be on the node. Store the
+      // more specialized type on the allocation.
+      newInstance.instructionType = resultType;
+      graph.allocatedFixedLists.add(newInstance);
+    }
+
+    if (rtiNeed.classNeedsRti(commonElements.listClass) &&
+        (isFixedListConstructorCall ||
+            isGrowableListConstructorCall ||
+            isJSArrayTypedConstructor)) {
+      InterfaceType type = _elementMap.createInterfaceType(
+          invocation.target.enclosingClass, invocation.arguments.types);
+      stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type));
+    }
+
+    // TODO(redemption): For redirecting factory constructors, check or trust
+    // the type.
   }
 
   void handleInvokeStaticForeign(
@@ -2944,7 +3039,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
-    Local methodElement = _elementMap.getLocalFunction(node);
+    Local methodElement = localsMap.getLocalFunction(node.parent);
     ClosureRepresentationInfo closureInfo =
         closureDataLookup.getClosureRepresentationInfo(methodElement);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
@@ -2965,7 +3060,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
     assert(isReachable);
     declaration.function.accept(this);
-    Local localFunction = _elementMap.getLocalFunction(declaration.function);
+    Local localFunction = localsMap.getLocalFunction(declaration);
     localsHandler.updateLocal(localFunction, pop());
   }
 
@@ -3024,8 +3119,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     js.Name internalName = namer.invocationName(selector);
 
-    var argumentsInstruction =
-        new HLiteralList(arguments, commonMasks.extendableArrayType);
+    var argumentsInstruction = buildLiteralList(arguments);
     add(argumentsInstruction);
 
     var argumentNames = new List<HInstruction>();
@@ -3034,8 +3128,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           constantSystem.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
     }
-    var argumentNamesInstruction =
-        new HLiteralList(argumentNames, commonMasks.extendableArrayType);
+    var argumentNamesInstruction = buildLiteralList(argumentNames);
     add(argumentNamesInstruction);
 
     ConstantValue kindConstant =
@@ -3498,7 +3591,7 @@ class TryCatchFinallyBuilder {
       catchesIndex++;
       if (catchBlock.exception != null) {
         Local exceptionVariable =
-            kernelBuilder.localsMap.getLocal(catchBlock.exception);
+            kernelBuilder.localsMap.getLocalVariable(catchBlock.exception);
         kernelBuilder.localsHandler
             .updateLocal(exceptionVariable, unwrappedException);
       }
@@ -3510,7 +3603,7 @@ class TryCatchFinallyBuilder {
                 kernelBuilder._commonElements.traceFromException));
         HInstruction traceInstruction = kernelBuilder.pop();
         Local traceVariable =
-            kernelBuilder.localsMap.getLocal(catchBlock.stackTrace);
+            kernelBuilder.localsMap.getLocalVariable(catchBlock.stackTrace);
         kernelBuilder.localsHandler
             .updateLocal(traceVariable, traceInstruction);
       }

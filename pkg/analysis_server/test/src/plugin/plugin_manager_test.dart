@@ -360,6 +360,45 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     });
     pkg1Dir.deleteSync(recursive: true);
   }
+
+  test_restartPlugins() async {
+    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    String pkg1Path = pkg1Dir.resolveSymbolicLinksSync();
+    io.Directory pkg2Dir = io.Directory.systemTemp.createTempSync('pkg2');
+    String pkg2Path = pkg2Dir.resolveSymbolicLinksSync();
+    await withPlugin(
+        pluginName: 'plugin1',
+        test: (String plugin1Path) async {
+          await withPlugin(
+              pluginName: 'plugin2',
+              test: (String plugin2Path) async {
+                ContextRoot contextRoot1 = new ContextRoot(pkg1Path, []);
+                ContextRoot contextRoot2 = new ContextRoot(pkg2Path, []);
+                await manager.addPluginToContextRoot(contextRoot1, plugin1Path);
+                await manager.addPluginToContextRoot(contextRoot1, plugin2Path);
+                await manager.addPluginToContextRoot(contextRoot2, plugin1Path);
+
+                await manager.restartPlugins();
+                List<PluginInfo> plugins = manager.plugins;
+                expect(plugins, hasLength(2));
+                expect(plugins[0].currentSession, isNotNull);
+                expect(plugins[1].currentSession, isNotNull);
+                if (plugins[0].pluginId.contains('plugin1')) {
+                  expect(plugins[0].contextRoots,
+                      unorderedEquals([contextRoot1, contextRoot2]));
+                  expect(
+                      plugins[1].contextRoots, unorderedEquals([contextRoot1]));
+                } else {
+                  expect(
+                      plugins[0].contextRoots, unorderedEquals([contextRoot1]));
+                  expect(plugins[1].contextRoots,
+                      unorderedEquals([contextRoot1, contextRoot2]));
+                }
+                await manager.stopAll();
+              });
+        });
+    pkg1Dir.deleteSync(recursive: true);
+  }
 }
 
 @reflectiveTest

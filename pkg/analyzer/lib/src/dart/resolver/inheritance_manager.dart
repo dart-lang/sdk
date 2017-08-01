@@ -370,7 +370,7 @@ class InheritanceManager {
    * overridden in the inheritance path (for which the type is in the path).
    *
    * @param chain the inheritance path that is built up as this method calls itself recursively,
-   *          when this method is called an empty [LinkedList] should be provided
+   *          when this method is called an empty [Queue] should be provided
    * @param currentType the current type in the inheritance path
    * @param memberName the name of the member that is being looked up the inheritance path
    */

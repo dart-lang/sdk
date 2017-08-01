@@ -5,4 +5,3 @@ dart:_builtin,::,_setWorkingDirectory
 dart:_builtin,::,_setPackageRoot
 dart:_builtin,::,_setPackagesMap
 dart:_builtin,::,_loadPackagesMap
-dart:_builtin,::,_loadDataAsync

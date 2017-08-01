@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +40,12 @@ abstract class InferredTypeMixin {
    * Add the file, process it (resolve, validate, etc) and return the resolved
    * unit.
    */
-  Future<CompilationUnit> checkFile(String content);
+  Future<CompilationUnit> checkFile(String content,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
+      bool implicitDynamic: true,
+      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
+      bool superMixins: false});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved
@@ -846,8 +852,7 @@ class B<T> {
 var t1 = new A()..b = /*info:INFERRED_TYPE_ALLOCATION*/new B(1);
 var t2 = <B<int>>[/*info:INFERRED_TYPE_ALLOCATION*/new B(2)];
 var t3 = /*info:INFERRED_TYPE_LITERAL*/[
-            /*info:INFERRED_TYPE_ALLOCATION*/new
-            /*error:TOP_LEVEL_TYPE_ARGUMENTS*/B(3)
+            /*info:INFERRED_TYPE_ALLOCATION*/new B(3)
          ];
 ''');
   }
@@ -2407,16 +2412,16 @@ typedef List<int> G(double x);
 
 /*=T*/ generic/*<T>*/(a(/*=T*/ _), b(/*=T*/ _)) => null;
 
-var v = /*error:TOP_LEVEL_TYPE_ARGUMENTS*/generic((F f) => null, (G g) => null);
+var v = generic((F f) => null, (G g) => null);
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'dynamic');
+    expect(v.type.toString(), '(num) → List<int>');
   }
 
   test_infer_assignToIndex() async {
     await checkFileElement(r'''
 List<double> a = <double>[];
-var b = (/*error:TOP_LEVEL_UNSUPPORTED*/a[0] = 1.0);
+var b = (a[0] = 1.0);
 ''');
   }
 
@@ -2425,14 +2430,14 @@ var b = (/*error:TOP_LEVEL_UNSUPPORTED*/a[0] = 1.0);
 class A {
   int f;
 }
-var v_assign = (/*error:TOP_LEVEL_UNSUPPORTED*/new A().f = 1);
-var v_plus = (/*error:TOP_LEVEL_UNSUPPORTED*/new A().f += 1);
-var v_minus = (/*error:TOP_LEVEL_UNSUPPORTED*/new A().f -= 1);
-var v_multiply = (/*error:TOP_LEVEL_UNSUPPORTED*/new A().f *= 1);
-var v_prefix_pp = (++new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f);
-var v_prefix_mm = (--new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f);
-var v_postfix_pp = (new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f++);
-var v_postfix_mm = (new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f--);
+var v_assign = (new A().f = 1);
+var v_plus = (new A().f += 1);
+var v_minus = (new A().f -= 1);
+var v_multiply = (new A().f *= 1);
+var v_prefix_pp = (++new A().f);
+var v_prefix_mm = (--new A().f);
+var v_postfix_pp = (new A().f++);
+var v_postfix_mm = (new A().f--);
 ''');
   }
 
@@ -2445,10 +2450,10 @@ class A {
 class B {
   A a;
 }
-var v_prefix_pp = (++new B()./*error:TOP_LEVEL_INSTANCE_GETTER*/a);
-var v_prefix_mm = (--new B()./*error:TOP_LEVEL_INSTANCE_GETTER*/a);
-var v_postfix_pp = (new B()./*error:TOP_LEVEL_INSTANCE_GETTER*/a++);
-var v_postfix_mm = (new B()./*error:TOP_LEVEL_INSTANCE_GETTER*/a--);
+var v_prefix_pp = (++new B().a);
+var v_prefix_mm = (--new B().a);
+var v_postfix_pp = (new B().a++);
+var v_postfix_mm = (new B().a--);
 ''');
   }
 
@@ -2458,9 +2463,9 @@ class A {
   int f;
 }
 A a = new A();
-var b = (/*error:TOP_LEVEL_UNSUPPORTED*/a.f = 1);
+var b = (a.f = 1);
 var c = 0;
-var d = (/*error:TOP_LEVEL_UNSUPPORTED*/c = 1);
+var d = (c = 1);
 ''');
   }
 
@@ -4741,7 +4746,7 @@ T run<T>(T f()) {
 
 void printRunning() { print("running"); }
 var x = run<dynamic>(printRunning);
-var y = /*info:USE_OF_VOID_RESULT, error:TOP_LEVEL_TYPE_ARGUMENTS*/run(printRunning);
+var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
 
 main() {
   void printRunning() { print("running"); }
@@ -4757,7 +4762,7 @@ main() {
     var x = unit.topLevelVariables[0];
     var y = unit.topLevelVariables[1];
     expect(x.type.toString(), 'dynamic');
-    expect(y.type.toString(), 'dynamic');
+    expect(y.type.toString(), 'void');
   }
 }
 
@@ -4789,6 +4794,12 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   @override
   test_circularReference_viaClosures_initializerTypes() async {
     await super.test_circularReference_viaClosures_initializerTypes();
+  }
+
+  @failingTest
+  @override
+  test_genericMethods_usesGreatestLowerBound_comment_topLevel() async {
+    await super.test_genericMethods_usesGreatestLowerBound_comment_topLevel();
   }
 
   @failingTest
@@ -4827,5 +4838,11 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() async {
     await super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
+  }
+
+  @failingTest
+  @override
+  test_voidReturnTypeSubtypesDynamic() async {
+    await super.test_voidReturnTypeSubtypesDynamic();
   }
 }

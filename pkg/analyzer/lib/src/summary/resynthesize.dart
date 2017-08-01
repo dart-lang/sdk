@@ -330,7 +330,7 @@ class _ConstExprBuilder {
 
   Expression build() {
     if (!uc.isValidConst) {
-      return AstTestFactory.identifier3(r'$$invalidConstExpr$$');
+      return null;
     }
     for (UnlinkedExprOperation operation in uc.operations) {
       switch (operation) {
@@ -1572,7 +1572,9 @@ class _UnitResynthesizer {
   ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
     Expression constExpr = _buildConstExpression(context, uc);
-    if (constExpr is Identifier) {
+    if (constExpr == null) {
+      // Invalid constant expression.
+    } else if (constExpr is Identifier) {
       ArgumentList arguments =
           constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
       elementAnnotation.element = constExpr.staticElement;

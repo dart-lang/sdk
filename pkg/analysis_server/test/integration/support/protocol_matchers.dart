@@ -689,18 +689,13 @@ final Matcher isImplementedMember = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "path": FilePath
- *   "uri": String
  *   "prefix": String
  *   "elements": List<String>
  * }
  */
-final Matcher isImportedElements =
-    new LazyMatcher(() => new MatchesJsonObject("ImportedElements", {
-          "path": isFilePath,
-          "uri": isString,
-          "prefix": isString,
-          "elements": isListOf(isString)
-        }));
+final Matcher isImportedElements = new LazyMatcher(() => new MatchesJsonObject(
+    "ImportedElements",
+    {"path": isFilePath, "prefix": isString, "elements": isListOf(isString)}));
 
 /**
  * LinkedEditGroup

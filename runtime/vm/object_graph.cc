@@ -26,12 +26,21 @@ namespace dart {
 class ObjectGraph::Stack : public ObjectPointerVisitor {
  public:
   explicit Stack(Isolate* isolate)
-      : ObjectPointerVisitor(isolate), data_(kInitialCapacity) {}
+      : ObjectPointerVisitor(isolate),
+        include_vm_objects_(true),
+        data_(kInitialCapacity) {}
 
   // Marks and pushes. Used to initialize this stack with roots.
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
       if ((*current)->IsHeapObject() && !(*current)->IsMarked()) {
+        if (!include_vm_objects_) {
+          intptr_t cid = (*current)->GetClassId();
+          if ((cid < kInstanceCid) && (cid != kContextCid) &&
+              (cid != kFieldCid)) {
+            continue;
+          }
+        }
         (*current)->SetMarkBit();
         Node node;
         node.ptr = current;
@@ -68,6 +77,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
       }
     }
   }
+
+  bool include_vm_objects_;
 
  private:
   struct Node {
@@ -151,6 +162,40 @@ class Unmarker : public ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(Unmarker);
 };
 
+static void IterateUserFields(ObjectPointerVisitor* visitor) {
+  Thread* thread = Thread::Current();
+  // Scope to prevent handles create here from appearing as stack references.
+  HANDLESCOPE(thread);
+  Zone* zone = thread->zone();
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      zone, thread->isolate()->object_store()->libraries());
+  Library& library = Library::Handle(zone);
+  Object& entry = Object::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  for (intptr_t i = 0; i < libraries.Length(); i++) {
+    library ^= libraries.At(i);
+    DictionaryIterator entries(library);
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsClass()) {
+        cls ^= entry.raw();
+        fields = cls.fields();
+        for (intptr_t j = 0; j < fields.Length(); j++) {
+          field ^= fields.At(j);
+          RawObject* ptr = field.raw();
+          visitor->VisitPointer(&ptr);
+        }
+      } else if (entry.IsField()) {
+        field ^= entry.raw();
+        RawObject* ptr = field.raw();
+        visitor->VisitPointer(&ptr);
+      }
+    }
+  }
+}
+
 ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
@@ -163,6 +208,15 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
   isolate()->VisitObjectPointers(&stack, false);
+  stack.TraverseGraph(visitor);
+  Unmarker::UnmarkAll(isolate());
+}
+
+void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
+  NoSafepointScope no_safepoint_scope_;
+  Stack stack(isolate());
+  IterateUserFields(&stack);
+  stack.include_vm_objects_ = false;
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -377,7 +431,10 @@ intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
   RawObject* raw = obj->raw();
   *obj = Object::null();
   RetainingPathVisitor visitor(raw, path);
-  IterateObjects(&visitor);
+  IterateUserObjects(&visitor);
+  if (visitor.length() == 0) {
+    IterateObjects(&visitor);
+  }
   *obj = raw;
   return visitor.length();
 }
@@ -543,40 +600,6 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
   ObjectGraph::SnapshotRoots roots_;
   intptr_t count_;
 };
-
-static void IterateUserFields(ObjectPointerVisitor* visitor) {
-  Thread* thread = Thread::Current();
-  // Scope to prevent handles create here from appearing as stack references.
-  HANDLESCOPE(thread);
-  Zone* zone = thread->zone();
-  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-      zone, thread->isolate()->object_store()->libraries());
-  Library& library = Library::Handle(zone);
-  Object& entry = Object::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  Array& fields = Array::Handle(zone);
-  Field& field = Field::Handle(zone);
-  for (intptr_t i = 0; i < libraries.Length(); i++) {
-    library ^= libraries.At(i);
-    DictionaryIterator entries(library);
-    while (entries.HasNext()) {
-      entry = entries.GetNext();
-      if (entry.IsClass()) {
-        cls ^= entry.raw();
-        fields = cls.fields();
-        for (intptr_t j = 0; j < fields.Length(); j++) {
-          field ^= fields.At(j);
-          RawObject* ptr = field.raw();
-          visitor->VisitPointer(&ptr);
-        }
-      } else if (entry.IsField()) {
-        field ^= entry.raw();
-        RawObject* ptr = field.raw();
-        visitor->VisitPointer(&ptr);
-      }
-    }
-  }
-}
 
 intptr_t ObjectGraph::Serialize(WriteStream* stream,
                                 SnapshotRoots roots,

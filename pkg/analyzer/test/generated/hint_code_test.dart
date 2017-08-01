@@ -2587,20 +2587,6 @@ main() {
     verify([source]);
   }
 
-  test_strongMode_topLevelInstanceGetter() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addSource(r'''
-class A {
-  int get g => 0;
-}
-var a = new A();
-var b = a.g;
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    verify([source]);
-  }
-
   test_typeCheck_type_is_Null() async {
     Source source = addSource(r'''
 m(i) {

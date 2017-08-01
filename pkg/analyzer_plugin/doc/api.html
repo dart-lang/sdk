@@ -278,7 +278,6 @@ a:focus, a:hover {
   
   
   
-  
 <h3>Requests</h3><dl><dt class="request"><a name="request_analysis.getNavigation">analysis.getNavigation</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getNavigation"
@@ -371,32 +370,6 @@ a:focus, a:hover {
         
         <p>
           The watch events that the plugin should handle.
-        </p>
-      </dd></dl></dd><dt class="request"><a name="request_analysis.reanalyze">analysis.reanalyze</a></dt><dd><div class="box"><pre>request: {
-  "id": String
-  "method": "analysis.reanalyze"
-  "params": {
-    "<b>roots</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;
-  }
-}</pre><br><pre>response: {
-  "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
-}</pre></div>
-    <p>
-      Used to force the re-analysis of everything contained in the specified
-      context roots. This should cause all previously computed analysis results
-      to be discarded and recomputed, and should cause all subscribed
-      notifications to be re-sent.
-    </p>
-    
-  <h4>parameters:</h4><dl><dt class="field"><b>roots: List&lt;<a href="#type_FilePath">FilePath</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          A list of the context roots that are to be re-analyzed.
-        </p>
-        <p>
-          If no context roots are provided, then all current context roots
-          should be re-analyzed.
         </p>
       </dd></dl></dd><dt class="request"><a name="request_analysis.setContextRoots">analysis.setContextRoots</a></dt><dd><div class="box"><pre>request: {
   "id": String
@@ -815,53 +788,6 @@ a:focus, a:hover {
         <p>
           The assists that are available at the given location.
         </p>
-      </dd></dl></dd><dt class="request"><a name="request_edit.getAvailableRefactorings">edit.getAvailableRefactorings</a></dt><dd><div class="box"><pre>request: {
-  "id": String
-  "method": "edit.getAvailableRefactorings"
-  "params": {
-    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
-    "<b>offset</b>": int
-    "<b>length</b>": int
-  }
-}</pre><br><pre>response: {
-  "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
-  "result": {
-    "<b>kinds</b>": List&lt;<a href="#type_RefactoringKind">RefactoringKind</a>&gt;
-  }
-}</pre></div>
-    <p>
-      Used to request a list of the kinds of refactorings that are valid for the
-      given selection in the given file.
-    </p>
-    
-    
-  <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
-        
-        <p>
-          The file containing the code on which the refactoring would be based.
-        </p>
-      </dd><dt class="field"><b>offset: int</b></dt><dd>
-        
-        <p>
-          The offset of the code on which the refactoring would be based.
-        </p>
-      </dd><dt class="field"><b>length: int</b></dt><dd>
-        
-        <p>
-          The length of the code on which the refactoring would be based.
-        </p>
-      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>kinds: List&lt;<a href="#type_RefactoringKind">RefactoringKind</a>&gt;</b></dt><dd>
-        
-        <p>
-          The kinds of refactorings that are valid for the given selection.
-        </p>
-        <p>
-          The list of refactoring kinds is currently limited to those defined by
-          the server API, preventing plugins from adding their own refactorings.
-          However, plugins can support pre-defined refactorings, such as a
-          rename refactoring, at locations not supported by server.
-        </p>
       </dd></dl></dd><dt class="request"><a name="request_edit.getFixes">edit.getFixes</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getFixes"
@@ -896,118 +822,6 @@ a:focus, a:hover {
         
         <p>
           The fixes that are available for the errors at the given offset.
-        </p>
-      </dd></dl></dd><dt class="request"><a name="request_edit.getRefactoring">edit.getRefactoring</a></dt><dd><div class="box"><pre>request: {
-  "id": String
-  "method": "edit.getRefactoring"
-  "params": {
-    "<b>kind</b>": <a href="#type_RefactoringKind">RefactoringKind</a>
-    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
-    "<b>offset</b>": int
-    "<b>length</b>": int
-    "<b>validateOnly</b>": bool
-    "<b>options</b>": <span style="color:#999999">optional</span> <a href="#type_RefactoringOptions">RefactoringOptions</a>
-  }
-}</pre><br><pre>response: {
-  "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
-  "result": {
-    "<b>initialProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
-    "<b>optionsProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
-    "<b>finalProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
-    "<b>feedback</b>": <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a>
-    "<b>change</b>": <span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>
-    "<b>potentialEdits</b>": <span style="color:#999999">optional</span> List&lt;String&gt;
-  }
-}</pre></div>
-    <p>
-      Used to request the changes required to perform a refactoring.
-    </p>
-    
-    
-  <h4>parameters:</h4><dl><dt class="field"><b>kind: <a href="#type_RefactoringKind">RefactoringKind</a></b></dt><dd>
-        
-        <p>
-          The kind of refactoring to be performed.
-        </p>
-      </dd><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
-        
-        <p>
-          The file containing the code involved in the refactoring.
-        </p>
-      </dd><dt class="field"><b>offset: int</b></dt><dd>
-        
-        <p>
-          The offset of the region involved in the refactoring.
-        </p>
-      </dd><dt class="field"><b>length: int</b></dt><dd>
-        
-        <p>
-          The length of the region involved in the refactoring.
-        </p>
-      </dd><dt class="field"><b>validateOnly: bool</b></dt><dd>
-        
-        <p>
-          True if the client is only requesting that the values of the options
-          be validated and no change be generated.
-        </p>
-      </dd><dt class="field"><b>options: <a href="#type_RefactoringOptions">RefactoringOptions</a><span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          Data used to provide values provided by the user. The structure of the
-          data is dependent on the kind of refactoring being performed. The data
-          that is expected is documented in the section titled
-          <a href="#refactorings">Refactorings</a>, labeled as "Options". This
-          field can be omitted if the refactoring does not require any options
-          or if the values of those options are not known.
-        </p>
-      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>initialProblems: List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;</b></dt><dd>
-        
-        <p>
-          The initial status of the refactoring, that is, problems related to
-          the context in which the refactoring is requested. The list should be
-          empty if there are no known problems.
-        </p>
-      </dd><dt class="field"><b>optionsProblems: List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;</b></dt><dd>
-        
-        <p>
-          The options validation status, that is, problems in the given options,
-          such as light-weight validation of a new name, flags compatibility,
-          etc. The list should be empty if there are no known problems.
-        </p>
-      </dd><dt class="field"><b>finalProblems: List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;</b></dt><dd>
-        
-        <p>
-          The final status of the refactoring, that is, problems identified in
-          the result of a full, potentially expensive validation and / or change
-          creation. The list should be empty if there are no known problems.
-        </p>
-      </dd><dt class="field"><b>feedback: <a href="#type_RefactoringFeedback">RefactoringFeedback</a><span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          Data used to provide feedback to the user. The structure of the data
-          is dependent on the kind of refactoring being created. The data that
-          is returned is documented in the section titled
-          <a href="#refactorings">Refactorings</a>, labeled as "Feedback".
-        </p>
-      </dd><dt class="field"><b>change: <a href="#type_SourceChange">SourceChange</a><span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          The changes that are to be applied to affect the refactoring. This
-          field can be omitted if there are problems that prevent a set of
-          changes from being computed, such as having no options specified for a
-          refactoring that requires them, or if only validation was requested.
-        </p>
-      </dd><dt class="field"><b>potentialEdits: List&lt;String&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>
-          The ids of source edits that are not known to be valid. An edit is not
-          known to be valid if there was insufficient type information for the
-          plugin to be able to determine whether or not the code needs to be
-          modified, such as when a member is being renamed and there is a
-          reference to a member from an unknown type. This field can be omitted
-          if the change field is omitted or if there are no potential edits for
-          the refactoring.
         </p>
       </dd></dl></dd></dl>
 
@@ -1874,12 +1688,7 @@ a:focus, a:hover {
         <p>
           The change with which the relevance is associated.
         </p>
-      </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringFeedback">RefactoringFeedback: object</a></dt><dd>
-    <p>
-      An abstract superclass of all refactoring feedbacks.
-    </p>
-    
-  <dl></dl></dd><dt class="typeDefinition"><a name="type_RefactoringKind">RefactoringKind: String</a></dt><dd>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringKind">RefactoringKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of refactorings that can be created.
     </p>
@@ -1925,12 +1734,7 @@ a:focus, a:hover {
       An enumeration of the kinds of parameters.
     </p>
     
-  <dl><dt class="value">REQUIRED</dt><dt class="value">POSITIONAL</dt><dt class="value">NAMED</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringOptions">RefactoringOptions: object</a></dt><dd>
-    <p>
-      An abstract superclass of all refactoring options.
-    </p>
-    
-  <dl></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblem">RefactoringProblem: object</a></dt><dd>
+  <dl><dt class="value">REQUIRED</dt><dt class="value">POSITIONAL</dt><dt class="value">NAMED</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblem">RefactoringProblem: object</a></dt><dd>
     <p>
       A description of a problem related to a refactoring.
     </p>
@@ -2506,7 +2310,7 @@ a:focus, a:hover {
         </p>
       </dd></dl></dd></dl>
 <h2 class="domain"><a name="index">Index</a></h2>
-<h3>Domains</h3><h4>plugin (<a href="#domain_plugin">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_plugin.versionCheck">versionCheck</a></li><li><a href="#request_plugin.shutdown">shutdown</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_plugin.error">error</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.handleWatchEvents">handleWatchEvents</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setContextRoots">setContextRoots</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li></ul></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextRoot">ContextRoot</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PrioritizedSourceChange">PrioritizedSourceChange</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_WatchEvent">WatchEvent</a></li><li><a href="#type_WatchEventType">WatchEventType</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+<h3>Domains</h3><h4>plugin (<a href="#domain_plugin">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_plugin.versionCheck">versionCheck</a></li><li><a href="#request_plugin.shutdown">shutdown</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_plugin.error">error</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.handleWatchEvents">handleWatchEvents</a></li><li><a href="#request_analysis.setContextRoots">setContextRoots</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li></ul></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getFixes">getFixes</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextRoot">ContextRoot</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PrioritizedSourceChange">PrioritizedSourceChange</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_WatchEvent">WatchEvent</a></li><li><a href="#type_WatchEventType">WatchEventType</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
 
 
 </body></html>

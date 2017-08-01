@@ -153,7 +153,7 @@
 library dart.core;
 
 import "dart:collection";
-import "dart:_internal" hide Symbol;
+import "dart:_internal" hide Symbol, LinkedList, LinkedListEntry;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert"
     show Encoding, ASCII, LATIN1, UTF8, BASE64, StringConversionSink;

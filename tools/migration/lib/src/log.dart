@@ -24,7 +24,7 @@ void note(Object message) {
 }
 
 void todo(Object message) {
-  print("${red('(TODO)')} $message");
+  print("  ${red('(TODO)')} $message");
 }
 
 String bold(text) => "$_bold$text$_none";

@@ -3316,7 +3316,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   ASSERT(array != IP);
   ASSERT(index != IP);
   const Register base = is_load ? IP : index;
-  if ((offset != 0) || (size == kSWord) || (size == kDWord) ||
+  if ((offset != 0) || (is_load && (size == kByte)) || (size == kHalfword) ||
+      (size == kUnsignedHalfword) || (size == kSWord) || (size == kDWord) ||
       (size == kRegList)) {
     if (shift < 0) {
       ASSERT(shift == -1);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:status_file/environment.dart';
+
 import 'configuration.dart';
 
 typedef String _LookUpFunction(Configuration configuration);
@@ -18,6 +20,8 @@ final _variables = {
   "compiler": new _Variable((c) => c.compiler.name, Compiler.names),
   "csp": new _Variable.bool((c) => c.isCsp),
   "dart2js_with_kernel": new _Variable.bool((c) => c.useDart2JSWithKernel),
+  "dart2js_with_kernel_in_ssa":
+      new _Variable.bool((c) => c.useDart2JSWithKernelInSsa),
   "fast_startup": new _Variable.bool((c) => c.useFastStartup),
   "enable_asserts": new _Variable.bool((c) => c.useEnableAsserts),
   "host_checked": new _Variable.bool((c) => c.isHostChecked),
@@ -49,12 +53,17 @@ String _runtimeName(Configuration configuration) {
 ///
 /// These mostly map to command line arguments with the same name, though this
 /// is only a subset of the full set of command line arguments.
-class Environment {
+class ConfigurationEnvironment implements Environment {
+  /// The configuration where variable data is found.
+  final Configuration _configuration;
+
+  ConfigurationEnvironment(this._configuration);
+
   /// Validates that the variable with [name] exists and can be compared
   /// against [value].
   ///
   /// If any errors are found, adds them to [errors].
-  static void validate(String name, String value, List<String> errors) {
+  void validate(String name, String value, List<String> errors) {
     var variable = _variables[name];
     if (variable == null) {
       errors.add('Unknown variable "$name".');
@@ -71,11 +80,6 @@ class Environment {
               '.');
     }
   }
-
-  /// The configuration where variable data is found.
-  final Configuration _configuration;
-
-  Environment(this._configuration);
 
   /// Looks up the value of the variable with [name].
   String lookUp(String name) {

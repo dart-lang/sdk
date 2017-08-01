@@ -989,22 +989,6 @@ final Matcher isAnalysisOutlineParams = new LazyMatcher(() =>
         {"file": isFilePath, "outline": isListOf(isOutline)}));
 
 /**
- * analysis.reanalyze params
- *
- * {
- *   "roots": optional List<FilePath>
- * }
- */
-final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.reanalyze params", null,
-        optionalFields: {"roots": isListOf(isFilePath)}));
-
-/**
- * analysis.reanalyze result
- */
-final Matcher isAnalysisReanalyzeResult = isNull;
-
-/**
  * analysis.setContextRoots params
  *
  * {

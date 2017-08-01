@@ -298,11 +298,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       server.reanalyze(rootResources);
     }
     //
-    // Forward the request to the plugins.
+    // Restart all of the plugins. This is an async operation that will happen
+    // in the background.
     //
-    RequestConverter converter = new RequestConverter();
-    server.pluginManager
-        .broadcastRequest(converter.convertAnalysisReanalyzeParams(params));
+    server.pluginManager.restartPlugins();
     //
     // Send the response.
     //

@@ -88,10 +88,10 @@ abstract class BuilderHelper {
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
   Initializer buildFieldInitializer(
-      String name, int offset, Expression expression);
+      bool isSynthetic, String name, int offset, Expression expression);
 
   Initializer buildSuperInitializer(
-      Constructor constructor, Arguments arguments,
+      bool isSynthetic, Constructor constructor, Arguments arguments,
       [int offset]);
 
   Initializer buildRedirectingInitializer(
@@ -396,7 +396,8 @@ class ThisAccessor extends FastaAccessor {
               isSuper: isSuper, name: name.name, offset: offset),
           offset);
     } else if (isSuper) {
-      return helper.buildSuperInitializer(constructor, arguments, offset);
+      return helper.buildSuperInitializer(
+          false, constructor, arguments, offset);
     } else {
       return helper.buildRedirectingInitializer(constructor, arguments, offset);
     }
@@ -510,7 +511,7 @@ class SendAccessor extends IncompleteSend {
             "Library prefix '${prefix.name}' can't be used with null-aware "
             "operator.\nTry removing '?'.");
       }
-      receiver = helper.scopeLookup(prefix.exports, name.name, token,
+      receiver = helper.scopeLookup(prefix.exportScope, name.name, token,
           isQualified: true, prefix: prefix);
       return helper.finishSend(receiver, arguments, offsetForToken(token));
     }
@@ -582,7 +583,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
             "Library prefix '${prefix.name}' can't be used with null-aware "
             "operator.\nTry removing '?'.");
       }
-      return helper.scopeLookup(prefix.exports, name.name, token,
+      return helper.scopeLookup(prefix.exportScope, name.name, token,
           isQualified: true, prefix: prefix);
     }
 

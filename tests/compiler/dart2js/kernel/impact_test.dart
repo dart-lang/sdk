@@ -739,7 +739,7 @@ main(List<String> args) {
         memorySourceFiles: SOURCE,
         options: [
           fullTest ? Flags.analyzeAll : Flags.analyzeOnly,
-          Flags.useKernel,
+          Flags.useKernelInSsa,
           Flags.enableAssertMessage
         ]);
     compiler.resolution.retainCachesForTesting = true;
@@ -747,7 +747,7 @@ main(List<String> args) {
     JavaScriptBackend backend = compiler.backend;
     KernelToElementMapForImpact kernelElementMap =
         new KernelToElementMapForImpactImpl(
-            compiler.reporter, compiler.environment);
+            compiler.reporter, compiler.environment, compiler.frontendStrategy);
     kernelElementMap.addProgram(backend.kernelTask.program);
 
     LibraryElement mainApp =

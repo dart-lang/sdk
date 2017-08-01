@@ -3743,8 +3743,9 @@ Future<Null> _loadHunk(String hunkName) {
         '#.addEventListener("load", #, false)',
         xhr,
         convertDartClosureToJS((event) {
-          if (JS('int', '#.status', xhr) != 200) {
-            failure('');
+          int status = JS('int', '#.status', xhr);
+          if (status != 200) {
+            failure('Request status: $status');
           }
           String code = JS('String', '#.responseText', xhr);
           try {

@@ -571,6 +571,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       _constructors = <ConstructorElement>[]
         ..addAll(constructors)
         ..addAll(factories);
+      _constructors.sort((a, b) => a.nameOffset - b.nameOffset);
     }
     if (_unlinkedClass != null && _constructors == null) {
       _constructors = _unlinkedClass.executables
@@ -848,6 +849,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??= enclosingUnit._kernelContext
+          .buildAnnotations(enclosingUnit, _kernel.annotations);
+    }
     if (_unlinkedClass != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedClass.annotations);
@@ -1265,8 +1270,13 @@ class ClassElementImpl extends AbstractClassElementImpl
         while (supertype.classNode.isSyntheticMixinImplementation) {
           var superNode = supertype.classNode;
           var substitute = kernel.Substitution.fromSupertype(supertype);
-          var thisMixin = substitute.substituteSupertype(superNode.mixedInType);
-          _kernelMixins.add(thisMixin);
+
+          var superMixin = superNode.mixedInType;
+          if (superMixin != null) {
+            var thisMixin = substitute.substituteSupertype(superMixin);
+            _kernelMixins.add(thisMixin);
+          }
+
           supertype = substitute.substituteSupertype(superNode.supertype);
         }
         _kernelMixins = _kernelMixins.reversed.toList();
@@ -1289,6 +1299,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_kernel != null) {
       // Build explicit fields and implicit property accessors.
       for (var k in _kernel.fields) {
+        if (k.name.name.startsWith('_redirecting#')) {
+          continue;
+        }
         var field = new FieldElementImpl.forKernelFactory(this, k);
         explicitFields.add(field);
         implicitAccessors.add(
@@ -1561,17 +1574,23 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_unlinkedUnit != null) {
-      if (_accessors == null) {
+    if (_accessors == null) {
+      if (_kernelContext != null) {
+        _explicitTopLevelAccessors ??=
+            _kernelContext.buildTopLevelAccessors(this);
+        _explicitTopLevelVariables ??=
+            _kernelContext.buildTopLevelVariables(this);
+      }
+      if (_unlinkedUnit != null) {
         _explicitTopLevelAccessors ??=
             resynthesizerContext.buildTopLevelAccessors();
         _explicitTopLevelVariables ??=
             resynthesizerContext.buildTopLevelVariables();
-        List<PropertyAccessorElementImpl> accessors =
-            <PropertyAccessorElementImpl>[];
-        accessors.addAll(_explicitTopLevelAccessors.accessors);
-        accessors.addAll(_explicitTopLevelVariables.implicitAccessors);
-        _accessors = accessors;
+      }
+      if (_explicitTopLevelAccessors != null) {
+        _accessors = <PropertyAccessorElementImpl>[]
+          ..addAll(_explicitTopLevelAccessors.accessors)
+          ..addAll(_explicitTopLevelVariables.implicitAccessors);
       }
     }
     return _accessors ?? PropertyAccessorElement.EMPTY_LIST;
@@ -1615,6 +1634,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get enums {
+    if (_kernelContext != null) {
+      _enums ??= _kernelContext.library.classes
+          .where((k) => k.isEnum)
+          .map((k) => new EnumElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedUnit != null) {
       _enums ??= _unlinkedUnit.enums
           .map((e) => new EnumElementImpl.forSerialized(e, this))
@@ -1708,36 +1733,36 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
-    if (_kernelContext != null) {
-      return _variables ??= _kernelContext.library.fields.map((k) {
-        if (k.isConst && k.initializer != null) {
-          return new ConstTopLevelVariableElementImpl.forKernel(this, k);
-        } else {
-          return new TopLevelVariableElementImpl.forKernel(this, k);
-        }
-      }).toList(growable: false);
-    }
-    if (_unlinkedUnit != null) {
-      if (_variables == null) {
+    if (_variables == null) {
+      if (_kernelContext != null) {
+        _explicitTopLevelAccessors ??=
+            _kernelContext.buildTopLevelAccessors(this);
+        _explicitTopLevelVariables ??=
+            _kernelContext.buildTopLevelVariables(this);
+      }
+      if (_unlinkedUnit != null) {
         _explicitTopLevelAccessors ??=
             resynthesizerContext.buildTopLevelAccessors();
         _explicitTopLevelVariables ??=
             resynthesizerContext.buildTopLevelVariables();
-        List<TopLevelVariableElementImpl> variables =
-            <TopLevelVariableElementImpl>[];
-        variables.addAll(_explicitTopLevelVariables.variables);
-        variables.addAll(_explicitTopLevelAccessors.implicitVariables);
+      }
+      if (_explicitTopLevelVariables != null) {
+        var variables = <TopLevelVariableElement>[]
+          ..addAll(_explicitTopLevelVariables.variables)
+          ..addAll(_explicitTopLevelAccessors.implicitVariables);
+
         // Ensure that getters and setters in different units use
         // the same top-level variables.
-        (enclosingElement as LibraryElementImpl)
-            .resynthesizerContext
-            .patchTopLevelAccessors();
-        _variables = variables;
+        BuildLibraryElementUtils.patchTopLevelAccessors(library);
+
+        // Apply recorded patches to variables.
         _topLevelVariableReplaceMap?.forEach((from, to) {
-          int index = _variables.indexOf(from);
-          _variables[index] = to;
+          int index = variables.indexOf(from);
+          variables[index] = to;
         });
         _topLevelVariableReplaceMap = null;
+
+        _variables = variables;
       }
     }
     return _variables ?? TopLevelVariableElement.EMPTY_LIST;
@@ -1774,7 +1799,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassElement> get types {
     if (_kernelContext != null) {
       _types ??= _kernelContext.library.classes
-          .where((k) => !k.isSyntheticMixinImplementation)
+          .where((k) => !k.isEnum && !k.isSyntheticMixinImplementation)
           .map((k) => new ClassElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
@@ -1982,14 +2007,18 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
  */
 class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   final UnlinkedEnumValue _unlinkedEnumValue;
+  final kernel.Field _kernelEnumValue;
   final int _index;
 
-  ConstFieldElementImpl_EnumValue(
-      EnumElementImpl enumElement, this._unlinkedEnumValue, this._index)
+  ConstFieldElementImpl_EnumValue(EnumElementImpl enumElement,
+      this._unlinkedEnumValue, this._kernelEnumValue, this._index)
       : super(enumElement);
 
   @override
   String get documentationComment {
+    if (_kernelEnumValue != null) {
+      return _kernelEnumValue.documentationComment;
+    }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue?.documentationComment?.text;
     }
@@ -2012,6 +2041,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   String get name {
+    if (_kernelEnumValue != null) {
+      return _kernelEnumValue.name.name;
+    }
     if (_unlinkedEnumValue != null) {
       return _unlinkedEnumValue.name;
     }
@@ -2210,10 +2242,23 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * there are no initializers, or `null` if there was an error in the source.
    */
   List<ConstructorInitializer> get constantInitializers {
-    if (serializedExecutable != null && _constantInitializers == null) {
-      _constantInitializers ??= serializedExecutable.constantInitializers
-          .map((i) => _buildConstructorInitializer(i))
-          .toList(growable: false);
+    if (_constantInitializers == null) {
+      if (_kernelConstructor != null) {
+        if (_kernelConstructor.isConst) {
+          var context = enclosingUnit._kernelContext;
+          _constantInitializers = _kernelConstructor.initializers
+              .map((k) => context.getConstructorInitializer(this, k))
+              .where((i) => i != null)
+              .toList();
+        } else {
+          _constantInitializers = const <ConstructorInitializer>[];
+        }
+      }
+      if (serializedExecutable != null) {
+        _constantInitializers = serializedExecutable.constantInitializers
+            .map((i) => _buildConstructorInitializer(i))
+            .toList(growable: false);
+      }
     }
     return _constantInitializers;
   }
@@ -2344,18 +2389,24 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ConstructorElement get redirectedConstructor {
-    if (serializedExecutable != null && _redirectedConstructor == null) {
-      if (serializedExecutable.isRedirectedConstructor) {
-        if (serializedExecutable.isFactory) {
-          _redirectedConstructor = enclosingUnit.resynthesizerContext
-              .resolveConstructorRef(
-                  enclosingElement, serializedExecutable.redirectedConstructor);
+    if (_redirectedConstructor == null) {
+      if (_kernelConstructor != null || _kernelFactory != null) {
+        _redirectedConstructor = enclosingUnit._kernelContext
+            .getRedirectedConstructor(_kernelConstructor, _kernelFactory);
+      }
+      if (serializedExecutable != null) {
+        if (serializedExecutable.isRedirectedConstructor) {
+          if (serializedExecutable.isFactory) {
+            _redirectedConstructor = enclosingUnit.resynthesizerContext
+                .resolveConstructorRef(enclosingElement,
+                    serializedExecutable.redirectedConstructor);
+          } else {
+            _redirectedConstructor = enclosingElement.getNamedConstructor(
+                serializedExecutable.redirectedConstructorName);
+          }
         } else {
-          _redirectedConstructor = enclosingElement.getNamedConstructor(
-              serializedExecutable.redirectedConstructorName);
+          return null;
         }
-      } else {
-        return null;
       }
     }
     return _redirectedConstructor;
@@ -3589,6 +3640,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
   final UnlinkedEnum _unlinkedEnum;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Class _kernel;
+
+  /**
    * The type defined by the enum.
    */
   InterfaceType _type;
@@ -3599,13 +3655,23 @@ class EnumElementImpl extends AbstractClassElementImpl {
    */
   EnumElementImpl(String name, int offset)
       : _unlinkedEnum = null,
+        _kernel = null,
         super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  EnumElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, this._kernel)
+      : _unlinkedEnum = null,
+        super.forSerialized(enclosingUnit);
 
   /**
    * Initialize a newly created class element to have the given [name].
    */
   EnumElementImpl.forNode(Identifier name)
       : _unlinkedEnum = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -3613,7 +3679,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
    */
   EnumElementImpl.forSerialized(
       this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
+      : _kernel = null,
+        super.forSerialized(enclosingUnit);
 
   /**
    * Set whether this class is abstract.
@@ -3624,8 +3691,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_unlinkedEnum != null && _accessors == null) {
-      _resynthesizeFieldsAndPropertyAccessors();
+    if (_accessors == null) {
+      if (_kernel != null || _unlinkedEnum != null) {
+        _resynthesizeFieldsAndPropertyAccessors();
+      }
     }
     return _accessors ?? const <PropertyAccessorElement>[];
   }
@@ -3666,6 +3735,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum?.documentationComment?.text;
     }
@@ -3674,8 +3746,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<FieldElement> get fields {
-    if (_unlinkedEnum != null && _fields == null) {
-      _resynthesizeFieldsAndPropertyAccessors();
+    if (_fields == null) {
+      if (_kernel != null || _unlinkedEnum != null) {
+        _resynthesizeFieldsAndPropertyAccessors();
+      }
     }
     return _fields ?? const <FieldElement>[];
   }
@@ -3733,6 +3807,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.name;
     }
@@ -3799,11 +3876,25 @@ class EnumElementImpl extends AbstractClassElementImpl {
     // Build the 'values' field.
     fields.add(new ConstFieldElementImpl_EnumValues(this));
     // Build fields for all enum constants.
-    for (int i = 0; i < _unlinkedEnum.values.length; i++) {
-      UnlinkedEnumValue unlinkedValue = _unlinkedEnum.values[i];
-      ConstFieldElementImpl_EnumValue field =
-          new ConstFieldElementImpl_EnumValue(this, unlinkedValue, i);
-      fields.add(field);
+    if (_kernel != null) {
+      for (int i = 0; i < _kernel.fields.length; i++) {
+        kernel.Field kernelField = _kernel.fields[i];
+        if (kernelField.name.name == 'index' ||
+            kernelField.name.name == 'values') {
+          continue;
+        }
+        ConstFieldElementImpl_EnumValue field =
+            new ConstFieldElementImpl_EnumValue(this, null, kernelField, i);
+        fields.add(field);
+      }
+    }
+    if (_unlinkedEnum != null) {
+      for (int i = 0; i < _unlinkedEnum.values.length; i++) {
+        UnlinkedEnumValue unlinkedValue = _unlinkedEnum.values[i];
+        ConstFieldElementImpl_EnumValue field =
+            new ConstFieldElementImpl_EnumValue(this, unlinkedValue, null, i);
+        fields.add(field);
+      }
     }
     // done
     _fields = fields;
@@ -3931,6 +4022,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable?.documentationComment?.text;
     }
@@ -4046,10 +4140,16 @@ abstract class ExecutableElementImpl extends ElementImpl
   bool get isSynchronous => !isAsynchronous;
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => null;
+  List<kernel.TypeParameter> get kernelTypeParams {
+    return _kernel?.function?.typeParameters;
+  }
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??= enclosingUnit._kernelContext
+          .buildAnnotations(enclosingUnit, _kernel.annotations);
+    }
     if (serializedExecutable != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, serializedExecutable.annotations);
@@ -4071,6 +4171,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
+    if (_kernel != null) {
+      return _kernel.fileOffset;
+    }
     if (offset == 0 && serializedExecutable != null) {
       return serializedExecutable.nameOffset;
     }
@@ -4254,6 +4357,11 @@ class ExportElementImpl extends UriReferencedElementImpl
   final UnlinkedExportNonPublic _unlinkedExportNonPublic;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.LibraryDependency _kernel;
+
+  /**
    * The library that is exported from this library by this export directive.
    */
   LibraryElement _exportedLibrary;
@@ -4275,20 +4383,36 @@ class ExportElementImpl extends UriReferencedElementImpl
   ExportElementImpl(int offset)
       : _unlinkedExportPublic = null,
         _unlinkedExportNonPublic = null,
+        _kernel = null,
         super(null, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ExportElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedExportPublic = null,
+        _unlinkedExportNonPublic = null,
+        super.forSerialized(enclosingLibrary);
 
   /**
    * Initialize using the given serialized information.
    */
   ExportElementImpl.forSerialized(this._unlinkedExportPublic,
       this._unlinkedExportNonPublic, LibraryElementImpl enclosingLibrary)
-      : super.forSerialized(enclosingLibrary);
+      : _kernel = null,
+        super.forSerialized(enclosingLibrary);
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_unlinkedExportPublic != null && _combinators == null) {
-      _combinators = ImportElementImpl
-          ._buildCombinators(_unlinkedExportPublic.combinators);
+    if (_combinators == null) {
+      if (_kernel != null) {
+        _combinators =
+            ImportElementImpl._buildCombinatorsForKernel(_kernel.combinators);
+      }
+      if (_unlinkedExportPublic != null) {
+        _combinators = ImportElementImpl
+            ._buildCombinators(_unlinkedExportPublic.combinators);
+      }
     }
     return _combinators ?? const <NamespaceCombinator>[];
   }
@@ -4300,9 +4424,18 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   LibraryElement get exportedLibrary {
-    if (_unlinkedExportNonPublic != null && _exportedLibrary == null) {
-      LibraryElementImpl library = enclosingElement as LibraryElementImpl;
-      _exportedLibrary = library.resynthesizerContext.buildExportedLibrary(uri);
+    if (_exportedLibrary == null) {
+      if (_kernel != null) {
+        Uri exportedUri = _kernel.targetLibrary.importUri;
+        String exportedUriStr = exportedUri.toString();
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _exportedLibrary = library._kernelContext.getLibrary(exportedUriStr);
+      }
+      if (_unlinkedExportNonPublic != null) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _exportedLibrary =
+            library.resynthesizerContext.buildExportedLibrary(uri);
+      }
     }
     return _exportedLibrary;
   }
@@ -5526,20 +5659,37 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   final UnlinkedCombinator _unlinkedCombinator;
 
   /**
+   * The kernel for the element.
+   */
+  final kernel.Combinator _kernel;
+
+  /**
    * The names that are not to be made visible in the importing library even if
    * they are defined in the imported library.
    */
   List<String> _hiddenNames;
 
-  HideElementCombinatorImpl() : _unlinkedCombinator = null;
+  HideElementCombinatorImpl()
+      : _unlinkedCombinator = null,
+        _kernel = null;
 
   /**
    * Initialize using the given serialized information.
    */
-  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : _kernel = null;
+
+  /**
+   * Initialize using the given kernel.
+   */
+  HideElementCombinatorImpl.forKernel(this._kernel)
+      : _unlinkedCombinator = null;
 
   @override
   List<String> get hiddenNames {
+    if (_kernel != null) {
+      _hiddenNames ??= _kernel.names;
+    }
     if (_unlinkedCombinator != null) {
       _hiddenNames ??= _unlinkedCombinator.hides.toList(growable: false);
     }
@@ -5642,8 +5792,13 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_unlinkedImport != null && _combinators == null) {
-      _combinators = _buildCombinators(_unlinkedImport.combinators);
+    if (_combinators == null) {
+      if (_kernel != null) {
+        _combinators = _buildCombinatorsForKernel(_kernel.combinators);
+      }
+      if (_unlinkedImport != null) {
+        _combinators = _buildCombinators(_unlinkedImport.combinators);
+      }
     }
     return _combinators ?? const <NamespaceCombinator>[];
   }
@@ -5740,8 +5895,12 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   PrefixElement get prefix {
-    if (_unlinkedImport != null) {
-      if (_unlinkedImport.prefixReference != 0 && _prefix == null) {
+    if (_prefix == null) {
+      if (_kernel != null && _kernel.name != null) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _prefix = new PrefixElementImpl.forKernel(library, _kernel);
+      }
+      if (_unlinkedImport != null && _unlinkedImport.prefixReference != 0) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
         _prefix = new PrefixElementImpl.forSerialized(_unlinkedImport, library);
       }
@@ -5851,6 +6010,24 @@ class ImportElementImpl extends UriReferencedElementImpl
       return const <NamespaceCombinator>[];
     }
   }
+
+  static List<NamespaceCombinator> _buildCombinatorsForKernel(
+      List<kernel.Combinator> unlinkedCombinators) {
+    int length = unlinkedCombinators.length;
+    if (length != 0) {
+      List<NamespaceCombinator> combinators =
+          new List<NamespaceCombinator>(length);
+      for (int i = 0; i < length; i++) {
+        kernel.Combinator unlinkedCombinator = unlinkedCombinators[i];
+        combinators[i] = unlinkedCombinator.isShow
+            ? new ShowElementCombinatorImpl.forKernel(unlinkedCombinator)
+            : new HideElementCombinatorImpl.forKernel(unlinkedCombinator);
+      }
+      return combinators;
+    } else {
+      return const <NamespaceCombinator>[];
+    }
+  }
 }
 
 /**
@@ -5858,6 +6035,31 @@ class ImportElementImpl extends UriReferencedElementImpl
  */
 abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
+
+  /**
+   * Build [ElementAnnotation]s for the given Kernel [annotations].
+   */
+  List<ElementAnnotation> buildAnnotations(
+      CompilationUnitElementImpl unit, List<kernel.Expression> annotations);
+
+  /**
+   * Build explicit top-level property accessors.
+   */
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors(
+      CompilationUnitElementImpl unit);
+
+  /**
+   * Build explicit top-level variables.
+   */
+  UnitExplicitTopLevelVariables buildTopLevelVariables(
+      CompilationUnitElementImpl unit);
+
+  /**
+   * Return the resynthesized [ConstructorInitializer] for the given Kernel
+   * [initializer], or `null` if synthetic.
+   */
+  ConstructorInitializer getConstructorInitializer(
+      ConstructorElementImpl constructor, kernel.Initializer initializer);
 
   /**
    * Return the [Expression] for the given kernel.
@@ -5874,6 +6076,13 @@ abstract class KernelLibraryResynthesizerContext {
    * Return the [LibraryElement] for the given absolute [uriStr].
    */
   LibraryElement getLibrary(String uriStr);
+
+  /**
+   * Return the [ConstructorElementImpl] to which the given [kernelConstructor]
+   * or [kernelFactory] redirects.
+   */
+  ConstructorElementImpl getRedirectedConstructor(
+      kernel.Constructor kernelConstructor, kernel.Procedure kernelFactory);
 
   /**
    * Return the [DartType] for the given Kernel [type], or `null` if the [type]
@@ -6166,28 +6375,37 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ExportElement> get exports {
-    if (_unlinkedDefiningUnit != null && _exports == null) {
-      List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
-          _unlinkedDefiningUnit.exports;
-      List<UnlinkedExportPublic> unlinkedPublicExports =
-          _unlinkedDefiningUnit.publicNamespace.exports;
-      assert(
-          _unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
-      int length = unlinkedNonPublicExports.length;
-      if (length != 0) {
-        List<ExportElement> exports = new List<ExportElement>();
-        for (int i = 0; i < length; i++) {
-          UnlinkedExportPublic serializedExportPublic =
-              unlinkedPublicExports[i];
-          UnlinkedExportNonPublic serializedExportNonPublic =
-              unlinkedNonPublicExports[i];
-          ExportElementImpl exportElement = new ExportElementImpl.forSerialized(
-              serializedExportPublic, serializedExportNonPublic, library);
-          exports.add(exportElement);
+    if (_exports == null) {
+      if (_kernelContext != null) {
+        _exports = _kernelContext.library.dependencies
+            .where((k) => k.isExport)
+            .map((k) => new ExportElementImpl.forKernel(this, k))
+            .toList(growable: false);
+      }
+      if (_unlinkedDefiningUnit != null) {
+        List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
+            _unlinkedDefiningUnit.exports;
+        List<UnlinkedExportPublic> unlinkedPublicExports =
+            _unlinkedDefiningUnit.publicNamespace.exports;
+        assert(_unlinkedDefiningUnit.exports.length ==
+            unlinkedPublicExports.length);
+        int length = unlinkedNonPublicExports.length;
+        if (length != 0) {
+          List<ExportElement> exports = new List<ExportElement>();
+          for (int i = 0; i < length; i++) {
+            UnlinkedExportPublic serializedExportPublic =
+                unlinkedPublicExports[i];
+            UnlinkedExportNonPublic serializedExportNonPublic =
+                unlinkedNonPublicExports[i];
+            ExportElementImpl exportElement =
+                new ExportElementImpl.forSerialized(
+                    serializedExportPublic, serializedExportNonPublic, library);
+            exports.add(exportElement);
+          }
+          _exports = exports;
+        } else {
+          _exports = const <ExportElement>[];
         }
-        _exports = exports;
-      } else {
-        _exports = const <ExportElement>[];
       }
     }
     return _exports ?? const <ExportElement>[];
@@ -6550,6 +6768,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       ExportElementImpl exportElementImpl = exportElement;
       if (exportElementImpl.identifier == identifier) {
         return exportElementImpl;
+      }
+    }
+    return null;
+  }
+
+  ClassElement getEnum(String name) {
+    ClassElement element = _definingCompilationUnit.getEnum(name);
+    if (element != null) {
+      return element;
+    }
+    for (CompilationUnitElement part in _parts) {
+      element = part.getEnum(name);
+      if (element != null) {
+        return element;
       }
     }
     return null;
@@ -7454,6 +7686,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   String get documentationComment {
+    if (_kernel != null) {
+      return _kernel.documentationComment;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable?.documentationComment?.text;
     }
@@ -7534,6 +7769,10 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??= enclosingUnit._kernelContext
+          .buildAnnotations(enclosingUnit, _kernel.annotations);
+    }
     if (_unlinkedVariable != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, _unlinkedVariable.annotations);
@@ -8130,14 +8369,28 @@ class ParameterElementImpl extends VariableElementImpl
    */
   static List<ParameterElement> forKernelFunction(
       ElementImpl enclosingElement, kernel.FunctionNode function) {
-    if (function.positionalParameters.isNotEmpty ||
-        function.namedParameters.isNotEmpty) {
+    return forKernelParameters(
+        enclosingElement,
+        function.requiredParameterCount,
+        function.positionalParameters,
+        function.namedParameters);
+  }
+
+  /**
+   * Create and return [ParameterElement]s for the given Kernel parameters.
+   */
+  static List<ParameterElement> forKernelParameters(
+      ElementImpl enclosingElement,
+      int requiredParameterCount,
+      List<kernel.VariableDeclaration> positionalParameters,
+      List<kernel.VariableDeclaration> namedParameters) {
+    if (positionalParameters.isNotEmpty || namedParameters.isNotEmpty) {
       var parameters = <ParameterElement>[];
 
       // Add positional required and optional parameters.
-      for (int i = 0; i < function.positionalParameters.length; i++) {
-        kernel.VariableDeclaration parameter = function.positionalParameters[i];
-        if (i < function.requiredParameterCount) {
+      for (int i = 0; i < positionalParameters.length; i++) {
+        kernel.VariableDeclaration parameter = positionalParameters[i];
+        if (i < requiredParameterCount) {
           if (parameter.isFieldFormal) {
             parameters.add(new FieldFormalParameterElementImpl.forKernel(
                 enclosingElement, parameter, ParameterKind.REQUIRED));
@@ -8157,7 +8410,7 @@ class ParameterElementImpl extends VariableElementImpl
       }
 
       // Add named parameters.
-      for (var k in function.namedParameters) {
+      for (var k in namedParameters) {
         if (k.isFieldFormal) {
           parameters.add(new DefaultFieldFormalParameterElementImpl.forKernel(
               enclosingElement, k, ParameterKind.NAMED));
@@ -8282,18 +8535,32 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   final UnlinkedImport _unlinkedImport;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.LibraryDependency _kernel;
+
+  /**
    * Initialize a newly created method element to have the given [name] and
    * [nameOffset].
    */
   PrefixElementImpl(String name, int nameOffset)
       : _unlinkedImport = null,
+        _kernel = null,
         super(name, nameOffset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  PrefixElementImpl.forKernel(LibraryElementImpl enclosingLibrary, this._kernel)
+      : _unlinkedImport = null,
+        super.forSerialized(enclosingLibrary);
 
   /**
    * Initialize a newly created prefix element to have the given [name].
    */
   PrefixElementImpl.forNode(Identifier name)
       : _unlinkedImport = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -8301,7 +8568,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl.forSerialized(
       this._unlinkedImport, LibraryElementImpl enclosingLibrary)
-      : super.forSerialized(enclosingLibrary);
+      : _kernel = null,
+        super.forSerialized(enclosingLibrary);
 
   @override
   String get displayName => name;
@@ -8321,6 +8589,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedImport != null) {
       if (_name == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -8810,6 +9081,11 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   final UnlinkedCombinator _unlinkedCombinator;
 
   /**
+   * The kernel for the element.
+   */
+  final kernel.Combinator _kernel;
+
+  /**
    * The names that are to be made visible in the importing library if they are
    * defined in the imported library.
    */
@@ -8826,12 +9102,21 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
    */
   int _offset = 0;
 
-  ShowElementCombinatorImpl() : _unlinkedCombinator = null;
+  ShowElementCombinatorImpl()
+      : _unlinkedCombinator = null,
+        _kernel = null;
 
   /**
    * Initialize using the given serialized information.
    */
-  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : _kernel = null;
+
+  /**
+   * Initialize using the given kernel.
+   */
+  ShowElementCombinatorImpl.forKernel(this._kernel)
+      : _unlinkedCombinator = null;
 
   @override
   int get end {
@@ -8861,6 +9146,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   List<String> get shownNames {
+    if (_kernel != null) {
+      _shownNames ??= _kernel.names;
+    }
     if (_unlinkedCombinator != null) {
       _shownNames ??= _unlinkedCombinator.shows.toList(growable: false);
     }

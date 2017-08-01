@@ -439,6 +439,7 @@ void StreamingScopeBuilder::VisitFunctionNode() {
 
 void StreamingScopeBuilder::VisitInitializer() {
   Tag tag = builder_->ReadTag();
+  builder_->ReadByte();  // read isSynthetic flag.
   switch (tag) {
     case kInvalidInitializer:
       return;
@@ -2266,6 +2267,10 @@ void StreamingConstantEvaluator::EvaluateBigIntLiteral() {
   const dart::String& value =
       H.DartString(builder_->ReadStringReference());  // read string reference.
   result_ = Integer::New(value, Heap::kOld);
+  if (result_.IsNull()) {
+    H.ReportError("Integer literal %s is out of range", value.ToCString());
+    UNREACHABLE();
+  }
   result_ = H.Canonicalize(result_);
 }
 
@@ -2850,6 +2855,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     intptr_t list_length = ReadListLength();  // read initializers list length.
     for (intptr_t i = 0; i < list_length; ++i) {
       Tag tag = ReadTag();
+      ReadByte();  // read isSynthetic flag.
       switch (tag) {
         case kInvalidInitializer:
           UNIMPLEMENTED();
@@ -5772,7 +5778,13 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
   const dart::String& value =
       H.DartString(ReadStringReference());  // read index into string table.
-  return Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
+  const Integer& integer =
+      Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  if (integer.IsNull()) {
+    H.ReportError("Integer literal %s is out of range", value.ToCString());
+    UNREACHABLE();
+  }
+  return Constant(integer);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral(

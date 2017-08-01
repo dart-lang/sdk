@@ -6879,7 +6879,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // Converted closure functions are used in VM Closure instances that represent
 // the results of evaluation of [MakeClosure] primitive operations.
 //
-// Internally, converted closure functins are represented with the same Closure
+// Internally, converted closure functions are represented with the same Closure
 // class as implicit closure functions (that are used for dealing with
 // tear-offs).  The Closure class instances have two fields, one for the
 // function, and one for the captured context.  Implicit closure functions have
@@ -6903,7 +6903,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // this way, is invoked, it should receive the [Vector] as the first argument,
 // and take the rest of the arguments from the invocation.
 //
-// Converted cosure functions in VM follow same discipline as implicit closure
+// Converted closure functions in VM follow same discipline as implicit closure
 // functions, because they are similar in many ways. For further deatils, please
 // refer to the following methods:
 //   -> Function::ConvertedClosureFunction
@@ -7787,9 +7787,14 @@ void Field::InitializeNew(const Field& result,
   // Use field guards if they are enabled and the isolate has never reloaded.
   // TODO(johnmccutchan): The reload case assumes the worst case (everything is
   // dynamic and possibly null). Attempt to relax this later.
+#if defined(PRODUCT)
+  const bool use_guarded_cid =
+      FLAG_precompiled_mode || isolate->use_field_guards();
+#else
   const bool use_guarded_cid =
       FLAG_precompiled_mode ||
       (isolate->use_field_guards() && !isolate->HasAttemptedReload());
+#endif  // !defined(PRODUCT)
   result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
@@ -11032,6 +11037,7 @@ void Library::AllocatePrivateKey() const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
+#if !defined(PRODUCT)
   if (FLAG_support_reload && isolate->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
@@ -11043,6 +11049,7 @@ void Library::AllocatePrivateKey() const {
       return;
     }
   }
+#endif  // !defined(PRODUCT)
 
   // Format of the private key is: "@<sequence number><6 digits of hash>
   const intptr_t hash_mask = 0x7FFFF;

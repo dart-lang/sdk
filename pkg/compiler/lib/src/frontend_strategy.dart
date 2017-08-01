@@ -4,6 +4,7 @@
 
 library dart2js.frontend_strategy;
 
+import '../compiler_new.dart' as api;
 import 'common.dart';
 import 'common_elements.dart';
 import 'common/backend_api.dart';
@@ -36,6 +37,7 @@ abstract class FrontendStrategy {
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
       ScriptLoader scriptLoader,
+      api.CompilerInput compilerInput,
       ElementScanner scriptScanner,
       LibraryDeserializer deserializer,
       PatchResolverFunction patchResolverFunc,

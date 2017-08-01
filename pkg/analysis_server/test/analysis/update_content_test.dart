@@ -5,8 +5,6 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -14,7 +12,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../analysis_abstract.dart';
 
@@ -22,10 +19,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
-}
-
-compilationUnitMatcher(String file) {
-  return new _ArgumentMatcher_CompilationUnit(file);
 }
 
 @reflectiveTest
@@ -269,18 +262,5 @@ f() {}
       }
     });
     return sources;
-  }
-}
-
-class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
-  final String file;
-
-  _ArgumentMatcher_CompilationUnit(this.file);
-
-  @override
-  bool matches(arg) {
-    return arg is CompilationUnit &&
-        resolutionMap.elementDeclaredByCompilationUnit(arg).source.fullName ==
-            file;
   }
 }

@@ -284,7 +284,44 @@ static field (core::String) → core::int f;
     expect(result.types.hierarchy, isNotNull);
   }
 
-  test_limited_ast_to_binary() async {
+  test_limitedStore_exportDependencies() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'class A {}');
+    var bUri = writeFile(bPath, 'export "a.dart";');
+    Uri cUri = writeFile(cPath, r'''
+import 'b.dart';
+A a;
+''');
+
+    // Compile all libraries initially.
+    await driver.getKernel(cUri);
+
+    // Update c.dart and compile.
+    // When we load "b", we should correctly read its exports.
+    writeFile(cPath, r'''
+import 'b.dart';
+A a2;
+''');
+    driver.invalidate(cUri);
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      Library library = _getLibrary(result, cUri);
+
+      Library getDepLib(Library lib, int index) {
+        return lib.dependencies[index].importedLibraryReference.asLibrary;
+      }
+
+      var b = getDepLib(library, 0);
+      var a = getDepLib(b, 0);
+      expect(b.importUri, bUri);
+      expect(a.importUri, aUri);
+    }
+  }
+
+  test_limitedStore_memberReferences() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';

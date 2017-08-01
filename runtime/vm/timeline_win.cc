@@ -33,7 +33,7 @@ TimelineEventBlock* TimelineEventPlatformRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;
@@ -69,6 +69,21 @@ void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
                                                    const char* args) {
   DartCommonTimelineEventHelpers::ReportCompleteEvent(
       thread, zone, event, start, start_cpu, category, name, args);
+}
+
+void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
+                                               Zone* zone,
+                                               TimelineEvent* event,
+                                               int64_t start,
+                                               int64_t start_cpu,
+                                               const char* category,
+                                               const char* name,
+                                               int64_t type,
+                                               int64_t flow_id,
+                                               const char* args) {
+  DartCommonTimelineEventHelpers::ReportFlowEvent(thread, zone, event, start,
+                                                  start_cpu, category, name,
+                                                  type, flow_id, args);
 }
 
 void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,

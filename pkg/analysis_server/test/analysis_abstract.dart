@@ -346,6 +346,12 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
+  Future<Null> restartPlugins() async {
+    // Nothing to restart.
+    return null;
+  }
+
+  @override
   void setAnalysisSetPriorityFilesParams(
       plugin.AnalysisSetPriorityFilesParams params) {
     analysisSetPriorityFilesParams = params;

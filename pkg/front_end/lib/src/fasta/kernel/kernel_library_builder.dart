@@ -5,6 +5,8 @@
 library fasta.kernel_library_builder;
 
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
+import 'package:front_end/src/fasta/combinator.dart' as fasta;
+import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
 
@@ -271,7 +273,8 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder applyMixins(KernelTypeBuilder type,
-      {List<MetadataBuilder> metadata,
+      {String documentationComment,
+      List<MetadataBuilder> metadata,
       bool isSyntheticMixinImplementation: false,
       String name,
       String subclassName,
@@ -454,6 +457,7 @@ class KernelLibraryBuilder
       checkArguments(mixin);
 
       KernelNamedTypeBuilder t = applyMixin(supertype, mixin, signature,
+          documentationComment: documentationComment,
           metadata: metadata,
           name: name,
           isSyntheticMixinImplementation: isSyntheticMixinImplementation,
@@ -476,6 +480,7 @@ class KernelLibraryBuilder
   }
 
   void addNamedMixinApplication(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -486,6 +491,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+        documentationComment: documentationComment,
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,
@@ -497,6 +503,7 @@ class KernelLibraryBuilder
 
   @override
   void addField(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder type,
@@ -506,8 +513,16 @@ class KernelLibraryBuilder
       bool hasInitializer) {
     addBuilder(
         name,
-        new KernelFieldBuilder(metadata, type, name, modifiers, this,
-            charOffset, initializerTokenForInference, hasInitializer),
+        new KernelFieldBuilder(
+            documentationComment,
+            metadata,
+            type,
+            name,
+            modifiers,
+            this,
+            charOffset,
+            initializerTokenForInference,
+            hasInitializer),
         charOffset);
   }
 
@@ -536,6 +551,7 @@ class KernelLibraryBuilder
   }
 
   void addProcedure(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -557,6 +573,7 @@ class KernelLibraryBuilder
     if (constructorName != null) {
       name = constructorName;
       procedure = new KernelConstructorBuilder(
+          documentationComment,
           metadata,
           modifiers & ~abstractMask,
           returnType,
@@ -570,6 +587,7 @@ class KernelLibraryBuilder
           nativeMethodName);
     } else {
       procedure = new KernelProcedureBuilder(
+          documentationComment,
           metadata,
           modifiers,
           returnType,
@@ -591,6 +609,7 @@ class KernelLibraryBuilder
   }
 
   void addFactoryMethod(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       ConstructorReferenceBuilder constructorNameReference,
@@ -613,6 +632,7 @@ class KernelLibraryBuilder
     }
     assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
+        documentationComment,
         metadata,
         staticMask | modifiers,
         returnType,
@@ -714,6 +734,17 @@ class KernelLibraryBuilder
   @override
   Library build(LibraryBuilder coreLibrary) {
     super.build(coreLibrary);
+
+    List<Combinator> toKernelCombinators(
+        Iterable<fasta.Combinator> fastaCombinators) {
+      return fastaCombinators?.map((c) {
+        List<String> nameList = c.names.toList();
+        return c.isShow
+            ? new Combinator.show(nameList)
+            : new Combinator.hide(nameList);
+      })?.toList();
+    }
+
     for (Import import in imports) {
       var importedBuilder = import.imported;
       Library importedLibrary;
@@ -723,8 +754,22 @@ class KernelLibraryBuilder
         importedLibrary = importedBuilder.library;
       }
       if (importedLibrary != null) {
-        library.addDependency(
-            new LibraryDependency.import(importedLibrary, name: import.prefix));
+        library.addDependency(new LibraryDependency.import(importedLibrary,
+            name: import.prefix,
+            combinators: toKernelCombinators(import.combinators)));
+      }
+    }
+    for (Export export in exports) {
+      var exportedBuilder = export.exported;
+      Library exportedLibrary;
+      if (exportedBuilder is DillLibraryBuilder) {
+        exportedLibrary = exportedBuilder.library;
+      } else if (exportedBuilder is KernelLibraryBuilder) {
+        exportedLibrary = exportedBuilder.library;
+      }
+      if (exportedLibrary != null) {
+        library.addDependency(new LibraryDependency.export(exportedLibrary,
+            combinators: toKernelCombinators(export.combinators)));
       }
     }
     library.name = name;
@@ -790,7 +835,7 @@ class KernelLibraryBuilder
         // Handles the case where the same prefix is used for different
         // imports.
         return builder
-          ..exports.merge(other.exports,
+          ..exportScope.merge(other.exportScope,
               (String name, Builder existing, Builder member) {
             return buildAmbiguousBuilder(name, existing, member, charOffset,
                 isExport: isExport, isImport: isImport);

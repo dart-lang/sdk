@@ -4,11 +4,13 @@
 
 library dart2js.js_model.elements;
 
+import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../kernel/elements.dart';
 import '../kernel/element_map_impl.dart';
+import 'closure.dart' show KernelClosureClass;
 
 /// Map from 'frontend' to 'backend' elements.
 ///
@@ -172,15 +174,6 @@ class JsElementCreatorMixin {
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
 
-  Local createLocalFunction(String name, MemberEntity memberContext,
-      Entity executableContext, FunctionType functionType) {
-    // TODO(efortuna, johnniwinther): This function should not be called once
-    // the K + J element situation has been properly sorted out. Ultimately this
-    // should throw.
-    return new JLocalFunction(
-        name, memberContext, executableContext, functionType);
-  }
-
   LibraryEntity convertLibrary(IndexedLibrary library) {
     return createLibrary(
         library.libraryIndex, library.name, library.canonicalUri);
@@ -323,23 +316,15 @@ class JClass implements ClassEntity, IndexedClass {
 
 abstract class JMember implements MemberEntity, IndexedMember {
   /// Member index used for fast lookup in [JsToFrontendMapImpl].
-  int _memberIndex;
+  final int memberIndex;
   final JLibrary library;
   final JClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  JMember(this._memberIndex, this.library, this.enclosingClass, this._name,
+  JMember(this.memberIndex, this.library, this.enclosingClass, this._name,
       {bool isStatic: false})
       : _isStatic = isStatic;
-
-  int get memberIndex => _memberIndex;
-
-  /// Should only be called by closure methods. All others should set
-  /// memberIndex at initialization time.
-  void set setClosureMemberIndex(int newIndex) {
-    _memberIndex = newIndex;
-  }
 
   String get name => _name.text;
 
@@ -535,6 +520,20 @@ class JField extends JMember implements FieldEntity, IndexedField {
   String get _kind => 'field';
 }
 
+class JClosureCallMethod extends JFunction {
+  JClosureCallMethod(int memberIndex, KernelClosureClass containingClass,
+      JFunction origClosureFunctionNode)
+      : super(
+            memberIndex,
+            containingClass.library,
+            containingClass,
+            new Name(Identifiers.call, containingClass.library),
+            origClosureFunctionNode.parameterStructure,
+            origClosureFunctionNode.asyncMarker);
+
+  String get _kind => 'closure_call';
+}
+
 class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
   final int typeVariableIndex;
   final Entity typeDeclaration;
@@ -546,17 +545,4 @@ class JTypeVariable implements TypeVariableEntity, IndexedTypeVariable {
 
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
-}
-
-class JLocalFunction implements Local {
-  final String name;
-  final MemberEntity memberContext;
-  final Entity executableContext;
-  final FunctionType functionType;
-
-  JLocalFunction(
-      this.name, this.memberContext, this.executableContext, this.functionType);
-
-  String toString() => '${jsElementPrefix}local_function'
-      '(${memberContext.name}.${name ?? '<anonymous>'})';
 }

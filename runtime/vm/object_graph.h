@@ -63,6 +63,7 @@ class ObjectGraph : public StackResource {
   // Visits all strongly reachable objects in the isolate's heap, in a
   // pre-order, depth first traversal.
   void IterateObjects(Visitor* visitor);
+  void IterateUserObjects(Visitor* visitor);
 
   // Like 'IterateObjects', but restricted to objects reachable from 'root'
   // (including 'root' itself).

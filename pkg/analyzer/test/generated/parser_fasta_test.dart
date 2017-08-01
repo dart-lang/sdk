@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
@@ -295,13 +296,12 @@ class FastaParserTestCase extends Object
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    // TODO(scheglov): implement assertErrorsWithCodes
-    fail('Not implemented');
+    _parserProxy._errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   @override
   void assertNoErrors() {
-    // TODO(paulberry): implement assertNoErrors
+    _parserProxy._errorListener.assertNoErrors();
   }
 
   @override
@@ -713,6 +713,34 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
   }
+
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_field_const_noType();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_field_const_type();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_noType2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_simple_const_noType();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_type2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseNormalFormalParameter_simple_const_type();
+    assertNoErrors();
+  }
 }
 
 /**
@@ -760,6 +788,11 @@ class ParserProxy implements analyzer.Parser {
   final AstBuilder _astBuilder;
 
   /**
+   * The error listener to which scanner and parser errors will be reported.
+   */
+  final GatheringErrorListener _errorListener;
+
+  /**
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
@@ -768,14 +801,20 @@ class ParserProxy implements analyzer.Parser {
     var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();
     var scope = new ScopeProxy();
-    var astBuilder = new AstBuilder(null, library, member, scope, true);
+    TestSource source = new TestSource();
+    var errorListener = new GatheringErrorListener();
+    var errorReporter = new ErrorReporter(errorListener, source);
+    var astBuilder =
+        new AstBuilder(errorReporter, library, member, scope, true);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
     var fastaParser = new fasta.Parser(new ForwardingTestListener(astBuilder));
     astBuilder.parser = fastaParser;
-    return new ParserProxy._(startingToken, fastaParser, astBuilder);
+    return new ParserProxy._(
+        startingToken, fastaParser, astBuilder, errorListener);
   }
 
-  ParserProxy._(this._currentFastaToken, this._fastaParser, this._astBuilder);
+  ParserProxy._(this._currentFastaToken, this._fastaParser, this._astBuilder,
+      this._errorListener);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
@@ -955,5 +994,26 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
     // Fasta.
     super.test_parsePartOfDirective_uri();
+  }
+
+  @failingTest
+  void test_parseCompilationUnit_operatorAsPrefix_parameterized2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseCompilationUnit_typedefAsPrefix2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseCompilationUnit_typedefAsPrefix();
+    assertNoErrors();
+  }
+
+  @failingTest
+  void test_parseCompilationUnitMember_abstractAsPrefix2() {
+    // TODO(danrubel): should not be generating an error
+    super.test_parseCompilationUnitMember_abstractAsPrefix();
+    assertNoErrors();
   }
 }

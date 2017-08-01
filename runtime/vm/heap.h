@@ -256,6 +256,9 @@ class Heap {
     old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
+  intptr_t CalculateTLABSize();
+  void AbandonRemainingTLAB(Thread* thread);
+
  private:
   class GCStats : public ValueObject {
    public:

@@ -17,6 +17,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/resolution/class_hierarchy.dart';
 import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
@@ -31,6 +32,7 @@ import 'compiler_helper.dart';
 const SOURCE = const {
   'main.dart': '''
 import 'dart:html';
+import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 class ClassWithSetter {
@@ -74,6 +76,7 @@ main() {
   method1(); // Both top level and instance method named 'method1' are live.
   #main; // Use a const symbol.
   const Symbol('foo'); // Use the const Symbol constructor directly
+  new Int8List(0); // Use redirect factory to abstract native class
 }
 '''
 };
@@ -101,6 +104,7 @@ Future<ResultKind> mainInternal(List<String> args,
 
   enableDebugMode();
   EnumCreator.matchKernelRepresentationForTesting = true;
+  useOptimizedMixins = true;
 
   Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
   print('--- create temp directory $dir -------------------------------');

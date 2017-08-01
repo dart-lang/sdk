@@ -75,7 +75,7 @@ main(List<String> args) {
         memorySourceFiles: memorySourceFiles,
         options: [
           Flags.analyzeOnly,
-          Flags.useKernel,
+          Flags.useKernelInSsa,
           Flags.enableAssertMessage
         ]);
     ElementResolutionWorldBuilder.useInstantiationMap = true;

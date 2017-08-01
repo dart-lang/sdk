@@ -255,6 +255,11 @@ class _Platform {
   static String _localeName() {
     throw new UnsupportedError("Platform._localeName");
   }
+
+  @patch
+  static Uri _script() {
+    throw new UnsupportedError("Platform._script");
+  }
 }
 
 @patch

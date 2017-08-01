@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:status_file/expectation.dart';
+import 'package:status_file/status_file.dart';
+
 import 'configuration.dart';
 import 'environment.dart';
-import 'expectation.dart';
-import 'status_file.dart';
 
 /// Tracks the [Expectation]s associated with a set of file paths.
 ///
@@ -18,20 +21,28 @@ class ExpectationSet {
   /// when in [configuration].
   static ExpectationSet read(
       List<String> statusFilePaths, Configuration configuration) {
-    var environment = new Environment(configuration);
-    var expectations = new ExpectationSet._();
-    for (var path in statusFilePaths) {
-      var file = new StatusFile.read(path);
-      for (var section in file.sections) {
-        if (section.isEnabled(environment)) {
-          for (var entry in section.entries) {
-            expectations.addEntry(entry);
+    try {
+      var environment = new ConfigurationEnvironment(configuration);
+      var expectations = new ExpectationSet._();
+      for (var path in statusFilePaths) {
+        var file = new StatusFile.read(path);
+        file.validate(environment);
+        for (var section in file.sections) {
+          if (section.isEnabled(environment)) {
+            for (var entry in section.entries) {
+              expectations.addEntry(entry);
+            }
           }
         }
       }
-    }
 
-    return expectations;
+      return expectations;
+    } on SyntaxError catch (error) {
+      stderr.writeln(error.toString());
+      exit(1);
+
+      throw "unreachable";
+    }
   }
 
   // Only create one copy of each Set<Expectation>.

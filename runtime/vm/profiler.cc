@@ -1035,7 +1035,7 @@ static bool CheckIsolate(Isolate* isolate) {
 }
 
 void Profiler::DumpStackTrace(void* context) {
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   ucontext_t* ucontext = reinterpret_cast<ucontext_t*>(context);
   mcontext_t mcontext = ucontext->uc_mcontext;
   uword pc = SignalHandler::GetProgramCounter(mcontext);
@@ -1085,12 +1085,14 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
   Thread* thread = Thread::Current();
   if (thread == NULL) {
+    OS::PrintErr("Stack dump aborted because no current Dart thread.\n");
     return;
   }
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
+    OS::PrintErr("Stack dump aborted because CheckIsolate failed.\n");
     return;
   }
 
@@ -1101,7 +1103,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   uword stack_upper = 0;
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    OS::PrintErr("Stack dump aborted because InitialRegisterCheck.\n");
+    OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
     return;
   }
 
@@ -1109,7 +1111,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
                                        &stack_upper,
                                        /*get_os_thread_bounds=*/true)) {
     OS::PrintErr(
-        "Stack dump aborted because GetAndValidateThreadStackBounds.\n");
+        "Stack dump aborted because GetAndValidateThreadStackBounds failed.\n");
     return;
   }
 

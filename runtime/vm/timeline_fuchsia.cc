@@ -37,7 +37,7 @@ TimelineEventBlock* TimelineEventPlatformRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
   }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
+  TimelineEventBlock* block = &blocks_[block_cursor_++];
   block->Reset();
   block->Open();
   return block;
@@ -182,6 +182,38 @@ void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
   const int64_t end = OS::GetCurrentMonotonicMicros();
   const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
   event->Duration(strdup(name), start, end, start_cpu, end_cpu);
+  event->set_owns_label(true);
+  event->SetNumArguments(1);
+  event->CopyArgument(0, "args", args);
+  event->Complete();
+}
+
+void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
+                                               Zone* zone,
+                                               TimelineEvent* event,
+                                               int64_t start,
+                                               int64_t start_cpu,
+                                               const char* category,
+                                               const char* name,
+                                               int64_t type,
+                                               int64_t flow_id,
+                                               const char* args) {
+  char* name_string = strdup(name);
+  ASSERT((type >= 0) && (type <= 2));
+  switch (type) {
+    case 0:
+      event->FlowBegin(name_string, flow_id, start);
+      break;
+    case 1:
+      event->FlowStep(name_string, flow_id, start);
+      break;
+    case 2:
+      event->FlowEnd(name_string, flow_id, start);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
   event->set_owns_label(true);
   event->SetNumArguments(1);
   event->CopyArgument(0, "args", args);

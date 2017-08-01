@@ -91,7 +91,7 @@
  */
 library dart.async;
 
-import "dart:collection";
+import "dart:collection" show HashMap, IterableBase;
 import "dart:_internal" show printToZone, printToConsole, IterableElementError;
 
 part 'async_error.dart';

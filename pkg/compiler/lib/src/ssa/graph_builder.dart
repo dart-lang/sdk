@@ -252,6 +252,10 @@ abstract class GraphBuilder {
         localsHandler.directLocals[local] != null;
   }
 
+  HLiteralList buildLiteralList(List<HInstruction> inputs) {
+    return new HLiteralList(inputs, commonMasks.extendableArrayType);
+  }
+
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(InterfaceType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
     if (!rtiNeed.classNeedsRti(type.element)) {

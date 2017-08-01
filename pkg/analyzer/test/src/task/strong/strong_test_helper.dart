@@ -273,8 +273,8 @@ class AbstractStrongTest {
       {bool declarationCasts: true,
       bool implicitCasts: true,
       bool implicitDynamic: true,
-      List<String> nonnullableTypes:
-          AnalysisOptionsImpl.NONNULLABLE_TYPES}) async {
+      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
+      bool superMixins: false}) async {
     _checkCalled = true;
 
     File mainFile =
@@ -288,6 +288,7 @@ class AbstractStrongTest {
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.nonnullableTypes = nonnullableTypes;
+    analysisOptions.enableSuperMixins = superMixins;
 
     var mockSdk = new MockSdk(resourceProvider: _resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
@@ -363,9 +364,19 @@ class AbstractStrongTest {
   /// Adds a file using [addFile] and calls [check].
   ///
   /// Also returns the resolved compilation unit.
-  Future<CompilationUnit> checkFile(String content) async {
+  Future<CompilationUnit> checkFile(String content,
+      {bool declarationCasts: true,
+      bool implicitCasts: true,
+      bool implicitDynamic: true,
+      List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES,
+      bool superMixins: false}) async {
     addFile(content);
-    return check();
+    return check(
+        declarationCasts: declarationCasts,
+        implicitCasts: implicitCasts,
+        implicitDynamic: implicitDynamic,
+        nonnullableTypes: nonnullableTypes,
+        superMixins: superMixins);
   }
 
   void setUp() {

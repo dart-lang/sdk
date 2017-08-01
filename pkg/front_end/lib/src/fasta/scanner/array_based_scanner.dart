@@ -139,16 +139,17 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   /**
    * Appends a token that begins an end group, represented by [type].
    * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
-   * '>>' are handled separately bo [appendGt] and [appendGtGt].
+   * '>>' are handled separately by [appendGt] and [appendGtGt].
    */
   int appendEndGroup(TokenType type, int openKind) {
     assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
-    discardBeginGroupUntil(openKind);
-    appendPrecedenceToken(type);
-    Token close = tail;
-    if (groupingStack.isEmpty) {
+    if (!discardBeginGroupUntil(openKind)) {
+      // No begin group found. Just continue.
+      appendPrecedenceToken(type);
       return advance();
     }
+    appendPrecedenceToken(type);
+    Token close = tail;
     BeginToken begin = groupingStack.head;
     if (!identical(begin.kind, openKind)) {
       assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
@@ -166,21 +167,52 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * Discards begin group tokens until a match with [openKind] is found.
-   * This recovers nicely from from a situation like "{[}".
+   * If a begin group token matches [openKind],
+   * then discard begin group tokens up to that match and return `true`,
+   * otherwise return `false`.
+   * This recovers nicely from from situations like "{[}" and "{foo());}",
+   * but not "foo(() {bar());});
    */
-  void discardBeginGroupUntil(int openKind) {
-    while (!groupingStack.isEmpty) {
+  bool discardBeginGroupUntil(int openKind) {
+    Link<BeginToken> originalStack = groupingStack;
+
+    bool first = true;
+    do {
       // Don't report unmatched errors for <; it is also the less-than operator.
       discardOpenLt();
-      if (groupingStack.isEmpty) return;
+      if (groupingStack.isEmpty) break; // recover
       BeginToken begin = groupingStack.head;
-      if (openKind == begin.kind) return;
-      if (openKind == OPEN_CURLY_BRACKET_TOKEN &&
-          begin.kind == STRING_INTERPOLATION_TOKEN) return;
-      unmatchedBeginGroup(begin);
+      if (openKind == begin.kind ||
+          (openKind == OPEN_CURLY_BRACKET_TOKEN &&
+              begin.kind == STRING_INTERPOLATION_TOKEN)) {
+        if (first) {
+          // If the expected opener has been found on the first pass
+          // then no recovery necessary.
+          return true;
+        }
+        break; // recover
+      }
+      first = false;
       groupingStack = groupingStack.tail;
+    } while (!groupingStack.isEmpty);
+
+    // If the stack does not have any opener of the given type,
+    // then return without discarding anything.
+    // This recovers nicely from from situations like "{foo());}".
+    if (groupingStack.isEmpty) {
+      groupingStack = originalStack;
+      return false;
     }
+
+    // Insert synthetic closers and report errors for any unbalanced openers.
+    // This recovers nicely from from situations like "{[}".
+    while (!identical(originalStack, groupingStack)) {
+      // Don't report unmatched errors for <; it is also the less-than operator.
+      if (!identical(groupingStack.head.kind, LT_TOKEN))
+        unmatchedBeginGroup(originalStack.head);
+      originalStack = originalStack.tail;
+    }
+    return true;
   }
 
   /**

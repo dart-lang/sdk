@@ -13,6 +13,7 @@ import 'elements/names.dart' show PublicName;
 import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
+import 'js_backend/native_data.dart' show NativeBasicData;
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
@@ -1175,6 +1176,17 @@ class CommonElements {
     return cls == objectClass ||
         cls == jsInterceptorClass ||
         cls == jsNullClass;
+  }
+
+  ClassEntity getDefaultSuperclass(
+      ClassEntity cls, NativeBasicData nativeBasicData) {
+    if (nativeBasicData.isJsInteropClass(cls)) {
+      return jsJavaScriptObjectClass;
+    }
+    // Native classes inherit from Interceptor.
+    return nativeBasicData.isNativeClass(cls)
+        ? jsInterceptorClass
+        : objectClass;
   }
 }
 

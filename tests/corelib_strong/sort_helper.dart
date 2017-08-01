@@ -6,11 +6,6 @@ library sort_helper;
 
 import "package:expect/expect.dart";
 
-typedef Sorter
-    = void Function(List<num>);
-typedef Comparer
-    = int Function(num, num);
-
 class SortHelper {
   SortHelper(this.sortFunction, this.compareFunction) {}
 
@@ -19,7 +14,7 @@ class SortHelper {
     testSortDoubleLists();
   }
 
-  bool isSorted(List<num> a) {
+  bool isSorted(List a) {
     for (int i = 1; i < a.length; i++) {
       if (compareFunction(a[i - 1], a[i]) > 0) {
         return false;
@@ -29,7 +24,7 @@ class SortHelper {
   }
 
   void testSortIntLists() {
-    var a = new List<int>(40);
+    List a = new List(40);
 
     for (int i = 0; i < a.length; i++) {
       a[i] = i;
@@ -85,10 +80,10 @@ class SortHelper {
     a[33] = 1;
     testSort(a);
 
-    var a2 = new List<int>(0);
+    var a2 = new List(0);
     testSort(a2);
 
-    var a3 = new List<int>(1);
+    var a3 = new List(1);
     a3[0] = 1;
     testSort(a3);
 
@@ -120,13 +115,13 @@ class SortHelper {
     testInsertionSort(3, 2, 0, 1);
   }
 
-  void testSort(List<num> a) {
+  void testSort(List a) {
     sortFunction(a);
     Expect.isTrue(isSorted(a));
   }
 
   void testInsertionSort(int i1, int i2, int i3, int i4) {
-    var a = new List<int>(4);
+    var a = new List(4);
     a[0] = i1;
     a[1] = i2;
     a[2] = i3;
@@ -135,7 +130,7 @@ class SortHelper {
   }
 
   void testSortDoubleLists() {
-    var a = new List<double>(40);
+    List a = new List(40);
     for (int i = 0; i < a.length; i++) {
       a[i] = 1.0 * i + 0.5;
     }
@@ -152,6 +147,6 @@ class SortHelper {
     testSort(a);
   }
 
-  Sorter sortFunction;
-  Comparer compareFunction;
+  Function sortFunction;
+  Function compareFunction;
 }

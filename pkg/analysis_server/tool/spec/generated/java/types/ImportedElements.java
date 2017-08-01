@@ -50,11 +50,6 @@ public class ImportedElements {
   private final String path;
 
   /**
-   * The URI that was used when importing the library into the original source.
-   */
-  private final String uri;
-
-  /**
    * The prefix that was used when importing the library into the original source.
    */
   private final String prefix;
@@ -67,9 +62,8 @@ public class ImportedElements {
   /**
    * Constructor for {@link ImportedElements}.
    */
-  public ImportedElements(String path, String uri, String prefix, List<String> elements) {
+  public ImportedElements(String path, String prefix, List<String> elements) {
     this.path = path;
-    this.uri = uri;
     this.prefix = prefix;
     this.elements = elements;
   }
@@ -80,7 +74,6 @@ public class ImportedElements {
       ImportedElements other = (ImportedElements) obj;
       return
         ObjectUtilities.equals(other.path, path) &&
-        ObjectUtilities.equals(other.uri, uri) &&
         ObjectUtilities.equals(other.prefix, prefix) &&
         ObjectUtilities.equals(other.elements, elements);
     }
@@ -89,10 +82,9 @@ public class ImportedElements {
 
   public static ImportedElements fromJson(JsonObject jsonObject) {
     String path = jsonObject.get("path").getAsString();
-    String uri = jsonObject.get("uri").getAsString();
     String prefix = jsonObject.get("prefix").getAsString();
     List<String> elements = JsonUtilities.decodeStringList(jsonObject.get("elements").getAsJsonArray());
-    return new ImportedElements(path, uri, prefix, elements);
+    return new ImportedElements(path, prefix, elements);
   }
 
   public static List<ImportedElements> fromJsonArray(JsonArray jsonArray) {
@@ -128,18 +120,10 @@ public class ImportedElements {
     return prefix;
   }
 
-  /**
-   * The URI that was used when importing the library into the original source.
-   */
-  public String getUri() {
-    return uri;
-  }
-
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(path);
-    builder.append(uri);
     builder.append(prefix);
     builder.append(elements);
     return builder.toHashCode();
@@ -148,7 +132,6 @@ public class ImportedElements {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("path", path);
-    jsonObject.addProperty("uri", uri);
     jsonObject.addProperty("prefix", prefix);
     JsonArray jsonArrayElements = new JsonArray();
     for (String elt : elements) {
@@ -164,8 +147,6 @@ public class ImportedElements {
     builder.append("[");
     builder.append("path=");
     builder.append(path + ", ");
-    builder.append("uri=");
-    builder.append(uri + ", ");
     builder.append("prefix=");
     builder.append(prefix + ", ");
     builder.append("elements=");

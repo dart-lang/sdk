@@ -377,7 +377,7 @@ abstract class ClosedWorldRefiner {
   /// considered directly instantiated. If [fromInstanceMember] is true, this
   /// closure class represents a closure that is inside an instance member, thus
   /// has access to `this`.
-  void registerClosureClass(covariant ClassEntity cls, bool fromInstanceMember);
+  void registerClosureClass(ClassEntity cls);
 }
 
 abstract class OpenWorld implements World {
@@ -1307,7 +1307,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     return selector.appliesUntyped(element);
   }
 
-  void registerClosureClass(ClassElement cls, bool _) {
+  void registerClosureClass(covariant ClassElement cls) {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node = _classHierarchyNodes[cls] =
         new ClassHierarchyNode(parentNode, cls, cls.hierarchyDepth);

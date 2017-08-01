@@ -285,13 +285,7 @@ class OutlineBuilder extends UnhandledListener {
       Token implementsKeyword,
       Token endToken) {
     debugEvent("endClassDeclaration");
-
-    String documentationComment = null;
-    if (beginToken.precedingComments != null) {
-      documentationComment = beginToken.precedingComments.lexeme;
-      // TODO(scheglov): Add support for line comments.
-    }
-
+    String documentationComment = _getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popList(interfacesCount);
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -334,8 +328,10 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers =
         Modifier.validate(pop(), isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
+    String documentationComment = _getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
     library.addProcedure(
+        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -435,7 +431,9 @@ class OutlineBuilder extends UnhandledListener {
       modifiers &= ~abstractMask;
     }
     List<MetadataBuilder> metadata = pop();
+    String documentationComment = _getDocumentationComment(beginToken);
     library.addProcedure(
+        documentationComment,
         metadata,
         modifiers,
         returnType,
@@ -464,6 +462,7 @@ class OutlineBuilder extends UnhandledListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
+    String documentationComment = _getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -471,8 +470,8 @@ class OutlineBuilder extends UnhandledListener {
     String name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addNamedMixinApplication(metadata, name, typeVariables, modifiers,
-        mixinApplication, interfaces, charOffset);
+    library.addNamedMixinApplication(documentationComment, metadata, name,
+        typeVariables, modifiers, mixinApplication, interfaces, charOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -727,7 +726,9 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, fieldsInfo);
+    String documentationComment = _getDocumentationComment(beginToken);
+    library.addFields(
+        documentationComment, metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -738,7 +739,9 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, fieldsInfo);
+    String documentationComment = _getDocumentationComment(beginToken);
+    library.addFields(
+        documentationComment, metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -798,7 +801,9 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
+    String documentationComment = _getDocumentationComment(beginToken);
     library.addFactoryMethod(
+        documentationComment,
         metadata,
         modifiers,
         name,
@@ -914,6 +919,34 @@ class OutlineBuilder extends UnhandledListener {
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!enableNative || identifiers.isEmpty) return identifiers;
     return removeNativeClause(identifiers, stringExpectedAfterNative);
+  }
+
+  /// Return the documentation comment for the entity that starts at the
+  /// given [token], or `null` if there is no preceding documentation comment.
+  String _getDocumentationComment(Token token) {
+    Token docToken = token.precedingComments;
+    if (docToken == null) return null;
+    bool inSlash = false;
+    var buffer = new StringBuffer();
+    while (docToken != null) {
+      String lexeme = docToken.lexeme;
+      if (lexeme.startsWith('/**')) {
+        inSlash = false;
+        buffer.clear();
+        buffer.write(lexeme);
+      } else if (lexeme.startsWith('///')) {
+        if (!inSlash) {
+          inSlash = true;
+          buffer.clear();
+        }
+        if (buffer.isNotEmpty) {
+          buffer.writeln();
+        }
+        buffer.write(lexeme);
+      }
+      docToken = docToken.next;
+    }
+    return buffer.toString();
   }
 
   @override

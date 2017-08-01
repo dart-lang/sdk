@@ -2,5 +2,20 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-field: Pass # This should be RuntimeError when Run step is enabled. See dartbug.com/29143.
-type_variables: Pass # This should be RuntimeError when Run step is enabled. See dartbug.com/29143.
+field: RuntimeError
+type_variables: RuntimeError
+capture_closure: RuntimeError
+capture_closure_parameter: RuntimeError
+capture_this: RuntimeError
+catch: RuntimeError
+closure_in_constructor: RuntimeError
+closure_in_initializer: RuntimeError
+closure_in_initializer_closure: RuntimeError
+closures: RuntimeError
+for_in_closure: RuntimeError
+for_loop: RuntimeError
+for_variable_capture_test: RuntimeError
+instance_tear_off: RuntimeError
+named_closure: RuntimeError
+non_void_context: RuntimeError
+uncaptured_for_in_loop: RuntimeError

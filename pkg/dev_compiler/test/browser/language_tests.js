@@ -65,6 +65,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // Flaky on travis (https://github.com/dart-lang/sdk/issues/27224)
       'async_await_test_03_multi': async_unittest,
 
+      'async_star_pause_test': fail,
       'async_star_await_pauses_test': skip_timeout,
 
       // TODO(jmesserly): figure out why this test is hanging.
@@ -85,6 +86,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'async_this_bound_test': whitelist,
       'asyncstar_throw_in_catch_test': ['skip', 'fail'],
       'await_future_test': skip_timeout,
+      'await_for_test': 'slow',
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
       'call_closurization_test': fail, // Functions do not expose a "call" method.
@@ -248,7 +250,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'const_list_remove_range_test': fail,
       'const_list_set_range_test': fail,
       'core_runtime_types_test': fail,
-      'double_parse_test_01_multi': fail,
+      'date_time10_test': fail,
       'double_parse_test_02_multi': firefox_fail,
       'for_in_test': is.firefox('<=50') ? fail : pass,
       'growable_list_test': fail,
@@ -270,6 +272,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'list_insert_all_test': whitelist,
       'list_replace_range_test': fail,
       'list_set_all_test': fail,
+      'list_sort_test': fail, // runtime strong mode error
       'list_test_01_multi': fail,
       'list_test_none_multi': fail,
       'main_test': fail,

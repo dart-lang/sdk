@@ -860,6 +860,7 @@ class FieldHelper {
     kParentClassBinaryOffset,
     kName,
     kSourceUriIndex,
+    kDocumentationCommentIndex,
     kAnnotations,
     kType,
     kInitializer,
@@ -918,6 +919,9 @@ class FieldHelper {
         builder_->current_script_id_ = source_uri_index_;
         builder_->record_token_position(position_);
         builder_->record_token_position(end_position_);
+        if (++next_read_ == field) return;
+      case kDocumentationCommentIndex:
+        builder_->ReadStringReference();
         if (++next_read_ == field) return;
       case kAnnotations: {
         annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -1009,6 +1013,7 @@ class ProcedureHelper {
     kParentClassBinaryOffset,
     kName,
     kSourceUriIndex,
+    kDocumentationCommentIndex,
     kAnnotations,
     kFunction,
     kEnd
@@ -1062,6 +1067,9 @@ class ProcedureHelper {
         builder_->current_script_id_ = source_uri_index_;
         builder_->record_token_position(position_);
         builder_->record_token_position(end_position_);
+        if (++next_read_ == field) return;
+      case kDocumentationCommentIndex:
+        builder_->ReadStringReference();
         if (++next_read_ == field) return;
       case kAnnotations: {
         annotation_count_ = builder_->ReadListLength();  // read list length.
@@ -1129,6 +1137,7 @@ class ConstructorHelper {
     kFlags,
     kParentClassBinaryOffset,
     kName,
+    kDocumentationCommentIndex,
     kAnnotations,
     kFunction,
     kInitializers,
@@ -1174,6 +1183,9 @@ class ConstructorHelper {
       case kName:
         builder_->SkipName();  // read name.
         if (++next_read_ == field) return;
+      case kDocumentationCommentIndex:
+        builder_->ReadStringReference();
+        if (++next_read_ == field) return;
       case kAnnotations: {
         annotation_count_ = builder_->ReadListLength();  // read list length.
         for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -1189,6 +1201,7 @@ class ConstructorHelper {
             builder_->ReadListLength();  // read initializers list length.
         for (intptr_t i = 0; i < list_length; i++) {
           Tag tag = builder_->ReadTag();
+          builder_->ReadByte();  // read isSynthetic.
           switch (tag) {
             case kInvalidInitializer:
               continue;

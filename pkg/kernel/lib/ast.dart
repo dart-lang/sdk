@@ -616,6 +616,10 @@ class Class extends NamedNode {
   String name;
   bool isAbstract;
 
+  /// Whether this class is an enum.
+  @informative
+  bool isEnum = false;
+
   /// Whether this class is a synthetic implementation created for each
   /// mixed-in class. For example the following code:
   /// class Z extends A with B, C, D {}
@@ -833,6 +837,10 @@ abstract class Member extends NamedNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
+
+  /// Documentation comment of the member, or `null`.
+  @informative
+  String documentationComment;
 
   /// List of metadata annotations on the member.
   ///
@@ -1254,6 +1262,10 @@ enum ProcedureKind {
 
 /// Part of an initializer list in a constructor.
 abstract class Initializer extends TreeNode {
+  /// True if this is a synthetic constructor initializer.
+  @informative
+  bool isSynthetic = false;
+
   accept(InitializerVisitor v);
 }
 
@@ -3076,14 +3088,15 @@ class ClosureCreation extends Expression {
   Reference topLevelFunctionReference;
   Expression contextVector;
   FunctionType functionType;
+  List<DartType> typeArguments;
 
   ClosureCreation(Member topLevelFunction, Expression contextVector,
-      FunctionType functionType)
-      : this.byReference(
-            getMemberReference(topLevelFunction), contextVector, functionType);
+      FunctionType functionType, List<DartType> typeArguments)
+      : this.byReference(getMemberReference(topLevelFunction), contextVector,
+            functionType, typeArguments);
 
-  ClosureCreation.byReference(
-      this.topLevelFunctionReference, this.contextVector, this.functionType) {
+  ClosureCreation.byReference(this.topLevelFunctionReference,
+      this.contextVector, this.functionType, this.typeArguments) {
     contextVector?.parent = this;
   }
 
@@ -3098,6 +3111,8 @@ class ClosureCreation extends Expression {
 
   visitChildren(Visitor v) {
     contextVector?.accept(v);
+    functionType.accept(v);
+    visitList(typeArguments, v);
   }
 
   transformChildren(Transformer v) {
@@ -3105,6 +3120,8 @@ class ClosureCreation extends Expression {
       contextVector = contextVector.accept(v);
       contextVector?.parent = this;
     }
+    functionType = v.visitDartType(functionType);
+    transformTypeList(typeArguments, v);
   }
 
   DartType getStaticType(TypeEnvironment types) {

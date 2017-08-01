@@ -508,7 +508,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                       formal.charOffset),
                   formal.charOffset);
             } else {
-              initializer = buildFieldInitializer(formal.name,
+              initializer = buildFieldInitializer(true, formal.name,
                   formal.charOffset, new VariableGet(formal.declaration));
             }
             member.addInitializer(initializer);
@@ -561,8 +561,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (node is FastaAccessor) {
       initializer = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
-      initializer =
-          buildSuperInitializer(node.target, node.arguments, token.charOffset);
+      initializer = buildSuperInitializer(
+          false, node.target, node.arguments, token.charOffset);
     } else {
       Expression value = toValue(node);
       if (node is! Throw) {
@@ -667,8 +667,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             deprecated_buildCompileTimeError(message, builder.charOffset),
             builder.charOffset);
       } else {
-        initializer =
-            buildSuperInitializer(superTarget, arguments, builder.charOffset);
+        initializer = buildSuperInitializer(
+            true, superTarget, arguments, builder.charOffset);
       }
       constructor.initializers.add(initializer);
     }
@@ -1685,7 +1685,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
       }
       if (builder is PrefixBuilder) {
-        name = scopeLookup(builder.exports, suffix, beginToken,
+        name = scopeLookup(builder.exportScope, suffix, beginToken,
             isQualified: true, prefix: builder);
       } else {
         push(const InvalidType());
@@ -2137,7 +2137,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       var prefix = type[0];
       identifier = type[1];
       if (prefix is PrefixBuilder) {
-        type = scopeLookup(prefix.exports, identifier.name, start,
+        type = scopeLookup(prefix.exportScope, identifier.name, start,
             isQualified: true, prefix: prefix);
         identifier = null;
       } else if (prefix is TypeDeclarationAccessor) {
@@ -3153,7 +3153,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Initializer buildFieldInitializer(
-      String name, int offset, Expression expression) {
+      bool isSynthetic, String name, int offset, Expression expression) {
     Builder builder = classBuilder.scope.local[name];
     if (builder is KernelFieldBuilder && builder.isInstanceMember) {
       initializedFields ??= <String, int>{};
@@ -3182,7 +3182,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             offset);
       } else {
         return new FieldInitializer(builder.field, expression)
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..isSynthetic = isSynthetic;
       }
     } else {
       return buildInvalidInitializer(
@@ -3194,7 +3195,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Initializer buildSuperInitializer(
-      Constructor constructor, Arguments arguments,
+      bool isSynthetic, Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     if (member.isConst && !constructor.isConst) {
       return buildInvalidInitializer(
@@ -3204,7 +3205,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     needsImplicitSuperInitializer = false;
     return new SuperInitializer(constructor, arguments)
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isSynthetic = isSynthetic;
   }
 
   @override
@@ -3518,7 +3520,7 @@ class DelayedAssignment extends ContextAccessor {
       return accessor.buildFieldInitializer(initializedFields);
     }
     return helper.buildFieldInitializer(
-        accessor.plainNameForRead, offsetForToken(token), value);
+        false, accessor.plainNameForRead, offsetForToken(token), value);
   }
 }
 

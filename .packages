@@ -58,6 +58,7 @@ matcher:third_party/pkg/matcher/lib
 meta:pkg/meta/lib
 microlytics:pkg/microlytics/lib
 mime:third_party/pkg/mime/lib
+mockito:third_party/pkg/mockito/lib
 mustache4dart:third_party/pkg/mustache4dart/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
@@ -87,6 +88,7 @@ source_map_stack_trace:third_party/pkg/source_map_stack_trace/lib
 source_maps:third_party/pkg/source_maps/lib
 source_span:third_party/pkg/source_span/lib
 stack_trace:third_party/pkg/stack_trace/lib
+status_file:pkg/status_file/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
 telemetry:pkg/telemetry/lib

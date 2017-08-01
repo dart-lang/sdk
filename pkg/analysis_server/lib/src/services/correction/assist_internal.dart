@@ -128,6 +128,7 @@ class AssistProcessor {
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToExpressionFunctionBody();
     await _addProposal_convertFlutterChild();
+    await _addProposal_convertPartOfToUri();
     await _addProposal_convertToForIndexLoop();
     await _addProposal_convertToIsNot_onIs();
     await _addProposal_convertToIsNot_onNot();
@@ -653,6 +654,23 @@ class AssistProcessor {
       builder.addSimpleReplacement(replacementRange, code);
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_GETTER);
+  }
+
+  Future<Null> _addProposal_convertPartOfToUri() async {
+    PartOfDirective directive =
+        node.getAncestor((node) => node is PartOfDirective);
+    if (directive == null || directive.libraryName == null) {
+      return;
+    }
+    String libraryPath = unitLibraryElement.source.fullName;
+    String partPath = unit.element.source.fullName;
+    String relativePath = relative(libraryPath, from: dirname(partPath));
+    SourceRange replacementRange = range.node(directive.libraryName);
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(replacementRange, "'$relativePath'");
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_PART_OF_TO_URI);
   }
 
   Future<Null> _addProposal_convertToBlockFunctionBody() async {

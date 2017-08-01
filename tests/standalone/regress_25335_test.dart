@@ -25,7 +25,7 @@ main() {
   toSigned(1 << 32, 32);
 
   var l = new Int64List(1);
-  l[0] = 0xf8f7f6f5f4f3f2f1;
+  l[0] = 0x78f7f6f5f4f3f2f1;
 
   for (var i = 0; i < 20; i++) {
     bar(l);

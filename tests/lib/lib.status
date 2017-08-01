@@ -156,7 +156,7 @@ typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == drt || $runtime == ie11) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ie11) ]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
@@ -337,9 +337,6 @@ mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 # fstat bug, MG-479.
 mirrors/invocation_fuzz_test: Crash
-
-[ $compiler == none && $runtime == drt && $checked ]
-async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.

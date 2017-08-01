@@ -33,8 +33,6 @@ const String ANALYSIS_REQUEST_GET_NAVIGATION_OFFSET = 'offset';
 const String ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS =
     'analysis.handleWatchEvents';
 const String ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS_EVENTS = 'events';
-const String ANALYSIS_REQUEST_REANALYZE = 'analysis.reanalyze';
-const String ANALYSIS_REQUEST_REANALYZE_ROOTS = 'roots';
 const String ANALYSIS_REQUEST_SET_CONTEXT_ROOTS = 'analysis.setContextRoots';
 const String ANALYSIS_REQUEST_SET_CONTEXT_ROOTS_ROOTS = 'roots';
 const String ANALYSIS_REQUEST_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';

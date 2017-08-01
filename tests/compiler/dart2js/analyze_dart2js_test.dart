@@ -21,7 +21,23 @@ import 'related_types.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
-const Map<String, List<String>> WHITE_LIST = const {};
+const Map<String, List<String>> WHITE_LIST = const {
+  "pkg/front_end/lib/src/fasta/kernel/kernel_library_builder.dart": const [
+    "The getter 'iterator' is not defined for the class 'Object'.",
+  ],
+  "pkg/front_end/lib/src/fasta/type_inference/type_schema.dart": const [
+    "The class 'UnknownType' overrides 'operator==', but not 'get hashCode'."
+  ],
+  "pkg/kernel/lib/transformations/closure/": const [
+    "Duplicated library name 'kernel.transformations.closure.converter'",
+  ],
+  "pkg/kernel/lib/transformations/closure/info.dart": const [
+    "Types 'FunctionNode' and 'FunctionDeclaration' have no common subtypes."
+  ],
+  "third_party/pkg/collection/lib/src/functions.dart": const [
+    "Method type variables are treated as `dynamic` in `as` expressions."
+  ],
+};
 
 void main() {
   var uri = currentDirectory.resolve('pkg/compiler/lib/src/dart2js.dart');

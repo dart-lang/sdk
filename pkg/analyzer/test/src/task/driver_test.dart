@@ -11,9 +11,9 @@ import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../generated/test_support.dart';
 import 'test_support.dart';
@@ -36,7 +36,7 @@ class AbstractDriverTest {
   void setUp() {
     context = new _InternalAnalysisContextMock();
     analysisDriver = new AnalysisDriver(taskManager, workManagers, context);
-    when(context.aboutToComputeResult(anyObject, anyObject)).thenReturn(false);
+    when(context.aboutToComputeResult(any, any)).thenReturn(false);
   }
 }
 
@@ -136,14 +136,14 @@ class AnalysisDriverTest extends AbstractDriverTest {
     context.getCacheEntry(target).setState(result, CacheState.INVALID);
     // has result
     {
-      when(context.aboutToComputeResult(anyObject, result)).thenReturn(true);
+      when(context.aboutToComputeResult(any, result)).thenReturn(true);
       WorkOrder workOrder =
           analysisDriver.createWorkOrderForResult(target, result);
       expect(workOrder, isNull);
     }
     // no result
     {
-      when(context.aboutToComputeResult(anyObject, result)).thenReturn(false);
+      when(context.aboutToComputeResult(any, result)).thenReturn(false);
       WorkOrder workOrder =
           analysisDriver.createWorkOrderForResult(target, result);
       expect(workOrder, isNotNull);
@@ -230,13 +230,16 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_performAnalysisTask() {
     _configureDescriptors12();
-    when(workManager1.getNextResultPriority()).thenReturnList(
-        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
     when(workManager1.getNextResult())
         .thenReturn(new TargetedResult(target1, result1));
 
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NORMAL);
     expect(analysisDriver.performAnalysisTask(), true);
     expect(analysisDriver.performAnalysisTask(), true);
+
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NONE);
     expect(analysisDriver.performAnalysisTask(), false);
   }
 
@@ -270,12 +273,15 @@ class AnalysisDriverTest extends AbstractDriverTest {
     taskManager.addTaskDescriptor(descriptor1);
     taskManager.addTaskDescriptor(descriptor2);
     // configure WorkManager
-    when(workManager1.getNextResultPriority()).thenReturnList(
-        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NORMAL);
     when(workManager1.getNextResult())
         .thenReturn(new TargetedResult(target, resultB));
     // prepare work order
-    while (analysisDriver.performAnalysisTask()) {}
+    while (analysisDriver.performAnalysisTask()) {
+      when(workManager1.getNextResultPriority())
+          .thenReturn(WorkOrderPriority.NONE);
+    }
     Set<TaskDescriptor> expectedCycle = [descriptor1, descriptor2].toSet();
     expect(task1.dependencyCycle, isNotNull);
     expect(task1.dependencyCycle.map((workItem) => workItem.descriptor).toSet(),
@@ -311,8 +317,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
     taskManager.addTaskDescriptor(descriptor1);
     taskManager.addTaskDescriptor(descriptor2);
     // configure WorkManager
-    when(workManager1.getNextResultPriority()).thenReturnList(
-        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NORMAL);
     when(workManager1.getNextResult())
         .thenReturn(new TargetedResult(target, resultB));
     // prepare work order
@@ -344,8 +350,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
     taskManager.addTaskDescriptor(descriptor1);
     taskManager.addTaskDescriptor(descriptor2);
     // configure WorkManager
-    when(workManager1.getNextResultPriority()).thenReturnList(
-        <WorkOrderPriority>[WorkOrderPriority.NORMAL, WorkOrderPriority.NONE]);
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NORMAL);
     when(workManager1.getNextResult())
         .thenReturn(new TargetedResult(target, resultB));
     // prepare work order
@@ -361,6 +367,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
     expect(context.getCacheEntry(target).getValue(resultA), 10);
     expect(context.getCacheEntry(target).getValue(resultB), 20);
     // done
+    when(workManager1.getNextResultPriority())
+        .thenReturn(WorkOrderPriority.NONE);
     expect(analysisDriver.performAnalysisTask(), false);
   }
 
@@ -696,7 +704,7 @@ class WorkItemTest extends AbstractDriverTest {
     taskManager.addTaskDescriptor(task1);
     taskManager.addTaskDescriptor(task2);
     // configure mocks
-    when(context.aboutToComputeResult(anyObject, resultA)).thenReturn(true);
+    when(context.aboutToComputeResult(any, resultA)).thenReturn(true);
     // gather inputs
     WorkItem item = new WorkItem(context, target, task2, null, 0, null);
     WorkItem inputItem = item.gatherInputs(taskManager, []);
@@ -723,7 +731,7 @@ class WorkItemTest extends AbstractDriverTest {
     taskManager.addTaskDescriptor(task2);
     // configure ResultProvider
     // configure mocks
-    when(context.aboutToComputeResult(anyObject, resultA)).thenReturn(false);
+    when(context.aboutToComputeResult(any, resultA)).thenReturn(false);
     // gather inputs
     WorkItem item = new WorkItem(context, target, task2, null, 0, null);
     WorkItem inputItem = item.gatherInputs(taskManager, []);
@@ -816,7 +824,7 @@ class WorkOrderTest extends EngineTestCase {
  * A dummy [InternalAnalysisContext] that does not use [AnalysisDriver] itself,
  * but provides enough implementation for it to function.
  */
-class _InternalAnalysisContextMock extends TypedMock
+class _InternalAnalysisContextMock extends Mock
     implements InternalAnalysisContext {
   AnalysisCache analysisCache;
 
@@ -867,4 +875,4 @@ class _TestCycleAwareDependencyWalker extends CycleAwareDependencyWalker<int> {
   }
 }
 
-class _WorkManagerMock extends TypedMock implements WorkManager {}
+class _WorkManagerMock extends Mock implements WorkManager {}

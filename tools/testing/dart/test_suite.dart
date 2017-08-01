@@ -15,11 +15,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import "package:status_file/expectation.dart";
+
 import 'browser_test.dart';
 import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
-import 'expectation.dart';
 import 'expectation_set.dart';
 import 'html_test.dart' as html_test;
 import 'http_server.dart';

@@ -237,28 +237,6 @@
       </field>
     </params>
   </request>
-  <request method="reanalyze">
-    <p>
-      Used to force the re-analysis of everything contained in the specified
-      context roots. This should cause all previously computed analysis results
-      to be discarded and recomputed, and should cause all subscribed
-      notifications to be re-sent.
-    </p>
-    <params>
-      <field name="roots" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          A list of the context roots that are to be re-analyzed.
-        </p>
-        <p>
-          If no context roots are provided, then all current context roots
-          should be re-analyzed.
-        </p>
-      </field>
-    </params>
-  </request>
   <request method="setContextRoots">
     <p>
       Set the list of context roots that should be analyzed.
@@ -665,7 +643,7 @@
       </field>
     </result>
   </request>
-  <request method="getAvailableRefactorings">
+  <request method="getAvailableRefactorings" experimental="true">
     <p>
       Used to request a list of the kinds of refactorings that are valid for the
       given selection in the given file.
@@ -737,7 +715,7 @@
       </field>
     </result>
   </request>
-  <request method="getRefactoring">
+  <request method="getRefactoring" experimental="true">
     <p>
       Used to request the changes required to perform a refactoring.
     </p>
@@ -943,14 +921,14 @@
       </field>
     </object>
   </type>
-  <type name="RefactoringFeedback">
+  <type name="RefactoringFeedback" experimental="true">
     <p>
       An abstract superclass of all refactoring feedbacks.
     </p>
     <object>
     </object>
   </type>
-  <type name="RefactoringOptions">
+  <type name="RefactoringOptions" experimental="true">
     <p>
       An abstract superclass of all refactoring options.
     </p>

@@ -1272,9 +1272,10 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub =
       Code::ZoneHandle(StubCode::ICCallThroughFunction_entry()->code());
-  __ Comment("SwitchableCall");
+  const intptr_t receiver_idx = ic_data.TypeArgsLen() > 0 ? 1 : 0;
 
-  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ Comment("SwitchableCall");
+  __ LoadFromOffset(R0, SP, (argument_count - receiver_idx - 1) * kWordSize);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ ldr(TMP, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
   __ LoadUniqueObject(R5, ic_data);

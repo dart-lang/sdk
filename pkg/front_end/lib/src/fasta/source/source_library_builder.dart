@@ -68,6 +68,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final List<Import> imports = <Import>[];
 
+  final List<Export> exports = <Export>[];
+
   final Scope importScope;
 
   final Uri fileUri;
@@ -151,9 +153,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addExport(List<MetadataBuilder> metadata, String uri,
       Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    loader
-        .read(resolve(uri), charOffset, accessor: this)
-        .addExporter(this, combinators, charOffset);
+    var exportedLibrary = loader.read(resolve(uri), charOffset, accessor: this);
+    exportedLibrary.addExporter(this, combinators, charOffset);
+    exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
 
   void addImport(
@@ -207,6 +209,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addNamedMixinApplication(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -216,6 +219,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addField(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T type,
@@ -224,8 +228,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Token initializerTokenForInference,
       bool hasInitializer);
 
-  void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<Object> fieldsInfo) {
+  void addFields(String documentationComment, List<MetadataBuilder> metadata,
+      int modifiers, T type, List<Object> fieldsInfo) {
     for (int i = 0; i < fieldsInfo.length; i += 4) {
       String name = fieldsInfo[i];
       int charOffset = fieldsInfo[i + 1];
@@ -236,12 +240,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         Token beforeLast = fieldsInfo[i + 3];
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(metadata, modifiers, type, name, charOffset,
-          initializerTokenForInference, hasInitializer);
+      addField(documentationComment, metadata, modifiers, type, name,
+          charOffset, initializerTokenForInference, hasInitializer);
     }
   }
 
   void addProcedure(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
@@ -272,6 +277,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   void addFactoryMethod(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       ConstructorReferenceBuilder name,
@@ -336,7 +342,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             fileUri);
       }
       return existing
-        ..exports.merge(builder.exports,
+        ..exportScope.merge(builder.exportScope,
             (String name, Builder existing, Builder member) {
           return buildAmbiguousBuilder(name, existing, member, charOffset);
         });
@@ -497,7 +503,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exports.forEach((String name, Builder member) {
+      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
         addToScope(name, member, -1, true);
       });
     }

@@ -53,7 +53,11 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+      options: [
+        Flags.analyzeAll,
+        Flags.useKernelInSsa,
+        Flags.enableAssertMessage
+      ]);
   compiler.librariesToAnalyzeWhenRun = uris;
   await compiler.run(entryPoint);
 
@@ -66,7 +70,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
           options: [
             Flags.analyzeOnly,
             Flags.enableAssertMessage,
-            Flags.loadFromDill
+            Flags.useKernel
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
@@ -79,7 +83,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
       Expect.isNotNull(library, 'No library found for $uri');
       program.mainMethod = compiler.backend.kernelTask.kernel
           .functionToIr(library.findExported(Identifiers.main));
-      compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
+      compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
           elementMap, compiler2.reporter, compiler2.measurer, program);
       await compiler2.run(uri);
       return compiler2;
@@ -100,7 +104,11 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.useKernel, Flags.enableAssertMessage]);
+      options: [
+        Flags.analyzeAll,
+        Flags.useKernelInSsa,
+        Flags.enableAssertMessage
+      ]);
   await compiler.run(entryPoint);
 
   if (printSteps) {
@@ -109,16 +117,12 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   Compiler compiler2 = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [
-        Flags.analyzeOnly,
-        Flags.enableAssertMessage,
-        Flags.loadFromDill
-      ]);
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
   KernelToElementMapForImpact elementMap = frontendStrategy.elementMap;
-  compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
+  compiler2.libraryLoader = new MemoryKernelLibraryLoaderTask(
       elementMap,
       compiler2.reporter,
       compiler2.measurer,
@@ -127,12 +131,12 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   return new Pair<Compiler, Compiler>(compiler, compiler2);
 }
 
-class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
+class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
   final ir.Program program;
 
-  MemoryDillLibraryLoaderTask(KernelToElementMapForImpact elementMap,
+  MemoryKernelLibraryLoaderTask(KernelToElementMapForImpact elementMap,
       DiagnosticReporter reporter, Measurer measurer, this.program)
-      : super(elementMap, null, null, reporter, measurer);
+      : super(null, elementMap, null, reporter, measurer);
 
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) async {
@@ -188,7 +192,7 @@ Future<Compiler> compileWithDill(
   }
   Compiler compiler = compilerFor(
       entryPoint: dillFile,
-      options: [Flags.loadFromDill]..addAll(options),
+      options: [Flags.useKernel]..addAll(options),
       outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler.resolution.retainCachesForTesting = true;
