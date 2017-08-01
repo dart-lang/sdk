@@ -1689,6 +1689,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
+    if (_kernelContext != null) {
+      _typeAliases ??= _kernelContext.library.typedefs
+          .map((k) => new FunctionTypeAliasElementImpl.forKernel(this, k))
+          .toList(growable: false);
+    }
     if (_unlinkedUnit != null) {
       _typeAliases ??= _unlinkedUnit.typedefs.map((t) {
         if (t.style == TypedefStyle.functionType) {
@@ -4983,6 +4988,11 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   final UnlinkedTypedef _unlinkedTypedef;
 
   /**
+   * The kernel of the element.
+   */
+  final kernel.Typedef _kernel;
+
+  /**
    * A list containing all of the parameters defined by this type alias.
    */
   List<ParameterElement> _parameters;
@@ -5006,13 +5016,23 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    */
   FunctionTypeAliasElementImpl(String name, int nameOffset)
       : _unlinkedTypedef = null,
+        _kernel = null,
         super(name, nameOffset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  FunctionTypeAliasElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, this._kernel)
+      : _unlinkedTypedef = null,
+        super.forSerialized(enclosingUnit);
 
   /**
    * Initialize a newly created type alias element to have the given [name].
    */
   FunctionTypeAliasElementImpl.forNode(Identifier name)
       : _unlinkedTypedef = null,
+        _kernel = null,
         super.forNode(name);
 
   /**
@@ -5020,7 +5040,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    */
   FunctionTypeAliasElementImpl.forSerialized(
       this._unlinkedTypedef, CompilationUnitElementImpl enclosingUnit)
-      : super.forSerialized(enclosingUnit);
+      : _kernel = null,
+        super.forSerialized(enclosingUnit);
 
   @override
   int get codeLength {
@@ -5061,7 +5082,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       _enclosingElement as CompilationUnitElementImpl;
 
   @override
-  List<kernel.TypeParameter> get kernelTypeParams => null;
+  List<kernel.TypeParameter> get kernelTypeParams => _kernel?.typeParameters;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
@@ -5077,6 +5098,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   String get name {
+    if (_kernel != null) {
+      return _kernel.name;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.name;
     }
@@ -5094,9 +5118,21 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (_unlinkedTypedef != null) {
-      _parameters ??= ParameterElementImpl.resynthesizeList(
-          _unlinkedTypedef.parameters, this);
+    if (_parameters == null) {
+      if (_kernel != null) {
+        var type = _kernel.type as kernel.FunctionType;
+
+        var parameters =
+            enclosingUnit._kernelContext.getFunctionTypeParameters(type);
+        var positionalParameters = parameters[0];
+        var namedParameters = parameters[1];
+        _parameters = ParameterElementImpl.forKernelParameters(this,
+            type.requiredParameterCount, positionalParameters, namedParameters);
+      }
+      if (_unlinkedTypedef != null) {
+        _parameters = ParameterElementImpl.resynthesizeList(
+            _unlinkedTypedef.parameters, this);
+      }
     }
     return _parameters ?? const <ParameterElement>[];
   }
@@ -5116,10 +5152,17 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (_unlinkedTypedef != null && _returnType == null) {
-      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          this, _unlinkedTypedef.returnType,
-          declaredType: true);
+    if (_returnType == null) {
+      if (_kernel != null) {
+        var type = _kernel.type as kernel.FunctionType;
+        _returnType =
+            enclosingUnit._kernelContext.getType(this, type.returnType);
+      }
+      if (_unlinkedTypedef != null) {
+        _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            this, _unlinkedTypedef.returnType,
+            declaredType: true);
+      }
     }
     return _returnType;
   }
@@ -5131,8 +5174,10 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    if (_unlinkedTypedef != null && _type == null) {
-      _type = new FunctionTypeImpl.forTypedef(this);
+    if (_type == null) {
+      if (_kernel != null || _unlinkedTypedef != null) {
+        _type = new FunctionTypeImpl.forTypedef(this);
+      }
     }
     return _type;
   }
@@ -5674,16 +5719,16 @@ class HideElementCombinatorImpl implements HideElementCombinator {
         _kernel = null;
 
   /**
-   * Initialize using the given serialized information.
-   */
-  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
-      : _kernel = null;
-
-  /**
    * Initialize using the given kernel.
    */
   HideElementCombinatorImpl.forKernel(this._kernel)
       : _unlinkedCombinator = null;
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : _kernel = null;
 
   @override
   List<String> get hiddenNames {
@@ -6065,6 +6110,13 @@ abstract class KernelLibraryResynthesizerContext {
    * Return the [Expression] for the given kernel.
    */
   Expression getExpression(kernel.Expression expression);
+
+  /**
+   * Return the list with exactly two elements - positional and named parameter
+   * lists.
+   */
+  List<List<kernel.VariableDeclaration>> getFunctionTypeParameters(
+      kernel.FunctionType functionType);
 
   /**
    * Return the [InterfaceType] for the given Kernel [type], or `null` if the
@@ -9134,16 +9186,16 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
         _kernel = null;
 
   /**
-   * Initialize using the given serialized information.
-   */
-  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
-      : _kernel = null;
-
-  /**
    * Initialize using the given kernel.
    */
   ShowElementCombinatorImpl.forKernel(this._kernel)
       : _unlinkedCombinator = null;
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : _kernel = null;
 
   @override
   int get end {

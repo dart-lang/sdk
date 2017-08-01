@@ -666,11 +666,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_main_typedef() async {
-    await super.test_main_typedef();
-  }
-
-  @failingTest
   test_metadata_classTypeAlias() async {
     await super.test_metadata_classTypeAlias();
   }
@@ -740,11 +735,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_metadata_simpleFormalParameter_withDefault() async {
     await super.test_metadata_simpleFormalParameter_withDefault();
-  }
-
-  @failingTest
-  test_metadata_typeParameter_ofTypedef() async {
-    await super.test_metadata_typeParameter_ofTypedef();
   }
 
   @failingTest
@@ -928,58 +918,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_typedef_parameter_parameters() async {
-    await super.test_typedef_parameter_parameters();
-  }
-
-  @failingTest
-  test_typedef_parameter_parameters_in_generic_class() async {
-    await super.test_typedef_parameter_parameters_in_generic_class();
-  }
-
-  @failingTest
-  test_typedef_parameter_return_type() async {
-    await super.test_typedef_parameter_return_type();
-  }
-
-  @failingTest
-  test_typedef_parameter_type() async {
-    await super.test_typedef_parameter_type();
-  }
-
-  @failingTest
-  test_typedef_parameter_type_generic() async {
-    await super.test_typedef_parameter_type_generic();
-  }
-
-  @failingTest
-  test_typedef_parameters() async {
-    await super.test_typedef_parameters();
-  }
-
-  @failingTest
-  test_typedef_return_type() async {
-    await super.test_typedef_return_type();
-  }
-
-  @failingTest
-  test_typedef_return_type_generic() async {
-    await super.test_typedef_return_type_generic();
-  }
-
-  @failingTest
-  test_typedef_return_type_implicit() async {
-    await super.test_typedef_return_type_implicit();
-  }
-
-  @failingTest
-  test_typedef_return_type_void() async {
-    await super.test_typedef_return_type_void();
-  }
-
-  @failingTest
-  test_typedef_type_parameters() async {
-    await super.test_typedef_type_parameters();
+  test_typedef_parameters_named() async {
+    await super.test_typedef_parameters_named();
   }
 
   @failingTest
@@ -995,16 +935,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_typedef_type_parameters_bound_recursive2() async {
     await super.test_typedef_type_parameters_bound_recursive2();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_f_bound_complex() async {
-    await super.test_typedef_type_parameters_f_bound_complex();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_f_bound_simple() async {
-    await super.test_typedef_type_parameters_f_bound_simple();
   }
 
   @failingTest

@@ -483,6 +483,27 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   @override
+  List<List<kernel.VariableDeclaration>> getFunctionTypeParameters(
+      kernel.FunctionType type) {
+    int positionalCount = type.positionalParameters.length;
+    var positionalParameters =
+        new List<kernel.VariableDeclaration>(positionalCount);
+    for (int i = 0; i < positionalCount; i++) {
+      String name = i < type.positionalParameterNames.length
+          ? type.positionalParameterNames[i]
+          : 'arg_$i';
+      positionalParameters[i] = new kernel.VariableDeclaration(name,
+          type: type.positionalParameters[i]);
+    }
+
+    var namedParameters = type.namedParameters
+        .map((k) => new kernel.VariableDeclaration(k.name, type: k.type))
+        .toList(growable: false);
+
+    return [positionalParameters, namedParameters];
+  }
+
+  @override
   InterfaceType getInterfaceType(
       ElementImpl context, kernel.Supertype kernelType) {
     return _getInterfaceType(
@@ -540,15 +561,12 @@ class _KernelLibraryResynthesizerContextImpl
         return new TypeParameterElementImpl.forKernel(functionElement, k);
       }).toList(growable: false);
 
+      var parameters = getFunctionTypeParameters(kernelType);
       functionElement.parameters = ParameterElementImpl.forKernelParameters(
           functionElement,
           kernelType.requiredParameterCount,
-          kernelType.positionalParameters
-              .map((t) => new kernel.VariableDeclaration(null, type: t))
-              .toList(),
-          kernelType.namedParameters
-              .map((t) => new kernel.VariableDeclaration(t.name, type: t.type))
-              .toList());
+          parameters[0],
+          parameters[1]);
 
       functionElement.returnType =
           getType(functionElement, kernelType.returnType);

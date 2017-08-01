@@ -9440,6 +9440,13 @@ typedef dynamic F(dynamic x, dynamic y);
 ''');
   }
 
+  test_typedef_parameters_named() async {
+    var library = await checkLibrary('typedef F({y, z, x});');
+    checkElementText(library, r'''
+typedef dynamic F({dynamic y}, {dynamic z}, {dynamic x});
+''');
+  }
+
   test_typedef_return_type() async {
     var library = await checkLibrary('typedef int F();');
     checkElementText(library, r'''
