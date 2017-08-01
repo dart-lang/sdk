@@ -591,7 +591,7 @@ class ConstantEvaluationEngine {
 
         DartObjectImpl fieldValue;
         if (strongMode) {
-          fieldValue = field.constantInitializer.accept(fieldInitVisitor);
+          fieldValue = field.constantInitializer?.accept(fieldInitVisitor);
         } else {
           fieldValue = field.evaluationResult?.value;
         }
