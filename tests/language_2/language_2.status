@@ -184,6 +184,9 @@ assertion_test: RuntimeError
 [ $compiler == dart2js && $runtime == jsshell && $checked ]
 assertion_test: RuntimeError
 
+[ $compiler == dart2js && $runtime == drt && $checked ]
+assertion_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_const_function_test/01: Crash
 assign_instance_method_negative_test: Crash
