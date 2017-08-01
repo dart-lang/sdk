@@ -1,6 +1,8 @@
 name: migration
 #version: do-not-upload
 dependencies:
+  args:
+    path: ../../third_party/pkg/args
   path:
     path: ../../third_party/pkg/path
   status_file:
