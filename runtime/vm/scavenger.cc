@@ -948,4 +948,11 @@ void Scavenger::Evacuate() {
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
 }
 
+int64_t Scavenger::UsedInWords() const {
+  uword saved_top = FlushTLS();
+  int64_t used_in_words = (top_ - FirstObjectStart()) >> kWordSizeLog2;
+  UnflushTLS(saved_top);
+  return used_in_words;
+}
+
 }  // namespace dart

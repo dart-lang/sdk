@@ -201,9 +201,7 @@ class Scavenger {
     end_ = value;
   }
 
-  int64_t UsedInWords() const {
-    return (top_ - FirstObjectStart()) >> kWordSizeLog2;
-  }
+  int64_t UsedInWords() const;
   int64_t CapacityInWords() const { return to_->size_in_words(); }
   int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
