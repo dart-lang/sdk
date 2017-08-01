@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# TODO(bkonyi): Fix this test.
-package_resource_test: Skip
-
 # All static_tests have expected compile-time errors.
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 core_runtime_types_static_test: MissingCompileTimeError
@@ -208,7 +205,6 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060
-package_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 # void should be a valid symbol.
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit || ($compiler == dart2js && !$dart2js_with_kernel) ]
@@ -621,6 +617,3 @@ regexp/global_test: Skip # Issue 21709
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
-
-[ $compiler == dart2js && ! $browser ]
-package_resource_test: RuntimeError # Issue 26842
