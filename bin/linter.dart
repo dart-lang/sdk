@@ -185,6 +185,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
         machineOutput: options['machine'],
         quiet: options['quiet'])
       ..write();
+    // ignore: avoid_catches_without_on_clauses
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
   Please report it at: github.com/dart-lang/linter/issues

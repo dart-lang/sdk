@@ -49,18 +49,16 @@ Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
 
 Iterable<ConstructorFieldInitializer>
     _getConstructorFieldInitializersInInitializers(
-        ConstructorDeclaration node) {
-  return node.initializers
-      .where((e) => e is ConstructorFieldInitializer)
-      .map((e) => (e as ConstructorFieldInitializer));
-}
+            ConstructorDeclaration node) =>
+        node.initializers
+            .where((e) => e is ConstructorFieldInitializer)
+            .map((e) => (e as ConstructorFieldInitializer));
 
 Element _getLeftElement(AssignmentExpression assignment) => DartTypeUtilities
     .getCanonicalElementFromIdentifier(assignment.leftHandSide);
 
-Iterable<Element> _getParameters(ConstructorDeclaration node) {
-  return node.parameters.parameters.map((e) => e.identifier.bestElement);
-}
+Iterable<Element> _getParameters(ConstructorDeclaration node) =>
+    node.parameters.parameters.map((e) => e.identifier.bestElement);
 
 Element _getRightElement(AssignmentExpression assignment) => DartTypeUtilities
     .getCanonicalElementFromIdentifier(assignment.rightHandSide);

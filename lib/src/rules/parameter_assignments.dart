@@ -91,14 +91,13 @@ bool _isFormalParameterReassigned(
     (assignment.leftHandSide as SimpleIdentifier).staticElement ==
         parameter.element;
 
-bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) {
-  return n is PrefixExpression &&
-          n.operand is SimpleIdentifier &&
-          (n.operand as SimpleIdentifier).staticElement == parameter.element ||
-      n is PostfixExpression &&
-          n.operand is SimpleIdentifier &&
-          (n.operand as SimpleIdentifier).staticElement == parameter.element;
-}
+bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
+    n is PrefixExpression &&
+        n.operand is SimpleIdentifier &&
+        (n.operand as SimpleIdentifier).staticElement == parameter.element ||
+    n is PostfixExpression &&
+        n.operand is SimpleIdentifier &&
+        (n.operand as SimpleIdentifier).staticElement == parameter.element;
 
 class ParameterAssignments extends LintRule {
   _Visitor _visitor;

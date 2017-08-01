@@ -41,9 +41,8 @@ class Point {
 ''';
 
 bool _hasNewInvocation(DartType returnType, FunctionBody body) {
-  bool _isInstanceCreationExpression(AstNode node) {
-    return node is InstanceCreationExpression && node.bestType == returnType;
-  }
+  bool _isInstanceCreationExpression(AstNode node) =>
+      node is InstanceCreationExpression && node.bestType == returnType;
 
   return DartTypeUtilities
       .traverseNodesInDFS(body)

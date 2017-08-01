@@ -323,7 +323,7 @@ class HtmlElement {}
           resource.File file = provider.getResource(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
-        } catch (exception) {
+        } on FormatException {
           return null;
         }
       }
@@ -336,7 +336,7 @@ class HtmlElement {}
           resource.File file = provider.getResource(filePath);
           Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
-        } catch (exception) {
+        } on FormatException {
           return null;
         }
       }

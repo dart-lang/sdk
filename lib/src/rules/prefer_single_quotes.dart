@@ -92,10 +92,9 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   /// Strings can be within interpolations (ie, nested). Check like this.
-  bool isNestedString(AstNode node) {
-    // careful: node.getAncestor will check the node itself.
-    return node.parent?.getAncestor((p) => p is StringInterpolation) != null;
-  }
+  bool isNestedString(AstNode node) =>
+      // careful: node.getAncestor will check the node itself.
+      node.parent?.getAncestor((p) => p is StringInterpolation) != null;
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
@@ -119,14 +118,10 @@ class _IsOrContainsStringVisitor extends UnifyingAstVisitor<bool> {
   bool isOrContainsString(AstNode node) => node.accept(this);
 
   @override
-  bool visitSimpleStringLiteral(SimpleStringLiteral string) {
-    return true;
-  }
+  bool visitSimpleStringLiteral(SimpleStringLiteral string) => true;
 
   @override
-  bool visitStringInterpolation(StringInterpolation string) {
-    return true;
-  }
+  bool visitStringInterpolation(StringInterpolation string) => true;
 }
 
 /// The only way to get immediate children in a unified, typesafe way, is to

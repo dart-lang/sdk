@@ -39,9 +39,8 @@ bool _isFunctionExpression(AstNode node) => node is FunctionExpression;
 
 bool _isReturnStatement(AstNode node) => node is ReturnStatement;
 
-bool _returnsThis(AstNode node) {
-  return (node as ReturnStatement).expression is ThisExpression;
-}
+bool _returnsThis(AstNode node) =>
+    (node as ReturnStatement).expression is ThisExpression;
 
 class AvoidReturningThis extends LintRule {
   _Visitor _visitor;

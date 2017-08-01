@@ -15,14 +15,14 @@ linter:
     - annotate_overrides
     - avoid_annotating_with_dynamic
 #    - avoid_as
-#    - avoid_catches_without_on_clauses
+    - avoid_catches_without_on_clauses
     - avoid_catching_errors
 #    - avoid_classes_with_only_static_members
     - avoid_empty_else
 #    - avoid_function_literals_in_foreach_calls
     - avoid_init_to_null
     - avoid_null_checks_in_equality_operators
-#    - avoid_positional_boolean_parameters
+    - avoid_positional_boolean_parameters
     - avoid_return_types_on_setters
     - avoid_returning_null
     - avoid_returning_this
@@ -69,10 +69,10 @@ linter:
     - prefer_const_constructors_in_immutables
     - prefer_constructors_over_static_methods
     - prefer_contains
-#    - prefer_expression_function_bodies
+    - prefer_expression_function_bodies
     - prefer_final_fields
 #    - prefer_final_locals
-#    - prefer_foreach
+    - prefer_foreach
 #    - prefer_function_declarations_over_variables
     - prefer_initializing_formals
 #    - prefer_interpolation_to_compose_strings

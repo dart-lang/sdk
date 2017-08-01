@@ -207,17 +207,15 @@ class _CascadableExpression {
   }
 
   factory _CascadableExpression._fromPrefixedIdentifier(
-      PrefixedIdentifier node) {
-    return new _CascadableExpression._internal(
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.prefix), [],
-        canJoin: true, canReceive: true, canBeCascaded: true);
-  }
+          PrefixedIdentifier node) =>
+      new _CascadableExpression._internal(
+          DartTypeUtilities.getCanonicalElementFromIdentifier(node.prefix), [],
+          canJoin: true, canReceive: true, canBeCascaded: true);
 
-  factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
-    return new _CascadableExpression._internal(
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target), [],
-        canJoin: true, canReceive: true, canBeCascaded: true);
-  }
+  factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) =>
+      new _CascadableExpression._internal(
+          DartTypeUtilities.getCanonicalElementFromIdentifier(node.target), [],
+          canJoin: true, canReceive: true, canBeCascaded: true);
 
   _CascadableExpression._internal(this.element, this.criticalNodes,
       {this.canJoin,

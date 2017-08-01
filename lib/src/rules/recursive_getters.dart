@@ -101,12 +101,11 @@ class _Visitor extends SimpleAstVisitor {
 
   void _verifyElement(AstNode node, ExecutableElement element) {
     final nodes = DartTypeUtilities.traverseNodesInDFS(node);
-
-    for (final n in nodes.where((n) =>
-        n is SimpleIdentifier &&
-        element == n.staticElement &&
-        n.accept(visitor))) {
-      rule.reportLint(n);
-    }
+    nodes
+        .where((n) =>
+            n is SimpleIdentifier &&
+            element == n.staticElement &&
+            n.accept(visitor))
+        .forEach(rule.reportLint);
   }
 }

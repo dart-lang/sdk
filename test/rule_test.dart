@@ -436,7 +436,8 @@ testRule(String ruleName, File file, {bool debug: false}) {
     });
     try {
       expect(actual, unorderedMatches(expected));
-    } catch (e) {
+      // ignore: avoid_catches_without_on_clauses
+    } catch (_) {
       if (debug) {
         // Dump results for debugging purposes.
 

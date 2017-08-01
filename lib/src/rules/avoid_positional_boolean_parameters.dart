@@ -32,9 +32,8 @@ new Button(ButtonState.enabled);
 
 ''';
 
-bool _hasInheritedMethod(MethodDeclaration node) {
-  return DartTypeUtilities.lookUpInheritedMethod(node) != null;
-}
+bool _hasInheritedMethod(MethodDeclaration node) =>
+    DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
 bool _isNamedParameter(FormalParameter node) =>
     node.kind == ParameterKind.NAMED;

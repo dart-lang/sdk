@@ -61,7 +61,7 @@ class Visitor extends SimpleAstVisitor {
         if (source != null) {
           try {
             new RegExp(source);
-          } catch (_) {
+          } on FormatException {
             rule.reportLint(sourceExpression);
           }
         }

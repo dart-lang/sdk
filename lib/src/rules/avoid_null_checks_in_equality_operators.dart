@@ -48,21 +48,19 @@ bool _isComparingParameterWithNull(BinaryExpression node, Element parameter) =>
         (DartTypeUtilities.isNullLiteral(node.rightOperand) &&
             _isParameter(node.leftOperand, parameter)));
 
-bool _isParameter(Expression expression, Element parameter) {
-  return DartTypeUtilities.getCanonicalElementFromIdentifier(expression) ==
-      parameter;
-}
+bool _isParameter(Expression expression, Element parameter) =>
+    DartTypeUtilities.getCanonicalElementFromIdentifier(expression) ==
+    parameter;
 
-bool _isParameterWithQuestion(AstNode node, Element parameter) {
-  return (node is PropertyAccess &&
-          node.operator?.type == TokenType.QUESTION_PERIOD &&
-          DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) ==
-              parameter) ||
-      (node is MethodInvocation &&
-          node.operator?.type == TokenType.QUESTION_PERIOD &&
-          DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) ==
-              parameter);
-}
+bool _isParameterWithQuestion(AstNode node, Element parameter) =>
+    (node is PropertyAccess &&
+        node.operator?.type == TokenType.QUESTION_PERIOD &&
+        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) ==
+            parameter) ||
+    (node is MethodInvocation &&
+        node.operator?.type == TokenType.QUESTION_PERIOD &&
+        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) ==
+            parameter);
 
 bool _isParameterWithQuestionQuestion(
         BinaryExpression node, Element parameter) =>
@@ -94,12 +92,11 @@ class _Visitor extends SimpleAstVisitor {
     if (node.name.token?.type == TokenType.EQ_EQ && parameters?.length == 1) {
       final parameter = DartTypeUtilities
           .getCanonicalElementFromIdentifier(parameters.first.identifier);
-      bool checkIfParameterIsNull(AstNode node) {
-        return _isParameterWithQuestion(node, parameter) ||
-            (node is BinaryExpression &&
-                (_isParameterWithQuestionQuestion(node, parameter) ||
-                    _isComparingParameterWithNull(node, parameter)));
-      }
+      bool checkIfParameterIsNull(AstNode node) =>
+          _isParameterWithQuestion(node, parameter) ||
+          (node is BinaryExpression &&
+              (_isParameterWithQuestionQuestion(node, parameter) ||
+                  _isComparingParameterWithNull(node, parameter)));
 
       DartTypeUtilities
           .traverseNodesInDFS(node.body)

@@ -45,10 +45,9 @@ final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
   new InterfaceTypeDefinition(_exceptionClassName, _library),
   new InterfaceTypeDefinition(_errorClassName, _library)
 ]);
-bool _isThrowable(DartType type) {
-  return type.isDynamic ||
-      DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
-}
+bool _isThrowable(DartType type) =>
+    type.isDynamic ||
+    DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
 
 class OnlyThrowErrors extends LintRule {
   _Visitor _visitor;
