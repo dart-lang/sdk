@@ -183,6 +183,7 @@ abstract class InferrerEngine {
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledSelector(
+      CallType callType,
       ast.Node node,
       Selector selector,
       TypeMask mask,
@@ -200,8 +201,8 @@ abstract class InferrerEngine {
       ArgumentsTypes arguments, Selector selector, TypeMask mask,
       {bool remove, bool addToQueue: true});
 
-  void updateSelectorInMember(
-      MemberEntity owner, ast.Node node, Selector selector, TypeMask mask);
+  void updateSelectorInMember(MemberEntity owner, CallType callType,
+      ast.Node node, Selector selector, TypeMask mask);
 
   /// Returns the return type of [element].
   TypeInformation returnTypeOfMember(MemberEntity element);
@@ -357,30 +358,34 @@ class InferrerEngineImpl extends InferrerEngine {
     return returnType;
   }
 
-  void updateSelectorInMember(
-      MemberEntity owner, ast.Node node, Selector selector, TypeMask mask) {
+  void updateSelectorInMember(MemberEntity owner, CallType callType,
+      ast.Node node, Selector selector, TypeMask mask) {
     GlobalTypeInferenceElementData data = dataOfMember(owner);
-    if (node.asSendSet() != null) {
-      if (selector.isSetter || selector.isIndexSet) {
+    assert(validCallType(callType, node));
+    switch (callType) {
+      case CallType.complex:
+        if (selector.isSetter || selector.isIndexSet) {
+          data.setTypeMask(node, mask);
+        } else if (selector.isGetter || selector.isIndex) {
+          data.setGetterTypeMaskInComplexSendSet(node, mask);
+        } else {
+          assert(selector.isOperator);
+          data.setOperatorTypeMaskInComplexSendSet(node, mask);
+        }
+        break;
+      case CallType.access:
         data.setTypeMask(node, mask);
-      } else if (selector.isGetter || selector.isIndex) {
-        data.setGetterTypeMaskInComplexSendSet(node, mask);
-      } else {
-        assert(selector.isOperator);
-        data.setOperatorTypeMaskInComplexSendSet(node, mask);
-      }
-    } else if (node.asSend() != null) {
-      data.setTypeMask(node, mask);
-    } else {
-      assert(node.asForIn() != null);
-      if (selector == Selectors.iterator) {
-        data.setIteratorTypeMask(node, mask);
-      } else if (selector == Selectors.current) {
-        data.setCurrentTypeMask(node, mask);
-      } else {
-        assert(selector == Selectors.moveNext);
-        data.setMoveNextTypeMask(node, mask);
-      }
+        break;
+      case CallType.forIn:
+        if (selector == Selectors.iterator) {
+          data.setIteratorTypeMask(node, mask);
+        } else if (selector == Selectors.current) {
+          data.setCurrentTypeMask(node, mask);
+        } else {
+          assert(selector == Selectors.moveNext);
+          data.setMoveNextTypeMask(node, mask);
+        }
+        break;
     }
   }
 
@@ -976,6 +981,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   TypeInformation registerCalledSelector(
+      CallType callType,
       ast.Node node,
       Selector selector,
       TypeMask mask,
@@ -996,6 +1002,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
         types.currentMember,
+        callType,
         node,
         caller,
         selector,
