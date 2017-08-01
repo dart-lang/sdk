@@ -34,7 +34,8 @@ class IncrementalKernelGeneratorTest {
   IncrementalKernelGeneratorImpl incrementalKernelGenerator;
 
   /// Compute the initial [Program] for the given [entryPoint].
-  Future<Program> getInitialState(Uri entryPoint) async {
+  Future<Program> getInitialState(Uri entryPoint,
+      {bool setPackages: true}) async {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
 
@@ -46,8 +47,11 @@ class IncrementalKernelGeneratorTest {
 //      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
-      ..dartLibraries = dartLibraries
-      ..packagesFileUri = Uri.parse('file:///test/.packages');
+      ..dartLibraries = dartLibraries;
+
+    if (setPackages) {
+      compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
+    }
     incrementalKernelGenerator = await IncrementalKernelGenerator
         .newInstance(compilerOptions, entryPoint, watch: watchFn);
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
@@ -228,6 +232,30 @@ static method main() → dynamic {
 }
 ''');
     }
+  }
+
+  test_inferPackagesFile() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+import "package:test/a.dart";
+var b = a;
+''');
+
+    // Ensures that the `.packages` file can be discovered automatically
+    // from the entry point file.
+    Program program = await getInitialState(bUri, setPackages: false);
+    Library library = _getLibrary(program, bUri);
+    expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "package:test/a.dart" as a;
+
+static field core::int b = a::a;
+''');
   }
 
   test_watch() async {

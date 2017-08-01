@@ -99,7 +99,7 @@ abstract class IncrementalKernelGenerator {
   static Future<IncrementalKernelGenerator> newInstance(
       CompilerOptions options, Uri entryPoint,
       {WatchUsedFilesFn watch}) async {
-    var processedOptions = new ProcessedOptions(options);
+    var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
     var uriTranslator = await processedOptions.getUriTranslator();
     return new IncrementalKernelGeneratorImpl(
         processedOptions, uriTranslator, entryPoint,
