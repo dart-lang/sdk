@@ -60,7 +60,7 @@ class AnalysisGetImportElementsIntegrationTest
     });
   }
 
-  test_getImportedElements() async {
+  test_getImportedElements_noEdits() async {
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
