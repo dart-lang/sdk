@@ -4,7 +4,9 @@
 
 library fasta.diet_listener;
 
-import 'package:kernel/ast.dart' show AsyncMarker, Class, InterfaceType;
+import 'package:kernel/ast.dart'
+    show AsyncMarker, Class, InterfaceType, Typedef;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -195,12 +197,15 @@ class DietListener extends StackListener {
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
-    if (equals != null) {
-      // This is a `typedef NAME = TYPE`.
-      discard(2); // Name and metadata.
-    } else {
-      discard(3); // Name, endToken, and metadata.
-    }
+
+    if (equals == null) pop(); // endToken
+    String name = pop();
+    Token metadata = pop();
+
+    Builder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
+    parseMetadata(typedefBuilder, metadata,
+        (typedefBuilder.target as Typedef).addAnnotation);
+
     checkEmpty(typedefKeyword.charOffset);
   }
 
@@ -474,15 +479,11 @@ class DietListener extends StackListener {
     Token metadata = pop();
     assert(currentClass == null);
     assert(memberScope == library.scope);
+
     Builder classBuilder = lookupBuilder(token, null, name);
-    if (metadata != null) {
-      StackListener listener = createListener(classBuilder, memberScope, false);
-      Parser parser = new Parser(listener);
-      parser.parseMetadataStar(metadata);
-      List metadataConstants = listener.finishMetadata();
-      Class cls = classBuilder.target;
-      metadataConstants.forEach(cls.addAnnotation);
-    }
+    parseMetadata(
+        classBuilder, metadata, (classBuilder.target as Class).addAnnotation);
+
     currentClass = classBuilder;
     memberScope = currentClass.scope;
   }
@@ -655,5 +656,16 @@ class DietListener extends StackListener {
   @override
   void debugEvent(String name) {
     // printEvent(name);
+  }
+
+  void parseMetadata(Builder builder, Token metadata,
+      void addAnnotation(Expression annotation)) {
+    if (metadata != null) {
+      var listener = createListener(builder, memberScope, false);
+      var parser = new Parser(listener);
+      parser.parseMetadataStar(metadata);
+      List<Expression> metadataConstants = listener.finishMetadata();
+      metadataConstants.forEach(addAnnotation);
+    }
   }
 }

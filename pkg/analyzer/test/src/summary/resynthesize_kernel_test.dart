@@ -691,11 +691,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_metadata_functionTypeAlias() async {
-    await super.test_metadata_functionTypeAlias();
-  }
-
-  @failingTest
   test_metadata_functionTypedFormalParameter() async {
     await super.test_metadata_functionTypedFormalParameter();
   }
