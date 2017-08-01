@@ -18241,6 +18241,16 @@ RawInteger* Integer::AsValidInteger() const {
   return raw();
 }
 
+const char* Integer::ToHexCString(Zone* zone) const {
+  ASSERT(IsSmi() || IsMint());  // Bigint has its own implementation.
+  int64_t value = AsInt64Value();
+  if (value < 0) {
+    return OS::SCreate(zone, "-0x%" PX64, static_cast<uint64_t>(-value));
+  } else {
+    return OS::SCreate(zone, "0x%" PX64, static_cast<uint64_t>(value));
+  }
+}
+
 RawInteger* Integer::ArithmeticOp(Token::Kind operation,
                                   const Integer& other,
                                   Heap::Space space) const {
