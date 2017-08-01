@@ -600,6 +600,3 @@ regexp/pcre_test: Pass, Slow # Issue 22008
 
 [ $compiler == dart2js && ! $browser ]
 package_resource_test: RuntimeError # Issue 26842
-
-[ $compiler == dartk && $runtime == vm ]
-map_keys2_test: RuntimeError
