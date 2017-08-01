@@ -2042,8 +2042,6 @@ final compileErrorTests = new HashSet<String>.from([
   'corelib/list_contains_argument_order_test',
   'corelib/list_index_of2_test',
   'corelib/list_unmodifiable_test',
-  'corelib/map_test',
-  'corelib/num_clamp_test',
   'corelib/package_resource_test',
   'corelib/print_test_01_multi',
   'corelib/print_test_none_multi',
