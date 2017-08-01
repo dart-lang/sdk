@@ -1913,7 +1913,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement getEnum(String enumName) {
-    for (ClassElement enumDeclaration in _enums) {
+    for (ClassElement enumDeclaration in enums) {
       if (enumDeclaration.name == enumName) {
         return enumDeclaration;
       }

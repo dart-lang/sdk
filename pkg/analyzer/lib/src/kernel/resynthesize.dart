@@ -309,7 +309,7 @@ class _ExprBuilder {
       return AstTestFactory.typeName3(name)..type = type;
     }
     // TODO(scheglov) Implement for other types.
-    throw new UnimplementedError('type: $type');
+    throw new UnimplementedError('type: (${type.runtimeType}) $type');
   }
 
   TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {
