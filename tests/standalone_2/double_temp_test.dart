@@ -34,4 +34,5 @@ testUnaryOp() {
   var x = unary(1.0, 2.0);
   var y = unary(3.0, 4.0);
   Expect.equals(2.0, x);
+  Expect.equals(12.0, y);
 }

@@ -17,11 +17,11 @@ main() {
   Expect.equals(3 * 10, res);
   res = sumIt1(a, 2);
   Expect.equals(3 * 10, res);
-  a = new Int32List(100);
-  a[2] = 3;
-  res = sumIt2(a, 2);
+  var a1 = new Int32List(100);
+  a1[2] = 3;
+  res = sumIt2(a1, 2);
   Expect.equals(3 * 10, res);
-  res = sumIt2(a, 2);
+  res = sumIt2(a1, 2);
   Expect.equals(3 * 10, res);
 }
 

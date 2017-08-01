@@ -5,6 +5,7 @@
 // Dart deoptimization of Uint32Array and Int32Array loads.
 
 import 'dart:typed_data';
+import "package:expect/expect.dart";
 
 loadI32(a) => a[0] + 1;
 loadUi32(a) => a[0] + 1;

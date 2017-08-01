@@ -73,7 +73,8 @@ testSameHash(String tmpDirPath) {
   // file names/paths for file containing groups of 8 variants of a paragraph
   const par8timesName = "addlatexhash_test_src";
   const par8timesFileName = "$par8timesName.tex";
-  final par8timesDirPath = path.join(dartRootDir, "tests", "standalone", "io");
+  final par8timesDirPath =
+      path.join(dartRootDir, "tests", "standalone_2", "io");
   final par8timesPath = path.join(par8timesDirPath, par8timesFileName);
   final tmpPar8timesPath = path.join(tmpDirPath, par8timesFileName);
 

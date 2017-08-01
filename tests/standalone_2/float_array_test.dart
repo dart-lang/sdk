@@ -70,30 +70,10 @@ void testIndexOf32() {
   for (int i = 0; i < list.length; i++) {
     list[i] = i + 10.0;
   }
-  Expect.equals(0, list.indexOf(10));
-  Expect.equals(5, list.indexOf(15));
-  Expect.equals(9, list.indexOf(19));
-  Expect.equals(-1, list.indexOf(20));
-
-  list = new Float32List(10);
-  for (int i = 0; i < list.length; i++) {
-    list[i] = i + 10.0;
-  }
   Expect.equals(0, list.indexOf(10.0));
   Expect.equals(5, list.indexOf(15.0));
   Expect.equals(9, list.indexOf(19.0));
   Expect.equals(-1, list.indexOf(20.0));
-}
-
-void testBadValues32() {
-  var list = new Float32List(10);
-  list[0] = 2.0;
-  Expect.throws(() {
-    list[0] = 2;
-  });
-  Expect.throws(() {
-    list[0] = "hello";
-  });
 }
 
 void testCreateFloat64Array() {
@@ -154,30 +134,10 @@ void testIndexOf64() {
   for (int i = 0; i < list.length; i++) {
     list[i] = i + 10.0;
   }
-  Expect.equals(0, list.indexOf(10));
-  Expect.equals(5, list.indexOf(15));
-  Expect.equals(9, list.indexOf(19));
-  Expect.equals(-1, list.indexOf(20));
-
-  list = new Float64List(10);
-  for (int i = 0; i < list.length; i++) {
-    list[i] = i + 10.0;
-  }
   Expect.equals(0, list.indexOf(10.0));
   Expect.equals(5, list.indexOf(15.0));
   Expect.equals(9, list.indexOf(19.0));
   Expect.equals(-1, list.indexOf(20.0));
-}
-
-void testBadValues64() {
-  var list = new Float64List(10);
-  list[0] = 2.0;
-  Expect.throws(() {
-    list[0] = 2;
-  });
-  Expect.throws(() {
-    list[0] = "hello";
-  });
 }
 
 storeIt32(Float32List a, int index, value) {
@@ -216,9 +176,6 @@ main() {
     testPolymorphicLoad(f32x4);
   }
 
-  // These two take a long time in checked mode.
-  testBadValues32();
-  testBadValues64();
   // Check optimized (inlined) version of []=
   Expect.throws(() {
     storeIt32(a32, 1, 2);

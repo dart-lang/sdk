@@ -83,7 +83,6 @@ class ObjectsEquality {
   static void objectsEqualityTest() {
     var a = new ObjectsEquality();
     var b = new ObjectsEquality();
-    final nan = 0.0 / 0.0;
     for (int i = 0; i < 1000; i++) {
       Expect.equals(true, compareEqual(a, a));
       Expect.equals(true, compareEqual(null, null));
