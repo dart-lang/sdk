@@ -87,8 +87,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       ..logger = new PerformanceLog(null)
       ..fileSystem = new _FileSystemAdaptor(resourceProvider)
       ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(options.logger, options.fileSystem,
-        options.byteStore, uriTranslator, options);
+    var driver = new KernelDriver(options, uriTranslator);
 
     KernelResult kernelResult = await driver.getKernel(testUri);
 

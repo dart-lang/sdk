@@ -654,13 +654,13 @@ import 'b.dart';
     var uriTranslator =
         new UriTranslatorImpl(dartLibraries, {}, new MapPackages(packages));
     driver = new KernelDriver(
-        new PerformanceLog(null),
-        fileSystem,
-        new MemoryByteStore(),
-        uriTranslator,
         new ProcessedOptions(new CompilerOptions()
+          ..logger = new PerformanceLog(null)
+          ..fileSystem = fileSystem
+          ..byteStore = new MemoryByteStore()
           ..strongMode = true
           ..target = new NoneTarget(new TargetFlags(strongMode: true))),
+        uriTranslator,
         fileAddedFn: fileAddedFn);
   }
 

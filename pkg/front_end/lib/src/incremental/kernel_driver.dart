@@ -48,6 +48,9 @@ class KernelDriver {
   /// The version of data format, should be incremented on every format change.
   static const int DATA_VERSION = 1;
 
+  /// Options used by the kernel compiler.
+  final ProcessedOptions _options;
+
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
 
@@ -59,9 +62,6 @@ class KernelDriver {
 
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   final UriTranslator _uriTranslator;
-
-  /// Options used by the kernel compiler.
-  final ProcessedOptions _options;
 
   /// The function that is invoked when a new file is about to be added to
   /// the current file state. The [Future] that it returns is awaited before
@@ -81,10 +81,12 @@ class KernelDriver {
   /// The object that provides additional information for tests.
   final _TestView _testView = new _TestView();
 
-  KernelDriver(this._logger, this._fileSystem, this._byteStore,
-      this._uriTranslator, this._options,
+  KernelDriver(this._options, this._uriTranslator,
       {KernelDriverFileAddedFn fileAddedFn})
-      : _fileAddedFn = fileAddedFn {
+      : _logger = _options.logger,
+        _fileSystem = _options.fileSystem,
+        _byteStore = _options.byteStore,
+        _fileAddedFn = fileAddedFn {
     _computeSalt();
 
     Future<Null> onFileAdded(Uri uri) {

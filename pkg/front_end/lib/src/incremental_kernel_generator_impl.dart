@@ -56,9 +56,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       return new Future.value();
     }
 
-    _driver = new KernelDriver(
-        _logger, options.fileSystem, options.byteStore, uriTranslator, options,
-        fileAddedFn: onFileAdded);
+    _driver =
+        new KernelDriver(options, uriTranslator, fileAddedFn: onFileAdded);
   }
 
   /// Return the object that provides additional information for tests.
