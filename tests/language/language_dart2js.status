@@ -2407,6 +2407,7 @@ class_override_test/none: Crash
 class_syntax2_test: Crash
 class_test: Crash
 closure2_test: Crash
+closure_call_wrong_argument_count_negative_test: Crash
 closure_in_constructor_test: Crash
 closure_in_field_initializer_test: Crash
 closure_shared_state_test: Crash
@@ -2999,6 +3000,7 @@ initializing_formal_scope_test: Crash
 initializing_formal_type_test: Crash
 inline_add_constants_to_initial_env_test: Crash
 inline_argument_test: Crash
+inline_closure_with_constant_arguments_test: Crash
 inline_effect_context_test: Crash
 inline_getter_test: Crash
 inline_in_for_initializer_and_bailout_test: Crash
