@@ -31,12 +31,15 @@ class TargetRepository implements M.TargetRepository {
 
   TargetRepository._(this._isConnectedVMTarget, this._onChange, this.onChange) {
     _restore();
+    final defaultAddress = _networkAddressOfDefaultTarget();
+    var defaultTarget = find(defaultAddress);
     // Add the default address if it doesn't already exist.
-    if (find(_networkAddressOfDefaultTarget()) == null) {
-      add(_networkAddressOfDefaultTarget());
+    if (defaultTarget == null) {
+      defaultTarget = new SC.WebSocketVMTarget(defaultAddress);
+      _list.insert(0, defaultTarget);
     }
     // Set the current target to the default target.
-    current = find(_networkAddressOfDefaultTarget());
+    current = defaultTarget;
   }
 
   void add(String address) {
