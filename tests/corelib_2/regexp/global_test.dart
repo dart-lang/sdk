@@ -60,7 +60,7 @@ void main() {
   str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) LEGS (GOOD|BAD)"), (m) {
     if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
     if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-    return m.group(0).length - 10;
+    return (m.group(0).length - 10).toString();
   });
   assertEquals("4, 2!", str);
 
@@ -96,7 +96,7 @@ void main() {
   str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) \u817f (GOOD|BAD)"), (m) {
     if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
     if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-    return m.group(0).length - 7;
+    return (m.group(0).length - 7).toString();
   });
   assertEquals("4, 2!", str);
 

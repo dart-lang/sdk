@@ -71,7 +71,6 @@ duration2_test: StaticWarning, OK # Test generates error on purpose.
 regexp/*: Skip
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
-regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
 
 [ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer]
@@ -210,13 +209,6 @@ list_test/none: Crash
 list_to_string2_test: Crash
 list_to_string_test: Crash
 list_unmodifiable_test: Crash
-regexp/compile-crash_test: Crash
-regexp/compile_test: Crash
-regexp/early-acid3-86_test: Crash
-regexp/ecma-regex-examples_test: Crash
-regexp/extended-characters-more_test: Crash
-regexp/global_test: Crash
-regexp/indexof_test: Crash
 regexp/parentheses_test: Crash
 regress_r21715_test: RuntimeError
 set_containsAll_test: Crash
@@ -348,13 +340,6 @@ regexp/assertion_test: Crash
 regexp/backreferences_test: Crash
 regexp/bol_test: Crash
 regexp/captures_test: Crash
-regexp/char-insensitive_test: Crash
-regexp/character-match-out-of-order_test: Crash
-regexp/constructor_test: Crash
-regexp/default_arguments_test: Crash
-regexp/dotstar_test: Crash
-regexp/extended-characters-match_test: Crash
-regexp/find-first-asserted_test: Crash
 regexp/look-ahead_test: Crash
 regexp/malformed-escapes_test: Crash
 regexp/many-brackets_test: Crash

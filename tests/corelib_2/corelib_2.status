@@ -78,6 +78,15 @@ regexp/capture-3_test: RuntimeError # Issue 29921
 regexp/char-insensitive_test: RuntimeError # Issue 29921
 regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
 regexp/loop-capture_test: RuntimeError # Issue 29921
+regexp/char-insensitive_test: RuntimeError # Issue 29921
+regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
+regexp/compile-crash_test: RuntimeError # Issue 29921
+regexp/default_arguments_test: RuntimeError # Issue 29921
+regexp/early-acid3-86_test: RuntimeError # Issue 29921
+regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
+regexp/extended-characters-match_test: RuntimeError # Issue 29921
+regexp/extended-characters-more_test: RuntimeError # Issue 29921
+regexp/find-first-asserted_test: RuntimeError # Issue 29921
 regexp/quantified-assertions_test: RuntimeError # Issue 29921
 regexp/range-bound-ffff_test: RuntimeError # Issue 29921
 regexp/range-out-of-order_test: RuntimeError # Issue 29921
@@ -349,6 +358,13 @@ symbol_test/01: Crash
 symbol_test/02: Crash
 symbol_test/03: Crash
 symbol_test/none: Crash
+regexp/compile-crash_test: Crash
+regexp/compile_test: Crash
+regexp/early-acid3-86_test: Crash
+regexp/ecma-regex-examples_test: Crash
+regexp/extended-characters-more_test: Crash
+regexp/global_test: Crash
+regexp/indexof_test: Crash
 regexp/range-out-of-order_test: Crash
 regexp/regexp_kde_test: Crash
 regexp/regexp_test: Crash
@@ -540,6 +556,13 @@ regexp/char-insensitive_test: Crash
 regexp/character-match-out-of-order_test: Crash
 regexp/loop-capture_test: Crash
 regexp/zero-length-alternatives_test: Crash
+regexp/char-insensitive_test: Crash
+regexp/character-match-out-of-order_test: Crash
+regexp/constructor_test: Crash
+regexp/default_arguments_test: Crash
+regexp/dotstar_test: Crash
+regexp/extended-characters-match_test: Crash
+regexp/find-first-asserted_test: Crash
 regexp/quantified-assertions_test: Crash
 regexp/range-bound-ffff_test: Crash
 regexp/ranges-and-escaped-hyphens_test: Crash
@@ -594,6 +617,7 @@ splay_tree_from_iterable_test: RuntimeError
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
 regexp/pcre_test: Pass, Slow, Timeout
+regexp/global_test: Skip # Issue 21709
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
