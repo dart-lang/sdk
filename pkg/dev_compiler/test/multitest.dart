@@ -78,8 +78,8 @@ bool isMultiTest(String contents) => _multiTestRegExp.hasMatch(contents);
 //   ddd //# 07: static type warning, dynamic type error
 //   fff
 
-void extractTestsFromMultitest(String filePath, String contents,
-    Map<String, String> tests, Map<String, Set<String>> outcomes) {
+void extractTestsFromMultitest(
+    String filePath, String contents, Map<String, String> tests) {
   int first_newline = contents.indexOf('\n');
   final String line_separator =
       (first_newline == 0 || contents[first_newline - 1] != '\r')
@@ -91,7 +91,8 @@ void extractTestsFromMultitest(String filePath, String contents,
 
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
-  Map<String, List<String>> testsAsLines = new Map<String, List<String>>();
+  var testsAsLines = new Map<String, List<String>>();
+  var outcomes = new Map<String, Set<String>>();
 
   // Add the default case with key "none".
   testsAsLines['none'] = new List<String>();

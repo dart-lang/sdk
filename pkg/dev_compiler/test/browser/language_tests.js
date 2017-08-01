@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
-      function(dart_sdk, async_helper, expect, unittest, is, require) {
+define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
+        'test_status'],
+      function(dart_sdk, async_helper, expect, unittest, is, require,
+               test_status) {
   'use strict';
 
   async_helper = async_helper.async_helper;
