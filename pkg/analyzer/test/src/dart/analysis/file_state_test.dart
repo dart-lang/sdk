@@ -601,6 +601,22 @@ class C {
     expect(file.apiSignature, signature);
   }
 
+  test_store_zeroLengthUnlinked() {
+    String path = _p('/test.dart');
+    provider.newFile(path, 'class A {}');
+
+    // Get the file, prepare unlinked.
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(file.unlinked, isNotNull);
+
+    // Make the unlinked unit in the byte store zero-length, damaged.
+    byteStore.put(file.test.unlinkedKey, <int>[]);
+
+    // Refresh should not fail, zero bytes in the store are ignored.
+    file.refresh();
+    expect(file.unlinked, isNotNull);
+  }
+
   test_subtypedNames() {
     String path = _p('/test.dart');
     provider.newFile(path, r'''

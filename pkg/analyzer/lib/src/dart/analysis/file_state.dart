@@ -116,6 +116,7 @@ class FileState {
   Set<String> _definedClassMemberNames;
   Set<String> _referencedNames;
   Set<String> _subtypedNames;
+  String _unlinkedKey;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
@@ -282,6 +283,9 @@ class FileState {
    */
   Set<String> get subtypedNames => _subtypedNames;
 
+  @visibleForTesting
+  FileStateTestView get test => new FileStateTestView(this);
+
   /**
    * Return public top-level declarations declared in the file. The keys to the
    * map are names of declarations.
@@ -424,20 +428,19 @@ class FileState {
     }
 
     // Prepare the unlinked bundle key.
-    String unlinkedKey;
     {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
       signature.addInt(contentBytes.length);
       signature.addString(_contentHash);
-      unlinkedKey = '${signature.toHex()}.unlinked';
+      _unlinkedKey = '${signature.toHex()}.unlinked';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.
     List<int> bytes;
     {
-      bytes = _fsState._byteStore.get(unlinkedKey);
-      if (bytes == null) {
+      bytes = _fsState._byteStore.get(_unlinkedKey);
+      if (bytes == null || bytes.isEmpty) {
         CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
@@ -452,7 +455,7 @@ class FileState {
                   referencedNames: referencedNames,
                   subtypedNames: subtypedNames)
               .toBuffer();
-          _fsState._byteStore.put(unlinkedKey, bytes);
+          _fsState._byteStore.put(_unlinkedKey, bytes);
         });
       }
     }
@@ -639,6 +642,15 @@ class FileState {
     }
     return true;
   }
+}
+
+@visibleForTesting
+class FileStateTestView {
+  final FileState file;
+
+  FileStateTestView(this.file);
+
+  String get unlinkedKey => file._unlinkedKey;
 }
 
 /**
