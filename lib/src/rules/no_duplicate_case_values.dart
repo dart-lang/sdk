@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Do not use more the one case with same value';
+const desc = 'Do not use more the one case with same value.';
 
 String message(String value1, String value2) =>
     'Do not use more the one case with same value ($value1 and $value2)';

@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
-const desc = r'Provide doc comments for all public APIs';
+const desc = r'Provide doc comments for all public APIs.';
 
 const details = r'''
 **DO** provide doc comments for all public APIs.

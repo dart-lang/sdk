@@ -14,7 +14,7 @@ import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/tested_expressions.dart';
 
 const _desc =
-    r'Conditions should not unconditionally evaluate to "TRUE" or to "FALSE"';
+    r'Conditions should not unconditionally evaluate to "TRUE" or to "FALSE".';
 
 const _details = r'''
 

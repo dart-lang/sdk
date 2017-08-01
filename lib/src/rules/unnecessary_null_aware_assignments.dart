@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Avoid null in null-aware assignment';
+const desc = 'Avoid null in null-aware assignment.';
 
 const details = '''
 Avoid null in null-aware assignment. `a ??= null` can be removed.

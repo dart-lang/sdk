@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Annotate overridden members';
+const desc = r'Annotate overridden members.';
 
 const details = r'''
 **DO** annotate overridden methods and fields.

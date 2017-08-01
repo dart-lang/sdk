@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Do not use adjacent strings in list';
+const desc = 'Do not use adjacent strings in list.';
 
 const details = r'''
 **DO NOT** use adjacent strings in list. This can be

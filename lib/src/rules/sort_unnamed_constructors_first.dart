@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Sort unnamed constructor declarations first';
+const desc = r'Sort unnamed constructor declarations first.';
 
 const details = r'''
 **DO** sort unnamed constructor declarations first, before named ones.

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = 'Avoid null in if null operator';
+const desc = 'Avoid null in if null operator.';
 
 const details = '''
 Avoid null as operand in if null operator. `a ?? null` and `null ?? a` can both

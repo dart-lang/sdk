@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = r'Prefer to use /// for doc comments';
+const desc = r'Prefer to use /// for doc comments.';
 
 const details = r'''
 From the [style guide](https://www.dartlang.org/articles/style-guide/):

@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = "Prefer single quotes where they won't require escape sequences";
+const _desc = "Prefer single quotes where they won't require escape sequences.";
 
 const _details = '''
 

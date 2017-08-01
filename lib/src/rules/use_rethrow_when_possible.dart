@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Use rethrow to rethrow a caught exception';
+const _desc = r'Use rethrow to rethrow a caught exception.';
 
 const _details = r'''
 

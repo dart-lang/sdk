@@ -57,6 +57,16 @@ defineRuleTests() {
         }
       }
     });
+    group('format', () {
+      registerLintRules();
+      for (LintRule rule in Registry.ruleRegistry.rules) {
+        test('`${rule.name}` description', () {
+          expect(rule.description.endsWith('.'), isTrue,
+              reason:
+                  "Rule description for ${rule.name} should end with a '.'");
+        });
+      }
+    });
   });
 }
 
