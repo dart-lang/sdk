@@ -4,10 +4,10 @@
 
 class Fisk {
   get fisk => null;
-  static //           //# 01: static type warning
+  static //           //# 01: compile-time error
   set fisk(x) {}
 
-  static //           //# 02: static type warning
+  static //           //# 02: compile-time error
   get hest => null;
   set hest(x) {}
 
@@ -21,7 +21,7 @@ class Hest extends Fisk {
   static foo() {} //  //# 03: compile-time error
   field() {} //       //# 04: compile-time error
   var method; //      //# 05: compile-time error
-  nullary(x) {} //    //# 06: static type warning
+  nullary(x) {} //    //# 06: compile-time error
 }
 
 main() {

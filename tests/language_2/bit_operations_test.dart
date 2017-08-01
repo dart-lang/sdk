@@ -98,19 +98,19 @@ void testLeftShift64Bit() {
   Expect.equals(0xffffffff, t << 0);
   Expect.equals(0x1fffffffe, t << 1);
   Expect.equals(0x7fffffff80000000, t << 31);
-  Expect.equals(0x10000000000000000, 2*(t+1) << 31); //# 01: static type warning
-  Expect.equals(0x20000000000000000, 4*(t+1) << 31); //# 02: static type warning
+  Expect.equals(0x10000000000000000, 2*(t+1) << 31); //# 01: compile-time error
+  Expect.equals(0x20000000000000000, 4*(t+1) << 31); //# 02: compile-time error
   Expect.equals(0x8000000000000000, (t + 1) << 31);
 }
 
 void testLeftShift64BitWithOverflow1() {
   var t = 0xffffffff;
-  Expect.equals(0x10000000000000000, 2*(t+1) << 31); //# 03: static type warning
+  Expect.equals(0x10000000000000000, 2*(t+1) << 31); //# 03: compile-time error
 }
 
 void testLeftShift64BitWithOverflow2() {
   var t = 0xffffffff;
-  Expect.equals(0x20000000000000000, 4*(t+1) << 31); //# 04: static type warning
+  Expect.equals(0x20000000000000000, 4*(t+1) << 31); //# 04: compile-time error
 }
 
 void testLeftShift64BitWithOverflow3() {

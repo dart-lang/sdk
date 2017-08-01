@@ -434,7 +434,6 @@ internal_library_test/01: CompileTimeError
 internal_library_test/02: CompileTimeError
 type_variable_scope2_test: CompileTimeError
 mixin_super_bound_test: CompileTimeError
-bad_override_test/06: CompileTimeError
 invocation_mirror2_test: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
 deferred_no_such_method_test: CompileTimeError
