@@ -468,11 +468,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_futureOr_const() async {
-    await super.test_futureOr_const();
-  }
-
-  @failingTest
   test_genericFunction_asGenericFunctionReturnType() async {
     await super.test_genericFunction_asGenericFunctionReturnType();
   }

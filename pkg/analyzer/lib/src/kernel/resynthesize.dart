@@ -33,6 +33,11 @@ class KernelResynthesizer {
   KernelResynthesizer(this._analysisContext, this._types, this._kernelMap);
 
   /**
+   * Return the `Type` type.
+   */
+  DartType get typeType => getLibrary('dart:core').getType('Type').type;
+
+  /**
    * Return the [LibraryElementImpl] for the given [uriStr], or `null` if
    * the library is not part of the Kernel libraries bundle.
    */
@@ -202,6 +207,14 @@ class _ExprBuilder {
       var arguments = _toArguments(expr.arguments);
       return AstTestFactory.instanceCreationExpression(
           keyword, constructorName, arguments);
+    }
+
+    if (expr is kernel.TypeLiteral) {
+      var type = _context.getType(null, expr.type);
+      var identifier = AstTestFactory.identifier3(type.element.name);
+      identifier.staticElement = type.element;
+      identifier.staticType = _context._resynthesizer.typeType;
+      return identifier;
     }
 
     // TODO(scheglov): complete getExpression
