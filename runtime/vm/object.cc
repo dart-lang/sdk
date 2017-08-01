@@ -18162,7 +18162,7 @@ RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   return Integer::New(static_cast<int64_t>(value), space);
 }
 
-bool Integer::IsValidUint64(uint64_t value) {
+bool Integer::IsValueInRange(uint64_t value) {
   if (FLAG_limit_ints_to_64_bits) {
     return (value <= static_cast<uint64_t>(Mint::kMaxValue));
   } else {

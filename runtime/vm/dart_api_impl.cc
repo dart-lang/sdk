@@ -2090,7 +2090,7 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromUint64(uint64_t value) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION;
-  if (Integer::IsValidUint64(value)) {
+  if (Integer::IsValueInRange(value)) {
     return Api::NewHandle(T, Integer::NewFromUint64(value));
   }
   return Api::NewError("%s: Cannot create Dart integer from value %" Pu64,

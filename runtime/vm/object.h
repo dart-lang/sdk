@@ -6436,7 +6436,7 @@ class Integer : public Number {
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   // Returns true iff the given uint64_t value is representable as Dart integer.
-  static bool IsValidUint64(uint64_t value);
+  static bool IsValueInRange(uint64_t value);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
