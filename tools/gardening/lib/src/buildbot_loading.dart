@@ -32,7 +32,7 @@ Future<BuildResult> _readBuildResult(
 }
 
 /// Fetches test data for [buildUri] through the buildbot stdio.
-Future<BuildResult> readBuildResult(
+Future<BuildResult> readBuildResultFromHttp(
     HttpClient client, BuildUri buildUri) async {
   Future<String> read() async {
     Uri uri = buildUri.toUri();
@@ -46,7 +46,7 @@ Future<BuildResult> readBuildResult(
 /// Fetches test data for [buildUri] through logdog.
 ///
 /// The build number of [buildUri] most be non-negative.
-Future<BuildResult> readLogDogResult(BuildUri buildUri) {
+Future<BuildResult> readBuildResultFromLogDog(BuildUri buildUri) {
   Future<String> read() async {
     log('Reading logdog results: $buildUri');
     return cat(buildUri.logdogPath);

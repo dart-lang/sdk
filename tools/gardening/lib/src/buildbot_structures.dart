@@ -166,8 +166,8 @@ class TestFailure {
     String testName = parts[3];
     TestConfiguration id =
         new TestConfiguration(configName, archName, testName);
-    String expected = split(lines[1], ['Expected: '])[1];
-    String actual = split(lines[2], ['Actual: '])[1];
+    String expected = split(lines[1], ['Expected: '])[1].trim();
+    String actual = split(lines[2], ['Actual: '])[1].trim();
     return new TestFailure.internal(
         uri, id, expected, actual, lines.skip(3).join('\n'));
   }

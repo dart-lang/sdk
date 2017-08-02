@@ -11,7 +11,7 @@
 
 import 'dart:io';
 import 'package:args/args.dart';
-part 'package:gardening/src/shard_data.dart';
+import 'package:gardening/src/shard_data.dart';
 
 ArgParser createArgParser() {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);

@@ -28,7 +28,7 @@ class HttpBuildbotClient implements BuildbotClient {
 
   @override
   Future<BuildResult> readResult(BuildUri buildUri) {
-    return readBuildResult(_client, buildUri);
+    return readBuildResultFromHttp(_client, buildUri);
   }
 
   int get mostRecentBuildNumber => -2;
@@ -68,7 +68,7 @@ class LogdogBuildbotClient implements BuildbotClient {
     }
     while (true) {
       try {
-        return await readLogDogResult(buildUri);
+        return await readBuildResultFromLogDog(buildUri);
       } on LogdogException catch (e) {
         if (e.exitKind != LogdogExitKind.error) {
           return null;
