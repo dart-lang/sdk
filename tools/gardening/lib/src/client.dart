@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide HttpException;
 
 import 'buildbot_data.dart';
 import 'buildbot_loading.dart';
@@ -27,8 +27,12 @@ class HttpBuildbotClient implements BuildbotClient {
   final HttpClient _client = new HttpClient();
 
   @override
-  Future<BuildResult> readResult(BuildUri buildUri) {
-    return readBuildResultFromHttp(_client, buildUri);
+  Future<BuildResult> readResult(BuildUri buildUri) async {
+    try {
+      return await readBuildResultFromHttp(_client, buildUri);
+    } on HttpException {
+      return null;
+    }
   }
 
   int get mostRecentBuildNumber => -2;

@@ -33,8 +33,7 @@ class TestClient implements BuildbotClient {
     String path = computePath(buildUri);
     File file = new File.fromUri(Platform.script.resolve(path));
     if (!file.existsSync() && _client != null) {
-      await file.parent.create();
-      log('Pulling $buildUri from http');
+      await file.parent.create(recursive: true);
       BuildResult result = await _client.readResult(buildUri);
       if (result.buildNumber != null) {
         print('Writing test data to $file');
