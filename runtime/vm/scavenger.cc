@@ -394,6 +394,13 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   resolved_top_ = top_;
   end_ = to_->end();
 
+  // Throw out the old information about the from space
+  if (isolate->IsMutatorThreadScheduled()) {
+    Thread* mutator_thread = isolate->mutator_thread();
+    mutator_thread->set_top(top_);
+    mutator_thread->set_end(end_);
+  }
+
   return from;
 }
 
@@ -403,12 +410,12 @@ void Scavenger::Epilogue(Isolate* isolate,
   // All objects in the to space have been copied from the from space at this
   // moment.
 
-  // Ensure the mutator thread will fail the next allocation. This will force
-  // mutator to allocate a new TLAB
+  // Ensure the mutator thread now has the up-to-date top_ and end_ of the
+  // semispace
   if (isolate->IsMutatorThreadScheduled()) {
     Thread* thread = isolate->mutator_thread();
-    thread->set_top(0);
-    thread->set_end(0);
+    thread->set_top(top_);
+    thread->set_end(end_);
   }
 
   double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
@@ -715,49 +722,31 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-uword Scavenger::FlushTLS() const {
+void Scavenger::FlushTLS() const {
   ASSERT(heap_ != NULL);
-  uword saved_top = top_;
-  if (heap_->isolate()->IsMutatorThreadScheduled() && !scavenging_) {
+  if (heap_->isolate()->IsMutatorThreadScheduled()) {
     Thread* mutator_thread = heap_->isolate()->mutator_thread();
-    saved_top = mutator_thread->heap()->new_space()->top();
-    if (mutator_thread->HasActiveTLAB()) {
-      ASSERT(mutator_thread->top() <=
-             mutator_thread->heap()->new_space()->top());
-      mutator_thread->heap()->new_space()->set_top(mutator_thread->top());
-    }
-  }
-  return saved_top;
-}
-
-void Scavenger::UnflushTLS(uword value) const {
-  ASSERT(heap_ != NULL);
-  if (heap_->isolate()->IsMutatorThreadScheduled() && !scavenging_) {
-    Thread* mutator_thread = heap_->isolate()->mutator_thread();
-    mutator_thread->heap()->new_space()->set_top(value);
-    ASSERT(mutator_thread->top() <= mutator_thread->heap()->new_space()->top());
+    mutator_thread->heap()->new_space()->set_top(mutator_thread->top());
   }
 }
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  uword saved_top = FlushTLS();
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
     cur += raw_obj->VisitPointers(visitor);
   }
-  UnflushTLS(saved_top);
 }
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
-  uword saved_top = FlushTLS();
+  FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
     visitor->VisitObject(raw_obj);
     cur += raw_obj->Size();
   }
-  UnflushTLS(saved_top);
 }
 
 void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
@@ -766,21 +755,19 @@ void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
 
 RawObject* Scavenger::FindObject(FindObjectVisitor* visitor) const {
   ASSERT(!scavenging_);
-  uword saved_top = FlushTLS();
+  FlushTLS();
   uword cur = FirstObjectStart();
   if (visitor->VisitRange(cur, top_)) {
     while (cur < top_) {
       RawObject* raw_obj = RawObject::FromAddr(cur);
       uword next = cur + raw_obj->Size();
       if (visitor->VisitRange(cur, next) && raw_obj->FindObject(visitor)) {
-        UnflushTLS(saved_top);
         return raw_obj;  // Found object, return it.
       }
       cur = next;
     }
     ASSERT(cur == top_);
   }
-  UnflushTLS(saved_top);
   return Object::null();
 }
 
@@ -814,13 +801,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
-
-  if (isolate->IsMutatorThreadScheduled()) {
-    Thread* mutator_thread = isolate->mutator_thread();
-    if (mutator_thread->HasActiveTLAB()) {
-      heap_->AbandonRemainingTLAB(mutator_thread);
-    }
-  }
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -935,10 +915,7 @@ void Scavenger::Evacuate() {
 
   if (heap_->isolate()->IsMutatorThreadScheduled()) {
     Thread* mutator_thread = heap_->isolate()->mutator_thread();
-    if (mutator_thread->HasActiveTLAB()) {
-      survivor_end_ = mutator_thread->top();
-      heap_->AbandonRemainingTLAB(mutator_thread);
-    }
+    survivor_end_ = mutator_thread->top();
   }
 
   Scavenge();
@@ -946,13 +923,6 @@ void Scavenger::Evacuate() {
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
-}
-
-int64_t Scavenger::UsedInWords() const {
-  uword saved_top = FlushTLS();
-  int64_t used_in_words = (top_ - FirstObjectStart()) >> kWordSizeLog2;
-  UnflushTLS(saved_top);
-  return used_in_words;
 }
 
 }  // namespace dart

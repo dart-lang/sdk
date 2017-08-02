@@ -377,8 +377,6 @@ class Thread : public BaseThread {
   uword top() { return top_; }
   uword end() { return end_; }
 
-  bool HasActiveTLAB() { return end_ > 0; }
-
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 

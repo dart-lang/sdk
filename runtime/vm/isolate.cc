@@ -2574,10 +2574,9 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     os_thread->set_thread(thread);
     if (is_mutator) {
       mutator_thread_ = thread;
-      if ((Dart::vm_isolate() != NULL) &&
-          (heap() != Dart::vm_isolate()->heap())) {
-        mutator_thread_->set_top(0);
-        mutator_thread_->set_end(0);
+      if (this != Dart::vm_isolate()) {
+        mutator_thread_->set_top(heap()->new_space()->top());
+        mutator_thread_->set_end(heap()->new_space()->end());
       }
     }
     Thread::SetCurrent(thread);
@@ -2618,13 +2617,11 @@ void Isolate::UnscheduleThread(Thread* thread,
   OSThread::SetCurrent(os_thread);
   if (is_mutator) {
     if (this != Dart::vm_isolate()) {
-      // Ensure the new space is pointing right after the last object allocated.
-      if (mutator_thread_->HasActiveTLAB()) {
-        heap()->new_space()->set_top(mutator_thread_->top());
-      }
+      heap()->new_space()->set_top(mutator_thread_->top_);
+      heap()->new_space()->set_end(mutator_thread_->end_);
     }
-    mutator_thread_->set_top(0);
-    mutator_thread_->set_end(0);
+    mutator_thread_->top_ = 0;
+    mutator_thread_->end_ = 0;
     mutator_thread_ = NULL;
   }
   thread->isolate_ = NULL;
