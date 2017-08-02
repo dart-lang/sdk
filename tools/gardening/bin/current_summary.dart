@@ -29,8 +29,24 @@ void help(ArgParser argParser) {
   print(argParser.usage);
 }
 
+/// Checks that [haystack] contains substring [needle], case insensitive.
+/// Throws an exception if either parameter is `null`.
+bool containsIgnoreCase(String haystack, String needle) {
+  if (haystack == null) {
+    throw "Unexpected null as the first paramter value of containsIgnoreCase";
+  }
+  if (needle == null) {
+    throw "Unexpected null as the second parameter value of containsIgnoreCase";
+  }
+  return haystack.toLowerCase().contains(needle.toLowerCase());
+}
+
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
+  argParser.addOption('group',
+      help: "Restricts the build groups\n"
+          "to be searched for the results of the given test\n"
+          "to those containing the given substring, case insensitive.");
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
 
@@ -49,6 +65,10 @@ main(List<String> args) async {
   Map<String, Map<BuildUri, TestStatus>> resultMap =
       <String, Map<BuildUri, TestStatus>>{};
   for (BuildGroup group in buildGroups) {
+    if (argResults['group'] != null &&
+        !containsIgnoreCase(group.groupName, argResults['group'])) {
+      continue;
+    }
     // TODO(johnniwinther): Support reading a partially completed shard from
     // http, i.e. always use build number `-1`.
     var resultFutures =
