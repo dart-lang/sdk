@@ -126,6 +126,7 @@ class Visitor extends SimpleAstVisitor {
     checkLiteral(literal);
   }
 
+  // Future kernel API.
   visitNamedType(NamedType namedType) {
     DartType type = namedType.type;
     if (type is ParameterizedType) {
@@ -152,15 +153,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitTypeName(NamedType typeName) {
-    DartType type = typeName.type;
-    if (type is ParameterizedType) {
-      if (type.typeParameters.isNotEmpty &&
-          typeName.typeArguments == null &&
-          typeName.parent is! IsExpression &&
-          !_isOptionallyParameterized(type)) {
-        rule.reportLint(typeName);
-      }
-    }
+    visitNamedType(typeName);
   }
 
   @override
