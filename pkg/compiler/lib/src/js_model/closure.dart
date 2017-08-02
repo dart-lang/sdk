@@ -388,7 +388,7 @@ class JClosureField extends JField {
       KernelClosureClass containingClass, bool isConst, bool isAssignable)
       : super(memberIndex, containingClass.library, containingClass,
             new Name(name, containingClass.library),
-            isAssignable: isAssignable, isConst: isConst);
+            isAssignable: isAssignable, isConst: isConst, isStatic: false);
 }
 
 /// A ClosureField that has been "boxed" to prevent name shadowing with the
