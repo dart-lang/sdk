@@ -96,8 +96,7 @@ class MyPlugin extends ServerPlugin with AssistsMixin, DartAssistsMixin {
   // ...
 
   @override
-  List<AssistContributor> getAssistContributors(
-      covariant AnalysisDriver driver) {
+  List<AssistContributor> getAssistContributors(AnalysisDriver driver) {
     return <AssistContributor>[new MyAssistContributor()];
   }
 }

@@ -58,7 +58,7 @@ For example, your contributor might look something like the following:
 ```dart
 class MyCompletionContributor implements CompletionContributor {
   @override
-  Future<Null> computeSuggestions(covariant DartCompletionRequest request,
+  Future<Null> computeSuggestions(DartCompletionRequest request,
       CompletionCollector collector) async {
     // ...
   }
@@ -74,7 +74,7 @@ class MyPlugin extends ServerPlugin with CompletionMixin, DartCompletionMixin {
 
   @override
   List<CompletionContributor> getCompletionContributors(
-        covariant AnalysisDriverGeneric driver) {
+      AnalysisDriverGeneric driver) {
     return <CompletionContributor>[new MyCompletionContributor()];
   }
 }
