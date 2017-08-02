@@ -1571,7 +1571,18 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   @override
   bool hasConcreteMatch(ClassEntity cls, Selector selector,
       {ClassEntity stopAtSuperclass}) {
-    throw new UnimplementedError('KernelClosedWorldMixin.hasConcreteMatch');
+    assert(
+        isInstantiated(cls), failedAt(cls, '$cls has not been instantiated.'));
+    MemberEntity element = elementEnvironment
+        .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+    if (element == null) return false;
+
+    if (element.isAbstract) {
+      ClassEntity enclosingClass = element.enclosingClass;
+      return hasConcreteMatch(
+          elementEnvironment.getSuperClass(enclosingClass), selector);
+    }
+    return selector.appliesUntyped(element);
   }
 
   @override
