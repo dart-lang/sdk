@@ -29,10 +29,6 @@ class VMMock implements M.VM {
     return null;
   }
 
-  Future enableProfiler() {
-    return null;
-  }
-
   const VMMock(
       {this.name: 'vm-name',
       this.displayName: 'vm-display-name',

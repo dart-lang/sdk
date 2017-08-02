@@ -51,7 +51,4 @@ abstract class VM implements VMRef, ServiceObjectOwner {
 
   // A list of isolates running in the VM.
   Iterable<IsolateRef> get isolates;
-
-  /// Enable the sampling profiler.
-  Future enableProfiler();
 }

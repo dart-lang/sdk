@@ -91,6 +91,8 @@ step_through_function_test: RuntimeError
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 
 [ $arch == simdbc || $arch == simdbc64 ]
+get_allocation_samples_test: RuntimeError # Profiling unimplemented.
+get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
 async_single_step_exception_test: RuntimeError # Issue 29218
 

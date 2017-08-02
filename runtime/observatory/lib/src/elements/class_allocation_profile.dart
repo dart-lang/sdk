@@ -73,11 +73,11 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
       return;
     }
     final content = [
-      new SampleBufferControlElement(isolate.vm, _progress, _progressStream,
+      new SampleBufferControlElement(_progress, _progressStream,
           selectedTag: _tag, queue: _r.queue)
         ..onTagChange.listen((e) {
           _tag = e.element.selectedTag;
-          _request(forceFetch: true);
+          _request();
         })
     ];
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
