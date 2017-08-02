@@ -566,6 +566,8 @@ bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
 break_test: Crash
+built_in_identifier_test/01: Crash
+built_in_identifier_test/none: Crash
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
@@ -686,20 +688,22 @@ async_star_no_cancel_test: Skip # Flutter Issue 9110
 bool_check_test: RuntimeError # Issue 29647
 bool_condition_check_test: RuntimeError
 
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+bool_check_test: RuntimeError
+
 [ $compiler == dart2analyzer ]
 bad_initializer2_negative_test: fail # Issue 14880
 black_listed_test/none: fail # Issue 14228
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
+built_in_identifier_prefix_test: CompileTimeError
 
-[ $strong ]
-#bad_constructor_test: Skip
-#bad_initializer1_negative_test: Skip
-#bad_initializer2_negative_test: Skip
-#bad_named_constructor_negative_test: Skip
-#bad_named_parameters2_test: Skip
-#bad_named_parameters_test: Skip
-#bad_override_test: Skip
-#black_listed_test: Skip
-#body_less_constructor_wrong_arg_negative_test: Skip
+[ $runtime == vm ]
+built_in_identifier_prefix_test: CompileTimeError
+
+[ $compiler == dart2js ]
+built_in_identifier_prefix_test: CompileTimeError
+
+[ $compiler == dartdevc ]
+built_in_identifier_prefix_test: CompileTimeError

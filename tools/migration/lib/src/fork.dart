@@ -113,7 +113,7 @@ class Fork {
 
     var todos = <String>[];
 
-    if (!oneExists && !twoExists) {
+    if (!oneExists && !strongExists) {
       // It's already been migrated, so there's nothing to move.
       note("Is already migrated.");
     } else if (twoExists) {

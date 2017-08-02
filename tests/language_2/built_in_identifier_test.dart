@@ -10,11 +10,11 @@ class PseudoKWTest {
     // This is a list of built-in identifiers from the Dart spec.
     // It sanity checks that these pseudo-keywords are legal identifiers.
 
-    var abstract = 0; // //# 01: ok
+    var abstract = 0; //# 01: ok
     var as = 0;
     var dynamic = 0;
     var export = 0;
-    var external = 0; // //# 01: ok
+    var external = 0; //# 01: ok
     var factory = 0;
     var get = 0;
     var implements = 0;
@@ -23,7 +23,7 @@ class PseudoKWTest {
     var operator = 0;
     var part = 0;
     var set = 0;
-    var static = 0; // //# 01: ok
+    var static = 0; //# 01: ok
     var typedef = 0;
 
     // "native" is a per-implementation extension that is not a part of the
@@ -35,7 +35,7 @@ class PseudoKWTest {
     // attempt at complete coverage.
     {
       void factory(set) {
-        return; // //# 01: ok
+        return; //# 01: ok
       }
     }
 
@@ -45,16 +45,16 @@ class PseudoKWTest {
     }
 
     return
-        static + // //# 01: ok
+        static + //# 01: ok
         library * operator;
   }
 }
 
-typedef(x) => "typedef $x"; // //# 01: ok
+typedef(x) => "typedef $x"; //# 01: ok
 
-static(abstract) { // //# 01: ok
-  return abstract == true; // //# 01: ok
-} // //# 01: ok
+static(abstract) { //# 01: ok
+  return abstract == true; //# 01: ok
+} //# 01: ok
 
 class A {
   var typedef = 0;
@@ -66,14 +66,14 @@ class A {
 
   get() => typedef - 5;
 
-  static static() { // //# 01: ok
-    return 1; // //# 01: ok
-  } // //# 01: ok
+  static static() { //# 01: ok
+    return 1; //# 01: ok
+  } //# 01: ok
   static check() {
     var o = new A();
     o.set(55);
     Expect.equals(50, o.get());
-    static(); // //# 01: ok
+    static(); //# 01: ok
   }
 }
 
@@ -82,11 +82,11 @@ class B {
   get get => set;
   set get(get) => set = 2 * get.get;
 
-  static() { // //# 01: ok
-    var set = new B(); // //# 01: ok
-    set.get = set; // //# 01: ok
-    Expect.equals(200, set.get); // //# 01: ok
-  } // //# 01: ok
+  static() { //# 01: ok
+    var set = new B(); //# 01: ok
+    set.get = set; //# 01: ok
+    Expect.equals(200, set.get); //# 01: ok
+  } //# 01: ok
   int operator() {
     return 1;
   }
@@ -102,13 +102,13 @@ class C {
 main() {
   PseudoKWTest.testMain();
   A.check();
-  new B().static(); // //# 01: ok
+  new B().static(); //# 01: ok
   Expect.equals(1, new B().operator());
-  Expect.equals(1, A.static()); // //# 01: ok
-  typedef("T"); // //# 01: ok
-  Expect.equals("typedef T", typedef("T")); // //# 01: ok
-  static("true"); // //# 01: ok
-  Expect.equals(false, static("true")); // //# 01: ok
+  Expect.equals(1, A.static()); //# 01: ok
+  typedef("T"); //# 01: ok
+  Expect.equals("typedef T", typedef("T")); //# 01: ok
+  static("true"); //# 01: ok
+  Expect.equals(false, static("true")); //# 01: ok
   Expect.equals(5, C.operator);
   Expect.equals(null, C.get);
   C.set = 0;
