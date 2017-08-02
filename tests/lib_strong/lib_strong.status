@@ -6,219 +6,152 @@
 [ ! $strong ]
 *: SkipByDesign
 
-# Expect compile errors for tests not yet strong-mode clean.
+# Skip tests that are not yet strong-mode clean.
 [ $strong ]
-async/async_await_sync_completer_test: CompileTimeError
-async/async_await_zones_test: CompileTimeError
-async/catch_errors2_test: CompileTimeError
-async/catch_errors3_test: CompileTimeError
-async/catch_errors_test: CompileTimeError
-async/future_microtask_test: CompileTimeError
-async/future_or_bad_type_test/00: CompileTimeError
-async/future_or_bad_type_test/01: CompileTimeError
-async/future_or_only_in_async_test/00: CompileTimeError
-async/future_test/none: CompileTimeError
-async/future_test/01: CompileTimeError
-async/future_value_chain4_test: CompileTimeError
-async/print_test/01: CompileTimeError
-async/print_test/none: CompileTimeError
-async/slow_consumer3_test: CompileTimeError
-async/stream_controller_test: CompileTimeError
-async/stream_event_transformed_test: CompileTimeError
-async/stream_transformer_test: CompileTimeError
-async/zone_debug_test: CompileTimeError
-convert/chunked_conversion1_test: CompileTimeError
-math/min_max_test: CompileTimeError
-typed_data/float32x4_test: CompileTimeError
-typed_data/float64x2_functional_test: CompileTimeError
-typed_data/int32x4_test: CompileTimeError
-mirrors/abstract_class_test/00: CompileTimeError
-mirrors/abstract_test: CompileTimeError
-mirrors/circular_factory_redirection_test/01: CompileTimeError
-mirrors/circular_factory_redirection_test/02: CompileTimeError
-mirrors/class_declarations_test/01: CompileTimeError
-mirrors/class_declarations_test/none: CompileTimeError
-mirrors/closures_test: CompileTimeError
-mirrors/constructors_test: CompileTimeError
-mirrors/dart2js_mirrors_test: CompileTimeError
-mirrors/deferred_type_test: CompileTimeError
-mirrors/delegate_call_through_getter_test: CompileTimeError
-mirrors/delegate_class_test: CompileTimeError
-mirrors/delegate_function_invocation_test: CompileTimeError
-mirrors/delegate_library_test: CompileTimeError
-mirrors/delegate_test: CompileTimeError
-mirrors/enum_test: CompileTimeError
-mirrors/fake_function_without_call_test: CompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/01: CompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/02: CompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/none: CompileTimeError
-mirrors/generic_bounded_test/01: CompileTimeError
-mirrors/generic_bounded_test/02: CompileTimeError
-mirrors/generic_bounded_test/none: CompileTimeError
-mirrors/generic_class_declaration_test: CompileTimeError
-mirrors/generic_f_bounded_mixin_application_test: CompileTimeError
-mirrors/generic_interface_test/01: CompileTimeError
-mirrors/generics_test/01: CompileTimeError
-mirrors/get_symbol_name_no_such_method_test: CompileTimeError
-mirrors/immutable_collections_test: CompileTimeError
-mirrors/inference_and_no_such_method_test: CompileTimeError
-mirrors/inherit_field_test: CompileTimeError
-mirrors/initializing_formals_test/01: CompileTimeError
-mirrors/initializing_formals_test/03: CompileTimeError
-mirrors/initializing_formals_test/none: CompileTimeError
-mirrors/instance_members_easier_test: CompileTimeError
-mirrors/instance_members_test: CompileTimeError
-mirrors/intercepted_class_test: CompileTimeError
-mirrors/intercepted_object_test: CompileTimeError
-mirrors/invoke_call_through_getter_previously_accessed_test/named: CompileTimeError
-mirrors/invoke_call_through_getter_previously_accessed_test/none: CompileTimeError
-mirrors/invoke_call_through_getter_test/named: CompileTimeError
-mirrors/invoke_call_through_getter_test/none: CompileTimeError
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: CompileTimeError
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/none: CompileTimeError
-mirrors/invoke_call_through_implicit_getter_test: CompileTimeError
-mirrors/lazy_static_test: CompileTimeError
-mirrors/library_declarations_test/01: CompileTimeError
-mirrors/library_declarations_test/none: CompileTimeError
-mirrors/library_exports_hidden_test: CompileTimeError
-mirrors/library_exports_shown_test: CompileTimeError
-mirrors/library_import_deferred_loading_test: CompileTimeError
-mirrors/library_imports_bad_metadata_test/01: CompileTimeError
-mirrors/library_imports_deferred_test: CompileTimeError
-mirrors/library_imports_hidden_test: CompileTimeError
-mirrors/library_imports_metadata_test: CompileTimeError
-mirrors/library_imports_prefixed_show_hide_test: CompileTimeError
-mirrors/library_imports_prefixed_test: CompileTimeError
-mirrors/library_imports_shown_test: CompileTimeError
-mirrors/library_metadata2_test/01: CompileTimeError
-mirrors/metadata_allowed_values_test/01: CompileTimeError
-mirrors/metadata_allowed_values_test/02: CompileTimeError
-mirrors/metadata_allowed_values_test/03: CompileTimeError
-mirrors/metadata_allowed_values_test/04: CompileTimeError
-mirrors/metadata_allowed_values_test/05: CompileTimeError
-mirrors/metadata_allowed_values_test/06: CompileTimeError
-mirrors/metadata_allowed_values_test/07: CompileTimeError
-mirrors/metadata_allowed_values_test/08: CompileTimeError
-mirrors/metadata_allowed_values_test/09: CompileTimeError
-mirrors/metadata_allowed_values_test/10: CompileTimeError
-mirrors/metadata_allowed_values_test/11: CompileTimeError
-mirrors/metadata_allowed_values_test/12: CompileTimeError
-mirrors/metadata_allowed_values_test/13: CompileTimeError
-mirrors/metadata_allowed_values_test/14: CompileTimeError
-mirrors/metadata_allowed_values_test/15: CompileTimeError
-mirrors/metadata_allowed_values_test/16: CompileTimeError
-mirrors/metadata_allowed_values_test/17: CompileTimeError
-mirrors/metadata_allowed_values_test/18: CompileTimeError
-mirrors/metadata_allowed_values_test/19: CompileTimeError
-mirrors/metadata_allowed_values_test/20: CompileTimeError
-mirrors/metadata_allowed_values_test/21: CompileTimeError
-mirrors/metadata_allowed_values_test/22: CompileTimeError
-mirrors/metadata_allowed_values_test/23: CompileTimeError
-mirrors/metadata_allowed_values_test/24: CompileTimeError
-mirrors/metadata_allowed_values_test/25: CompileTimeError
-mirrors/metadata_allowed_values_test/26: CompileTimeError
-mirrors/metadata_allowed_values_test/27: CompileTimeError
-mirrors/metadata_allowed_values_test/28: CompileTimeError
-mirrors/metadata_allowed_values_test/29: CompileTimeError
-mirrors/metadata_allowed_values_test/30: CompileTimeError
-mirrors/metadata_allowed_values_test/31: CompileTimeError
-mirrors/metadata_constructor_arguments_test/01: CompileTimeError
-mirrors/metadata_constructor_arguments_test/02: CompileTimeError
-mirrors/metadata_constructor_arguments_test/03: CompileTimeError
-mirrors/metadata_constructor_arguments_test/04: CompileTimeError
-mirrors/metadata_constructor_arguments_test/05: CompileTimeError
-mirrors/metadata_constructor_arguments_test/06: CompileTimeError
-mirrors/metadata_constructor_arguments_test/07: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/01: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/02: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/03: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/04: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/05: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/06: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/07: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/08: CompileTimeError
-mirrors/metadata_nested_constructor_call_test/09: CompileTimeError
-mirrors/metadata_scope_test/01: CompileTimeError
-mirrors/method_mirror_name_test: CompileTimeError
-mirrors/method_mirror_properties_test: CompileTimeError
-mirrors/mirror_in_static_init_test/01: CompileTimeError
-mirrors/mirror_in_static_init_test/none: CompileTimeError
-mirrors/mirrors_nsm_mismatch_test: CompileTimeError
-mirrors/mirrors_nsm_test/dart2js: CompileTimeError
-mirrors/mirrors_nsm_test/none: CompileTimeError
-mirrors/mirrors_test: CompileTimeError
-mirrors/mirrors_used_get_name2_test: CompileTimeError
-mirrors/mirrors_used_get_name_test: CompileTimeError
-mirrors/mirrors_used_inheritance_test: CompileTimeError
-mirrors/mixin_application_test: CompileTimeError
-mirrors/mixin_members_test: CompileTimeError
-mirrors/model_test: CompileTimeError
-mirrors/native_class_test: CompileTimeError
-mirrors/no_metadata_test: CompileTimeError
-mirrors/operator_test: CompileTimeError
-mirrors/parameter_is_const_test/01: CompileTimeError
-mirrors/parameter_of_mixin_app_constructor_test: CompileTimeError
-mirrors/parameter_test/01: CompileTimeError
-mirrors/parameter_test/none: CompileTimeError
-mirrors/private_symbol_test: CompileTimeError
-mirrors/redirecting_factory_different_type_test/01: CompileTimeError
-mirrors/redirecting_factory_different_type_test/none: CompileTimeError
-mirrors/redirecting_factory_test/01: CompileTimeError
-mirrors/redirecting_factory_test/02: CompileTimeError
-mirrors/redirecting_factory_test/none: CompileTimeError
-mirrors/reflect_class_test/01: CompileTimeError
-mirrors/reflect_class_test/02: CompileTimeError
-mirrors/reflect_model_test: CompileTimeError
-mirrors/reflected_type_classes_test/01: CompileTimeError
-mirrors/reflected_type_classes_test/02: CompileTimeError
-mirrors/reflected_type_classes_test/03: CompileTimeError
-mirrors/reflected_type_test/01: CompileTimeError
-mirrors/reflected_type_test/02: CompileTimeError
-mirrors/reflected_type_test/03: CompileTimeError
-mirrors/regress_16321_test/01: CompileTimeError
-mirrors/regress_19731_test: CompileTimeError
-mirrors/relation_subclass_test: CompileTimeError
-mirrors/removed_api_test: CompileTimeError
-mirrors/repeated_private_anon_mixin_app_test: CompileTimeError
-mirrors/return_type_test: CompileTimeError
-mirrors/static_members_easier_test: CompileTimeError
-mirrors/static_members_test: CompileTimeError
-mirrors/static_test: CompileTimeError
-mirrors/syntax_error_test/01: CompileTimeError
-mirrors/synthetic_accessor_properties_test: CompileTimeError
-mirrors/top_level_accessors_test: CompileTimeError
-mirrors/type_mirror_for_type_test: CompileTimeError
-mirrors/typearguments_mirror_test: CompileTimeError
-mirrors/typedef_in_signature_test: CompileTimeError
-mirrors/typedef_reflected_type_test/01: CompileTimeError
-mirrors/typedef_reflected_type_test/none: CompileTimeError
-mirrors/variable_is_const_test/01: CompileTimeError
-convert/chunked_conversion_json_encode1_test: CompileTimeError
-convert/chunked_conversion_utf84_test: CompileTimeError
-convert/chunked_conversion_utf88_test: CompileTimeError
-convert/chunked_conversion_utf8_test: CompileTimeError
-convert/line_splitter_test: CompileTimeError
-html/cross_frame_test: CompileTimeError
-html/custom/constructor_calls_created_synchronously_test: CompileTimeError
-html/custom/created_callback_test: CompileTimeError
-html/custom/document_register_basic_test: CompileTimeError
-html/custom/document_register_type_extensions_test: CompileTimeError
-html/custom/element_upgrade_test: CompileTimeError
-html/element_test: CompileTimeError
-html/events_test: CompileTimeError
-html/fileapi_test: CompileTimeError
-html/filereader_test: CompileTimeError
-html/fontface_loaded_test: CompileTimeError
-html/js_function_getter_trust_types_test: CompileTimeError
-html/js_typed_interop_side_cast_exp_test: CompileTimeError
-html/js_typed_interop_side_cast_test: CompileTimeError
-html/keyboard_event_test: CompileTimeError
-html/mutationobserver_test: CompileTimeError
-html/postmessage_structured_test: CompileTimeError
-html/resource_http_test: CompileTimeError
-html/transferables_test: CompileTimeError
-html/webgl_1_test: CompileTimeError
-html/wrapping_collections_test: CompileTimeError
+async/async_await_sync_completer_test: Skip
+async/async_await_zones_test: Skip
+async/catch_errors2_test: Skip
+async/catch_errors3_test: Skip
+async/catch_errors_test: Skip
+async/future_microtask_test: Skip
+async/future_or_bad_type_test/00: Skip
+async/future_or_bad_type_test/01: Skip
+async/future_or_bad_type_test/implements: Skip
+async/future_or_only_in_async_test/00: Skip
+async/future_test/none: Skip
+async/future_test/01: Skip
+async/future_test/none: Skip
+async/future_value_chain4_test: Skip
+async/print_test/01: Skip
+async/print_test/none: Skip
+async/slow_consumer3_test: Skip
+async/stream_controller_test: Skip
+async/stream_event_transformed_test: Skip
+async/stream_transformer_test: Skip
+async/zone_debug_test: Skip
+convert/chunked_conversion1_test: Skip
+convert/chunked_conversion_json_encode1_test: Skip
+convert/chunked_conversion_utf84_test: Skip
+convert/chunked_conversion_utf88_test: Skip
+convert/chunked_conversion_utf8_test: Skip
+convert/line_splitter_test: Skip
+html/cross_frame_test: Skip
+html/element_dimensions_test: Skip
+html/element_test: Skip
+html/events_test: Skip
+html/fileapi_test: Skip
+html/filereader_test: Skip
+html/fontface_loaded_test: Skip
+html/js_function_getter_trust_types_test: Skip
+html/js_typed_interop_side_cast_exp_test: Skip
+html/js_typed_interop_side_cast_test: Skip
+html/keyboard_event_test: Skip
+html/mutationobserver_test: Skip
+html/postmessage_structured_test: Skip
+html/resource_http_test: Skip
+html/transferables_test: Skip
+html/webgl_1_test: Skip
+html/wrapping_collections_test: Skip
+math/min_max_test: Skip
+mirrors/abstract_class_test: Skip
+mirrors/abstract_test: Skip
+mirrors/circular_factory_redirection_test: Skip
+mirrors/class_declarations_test: Skip
+mirrors/closures_test: Skip
+mirrors/constructors_test: Skip
+mirrors/dart2js_mirrors_test: Skip
+mirrors/deferred_type_test: Skip
+mirrors/delegate_call_through_getter_test: Skip
+mirrors/delegate_class_test: Skip
+mirrors/delegate_function_invocation_test: Skip
+mirrors/delegate_library_test: Skip
+mirrors/delegate_test: Skip
+mirrors/enum_test: Skip
+mirrors/fake_function_without_call_test: Skip
+mirrors/generic_bounded_by_type_parameter_test: Skip
+mirrors/generic_bounded_test: Skip
+mirrors/generic_class_declaration_test: Skip
+mirrors/generic_f_bounded_mixin_application_test: Skip
+mirrors/generic_interface_test: Skip
+mirrors/generics_test: Skip
+mirrors/get_symbol_name_no_such_method_test: Skip
+mirrors/immutable_collections_test: Skip
+mirrors/inference_and_no_such_method_test: Skip
+mirrors/inherit_field_test: Skip
+mirrors/initializing_formals_test: Skip
+mirrors/instance_members_easier_test: Skip
+mirrors/instance_members_test: Skip
+mirrors/instance_members_with_override_test: Skip
+mirrors/intercepted_class_test: Skip
+mirrors/intercepted_object_test: Skip
+mirrors/invoke_call_through_getter_previously_accessed_test: Skip
+mirrors/invoke_call_through_getter_test: Skip
+mirrors/invoke_call_through_implicit_getter_previously_accessed_test: Skip
+mirrors/invoke_call_through_implicit_getter_test: Skip
+mirrors/lazy_static_test: Skip
+mirrors/library_declarations_test: Skip
+mirrors/library_exports_hidden_test: Skip
+mirrors/library_exports_shown_test: Skip
+mirrors/library_import_deferred_loading_test: Skip
+mirrors/library_imports_bad_metadata_test: Skip
+mirrors/library_imports_deferred_test: Skip
+mirrors/library_imports_hidden_test: Skip
+mirrors/library_imports_metadata_test: Skip
+mirrors/library_imports_prefixed_show_hide_test: Skip
+mirrors/library_imports_prefixed_test: Skip
+mirrors/library_imports_shown_test: Skip
+mirrors/library_metadata2_test: Skip
+mirrors/load_library_test: Skip
+mirrors/metadata_allowed_values_test: Skip
+mirrors/metadata_constructor_arguments_test: Skip
+mirrors/metadata_nested_constructor_call_test: Skip
+mirrors/metadata_scope_test: Skip
+mirrors/method_mirror_name_test: Skip
+mirrors/method_mirror_properties_test: Skip
+mirrors/mirror_in_static_init_test: Skip
+mirrors/mirrors_nsm_mismatch_test: Skip
+mirrors/mirrors_nsm_test: Skip
+mirrors/mirrors_test: Skip
+mirrors/mirrors_used_get_name2_test: Skip
+mirrors/mirrors_used_get_name_test: Skip
+mirrors/mirrors_used_inheritance_test: Skip
+mirrors/mixin_application_test: Skip
+mirrors/mixin_members_test: Skip
+mirrors/model_test: Skip
+mirrors/native_class_test: Skip
+mirrors/no_metadata_test: Skip
+mirrors/operator_test: Skip
+mirrors/parameter_is_const_test: Skip
+mirrors/parameter_of_mixin_app_constructor_test: Skip
+mirrors/parameter_test: Skip
+mirrors/private_symbol_test: Skip
+mirrors/redirecting_factory_different_type_test: Skip
+mirrors/redirecting_factory_test: Skip
+mirrors/reflect_class_test: Skip
+mirrors/reflect_model_test: Skip
+mirrors/reflected_type_classes_test: Skip
+mirrors/reflected_type_test: Skip
+mirrors/regress_16321_test: Skip
+mirrors/regress_19731_test: Skip
+mirrors/relation_subclass_test: Skip
+mirrors/removed_api_test: Skip
+mirrors/repeated_private_anon_mixin_app_test: Skip
+mirrors/return_type_test: Skip
+mirrors/set_field_with_final_inheritance_test: Skip
+mirrors/static_members_easier_test: Skip
+mirrors/static_members_test: Skip
+mirrors/static_test: Skip
+mirrors/syntax_error_test: Skip
+mirrors/synthetic_accessor_properties_test: Skip
+mirrors/top_level_accessors_test: Skip
+mirrors/type_mirror_for_type_test: Skip
+mirrors/typearguments_mirror_test: Skip
+mirrors/typedef_in_signature_test: Skip
+mirrors/typedef_reflected_type_test: Skip
+mirrors/variable_is_const_test: Skip
+typed_data/float32x4_test: Skip
+typed_data/float64x2_functional_test: Skip
+typed_data/int32x4_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 html/custom/created_callback_test: CompileTimeError # Issue 28969
@@ -236,15 +169,7 @@ html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/scripts_htmltest: Skip # Issue 29919
 html/two_scripts_htmltest: Skip # Issue 29919
 
-# TODO(vsm): Fix these - they import files from a different directory, and
-# this triggers an invalid library root build error. See issue 27767
-html/custom/attribute_changed_callback_test: Crash # Issue 27767
-html/custom/constructor_calls_created_synchronously_test: Crash # Issue 27767
-html/custom/entered_left_view_test: Crash # Issue 27767
-html/custom/js_custom_test: Crash # Issue 27767
-html/custom/mirrors_test: Crash # Issue 27767
-html/custom/regress_194523002_test: Crash # Issue 27767
-
+[ $compiler == dartdevc ]
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_or_non_strong_test: RuntimeError # Issue 29922
 async/future_or_strong_test: RuntimeError # Issue 29922
@@ -259,6 +184,9 @@ convert/streamed_conversion_utf8_decode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
+html/custom/attribute_changed_callback_test/fully_supported: CompileTimeError # Issue 29922
+html/custom/attribute_changed_callback_test/unsupported_on_polyfill: CompileTimeError # Issue 29922
+html/custom/constructor_calls_created_synchronously_test: CompileTimeError # Issue 29922
 html/custom/created_callback_test: CompileTimeError # Issue 29922
 html/custom/document_register_basic_test: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
@@ -270,6 +198,14 @@ html/custom/document_register_type_extensions_test/parsing: CompileTimeError # I
 html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
 html/custom/element_upgrade_test: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test/disconnected_subtree: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test/shadow_dom: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test/standard_events: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test/standard_events_old_callback_names: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test/viewless_document: CompileTimeError # Issue 29922
+html/custom/js_custom_test: CompileTimeError # Issue 29922
+html/custom/mirrors_test: CompileTimeError # Issue 29922
+html/custom/regress_194523002_test: CompileTimeError # Issue 29922
 html/custom_element_method_clash_test/test: Timeout # Issue 29922
 html/custom_element_name_clash_test/test: Timeout # Issue 29922
 html/custom_elements_23127_test/baseline: Timeout # Issue 29922
