@@ -21,11 +21,6 @@ bad_named_parameters_test: Skip
 bad_override_test: Skip
 black_listed_test: Skip
 body_less_constructor_wrong_arg_negative_test: Skip
-bool_check_test: Skip
-bound_closure_equality_test: Skip
-bound_closure_primitives_test: Skip
-built_in_identifier_illegal_test: Skip
-built_in_identifier_prefix_test: Skip
 call_constructor_on_unresolvable_class_test: Skip
 call_non_method_field_test: Skip
 call_nonexistent_constructor_test: Skip
@@ -716,7 +711,6 @@ bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
-branch_canonicalization_test: RuntimeError # Issue 29920
 call_closurization_test: RuntimeError # Issue 29920
 canonical_const2_test: RuntimeError # Ints and doubles are unified.
 canonical_const_test: RuntimeError # Ints and doubles are unified.

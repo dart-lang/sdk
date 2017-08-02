@@ -15,7 +15,7 @@ class B {
 
 main() {
   // Use an array to defeat type inferencing.
-  var array = [new A(), new A(), new B(), new B()];
+  var array = <dynamic>[new A(), new A(), new B(), new B()];
   var set = new Set.from(array.map((a) => a.foo));
   Expect.equals(array.length, set.length);
   set.addAll(array.map((a) => a.foo));
@@ -33,7 +33,7 @@ main() {
   }
 
   // Try with dart2js intercepted types.
-  array = ['foo', 'bar', [], [], const []];
+  array = <dynamic>['foo', 'bar', [], [], const []];
   set = new Set.from(array.map((a) => a.indexOf));
   Expect.equals(array.length, set.length);
   set.addAll(array.map((a) => a.indexOf));
@@ -50,7 +50,7 @@ main() {
     }
   }
 
-  array = [const A(), const A()];
+  array = <dynamic>[const A(), const A()];
   set = new Set.from(array.map((a) => a.foo));
   Expect.equals(1, set.length);
   set.addAll(array.map((a) => a.foo));
@@ -62,7 +62,7 @@ main() {
   Expect.equals(array[0].foo, array[1].foo);
   Expect.equals(array[0].foo.hashCode, array[1].foo.hashCode);
 
-  array = [const [], const []];
+  array = <dynamic>[const [], const []];
   set = new Set.from(array.map((a) => a.indexOf));
   Expect.equals(1, set.length);
   set.addAll(array.map((a) => a.indexOf));

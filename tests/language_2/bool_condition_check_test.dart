@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Check that passing `null` for a boolean typed parameter will still cause
-// a boolean conversion error when used in a condition in checked mode.
+// a boolean conversion error when used in a condition.
 
 import 'package:expect/expect.dart';
 
 @NoInline()
 String check({bool a, bool b}) {
-  String a_string = a ? 'a' : '';
-  String b_string = b ? 'b' : '';
-  return '$a_string$b_string';
+  String aString = a ? 'a' : '';
+  String bString = b ? 'b' : '';
+  return '$aString$bString';
 }
 
 class Class {
@@ -20,5 +20,7 @@ class Class {
 }
 
 main() {
-  Expect.equals('', new Class(a: null, b: null).field); //# 01: dynamic type error
+  Expect.throwsAssertionError(() {
+    new Class(a: null, b: null).field;
+  });
 }

@@ -144,6 +144,11 @@ bit_operations_test/04: MissingCompileTimeError
 [ $compiler == dart2js && $runtime != none ]
 bit_operations_test: RuntimeError, OK # Issue 1533
 
+# The VM and does not implement the Dart 2.0 runtime checks yet (unless --checked is explicitly passed).
+[ ! $checked && $runtime == vm ]
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
@@ -167,6 +172,7 @@ accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
+branch_canonicalization_test: RuntimeError # Issue 638.
 
 [ $strong && ($compiler == dartdevc || $compiler == dart2analyzer) ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -259,6 +265,7 @@ async_await_syntax_test/c06a: RuntimeError # Issue 27394
 async_await_syntax_test/d06a: RuntimeError # Issue 27394
 black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
+bootstrap_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -333,6 +340,9 @@ bailout6_test: Crash
 bailout7_test: Crash
 bailout_container_type_test: Crash
 bit_shift_test: Crash
+bool_condition_check_test/01: Crash
+branch_canonicalization_test: Crash
+branches_test: Crash
 
 [ ($runtime != vm && $compiler != dartk && $compiler != dartkp ) || ($compiler != none && $compiler != dartk && $compiler != dartkp )]
 assert_initializer_test/*: Skip # Not implemented yet, experiment is VM only.
@@ -355,9 +365,12 @@ bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
 bit_operations_test/none: RuntimeError # No bigints on web.
+branch_canonicalization_test: RuntimeError # Issue 29920
 
 [ $compiler == dartk && $runtime == vm ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+assertion_test: RuntimeError
+bool_test: RuntimeError # Throws CastError instead of TypeError
 
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
@@ -546,6 +559,13 @@ bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
 black_listed_test/none: Crash
+bool_check_test: Crash
+bool_test: Crash
+bootstrap_test: RuntimeError
+bound_closure_equality_test: Crash
+bound_closure_primitives_test: Crash
+branch_canonicalization_test: RuntimeError
+break_test: Crash
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
@@ -662,6 +682,10 @@ async_return_types_test/wrongTypeParameter: Skip # Flutter Issue 9110
 async_star_cancel_while_paused_test: Skip # Flutter Issue 9110
 async_star_no_cancel_test: Skip # Flutter Issue 9110
 
+[ $compiler == dart2js && ! $checked && ! $dart2js_with_kernel ]
+bool_check_test: RuntimeError # Issue 29647
+bool_condition_check_test: RuntimeError
+
 [ $compiler == dart2analyzer ]
 bad_initializer2_negative_test: fail # Issue 14880
 black_listed_test/none: fail # Issue 14228
@@ -670,12 +694,12 @@ bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 
 [ $strong ]
-bad_constructor_test: Skip
-bad_initializer1_negative_test: Skip
-bad_initializer2_negative_test: Skip
-bad_named_constructor_negative_test: Skip
-bad_named_parameters2_test: Skip
-bad_named_parameters_test: Skip
-bad_override_test: Skip
-black_listed_test: Skip
-body_less_constructor_wrong_arg_negative_test: Skip
+#bad_constructor_test: Skip
+#bad_initializer1_negative_test: Skip
+#bad_initializer2_negative_test: Skip
+#bad_named_constructor_negative_test: Skip
+#bad_named_parameters2_test: Skip
+#bad_named_parameters_test: Skip
+#bad_override_test: Skip
+#black_listed_test: Skip
+#body_less_constructor_wrong_arg_negative_test: Skip

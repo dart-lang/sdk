@@ -15,7 +15,7 @@ class A {
 }
 
 main() {
-  var array = [[], new A()];
+  var array = <dynamic>[[], new A()];
   var method = array[0].add;
   method(42);
 

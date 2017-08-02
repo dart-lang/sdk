@@ -181,7 +181,6 @@ positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && ! $checked && $enable_asserts && ! $dart2js_with_kernel ]
-bool_check_test: RuntimeError # Issue 29647
 
 [ $compiler == dart2js && ! $checked && $minified && ! $dart2js_with_kernel ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
@@ -204,7 +203,6 @@ symbol_conflict_test: RuntimeError # Issue 23857
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
-branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
 number_identity2_test: RuntimeError # Issue 12596
@@ -292,6 +290,8 @@ async_await_test: RuntimeError # Issue 27394
 async_star_test: RuntimeError # Issue 27394
 await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
+black_listed_test/13c: Crash # Issue 27394
+black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
 conditional_property_assignment_test/07: RuntimeError # Issue 27394
@@ -561,6 +561,26 @@ await_null_aware_test: Crash
 await_postfix_expr_test: Crash
 await_regression_test: Crash
 await_test: Crash
+bad_named_parameters2_test/01: Crash
+bad_named_parameters2_test/none: Crash
+bad_named_parameters_test/01: Crash
+bad_named_parameters_test/02: Crash
+bad_named_parameters_test/03: Crash
+bad_named_parameters_test/04: Crash
+bad_named_parameters_test/05: Crash
+bad_named_parameters_test/none: Crash
+bad_override_test/03: MissingCompileTimeError
+bad_override_test/04: MissingCompileTimeError
+bad_override_test/05: MissingCompileTimeError
+bailout4_test: Crash
+bailout_test: Crash
+bind_test: Crash
+bit_operations_test/01: Crash
+bit_operations_test/02: Crash
+bit_operations_test/03: Crash
+bit_operations_test/04: Crash
+bit_operations_test/none: Crash
+black_listed_test/none: Crash
 bool_check_test: Crash
 bool_test: Crash
 bound_closure_equality_test: Crash
@@ -2310,6 +2330,23 @@ wrong_number_type_arguments_test/00: Crash
 wrong_number_type_arguments_test/02: Crash
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel && $minified ]
+bad_constructor_test/05: Crash
+bad_constructor_test/none: Crash
+bad_override_test/01: Crash
+bad_override_test/02: Crash
+bad_override_test/03: Crash
+bad_override_test/04: Crash
+bad_override_test/05: Crash
+bad_override_test/06: Crash
+bad_override_test/none: Crash
+bad_typedef_test/none: Crash
+bailout2_test: Crash
+bailout3_test: Crash
+bailout5_test: Crash
+bailout6_test: Crash
+bailout7_test: Crash
+bailout_container_type_test: Crash
+bit_shift_test: Crash
 bool_condition_check_test/01: Crash
 branch_canonicalization_test: Crash
 branches_test: Crash
