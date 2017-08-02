@@ -225,5 +225,11 @@ void deleteServerCache() {
   // ~/.dartServer/.analysis-driver/
   ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
   Folder stateLocation = resourceProvider.getStateLocation('.analysis-driver');
-  stateLocation.delete();
+  try {
+    if (stateLocation.exists) {
+      stateLocation.delete();
+    }
+  } catch (e) {
+    // ignore any exception
+  }
 }
