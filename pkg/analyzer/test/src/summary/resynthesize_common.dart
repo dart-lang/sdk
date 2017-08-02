@@ -2454,6 +2454,21 @@ final dynamic f;
     }
   }
 
+  test_const_finalField_hasConstConstructor() async {
+    var library = await checkLibrary(r'''
+class C {
+  final int f = 42;
+  const C();
+}
+''');
+    checkElementText(library, r'''
+class C {
+  final int f = 42;
+  const C();
+}
+''');
+  }
+
   test_const_invalid_field_const() async {
     variablesWithNotConstInitializers.add('f');
     var library = await checkLibrary(r'''

@@ -73,8 +73,9 @@ class KernelResynthesizer {
  */
 class _ExprBuilder {
   final _KernelLibraryResynthesizerContextImpl _context;
+  final ElementImpl _contextElement;
 
-  _ExprBuilder(this._context);
+  _ExprBuilder(this._context, this._contextElement);
 
   Expression build(kernel.Expression expr) {
     if (expr is kernel.NullLiteral) {
@@ -196,7 +197,7 @@ class _ExprBuilder {
       var element = _getElement(expr.targetReference);
 
       var kernelType = expr.getStaticType(_context._resynthesizer._types);
-      var type = _context.getType(null, kernelType);
+      var type = _context.getType(_contextElement, kernelType);
       TypeName typeName = _buildType(type);
 
       var constructorName = AstTestFactory.constructorName(
@@ -210,7 +211,7 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.TypeLiteral) {
-      var type = _context.getType(null, expr.type);
+      var type = _context.getType(_contextElement, expr.type);
       var identifier = AstTestFactory.identifier3(type.element.name);
       identifier.staticElement = type.element;
       identifier.staticType = _context._resynthesizer.typeType;
@@ -303,10 +304,10 @@ class _ExprBuilder {
       return AstTestFactory.typeName3(name, arguments)..type = type;
     }
     if (type is DynamicTypeImpl) {
-      var name = AstTestFactory.identifier3('dynamic')
+      var identifier = AstTestFactory.identifier3('dynamic')
         ..staticElement = type.element
         ..staticType = type;
-      return AstTestFactory.typeName3(name)..type = type;
+      return AstTestFactory.typeName3(identifier)..type = type;
     }
     // TODO(scheglov) Implement for other types.
     throw new UnimplementedError('type: (${type.runtimeType}) $type');
@@ -316,7 +317,7 @@ class _ExprBuilder {
     int length = kernels.length;
     var types = new List<TypeAnnotation>(length);
     for (int i = 0; i < length; i++) {
-      DartType type = _context.getType(null, kernels[i]);
+      DartType type = _context.getType(_contextElement, kernels[i]);
       TypeAnnotation typeAnnotation = _buildType(type);
       types[i] = typeAnnotation;
     }
@@ -487,12 +488,12 @@ class _KernelLibraryResynthesizerContextImpl
         k is kernel.SuperInitializer && k.isSynthetic) {
       return null;
     }
-    return new _ExprBuilder(this).buildInitializer(k);
+    return new _ExprBuilder(this, constructor).buildInitializer(k);
   }
 
   @override
-  Expression getExpression(kernel.Expression expression) {
-    return new _ExprBuilder(this).build(expression);
+  Expression getExpression(ElementImpl context, kernel.Expression expression) {
+    return new _ExprBuilder(this, context).build(expression);
   }
 
   @override
@@ -593,7 +594,7 @@ class _KernelLibraryResynthesizerContextImpl
   ElementAnnotationImpl _buildAnnotation(
       CompilationUnitElementImpl unit, kernel.Expression expression) {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
-    Expression constExpr = getExpression(expression);
+    Expression constExpr = getExpression(unit, expression);
     if (constExpr is Identifier) {
       elementAnnotation.element = constExpr.staticElement;
       elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);

@@ -1018,6 +1018,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     return null;
   }
 
+  bool get _hasConstConstructorKernel =>
+      _kernel != null && _kernel.constructors.any((c) => c.isConst);
+
   @override
   void appendTo(StringBuffer buffer) {
     if (isAbstract) {
@@ -2595,8 +2598,8 @@ abstract class ConstVariableElement
   Expression get constantInitializer {
     if (_constantInitializer == null) {
       if (_kernelInitializer != null) {
-        _constantInitializer =
-            enclosingUnit._kernelContext.getExpression(_kernelInitializer);
+        _constantInitializer = enclosingUnit._kernelContext
+            .getExpression(this, _kernelInitializer);
       }
       if (_unlinkedConst != null) {
         _constantInitializer = enclosingUnit.resynthesizerContext
@@ -4555,7 +4558,8 @@ class FieldElementImpl extends PropertyInducingElementImpl
    */
   factory FieldElementImpl.forKernelFactory(
       ClassElementImpl enclosingClass, kernel.Field kernel) {
-    if (kernel.isConst) {
+    if (kernel.isConst ||
+        kernel.isFinal && enclosingClass._hasConstConstructorKernel) {
       return new ConstFieldElementImpl.forKernel(enclosingClass, kernel);
     } else {
       return new FieldElementImpl.forKernel(enclosingClass, kernel);
@@ -6113,7 +6117,7 @@ abstract class KernelLibraryResynthesizerContext {
   /**
    * Return the [Expression] for the given kernel.
    */
-  Expression getExpression(kernel.Expression expression);
+  Expression getExpression(ElementImpl context, kernel.Expression expression);
 
   /**
    * Return the list with exactly two elements - positional and named parameter
