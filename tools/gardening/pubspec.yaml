@@ -5,4 +5,4 @@ name: gardening
 dependencies:
   args:
   expect:
-    path: ..\..\pkg\expect\
+    path: ../../pkg/expect/
