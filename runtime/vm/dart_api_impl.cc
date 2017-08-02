@@ -6558,6 +6558,37 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
 }
 
 DART_EXPORT Dart_Handle
+Dart_CreateVMAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
+                                   intptr_t* assembly_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("AOT compilation is not supported on DBC.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  CHECK_NULL(assembly_buffer);
+  CHECK_NULL(assembly_size);
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteVMAOTSnapshot"));
+  AssemblyImageWriter image_writer(assembly_buffer, ApiReallocate,
+                                   2 * MB /* initial_size */);
+  uint8_t* vm_snapshot_data_buffer = NULL;
+  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
+                            ApiReallocate, &image_writer, NULL);
+
+  writer.WriteFullSnapshot();
+  *assembly_size = image_writer.AssemblySize();
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  intptr_t* vm_snapshot_data_size,
                                  uint8_t** vm_snapshot_instructions_buffer,

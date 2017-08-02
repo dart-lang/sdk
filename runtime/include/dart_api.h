@@ -3257,6 +3257,14 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                                     intptr_t* assembly_size);
 
 /**
+ *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
+ *  kDartVmSnapshotData and kDartVmSnapshotInstructions.
+ */
+DART_EXPORT Dart_Handle
+Dart_CreateVMAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
+                                   intptr_t* assembly_size);
+
+/**
  *  Same as Dart_CreateAppAOTSnapshotAsAssembly, except all the pieces are
  *  provided directly as bytes that the embedder can load with mmap. The
  *  instructions pieces must be loaded with read and execute permissions; the

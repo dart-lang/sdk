@@ -5454,7 +5454,9 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     num_base_objects = 0;
   }
 
-  WriteIsolateSnapshot(num_base_objects);
+  if (isolate_snapshot_data_buffer() != NULL) {
+    WriteIsolateSnapshot(num_base_objects);
+  }
 
   if (FLAG_print_snapshot_sizes) {
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", clustered_vm_size_);
