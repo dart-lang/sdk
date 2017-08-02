@@ -70,6 +70,34 @@ void bar() {
   }
 }
 
+void bar2() {
+  String buffer = '';
+  do {
+    buffer += 'a'; // LINT
+  } while (buffer.length < 10);
+}
+
+void bar3() {
+  String buffer = '';
+  for (final s in [ 'a', 'b']) {
+    buffer += s; // LINT
+  }
+}
+
+void bar4() {
+  String buffer = '';
+  for (final s in [ 'a', 'b']) {
+    (buffer += s); // LINT
+  }
+}
+
+void bar5() {
+  for (final s in [ 'a', 'b']) {
+    String str;
+    str += s; // OK
+  }
+}
+
 class B {
   operator +(B other) => this;
 
