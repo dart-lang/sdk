@@ -229,16 +229,26 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ..classes = ['name'];
   }
 
-  Element _createFunctionHeader() => new DivElement()
-    ..classes = ['function-item']
-    ..children = [
-      _createHeaderButton(const ['exclusive'], 'Execution(%)', _Table.functions,
-          _SortingField.exclusive, _SortingDirection.descending),
-      _createHeaderButton(const ['inclusive'], 'Stack(%)', _Table.functions,
-          _SortingField.inclusive, _SortingDirection.descending),
-      _createHeaderButton(const ['name'], 'Method', _Table.functions,
-          _SortingField.method, _SortingDirection.ascending),
-    ];
+  List<HtmlElement> _createFunctionHeader() => [
+        new DivElement()
+          ..classes = ['function-item']
+          ..children = [
+            _createHeaderButton(
+                const ['exclusive'],
+                'Execution(%)',
+                _Table.functions,
+                _SortingField.exclusive,
+                _SortingDirection.descending),
+            _createHeaderButton(
+                const ['inclusive'],
+                'Stack(%)',
+                _Table.functions,
+                _SortingField.inclusive,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['name'], 'Method', _Table.functions,
+                _SortingField.method, _SortingDirection.ascending),
+          ]
+      ];
 
   void _setSorting(
       _Table table, _SortingField field, _SortingDirection defaultDirection) {
@@ -284,14 +294,20 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ..classes = ['name'];
   }
 
-  Element _createCalleeHeader() => new DivElement()
-    ..classes = ['function-item']
-    ..children = [
-      _createHeaderButton(const ['inclusive'], 'Callees(%)', _Table.callee,
-          _SortingField.callee, _SortingDirection.descending),
-      _createHeaderButton(const ['name'], 'Method', _Table.callee,
-          _SortingField.method, _SortingDirection.ascending),
-    ];
+  List<HtmlElement> _createCalleeHeader() => [
+        new DivElement()
+          ..classes = ['function-item']
+          ..children = [
+            _createHeaderButton(
+                const ['inclusive'],
+                'Callees(%)',
+                _Table.callee,
+                _SortingField.callee,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['name'], 'Method', _Table.callee,
+                _SortingField.method, _SortingDirection.ascending),
+          ]
+      ];
 
   Element _createCaller() {
     final element = new DivElement()
@@ -319,14 +335,20 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ..classes = ['name'];
   }
 
-  Element _createCallerHeader() => new DivElement()
-    ..classes = ['function-item']
-    ..children = [
-      _createHeaderButton(const ['inclusive'], 'Callers(%)', _Table.caller,
-          _SortingField.caller, _SortingDirection.descending),
-      _createHeaderButton(const ['name'], 'Method', _Table.caller,
-          _SortingField.method, _SortingDirection.ascending),
-    ];
+  List<HtmlElement> _createCallerHeader() => [
+        new DivElement()
+          ..classes = ['function-item']
+          ..children = [
+            _createHeaderButton(
+                const ['inclusive'],
+                'Callers(%)',
+                _Table.caller,
+                _SortingField.caller,
+                _SortingDirection.descending),
+            _createHeaderButton(const ['name'], 'Method', _Table.caller,
+                _SortingField.method, _SortingDirection.ascending),
+          ]
+      ];
 
   ButtonElement _createHeaderButton(List<String> classes, String text,
           _Table table, _SortingField field, _SortingDirection direction) =>

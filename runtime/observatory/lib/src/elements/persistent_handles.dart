@@ -186,19 +186,21 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
         ..text = 'dart::Class::Method()'
     ];
 
-  Element _createWeakHeader() => new DivElement()
-    ..classes = ['weak-item']
-    ..children = [
-      _createHeaderButton(const ['external-size'], 'External Size',
-          _SortingField.externalSize, _SortingDirection.descending),
-      _createHeaderButton(const ['peer'], 'Peer', _SortingField.peer,
-          _SortingDirection.descending),
-      new SpanElement()
-        ..classes = ['object']
-        ..text = 'Object',
-      _createHeaderButton(const ['finalizer'], 'Finalizer Callback',
-          _SortingField.finalizerCallback, _SortingDirection.ascending)
-    ];
+  List<HtmlElement> _createWeakHeader() => [
+        new DivElement()
+          ..classes = ['weak-item']
+          ..children = [
+            _createHeaderButton(const ['external-size'], 'External Size',
+                _SortingField.externalSize, _SortingDirection.descending),
+            _createHeaderButton(const ['peer'], 'Peer', _SortingField.peer,
+                _SortingDirection.descending),
+            new SpanElement()
+              ..classes = ['object']
+              ..text = 'Object',
+            _createHeaderButton(const ['finalizer'], 'Finalizer Callback',
+                _SortingField.finalizerCallback, _SortingDirection.ascending)
+          ]
+      ];
 
   ButtonElement _createHeaderButton(List<String> classes, String text,
           _SortingField field, _SortingDirection direction) =>

@@ -459,11 +459,23 @@ allocation-profile .collection.expanded {
   top: 160px;
 }
 
+allocation-profile .container {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
 allocation-profile .collection-item {
+  background-color: #FFFFFF;
   box-sizing: border-box;
   line-height: 20px;
-  margin-left: 5%;
-  margin-right: 5%;
+}
+
+allocation-profile .collection-item:hover {
+  background-color: #d2e7fe;
+}
+
+allocation-profile .header .collection-item:hover {
+  background-color: #FFFFFF;
 }
 
 allocation-profile .header .collection-item:last-child {
@@ -476,35 +488,30 @@ allocation-profile .header .collection-item span {
 }
 
 allocation-profile .collection-item :nth-child(2n+2).group,
-allocation-profile .collection-item :nth-child(4n+3).bytes,
-allocation-profile .collection-item :nth-child(4n+3).instances,
-allocation-profile .collection-item :nth-child(4n+4).bytes,
-allocation-profile .collection-item :nth-child(4n+4).instances {
+allocation-profile .collection-item :nth-child(4n+3),
+allocation-profile .collection-item :nth-child(4n+4) {
   background-color: #EEEEEE;
 }
 
 allocation-profile .collection-item:hover :nth-child(2n+2).group,
-allocation-profile .collection-item:hover :nth-child(4n+3).bytes,
-allocation-profile .collection-item:hover :nth-child(4n+3).instances,
-allocation-profile .collection-item:hover :nth-child(4n+4).bytes,
-allocation-profile .collection-item:hover :nth-child(4n+4).instances {
+allocation-profile .collection-item:hover :nth-child(4n+3),
+allocation-profile .collection-item:hover :nth-child(4n+4) {
   background-color: #afd5fd;
 }
 
+allocation-profile .header .collection-item :nth-child(2n+1).group,
+allocation-profile .header .collection-item :nth-child(4n+1),
+allocation-profile .header .collection-item :nth-child(4n+2) {
+  background-color: #FFFFFF;
+}
+
 allocation-profile .header .collection-item :nth-child(2n+2).group,
-allocation-profile .header .collection-item :nth-child(4n+3).bytes,
-allocation-profile .header .collection-item :nth-child(4n+3).instances,
-allocation-profile .header .collection-item :nth-child(4n+4).bytes,
-allocation-profile .header .collection-item :nth-child(4n+4).instances {
+allocation-profile .header .collection-item :nth-child(4n+3),
+allocation-profile .header .collection-item :nth-child(4n+4) {
   background-color: #DDDDDD;
 }
 
-allocation-profile .scroller .collection-item:hover {
-  background-color: #d2e7fe;
-}
-
 allocation-profile .collection-item .group {
-  background-color: white;
   display: inline-block;
   width: 12em;
   text-align: right;
@@ -514,7 +521,6 @@ allocation-profile .collection-item .group {
 }
 
 allocation-profile .collection-item .bytes {
-  background-color: white;
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -523,7 +529,6 @@ allocation-profile .collection-item .bytes {
 }
 
 allocation-profile .collection-item .instances {
-  background-color: white;
   display: inline-block;
   width: 6em;
   text-align: right;
@@ -533,8 +538,8 @@ allocation-profile .collection-item .instances {
 }
 
 allocation-profile .collection-item .name {
-  background-color: white;
   padding-left: 0.5em;
+  display: inline-block;
 }
 
 allocation-profile .collection-item > button,
@@ -589,11 +594,14 @@ class-tree virtual-tree {
   right: 0;
 }
 
+class-tree virtual-tree .container {
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
 class-tree virtual-tree .class-tree-item {
   line-height: 25px;
   height: 25px;
-  padding-left: 10%;
-  padding-right: 10%;
 }
 
 class-tree virtual-tree .class-tree-item .name {
@@ -2459,7 +2467,7 @@ virtual-collection {
 virtual-collection .header {
   background: white;
   position: relative;
-  display: inline-block;
+  display: block;
   min-width: 100%;
   z-index: +1;
 }
@@ -2478,9 +2486,8 @@ virtual-collection .shifter {
   min-width: 100%;
 }
 
-virtual-collection .header > *,
-virtual-collection .shifter > * {
-  display: inline-block;
+virtual-collection .header > div,
+virtual-collection .shifter > div {
   min-width: 100%;
   white-space: nowrap;
 }
