@@ -47,12 +47,11 @@ void defineLinterEngineTests() {
 
     group('exceptions', () {
       test('message', () {
-        expect(const LinterException('foo').message, equals('foo'));
+        expect(const LinterException('foo').message, 'foo');
       });
       test('toString', () {
-        expect(const LinterException().toString(), equals('LinterException'));
-        expect(const LinterException('foo').toString(),
-            equals('LinterException: foo'));
+        expect(const LinterException().toString(), 'LinterException');
+        expect(const LinterException('foo').toString(), 'LinterException: foo');
       });
     });
 
@@ -74,25 +73,25 @@ void defineLinterEngineTests() {
       });
       test('logError', () {
         logger.logError('logError');
-        expect(errCollector.trim(), equals('logError'));
+        expect(errCollector.trim(), 'logError');
       });
       test('logInformation', () {
         logger.logInformation('logInformation');
-        expect(outCollector.trim(), equals('logInformation'));
+        expect(outCollector.trim(), 'logInformation');
       });
     });
 
     group('camel case', () {
       test('humanize', () {
-        expect(new CamelCaseString('FooBar').humanized, equals('Foo Bar'));
-        expect(new CamelCaseString('Foo').humanized, equals('Foo'));
+        expect(new CamelCaseString('FooBar').humanized, 'Foo Bar');
+        expect(new CamelCaseString('Foo').humanized, 'Foo');
       });
       test('validation', () {
         expect(() => new CamelCaseString('foo'),
             throwsA(new isInstanceOf<ArgumentError>()));
       });
       test('toString', () {
-        expect(new CamelCaseString('FooBar').toString(), equals('FooBar'));
+        expect(new CamelCaseString('FooBar').toString(), 'FooBar');
       });
     });
 
@@ -155,7 +154,7 @@ void defineLinterEngineTests() {
       });
       test('no args', () async {
         await dartlint.main([]);
-        expect(exitCode, equals(dartlint.unableToProcessExitCode));
+        expect(exitCode, dartlint.unableToProcessExitCode);
       });
       test('help', () async {
         await dartlint.main(['-h']);
@@ -164,7 +163,7 @@ void defineLinterEngineTests() {
       });
       test('unknown arg', () async {
         await dartlint.main(['-XXXXX']);
-        expect(exitCode, equals(dartlint.unableToProcessExitCode));
+        expect(exitCode, dartlint.unableToProcessExitCode);
       });
       test('custom sdk path', () async {
         // Smoke test to ensure a custom sdk path doesn't sink the ship
@@ -188,15 +187,13 @@ void defineLinterEngineTests() {
       group('hyperlink', () {
         test('html', () {
           Hyperlink link = new Hyperlink('dart', 'http://dartlang.org');
-          expect(link.html, equals('<a href="http://dartlang.org">dart</a>'));
+          expect(link.html, '<a href="http://dartlang.org">dart</a>');
         });
         test('html - strong', () {
           Hyperlink link =
               new Hyperlink('dart', 'http://dartlang.org', bold: true);
-          expect(
-              link.html,
-              equals(
-                  '<a href="http://dartlang.org"><strong>dart</strong></a>'));
+          expect(link.html,
+              '<a href="http://dartlang.org"><strong>dart</strong></a>');
         });
       });
 
@@ -204,10 +201,10 @@ void defineLinterEngineTests() {
         test('comparing', () {
           LintRule r1 = new MockLintRule('Bar', new Group('acme'));
           LintRule r2 = new MockLintRule('Foo', new Group('acme'));
-          expect(r1.compareTo(r2), equals(-1));
+          expect(r1.compareTo(r2), -1);
           LintRule r3 = new MockLintRule('Bar', new Group('acme'));
           LintRule r4 = new MockLintRule('Bar', new Group('woody'));
-          expect(r3.compareTo(r4), equals(-1));
+          expect(r3.compareTo(r4), -1);
         });
       });
       group('maturity', () {
@@ -215,9 +212,9 @@ void defineLinterEngineTests() {
           // Custom
           Maturity m1 = new Maturity('foo', ordinal: 0);
           Maturity m2 = new Maturity('bar', ordinal: 1);
-          expect(m1.compareTo(m2), equals(-1));
+          expect(m1.compareTo(m2), -1);
           // Builtin
-          expect(Maturity.stable.compareTo(Maturity.experimental), equals(-1));
+          expect(Maturity.stable.compareTo(Maturity.experimental), -1);
         });
       });
     });
