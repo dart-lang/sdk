@@ -516,6 +516,26 @@ class _OptionsProcessor {
       // Process excludes.
       var excludes = analyzer[AnalyzerOptions.exclude];
       _applyExcludes(options, excludes);
+
+      // Process plugins.
+      var names = analyzer[AnalyzerOptions.plugins];
+      List<String> pluginNames = <String>[];
+      if (names is String) {
+        pluginNames.add(names);
+      } else if (names is YamlList) {
+        for (var element in names) {
+          if (element is String) {
+            pluginNames.add(element);
+          }
+        }
+      } else if (names is YamlMap) {
+        for (var key in names.keys) {
+          if (key is String) {
+            pluginNames.add(key);
+          }
+        }
+      }
+      options.enabledPluginNames = pluginNames;
     }
 
     LintConfig config = parseConfig(optionMap);

@@ -143,6 +143,8 @@ td.pre {
 }
 ''';
 
+final bool _showLints = false;
+
 String get _sdkVersion {
   String version = Platform.version;
   if (version.contains(' ')) {
@@ -466,6 +468,9 @@ class ContextsPage extends DiagnosticPageWithNav {
         .map((e) => e.description)
         .join(', '));
 
+    h3('Plugins');
+    p(driver.analysisOptions.enabledPluginNames.join(', '));
+
     List<String> priorityFiles = driver.priorityFiles;
     List<String> addedFiles = driver.addedFiles.toList();
     List<String> implicitFiles =
@@ -781,17 +786,6 @@ class ElementModelPage extends DiagnosticPageWithNav {
   }
 }
 
-class ExceptionPage extends DiagnosticPage {
-  final StackTrace trace;
-
-  ExceptionPage(Site site, String message, this.trace)
-      : super(site, '', '500 Oops', description: message);
-
-  void generateContent(Map<String, String> params) {
-    p(trace.toString(), style: 'white-space: pre');
-  }
-}
-
 class EnvironmentVariablesPage extends DiagnosticPageWithNav {
   EnvironmentVariablesPage(DiagnosticsSite site)
       : super(site, 'environment', 'Environment Variables',
@@ -807,6 +801,17 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
       buf.writeln('<tr><td>${escape(key)}</td><td>${escape(value)}</td></tr>');
     }
     buf.writeln('</table>');
+  }
+}
+
+class ExceptionPage extends DiagnosticPage {
+  final StackTrace trace;
+
+  ExceptionPage(Site site, String message, this.trace)
+      : super(site, '', '500 Oops', description: message);
+
+  void generateContent(Map<String, String> params) {
+    p(trace.toString(), style: 'white-space: pre');
   }
 }
 
@@ -991,6 +996,8 @@ class OverlaysPage extends DiagnosticPageWithNav {
   }
 }
 
+// TODO(devoncarew): We're not currently tracking the time spent in specific
+// lints by default (analysisOptions / driverOptions enableTiming)
 class PluginsPage extends DiagnosticPageWithNav {
   PluginsPage(DiagnosticsSite site)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
@@ -1024,10 +1031,6 @@ class PluginsPage extends DiagnosticPageWithNav {
     ul(plugins, writePlugin);
   }
 }
-
-// TODO(devoncarew): We're not currently tracking the time spent in specific
-// lints by default (analysisOptions / driverOptions enableTiming)
-final bool _showLints = false;
 
 class ProfilePage extends DiagnosticPageWithNav {
   ProfilePage(DiagnosticsSite site)

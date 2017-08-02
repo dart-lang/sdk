@@ -1189,6 +1189,12 @@ abstract class AnalysisOptions {
   bool get enableConditionalDirectives;
 
   /**
+   * Return a list of the names of the packages for which, if they define a
+   * plugin, the plugin should be enabled.
+   */
+  List<String> get enabledPluginNames;
+
+  /**
    * Return `true` to enable generic methods (DEP 22).
    */
   @deprecated
@@ -1380,6 +1386,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAssertInitializer = false;
 
   @override
+  List<String> enabledPluginNames = const <String>[];
+
+  @override
   bool enableLazyAssignmentOperators = false;
 
   @override
@@ -1484,6 +1493,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
+    enabledPluginNames = options.enabledPluginNames;
     enableAssertInitializer = options.enableAssertInitializer;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
@@ -1639,6 +1649,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         buffer.addString(lintRule.lintCode.uniqueName);
       }
 
+      // Append plugin names.
+      buffer.addInt(enabledPluginNames.length);
+      for (String enabledPluginName in enabledPluginNames) {
+        buffer.addString(enabledPluginName);
+      }
+
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
       _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
@@ -1651,6 +1667,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
+    enabledPluginNames = const <String>[];
     enableAssertInitializer = false;
     enableLazyAssignmentOperators = false;
     enableStrictCallChecks = false;

@@ -10,6 +10,8 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:front_end/src/base/source.dart';
+import 'package:path/src/context.dart';
 
 /**
  * An object that watches the results produced by analysis drivers to identify
@@ -52,12 +54,39 @@ class PluginWatcher implements DriverWatcher {
   void addedDriver(AnalysisDriver driver, ContextRoot contextRoot) {
     _driverInfo[driver] = new _DriverInfo(
         contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
-    driver.fsState.knownFilesSetChanges.listen((KnownFilesSetChange change) {
-      List<String> addedPluginPaths = _checkPluginsFor(driver, change);
-      for (String pluginPath in addedPluginPaths) {
-        manager.addPluginToContextRoot(contextRoot, pluginPath);
+    List<String> enabledPlugins = driver.analysisOptions.enabledPluginNames;
+    if (enabledPlugins.isNotEmpty) {
+      for (String package in enabledPlugins) {
+        //
+        // Determine whether the package exists and defines a plugin.
+        //
+        Source source =
+            driver.sourceFactory.forUri('package:$package/$package.dart');
+        Context context = resourceProvider.pathContext;
+        String packageRoot = context.dirname(context.dirname(source.fullName));
+        String pluginPath = _locator.findPlugin(packageRoot);
+        if (pluginPath != null) {
+          //
+          // Add the plugin to the context root.
+          //
+          // TODO(brianwilkerson) Do we need to wait for the plugin to be added?
+          // If we don't, then tests don't have any way to know when to expect
+          // that the list of plugins has been updated.
+          manager.addPluginToContextRoot(contextRoot, pluginPath);
+        }
       }
-    });
+    } else {
+      //
+      // Remove this code after users are switched over to use an explicit list
+      // of plugins.
+      //
+      driver.fsState.knownFilesSetChanges.listen((KnownFilesSetChange change) {
+        List<String> addedPluginPaths = _checkPluginsFor(driver, change);
+        for (String pluginPath in addedPluginPaths) {
+          manager.addPluginToContextRoot(contextRoot, pluginPath);
+        }
+      });
+    }
   }
 
   /**

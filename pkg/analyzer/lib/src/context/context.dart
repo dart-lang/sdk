@@ -270,6 +270,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.generateImplicitErrors ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
+        _notEqual(
+            this._options.enabledPluginNames, options.enabledPluginNames) ||
         _notEqual(this._options.errorProcessors, options.errorProcessors) ||
         _notEqual(this._options.excludePatterns, options.excludePatterns) ||
         (this._options.hint && !options.hint) ||
@@ -311,6 +313,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
+    this._options.enabledPluginNames = options.enabledPluginNames;
     this._options.errorProcessors = options.errorProcessors;
     this._options.excludePatterns = options.excludePatterns;
     this._options.hint = options.hint;
