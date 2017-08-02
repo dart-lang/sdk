@@ -17,6 +17,9 @@ void bad() {
   if (true && 1 != 0 || 3 < 4) {} // LINT
   if (1 != 0 || 3 < 4 && true) {} // LINT
   if (null ?? m()) {} // LINT
+  while(!true) {} //LINT
+  do {} while(false); // LINT
+  for ( ; true; ) { } //LINT
 }
 
 bool m() => true;
