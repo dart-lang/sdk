@@ -235,12 +235,17 @@ arithmetic_smi_overflow_test: Crash
 [ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
+function_type/*: RuntimeError # Issue 28988
 
 [ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
 *: Skip # Issue 29626
 
 [ $compiler == dart2js && ! $checked && ! $enable_asserts && ! $dart2js_with_kernel && $runtime != none ]
 assertion_test: RuntimeError # Issue 12748
+function_type/*: RuntimeError # Needs checked mode.
+
+[ $compiler == none && ! $checked ]
+function_type/*: RuntimeError # Needs checked mode.
 
 [ $compiler == dart2js && $dart2js_with_kernel_in_ssa ]
 abstract_beats_arguments_test: RuntimeError # Issue 27394
@@ -546,6 +551,156 @@ bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
 black_listed_test/none: Crash
+function_type/function_type0_test: Crash
+function_type/function_type10_test: Crash
+function_type/function_type11_test: Crash
+function_type/function_type12_test: Crash
+function_type/function_type13_test: Crash
+function_type/function_type14_test: Crash
+function_type/function_type15_test: Crash
+function_type/function_type16_test: Crash
+function_type/function_type17_test: Crash
+function_type/function_type18_test: Crash
+function_type/function_type19_test: Crash
+function_type/function_type1_test: Crash
+function_type/function_type20_test: Crash
+function_type/function_type21_test: Crash
+function_type/function_type22_test: Crash
+function_type/function_type23_test: Crash
+function_type/function_type24_test: Crash
+function_type/function_type25_test: Crash
+function_type/function_type26_test: Crash
+function_type/function_type27_test: Crash
+function_type/function_type28_test: Crash
+function_type/function_type29_test: Crash
+function_type/function_type2_test: Crash
+function_type/function_type30_test: Crash
+function_type/function_type31_test: Crash
+function_type/function_type32_test: Crash
+function_type/function_type33_test: Crash
+function_type/function_type34_test: Crash
+function_type/function_type35_test: Crash
+function_type/function_type36_test: Crash
+function_type/function_type37_test: Crash
+function_type/function_type38_test: Crash
+function_type/function_type39_test: Crash
+function_type/function_type3_test: Crash
+function_type/function_type40_test: Crash
+function_type/function_type41_test: Crash
+function_type/function_type42_test: Crash
+function_type/function_type43_test: Crash
+function_type/function_type44_test: Crash
+function_type/function_type45_test: Crash
+function_type/function_type46_test: Crash
+function_type/function_type47_test: Crash
+function_type/function_type48_test: Crash
+function_type/function_type49_test: Crash
+function_type/function_type4_test: Crash
+function_type/function_type50_test: Crash
+function_type/function_type51_test: Crash
+function_type/function_type52_test: Crash
+function_type/function_type53_test: Crash
+function_type/function_type54_test: Crash
+function_type/function_type55_test: Crash
+function_type/function_type56_test: Crash
+function_type/function_type57_test: Crash
+function_type/function_type58_test: Crash
+function_type/function_type59_test: Crash
+function_type/function_type5_test: Crash
+function_type/function_type60_test: Crash
+function_type/function_type61_test: Crash
+function_type/function_type62_test: Crash
+function_type/function_type63_test: Crash
+function_type/function_type64_test: Crash
+function_type/function_type65_test: Crash
+function_type/function_type66_test: Crash
+function_type/function_type67_test: Crash
+function_type/function_type68_test: Crash
+function_type/function_type69_test: Crash
+function_type/function_type6_test: Crash
+function_type/function_type70_test: Crash
+function_type/function_type71_test: Crash
+function_type/function_type72_test: Crash
+function_type/function_type73_test: Crash
+function_type/function_type74_test: Crash
+function_type/function_type75_test: Crash
+function_type/function_type76_test: Crash
+function_type/function_type77_test: Crash
+function_type/function_type78_test: Crash
+function_type/function_type79_test: Crash
+function_type/function_type7_test: Crash
+function_type/function_type80_test: Crash
+function_type/function_type81_test: Crash
+function_type/function_type82_test: Crash
+function_type/function_type83_test: Crash
+function_type/function_type84_test: Crash
+function_type/function_type85_test: Crash
+function_type/function_type86_test: Crash
+function_type/function_type87_test: Crash
+function_type/function_type88_test: Crash
+function_type/function_type89_test: Crash
+function_type/function_type8_test: Crash
+function_type/function_type90_test: Crash
+function_type/function_type91_test: Crash
+function_type/function_type92_test: Crash
+function_type/function_type93_test: Crash
+function_type/function_type94_test: Crash
+function_type/function_type95_test: Crash
+function_type/function_type96_test: Crash
+function_type/function_type97_test: Crash
+function_type/function_type98_test: Crash
+function_type/function_type99_test: Crash
+function_type/function_type9_test: Crash
+
+# Note: there are two flags to test dart2js with kernel:
+#  - dart2js_with_kernel_in_ssa: tests cover SSA via Kernel, but no other part of the
+#  compiler. This flag will be deleted soon
+#  - dart2js_with_kernel: tests the entire pipeline with kernel.
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
+function_type/function_type14_test: Crash # Issue 27394
+function_type/function_type15_test: Crash # Issue 27394
+function_type/function_type20_test: Crash # Issue 27394
+function_type/function_type21_test: Crash # Issue 27394
+function_type/function_type22_test: Crash # Issue 27394
+function_type/function_type23_test: Crash # Issue 27394
+function_type/function_type24_test: Crash # Issue 27394
+function_type/function_type25_test: Crash # Issue 27394
+function_type/function_type26_test: Crash # Issue 27394
+function_type/function_type27_test: Crash # Issue 27394
+function_type/function_type28_test: Crash # Issue 27394
+function_type/function_type29_test: Crash # Issue 27394
+function_type/function_type30_test: Crash # Issue 27394
+function_type/function_type31_test: Crash # Issue 27394
+function_type/function_type32_test: Crash # Issue 27394
+function_type/function_type33_test: Crash # Issue 27394
+function_type/function_type34_test: Crash # Issue 27394
+function_type/function_type35_test: Crash # Issue 27394
+function_type/function_type36_test: Crash # Issue 27394
+function_type/function_type37_test: Crash # Issue 27394
+function_type/function_type38_test: Crash # Issue 27394
+function_type/function_type39_test: Crash # Issue 27394
+function_type/function_type40_test: Crash # Issue 27394
+function_type/function_type41_test: Crash # Issue 27394
+function_type/function_type42_test: Crash # Issue 27394
+function_type/function_type43_test: Crash # Issue 27394
+function_type/function_type44_test: Crash # Issue 27394
+function_type/function_type45_test: Crash # Issue 27394
+function_type/function_type46_test: Crash # Issue 27394
+function_type/function_type47_test: Crash # Issue 27394
+function_type/function_type48_test: Crash # Issue 27394
+function_type/function_type49_test: Crash # Issue 27394
+function_type/function_type50_test: Crash # Issue 27394
+function_type/function_type51_test: Crash # Issue 27394
+function_type/function_type52_test: Crash # Issue 27394
+function_type/function_type53_test: Crash # Issue 27394
+function_type/function_type54_test: Crash # Issue 27394
+function_type/function_type55_test: Crash # Issue 27394
+function_type/function_type62_test: Crash # Issue 27394
+function_type/function_type63_test: Crash # Issue 27394
+function_type/function_type6_test: Crash # Issue 27394
+function_type/function_type7_test: Crash # Issue 27394
+function_type/function_type98_test: Crash # Issue 27394
+function_type/function_type99_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
@@ -553,6 +708,108 @@ assert_with_message_test: RuntimeError
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail
+
+[ $compiler == dartk || $compiler == dartkp ]
+function_type/function_type0_test: RuntimeError
+function_type/function_type10_test: RuntimeError
+function_type/function_type11_test: RuntimeError
+function_type/function_type12_test: RuntimeError
+function_type/function_type13_test: RuntimeError
+function_type/function_type14_test: RuntimeError
+function_type/function_type15_test: RuntimeError
+function_type/function_type16_test: RuntimeError
+function_type/function_type17_test: RuntimeError
+function_type/function_type18_test: RuntimeError
+function_type/function_type19_test: RuntimeError
+function_type/function_type1_test: RuntimeError
+function_type/function_type20_test: RuntimeError
+function_type/function_type21_test: RuntimeError
+function_type/function_type22_test: RuntimeError
+function_type/function_type23_test: RuntimeError
+function_type/function_type24_test: RuntimeError
+function_type/function_type25_test: RuntimeError
+function_type/function_type26_test: RuntimeError
+function_type/function_type27_test: RuntimeError
+function_type/function_type28_test: RuntimeError
+function_type/function_type29_test: RuntimeError
+function_type/function_type2_test: RuntimeError
+function_type/function_type30_test: RuntimeError
+function_type/function_type31_test: RuntimeError
+function_type/function_type32_test: RuntimeError
+function_type/function_type33_test: RuntimeError
+function_type/function_type34_test: RuntimeError
+function_type/function_type35_test: RuntimeError
+function_type/function_type36_test: RuntimeError
+function_type/function_type37_test: RuntimeError
+function_type/function_type38_test: RuntimeError
+function_type/function_type39_test: RuntimeError
+function_type/function_type3_test: RuntimeError
+function_type/function_type40_test: RuntimeError
+function_type/function_type41_test: RuntimeError
+function_type/function_type42_test: RuntimeError
+function_type/function_type43_test: RuntimeError
+function_type/function_type44_test: RuntimeError
+function_type/function_type45_test: RuntimeError
+function_type/function_type46_test: RuntimeError
+function_type/function_type47_test: RuntimeError
+function_type/function_type48_test: RuntimeError
+function_type/function_type49_test: RuntimeError
+function_type/function_type4_test: RuntimeError
+function_type/function_type50_test: RuntimeError
+function_type/function_type51_test: RuntimeError
+function_type/function_type52_test: RuntimeError
+function_type/function_type53_test: RuntimeError
+function_type/function_type54_test: RuntimeError
+function_type/function_type55_test: RuntimeError
+function_type/function_type56_test: RuntimeError
+function_type/function_type57_test: RuntimeError
+function_type/function_type58_test: RuntimeError
+function_type/function_type59_test: RuntimeError
+function_type/function_type5_test: RuntimeError
+function_type/function_type60_test: RuntimeError
+function_type/function_type61_test: RuntimeError
+function_type/function_type62_test: RuntimeError
+function_type/function_type63_test: RuntimeError
+function_type/function_type64_test: RuntimeError
+function_type/function_type65_test: RuntimeError
+function_type/function_type66_test: RuntimeError
+function_type/function_type67_test: RuntimeError
+function_type/function_type68_test: RuntimeError
+function_type/function_type69_test: RuntimeError
+function_type/function_type6_test: RuntimeError
+function_type/function_type70_test: RuntimeError
+function_type/function_type71_test: RuntimeError
+function_type/function_type72_test: RuntimeError
+function_type/function_type73_test: RuntimeError
+function_type/function_type74_test: RuntimeError
+function_type/function_type75_test: RuntimeError
+function_type/function_type76_test: RuntimeError
+function_type/function_type77_test: RuntimeError
+function_type/function_type78_test: RuntimeError
+function_type/function_type79_test: RuntimeError
+function_type/function_type7_test: RuntimeError
+function_type/function_type80_test: RuntimeError
+function_type/function_type81_test: RuntimeError
+function_type/function_type82_test: RuntimeError
+function_type/function_type83_test: RuntimeError
+function_type/function_type84_test: RuntimeError
+function_type/function_type85_test: RuntimeError
+function_type/function_type86_test: RuntimeError
+function_type/function_type87_test: RuntimeError
+function_type/function_type88_test: RuntimeError
+function_type/function_type89_test: RuntimeError
+function_type/function_type8_test: RuntimeError
+function_type/function_type90_test: RuntimeError
+function_type/function_type91_test: RuntimeError
+function_type/function_type92_test: RuntimeError
+function_type/function_type93_test: RuntimeError
+function_type/function_type94_test: RuntimeError
+function_type/function_type95_test: RuntimeError
+function_type/function_type96_test: RuntimeError
+function_type/function_type97_test: RuntimeError
+function_type/function_type98_test: RuntimeError
+function_type/function_type99_test: RuntimeError
+function_type/function_type9_test: RuntimeError
 
 # These test entries will be valid for vm (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
