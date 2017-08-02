@@ -456,6 +456,7 @@ static bool ProcessObserveOption(const char* option_value,
   // These options should also be documented in the help message.
   vm_options->AddArgument("--pause-isolates-on-exit");
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
+  vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
   return true;
 }

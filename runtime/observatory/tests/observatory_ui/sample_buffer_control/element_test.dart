@@ -12,6 +12,8 @@ import '../mocks.dart';
 main() {
   SampleBufferControlElement.tag.ensureRegistration();
 
+  const vm = const VMMock();
+
   group('instantiation', () {
     SampleProfileLoadingProgressMock progress;
     StreamController<SampleProfileLoadingProgressEventMock> events;
@@ -20,7 +22,7 @@ main() {
       events = new StreamController<SampleProfileLoadingProgressEventMock>();
     });
     test('no additional parameters', () {
-      final e = new SampleBufferControlElement(progress, events.stream);
+      final e = new SampleBufferControlElement(vm, progress, events.stream);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.progress, equals(progress));
       expect(e.selectedTag, equals(M.SampleProfileTag.none));
@@ -28,7 +30,7 @@ main() {
     });
     test('selected tag', () {
       const tag = M.SampleProfileTag.userOnly;
-      final e = new SampleBufferControlElement(progress, events.stream,
+      final e = new SampleBufferControlElement(vm, progress, events.stream,
           selectedTag: tag);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.progress, equals(progress));
@@ -36,7 +38,7 @@ main() {
       expect(e.showTag, isTrue);
     });
     test('show tag (true)', () {
-      final e = new SampleBufferControlElement(progress, events.stream,
+      final e = new SampleBufferControlElement(vm, progress, events.stream,
           showTag: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.progress, equals(progress));
@@ -44,7 +46,7 @@ main() {
       expect(e.showTag, isTrue);
     });
     test('show tag (false)', () {
-      final e = new SampleBufferControlElement(progress, events.stream,
+      final e = new SampleBufferControlElement(vm, progress, events.stream,
           showTag: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.progress, equals(progress));
@@ -60,7 +62,7 @@ main() {
       events = new StreamController<SampleProfileLoadingProgressEventMock>();
     });
     test('created after attachment', () async {
-      final e = new SampleBufferControlElement(progress, events.stream);
+      final e = new SampleBufferControlElement(vm, progress, events.stream);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
@@ -69,7 +71,7 @@ main() {
       expect(e.children.length, isZero, reason: 'is empty');
     });
     test('listen for status changes', () async {
-      final e = new SampleBufferControlElement(progress, events.stream);
+      final e = new SampleBufferControlElement(vm, progress, events.stream);
       expect(events.hasListener, isFalse);
       document.body.append(e);
       await e.onRendered.first;
@@ -81,7 +83,7 @@ main() {
       await e.onRendered.first;
     });
     test('follow updates changes', () async {
-      final e = new SampleBufferControlElement(progress, events.stream);
+      final e = new SampleBufferControlElement(vm, progress, events.stream);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
@@ -106,7 +108,7 @@ main() {
       await e.onRendered.first;
     });
     test('follow updates changes (no tag)', () async {
-      final e = new SampleBufferControlElement(progress, events.stream,
+      final e = new SampleBufferControlElement(vm, progress, events.stream,
           showTag: false);
       document.body.append(e);
       await e.onRendered.first;
@@ -139,7 +141,7 @@ main() {
       events = new StreamController<SampleProfileLoadingProgressEventMock>();
     });
     test('onModeChange', () async {
-      final e = new SampleBufferControlElement(progress, events.stream);
+      final e = new SampleBufferControlElement(vm, progress, events.stream);
       document.body.append(e);
       await e.onRendered.first;
       events.add(new SampleProfileLoadingProgressEventMock(

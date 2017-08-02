@@ -127,7 +127,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
       children = content;
       return;
     }
-    content.add(new SampleBufferControlElement(_progress, _progressStream,
+    content.add(new SampleBufferControlElement(_vm, _progress, _progressStream,
         showTag: false, queue: _r.queue));
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       content.add(new BRElement());

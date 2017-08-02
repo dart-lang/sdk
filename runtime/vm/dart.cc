@@ -150,10 +150,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ForwardingCorpse::InitOnce();
   Api::InitOnce();
   NOT_IN_PRODUCT(CodeObservers::InitOnce());
-  if (FLAG_profiler) {
-    ThreadInterrupter::InitOnce();
-    Profiler::InitOnce();
-  }
+  NOT_IN_PRODUCT(Profiler::InitOnce());
   SemiSpace::InitOnce();
   NOT_IN_PRODUCT(Metric::InitOnce());
   StoreBuffer::InitOnce();
@@ -354,14 +351,13 @@ const char* Dart::Cleanup() {
                  UptimeMillis());
   }
 
-  if (FLAG_profiler) {
-    // Shut down profiling.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
-                   UptimeMillis());
-    }
-    Profiler::Shutdown();
+#if !defined(PRODUCT)
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
+                 UptimeMillis());
   }
+  Profiler::Shutdown();
+#endif  // !defined(PRODUCT)
 
   {
     // Set the VM isolate as current isolate when shutting down
