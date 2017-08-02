@@ -690,10 +690,24 @@ class InstanceFieldsA extends ApplicationContinuation {
       _currentClass.implicitSetters[f.field.name](location.value, f.value);
     }
 
-    // TODO(zhivkag): Execute constructor initializer list before initializing
-    // fields in immediately enclosing class to null.
-    _initializeNullFields(_currentClass, location.value);
-    return new ForwardConfiguration(continuation, environment);
+    if (constructor.initializers.length == 0 ||
+        constructor.initializers.first is SuperInitializer) {
+      _initializeNullFields(_currentClass, location.value);
+      // TODO(zhivkag): Produce the configuration for executing the super
+      // initializer.
+      return new ForwardConfiguration(continuation, environment);
+    }
+    // Otherwise, the next expression from Field or Local initializers will be
+    // evaluated.
+    Expression expr = (constructor.initializers.first is FieldInitializer)
+        ? (constructor.initializers.first as FieldInitializer).value
+        : (constructor.initializers.first as LocalInitializer)
+            .variable
+            .initializer;
+
+    var cont = new InitializerListEK(constructor, 0 /* initializerIndex*/,
+        location, environment, continuation);
+    return new EvalConfiguration(expr, environment, cont);
   }
 }
 
@@ -1003,6 +1017,70 @@ class InitializationEK extends ExpressionContinuation {
   }
 }
 
+class InitializerListEK extends ExpressionContinuation {
+  final Constructor constructor;
+  final int initializerIndex;
+  final Location location;
+  final Environment environment;
+  // TODO(zhivkag): Add componnents for exception handling.
+  final ConstructorBodySK continuation;
+  final Class _currentClass;
+
+  InitializerListEK(this.constructor, this.initializerIndex, this.location,
+      this.environment, this.continuation)
+      : _currentClass = new Class(constructor.enclosingClass.reference);
+
+  /// Creates a continuation for the evaluation of the initializer at position
+  /// [index].
+  InitializerListEK withInitializerIndex(int index) {
+    return new InitializerListEK(
+        constructor, index, location, environment, continuation);
+  }
+
+  Configuration call(Value value) {
+    Initializer current = constructor.initializers[initializerIndex];
+    if (current is FieldInitializer) {
+      _currentClass.lookupImplicitSetter(current.field.name)(
+          location.value, value);
+      return _createNextConfiguration(environment);
+    }
+    if (current is LocalInitializer) {
+      Environment newEnv = environment.extend(current.variable, value);
+      return _createNextConfiguration(newEnv);
+    }
+    throw "Value can't be applied to initalizer of type ${current.runtimeType}";
+  }
+
+  Configuration _createNextConfiguration(Environment env) {
+    assert(initializerIndex + 1 < constructor.initializers.length);
+    Initializer next = constructor.initializers[initializerIndex + 1];
+    if (next is SuperInitializer) {
+      // TODO(zhivkag): Execute constructor of "object" class when support for
+      // native/external functions is added.
+      if (_currentClass.superclass.superclass == null) {
+        _initializeNullFields(_currentClass, location.value);
+        return new ForwardConfiguration(continuation, environment);
+      }
+      // TODO(zhivkag): Produce the configuration according to
+      // specification.
+      throw 'Support for SuperInitializers in not implemented.';
+    }
+
+    if (next is RedirectingInitializer) {
+      // TODO(zhivkag): Produce the configuration according to
+      // specification.
+      throw 'Support for RedirectingInitializers is not implemented.';
+    }
+
+    Expression nextExpr = (next is FieldInitializer)
+        ? next.value
+        : (next as LocalInitializer).variable.initializer;
+
+    var cont = withInitializerIndex(initializerIndex + 1);
+    return new EvalConfiguration(nextExpr, env, cont);
+  }
+}
+
 /// Executes statements.
 ///
 /// Execution of a statement completes in one of the following ways:
@@ -1021,7 +1099,6 @@ class StatementExecuter
     while (configuration != null) {
       configuration = configuration.step(this);
     }
-    ;
   }
 
   Configuration exec(Statement statement, ExecConfiguration conf) =>

@@ -10,6 +10,7 @@ library object_field_initializers_test;
 /// The static function `fieldInitializer` is used to ensure the fields are
 /// intialized in the correct order by tracking the  order of side effects.
 void main() {
+  print('Create instance of A');
   var a1 = new A.withoutArguments();
   print(a1.foo1);
   print(a1.foo2);
@@ -19,11 +20,18 @@ void main() {
   print(a2.foo2);
   print(a2.foo3);
 
+  print('Create instance of B');
   var b = new B(fieldInitializer(1, 'bar1'), fieldInitializer(2, 'bar2'));
   print(b.foo1);
   print(b.foo2);
   print(b.foo3);
   print(b.foo4);
+
+  print('Create instance of C');
+  var c = new C(fieldInitializer(1, 'bar1'), fieldInitializer(2, 'bar2'));
+  print(c.foo1);
+  print(c.foo2);
+  print(c.foo3);
 }
 
 class A {
@@ -48,6 +56,16 @@ class B {
     this.foo1 = foo1;
     this.foo2 = foo2;
     this.foo4 = fieldInitializer(6, 'bar4');
+  }
+}
+
+class C {
+  String foo1 = fieldInitializer(1, 'foo1');
+  String foo2;
+  String foo3 = fieldInitializer(2, 'foo3');
+
+  C(this.foo1, this.foo2) {
+    foo3 = fieldInitializer(3, 'foo3');
   }
 }
 

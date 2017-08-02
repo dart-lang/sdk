@@ -1,9 +1,11 @@
+print(String: Create instance of A)
 print(String: foo1)
 print(Null: null)
 print(String: foo3)
 print(String: bar1)
 print(String: bar2)
 print(String: foo3)
+print(String: Create instance of B)
 static-invocation-fieldInitializer
 print(String: bar1: 1)
 return
@@ -26,3 +28,23 @@ print(String: bar1: 1)
 print(String: bar2: 2)
 print(String: foo3: 4)
 print(String: bar4: 6)
+print(String: Create instance of C)
+static-invocation-fieldInitializer
+print(String: bar1: 1)
+return
+static-invocation-fieldInitializer
+print(String: bar2: 2)
+return
+static-invocation-fieldInitializer
+print(String: foo1: 1)
+return
+static-invocation-fieldInitializer
+print(String: foo3: 2)
+return
+static-invocation-fieldInitializer
+print(String: foo3: 3)
+return
+print(String: bar1: 1)
+print(String: bar2: 2)
+print(String: foo3: 3)
+
