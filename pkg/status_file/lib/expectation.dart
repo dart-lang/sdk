@@ -106,7 +106,7 @@ class Expectation {
   // static error should be reported. It leads to perpetually larger status
   // files and means a reader of a test can't tell what the intended behavior
   // actually is without knowing which status files mention it. Remove.
-  static final Expectation ok = new Expectation._('Ok', isMeta: true);
+  static final Expectation ok = new Expectation._('OK', isMeta: true);
 
   /// A marker that indicates the test takes longer to complete than most tests.
   /// Tells the test runner to increase the timeout when running it.
