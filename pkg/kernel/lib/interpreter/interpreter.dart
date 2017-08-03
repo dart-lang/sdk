@@ -330,8 +330,8 @@ class State {
     return new State(labels, exceptionComponents, returnContinuation, cont);
   }
 
-  State withException(ExceptionComponents state) {
-    return new State(labels, state, returnContinuation, continuation);
+  State withException(ExceptionComponents ecs) {
+    return new State(labels, ecs, returnContinuation, continuation);
   }
 
   Label lookupLabel(LabeledStatement s) {
@@ -444,6 +444,8 @@ class ApplicationConfiguration extends Configuration {
   Configuration step(StatementExecuter _) => continuation(values);
 }
 
+/// Configuration for applying an [ExceptionHandler] to an exception and a
+/// stack trace.
 class ThrowConfiguration extends Configuration {
   final ExceptionHandler handler;
   final Value exception;
@@ -606,10 +608,40 @@ class ConstructorBodySK extends StatementContinuation {
   }
 }
 
+/// Represents the statement continuation for execution of the finalizer
+/// statement.
+class FinallySK extends StatementContinuation {
+  final Statement finallyStatement;
+  final Environment environment;
+  final State state;
+
+  FinallySK(this.finallyStatement, this.environment, this.state);
+  Configuration call(Environment _) {
+    return new ExecConfiguration(finallyStatement, environment, state);
+  }
+}
+
+/// Represents the statement continuation that applies the captured handler to
+/// the current exception.
+///
+/// It is used as next statement continuation for the execution of the finalizer
+/// statement in [TryFinally] to ensure the finalizer is executed before
+/// applying the next handler to the current exception.
+class RethrowSK extends StatementContinuation {
+  final ExceptionHandler handler;
+  final Value exception;
+  final StackTrace stackTrace;
+
+  RethrowSK(this.handler, this.exception, this.stackTrace);
+
+  Configuration call(Environment _) {
+    return new ThrowConfiguration(handler, exception, stackTrace);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                       Application Continuations
 // ------------------------------------------------------------------------
-
 /// Represents the continuation called after the evaluation of argument
 /// expressions.
 ///
@@ -1240,29 +1272,90 @@ class ThrowEK extends ExpressionContinuation {
   }
 }
 
+/// Represents the expression continuation that ensures the finalizer of a
+/// [TryFinally] node is executed before applying the return continuation to
+/// the given value.
+///
+/// It executes the captured finalizer statement and adds a statement
+/// continuation that will apply the return continuation to the given value
+/// when/if reached.
+class FinallyReturnEK extends ExpressionContinuation {
+  final Statement statement;
+  final Environment environment;
+  final State state;
+
+  FinallyReturnEK(this.statement, this.environment, this.state);
+
+  Configuration call(Value value) {
+    return new ExecConfiguration(statement, environment,
+        state.withContinuation(new ExitSK(state.returnContinuation, value)));
+  }
+}
+
 // ------------------------------------------------------------------------
 //                        Exceptions Handlers
 // ------------------------------------------------------------------------
 
 abstract class ExceptionHandler extends Continuation {
-  ExceptionHandler get nextHandler;
-
   Configuration call(Value exception, StackTrace stacktrace);
+
+  static String errorMessage(Value exception, StackTrace stacktrace) {
+    return 'Uncaught exception '
+        '"${exception.value.runtimeType} : ${exception.value}"\n'
+        '${stacktrace.toString()}';
+  }
 }
 
 /// Handler for showing an exception to the user and returning a halting the
 /// execution of the program when an exception is not handled.
 class MainHandler extends ExceptionHandler {
-  ExceptionHandler get nextHandler =>
-      throw 'The current handler is the main exception handler';
-
   Configuration call(Value exception, StackTrace stacktrace) {
-    var errorMessage = 'Uncaught exception '
-        '"${exception.value.runtimeType} : ${exception.value}"\n'
-        '${stacktrace.toString()}';
-    log.info(errorMessage);
-    print(errorMessage);
+    var message = ExceptionHandler.errorMessage(exception, stacktrace);
+    log.info(message);
+    print(message);
     return null;
+  }
+}
+
+/// Represents the handler that either executes a matching catch clause or
+/// applies the next handler to the given exception.
+class CatchHandler extends ExceptionHandler {
+  final List<Catch> catches;
+  final Environment environment;
+  final State state;
+
+  CatchHandler(this.catches, this.environment, this.state);
+
+  Configuration call(Value exception, StackTrace stackTrace) {
+    // TODO(zhivkag): Check if there is a matching catch clause instead.
+    return new ThrowConfiguration(
+        state.exceptionComponents.handler, exception, stackTrace);
+  }
+}
+
+/// Represents the handler that executes the corresponding finalizer before
+/// applying the next handler to the given exception.
+///
+/// Applying the next handler to the given exception is supported with adding
+/// [RethrowSK] as next statement continuation.
+class FinallyHandler extends ExceptionHandler {
+  final Statement finallyStatement;
+  final Environment environment;
+  final Label labels;
+  final ExceptionComponents exceptionComponents;
+  final ExpressionContinuation expressionContinuation;
+
+  FinallyHandler(this.finallyStatement, this.environment, this.labels,
+      this.exceptionComponents, this.expressionContinuation);
+
+  Configuration call(Value exception, StackTrace stackTrace) {
+    // A finally handler can't handle an exception, only execute the
+    // corresponding finally statement and rethrow.
+    var cont =
+        new RethrowSK(exceptionComponents.handler, exception, stackTrace);
+    var state =
+        new State(labels, exceptionComponents, expressionContinuation, cont);
+    return new ExecConfiguration(finallyStatement, environment, state);
   }
 }
 
@@ -1420,6 +1513,26 @@ class StatementExecuter
     }
     return new EvalConfiguration(node.expression, conf.environment,
         conf.state.exceptionComponents, conf.state.returnContinuation);
+  }
+
+  Configuration visitTryCatch(TryCatch node, ExecConfiguration conf) {
+    var handler = new CatchHandler(node.catches, conf.environment, conf.state);
+    var handlers = new ExceptionComponents(
+        handler,
+        conf.state.exceptionComponents.stackTrace,
+        conf.state.exceptionComponents.currentStackTrace,
+        conf.state.exceptionComponents.currentException);
+    var state = conf.state.withException(handlers);
+    return new ExecConfiguration(node.body, conf.environment, state);
+  }
+
+  Configuration visitTryFinally(TryFinally node, ExecConfiguration conf) {
+    // TODO(zhivkag): Add FinallyBreak to break labels.
+    var cont = new FinallySK(node.finalizer, conf.environment, conf.state);
+    var returnCont =
+        new FinallyReturnEK(node.finalizer, conf.environment, conf.state);
+    return new ExecConfiguration(node.body, conf.environment,
+        conf.state.withContinuation(cont).withReturnContinuation(returnCont));
   }
 
   Configuration visitVariableDeclaration(
