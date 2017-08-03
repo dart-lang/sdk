@@ -332,8 +332,8 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 
-
 [ $compiler == dart2js && $runtime == safari ]
+double_round_to_double2_test: RuntimeError
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
 regexp/overflow_test: RuntimeError
