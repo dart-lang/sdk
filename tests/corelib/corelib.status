@@ -43,19 +43,6 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
-# Analyzer's implementation of fromEnvironment assumes that undefined
-# environment variables have an unspecified value (rather than being
-# null) because it is expected that the user will supply a value when
-# the code is run.  This means that it produces slightly different
-# error messages than the VM and Dart2js.
-[ $compiler == dart2analyzer && $checked ]
-from_environment_const_type_undefined_test/09: CompileTimeError
-from_environment_const_type_undefined_test/11: CompileTimeError
-from_environment_const_type_undefined_test/12: CompileTimeError
-from_environment_const_type_undefined_test/13: CompileTimeError
-from_environment_const_type_undefined_test/14: CompileTimeError
-from_environment_const_type_undefined_test/16: CompileTimeError
-
 [ $compiler == dart2analyzer ]
 int_parse_radix_bad_handler_test: fail
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
@@ -279,42 +266,6 @@ double_round_to_double_test: Crash
 double_truncate_test: Crash
 double_truncate_to_double_test: Crash
 errors_test: Crash
-expression_test: Crash
-format_exception_test: Crash
-from_environment_const_type_test/01: Crash
-from_environment_const_type_test/02: Crash
-from_environment_const_type_test/03: Crash
-from_environment_const_type_test/04: Crash
-from_environment_const_type_test/05: Crash
-from_environment_const_type_test/06: Crash
-from_environment_const_type_test/07: Crash
-from_environment_const_type_test/08: Crash
-from_environment_const_type_test/09: Crash
-from_environment_const_type_test/10: Crash
-from_environment_const_type_test/11: Crash
-from_environment_const_type_test/12: Crash
-from_environment_const_type_test/13: Crash
-from_environment_const_type_test/14: Crash
-from_environment_const_type_test/15: Crash
-from_environment_const_type_test/16: Crash
-from_environment_const_type_test/none: Crash
-from_environment_const_type_undefined_test/01: Crash
-from_environment_const_type_undefined_test/02: Crash
-from_environment_const_type_undefined_test/03: Crash
-from_environment_const_type_undefined_test/04: Crash
-from_environment_const_type_undefined_test/05: Crash
-from_environment_const_type_undefined_test/06: Crash
-from_environment_const_type_undefined_test/07: Crash
-from_environment_const_type_undefined_test/08: Crash
-from_environment_const_type_undefined_test/09: Crash
-from_environment_const_type_undefined_test/10: Crash
-from_environment_const_type_undefined_test/11: Crash
-from_environment_const_type_undefined_test/12: Crash
-from_environment_const_type_undefined_test/13: Crash
-from_environment_const_type_undefined_test/14: Crash
-from_environment_const_type_undefined_test/15: Crash
-from_environment_const_type_undefined_test/16: Crash
-from_environment_const_type_undefined_test/none: Crash
 int_round_test: Crash
 int_round_to_double_test: Crash
 int_to_int_test: Crash
@@ -355,46 +306,3 @@ regress_11099_test: Crash
 regress_r21715_test: Crash
 safe_to_string_test: Crash
 sort_test: Crash
-
-# dartk: checked mode failures
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-
-[ $runtime == flutter ]
-
-# Possible bugs
-format_exception_test: RuntimeError # Flutter Issue 9111
-from_environment_const_type_test/none: Fail # Flutter Issue 9111
-from_environment_const_type_test/01: Fail # Flutter Issue 9111
-from_environment_const_type_test/05: Fail # Flutter Issue 9111
-from_environment_const_type_test/10: Fail # Flutter Issue 9111
-from_environment_const_type_test/15: Fail # Flutter Issue 9111
-from_environment_const_type_test/02: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/03: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/04: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/06: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/07: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/08: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/09: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/12: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/11: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/13: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/14: MissingCompileTimeError # Flutter Issue 9111
-from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111

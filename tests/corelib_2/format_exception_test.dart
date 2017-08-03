@@ -83,4 +83,26 @@ main() {
       "FormatException: message (at line 10, character ${half + 1})\n"
       "...${longline.substring(half - 36, half + 36)}...\n"
       "${' ' * 39}^\n");
+
+  var sourceNL = "\nsource with leading NL";
+  e = new FormatException("message", sourceNL, 2);
+  test(
+      e,
+      "message",
+      sourceNL,
+      2,
+      "FormatException: message (at line 2, character 2)\n"
+      "source with leading NL\n"
+      " ^\n");
+
+  var sourceNL2 = "\n\nsource with leading NL";
+  e = new FormatException("message", sourceNL2, 2);
+  test(
+      e,
+      "message",
+      sourceNL2,
+      2,
+      "FormatException: message (at line 3, character 1)\n"
+      "source with leading NL\n"
+      "^\n");
 }
