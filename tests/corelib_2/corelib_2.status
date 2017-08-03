@@ -350,7 +350,7 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && $runtime == drt ]
+[ ($compiler == dart2js || $compiler == dartdevc) && $runtime == drt ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]

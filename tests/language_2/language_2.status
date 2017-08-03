@@ -242,7 +242,6 @@ arithmetic_smi_overflow_test: Crash
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
 function_type/*: RuntimeError # Issue 28988
-async_backwards_compatibility_2_test: RuntimeError # Issue 29920
 
 [ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
 *: Skip # Issue 29626
