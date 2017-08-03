@@ -54,7 +54,7 @@ abstract class CompilerConfiguration {
         return new Dart2jsCompilerConfiguration(configuration);
 
       case Compiler.dartdevc:
-        return new DartdevcCompilerConfiguration(configuration);
+        return new DevCompilerConfiguration(configuration);
 
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration);
@@ -364,8 +364,8 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 }
 
 /// Configuration for dart2js compiler.
-class DartdevcCompilerConfiguration extends CompilerConfiguration {
-  DartdevcCompilerConfiguration(Configuration configuration)
+class DevCompilerConfiguration extends CompilerConfiguration {
+  DevCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
@@ -384,13 +384,20 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
   }
 
   Command createCommand(
-      String inputFile, String outputFile, List<String> sharedOptions) {
+      String inputFile, String outputFile, List<String> sharedOptions,
+      [Map<String, String> environment = const {}]) {
     var moduleRoot =
         new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
-    var args = [
-      "--dart-sdk",
-      "${_configuration.buildDirectory}/dart-sdk",
+    var args = _useSdk
+        ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
+        // TODO(jmesserly): once we can build DDC's SDK summary+JS as part of
+        // the main build, change this to reflect that output path.
+        : ["--dart-sdk-summary", "pkg/dev_compiler/lib/sdk/ddc_sdk.sum"];
+
+    args.addAll(sharedOptions);
+    args.addAll([
+      "--ignore-unrecognized-flags",
       "--library-root",
       new Path(inputFile).directoryPath.toNativePath(),
       "--module-root",
@@ -400,9 +407,7 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
       "-o",
       outputFile,
       inputFile,
-    ];
-
-    args.addAll(sharedOptions);
+    ]);
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
@@ -418,11 +423,11 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
     }
 
     return Command.compilation(Compiler.dartdevc.name, outputFile,
-        bootstrapDependencies(), computeCompilerPath(), args, const {});
+        bootstrapDependencies(), computeCompilerPath(), args, environment);
   }
 
-  CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> arguments, Map<String, String> environmentOverrides) {
+  CommandArtifact computeCompilationArtifact(
+      String tempDir, List<String> arguments, Map<String, String> environment) {
     // The list of arguments comes from a call to our own
     // computeCompilerArguments(). It contains the shared options followed by
     // the input file path.
@@ -433,7 +438,7 @@ class DartdevcCompilerConfiguration extends CompilerConfiguration {
     var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
 
     return new CommandArtifact(
-        [createCommand(inputFile, outputFile, sharedOptions)],
+        [createCommand(inputFile, outputFile, sharedOptions, environment)],
         outputFile,
         "application/javascript");
   }

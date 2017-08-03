@@ -142,6 +142,9 @@ symbol_test/none: RuntimeError # Issue 29921
 symbol_reserved_word_test/06: RuntimeError # Issue 29921
 symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
+int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+int_modulo_arith_test/none: RuntimeError  # Issue 29921
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
 big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170

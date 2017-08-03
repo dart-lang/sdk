@@ -690,6 +690,20 @@ try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
 
 [ $compiler == dartdevc ]
+regress_23089_test: CompileTimeError # Issue 29920
+constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+generic_methods_closure_test: CompileTimeError # Issue 29920
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
+generic_methods_shadowing_test: CompileTimeError # Issue 29920
+generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
+export_private_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
+import_private_test/01: MissingCompileTimeError # Issue 29920
+internal_library_test/01: MissingCompileTimeError # Issue 29920
+
+[ $compiler == dartdevc && $runtime != none ]
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_test/01: RuntimeError # Issue 28969
 async_star_test/02: RuntimeError # Issue 28969
@@ -713,7 +727,6 @@ compile_time_constant_d_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
 const_switch_test/02: RuntimeError # Issue 29920
 const_switch_test/04: RuntimeError # Ints and doubles are unified.
-constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 constructor12_test: RuntimeError # Issue 29920
 covariant_subtyping_test: RuntimeError # Issue 29920
 custom_await_stack_trace_test: RuntimeError # Issue 29920
@@ -732,7 +745,6 @@ dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly s
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
-export_private_test/01: MissingCompileTimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
 field_optimization3_test: RuntimeError # Issue 29920
@@ -787,20 +799,13 @@ function_type_alias4_test: RuntimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_instanceof_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
-generic_methods_closure_test: CompileTimeError # Issue 29920
 generic_methods_generic_class_tearoff_test: RuntimeError # Issue 29920
-generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
 generic_methods_named_parameters_test: RuntimeError # Issue 29920
 generic_methods_optional_parameters_test: RuntimeError # Issue 29920
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
-generic_methods_shadowing_test: CompileTimeError # Issue 29920
-generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
 generic_methods_tearoff_specialization_test: RuntimeError # Issue 29920
 generic_typedef_test: RuntimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 identical_closure2_test: RuntimeError # Issue 29920
-import_private_test/01: MissingCompileTimeError # Issue 29920
 infinite_switch_label_test: RuntimeError # Issue 29920
 infinity_test: RuntimeError # Issue 29920
 initializing_formal_final_test: RuntimeError # Issue 29920
@@ -809,7 +814,6 @@ instanceof2_test: RuntimeError # Issue 29920
 instanceof4_test/01: RuntimeError # Issue 29920
 instanceof4_test/none: RuntimeError # Issue 29920
 integer_division_by_zero_test: RuntimeError # Issue 29920
-internal_library_test/01: MissingCompileTimeError # Issue 29920
 issue23244_test: RuntimeError # Issue 29920
 lazy_static3_test: RuntimeError # Issue 29920
 left_shift_test: RuntimeError # Issue 29920
@@ -828,8 +832,6 @@ number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
 regress_22443_test: RuntimeError # Issue 29920
-regress_23089_test: CompileTimeError # Issue 29920
-reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920
 stack_overflow_test: RuntimeError # Issue 29920
 stacktrace_test: RuntimeError # Issue 29920
@@ -840,3 +842,5 @@ throwing_lazy_variable_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
 type_variable_nested_test: RuntimeError # Issue 29920
 type_variable_typedef_test: RuntimeError # Issue 29920
+field_type_check2_test/01: RuntimeError # Issue 29920
+prefix10_negative_test: Fail # Issue 29920

@@ -242,6 +242,7 @@ arithmetic_smi_overflow_test: Crash
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920
 async_star_pause_test: RuntimeError
 function_type/*: RuntimeError # Issue 28988
+async_backwards_compatibility_2_test: RuntimeError # Issue 29920
 
 [ $compiler == dart2js && $dart2js_with_kernel && $use_sdk ]
 *: Skip # Issue 29626
@@ -363,7 +364,6 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: CompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
-assert_message_test: RuntimeError # Looks like bug in dartdevc codegen.
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.

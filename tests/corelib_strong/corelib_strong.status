@@ -26,7 +26,7 @@ regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
 string_replace_test: Skip
 
-[ $compiler == dartdevc ]
+[ $compiler == dartdevc && $runtime != none ]
 hash_set_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
@@ -39,3 +39,12 @@ list_fill_range_test: RuntimeError # Issue 29921
 list_insert_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921
+
+from_environment_const_type_test/01: RuntimeError # Issue 29921
+from_environment_const_type_test/05: RuntimeError # Issue 29921
+from_environment_const_type_test/10: RuntimeError # Issue 29921
+from_environment_const_type_test/15: RuntimeError # Issue 29921
+from_environment_const_type_test/none: RuntimeError # Issue 29921
+growable_list_test: RuntimeError # Issue 29921
+list_test/01: RuntimeError # Issue 29921
+list_test/none: RuntimeError # Issue 29921
