@@ -312,6 +312,7 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
+    writeLibraryParts(node);
     writeNodeList(node.typedefs);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
@@ -341,6 +342,19 @@ class BinaryPrinter extends Visitor {
   void visitCombinator(Combinator node) {
     writeByte(node.isShow ? 1 : 0);
     writeStringReferenceList(node.names);
+  }
+
+  void writeLibraryParts(Library library) {
+    writeUInt30(library.parts.length);
+    for (int i = 0; i < library.parts.length; ++i) {
+      var partNode = library.parts[i];
+      writeLibraryPart(partNode);
+    }
+  }
+
+  void writeLibraryPart(LibraryPart node) {
+    writeNodeList(node.annotations);
+    writeStringReference(node.fileUri ?? '');
   }
 
   void visitTypedef(Typedef node) {
@@ -1361,6 +1375,12 @@ class StringIndexer extends RecursiveVisitor<Null> {
 
   visitLibraryDependency(LibraryDependency node) {
     putOptional(node.name);
+    node.visitChildren(this);
+  }
+
+  @override
+  visitLibraryPart(LibraryPart node) {
+    put(node.fileUri);
     node.visitChildren(this);
   }
 

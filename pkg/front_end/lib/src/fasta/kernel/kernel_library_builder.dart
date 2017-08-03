@@ -759,6 +759,7 @@ class KernelLibraryBuilder
             combinators: toKernelCombinators(import.combinators)));
       }
     }
+
     for (Export export in exports) {
       var exportedBuilder = export.exported;
       Library exportedLibrary;
@@ -772,6 +773,14 @@ class KernelLibraryBuilder
             combinators: toKernelCombinators(export.combinators)));
       }
     }
+
+    for (var part in parts) {
+      // TODO(scheglov): Add support for annotations, see
+      // https://github.com/dart-lang/sdk/issues/30284.
+      String fileUri = part.fileUri.toString();
+      library.addPart(new LibraryPart(<Expression>[], fileUri));
+    }
+
     library.name = name;
     library.procedures.sort(compareProcedures);
     return library;

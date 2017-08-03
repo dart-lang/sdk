@@ -4236,6 +4236,11 @@ void StreamingFlowGraphBuilder::SkipLibraryDependency() {
   }
 }
 
+void StreamingFlowGraphBuilder::SkipLibraryPart() {
+  SkipListOfExpressions();  // Read annotations.
+  ReadStringReference();    // read uri_index.
+}
+
 void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
   SkipCanonicalNameReference();  // read canonical name.
   ReadPosition();                // read position.

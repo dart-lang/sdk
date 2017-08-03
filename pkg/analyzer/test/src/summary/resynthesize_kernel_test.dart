@@ -123,26 +123,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_class_interfaces_unresolved() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_class_interfaces_unresolved();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_class_mixins_unresolved() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_class_mixins_unresolved();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_class_supertype_unresolved() async {
-    // Fasta generates additional `#errors` top-level variable.
-    await super.test_class_supertype_unresolved();
-  }
-
-  @failingTest
   @fastaProblem
   test_class_type_parameters_bound() async {
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
@@ -154,11 +134,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_closure_generic() async {
     // https://github.com/dart-lang/sdk/issues/30265
     await super.test_closure_generic();
-  }
-
-  @failingTest
-  test_closure_in_variable_declaration_in_part() async {
-    await super.test_closure_in_variable_declaration_in_part();
   }
 
   @failingTest
@@ -472,11 +447,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_function_entry_point_in_part() async {
-    await super.test_function_entry_point_in_part();
-  }
-
-  @failingTest
   test_genericFunction_asGenericFunctionReturnType() async {
     await super.test_genericFunction_asGenericFunctionReturnType();
   }
@@ -580,11 +550,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   }
 
   @failingTest
-  test_inferredType_definedInSdkLibraryPart() async {
-    await super.test_inferredType_definedInSdkLibraryPart();
-  }
-
-  @failingTest
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
     await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
   }
@@ -654,13 +619,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   test_invalid_setterParameter_fieldFormalParameter() async {
     // https://github.com/dart-lang/sdk/issues/30267
     await super.test_invalid_setterParameter_fieldFormalParameter();
-  }
-
-  @failingTest
-  @fastaProblem
-  test_invalid_setterParameter_fieldFormalParameter_self() async {
-    // https://github.com/dart-lang/sdk/issues/30267
-    await super.test_invalid_setterParameter_fieldFormalParameter_self();
   }
 
   @failingTest
@@ -768,11 +726,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
-  }
-
-  @failingTest
-  test_parts() async {
-    await super.test_parts();
   }
 
   @failingTest
@@ -1048,36 +1001,6 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   @failingTest
   test_unresolved_import() async {
     await super.test_unresolved_import();
-  }
-
-  @failingTest
-  test_unresolved_part() async {
-    await super.test_unresolved_part();
-  }
-
-  @failingTest
-  test_variable_getterInLib_setterInPart() async {
-    await super.test_variable_getterInLib_setterInPart();
-  }
-
-  @failingTest
-  test_variable_getterInPart_setterInLib() async {
-    await super.test_variable_getterInPart_setterInLib();
-  }
-
-  @failingTest
-  test_variable_getterInPart_setterInPart() async {
-    await super.test_variable_getterInPart_setterInPart();
-  }
-
-  @failingTest
-  test_variable_propagatedType_final_dep_inPart() async {
-    await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @failingTest
-  test_variable_setterInPart_getterInPart() async {
-    await super.test_variable_setterInPart_getterInPart();
   }
 
   String _getLibraryText(kernel.Library library) {

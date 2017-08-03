@@ -850,8 +850,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   List<ElementAnnotation> get metadata {
     if (_kernel != null) {
-      _metadata ??= enclosingUnit._kernelContext
-          .buildAnnotations(enclosingUnit, _kernel.annotations);
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
     }
     if (_unlinkedClass != null) {
       return _metadata ??=
@@ -1454,9 +1454,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   final UnlinkedPart _unlinkedPart;
 
   /**
-   * The kernel context in which the library is resynthesized.
+   * The kernel context in which the unit is resynthesized.
    */
-  final KernelLibraryResynthesizerContext _kernelContext;
+  final KernelUnitResynthesizerContext _kernelContext;
 
   /**
    * The source that corresponds to this compilation unit.
@@ -1579,10 +1579,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
       if (_kernelContext != null) {
-        _explicitTopLevelAccessors ??=
-            _kernelContext.buildTopLevelAccessors(this);
-        _explicitTopLevelVariables ??=
-            _kernelContext.buildTopLevelVariables(this);
+        _explicitTopLevelAccessors ??= _kernelContext.buildTopLevelAccessors();
+        _explicitTopLevelVariables ??= _kernelContext.buildTopLevelVariables();
       }
       if (_unlinkedUnit != null) {
         _explicitTopLevelAccessors ??=
@@ -1638,7 +1636,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<ClassElement> get enums {
     if (_kernelContext != null) {
-      _enums ??= _kernelContext.library.classes
+      _enums ??= _kernelContext.kernelUnit.classes
           .where((k) => k.isEnum)
           .map((k) => new EnumElementImpl.forKernel(this, k))
           .toList(growable: false);
@@ -1665,7 +1663,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<FunctionElement> get functions {
     if (_kernelContext != null) {
-      _functions ??= _kernelContext.library.procedures
+      _functions ??= _kernelContext.kernelUnit.procedures
           .where((k) => k.kind == kernel.ProcedureKind.Method)
           .map((k) => new FunctionElementImpl.forKernel(this, k))
           .toList(growable: false);
@@ -1693,7 +1691,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
     if (_kernelContext != null) {
-      _typeAliases ??= _kernelContext.library.typedefs
+      _typeAliases ??= _kernelContext.kernelUnit.typedefs
           .map((k) => new FunctionTypeAliasElementImpl.forKernel(this, k))
           .toList(growable: false);
     }
@@ -1743,10 +1741,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<TopLevelVariableElement> get topLevelVariables {
     if (_variables == null) {
       if (_kernelContext != null) {
-        _explicitTopLevelAccessors ??=
-            _kernelContext.buildTopLevelAccessors(this);
-        _explicitTopLevelVariables ??=
-            _kernelContext.buildTopLevelVariables(this);
+        _explicitTopLevelAccessors ??= _kernelContext.buildTopLevelAccessors();
+        _explicitTopLevelVariables ??= _kernelContext.buildTopLevelVariables();
       }
       if (_unlinkedUnit != null) {
         _explicitTopLevelAccessors ??=
@@ -1806,7 +1802,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<ClassElement> get types {
     if (_kernelContext != null) {
-      _types ??= _kernelContext.library.classes
+      _types ??= _kernelContext.kernelUnit.classes
           .where((k) => !k.isEnum && !k.isSyntheticMixinImplementation)
           .map((k) => new ClassElementImpl.forKernel(this, k))
           .toList(growable: false);
@@ -1939,7 +1935,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   void replaceTopLevelVariable(
       TopLevelVariableElement from, TopLevelVariableElement to) {
-    if (_unlinkedUnit != null) {
+    if (_kernelContext != null || _unlinkedUnit != null) {
       // Getters and setter in different units should be patched to use the
       // same variables before these variables were asked and returned.
       assert(_variables == null);
@@ -4155,8 +4151,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   List<ElementAnnotation> get metadata {
     if (_kernel != null) {
-      _metadata ??= enclosingUnit._kernelContext
-          .buildAnnotations(enclosingUnit, _kernel.annotations);
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
     }
     if (serializedExecutable != null) {
       return _metadata ??=
@@ -5094,8 +5090,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   List<ElementAnnotation> get metadata {
     if (_kernel != null) {
-      _metadata ??= enclosingUnit._kernelContext
-          .buildAnnotations(enclosingUnit, _kernel.annotations);
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
     }
     if (_unlinkedTypedef != null) {
       return _metadata ??=
@@ -6090,22 +6086,47 @@ abstract class KernelLibraryResynthesizerContext {
   kernel.Library get library;
 
   /**
+   * Return the [LibraryElement] for the given absolute [uriStr].
+   */
+  LibraryElement getLibrary(String uriStr);
+}
+
+/**
+ * Top-level declarations of a Kernel library filtered by the unit.
+ */
+abstract class KernelUnit {
+  List<kernel.Class> get classes;
+
+  List<kernel.Field> get fields;
+
+  List<kernel.Procedure> get procedures;
+
+  List<kernel.Typedef> get typedefs;
+}
+
+/**
+ * The kernel context in which a unit is resynthesized.
+ */
+abstract class KernelUnitResynthesizerContext {
+  /**
+   * Subset of top-level declarations in the unit.
+   */
+  KernelUnit get kernelUnit;
+
+  /**
    * Build [ElementAnnotation]s for the given Kernel [annotations].
    */
-  List<ElementAnnotation> buildAnnotations(
-      CompilationUnitElementImpl unit, List<kernel.Expression> annotations);
+  List<ElementAnnotation> buildAnnotations(List<kernel.Expression> annotations);
 
   /**
    * Build explicit top-level property accessors.
    */
-  UnitExplicitTopLevelAccessors buildTopLevelAccessors(
-      CompilationUnitElementImpl unit);
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors();
 
   /**
    * Build explicit top-level variables.
    */
-  UnitExplicitTopLevelVariables buildTopLevelVariables(
-      CompilationUnitElementImpl unit);
+  UnitExplicitTopLevelVariables buildTopLevelVariables();
 
   /**
    * Return the resynthesized [ConstructorInitializer] for the given Kernel
@@ -6131,11 +6152,6 @@ abstract class KernelLibraryResynthesizerContext {
    * [type] does not correspond to an [InterfaceType].
    */
   InterfaceType getInterfaceType(ElementImpl context, kernel.Supertype type);
-
-  /**
-   * Return the [LibraryElement] for the given absolute [uriStr].
-   */
-  LibraryElement getLibrary(String uriStr);
 
   /**
    * Return the [ConstructorElementImpl] to which the given [kernelConstructor]
@@ -6325,11 +6341,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         LibraryResolutionCapability.resolvedTypeNames, true);
     setResolutionCapability(
         LibraryResolutionCapability.constantExpressions, true);
-
-    definingCompilationUnit = new CompilationUnitElementImpl.forKernel(
-        this, _kernelContext, '<no-name>');
-
-    // TODO(scheglov) how to support parts?
   }
 
   /**
@@ -7830,8 +7841,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   List<ElementAnnotation> get metadata {
     if (_kernel != null) {
-      _metadata ??= enclosingUnit._kernelContext
-          .buildAnnotations(enclosingUnit, _kernel.annotations);
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
     }
     if (_unlinkedVariable != null) {
       return _metadata ??=

@@ -48,15 +48,102 @@ class KernelResynthesizer {
 
       var libraryContext =
           new _KernelLibraryResynthesizerContextImpl(this, kernel);
-      Source librarySource = _getSource(uriStr);
-      LibraryElementImpl libraryElement =
-          new LibraryElementImpl.forKernel(_analysisContext, libraryContext);
-      CompilationUnitElementImpl definingUnit =
-          libraryElement.definingCompilationUnit;
-      definingUnit.source = librarySource;
-      definingUnit.librarySource = librarySource;
+      LibraryElementImpl libraryElement = libraryContext._buildLibrary(uriStr);
+
+      // Build the defining unit.
+      var definingUnit = libraryContext._buildUnit(null).unit;
+      libraryElement.definingCompilationUnit = definingUnit;
+
+      // Build units for parts.
+      var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
+      for (int i = 0; i < kernel.parts.length; i++) {
+        var fileUri = kernel.parts[i].fileUri;
+        var unitContext = libraryContext._buildUnit(fileUri);
+        parts[i] = unitContext.unit;
+      }
+      libraryElement.parts = parts;
+
       return libraryElement;
     });
+  }
+
+  /**
+   * Return the [ElementImpl] that corresponds to the given [name], or `null`
+   * if the corresponding element cannot be found.
+   */
+  ElementImpl _getElement(kernel.CanonicalName name) {
+    if (name == null) return null;
+    kernel.CanonicalName parentName = name.parent;
+
+    // If the parent is the root, then this name is a library.
+    if (parentName.isRoot) {
+      return getLibrary(name.name);
+    }
+
+    // If the name is private, it is prefixed with a library URI.
+    if (name.name.startsWith('_')) {
+      parentName = parentName.parent;
+    }
+
+    // Skip qualifiers.
+    bool isGetter = false;
+    bool isSetter = false;
+    bool isField = false;
+    bool isConstructor = false;
+    bool isMethod = false;
+    if (parentName.name == '@getters') {
+      isGetter = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@setters') {
+      isSetter = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@fields') {
+      isField = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@constructors') {
+      isConstructor = true;
+      parentName = parentName.parent;
+    } else if (parentName.name == '@methods') {
+      isMethod = true;
+      parentName = parentName.parent;
+    }
+
+    ElementImpl parentElement = _getElement(parentName);
+    if (parentElement == null) return null;
+
+    // Search in units of the library.
+    if (parentElement is LibraryElementImpl) {
+      for (CompilationUnitElement unit in parentElement.units) {
+        CompilationUnitElementImpl unitImpl = unit;
+        ElementImpl child = unitImpl.getChild(name.name);
+        if (child != null) {
+          return child;
+        }
+      }
+      return null;
+    }
+
+    // Search in the class.
+    if (parentElement is AbstractClassElementImpl) {
+      if (isGetter) {
+        return parentElement.getGetter(name.name) as ElementImpl;
+      } else if (isSetter) {
+        return parentElement.getSetter(name.name) as ElementImpl;
+      } else if (isField) {
+        return parentElement.getField(name.name) as ElementImpl;
+      } else if (isConstructor) {
+        if (name.name.isEmpty) {
+          return parentElement.unnamedConstructor as ConstructorElementImpl;
+        }
+        return parentElement.getNamedConstructor(name.name) as ElementImpl;
+      } else if (isMethod) {
+        return parentElement.getMethod(name.name) as ElementImpl;
+      }
+      return null;
+    }
+
+    throw new UnimplementedError(
+        'Internal error: ${parentElement.runtimeType} unexpected.');
   }
 
   /**
@@ -72,7 +159,7 @@ class KernelResynthesizer {
  * Builder of [Expression]s from [kernel.Expression]s.
  */
 class _ExprBuilder {
-  final _KernelLibraryResynthesizerContextImpl _context;
+  final _KernelUnitResynthesizerContextImpl _context;
   final ElementImpl _contextElement;
 
   _ExprBuilder(this._context, this._contextElement);
@@ -196,7 +283,8 @@ class _ExprBuilder {
     if (expr is kernel.ConstructorInvocation) {
       var element = _getElement(expr.targetReference);
 
-      var kernelType = expr.getStaticType(_context._resynthesizer._types);
+      var kernelType =
+          expr.getStaticType(_context.libraryContext.resynthesizer._types);
       var type = _context.getType(_contextElement, kernelType);
       TypeName typeName = _buildType(type);
 
@@ -214,7 +302,7 @@ class _ExprBuilder {
       var type = _context.getType(_contextElement, expr.type);
       var identifier = AstTestFactory.identifier3(type.element.name);
       identifier.staticElement = type.element;
-      identifier.staticType = _context._resynthesizer.typeType;
+      identifier.staticType = _context.libraryContext.resynthesizer.typeType;
       return identifier;
     }
 
@@ -330,7 +418,8 @@ class _ExprBuilder {
   }
 
   ElementImpl _getElement(kernel.Reference reference) {
-    return _context._getElement(reference?.canonicalName);
+    return _context.libraryContext.resynthesizer
+        ._getElement(reference?.canonicalName);
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -390,16 +479,97 @@ class _ExprBuilder {
  */
 class _KernelLibraryResynthesizerContextImpl
     implements KernelLibraryResynthesizerContext {
-  final KernelResynthesizer _resynthesizer;
+  final KernelResynthesizer resynthesizer;
 
   @override
   final kernel.Library library;
 
-  _KernelLibraryResynthesizerContextImpl(this._resynthesizer, this.library);
+  Source librarySource;
+  LibraryElementImpl libraryElement;
+
+  _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library);
+
+  @override
+  LibraryElementImpl getLibrary(String uriStr) {
+    return resynthesizer.getLibrary(uriStr);
+  }
+
+  LibraryElementImpl _buildLibrary(String uriStr) {
+    librarySource = resynthesizer._getSource(uriStr);
+    return libraryElement =
+        new LibraryElementImpl.forKernel(resynthesizer._analysisContext, this);
+  }
+
+  _KernelUnitResynthesizerContextImpl _buildUnit(String fileUri) {
+    var unitContext = new _KernelUnitResynthesizerContextImpl(
+        this, fileUri ?? library.fileUri);
+    var unitElement = new CompilationUnitElementImpl.forKernel(
+        libraryElement, unitContext, '<no name>');
+    unitContext.unit = unitElement;
+    unitElement.librarySource = librarySource;
+    unitElement.source =
+        fileUri != null ? resynthesizer._getSource(fileUri) : librarySource;
+    unitContext.unit = unitElement;
+    return unitContext;
+  }
+}
+
+/**
+ * Implementation of [KernelUnit].
+ */
+class _KernelUnitImpl implements KernelUnit {
+  final _KernelUnitResynthesizerContextImpl context;
+
+  List<kernel.Class> _classes;
+  List<kernel.Field> _fields;
+  List<kernel.Procedure> _procedures;
+  List<kernel.Typedef> _typedefs;
+
+  _KernelUnitImpl(this.context);
+
+  @override
+  List<kernel.Class> get classes =>
+      _classes ??= context.libraryContext.library.classes
+          .where((n) => n.fileUri == context.fileUri)
+          .toList(growable: false);
+
+  @override
+  List<kernel.Field> get fields =>
+      _fields ??= context.libraryContext.library.fields
+          .where((n) => n.fileUri == context.fileUri)
+          .toList(growable: false);
+
+  @override
+  List<kernel.Procedure> get procedures =>
+      _procedures ??= context.libraryContext.library.procedures
+          .where((n) => n.fileUri == context.fileUri)
+          .toList(growable: false);
+
+  @override
+  List<kernel.Typedef> get typedefs =>
+      _typedefs ??= context.libraryContext.library.typedefs
+          .where((n) => n.fileUri == context.fileUri)
+          .toList(growable: false);
+}
+
+/**
+ * Implementation of [KernelUnitResynthesizerContext].
+ */
+class _KernelUnitResynthesizerContextImpl
+    implements KernelUnitResynthesizerContext {
+  final _KernelLibraryResynthesizerContextImpl libraryContext;
+  final String fileUri;
+
+  CompilationUnitElementImpl unit;
+
+  _KernelUnitResynthesizerContextImpl(this.libraryContext, this.fileUri);
+
+  @override
+  KernelUnit get kernelUnit => new _KernelUnitImpl(this);
 
   @override
   List<ElementAnnotation> buildAnnotations(
-      CompilationUnitElementImpl unit, List<kernel.Expression> expressions) {
+      List<kernel.Expression> expressions) {
     int length = expressions.length;
     if (length != 0) {
       var annotations = new List<ElementAnnotation>(length);
@@ -413,12 +583,11 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   @override
-  UnitExplicitTopLevelAccessors buildTopLevelAccessors(
-      CompilationUnitElementImpl unit) {
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors() {
     var accessorsData = new UnitExplicitTopLevelAccessors();
     var implicitVariables = <String, TopLevelVariableElementImpl>{};
     // Build explicit property accessors and implicit fields.
-    for (var procedure in library.procedures) {
+    for (var procedure in kernelUnit.procedures) {
       bool isGetter = procedure.kind == kernel.ProcedureKind.Getter;
       bool isSetter = procedure.kind == kernel.ProcedureKind.Setter;
       if (isGetter || isSetter) {
@@ -453,12 +622,12 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   @override
-  UnitExplicitTopLevelVariables buildTopLevelVariables(
-      CompilationUnitElementImpl unit) {
-    int numberOfVariables = library.fields.length;
+  UnitExplicitTopLevelVariables buildTopLevelVariables() {
+    List<kernel.Field> kernelFields = kernelUnit.fields;
+    int numberOfVariables = kernelFields.length;
     var variablesData = new UnitExplicitTopLevelVariables(numberOfVariables);
     for (int i = 0; i < numberOfVariables; i++) {
-      kernel.Field field = library.fields[i];
+      kernel.Field field = kernelFields[i];
 
       // Add the explicit variables.
       TopLevelVariableElementImpl variable;
@@ -525,17 +694,13 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   @override
-  LibraryElement getLibrary(String uriStr) {
-    return _resynthesizer.getLibrary(uriStr);
-  }
-
-  @override
   ConstructorElementImpl getRedirectedConstructor(
       kernel.Constructor kernelConstructor, kernel.Procedure kernelFactory) {
     if (kernelConstructor != null) {
       for (var initializer in kernelConstructor.initializers) {
         if (initializer is kernel.RedirectingInitializer) {
-          return _getElement(initializer.targetReference.canonicalName)
+          return libraryContext.resynthesizer
+                  ._getElement(initializer.targetReference.canonicalName)
               as ConstructorElementImpl;
         }
       }
@@ -545,7 +710,8 @@ class _KernelLibraryResynthesizerContextImpl
       if (body is RedirectingFactoryBody) {
         kernel.Member target = body.target;
         if (target != null) {
-          return _getElement(target.reference.canonicalName)
+          return libraryContext.resynthesizer
+                  ._getElement(target.reference.canonicalName)
               as ConstructorElementImpl;
         }
       }
@@ -612,88 +778,10 @@ class _KernelLibraryResynthesizerContextImpl
     return elementAnnotation;
   }
 
-  /**
-   * Return the [ElementImpl] that corresponds to the given [name], or `null`
-   * if the corresponding element cannot be found.
-   */
-  ElementImpl _getElement(kernel.CanonicalName name) {
-    if (name == null) return null;
-    kernel.CanonicalName parentName = name.parent;
-
-    // If the parent is the root, then this name is a library.
-    if (parentName.isRoot) {
-      return _resynthesizer.getLibrary(name.name);
-    }
-
-    // If the name is private, it is prefixed with a library URI.
-    if (name.name.startsWith('_')) {
-      parentName = parentName.parent;
-    }
-
-    // Skip qualifiers.
-    bool isGetter = false;
-    bool isSetter = false;
-    bool isField = false;
-    bool isConstructor = false;
-    bool isMethod = false;
-    if (parentName.name == '@getters') {
-      isGetter = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@setters') {
-      isSetter = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@fields') {
-      isField = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@constructors') {
-      isConstructor = true;
-      parentName = parentName.parent;
-    } else if (parentName.name == '@methods') {
-      isMethod = true;
-      parentName = parentName.parent;
-    }
-
-    ElementImpl parentElement = _getElement(parentName);
-    if (parentElement == null) return null;
-
-    // Search in units of the library.
-    if (parentElement is LibraryElementImpl) {
-      for (CompilationUnitElement unit in parentElement.units) {
-        CompilationUnitElementImpl unitImpl = unit;
-        ElementImpl child = unitImpl.getChild(name.name);
-        if (child != null) {
-          return child;
-        }
-      }
-      return null;
-    }
-
-    // Search in the class.
-    if (parentElement is AbstractClassElementImpl) {
-      if (isGetter) {
-        return parentElement.getGetter(name.name) as ElementImpl;
-      } else if (isSetter) {
-        return parentElement.getSetter(name.name) as ElementImpl;
-      } else if (isField) {
-        return parentElement.getField(name.name) as ElementImpl;
-      } else if (isConstructor) {
-        if (name.name.isEmpty) {
-          return parentElement.unnamedConstructor as ConstructorElementImpl;
-        }
-        return parentElement.getNamedConstructor(name.name) as ElementImpl;
-      } else if (isMethod) {
-        return parentElement.getMethod(name.name) as ElementImpl;
-      }
-      return null;
-    }
-
-    throw new UnimplementedError('Should not be reached.');
-  }
-
   InterfaceType _getInterfaceType(ElementImpl context,
       kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
     var libraryName = className.parent;
-    var libraryElement = _resynthesizer.getLibrary(libraryName.name);
+    var libraryElement = libraryContext.getLibrary(libraryName.name);
     ClassElement classElement = libraryElement.getType(className.name);
     classElement ??= libraryElement.getEnum(className.name);
 

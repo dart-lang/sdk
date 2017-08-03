@@ -387,6 +387,7 @@ class BinaryBuilder {
       _skipNodeList(readExpression);
     }
     _readLibraryDependencies(library);
+    _readLibraryParts(library);
     _mergeNamedNodeList(library.typedefs, readTypedef, library);
     _mergeNamedNodeList(library.classes, readClass, library);
     _mergeNamedNodeList(library.fields, readField, library);
@@ -424,6 +425,17 @@ class BinaryBuilder {
 
   List<Combinator> readCombinatorList() {
     return new List<Combinator>.generate(readUInt(), (i) => readCombinator());
+  }
+
+  void _readLibraryParts(Library library) {
+    int length = readUInt();
+    library.parts.length = length;
+    for (int i = 0; i < length; ++i) {
+      var annotations = readExpressionList();
+      var fileUri = readStringOrNullIfEmpty();
+      library.parts[i] = new LibraryPart(annotations, fileUri)
+        ..parent = library;
+    }
   }
 
   Typedef readTypedef() {

@@ -414,6 +414,7 @@ class StreamingFlowGraphBuilder {
   void SkipVariableDeclaration();
   void SkipLibraryCombinator();
   void SkipLibraryDependency();
+  void SkipLibraryPart();
   void SkipLibraryTypedef();
   TokenPosition ReadPosition(bool record = true);
   void record_token_position(TokenPosition position);
@@ -1446,6 +1447,7 @@ class LibraryHelper {
     kSourceUriIndex,
     kAnnotations,
     kDependencies,
+    kParts,
     kTypedefs,
     kClasses,
     kToplevelField,
@@ -1490,6 +1492,13 @@ class LibraryHelper {
         intptr_t dependency_count = builder_->ReadUInt();  // read list length.
         for (intptr_t i = 0; i < dependency_count; ++i) {
           builder_->SkipLibraryDependency();
+        }
+        if (++next_read_ == field) return;
+      }
+      case kParts: {
+        intptr_t part_count = builder_->ReadUInt();  // read list length.
+        for (intptr_t i = 0; i < part_count; ++i) {
+          builder_->SkipLibraryPart();
         }
         if (++next_read_ == field) return;
       }
