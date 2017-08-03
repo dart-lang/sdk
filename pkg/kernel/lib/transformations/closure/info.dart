@@ -25,10 +25,22 @@ import '../../visitor.dart' show RecursiveVisitor;
 
 class ClosureInfo extends RecursiveVisitor {
   FunctionNode currentFunction;
+
+  static const int OUTSIDE_INITIALIZER = 1;
+  static const int INSIDE_INITIALIZER = 2;
+
+  int captureFlags = OUTSIDE_INITIALIZER;
+
+  // For function parameters, we need to distinquish the following states:
+  //
+  // - captured inside initializers, not used in body (INSIDE_INITIALIZER)
+  // - only used in body (OUTSIDE_INITIALIZER)
+  // - captured inside initializers and used in body (OUTSIDE_INITIALIZER |
+  //   INSIDE_INITIALIZER)
+  final Map<VariableDeclaration, int> variables = <VariableDeclaration, int>{};
+
   final Map<VariableDeclaration, FunctionNode> function =
       <VariableDeclaration, FunctionNode>{};
-
-  final Set<VariableDeclaration> variables = new Set<VariableDeclaration>();
 
   /// Map from functions to set of type variables captured within them.
   final Map<FunctionNode, Set<TypeParameter>> typeVariables =
@@ -107,8 +119,17 @@ class ClosureInfo extends RecursiveVisitor {
 
       visitList(node.annotations, this);
       node.name?.accept(this);
-      node.function?.accept(this);
+
+      visitList(node.function.typeParameters, this);
+      visitList(node.function.positionalParameters, this);
+      visitList(node.function.namedParameters, this);
+
+      assert(captureFlags == OUTSIDE_INITIALIZER);
+      captureFlags = INSIDE_INITIALIZER;
       visitList(node.initializers, this);
+      captureFlags = OUTSIDE_INITIALIZER;
+
+      node.function.accept(this);
     });
     endMember();
   }
@@ -181,14 +202,20 @@ class ClosureInfo extends RecursiveVisitor {
 
   visitVariableGet(VariableGet node) {
     if (function[node.variable] != currentFunction) {
-      variables.add(node.variable);
+      variables.putIfAbsent(node.variable, () => 0);
+    }
+    if (variables.containsKey(node.variable)) {
+      variables[node.variable] |= captureFlags;
     }
     node.visitChildren(this);
   }
 
   visitVariableSet(VariableSet node) {
     if (function[node.variable] != currentFunction) {
-      variables.add(node.variable);
+      variables.putIfAbsent(node.variable, () => 0);
+    }
+    if (variables.containsKey(node.variable)) {
+      variables[node.variable] |= captureFlags;
     }
     node.visitChildren(this);
   }
