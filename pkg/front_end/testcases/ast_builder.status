@@ -93,6 +93,7 @@ inference/downwards_inference_on_map_literals: Crash
 inference/downwards_inference_yield_yield_star: Fail
 inference/field_initializer_context_explicit: Crash
 inference/field_initializer_context_implicit: Crash
+inference/field_initializer_context_this: Crash
 inference/field_initializer_parameter: Crash
 inference/field_refers_to_static_getter: Crash
 inference/field_refers_to_top_level_getter: Crash
