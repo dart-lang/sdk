@@ -661,12 +661,32 @@ class ConstructorInvocationA extends ApplicationContinuation {
   Configuration call(List<InterpreterValue> argValues) {
     Environment ctrEnv = ApplicationContinuation.createEnvironment(
         constructor.function, argValues);
-
-    var newObject = new ObjectValue(constructor.enclosingClass);
+    var class_ = new Class(constructor.enclosingClass.reference);
+    var newObject = new ObjectValue(class_);
     var cont = new InitializationEK(
         constructor, ctrEnv, new NewSK(continuation, new Location(newObject)));
 
     return new ValuePassingConfiguration(cont, newObject);
+  }
+}
+
+/// Represents the application continuation for constructor invocation applied
+/// on the list of evaluated arguments when a constructor is invoked in a
+/// constructor initializer list with a [RedirectingInitializer] or
+/// [SuperInitializer].
+class ConstructorInitializerA extends ApplicationContinuation {
+  final Constructor constructor;
+  final Location location;
+  final ConstructorBodySK continuation;
+
+  ConstructorInitializerA(this.constructor, this.location, this.continuation);
+
+  Configuration call(List<InterpreterValue> vs) {
+    Environment ctrEnv =
+        ApplicationContinuation.createEnvironment(constructor.function, vs);
+    var cont = new InitializationEK(constructor, ctrEnv, continuation);
+
+    return new ValuePassingConfiguration(cont, location.value);
   }
 }
 
@@ -690,27 +710,48 @@ class InstanceFieldsA extends ApplicationContinuation {
       _currentClass.implicitSetters[f.field.name](location.value, f.value);
     }
 
-    if (constructor.initializers.length == 0 ||
-        constructor.initializers.first is SuperInitializer) {
-      _initializeNullFields(_currentClass, location.value);
-      // TODO(zhivkag): Produce the configuration for executing the super
-      // initializer.
+    if (constructor.initializers.length == 0) {
       return new ForwardConfiguration(continuation, environment);
     }
+
+    if (constructor.initializers.first is SuperInitializer) {
+      // Target constructor is from the superclass `object`.
+      if (_currentClass.superclass.superclass == null) {
+        // TODO(zhivkag): Execute the constructor when support for
+        // native/external functions is added.
+        _initializeNullFields(_currentClass, location.value);
+        return new ForwardConfiguration(continuation, environment);
+      }
+
+      return _createEvalListConfig(constructor.initializers.first);
+    }
+
     // Otherwise, the next expression from Field or Local initializers will be
     // evaluated.
-    Expression expr = (constructor.initializers.first is FieldInitializer)
-        ? (constructor.initializers.first as FieldInitializer).value
-        : (constructor.initializers.first as LocalInitializer)
-            .variable
-            .initializer;
+    return _createEvalConfig(constructor.initializers.first);
+  }
 
-    var cont = new InitializerListEK(constructor, 0 /* initializerIndex*/,
-        location, environment, continuation);
+  Configuration _createEvalListConfig(SuperInitializer initializer) {
+    List<InterpreterExpression> args = _getArgumentExpressions(
+        initializer.arguments, initializer.target.function);
+    var cont =
+        new ConstructorInitializerA(initializer.target, location, continuation);
+
+    return new EvalListConfiguration(args, environment, cont);
+  }
+
+  EvalConfiguration _createEvalConfig(Initializer initializer) {
+    Expression expr = (initializer is FieldInitializer)
+        ? initializer.value
+        : (initializer as LocalInitializer).variable.initializer;
+
+    // We start with index = 0 since we are evaluating the expression for the
+    // first initializer in the initializer list.
+    var cont = new InitializerListEK(
+        constructor, 0, location, environment, continuation);
     return new EvalConfiguration(expr, environment, cont);
   }
 }
-
 // ------------------------------------------------------------------------
 //                           Expression Continuations
 // ------------------------------------------------------------------------
@@ -995,13 +1036,9 @@ class InitializationEK extends ExpressionContinuation {
   InitializationEK(this.constructor, this.environment, this.continuation);
 
   Configuration call(Value value) {
-    if (constructor.enclosingClass.superclass.superclass != null) {
-      throw 'Support for super constructors in not implemented.';
-    }
-
     if (constructor.initializers.isNotEmpty &&
-        !(constructor.initializers.last is SuperInitializer)) {
-      throw 'Support for initializers is not implemented.';
+        constructor.initializers.last is RedirectingInitializer) {
+      throw 'Support for redirecting initializers is not implemented.';
     }
 
     // The statement body is captured by the next statement continuation and
@@ -1061,9 +1098,7 @@ class InitializerListEK extends ExpressionContinuation {
         _initializeNullFields(_currentClass, location.value);
         return new ForwardConfiguration(continuation, environment);
       }
-      // TODO(zhivkag): Produce the configuration according to
-      // specification.
-      throw 'Support for SuperInitializers in not implemented.';
+      return _createEvalListConfig(next);
     }
 
     if (next is RedirectingInitializer) {
@@ -1078,6 +1113,15 @@ class InitializerListEK extends ExpressionContinuation {
 
     var cont = withInitializerIndex(initializerIndex + 1);
     return new EvalConfiguration(nextExpr, env, cont);
+  }
+
+  Configuration _createEvalListConfig(SuperInitializer initializer) {
+    List<InterpreterExpression> args = _getArgumentExpressions(
+        initializer.arguments, initializer.target.function);
+    var cont =
+        new ConstructorInitializerA(initializer.target, location, continuation);
+
+    return new EvalListConfiguration(args, environment, cont);
   }
 }
 
@@ -1327,9 +1371,7 @@ class ObjectValue extends Value {
   final List<Location> fields;
   Object get value => this;
 
-  ObjectValue(ast.Class classDeclaration)
-      : class_ = new Class(classDeclaration.reference),
-        fields = new List<Location>(classDeclaration.fields.length) {
+  ObjectValue(this.class_) : fields = new List<Location>(class_.instanceSize) {
     for (int i = 0; i < fields.length; i++) {
       // Create fresh locations for each field.
       fields[i] = new Location.empty();
