@@ -18,7 +18,7 @@ final _pubspec = new RegExp(r'^[_]?pubspec\.yaml$');
 
 final _underscores = new RegExp(r'^[_]+$');
 
-final _validLibraryPrefix = new RegExp(r'^(_)*([a-z]+([_]?[a-z0-9]+)*)+$');
+final _validLibraryPrefix = new RegExp(r'^(_|\$)?(_)*([a-z]+([_]?[a-z0-9]+)*)+$');
 
 /// Check if this [string] is formatted in `CamelCase`.
 bool isCamelCase(String string) => CamelCaseString.isCamelCase(string);

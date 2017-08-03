@@ -5,6 +5,7 @@
 // test w/ `pub run test -N library_prefixes`
 
 import 'dart:async' as _async; //OK
+import 'dart:collection' as $collection; //OK
 import 'dart:math' as dartMath; //LINT [23:8]
 
 main() {

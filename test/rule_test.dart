@@ -184,7 +184,10 @@ defineRuleUnitTests() {
         'p21',
         'p1ll0',
         '_foo',
-        '__foo'
+        r'$foo',
+        '__foo',
+        r'$_foo',
+        r'$__foo',
       ];
       testEach(good, isValidLibraryPrefix, isTrue);
 
@@ -197,8 +200,13 @@ defineRuleUnitTests() {
         'F_B',
         '1',
         '1b',
+        r'foo$',
+        r'f$oo',
+        r'$$foo',
+        r'$_$foo',
+        r'_$foo',
       ];
-      testEach(bad, isLowerCaseUnderScore, isFalse);
+      testEach(bad, isValidLibraryPrefix, isFalse);
     });
 
     group('lower_case_underscores', () {
