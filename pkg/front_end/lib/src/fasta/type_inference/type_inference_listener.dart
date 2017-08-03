@@ -170,6 +170,12 @@ class TypeInferenceListener
   void expressionStatementExit(ExpressionStatement statement) =>
       genericStatementExit('expressionStatement', statement);
 
+  void fieldInitializerEnter(FieldInitializer initializer) =>
+      genericInitializerEnter("fieldInitializer", initializer);
+
+  void fieldInitializerExit(FieldInitializer initializer) =>
+      genericInitializerExit("fieldInitializer", initializer);
+
   void forInStatementEnter(ForInStatement statement) =>
       genericStatementEnter('forInStatement', statement);
 
@@ -258,10 +264,10 @@ class TypeInferenceListener
   void mapLiteralExit(MapLiteral expression, DartType typeContext) =>
       genericExpressionExit("mapLiteral", expression, typeContext);
 
+  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {}
+
   bool methodInvocationEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("methodInvocation", expression, typeContext);
-
-  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {}
 
   void methodInvocationExit(Expression expression, Arguments arguments,
           bool isImplicitCall, DartType inferredType) =>

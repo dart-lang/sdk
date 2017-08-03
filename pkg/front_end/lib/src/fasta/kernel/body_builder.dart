@@ -3181,7 +3181,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 charOffset: offset)),
             offset);
       } else {
-        return new FieldInitializer(builder.field, expression)
+        return new KernelFieldInitializer(builder.field, expression)
           ..fileOffset = offset
           ..isSynthetic = isSynthetic;
       }

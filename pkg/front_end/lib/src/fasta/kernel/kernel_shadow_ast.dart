@@ -690,6 +690,19 @@ class KernelField extends Field implements KernelMember {
   }
 }
 
+/// Concrete shadow object representing a field initializer in kernel form.
+class KernelFieldInitializer extends FieldInitializer
+    implements KernelInitializer {
+  KernelFieldInitializer(Field field, Expression value) : super(field, value);
+
+  @override
+  void _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.fieldInitializerEnter(this);
+    inferrer.inferExpression(value, field.type, false);
+    inferrer.listener.fieldInitializerExit(this);
+  }
+}
+
 /// Concrete shadow object representing a for-in loop in kernel form.
 class KernelForInStatement extends ForInStatement implements KernelStatement {
   final bool _declaresVariable;

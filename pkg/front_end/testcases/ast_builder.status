@@ -39,6 +39,7 @@ inference/block_bodied_lambdas_nested_lambdas: Crash
 inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
 inference/block_bodied_lambdas_void_context: Crash
+inference/bug30251: Crash
 inference/call_corner_cases: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
@@ -90,6 +91,9 @@ inference/downwards_inference_on_list_literals_infer_downwards: Crash
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: Crash
 inference/downwards_inference_on_map_literals: Crash
 inference/downwards_inference_yield_yield_star: Fail
+inference/field_initializer_context_explicit: Crash
+inference/field_initializer_context_implicit: Crash
+inference/field_initializer_parameter: Crash
 inference/field_refers_to_static_getter: Crash
 inference/field_refers_to_top_level_getter: Crash
 inference/for_in_loop_promotion: Crash
