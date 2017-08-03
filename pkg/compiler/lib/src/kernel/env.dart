@@ -9,14 +9,12 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../common.dart';
-import '../common/resolution.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
-import '../ssa/kernel_impact.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'element_map_mixins.dart';
@@ -86,7 +84,7 @@ class LibraryEnv {
     if (_classMap == null) {
       _classMap = <String, ClassEnv>{};
       for (ir.Class cls in library.classes) {
-        _classMap[cls.name] = new ClassEnv(cls);
+        _classMap[cls.name] = new ClassEnvImpl(cls);
       }
     }
   }
@@ -165,8 +163,39 @@ class LibraryData {
   }
 }
 
+/// Member data for a class.
+abstract class ClassEnv {
+  /// The [ir.Class] that defined the class, if any.
+  ir.Class get cls;
+
+  /// Whether the class is an unnamed mixin application.
+  bool get isUnnamedMixinApplication;
+
+  /// Return the [MemberEntity] for the member [name] in the class. If [setter]
+  /// is `true`, the setter or assignable field corresponding to [name] is
+  /// returned.
+  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+      {bool setter: false});
+
+  /// Calls [f] for each member of the class.
+  void forEachMember(
+      KernelToElementMap elementMap, void f(MemberEntity member));
+
+  /// Return the [ConstructorEntity] for the constructor [name] in the class.
+  ConstructorEntity lookupConstructor(
+      KernelToElementMap elementMap, String name);
+
+  /// Calls [f] for each constructor of the class.
+  void forEachConstructor(
+      KernelToElementMap elementMap, void f(ConstructorEntity constructor));
+
+  /// Calls [f] for each constructor body for the live constructors in the
+  /// class.
+  void forEachConstructorBody(void f(ConstructorBodyEntity constructor));
+}
+
 /// Environment for fast lookup of class members.
-class ClassEnv {
+class ClassEnvImpl implements ClassEnv {
   final ir.Class cls;
   final bool isUnnamedMixinApplication;
 
@@ -174,20 +203,14 @@ class ClassEnv {
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
 
-  ClassEnv(this.cls)
+  /// Constructor bodies created for this class.
+  List<ConstructorBodyEntity> _constructorBodyList;
+
+  ClassEnvImpl(this.cls)
       // TODO(johnniwinther): Change this to use a property on [cls] when such
       // is added to kernel.
       : isUnnamedMixinApplication =
             cls.name.contains('+') || cls.name.contains('&');
-
-  // TODO(efortuna): This is gross because even though the closure class *has*
-  // members, we're not populating this because they aren't ir.Member types. :-(
-  ClassEnv.closureClass()
-      : cls = null,
-        isUnnamedMixinApplication = false,
-        _constructorMap = const <String, ir.Member>{},
-        _memberMap = const <String, ir.Member>{},
-        _setterMap = const <String, ir.Member>{};
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
@@ -299,38 +322,107 @@ class ClassEnv {
     }
   }
 
-  /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupMember(String name, {bool setter: false}) {
+  /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
+  /// `true`, the setter or assignable field corresponding to [name] is
+  /// returned.
+  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+      {bool setter: false}) {
     _ensureMaps();
-    return setter ? _setterMap[name] : _memberMap[name];
+    ir.Member member = setter ? _setterMap[name] : _memberMap[name];
+    return member != null ? elementMap.getMember(member) : null;
   }
 
-  /// Return the [ir.Member] for the member [name] in [library].
-  ir.Member lookupConstructor(String name) {
+  /// Calls [f] for each member of [cls].
+  void forEachMember(
+      KernelToElementMap elementMap, void f(MemberEntity member)) {
     _ensureMaps();
-    return _constructorMap[name];
-  }
-
-  void forEachMember(void f(ir.Member member)) {
-    _ensureMaps();
-    _memberMap.values.forEach(f);
+    _memberMap.values.forEach((ir.Member member) {
+      f(elementMap.getMember(member));
+    });
     for (ir.Member member in _setterMap.values) {
       if (member is ir.Procedure) {
-        f(member);
+        f(elementMap.getMember(member));
       } else {
         // Skip fields; these are also in _memberMap.
       }
     }
   }
 
-  void forEachConstructor(void f(ir.Member member)) {
+  /// Return the [ConstructorEntity] for the constructor [name] in [cls].
+  ConstructorEntity lookupConstructor(
+      KernelToElementMap elementMap, String name) {
     _ensureMaps();
-    _constructorMap.values.forEach(f);
+    ir.Member constructor = _constructorMap[name];
+    return constructor != null ? elementMap.getConstructor(constructor) : null;
+  }
+
+  /// Calls [f] for each constructor of [cls].
+  void forEachConstructor(
+      KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
+    _ensureMaps();
+    _constructorMap.values.forEach((ir.Member constructor) {
+      f(elementMap.getConstructor(constructor));
+    });
+  }
+
+  void addConstructorBody(ConstructorBodyEntity constructorBody) {
+    _constructorBodyList ??= <ConstructorBodyEntity>[];
+    _constructorBodyList.add(constructorBody);
+  }
+
+  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+    _constructorBodyList?.forEach(f);
   }
 }
 
+class ClosureClassEnv implements ClassEnv {
+  final Map<String, MemberEntity> _memberMap;
+
+  ClosureClassEnv(this._memberMap);
+
+  @override
+  void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
+    // We do not create constructor bodies for closure classes.
+  }
+
+  @override
+  void forEachConstructor(
+      KernelToElementMap elementMap, void f(ConstructorEntity constructor)) {
+    // We do not create constructors for closure classes.
+  }
+
+  @override
+  ConstructorEntity lookupConstructor(
+      KernelToElementMap elementMap, String name) {
+    // We do not create constructors for closure classes.
+    return null;
+  }
+
+  @override
+  void forEachMember(
+      KernelToElementMap elementMap, void f(MemberEntity member)) {
+    _memberMap.values.forEach(f);
+  }
+
+  @override
+  MemberEntity lookupMember(KernelToElementMap elementMap, String name,
+      {bool setter: false}) {
+    if (setter) {
+      // All closure fields are final.
+      return null;
+    }
+    return _memberMap[name];
+  }
+
+  @override
+  bool get isUnnamedMixinApplication => false;
+
+  @override
+  ir.Class get cls => null;
+}
+
 class ClassData {
-  /// TODO(johnniwinther): Remove this from the [MemberData] interface. Use
+  /// TODO(johnniwinther): Remove this from the [ClassData] interface. Use
   /// `definition.node` instead.
   final ir.Class cls;
   final ClassDefinition definition;
@@ -356,7 +448,13 @@ class ClassData {
   }
 }
 
-class MemberData {
+abstract class MemberData {
+  MemberDefinition get definition;
+
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap);
+}
+
+class MemberDataImpl implements MemberData {
   /// TODO(johnniwinther): Remove this from the [MemberData] interface. Use
   /// `definition.node` instead.
   final ir.Member node;
@@ -365,29 +463,34 @@ class MemberData {
 
   Iterable<ConstantValue> _metadata;
 
-  MemberData(this.node, this.definition);
+  MemberDataImpl(this.node, this.definition);
 
-  ResolutionImpact getWorldImpact(KernelToElementMapForImpact elementMap) {
-    return buildKernelImpact(node, elementMap);
-  }
-
-  Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
+  Iterable<ConstantValue> getMetadata(
+      covariant KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
   MemberData copy() {
-    return new MemberData(node, definition);
+    return new MemberDataImpl(node, definition);
   }
 }
 
-class FunctionData extends MemberData {
+abstract class FunctionData implements MemberData {
+  FunctionType getFunctionType(KernelToElementMap elementMap);
+
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue));
+}
+
+class FunctionDataImpl extends MemberDataImpl implements FunctionData {
   final ir.FunctionNode functionNode;
   FunctionType _type;
 
-  FunctionData(ir.Member node, this.functionNode, MemberDefinition definition)
+  FunctionDataImpl(
+      ir.Member node, this.functionNode, MemberDefinition definition)
       : super(node, definition);
 
-  FunctionType getFunctionType(KernelToElementMapBase elementMap) {
+  FunctionType getFunctionType(covariant KernelToElementMapBase elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
@@ -418,15 +521,20 @@ class FunctionData extends MemberData {
 
   @override
   FunctionData copy() {
-    return new FunctionData(node, functionNode, definition);
+    return new FunctionDataImpl(node, functionNode, definition);
   }
 }
 
-class ConstructorData extends FunctionData {
+abstract class ConstructorData extends FunctionData {
+  ConstantConstructor getConstructorConstant(
+      KernelToElementMapBase elementMap, ConstructorEntity constructor);
+}
+
+class ConstructorDataImpl extends FunctionDataImpl implements ConstructorData {
   ConstantConstructor _constantConstructor;
   ConstructorBodyEntity constructorBody;
 
-  ConstructorData(
+  ConstructorDataImpl(
       ir.Member node, ir.FunctionNode functionNode, MemberDefinition definition)
       : super(node, functionNode, definition);
 
@@ -440,7 +548,7 @@ class ConstructorData extends FunctionData {
         failedAt(
             constructor,
             "Unexpected constructor $constructor in "
-            "KernelWorldBuilder._getConstructorConstant");
+            "ConstructorDataImpl._getConstructorConstant");
       }
     }
     return _constantConstructor;
@@ -448,14 +556,19 @@ class ConstructorData extends FunctionData {
 
   @override
   ConstructorData copy() {
-    return new ConstructorData(node, functionNode, definition);
+    return new ConstructorDataImpl(node, functionNode, definition);
   }
 }
 
-class FieldData extends MemberData {
+abstract class FieldData extends MemberData {
+  ConstantExpression getFieldConstant(
+      KernelToElementMapBase elementMap, FieldEntity field);
+}
+
+class FieldDataImpl extends MemberDataImpl implements FieldData {
   ConstantExpression _constant;
 
-  FieldData(ir.Field node, MemberDefinition definition)
+  FieldDataImpl(ir.Field node, MemberDefinition definition)
       : super(node, definition);
 
   ir.Field get node => super.node;
@@ -469,7 +582,7 @@ class FieldData extends MemberData {
         failedAt(
             field,
             "Unexpected field $field in "
-            "KernelWorldBuilder._getConstructorConstant");
+            "FieldDataImpl.getFieldConstant");
       }
     }
     return _constant;
@@ -477,6 +590,6 @@ class FieldData extends MemberData {
 
   @override
   FieldData copy() {
-    return new FieldData(node, definition);
+    return new FieldDataImpl(node, definition);
   }
 }

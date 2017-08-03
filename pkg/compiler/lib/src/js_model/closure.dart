@@ -7,9 +7,13 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common/tasks.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
+import '../elements/types.dart';
 import '../kernel/element_map.dart';
+import '../kernel/env.dart';
 import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
@@ -315,8 +319,6 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
 class KernelClosureClass extends JsScopeInfo
     implements ClosureRepresentationInfo, JClass {
-  final ir.Location location;
-
   final String name;
   final JLibrary library;
   JFunction callMethod;
@@ -334,7 +336,6 @@ class KernelClosureClass extends JsScopeInfo
       this.classIndex,
       this.library,
       KernelScopeInfo info,
-      this.location,
       KernelToLocalsMap localsMap)
       : closureEntity = localsMap.getLocalFunction(closureSourceNode.parent),
         super.from(info, localsMap);
@@ -407,7 +408,7 @@ class JBoxedField extends JField {
 
 class ClosureClassDefinition implements ClassDefinition {
   final ClassEntity cls;
-  final ir.Location location;
+  final SourceSpan location;
 
   ClosureClassDefinition(this.cls, this.location);
 
@@ -420,9 +421,53 @@ class ClosureClassDefinition implements ClassDefinition {
       'ClosureClassDefinition(kind:$kind,cls:$cls,location:$location)';
 }
 
+class ClosureMemberData implements MemberData {
+  final MemberDefinition definition;
+
+  ClosureMemberData(this.definition);
+
+  @override
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return const <ConstantValue>[];
+  }
+}
+
+class ClosureFunctionData extends ClosureMemberData implements FunctionData {
+  final FunctionType functionType;
+
+  ClosureFunctionData(MemberDefinition definition, this.functionType)
+      : super(definition);
+
+  @override
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    // TODO(johnniwinther,efortuna): Implement this.
+    throw new UnimplementedError('ClosureFunctionData.forEachParameter');
+  }
+
+  @override
+  FunctionType getFunctionType(KernelToElementMap elementMap) {
+    return functionType;
+  }
+}
+
+class ClosureFieldData extends ClosureMemberData implements FieldData {
+  ClosureFieldData(MemberDefinition definition) : super(definition);
+
+  @override
+  ConstantExpression getFieldConstant(
+      KernelToElementMap elementMap, FieldEntity field) {
+    failedAt(
+        field,
+        "Unexpected field $field in "
+        "ClosureFieldData.getFieldConstant");
+    return null;
+  }
+}
+
 class ClosureMemberDefinition implements MemberDefinition {
   final MemberEntity member;
-  final ir.Location location;
+  final SourceSpan location;
   final MemberKind kind;
   final ir.Node node;
 

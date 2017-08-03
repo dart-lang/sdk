@@ -22,8 +22,7 @@ import '../elements/elements.dart'
         MetadataAnnotation,
         ParameterElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionTypedefType;
+import '../elements/resolution_types.dart' show ResolutionTypedefType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -167,8 +166,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   /// A map used to canonicalize the entries of types.
-  Map<OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>> _typesMap =
-      <OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>>{};
+  Map<OutputUnit, Map<DartType, _BoundMetadataEntry>> _typesMap =
+      <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
   MetadataCollector(
       this._options,
@@ -333,8 +332,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
         ignoreTypeVariables: ignoreTypeVariables);
   }
 
-  jsAst.Expression reifyTypeForOutputUnit(
-      ResolutionDartType type, OutputUnit outputUnit,
+  jsAst.Expression reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     return addTypeInOutputUnit(type, outputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
@@ -361,7 +359,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  jsAst.Expression _computeTypeRepresentation(ResolutionDartType type,
+  jsAst.Expression _computeTypeRepresentation(DartType type,
       {ignoreTypeVariables: false}) {
     jsAst.Expression representation =
         _rtiEncoder.getTypeRepresentation(_emitter, type, (variable) {
@@ -381,12 +379,10 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return representation;
   }
 
-  jsAst.Expression addTypeInOutputUnit(
-      ResolutionDartType type, OutputUnit outputUnit,
+  jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     if (_typesMap[outputUnit] == null) {
-      _typesMap[outputUnit] =
-          new Map<ResolutionDartType, _BoundMetadataEntry>();
+      _typesMap[outputUnit] = new Map<DartType, _BoundMetadataEntry>();
     }
     return _typesMap[outputUnit].putIfAbsent(type, () {
       return new _BoundMetadataEntry(_computeTypeRepresentation(type,

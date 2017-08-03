@@ -648,6 +648,7 @@ abstract class ResolutionWorldBuilderBase
         failedAt(element, 'Direct static use is not supported for resolution.');
         break;
       case StaticUseKind.INLINING:
+      case StaticUseKind.CALL_METHOD:
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Static use ${staticUse.kind} is not supported during resolution.");
     }

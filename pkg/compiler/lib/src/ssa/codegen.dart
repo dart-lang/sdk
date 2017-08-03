@@ -2102,9 +2102,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.callMethod != null) {
       _registry
           ?.registerStaticUse(new StaticUse.implicitInvoke(node.callMethod));
-    }
-    if (node.localFunction != null) {
-      _registry?.registerInstantiatedClosure(node.localFunction);
+      _registry?.registerInstantiatedClosure(node.callMethod);
     }
   }
 

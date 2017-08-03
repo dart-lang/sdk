@@ -1628,15 +1628,8 @@ class HCreate extends HInstruction {
   /// the closure class.
   FunctionEntity callMethod;
 
-  /// If this node creates a closure class, [closure] is the closurized local
-  /// function.
-  Local localFunction;
-
   HCreate(this.element, List<HInstruction> inputs, TypeMask type,
-      {this.instantiatedTypes,
-      this.hasRtiInput: false,
-      this.callMethod,
-      this.localFunction})
+      {this.instantiatedTypes, this.hasRtiInput: false, this.callMethod})
       : super(inputs, type);
 
   bool get isAllocation => true;

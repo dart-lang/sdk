@@ -3053,7 +3053,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     // TODO(efortuna): Add source information here.
     push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod, localFunction: methodElement));
+        callMethod: closureInfo.callMethod));
   }
 
   @override

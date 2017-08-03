@@ -133,6 +133,10 @@ main() {
   x = testAsGeneric(x);
   x = testAsFunction(x);
   print(x);
+  var f = (x) {
+    return 400 + x;
+  };
+  x = f(x);
   return x;
 }
 typedef NoArg();

@@ -4,7 +4,7 @@
 
 library dart2js.js_model.elements;
 
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -520,16 +520,12 @@ class JField extends JMember implements FieldEntity, IndexedField {
   String get _kind => 'field';
 }
 
-class JClosureCallMethod extends JFunction {
+class JClosureCallMethod extends JMethod {
   JClosureCallMethod(int memberIndex, KernelClosureClass containingClass,
-      JFunction origClosureFunctionNode)
-      : super(
-            memberIndex,
-            containingClass.library,
-            containingClass,
-            new Name(Identifiers.call, containingClass.library),
-            origClosureFunctionNode.parameterStructure,
-            origClosureFunctionNode.asyncMarker);
+      ParameterStructure parameterStructure, AsyncMarker asyncMarker)
+      : super(memberIndex, containingClass.library, containingClass, Names.call,
+            parameterStructure, asyncMarker,
+            isStatic: false, isExternal: false, isAbstract: false);
 
   String get _kind => 'closure_call';
 }

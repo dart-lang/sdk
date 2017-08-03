@@ -7,6 +7,7 @@ library dart2js.kernel.backend_strategy;
 import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
+import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
@@ -203,13 +204,12 @@ class KernelSorter implements Sorter {
     return utils.compareLibrariesUris(a.canonicalUri, b.canonicalUri);
   }
 
-  int _compareLocations(Entity entity1, ir.Location location1, Entity entity2,
-      ir.Location location2) {
-    int r = utils.compareSourceUris(
-        Uri.parse(location1.file), Uri.parse(location2.file));
+  int _compareSourceSpans(Entity entity1, SourceSpan sourceSpan1,
+      Entity entity2, SourceSpan sourceSpan2) {
+    int r = utils.compareSourceUris(sourceSpan1.uri, sourceSpan2.uri);
     if (r != 0) return r;
-    return utils.compareEntities(entity1, location1.line, location1.column,
-        entity2, location2.line, location2.column);
+    return utils.compareEntities(
+        entity1, sourceSpan1.begin, null, entity2, sourceSpan2.begin, null);
   }
 
   @override
@@ -225,7 +225,7 @@ class KernelSorter implements Sorter {
         if (r != 0) return r;
         MemberDefinition definition1 = elementMap.getMemberDefinition(member1);
         MemberDefinition definition2 = elementMap.getMemberDefinition(member2);
-        return _compareLocations(
+        return _compareSourceSpans(
             member1, definition1.location, member2, definition2.location);
       });
   }
@@ -238,7 +238,7 @@ class KernelSorter implements Sorter {
         if (r != 0) return r;
         ClassDefinition definition1 = elementMap.getClassDefinition(cls1);
         ClassDefinition definition2 = elementMap.getClassDefinition(cls2);
-        return _compareLocations(
+        return _compareSourceSpans(
             cls1, definition1.location, cls2, definition2.location);
       });
   }

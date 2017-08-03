@@ -146,8 +146,8 @@ class CodegenRegistry {
     worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerInstantiatedClosure(Local element) {
-    worldImpact.registerStaticUse(new StaticUse.closure(element));
+  void registerInstantiatedClosure(FunctionEntity element) {
+    worldImpact.registerStaticUse(new StaticUse.callMethod(element));
   }
 
   void registerConstSymbol(String name) {
