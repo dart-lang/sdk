@@ -256,6 +256,13 @@ class Evaluator extends ExpressionVisitor1<Configuration, EvalConfiguration> {
         config.continuation, config.environment.thisInstance);
   }
 
+  Configuration visitThrow(Throw node, EvalConfiguration config) {
+    var cont = new ThrowEK(config.exceptionComponents);
+
+    return new EvalConfiguration(
+        node.expression, config.environment, config.exceptionComponents, cont);
+  }
+
   // Evaluation of BasicLiterals.
   Configuration visitStringLiteral(
       StringLiteral node, EvalConfiguration config) {
@@ -1222,6 +1229,17 @@ class InitializerListEK extends ExpressionContinuation {
   }
 }
 
+class ThrowEK extends ExpressionContinuation {
+  final ExceptionComponents exceptionComponents;
+
+  ThrowEK(this.exceptionComponents);
+
+  Configuration call(Value value) {
+    return new ThrowConfiguration(
+        exceptionComponents.handler, value, exceptionComponents.stackTrace);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                        Exceptions Handlers
 // ------------------------------------------------------------------------
@@ -1230,6 +1248,22 @@ abstract class ExceptionHandler extends Continuation {
   ExceptionHandler get nextHandler;
 
   Configuration call(Value exception, StackTrace stacktrace);
+}
+
+/// Handler for showing an exception to the user and returning a halting the
+/// execution of the program when an exception is not handled.
+class MainHandler extends ExceptionHandler {
+  ExceptionHandler get nextHandler =>
+      throw 'The current handler is the main exception handler';
+
+  Configuration call(Value exception, StackTrace stacktrace) {
+    var errorMessage = 'Uncaught exception '
+        '"${exception.value.runtimeType} : ${exception.value}"\n'
+        '${stacktrace.toString()}';
+    log.info(errorMessage);
+    print(errorMessage);
+    return null;
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -1253,10 +1287,9 @@ class ExceptionComponents {
   ExceptionComponents(this.handler, this.stackTrace, this.currentStackTrace,
       this.currentException);
 
-  // TODO(zhivkag): Add a top level handler for initial exception state.
   ExceptionComponents.initial()
-      : handler = null,
-        stackTrace = null,
+      : handler = new MainHandler(),
+        stackTrace = new StackTrace(null, null),
         currentStackTrace = null,
         currentException = null;
 }
@@ -1266,6 +1299,16 @@ class StackTrace {
   final StackTrace stackTrace;
 
   StackTrace(this.expression, this.stackTrace);
+
+  String toString() {
+    var buffer = new StringBuffer('in main()');
+    var current = this;
+    while (current.expression != null) {
+      buffer.write('at ${current.expression.toString()}\n');
+      current = current.stackTrace;
+    }
+    return buffer.toString();
+  }
 }
 
 /// Executes statements.
