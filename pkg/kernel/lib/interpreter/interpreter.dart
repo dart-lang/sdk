@@ -711,6 +711,8 @@ class InstanceFieldsA extends ApplicationContinuation {
     }
 
     if (constructor.initializers.length == 0) {
+      // This can happen when initializing fields of a constructor with an empty
+      // initializer list.
       return new ForwardConfiguration(continuation, environment);
     }
 
@@ -1036,11 +1038,13 @@ class InitializationEK extends ExpressionContinuation {
   InitializationEK(this.constructor, this.environment, this.continuation);
 
   Configuration call(Value value) {
+    Location location = new Location(value);
+
     if (constructor.initializers.isNotEmpty &&
         constructor.initializers.last is RedirectingInitializer) {
-      throw 'Support for redirecting initializers is not implemented.';
+      return _createRedirectingInitializerConfig(
+          constructor.initializers.first, location);
     }
-
     // The statement body is captured by the next statement continuation and
     // expressions for field initialization are evaluated.
     var ctrEnv = environment.extendWithThis(value);
@@ -1048,9 +1052,34 @@ class InitializationEK extends ExpressionContinuation {
         new ConstructorBodySK(constructor.function.body, ctrEnv, continuation);
     var initializers = _getFieldInitializers(constructor.enclosingClass);
     var fieldsCont =
-        new InstanceFieldsA(constructor, new Location(value), ctrEnv, bodyCont);
+        new InstanceFieldsA(constructor, location, ctrEnv, bodyCont);
     return new EvalListConfiguration(
         initializers, new Environment.empty(), fieldsCont);
+  }
+
+  /// Creates the next configuration to further initializer the value for
+  /// redirecting constructors.
+  Configuration _createRedirectingInitializerConfig(
+      Initializer initializer, Location location) {
+    Initializer current = constructor.initializers.first;
+    if (current is RedirectingInitializer) {
+      // Evaluate the list of arguments for invoking the target constructor in
+      // the current environment.
+      List<InterpreterExpression> exprs =
+          _getArgumentExpressions(current.arguments, current.target.function);
+      var cont =
+          new ConstructorInitializerA(current.target, location, continuation);
+      return new EvalListConfiguration(exprs, environment, cont);
+    }
+    Expression expr = (current is FieldInitializer)
+        ? current.value
+        : (current as LocalInitializer).variable.initializer;
+
+    // The index is set to 0 since we are evaluating the expression for the
+    // first initializer in the initializer list.
+    var cont = new InitializerListEK(
+        constructor, 0, location, environment, continuation);
+    return new EvalConfiguration(expr, environment, cont);
   }
 }
 
@@ -1098,13 +1127,11 @@ class InitializerListEK extends ExpressionContinuation {
         _initializeNullFields(_currentClass, location.value);
         return new ForwardConfiguration(continuation, environment);
       }
-      return _createEvalListConfig(next);
+      return _createEvalListConfig(next.arguments, next.target, env);
     }
 
     if (next is RedirectingInitializer) {
-      // TODO(zhivkag): Produce the configuration according to
-      // specification.
-      throw 'Support for RedirectingInitializers is not implemented.';
+      return _createEvalListConfig(next.arguments, next.target, env);
     }
 
     Expression nextExpr = (next is FieldInitializer)
@@ -1115,13 +1142,12 @@ class InitializerListEK extends ExpressionContinuation {
     return new EvalConfiguration(nextExpr, env, cont);
   }
 
-  Configuration _createEvalListConfig(SuperInitializer initializer) {
-    List<InterpreterExpression> args = _getArgumentExpressions(
-        initializer.arguments, initializer.target.function);
-    var cont =
-        new ConstructorInitializerA(initializer.target, location, continuation);
-
-    return new EvalListConfiguration(args, environment, cont);
+  Configuration _createEvalListConfig(
+      Arguments args, Constructor ctr, Environment env) {
+    List<InterpreterExpression> exprs =
+        _getArgumentExpressions(args, ctr.function);
+    var cont = new ConstructorInitializerA(ctr, location, continuation);
+    return new EvalListConfiguration(exprs, env, cont);
   }
 }
 
