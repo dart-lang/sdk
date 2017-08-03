@@ -7,6 +7,15 @@ library utils;
 import 'dart:async';
 import 'dart:math';
 
+enum DurationComponent {
+  Days,
+  Hours,
+  Minutes,
+  Seconds,
+  Milliseconds,
+  Microseconds
+}
+
 class Utils {
   static String formatPercentNormalized(double x) {
     var percent = 100.0 * x;
@@ -139,6 +148,88 @@ class Utils {
         '${now.hour.toString().padLeft(2)}:'
         '${now.minute.toString().padLeft(2)}:'
         '${now.second.toString().padLeft(2)}';
+  }
+
+  static String formatDuration(Duration duration,
+      {DurationComponent precision = DurationComponent.Microseconds,
+      String future = '',
+      String past = 'ago'}) {
+    var value = duration.inMicroseconds.abs();
+    switch (precision) {
+      case DurationComponent.Days:
+        value = (value / Duration.MICROSECONDS_PER_DAY).round();
+        break;
+      case DurationComponent.Hours:
+        value = (value / Duration.MICROSECONDS_PER_HOUR).round();
+        break;
+      case DurationComponent.Minutes:
+        value = (value / Duration.MICROSECONDS_PER_MINUTE).round();
+        break;
+      case DurationComponent.Seconds:
+        value = (value / Duration.MICROSECONDS_PER_SECOND).round();
+        break;
+      case DurationComponent.Milliseconds:
+        value = (value / Duration.MICROSECONDS_PER_MILLISECOND).round();
+        break;
+      case DurationComponent.Microseconds:
+        break;
+    }
+    final components = <String>[];
+    if (duration.isNegative) {
+      if (!past.isEmpty) {
+        components.add(past);
+      }
+    } else {
+      if (!future.isEmpty) {
+        components.add(future);
+      }
+    }
+    switch (precision) {
+      case DurationComponent.Microseconds:
+        components.add('${value % Duration.MICROSECONDS_PER_MILLISECOND}μs');
+        value = (value / Duration.MICROSECONDS_PER_MILLISECOND).floor();
+        if (value != 0) {
+          continue Milliseconds;
+        }
+        break;
+      Milliseconds:
+      case DurationComponent.Milliseconds:
+        components.add('${value % Duration.MILLISECONDS_PER_SECOND}ms');
+        value = (value / Duration.MILLISECONDS_PER_SECOND).floor();
+        if (value != 0) {
+          continue Seconds;
+        }
+        break;
+      Seconds:
+      case DurationComponent.Seconds:
+        components.add('${value % Duration.SECONDS_PER_MINUTE}s');
+        value = (value / Duration.SECONDS_PER_MINUTE).floor();
+        ;
+        if (value != 0) {
+          continue Minutes;
+        }
+        break;
+      Minutes:
+      case DurationComponent.Minutes:
+        components.add('${value % Duration.MINUTES_PER_HOUR}m');
+        value = (value / Duration.MINUTES_PER_HOUR).floor();
+        if (value != 0) {
+          continue Hours;
+        }
+        break;
+      Hours:
+      case DurationComponent.Hours:
+        components.add('${value % Duration.HOURS_PER_DAY}h');
+        value = (value / Duration.HOURS_PER_DAY).floor();
+        if (value != 0) {
+          continue Days;
+        }
+        break;
+      Days:
+      case DurationComponent.Days:
+        components.add('${value}d');
+    }
+    return components.reversed.join(' ');
   }
 
   static String formatSeconds(double x) {

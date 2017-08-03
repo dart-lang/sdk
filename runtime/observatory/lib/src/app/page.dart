@@ -105,10 +105,8 @@ abstract class MatchingPage extends Page {
   }
 
   EditorRepository getEditor(Uri uri) {
-    var editor = uri.queryParameters['editor'];
-    if (editor != null) {
-      return new EditorRepository(editor);
-    }
+    final editor = uri.queryParameters['editor'];
+    return new EditorRepository(app.vm, editor: editor);
     return null;
   }
 
@@ -699,12 +697,25 @@ class MemoryDashboardPage extends MatchingPage {
 
   void _visit(Uri uri) {
     super._visit(uri);
-    getIsolate(uri).then((isolate) {
+    if (app.vm == null) {
+      Logger.root.severe('MemoryDashboard has no VM');
+      // Reroute to vm-connect.
+      app.locationManager.go(Uris.vmConnect());
+      return;
+    }
+    final editor = getEditor(uri);
+    app.vm.reload().then((VM vm) async {
+      // Preload all isolates to avoid sorting problems.
+      await Future.wait(vm.isolates.map((i) => i.load()));
       container.children = [
-        new MemoryDashboardElement(isolate.vm, isolate, app.events,
-            app.notifications, _allocationProfileRepository, getEditor(uri),
+        new MemoryDashboardElement(vm, new IsolateRepository(vm), editor,
+            _allocationProfileRepository, app.events, app.notifications,
             queue: app.queue)
       ];
+    }).catchError((e, stack) {
+      Logger.root.severe('MemoryDashboard visit error: $e');
+      // Reroute to vm-connect.
+      app.locationManager.go(Uris.vmConnect());
     });
   }
 
