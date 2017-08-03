@@ -301,7 +301,7 @@ typed_data_with_limited_ints_test: Skip # dart2js doesn't know about --limit-int
 symbol_test/02: MissingCompileTimeError # Issue 11669
 symbol_test/03: MissingCompileTimeError # Issue 11669
 
-[ $compiler == app_jit ]
+[ $compiler == app_jit || $compiler == precompiler || $compiler == dartk ]
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
