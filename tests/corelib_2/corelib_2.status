@@ -156,6 +156,12 @@ nan_infinity_test/01: RuntimeError
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
+[ $compiler != dartdevc ]
+error_stack_trace_test/static: MissingCompileTimeError
+
+[ $compiler == dartdevc ]
+error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
 bool_from_environment_test: Fail # Flutter Issue 9111
@@ -355,6 +361,7 @@ symbol_test/none: RuntimeError # Issue 27394
 string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel]
+error_stack_trace1_test: RuntimeError # Issue 12399
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 regexp/pcre_test: Pass, Slow # Issue 21593
 
