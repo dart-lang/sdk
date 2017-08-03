@@ -154,6 +154,8 @@ hash_set_test/01: RuntimeError # Issue 11551
 int_modulo_arith_test/bignum: RuntimeError # Issue 29921
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Requires bigint support.
+int_parse_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
 [ $compiler == dart2js && $runtime != none ]
 nan_infinity_test/01: RuntimeError
@@ -299,8 +301,6 @@ symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
 [ $compiler == dart2js ]
 hash_set_test/01: RuntimeError # Issue 11551
 string_static_test: MissingCompileTimeError
-int_parse_with_limited_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
-typed_data_with_limited_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # Issue 11669
