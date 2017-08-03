@@ -373,8 +373,6 @@ branch_canonicalization_test: RuntimeError # Issue 29920
 
 [ $compiler == dartk && $runtime == vm ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
-assertion_test: RuntimeError
-bool_test: RuntimeError # Throws CastError instead of TypeError
 
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
@@ -946,6 +944,8 @@ bool_condition_check_test: RuntimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+built_in_identifier_prefix_test: CompileTimeError
 
 [ $compiler == dart2analyzer || $compiler == dartdevc ]
 bad_initializer2_negative_test: fail # Issue 14880
