@@ -212,6 +212,14 @@ abstract_method_test: Crash
 abstract_object_method_test: Crash
 arg_param_trailing_comma_test/none: Crash
 arithmetic_test: Crash
+async_await_foreign_test: Crash
+async_call_test: Crash
+async_cascade_test: Crash
+async_star_await_pauses_test: Crash
+assign_instance_method_test: Crash
+bad_constructor_test/05: MissingCompileTimeError
+bool_condition_check_test: Crash
+
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 abstract_exact_selector_test/01: Crash
@@ -269,7 +277,6 @@ async_await_syntax_test/c06a: RuntimeError # Issue 27394
 async_await_syntax_test/d06a: RuntimeError # Issue 27394
 black_listed_test/13c: Crash # Issue 27394
 black_listed_test/14c: Crash # Issue 27394
-bootstrap_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel_in_ssa && ! $dart2js_with_kernel ]
 assertion_initializer_const_function_test/none: RuntimeError
@@ -290,7 +297,6 @@ async_await_syntax_test/d04a: Crash
 async_await_syntax_test/d07a: Crash
 async_await_syntax_test/d08a: Crash
 async_await_syntax_test/d08b: Crash
-async_await_syntax_test/d08c: Crash
 bad_override_test/04: Crash
 bailout3_test: Crash
 bailout5_test: Crash
@@ -523,7 +529,6 @@ async_finally_rethrow_test: Crash
 async_or_generator_return_type_stacktrace_test/01: Crash
 async_or_generator_return_type_stacktrace_test/02: Crash
 async_or_generator_return_type_stacktrace_test/03: Crash
-async_or_generator_return_type_stacktrace_test/none: Crash
 async_regression_23058_test: Crash
 async_rethrow_test: Crash
 async_return_types_test/nestedFuture: Crash
@@ -542,13 +547,11 @@ async_star_regression_fisk_test: Crash
 async_star_stream_take_test: Crash
 async_star_take_reyield_test: Crash
 bad_named_parameters2_test/01: Crash
-bad_named_parameters2_test/none: Crash
 bad_named_parameters_test/01: Crash
 bad_named_parameters_test/02: Crash
 bad_named_parameters_test/03: Crash
 bad_named_parameters_test/04: Crash
 bad_named_parameters_test/05: Crash
-bad_named_parameters_test/none: Crash
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -560,10 +563,8 @@ bit_operations_test/02: Crash
 bit_operations_test/03: Crash
 bit_operations_test/04: Crash
 bit_operations_test/none: Crash
-black_listed_test/none: Crash
 bool_check_test: Crash
 bool_test: Crash
-bootstrap_test: RuntimeError
 bound_closure_equality_test: Crash
 bound_closure_primitives_test: Crash
 branch_canonicalization_test: RuntimeError
@@ -881,8 +882,6 @@ async_await_syntax_test/a04a: RuntimeError
 async_await_syntax_test/a04c: RuntimeError
 async_await_syntax_test/a05a: Crash
 async_await_syntax_test/a05b: Crash
-async_await_syntax_test/a05c: Crash
-async_await_syntax_test/a05e: Crash
 async_await_syntax_test/a06a: Crash
 async_await_syntax_test/a07a: RuntimeError
 async_await_syntax_test/a08a: RuntimeError
@@ -925,7 +924,6 @@ async_await_syntax_test/d06a: Crash
 async_await_syntax_test/d07a: RuntimeError
 async_await_syntax_test/d08a: RuntimeError
 async_await_syntax_test/d08b: RuntimeError
-async_await_syntax_test/d08c: RuntimeError
 async_await_syntax_test/d09a: Crash
 async_await_syntax_test/d10a: Crash
 async_return_types_test/tooManyTypeParameters: CompileTimeError

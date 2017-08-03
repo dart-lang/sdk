@@ -324,11 +324,7 @@ regress/4562_test/01: Crash # Issue 27394
 10216b_test: Crash
 11673_test: Crash
 16400_test: Crash
-16407_test: Crash
-16407_test: RuntimeError
 17856_test: Crash
-18383_test: Crash
-18383_test: RuntimeError
 19191_test: Crash
 21166_test: Crash
 21579_test: Crash
@@ -356,7 +352,6 @@ bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
 break_test: Crash
 checked_accessor_test: Crash
-closure2_test: RuntimeError
 closure3_test: RuntimeError
 closure4_test: RuntimeError
 closure5_test: Crash
@@ -368,7 +363,6 @@ closure_capture4_test: RuntimeError
 closure_capture5_test: RuntimeError
 closure_capture6_test: Crash
 closure_capture_test: RuntimeError
-closure_test: RuntimeError
 closure_type_reflection2_test: Crash
 closure_type_reflection_test: Crash
 code_motion_exception_test: Crash
@@ -502,7 +496,6 @@ useful_error_message_1_test: Crash
 LayoutTests_fast_mediastream_getusermedia_t01_test/none: Crash
 bailout_aborting_if_test: Crash
 big_allocation_expression_test: Crash
-closure2_test: Crash
 closure3_test: Crash
 closure4_test: Crash
 closure6_test: Crash
@@ -512,7 +505,6 @@ closure_capture3_test: Crash
 closure_capture4_test: Crash
 closure_capture5_test: Crash
 closure_capture_test: Crash
-closure_test: Crash
 first_class_types_hashcode_test: Crash
 if_null2_test: Crash
 if_null3_test: Crash

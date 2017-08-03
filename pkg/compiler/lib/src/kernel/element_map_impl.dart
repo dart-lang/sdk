@@ -2026,7 +2026,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _memberData.add(new ClosureFunctionData(
         new ClosureMemberDefinition(callMethod, closureData.definition.location,
             MemberKind.closureCall, node.parent),
-        getFunctionType(node)));
+        getFunctionType(node),
+        node));
     memberMap[cls.callMethod.name] = cls.callMethod;
     return cls;
   }
@@ -2094,7 +2095,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
           (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory)) {
         FunctionEntity entity;
         if (node.parent is ir.Constructor) {
-          entity = getConstructorBody(node);
+          entity = getConstructorBody(node.parent);
         } else {
           entity = getMember(node);
         }
