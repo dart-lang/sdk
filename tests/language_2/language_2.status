@@ -691,7 +691,7 @@ bool_condition_check_test: RuntimeError
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 bool_check_test: RuntimeError
 
-[ $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer || $compiler == dartdevc ]
 bad_initializer2_negative_test: fail # Issue 14880
 black_listed_test/none: fail # Issue 14228
 bad_initializer1_negative_test: CompileTimeError # Issue 14529

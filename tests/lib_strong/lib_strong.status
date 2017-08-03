@@ -152,15 +152,15 @@ mirrors/variable_is_const_test: Skip
 typed_data/float32x4_test: Skip
 typed_data/float64x2_functional_test: Skip
 typed_data/int32x4_test: Skip
-
-[ $compiler == dart2analyzer && $strong ]
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
 html/custom/element_upgrade_test: CompileTimeError # Issue 28969
-html/debugger_test: CompileTimeError # Issue 28969
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
+
+[ $compiler == dart2analyzer && $strong ]
 mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
+html/debugger_test: CompileTimeError # Issue 28969
 
 # TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
 [ $compiler == dartdevc ]
@@ -184,9 +184,8 @@ convert/streamed_conversion_utf8_decode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
-html/custom/attribute_changed_callback_test/fully_supported: CompileTimeError # Issue 29922
-html/custom/attribute_changed_callback_test/unsupported_on_polyfill: CompileTimeError # Issue 29922
-html/custom/constructor_calls_created_synchronously_test: CompileTimeError # Issue 29922
+html/custom/attribute_changed_callback_test: Crash # Issue 29922
+html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
 html/custom/created_callback_test: CompileTimeError # Issue 29922
 html/custom/document_register_basic_test: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
@@ -198,14 +197,10 @@ html/custom/document_register_type_extensions_test/parsing: CompileTimeError # I
 html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
 html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
 html/custom/element_upgrade_test: CompileTimeError # Issue 29922
-html/custom/entered_left_view_test/disconnected_subtree: CompileTimeError # Issue 29922
-html/custom/entered_left_view_test/shadow_dom: CompileTimeError # Issue 29922
-html/custom/entered_left_view_test/standard_events: CompileTimeError # Issue 29922
-html/custom/entered_left_view_test/standard_events_old_callback_names: CompileTimeError # Issue 29922
-html/custom/entered_left_view_test/viewless_document: CompileTimeError # Issue 29922
-html/custom/js_custom_test: CompileTimeError # Issue 29922
-html/custom/mirrors_test: CompileTimeError # Issue 29922
-html/custom/regress_194523002_test: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test: Crash # Issue 29922
+html/custom/js_custom_test: Crash # Issue 29922
+html/custom/mirrors_test: Crash # Issue 29922
+html/custom/regress_194523002_test: Crash # Issue 29922
 html/custom_element_method_clash_test/test: Timeout # Issue 29922
 html/custom_element_name_clash_test/test: Timeout # Issue 29922
 html/custom_elements_23127_test/baseline: Timeout # Issue 29922

@@ -133,14 +133,7 @@ default_factory_test: Skip
 deferred_constraints_constants_test: Skip
 deferred_constraints_constants_test_default: Skip
 deferred_constraints_constants_test: Skip
-deferred_constraints_type_annotation_test_as: Skip
-deferred_constraints_type_annotation_test_catch: Skip
-deferred_constraints_type_annotation_test_is: Skip
-deferred_constraints_type_annotation_test_new_before: Skip
-deferred_constraints_type_annotation_test_new: Skip
-deferred_constraints_type_annotation_test_type: Skip
-deferred_constraints_type_annotation_test_type_annotation: Skip
-deferred_constraints_type_annotation_test_type_annotation_top: Skip
+deferred_constraints_type_annotation_test: Skip
 deferred_duplicate_prefix1_test: Skip
 deferred_duplicate_prefix2_test: Skip
 deferred_duplicate_prefix3_test: Skip
@@ -833,7 +826,6 @@ nan_identical_test: RuntimeError # Issue 29920
 nested_switch_label_test: RuntimeError # Issue 29920
 number_identity2_test: RuntimeError # Issue 29920
 numbers_test: RuntimeError # Issue 29920
-prefix10_negative_test: Fail # Issue 29920
 regress_16640_test: RuntimeError # Issue 29920
 regress_22443_test: RuntimeError # Issue 29920
 regress_23089_test: CompileTimeError # Issue 29920

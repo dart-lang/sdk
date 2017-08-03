@@ -168,8 +168,10 @@ main(List<String> arguments) {
 
       // This covers tests where the intent of the test is to validate that
       // some static error is produced.
-      var intentionalCompileError = contents.contains(': compile-time error') ||
-          contents.contains('/*@compile-error=');
+      var intentionalCompileError =
+          (contents.contains(': compile-time error') ||
+                  contents.contains('/*@compile-error=')) &&
+              !status.contains(Expectation.missingCompileTimeError);
 
       var crashing = status.contains(Expectation.crash);
       if (module == null) {
@@ -188,7 +190,11 @@ main(List<String> arguments) {
 
       expect(crashing, isFalse, reason: "test $name no longer crashes.");
 
-      var knownCompileError = status.contains(Expectation.compileTimeError);
+      var knownCompileError = status.contains(Expectation.compileTimeError) ||
+          status.contains(Expectation.fail);
+      // TODO(jmesserly): we could also invert negative_test, however analyzer
+      // in test.dart does not do this.
+      //   name.endsWith('negative_test') && !status.contains(Expectation.fail)
       if (module.isValid) {
         expect(knownCompileError, isFalse,
             reason: "test $name expected static errors, but compiled.");
@@ -275,6 +281,7 @@ void _writeRuntimeStatus(Map<String, Set<Expectation>> testFiles) {
     if (status.contains(Expectation.compileTimeError) ||
         status.contains(Expectation.crash) ||
         status.contains(Expectation.skip) ||
+        status.contains(Expectation.fail) ||
         status.contains(Expectation.skipByDesign)) {
       return;
     }
