@@ -696,7 +696,8 @@ void StreamingScopeBuilder::VisitExpression() {
     case kClosureCreation:
       builder_->SkipCanonicalNameReference();  // read function reference.
       VisitExpression();                       // read context vector.
-      VisitDartType();  // read function type of the closure.
+      VisitDartType();                  // read function type of the closure.
+      builder_->SkipListOfDartTypes();  // read type arguments.
       return;
     default:
       UNREACHABLE();
@@ -4024,6 +4025,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       SkipCanonicalNameReference();  // read top-level function reference.
       SkipExpression();              // read context vector.
       SkipDartType();                // read function type.
+      SkipListOfDartTypes();         // read type arguments.
       return;
     case kBigIntLiteral:
       SkipStringReference();  // read string reference.
@@ -5925,6 +5927,7 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
   instructions += Drop();
 
   SkipDartType();  // skip function type of the closure.
+  SkipListOfDartTypes();  // skip list of type arguments.
 
   return instructions;
 }
