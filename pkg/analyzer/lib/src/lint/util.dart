@@ -50,31 +50,39 @@ String createLibraryNamePrefix(
 }
 
 /// Returns `true` if this [fileName] is a Dart file.
+@deprecated // Never intended for public use.
 bool isDartFileName(String fileName) => fileName.endsWith('.dart');
 
 /// Returns `true` if this [name] is a legal Dart identifier.
+@deprecated // Never intended for public use.
 bool isIdentifier(String name) => _identifier.hasMatch(name);
 
 /// Returns `true` of the given [name] is composed only of `_`s.
+@deprecated // Never intended for public use.
 bool isJustUnderscores(String name) => _underscores.hasMatch(name);
 
 /// Returns `true` if this [id] is `lowerCamelCase`.
+@deprecated // Never intended for public use.
 bool isLowerCamelCase(String id) =>
     id.length == 1 && isUpperCase(id.codeUnitAt(0)) ||
     id == '_' ||
     _lowerCamelCase.hasMatch(id);
 
 /// Returns `true` if this [id] is `lower_camel_case_with_underscores`.
+@deprecated // Never intended for public use.
 bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
 
 /// Returns `true` if this [id] is `lower_camel_case_with_underscores_or.dots`.
+@deprecated // Never intended for public use.
 bool isLowerCaseUnderScoreWithDots(String id) =>
     _lowerCaseUnderScoreWithDots.hasMatch(id);
 
 /// Returns `true` if this [fileName] is a Pubspec file.
+@deprecated // Never intended for public use.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
 
 /// Returns `true` if the given code unit [c] is upper case.
+@deprecated // Never intended for public use.
 bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;
 
 class Spelunker {

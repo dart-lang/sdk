@@ -26,6 +26,7 @@ import 'package:path/path.dart' as p;
 typedef Printer(String msg);
 
 /// Describes a String in valid camel case format.
+@deprecated // Never intended for public use.
 class CamelCaseString {
   static final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
   static final _camelCaseTester = new RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
