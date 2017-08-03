@@ -317,7 +317,8 @@ class State {
         continuation = null;
 
   State withBreak(Statement stmt, Environment env) {
-    Label breakLabels = new Label(stmt, env, continuation, labels);
+    var cont = new BreakBK(continuation, env);
+    Label breakLabels = new Label(stmt, cont, labels);
     return new State(
         breakLabels, exceptionComponents, returnContinuation, continuation);
   }
@@ -344,17 +345,22 @@ class State {
 /// enclosing label.
 class Label {
   final LabeledStatement statement;
-  final Environment environment;
-  final StatementContinuation continuation;
+  final BreakContinuation continuation;
   final Label enclosingLabel;
 
-  Label(
-      this.statement, this.environment, this.continuation, this.enclosingLabel);
+  Label(this.statement, this.continuation, this.enclosingLabel);
 
   Label lookupLabel(LabeledStatement s) {
     if (identical(s, statement)) return this;
     assert(enclosingLabel != null);
     return enclosingLabel.lookupLabel(s);
+  }
+
+  // Recursively install finally break to all labels.
+  Label withFinalizer(Statement finalizer, Environment env, State state) {
+    var label = enclosingLabel?.withFinalizer(finalizer, env, state);
+    var finallyCont = new FinallyBK(finalizer, env, state, continuation);
+    return new Label(statement, finallyCont, label);
   }
 }
 
@@ -454,6 +460,50 @@ class ThrowConfiguration extends Configuration {
   ThrowConfiguration(this.handler, this.exception, this.stacktrace);
 
   Configuration step(StatementExecuter _) => handler(exception, stacktrace);
+}
+
+class BreakConfiguration extends Configuration {
+  final BreakContinuation continuation;
+
+  BreakConfiguration(this.continuation);
+
+  Configuration step(StatementExecuter _) => continuation();
+}
+
+abstract class BreakContinuation extends Continuation {
+  Configuration call();
+}
+
+class BreakBK extends BreakContinuation {
+  final StatementContinuation continuation;
+  final Environment environment;
+
+  BreakBK(this.continuation, this.environment);
+
+  Configuration call() => new ForwardConfiguration(continuation, environment);
+}
+
+class FinallyBK extends BreakContinuation {
+  final Statement finalizer;
+  final Environment environment;
+  final State state;
+  final BreakContinuation continuation;
+
+  FinallyBK(this.finalizer, this.environment, this.state, this.continuation);
+
+  Configuration call() {
+    var cont = new BreakSK(continuation);
+    return new ExecConfiguration(
+        finalizer, environment, state.withContinuation(cont));
+  }
+}
+
+class BreakSK extends StatementContinuation {
+  final BreakContinuation continuation;
+
+  BreakSK(this.continuation);
+
+  Configuration call(Environment _) => new BreakConfiguration(continuation);
 }
 
 // ------------------------------------------------------------------------
@@ -1341,21 +1391,16 @@ class CatchHandler extends ExceptionHandler {
 class FinallyHandler extends ExceptionHandler {
   final Statement finallyStatement;
   final Environment environment;
-  final Label labels;
-  final ExceptionComponents exceptionComponents;
-  final ExpressionContinuation expressionContinuation;
+  final State state;
 
-  FinallyHandler(this.finallyStatement, this.environment, this.labels,
-      this.exceptionComponents, this.expressionContinuation);
-
+  FinallyHandler(this.finallyStatement, this.environment, this.state);
   Configuration call(Value exception, StackTrace stackTrace) {
     // A finally handler can't handle an exception, only execute the
     // corresponding finally statement and rethrow.
     var cont =
-        new RethrowSK(exceptionComponents.handler, exception, stackTrace);
-    var state =
-        new State(labels, exceptionComponents, expressionContinuation, cont);
-    return new ExecConfiguration(finallyStatement, environment, state);
+        new RethrowSK(state.exceptionComponents.handler, exception, stackTrace);
+    var newState = state.withContinuation(cont);
+    return new ExecConfiguration(finallyStatement, environment, newState);
   }
 }
 
@@ -1364,7 +1409,7 @@ class FinallyHandler extends ExceptionHandler {
 // ------------------------------------------------------------------------
 /// Represents the components for Exception handling.
 ///
-/// It contains the list of exception handlers, a stack trace and optional
+/// It contains the current of exception handler, a stack trace and optional
 /// components, current stacktrace and exception.
 class ExceptionComponents {
   final ExceptionHandler handler;
@@ -1483,7 +1528,7 @@ class StatementExecuter
   Configuration visitBreakStatement(
       BreakStatement node, ExecConfiguration conf) {
     Label l = conf.state.lookupLabel(node.target);
-    return new ForwardConfiguration(l.continuation, l.environment);
+    return new BreakConfiguration(l.continuation);
   }
 
   Configuration visitWhileStatement(
@@ -1517,22 +1562,30 @@ class StatementExecuter
 
   Configuration visitTryCatch(TryCatch node, ExecConfiguration conf) {
     var handler = new CatchHandler(node.catches, conf.environment, conf.state);
-    var handlers = new ExceptionComponents(
+    var exceptionComponents = new ExceptionComponents(
         handler,
         conf.state.exceptionComponents.stackTrace,
         conf.state.exceptionComponents.currentStackTrace,
         conf.state.exceptionComponents.currentException);
-    var state = conf.state.withException(handlers);
+    var state = conf.state.withException(exceptionComponents);
     return new ExecConfiguration(node.body, conf.environment, state);
   }
 
   Configuration visitTryFinally(TryFinally node, ExecConfiguration conf) {
-    // TODO(zhivkag): Add FinallyBreak to break labels.
     var cont = new FinallySK(node.finalizer, conf.environment, conf.state);
     var returnCont =
         new FinallyReturnEK(node.finalizer, conf.environment, conf.state);
-    return new ExecConfiguration(node.body, conf.environment,
-        conf.state.withContinuation(cont).withReturnContinuation(returnCont));
+    var labels = conf.state.labels
+        ?.withFinalizer(node.finalizer, conf.environment, conf.state);
+    var handler =
+        new FinallyHandler(node.finalizer, conf.environment, conf.state);
+    var exceptionComponents = new ExceptionComponents(
+        handler,
+        conf.state.exceptionComponents.stackTrace,
+        conf.state.exceptionComponents.currentStackTrace,
+        conf.state.exceptionComponents.currentException);
+    var state = new State(labels, exceptionComponents, returnCont, cont);
+    return new ExecConfiguration(node.body, conf.environment, state);
   }
 
   Configuration visitVariableDeclaration(
