@@ -290,10 +290,6 @@ class KernelLibraryBuilder
       int unresolvedCount = 0;
       Map<String, TypeBuilder> freeTypes = <String, TypeBuilder>{};
 
-      // TODO(30316): Use correct locations of mixin applications
-      // (e.g. identifiers for mixed-in classes).
-      if (charOffset == -1) charOffset = type.charOffset;
-
       if (name == null || type.mixins.length != 1) {
         TypeBuilder last = type.mixins.last;
 
@@ -423,8 +419,8 @@ class KernelLibraryBuilder
         checkArguments(mixin);
         supertype = applyMixin(supertype, mixin, signature,
             isSyntheticMixinImplementation: true,
-            typeVariables: new List<TypeVariableBuilder>.from(variables.values),
-            charOffset: charOffset);
+            typeVariables:
+                new List<TypeVariableBuilder>.from(variables.values));
       }
       KernelNamedTypeBuilder mixin = type.mixins.last;
 
