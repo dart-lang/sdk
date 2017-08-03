@@ -19,15 +19,19 @@ const dartdevc = "--compiler=dartdevc";
 const noCompiler = "--compiler=none";
 const precompiler = "--compiler=precompiler";
 const analyzer = "--compiler=dart2analyzer";
+const dartk = "--compiler=dartk";
 
 const chrome = "--runtime=chrome";
 const precompiled = "--runtime=dart_precompiled";
 const noRuntime = "--runtime=none";
 const vm = "--runtime=vm";
+const jsshell = "--runtime=jsshell";
 
 const checked = "--checked";
 const dart2jsBatch = "--dart2js-batch";
+const fastStartup = "--fast-startup";
 const useSdk = "--use-sdk";
+const releaseMode = "--mode=release";
 const productMode = "--mode=product";
 const strong = "--strong";
 
@@ -43,21 +47,26 @@ final allConfigs = {
   "vm-checked": [noCompiler, vm, checked],
   "vm-app": [appJit, vm],
   "vm-app-product": [productMode, appJit, vm],
-  // TODO(rnystrom): What build target do we need to get this to work?
-//  "vm-precomp": [precompiler, precompiled],
+  "vm-kernel": [dartk, releaseMode, vm],
+  "vm-precomp": [precompiler, precompiled],
   "vm-product": [productMode, noCompiler, vm],
   // TODO(rnystrom): Add dart2js-d8-hostchecked, dart2js-d8-minified, or
   // dart2js-jsshell?
   "analyzer": [analyzer, noRuntime, useSdk],
   "analyzer-checked": [analyzer, noRuntime, checked, useSdk],
   "dart2js": [dart2js, chrome, useSdk, dart2jsBatch],
+  "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
-  "dartdevc": [dartdevc, chrome, useSdk, strong]
+  "dartdevc": [dartdevc, chrome, useSdk, strong],
 };
 
 final buildSteps = [
   // The SDK, which also builds the VM.
   ["--mode=release", "create_sdk"],
+  // The kernel service.
+  ["--mode=release", "kernel-service"],
+  // Precompiled runtime for release
+  ["--mode=release", "runtime_precompiled"],
   // Product version of the runtime and precompiled runtime.
   ["--mode=product", "runtime", "runtime_precompiled"],
   // Dartdevc and its dependencies.
