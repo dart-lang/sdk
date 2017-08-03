@@ -23,6 +23,44 @@ main(List<String> args) async {
   argParser.addFlag('force', abbr: 'f');
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
+
+  await runSingleTests(argResults);
+  await runGroupTests(argResults);
+}
+
+Future runGroupTests(ArgResults argResults) async {
+  BuildbotClient client = argResults['logdog']
+      ? new LogdogBuildbotClient()
+      : new HttpBuildbotClient();
+  await runGroupTest(client, 'vm-kernel');
+  client.close();
+}
+
+Future runGroupTest(BuildbotClient client, String testGroup) async {
+  print('Testing group compare-failures: $testGroup runCount=1');
+  Map<BuildUri, List<BuildResult>> buildResults =
+      await loadBuildResults(client, [testGroup], runCount: 1);
+  print('- checking results for ${buildResults.keys}');
+  buildResults.forEach((BuildUri buildUri, List<BuildResult> results) {
+    Expect.isTrue(buildUri.buildNumber < 0,
+        "Expected relative build number for $buildUri");
+    for (BuildResult result in results) {
+      Expect.isTrue(
+          result.buildUri.buildNumber > 0,
+          "Expected absolute build number for build result "
+          "${result.buildUri}.");
+      for (TestFailure failure in result.failures) {
+        Expect.equals(
+            result.buildUri.buildNumber,
+            failure.uri.buildNumber,
+            "Expected absolute build number for test failure "
+            "'${failure.id}' from ${failure.uri}.");
+      }
+    }
+  });
+}
+
+Future runSingleTests(ArgResults argResults) async {
   bool force = argResults['force'];
 
   BuildbotClient client = argResults['logdog']
@@ -70,8 +108,10 @@ testSingleResults(
 
 Future runSingleTest(BuildbotClient client, String testUri, int runCount,
     Map<int, Map<String, String>> expectedResult) async {
+  print('Testing single compare-failures: $testUri runCount=$runCount');
   Map<BuildUri, List<BuildResult>> buildResults =
       await loadBuildResults(client, [testUri], runCount: runCount);
+  print('- checking results for ${buildResults.keys}');
   if (LOG) {
     printBuildResultsSummary(buildResults);
   }

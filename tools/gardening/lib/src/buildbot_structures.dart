@@ -138,6 +138,9 @@ class BuildResult {
         .where((TestFailure failure) => failure.actual != 'Timeout');
   }
 
+  /// Returns all [TestFailure]s.
+  Iterable<TestFailure> get failures => _failures;
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('$buildUri\n');
