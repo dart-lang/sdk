@@ -178,17 +178,6 @@ list_growable_test: Crash
 list_index_of2_test: RuntimeError
 list_insert_all_test: Crash
 list_insert_test: Crash
-list_iterators_test: Crash
-list_last_test: Crash
-list_map_test: Crash
-list_remove_range_test: Crash
-list_removeat_test: Crash
-list_replace_range_test: Crash
-list_reversed_test: Crash
-list_set_all_test: Crash
-list_set_range_test: Crash
-list_sort_test: RuntimeError
-list_sublist_test: Crash
 regexp/parentheses_test: Crash
 regress_r21715_test: RuntimeError
 set_containsAll_test: Crash
@@ -244,7 +233,6 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-list_sort_test: Crash
 regress_11099_test: Crash
 safe_to_string_test: Crash
 sort_test: Crash
@@ -267,9 +255,6 @@ int_truncate_to_double_test: Crash
 list_filled_type_argument_test: Crash
 list_index_of2_test: Crash
 list_index_of_test: Crash
-list_literal_is_growable_test: Crash
-list_literal_test: Crash
-list_sort_test: Crash
 reg_exp1_test: Crash
 reg_exp_first_match_test: Crash
 reg_exp_group_test: Crash

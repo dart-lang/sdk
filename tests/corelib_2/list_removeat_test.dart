@@ -32,14 +32,6 @@ void testModifiableList(l1) {
   Expect.throws(() {
     l1.removeAt(null);
   }, (e) => e is ArgumentError, "too large");
-  Expect.throws(() {
-    l1.removeAt("1");
-  }, (e) => (typeAssertionsEnabled ? e is TypeError : e is ArgumentError),
-      "string");
-  Expect.throws(() {
-    l1.removeAt(1.5);
-  }, (e) => (typeAssertionsEnabled ? e is TypeError : e is ArgumentError),
-      "double");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");
   Expect.equals(1, l1[1], "l1-1[1]");

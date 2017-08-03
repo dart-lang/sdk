@@ -37,8 +37,5 @@ iterable_return_type_test/02: RuntimeError # Issue 29921
 json_map_test: RuntimeError # Issue 29921
 list_fill_range_test: RuntimeError # Issue 29921
 list_insert_test: RuntimeError # Issue 29921
-list_removeat_test: RuntimeError # Issue 29921
-list_replace_range_test: RuntimeError # Issue 29921
-list_set_all_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Issue 29921
 string_operations_with_null_test: RuntimeError # Issue 29921

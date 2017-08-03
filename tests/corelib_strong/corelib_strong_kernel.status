@@ -20,12 +20,6 @@ iterable_take_while_test: DartkCompileTimeError
 list_fill_range_test: DartkCompileTimeError
 list_get_range_test: DartkCompileTimeError
 list_insert_all_test: DartkCompileTimeError
-list_map_test: DartkCompileTimeError
-list_remove_range_test: DartkCompileTimeError
-list_replace_range_test: DartkCompileTimeError
-list_set_all_test: DartkCompileTimeError
-list_set_range_test: DartkCompileTimeError
-list_sublist_test: DartkCompileTimeError
 set_test: DartkCompileTimeError
 shuffle_test: DartkCompileTimeError
 sort_test: DartkCompileTimeError

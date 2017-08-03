@@ -168,6 +168,9 @@ error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevc ]
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+list_removeat_test: RuntimeError # Issue 29921
+list_replace_range_test: RuntimeError # Issue 29921
+list_set_all_test: RuntimeError # Issue 29921
 
 [ $runtime == flutter ]
 apply3_test: CompileTimeError # mirrors not supported
@@ -617,6 +620,17 @@ list_test/none: Crash
 list_to_string2_test: Crash
 list_to_string_test: Crash
 list_unmodifiable_test: Crash
+list_iterators_test: Crash
+list_last_test: Crash
+list_map_test: Crash
+list_remove_range_test: Crash
+list_removeat_test: Crash
+list_replace_range_test: Crash
+list_reversed_test: Crash
+list_set_all_test: Crash
+list_set_range_test: Crash
+list_sort_test: RuntimeError
+list_sublist_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 stopwatch_test: Crash
@@ -624,6 +638,7 @@ type_hashcode_test: Crash
 map_contains_key_test: Crash
 map_index_test: Crash
 map_remove_test: Crash
+list_sort_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 big_integer_arith_vm_test/add: Crash
@@ -784,6 +799,9 @@ num_sign_test: Crash
 map_contains_key_test: Crash
 map_index_test: Crash
 map_remove_test: Crash
+list_literal_is_growable_test: Crash
+list_literal_test: Crash
+list_sort_test: Crash
 
 [$arch == simdbc || $arch == simdbc64]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -809,3 +827,11 @@ package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && ! $dart2js_with_kernel ]
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+
+[ $compiler == dartk && $runtime == vm ]
+list_map_test: DartkCompileTimeError
+list_remove_range_test: DartkCompileTimeError
+list_replace_range_test: DartkCompileTimeError
+list_set_all_test: DartkCompileTimeError
+list_set_range_test: DartkCompileTimeError
+list_sublist_test: DartkCompileTimeError
