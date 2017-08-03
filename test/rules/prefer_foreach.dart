@@ -13,6 +13,20 @@ void foo() {
   }
 }
 
+void foo2() {
+  for (final a in []) { //LINT
+    (f(a));
+  }
+}
+
+Function func() => null;
+
+void foo3() {
+  for (final a in <int>[1]) { //LINT
+    func()(a);
+  }
+}
+
 class WithMethods {
   void f(Object o) {}
 
