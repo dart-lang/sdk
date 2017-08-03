@@ -101,7 +101,7 @@ class TestConfiguration {
 
 /// The results of a build step.
 class BuildResult {
-  final BuildUri _buildUri;
+  final BuildUri buildUri;
 
   /// The absolute build number, if found.
   ///
@@ -114,11 +114,8 @@ class BuildResult {
   final List<TestFailure> _failures;
   final List<Timing> _timings;
 
-  BuildResult(this._buildUri, this.buildNumber, this._results, this._failures,
+  BuildResult(this.buildUri, this.buildNumber, this._results, this._failures,
       this._timings);
-
-  BuildUri get buildUri =>
-      buildNumber != null ? _buildUri.withBuildNumber(buildNumber) : _buildUri;
 
   /// `true` of the build result has test failures.
   bool get hasFailures => _failures.isNotEmpty;

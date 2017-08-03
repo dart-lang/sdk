@@ -87,6 +87,7 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     if (line.startsWith(BUILDBOT_BUILDNUMBER)) {
       buildNumber =
           int.parse(line.substring(BUILDBOT_BUILDNUMBER.length).trim());
+      buildUri = buildUri.withBuildNumber(buildNumber);
     }
     if (currentFailure != null) {
       if (line.startsWith('Done ')) {

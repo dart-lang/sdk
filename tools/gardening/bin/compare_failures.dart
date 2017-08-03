@@ -35,7 +35,7 @@ main(List<String> args) async {
 
   var runCount = int.parse(argResults['run-count'], onError: (_) => null);
 
-  if (argResults.rest.length != 1 || argResults['help'] || runCount == null) {
+  if (argResults.rest.length < 1 || argResults['help'] || runCount == null) {
     help(argParser);
     if (argResults['help']) return;
     exit(1);
