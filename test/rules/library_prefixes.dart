@@ -4,8 +4,10 @@
 
 // test w/ `pub run test -N library_prefixes`
 
+import 'dart:async' as _async; //OK
 import 'dart:math' as dartMath; //LINT [23:8]
 
 main() {
   print(dartMath.PI);
+  print(_async.Timer);
 }

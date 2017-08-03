@@ -7,8 +7,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc =
-    r'Boolean expression composed only with literals.';
+const _desc = r'Boolean expression composed only with literals.';
 
 const _details = r'''
 

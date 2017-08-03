@@ -41,31 +41,6 @@ class Analyzer {
           projectRoot: projectRoot,
           packageName: packageName);
 
-  /// Check if this [string] is formatted in `CamelCase`.
-  bool isCamelCase(String string) => CamelCaseString.isCamelCase(string);
-
-  /// Returns `true` if this [name] is a legal Dart identifier.
-  bool isIdentifier(String name) => util.isIdentifier(name);
-
-  /// Check if this [string] consists only of `_`s.
-  bool isJustUnderscores(String string) => util.isJustUnderscores(string);
-
-  /// Returns `true` if this [id] is `lowerCamelCase`.
-  bool isLowerCamelCase(String id) => util.isLowerCamelCase(id);
-
-  /// Returns `true` if this [id] is `lower_camel_case_with_underscores`.
-  bool isLowerCaseUnderScore(String id) => util.isLowerCaseUnderScore(id);
-
-  /// Returns `true` if this [id] is `lower_camel_case_with_underscores_or.dots`.
-  bool isLowerCaseUnderScoreWithDots(String id) =>
-      util.isLowerCaseUnderScoreWithDots(id);
-
-  /// Returns `true` if this [fileName] is a Pubspec file.
-  bool isPubspecFileName(String fileName) => util.isPubspecFileName(fileName);
-
-  /// Returns `true` if the given code unit [c] is upper case.
-  bool isUpperCase(int c) => util.isUpperCase(c);
-
   /// Register this [lint] with the analyzer's rule registry.
   void register(LintRule lint) {
     Registry.ruleRegistry.register(lint);

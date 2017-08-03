@@ -4,7 +4,7 @@
 
 // test w/ `pub run test -N constant_identifier_names`
 
-const DEFALT_TIMEOUT = 1000; //LINT
+const DEFAULT_TIMEOUT = 1000; //LINT
 const PI = 3.14; //LINT
 
 class Z {

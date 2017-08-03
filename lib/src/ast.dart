@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/utils.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {
@@ -139,8 +140,7 @@ bool isSimpleSetter(MethodDeclaration setter) {
 }
 
 /// Returns `true` if the given [id] is a valid Dart identifier.
-bool isValidDartIdentifier(String id) =>
-    !isKeyWord(id) && Analyzer.facade.isIdentifier(id);
+bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
 
 /// Returns `true` if the keyword associated with this token is `var`.
 bool isVar(Token token) => isKeyword(token, Keyword.VAR);

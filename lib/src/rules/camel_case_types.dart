@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/utils.dart';
 
 const desc = 'Name types using UpperCamelCase.';
 
@@ -31,8 +32,6 @@ typedef num Adder(num x, num y);
 ```
 ''';
 
-bool isUpperCamelCase(String s) => Analyzer.facade.isCamelCase(s);
-
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
       : super(
@@ -51,14 +50,14 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    if (!isUpperCamelCase(node.name.toString())) {
+    if (!isCamelCase(node.name.toString())) {
       rule.reportLint(node.name);
     }
   }
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isUpperCamelCase(node.name.toString())) {
+    if (!isCamelCase(node.name.toString())) {
       rule.reportLint(node.name);
     }
   }

@@ -17,6 +17,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/utils.dart';
 
 const desc = 'Specify type annotations.';
 
@@ -141,8 +142,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
-    if (param.type == null &&
-        !Analyzer.facade.isJustUnderscores(param.identifier.name)) {
+    if (param.type == null && !isJustUnderscores(param.identifier.name)) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
       } else {

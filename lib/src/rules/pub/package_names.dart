@@ -4,6 +4,7 @@
 
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
+import 'package:linter/src/utils.dart';
 
 const desc = 'Use `lowercase_with_underscores` for package names.';
 
@@ -18,9 +19,6 @@ Package names should be all lowercase, with underscores to separate words,
 Also, make sure the name is a valid Dart identifier -- that it doesn't start
 with digits and isn't a reserved word.
 ''';
-
-bool isValidPackageName(String id) =>
-    Analyzer.facade.isLowerCaseUnderScore(id) && isValidDartIdentifier(id);
 
 class PubPackageNames extends LintRule {
   PubPackageNames()

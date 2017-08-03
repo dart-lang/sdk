@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/utils.dart';
 
 const desc = r'Avoid empty catch blocks.';
 
@@ -67,7 +68,7 @@ class Visitor extends SimpleAstVisitor {
     // Skip exceptions named with underscores.
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null &&
-        Analyzer.facade.isJustUnderscores(exceptionParameter.name)) {
+        isJustUnderscores(exceptionParameter.name)) {
       return;
     }
 
