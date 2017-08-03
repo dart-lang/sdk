@@ -656,6 +656,27 @@ class StreamingFlowGraphBuilder {
   friend class KernelReader;
 };
 
+// A helper class that saves the current reader position, goes to another reader
+// position, and upon destruction, resets to the original reader position.
+class AlternativeReadingScope {
+ public:
+  AlternativeReadingScope(Reader* reader, intptr_t new_position)
+      : reader_(reader), saved_offset_(reader_->offset()) {
+    reader_->set_offset(new_position);
+  }
+
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader), saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* reader_;
+  intptr_t saved_offset_;
+};
+
 // Helper class that reads a kernel FunctionNode from binary.
 //
 // Use ReadUntilExcluding to read up to but not including a field.
@@ -938,16 +959,16 @@ class FieldHelper {
         if (builder_->ReadTag() == kSomething) {
           if (detect_function_literal_initializer &&
               builder_->PeekTag() == kFunctionExpression) {
-            has_function_literal_initializer_ = true;
-            intptr_t expr_offset = builder_->ReaderOffset();
+            AlternativeReadingScope alt(builder_->reader_);
             Tag tag = builder_->ReadTag();
             ASSERT(tag == kFunctionExpression);
-            tag = builder_->ReadTag();
-            ASSERT(tag == kFunctionNode);
-            function_literal_start_ = builder_->ReadPosition();
-            function_literal_end_ = builder_->ReadPosition();
 
-            builder_->SetOffset(expr_offset);
+            FunctionNodeHelper helper(builder_);
+            helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
+
+            has_function_literal_initializer_ = true;
+            function_literal_start_ = helper.position_;
+            function_literal_end_ = helper.end_position_;
           }
           builder_->SkipExpression();  // read initializer.
         }
@@ -1523,27 +1544,6 @@ class LibraryHelper {
  private:
   StreamingFlowGraphBuilder* builder_;
   intptr_t next_read_;
-};
-
-// A helper class that saves the current reader position, goes to another reader
-// position, and upon destruction, resets to the original reader position.
-class AlternativeReadingScope {
- public:
-  AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader), saved_offset_(reader_->offset()) {
-    reader_->set_offset(new_position);
-  }
-
-  explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader), saved_offset_(reader_->offset()) {}
-
-  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
-
-  intptr_t saved_offset() { return saved_offset_; }
-
- private:
-  Reader* reader_;
-  intptr_t saved_offset_;
 };
 
 }  // namespace kernel
