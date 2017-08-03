@@ -58,9 +58,11 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
+dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign
+dynamic_nosuchmethod_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
