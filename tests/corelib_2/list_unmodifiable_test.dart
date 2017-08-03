@@ -214,90 +214,90 @@ class Test<E> {
   }
 }
 
-createConstList(n) {
+List<int> createConstList(int n) {
   if (n == 0) return const <int>[];
   return const <int>[1, 2, 3];
 }
 
-createFixedList(n) {
+List<int> createFixedList(int n) {
   var result = new List<int>(n);
   for (int i = 0; i < n; i++) result[i] = n;
   return result;
 }
 
-createGrowableList(n) {
+List<int> createGrowableList(int n) {
   var result = new List<int>()..length = n;
   for (int i = 0; i < n; i++) result[i] = n;
   return result;
 }
 
-createIterable(n) => new Iterable.generate(n);
-createConstMapKeys(n) {
+Iterable createIterable(int n) => new Iterable.generate(n);
+Iterable createConstMapKeys(int n) {
   if (n == 0) return const <int, int>{}.keys;
   return const <int, int>{0: 0, 1: 1, 2: 2}.keys;
 }
 
-createConstMapValues(n) {
+Iterable createConstMapValues(int n) {
   if (n == 0) return const <int, int>{}.values;
   return const <int, int>{0: 0, 1: 1, 2: 2}.values;
 }
 
-createMapKeys(n) {
+Iterable createMapKeys(int n) {
   var map = <int, int>{};
   for (int i = 0; i < n; i++) map[i] = i;
   return map.keys;
 }
 
-createMapValues(n) {
+Iterable createMapValues(int n) {
   var map = <int, int>{};
   for (int i = 0; i < n; i++) map[i] = i;
   return map.values;
 }
 
-createSplayMapKeys(n) {
+Iterable createSplayMapKeys(int n) {
   var map = new SplayTreeMap<int, int>();
   for (int i = 0; i < n; i++) map[i] = i;
   return map.keys;
 }
 
-createSplayMapValues(n) {
+Iterable createSplayMapValues(int n) {
   var map = new SplayTreeMap<int, int>();
   for (int i = 0; i < n; i++) map[i] = i;
   return map.values;
 }
 
-createSet(n) {
+Set<int> createSet(int n) {
   var set = new Set<int>();
   for (int i = 0; i < n; i++) set.add(i);
   return set;
 }
 
-createSplaySet(n) {
+SplayTreeSet<int> createSplaySet(int n) {
   var set = new SplayTreeSet<int>();
   for (int i = 0; i < n; i++) set.add(i);
   return set;
 }
 
-createQueue(n) {
+Queue<int> createQueue(int n) {
   var queue = new Queue<int>();
   for (int i = 0; i < n; i++) queue.add(i);
   return queue;
 }
 
-createListMapKeys(n) {
+Iterable createListMapKeys(int n) {
   return createGrowableList(n).asMap().keys;
 }
 
-createListMapValues(n) {
+Iterable createListMapValues(int n) {
   return createGrowableList(n).asMap().values;
 }
 
-createCodeUnits(n) {
+Iterable createCodeUnits(int n) {
   var string = new String.fromCharCodes(new Iterable.generate(n));
   return string.codeUnits;
 }
 
-createTypedList(n) {
+Uint8List createTypedList(int n) {
   var tl = new Uint8List(n);
   for (int i = 0; i < n; i++) tl[i] = i;
   return tl;

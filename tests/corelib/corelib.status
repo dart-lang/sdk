@@ -12,7 +12,6 @@ string_case_test/01: Fail # Bug 18061
 int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 int_parse_radix_test/02: Fail # No bigints.
 integer_to_radix_string_test: RuntimeError # issue 22045
-list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
@@ -41,7 +40,6 @@ regress_r21715_test: RuntimeError # Requires bigint support.
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
-list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
 [ $compiler == dart2analyzer ]
 int_parse_radix_bad_handler_test: fail
@@ -191,11 +189,6 @@ list_set_all_test: Crash
 list_set_range_test: Crash
 list_sort_test: RuntimeError
 list_sublist_test: Crash
-list_test/01: Crash
-list_test/none: Crash
-list_to_string2_test: Crash
-list_to_string_test: Crash
-list_unmodifiable_test: Crash
 regexp/parentheses_test: Crash
 regress_r21715_test: RuntimeError
 set_containsAll_test: Crash

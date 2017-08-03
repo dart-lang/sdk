@@ -79,6 +79,9 @@ compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 growable_list_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
+list_unmodifiable_test: RuntimeError
+list_test/none: RuntimeError
+list_test/01: RuntimeError
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
@@ -345,6 +348,7 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 string_trimlr_test/01: Fail
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
 [ $compiler == dart2js && $runtime == d8 ]
 string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
@@ -606,6 +610,11 @@ map_from_iterables_test: Crash
 map_from_test: Crash
 map_keys2_test: Crash
 map_keys_test: Crash
+list_test/01: Crash
+list_test/none: Crash
+list_to_string2_test: Crash
+list_to_string_test: Crash
+list_unmodifiable_test: Crash
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 stopwatch_test: Crash
@@ -792,3 +801,9 @@ regexp/global_test: Skip # Issue 21709
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
+
+[ $compiler == dart2js && ! $browser ]
+package_resource_test: RuntimeError # Issue 26842
+
+[ $compiler == dart2js && ! $dart2js_with_kernel ]
+list_unmodifiable_test: Pass, RuntimeError # Issue 28712

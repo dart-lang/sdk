@@ -22,8 +22,6 @@ linked_hash_map_from_iterable_test: Skip
 list_contains_argument_order_test: Skip
 list_filled_type_argument_test: Skip
 list_index_of2_test: Skip
-list_test: Skip
-list_unmodifiable_test: Skip
 regexp/regress-regexp-codeflush_test: Skip
 regexp/standalones_test: Skip
 string_replace_test: Skip
