@@ -9,6 +9,7 @@ import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
 import 'mocks.dart';
 import 'rule_test.dart' as rule_test;
+import 'utils_test.dart' as utils_test;
 
 main() {
   // Redirect output.
@@ -18,4 +19,5 @@ main() {
   formatter_test.main();
   integration_test.main();
   rule_test.main();
+  utils_test.main();
 }
