@@ -939,7 +939,6 @@ function_subtype_local5_test: Crash
 function_subtype_not1_test: Crash
 function_subtype_not3_test: Crash
 function_subtype_setter0_test: Crash
-function_subtype_typearg0_test: Crash
 function_subtype_typearg1_test: Crash
 function_subtype_typearg2_test: Crash
 function_subtype_typearg3_test: Crash
@@ -1194,7 +1193,6 @@ licm2_test: Crash
 licm3_test: Crash
 list_double_index_in_loop2_test: Crash
 list_double_index_in_loop_test: Crash
-list_tracer_call_last_test: Crash
 list_is_test: Crash
 list_length_tracer_test: Crash
 list_literal3_test: Crash
@@ -1679,7 +1677,6 @@ static_getter_no_setter2_test/01: Crash
 static_getter_no_setter2_test/none: Crash
 static_getter_no_setter3_test/01: Crash
 static_getter_no_setter3_test/none: Crash
-static_implicit_closure_test: Crash
 static_initializer_type_error_test: Crash
 static_setter_get_test/01: Crash
 string_charcode_test: Crash
@@ -1700,7 +1697,6 @@ super_bound_closure_test/none: Crash
 super_call4_test: Crash
 super_closure_test: RuntimeError
 super_field_access_test: Crash
-super_field_2_test: RuntimeError
 super_getter_setter_test: Crash
 super_implicit_closure_test: Crash
 super_inferrer_test: Crash
@@ -1745,14 +1741,6 @@ syncstar_less_than_test: Crash
 syncstar_yield_test/copyParameters: Crash
 syncstar_yield_test/none: Crash
 syncstar_yieldstar_test: Crash
-syntax_test/02: Crash
-syntax_test/03: Crash
-syntax_test/27: Crash
-syntax_test/49: Crash
-syntax_test/54: Crash
-syntax_test/60: Crash
-syntax_test/61: Crash
-syntax_test/62: Crash
 syntax_test/none: CompileTimeError
 syntax_test/none: Crash
 temp_mangling_test: Crash
