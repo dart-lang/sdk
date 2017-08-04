@@ -107,7 +107,6 @@ timer_test: Fail # Issue 7728.
 
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.
-bailout8_test: Fail, OK # Mismatch in thrown exception.
 
 [ $compiler == dart2js && $csp ]
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
@@ -139,7 +138,6 @@ mirror_printer_test: Pass, Slow # Issue 25940, 16473
 big_allocation_expression_test: Pass # Issue 27394
 21666_test: Crash # Issue 27394
 23486_test/02: Crash # Issue 27394
-bailout_on_continue_test: RuntimeError # Issue 27394
 closure_type_reflection2_test: Crash # Issue 27394
 closure_type_reflection_test: Crash # Issue 27394
 deferred/deferred_mirrors2_test: Crash # Issue 27394
@@ -197,11 +195,6 @@ regress/4562_test/01: Crash # Issue 27394
 LayoutTests_fast_mediastream_getusermedia_t01_test/none: Crash
 assert_with_message_test: Crash
 async_stacktrace_test: Crash
-bailout8_test: Crash
-bailout_aborting_if_test: Crash
-bailout_on_break_test: Crash
-bailout_on_continue_test: Timeout
-bailout_test: Crash
 big_allocation_expression_test: Crash
 bound_closure_interceptor_methods_test: Crash
 bound_closure_interceptor_type_test: Crash
@@ -367,11 +360,6 @@ useful_error_message_1_test: Crash
 28919_test: Crash # Assertion failure: Cannot find value local(foo_closure.call#i) in (local(foo_closure.call#x), local(foo#)) for j:closure_call(foo_closure.call).
 assert_with_message_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 async_stacktrace_test: Crash # NoSuchMethodError: The getter 'memberIndex' was called on null.
-bailout8_test: Crash # Assertion failure: Cannot find value local(unwrapException_closure.call#ex) in (local(unwrapException_closure.call#error), local(unwrapException#saveStackTrace), local(unwrapException_closure.call#thrownStackTrace)) for j:closure_call(unwrapException_closure.call).
-bailout_aborting_if_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
-bailout_on_break_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-bailout_on_continue_test: Timeout
-bailout_test: Crash # UnimplementedError: KernelClosedWorldMixin.getAppliedMixin
 big_allocation_expression_test: Crash # Assertion failure: Cannot find value local(Maps_mapToString_closure.call#first) in (local(Maps_mapToString_closure.call#k), local(Maps_mapToString_closure.call#v), local(Maps.mapToString#)) for j:closure_call(Maps_mapToString_closure.call).
 bound_closure_interceptor_methods_test: Crash # NoSuchMethodError: The getter 'enclosingClass' was called on null.
 bound_closure_interceptor_type_test: Crash # NoSuchMethodError: The getter 'classIndex' was called on null.
