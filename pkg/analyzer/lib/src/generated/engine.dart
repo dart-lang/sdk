@@ -841,6 +841,7 @@ class AnalysisEngine {
    */
   void clearCaches() {
     partitionManager.clearCache();
+    // See https://github.com/dart-lang/sdk/issues/30314.
     StringToken.canonicalizer.clear();
   }
 
